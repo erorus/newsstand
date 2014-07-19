@@ -1,0 +1,142 @@
+<?php
+
+require_once('../incl/incl.php');
+
+if (!DBConnect())
+    DebugMessage('Cannot connect to db!', E_USER_ERROR);
+
+$regions = array('US','EU');
+
+foreach ($regions as $region)
+{
+    $url = sprintf('https://%s.battle.net/api/wow/realm/status', strtolower($region));
+
+    $json = FetchHTTP($url);
+    $realms = json_decode($json, true, 512, JSON_BIGINT_AS_STRING);
+    if (json_last_error() != JSON_ERROR_NONE)
+    {
+        DebugMessage("$url did not return valid JSON");
+        continue;
+    }
+
+    if (!isset($realms['realms']) || (count($realms['realms']) == 0))
+    {
+        DebugMessage("$url returned no realms");
+        continue;
+    }
+
+    $stmt = $db->prepare('select ifnull(max(id), 0) from tblRealm');
+    $stmt->execute();
+    $stmt->bind_result($nextId);
+    $stmt->fetch();
+    $stmt->close();
+    $nextId++;
+
+    $stmt = $db->prepare('insert into tblRealm (id, region, slug, name, locale) values (?, ?, ?, ?, ?) on duplicate key update name=values(name), locale=values(locale)');
+    foreach ($realms['realms'] as &$realm)
+    {
+        $stmt->bind_param('issss', $nextId, $region, $realm['slug'], $realm['name'], $realm['locale']);
+        $stmt->execute();
+        if ($db->affected_rows > 0)
+            $nextId++;
+        $stmt->reset();
+    }
+    $stmt->close();
+
+    $stmt = $db->prepare('select slug, house from tblRealm where region = ?');
+    $stmt->bind_param('s', $region);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $houses = DBMapArray($result);
+    $stmt->close();
+
+    $stmt = $db->prepare('select ifnull(max(house),0) from tblRealm');
+    $stmt->execute();
+    $stmt->bind_result($maxHouse);
+    $stmt->fetch();
+    $stmt->close();
+
+    $hashes = array();
+    $retries = 0;
+
+    while ($retries++ < 10 && (count($hashes) == 0))
+    {
+        $started = time();
+        foreach ($houses as &$realm)
+        {
+            DebugMessage("Fetching $region {$realm['slug']}");
+            $url = sprintf('https://%s.battle.net/api/wow/auction/data/%s', strtolower($region), $realm['slug']);
+
+            $json = FetchHTTP($url);
+            $dta = json_decode($json, true);
+            if (!isset($dta['files']))
+            {
+                DebugMessage("$region {$realm['slug']} returned no files.", E_USER_WARNING);
+                continue;
+            }
+
+            $hash = preg_match('/\b[a-f0-9]{32}\b/', $dta['files'][0]['url'], $res) > 0 ? $res[0] : '';
+            if ($hash == '')
+            {
+                DebugMessage("$region {$realm['slug']} had no hash in the URL: {$dta['files'][0]['url']}", E_USER_WARNING);
+                continue;
+            }
+
+            $modified = intval($dta['files'][0]['lastModified'], 10)/1000;
+            if ($modified > $started)
+            {
+                DebugMessage("$region {$realm['slug']} was updated after we started. Starting over.");
+                $hashes = array();
+                break;
+            }
+
+            $realm['hash'] = $hash;
+            if (!isset($hashes[$hash]))
+                $hashes[$hash] = array();
+
+            $hashes[$hash][] = $realm['slug'];
+        }
+    }
+
+    $stmt = $db->prepare('update tblRealm set house = ? where region = ? and slug = ?');
+    foreach ($hashes as $hash => $slugs)
+    {
+        $candidates = array();
+        foreach ($slugs as $slug)
+            if (!is_null($houses[$slug]['house']))
+            {
+                if (!isset($candidates[$houses[$slug]['house']]))
+                    $candidates[$houses[$slug]['house']] = array();
+                $candidates[$houses[$slug]['house']]++;
+            }
+        if (count($candidates) > 0)
+        {
+            asort($candidates);
+            $curHouse = array_keys($candidates);
+            $curHouse = array_pop($curHouse);
+        }
+        else
+            $curHouse = ++$maxHouse;
+        foreach ($houses as $slug => &$row)
+        {
+            if (in_array($slug, $slugs))
+                continue;
+            if ($row['house'] == $curHouse)
+                $row['house'] = null;
+        }
+        foreach ($slugs as $slug)
+        {
+            if ($houses[$slug]['house'] != $curHouse)
+            {
+                //echo "$region $slug changing from ".(is_null($houses[$slug]['house']) ? 'null' : $houses[$slug]['house'])." to $curHouse\n";
+                $stmt->bind_param('iss', $curHouse, $region, $slug);
+                $stmt->execute();
+                $stmt->reset();
+                $houses[$slug]['house'] = $curHouse;
+            }
+        }
+    }
+    $stmt->close();
+}
+
+DebugMessage('Done!');
