@@ -4,8 +4,22 @@ require_once('../incl/incl.php');
 
 define('SNAPSHOT_PATH', '/var/newsstand/snapshots/');
 
+ini_set('memory_limit','512M');
+
 if (!DBConnect())
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
+
+$stmt = $db->prepare('select house, region from tblRealm group by house');
+$stmt->execute();
+$result = $stmt->get_result();
+$houseRegionCache = DBMapArray($result);
+$stmt->close();
+
+$stmt = $db->prepare('select id, region, name from tblRealm');
+$stmt->execute();
+$result = $stmt->get_result();
+$realmCache = DBMapArray($result, array('region','name'));
+$stmt->close();
 
 $loopStart = time();
 $toSleep = 0;
@@ -15,7 +29,6 @@ while (time() < ($loopStart + 60 * 30))
     $toSleep = NextDataFile();
     if ($toSleep === false)
         break;
-    break;
 }
 DebugMessage('Done!');
 
@@ -59,7 +72,6 @@ function NextDataFile()
 
     DebugMessage("Decoding house $house data file from ".TimeDiff($snapshot));
     $json = json_decode(fread($handle, filesize(SNAPSHOT_PATH.$fileName)), true);
-    print_r($json);
 
     ftruncate($handle, 0);
     fclose($handle);
@@ -77,7 +89,7 @@ function NextDataFile()
 
 function ParseAuctionData($house, $snapshot, &$json)
 {
-    global $sellerCache;
+    global $sellerCache, $houseRegionCache;
 
     static $maxPacketSize = false;
 
@@ -92,6 +104,8 @@ function ParseAuctionData($house, $snapshot, &$json)
         $stmt->close();
         unset($nonsense);
     }
+
+    $region = $houseRegionCache[$house]['region'];
 
     $ourDb->begin_transaction();
 
@@ -114,7 +128,7 @@ function ParseAuctionData($house, $snapshot, &$json)
             {
                 $seller = isset($sellerCache["{$auction['ownerRealm']}|{$auction['owner']}"]) ?
                     $sellerCache["{$auction['ownerRealm']}|{$auction['owner']}"] :
-                    GetSellerId($auction['ownerRealm'], $auction['owner'], $snapshot);
+                    GetSellerId($region, $auction['ownerRealm'], $auction['owner'], $snapshot);
 
                 $thisSql = sprintf('(%u, %u, %u, %u, %u, %u, %u, %d, %d)', $house, $auction['auc'], $auction['item'], $auction['quantity'], $auction['bid'], $auction['buyout'], $seller, $auction['rand'], $auction['seed']);
                 if (strlen($sql) + 5 + strlen($thisSql) > $maxPacketSize)
@@ -133,17 +147,20 @@ function ParseAuctionData($house, $snapshot, &$json)
     $ourDb->close();
 }
 
-function GetSellerId($realm, $seller, $snapshot)
+function GetSellerId($region, $realm, $seller, $snapshot)
 {
     global $db, $sellerCache, $realmCache;
 
     $id = null;
 
-    if (!isset($realmCache[$realm]))
+    if ($seller == '???')
+        return $id;
+
+    if (!isset($realmCache[$region][$realm]))
         return $id;
 
     $stmt = $db->prepare('select id from tblSeller where realm = ? and name = ?');
-    $stmt->bind_param('is', $realmCache[$realm]['id'], $seller);
+    $stmt->bind_param('is', $realmCache[$region][$realm]['id'], $seller);
     $stmt->execute();
     $stmt->bind_result($id);
     $gotSeller = $stmt->fetch() === true;
@@ -159,7 +176,7 @@ function GetSellerId($realm, $seller, $snapshot)
     else
     {
         $stmt = $db->prepare('insert into tblSeller (realm, name, firstseen, lastseen) values (?,?,from_unixtime(?),from_unixtime(?))');
-        $stmt->bind_param('isii', $realmCache[$realm]['id'], $seller, $snapshot, $snapshot);
+        $stmt->bind_param('isii', $realmCache[$region][$realm]['id'], $seller, $snapshot, $snapshot);
         $stmt->execute();
         $stmt->close();
 

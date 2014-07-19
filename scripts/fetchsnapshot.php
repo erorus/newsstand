@@ -9,13 +9,6 @@ if (!DBConnect())
 
 $region = 'US'; //TODO: pull from command line
 
-$stmt = $db->prepare('select name, id from tblRealm where region = ?');
-$stmt->bind_param('s', $region);
-$stmt->execute();
-$result = $stmt->get_result();
-$realmCache = DBMapArray($result);
-$stmt->close();
-
 $loopStart = time();
 $toSleep = 0;
 while (time() < ($loopStart + 60 * 30))

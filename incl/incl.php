@@ -61,7 +61,18 @@ function DBMapArray(&$result, $key = false, $autoClose = true)
             $key = array_keys($row);
             $key = array_shift($key);
         }
-        $tr[$row[$key]] = $row;
+        if (is_array($key))
+            switch (count($key))
+            {
+                case 1:
+                    $tr[$row[$key[0]]] = $row;
+                    break;
+                case 2:
+                    $tr[$row[$key[0]]][$row[$key[1]]] = $row;
+                    break;
+            }
+        else
+            $tr[$row[$key]] = $row;
     }
 
     if ($autoClose)
