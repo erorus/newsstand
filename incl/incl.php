@@ -27,10 +27,10 @@ function DBConnect($alternate = false)
     if ($connected && !$alternate)
         return $db;
 
-    $host = '192.168.0.5';
-    $user = 'undermine2';
+    $host = 'localhost';
+    $user = 'newsstand';
     $pass = 'D2seYZcwz3sPcTYt';
-    $database = 'undermine2';
+    $database = 'newsstand';
 
     $thisDb = new mysqli($host, $user, $pass, $database);
     if ($thisDb->connect_error)
