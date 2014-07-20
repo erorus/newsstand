@@ -33,7 +33,7 @@ function FetchSnapshot()
             select sn.updated,
             if(@prevhouse = sn.house and sn.updated > timestampadd(hour, -72, now()), unix_timestamp(sn.updated) - @prevdate, null) delta,
             @prevdate := unix_timestamp(sn.updated) updated_ts,
-            @prevrealm := sn.house house
+            @prevhouse := sn.house house
             from (select @prevhouse := null, @prevdate := null) setup, tblSnapshot sn
             order by sn.house, sn.updated) deltas
         group by deltas.house
