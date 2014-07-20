@@ -110,7 +110,7 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     $ourDb->begin_transaction();
 
-    $stmt = $ourDb->prepare('select id from tblAuction where house in (?,?)');
+    $stmt = $ourDb->prepare('select id, bid from tblAuction where house in (?,?)');
     $stmt->bind_param('ii',$house, $hordeHouse);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -163,8 +163,10 @@ function ParseAuctionData($house, $snapshot, &$json)
         $lastMax = 0;
     $stmt->close();
 
-    $sqlStart = 'insert ignore into tblAuction (house, id, item, quantity, bid, buy, seller, rand, seed) values ';
+    $sqlStart = 'replace into tblAuction (house, id, item, quantity, bid, buy, seller, rand, seed) values ';
     $sql = '';
+
+    $totalAuctions = 0;
 
     foreach ($json as $faction => &$factionData)
         if (isset($factionData['auctions']))
@@ -203,10 +205,13 @@ function ParseAuctionData($house, $snapshot, &$json)
                 if ($auction['item'] == 82800 || isset($auction['petSpeciesId']))
                     continue;
 
+                $totalAuctions++;
                 if (isset($existingIds[$auction['auc']]))
                 {
+                    $needUpdate = ($auction['bid'] != $existingIds[$auction['auc']]['bid']);
                     unset($existingIds[$auction['auc']]);
-                    continue;
+                    if (!$needUpdate)
+                        continue;
                 }
 
                 $thisSql = sprintf('(%d, %u, %u, %u, %u, %u, %u, %d, %d)',
@@ -238,7 +243,7 @@ function ParseAuctionData($house, $snapshot, &$json)
         $sqlStart = sprintf('delete from tblAuction where house in (%d,%d) and id in (', $house, $hordeHouse);
         $sql = '';
 
-        foreach ($existingIds as $lostId)
+        foreach ($existingIds as $lostId => &$lostRow)
         {
             if (strlen($sql) + 5 + strlen($lostId) > $maxPacketSize)
             {
@@ -247,6 +252,7 @@ function ParseAuctionData($house, $snapshot, &$json)
             }
             $sql .= ($sql == '' ? $sqlStart : ',') . $lostId;
         }
+        unset($lostRow);
 
         if ($sql != '')
             $ourDb->query($sql.')');
@@ -254,7 +260,7 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     $ourDb->commit();
     $ourDb->close();
-    DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." finished");
+    DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." finished with $totalAuctions auctions");
 
 }
 
