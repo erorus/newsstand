@@ -53,9 +53,19 @@ function DBConnect($alternate = false)
 function DBMapArray(&$result, $key = false, $autoClose = true)
 {
     $tr = array();
+    $singleCol = null;
 
     while ($row = $result->fetch_assoc())
     {
+        if (is_null($singleCol))
+        {
+            $singleCol = false;
+            if (count(array_keys($row)) == 1)
+            {
+                $singleCol = array_keys($row);
+                $singleCol = array_shift($singleCol);
+            }
+        }
         if ($key === false)
         {
             $key = array_keys($row);
@@ -65,16 +75,16 @@ function DBMapArray(&$result, $key = false, $autoClose = true)
             switch (count($key))
             {
                 case 1:
-                    $tr[$row[$key[0]]] = $row;
+                    $tr[$row[$key[0]]] = $singleCol ? $row[$singleCol] : $row;
                     break;
                 case 2:
-                    $tr[$row[$key[0]]][$row[$key[1]]] = $row;
+                    $tr[$row[$key[0]]][$row[$key[1]]] = $singleCol ? $row[$singleCol] : $row;
                     break;
             }
         elseif (is_null($key))
-            $tr[] = $row;
+            $tr[] = $singleCol ? $row[$singleCol] : $row;
         else
-            $tr[$row[$key]] = $row;
+            $tr[$row[$key]] = $singleCol ? $row[$singleCol] : $row;
     }
 
     if ($autoClose)

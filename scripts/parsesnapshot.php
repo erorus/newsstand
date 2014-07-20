@@ -106,21 +106,15 @@ function ParseAuctionData($house, $snapshot, &$json)
     }
 
     $region = $houseRegionCache[$house]['region'];
+    $hordeHouse = $house * -1;
 
     $ourDb->begin_transaction();
 
-    $deletes = 0;
-    $stmt = $ourDb->prepare('delete from tblAuction where house in (?,?) limit 5000');
-    $hordeHouse = -1 * $house;
-    while ($deletes++ < 100)
-    {
-        $stmt->bind_param('ii', $house, $hordeHouse);
-        $stmt->execute();
-        if ($ourDb->affected_rows == 0)
-            break;
-        $stmt->reset();
-    }
-    $stmt->close();
+    $stmt = $ourDb->prepare('select id from tblAuction where house in (?,?)');
+    $stmt->bind_param('ii',$house, $hordeHouse);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $existingIds = DBMapArray($result);
 
     $naiveMax = 0;
     $lowMax = -1;
@@ -209,6 +203,12 @@ function ParseAuctionData($house, $snapshot, &$json)
                 if ($auction['item'] == 82800 || isset($auction['petSpeciesId']))
                     continue;
 
+                if (isset($existingIds[$auction['auc']]))
+                {
+                    unset($existingIds[$auction['auc']]);
+                    continue;
+                }
+
                 $thisSql = sprintf('(%d, %u, %u, %u, %u, %u, %u, %d, %d)',
                     $factionHouse,
                     $auction['auc'],
@@ -230,6 +230,27 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     if ($sql != '')
         $ourDb->query($sql);
+
+    if (count($existingIds) > 0)
+    {
+        DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." deleting ".count($existingIds)." auctions");
+
+        $sqlStart = sprintf('delete from tblAuction where house in (%d,%d) and id in (', $house, $hordeHouse);
+        $sql = '';
+
+        foreach ($existingIds as $lostId)
+        {
+            if (strlen($sql) + 5 + strlen($lostId) > $maxPacketSize)
+            {
+                $ourDb->query($sql.')');
+                $sql = '';
+            }
+            $sql .= ($sql == '' ? $sqlStart : ',') . $lostId;
+        }
+
+        if ($sql != '')
+            $ourDb->query($sql.')');
+    }
 
     $ourDb->commit();
     $ourDb->close();
@@ -274,13 +295,16 @@ function GetSellerIds($maxPacketSize, $region, &$sellerInfo, $snapshot, $afterIn
                 $stmt->execute();
                 $result = $stmt->get_result();
                 $someIds = DBMapArray($result, null);
+                $foundNames = 0;
                 $lastSeenIds = array();
 
                 for ($n = 0; $n < count($someIds); $n++)
                     if (isset($sellerInfo[$realmName][$someIds[$n]['name']]))
                     {
                         $sellerInfo[$realmName][$someIds[$n]['name']]['id'] = $someIds[$n]['id'];
-                        $lastSeenIds[] = $someIds[$n]['id'];
+                        $foundNames++;
+                        if ($sellerInfo[$realmName][$someIds[$n]['name']]['new'] > 0)
+                            $lastSeenIds[] = $someIds[$n]['id'];
                     }
 
                 if (count($lastSeenIds) > 0 && !$afterInsert)
@@ -290,7 +314,7 @@ function GetSellerIds($maxPacketSize, $region, &$sellerInfo, $snapshot, $afterIn
                     $stmt->close();
                 }
 
-                $needInserts |= (count($lastSeenIds) < $namesInQuery);
+                $needInserts |= ($foundNames < $namesInQuery);
 
                 $sql = $sqlStart;
                 $namesInQuery = 0;
@@ -306,13 +330,16 @@ function GetSellerIds($maxPacketSize, $region, &$sellerInfo, $snapshot, $afterIn
             $stmt->execute();
             $result = $stmt->get_result();
             $someIds = DBMapArray($result, null);
+            $foundNames = 0;
             $lastSeenIds = array();
 
             for ($n = 0; $n < count($someIds); $n++)
                 if (isset($sellerInfo[$realmName][$someIds[$n]['name']]))
                 {
                     $sellerInfo[$realmName][$someIds[$n]['name']]['id'] = $someIds[$n]['id'];
-                    $lastSeenIds[] = $someIds[$n]['id'];
+                    $foundNames++;
+                    if ($sellerInfo[$realmName][$someIds[$n]['name']]['new'] > 0)
+                        $lastSeenIds[] = $someIds[$n]['id'];
                 }
 
             if (count($lastSeenIds) > 0 && !$afterInsert)
@@ -322,7 +349,7 @@ function GetSellerIds($maxPacketSize, $region, &$sellerInfo, $snapshot, $afterIn
                 $stmt->close();
             }
 
-            $needInserts |= (count($lastSeenIds) < $namesInQuery);
+            $needInserts |= ($foundNames < $namesInQuery);
         }
 
         if ($afterInsert || !$needInserts)
