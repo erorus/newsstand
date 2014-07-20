@@ -122,6 +122,10 @@ function ParseAuctionData($house, $snapshot, &$json)
     foreach ($json as $faction => &$factionData)
         if (isset($factionData['auctions']))
         {
+            if ($faction == 'neutral')
+                continue;
+            $factionHouse = ($faction == 'horde') ? ($house * -1) : $house;
+
             DebugMessage("Parsing ".count($factionData['auctions'])." $faction auctions for house $house");
 
             foreach ($factionData['auctions'] as &$auction)
@@ -130,7 +134,7 @@ function ParseAuctionData($house, $snapshot, &$json)
                     $sellerCache["{$auction['ownerRealm']}|{$auction['owner']}"] :
                     GetSellerId($region, $auction['ownerRealm'], $auction['owner'], $snapshot);
 
-                $thisSql = sprintf('(%u, %u, %u, %u, %u, %u, %u, %d, %d)', $house, $auction['auc'], $auction['item'], $auction['quantity'], $auction['bid'], $auction['buyout'], $seller, $auction['rand'], $auction['seed']);
+                $thisSql = sprintf('(%d, %u, %u, %u, %u, %u, %u, %d, %d)', $factionHouse, $auction['auc'], $auction['item'], $auction['quantity'], $auction['bid'], $auction['buyout'], $seller, $auction['rand'], $auction['seed']);
                 if (strlen($sql) + 5 + strlen($thisSql) > $maxPacketSize)
                 {
                     $ourDb->query($sql);
