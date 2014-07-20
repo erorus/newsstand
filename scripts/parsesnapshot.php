@@ -109,8 +109,8 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     $ourDb->begin_transaction();
 
-    $stmt = $ourDb->prepare('delete from tblAuction where house = ?');
-    $stmt->bind_param('i', $house);
+    $stmt = $ourDb->prepare('delete from tblAuction where house in (?,?)');
+    $stmt->bind_param('ii', $house, -1 * $house);
     $stmt->execute();
     $stmt->close();
 
