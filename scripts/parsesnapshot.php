@@ -25,7 +25,7 @@ $loopStart = time();
 $toSleep = 0;
 while (time() < ($loopStart + 60 * 30))
 {
-    sleep($toSleep);
+    sleep(min($toSleep,10));
     $toSleep = NextDataFile();
     if ($toSleep === false)
         break;

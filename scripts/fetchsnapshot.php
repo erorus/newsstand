@@ -13,7 +13,7 @@ $loopStart = time();
 $toSleep = 0;
 while (time() < ($loopStart + 60 * 30))
 {
-    sleep($toSleep);
+    sleep(min($toSleep, 30));
     $toSleep = FetchSnapshot();
     if ($toSleep === false)
         break;
