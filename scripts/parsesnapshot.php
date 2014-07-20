@@ -21,6 +21,14 @@ $result = $stmt->get_result();
 $realmCache = DBMapArray($result, array('region','name'));
 $stmt->close();
 
+$maxPacketSize = 0;
+$stmt = $db->prepare('show variables like \'max_allowed_packet\'');
+$stmt->execute();
+$stmt->bind_result($nonsense, $maxPacketSize);
+$stmt->fetch();
+$stmt->close();
+unset($nonsense);
+
 $loopStart = time();
 $toSleep = 0;
 while (time() < ($loopStart + 60 * 30))
@@ -89,21 +97,10 @@ function NextDataFile()
 
 function ParseAuctionData($house, $snapshot, &$json)
 {
+    global $maxPacketSize;
     global $houseRegionCache;
 
-    static $maxPacketSize = false;
-
     $ourDb = DBConnect(true);
-
-    if (!$maxPacketSize)
-    {
-        $stmt = $ourDb->prepare('show variables like \'max_allowed_packet\'');
-        $stmt->execute();
-        $stmt->bind_result($nonsense, $maxPacketSize);
-        $stmt->fetch();
-        $stmt->close();
-        unset($nonsense);
-    }
 
     $region = $houseRegionCache[$house]['region'];
     $hordeHouse = $house * -1;
@@ -197,7 +194,7 @@ function ParseAuctionData($house, $snapshot, &$json)
                     $sellerInfo[$auction['ownerRealm']][$auction['owner']]['new']++;
             }
 
-            GetSellerIds($maxPacketSize, $region, $sellerInfo, $snapshot);
+            GetSellerIds($region, $sellerInfo, $snapshot);
 
             for ($x = 0; $x < $auctionCount; $x++)
             {
@@ -260,13 +257,17 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     $ourDb->commit();
     $ourDb->close();
+
+    DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." updating seller history");
+    UpdateSellerInfo($sellerInfo, $snapshot);
+
     DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." finished with $totalAuctions auctions");
 
 }
 
-function GetSellerIds($maxPacketSize, $region, &$sellerInfo, $snapshot, $afterInsert = false)
+function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
 {
-    global $db, $realmCache;
+    global $db, $realmCache, $maxPacketSize;
 
     $workingRealms = array_keys($sellerInfo);
     $neededInserts = false;
@@ -314,11 +315,7 @@ function GetSellerIds($maxPacketSize, $region, &$sellerInfo, $snapshot, $afterIn
                     }
 
                 if (count($lastSeenIds) > 0 && !$afterInsert)
-                {
-                    $stmt = $db->prepare(sprintf('update tblSeller set lastseen = from_unixtime(%d) where id in (%d)', $snapshot, implode(',',$lastSeenIds)));
-                    $stmt->execute();
-                    $stmt->close();
-                }
+                     $db->query(sprintf('update tblSeller set lastseen = from_unixtime(%d) where id in (%d)', $snapshot, implode(',',$lastSeenIds)));
 
                 $needInserts |= ($foundNames < $namesInQuery);
 
@@ -349,11 +346,7 @@ function GetSellerIds($maxPacketSize, $region, &$sellerInfo, $snapshot, $afterIn
                 }
 
             if (count($lastSeenIds) > 0 && !$afterInsert)
-            {
-                $stmt = $db->prepare(sprintf('update tblSeller set lastseen = from_unixtime(%d) where id in (%d)', $snapshot, implode(',',$lastSeenIds)));
-                $stmt->execute();
-                $stmt->close();
-            }
+                $db->query(sprintf('update tblSeller set lastseen = from_unixtime(%d) where id in (%d)', $snapshot, implode(',',$lastSeenIds)));
 
             $needInserts |= ($foundNames < $namesInQuery);
         }
@@ -375,10 +368,7 @@ function GetSellerIds($maxPacketSize, $region, &$sellerInfo, $snapshot, $afterIn
             $insertBit = sprintf('(%d,%s,from_unixtime(%u),from_unixtime(%u))', $realmId, '\''.$db->real_escape_string($names[$s]).'\'', $snapshot, $snapshot);
             if (strlen($sql) + strlen($insertBit) + 5 > $maxPacketSize)
             {
-
-                $stmt = $db->prepare($sql);
-                $stmt->execute();
-                $stmt->close();
+                $db->query($sql);
 
                 $sql = $sqlStart;
                 $namesInQuery = 0;
@@ -387,14 +377,41 @@ function GetSellerIds($maxPacketSize, $region, &$sellerInfo, $snapshot, $afterIn
         }
 
         if ($namesInQuery > 0)
-        {
-            $stmt = $db->prepare($sql);
-            $stmt->execute();
-            $stmt->close();
-        }
+            $db->query($sql);
     }
 
     if ($neededInserts)
-        GetSellerIds($maxPacketSize, $region, $sellerInfo, $snapshot, true);
+        GetSellerIds($region, $sellerInfo, $snapshot, true);
 
+}
+
+function UpdateSellerInfo(&$sellerInfo, $snapshot)
+{
+    global $db, $maxPacketSize;
+
+    $realms = array_keys($sellerInfo);
+
+    $sqlStart = 'insert into tblSellerHistory (seller, snapshot, `new`, `total`) values ';
+    $sql = '';
+
+    for ($r = 0; $r < count($realms); $r++)
+    {
+        foreach ($sellerInfo[$realms[$r]] as &$info)
+        {
+            if ($info['id'] == 0)
+                continue;
+
+            $sqlBit = sprintf('(%d,from_unixtime(%d),%d,%d)', $info['id'], $snapshot, $info['new'], $info['total']);
+            if (strlen($sql) + strlen($sqlBit) + 5 > $maxPacketSize)
+            {
+                $db->query($sql);
+                $sql = '';
+            }
+            $sql .= ($sql == '' ? $sqlStart : ',') . $sqlBit;
+        }
+        unset($info);
+    }
+
+    if ($sql != '')
+        $db->query($sql);
 }
