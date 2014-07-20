@@ -109,13 +109,20 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     $ourDb->begin_transaction();
 
-    $stmt = $ourDb->prepare('delete from tblAuction where house in (?,?)');
+    $deletes = 0;
+    $stmt = $ourDb->prepare('delete from tblAuction where house in (?,?) limit 5000');
     $hordeHouse = -1 * $house;
-    $stmt->bind_param('ii', $house, $hordeHouse);
-    $stmt->execute();
+    while ($deletes++ < 100)
+    {
+        $stmt->bind_param('ii', $house, $hordeHouse);
+        $stmt->execute();
+        if ($ourDb->affected_rows == 0)
+            break;
+        $stmt->reset();
+    }
     $stmt->close();
 
-    $sqlStart = 'insert into tblAuction (house, id, item, quantity, bid, buy, seller, rand, seed) values ';
+    $sqlStart = 'insert ignore into tblAuction (house, id, item, quantity, bid, buy, seller, rand, seed) values ';
     $sql = '';
 
     foreach ($json as $faction => &$factionData)
@@ -270,7 +277,7 @@ function GetSellerIds($maxPacketSize, $region, &$sellerInfo, $snapshot, $afterIn
 
         $neededInserts = true;
 
-        $sqlStart = "insert into tblSeller (realm, name, firstseen, lastseen) values ";
+        $sqlStart = "insert ignore into tblSeller (realm, name, firstseen, lastseen) values ";
         $sql = $sqlStart;
         $namesInQuery = 0;
 
