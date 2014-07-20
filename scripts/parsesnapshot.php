@@ -89,7 +89,7 @@ function NextDataFile()
 
 function ParseAuctionData($house, $snapshot, &$json)
 {
-    global $sellerCache, $houseRegionCache;
+    global $houseRegionCache;
 
     static $maxPacketSize = false;
 
@@ -114,8 +114,6 @@ function ParseAuctionData($house, $snapshot, &$json)
     $stmt->execute();
     $stmt->close();
 
-    $sellerCache = array();
-
     $sqlStart = 'insert into tblAuction (house, id, item, quantity, bid, buy, seller, rand, seed) values ';
     $sql = '';
 
@@ -128,13 +126,40 @@ function ParseAuctionData($house, $snapshot, &$json)
 
             DebugMessage("Parsing ".count($factionData['auctions'])." $faction auctions for house $house");
 
-            foreach ($factionData['auctions'] as &$auction)
+            $auctionCount =  count($factionData['auctions']);
+            $sellerInfo = array();
+            for ($x = 0; $x < $auctionCount; $x++)
             {
-                $seller = isset($sellerCache["{$auction['ownerRealm']}|{$auction['owner']}"]) ?
-                    $sellerCache["{$auction['ownerRealm']}|{$auction['owner']}"] :
-                    GetSellerId($region, $auction['ownerRealm'], $auction['owner'], $snapshot);
+                $auction =& $factionData['auctions'][$x];
+                if ($auction['owner'] == '???')
+                    continue;
+                if (!isset($sellerInfo[$auction['ownerRealm']]))
+                    $sellerInfo[$auction['ownerRealm']] = array();
+                if (!isset($sellerInfo[$auction['ownerRealm']][$auction['owner']]))
+                    $sellerInfo[$auction['ownerRealm']][$auction['owner']] = array(
+                        'new' => 0,
+                        'total' => 0,
+                        'id' => 0,
+                    );
+                $sellerInfo[$auction['ownerRealm']][$auction['owner']]['total']++;
+            }
 
-                $thisSql = sprintf('(%d, %u, %u, %u, %u, %u, %u, %d, %d)', $factionHouse, $auction['auc'], $auction['item'], $auction['quantity'], $auction['bid'], $auction['buyout'], $seller, $auction['rand'], $auction['seed']);
+            GetSellerIds($maxPacketSize, $region, $sellerInfo, $snapshot);
+
+            for ($x = 0; $x < $auctionCount; $x++)
+            {
+                $auction =& $factionData['auctions'][$x];
+
+                $thisSql = sprintf('(%d, %u, %u, %u, %u, %u, %u, %d, %d)',
+                    $factionHouse,
+                    $auction['auc'],
+                    $auction['item'],
+                    $auction['quantity'],
+                    $auction['bid'],
+                    $auction['buyout'],
+                    $auction['owner'] == '???' ? 0 : $sellerInfo[$auction['ownerRealm']][$auction['owner']]['id'],
+                    $auction['rand'],
+                    $auction['seed']);
                 if (strlen($sql) + 5 + strlen($thisSql) > $maxPacketSize)
                 {
                     $ourDb->query($sql);
@@ -151,42 +176,131 @@ function ParseAuctionData($house, $snapshot, &$json)
     $ourDb->close();
 }
 
-function GetSellerId($region, $realm, $seller, $snapshot)
+function GetSellerIds($maxPacketSize, $region, &$sellerInfo, $snapshot, $afterInsert = false)
 {
-    global $db, $sellerCache, $realmCache;
+    global $db, $realmCache;
 
-    $id = null;
+    $workingRealms = array_keys($sellerInfo);
+    $neededInserts = false;
 
-    if ($seller == '???')
-        return $id;
-
-    if (!isset($realmCache[$region][$realm]))
-        return $id;
-
-    $stmt = $db->prepare('select id from tblSeller where realm = ? and name = ?');
-    $stmt->bind_param('is', $realmCache[$region][$realm]['id'], $seller);
-    $stmt->execute();
-    $stmt->bind_result($id);
-    $gotSeller = $stmt->fetch() === true;
-    $stmt->close();
-
-    if ($gotSeller)
+    for ($r = 0; $r < count($workingRealms); $r++)
     {
-        $stmt = $db->prepare('update tblSeller set lastseen = from_unixtime(?) where id = ?');
-        $stmt->bind_param('ii', $snapshot, $id);
-        $stmt->execute();
-        $stmt->close();
-    }
-    else
-    {
-        $stmt = $db->prepare('insert into tblSeller (realm, name, firstseen, lastseen) values (?,?,from_unixtime(?),from_unixtime(?))');
-        $stmt->bind_param('isii', $realmCache[$region][$realm]['id'], $seller, $snapshot, $snapshot);
-        $stmt->execute();
-        $stmt->close();
+        if (!isset($realmCache[$region][$workingRealms[$r]]))
+            continue;
 
-        $id = $db->insert_id;
+        $realmName = $workingRealms[$r];
+
+        $realmId = $realmCache[$region][$realmName]['id'];
+
+        $sqlStart = "select name, id from tblSeller where realm = $realmId and name in (";
+        $sql = $sqlStart;
+        $namesInQuery = 0;
+        $names = array_keys($sellerInfo[$realmName]);
+        $nameCount = count($names);
+        $needInserts = false;
+
+        for ($s = 0; $s < $nameCount; $s++)
+        {
+            if ($sellerInfo[$realmName][$names[$s]]['id'] != 0)
+                continue;
+
+            $nameEscaped = '\''.$db->real_escape_string($names[$s]).'\'';
+            if (strlen($sql) + strlen($nameEscaped) + 5 > $maxPacketSize)
+            {
+                $sql .= ')';
+
+                $stmt = $db->prepare($sql);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                $someIds = DBMapArray($result, null);
+                $lastSeenIds = array();
+
+                for ($n = 0; $n < count($someIds); $n++)
+                    if (isset($sellerInfo[$realmName][$someIds[$n]['name']]))
+                    {
+                        $sellerInfo[$realmName][$someIds[$n]['name']]['id'] = $someIds[$n]['id'];
+                        $lastSeenIds[] = $someIds[$n]['id'];
+                    }
+
+                if (count($lastSeenIds) > 0 && !$afterInsert)
+                {
+                    $stmt = $db->prepare(sprintf('update tblSeller set lastseen = from_unixtime(%d) where id in (%d)', $snapshot, implode(',',$lastSeenIds)));
+                    $stmt->execute();
+                    $stmt->close();
+                }
+
+                $needInserts |= (count($lastSeenIds) < $namesInQuery);
+
+                $sql = $sqlStart;
+                $namesInQuery = 0;
+            }
+            $sql .= ($namesInQuery++ > 0 ? ',' : '') . $nameEscaped;
+        }
+
+        if ($namesInQuery > 0)
+        {
+            $sql .= ')';
+
+            $stmt = $db->prepare($sql);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $someIds = DBMapArray($result, null);
+            $lastSeenIds = array();
+
+            for ($n = 0; $n < count($someIds); $n++)
+                if (isset($sellerInfo[$realmName][$someIds[$n]['name']]))
+                {
+                    $sellerInfo[$realmName][$someIds[$n]['name']]['id'] = $someIds[$n]['id'];
+                    $lastSeenIds[] = $someIds[$n]['id'];
+                }
+
+            if (count($lastSeenIds) > 0 && !$afterInsert)
+            {
+                $stmt = $db->prepare(sprintf('update tblSeller set lastseen = from_unixtime(%d) where id in (%d)', $snapshot, implode(',',$lastSeenIds)));
+                $stmt->execute();
+                $stmt->close();
+            }
+
+            $needInserts |= (count($lastSeenIds) < $namesInQuery);
+        }
+
+        if ($afterInsert || !$needInserts)
+            continue;
+
+        $neededInserts = true;
+
+        $sqlStart = "insert into tblSeller (realm, name, firstseen, lastseen) values ";
+        $sql = $sqlStart;
+        $namesInQuery = 0;
+
+        for ($s = 0; $s < $nameCount; $s++)
+        {
+            if ($sellerInfo[$realmName][$names[$s]]['id'] != 0)
+                continue;
+
+            $insertBit = sprintf('(%d,%s,from_unixtime(%u),from_unixtime(%u))', $realmId, '\''.$db->real_escape_string($names[$s]).'\'', $snapshot, $snapshot);
+            if (strlen($sql) + strlen($insertBit) + 5 > $maxPacketSize)
+            {
+
+                $stmt = $db->prepare($sql);
+                $stmt->execute();
+                $stmt->close();
+
+                $sql = $sqlStart;
+                $namesInQuery = 0;
+            }
+            $sql .= ($namesInQuery++ > 0 ? ',' : '') . $insertBit;
+        }
+
+        if ($namesInQuery > 0)
+        {
+            $stmt = $db->prepare($sql);
+            $stmt->execute();
+            $stmt->close();
+        }
     }
 
-    $sellerCache["$realm|$seller"] = $id;
-    return $id;
+    if ($neededInserts)
+        GetSellerIds($maxPacketSize, $region, $sellerInfo, $snapshot, true);
+
 }

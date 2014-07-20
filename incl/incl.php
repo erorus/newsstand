@@ -71,6 +71,8 @@ function DBMapArray(&$result, $key = false, $autoClose = true)
                     $tr[$row[$key[0]]][$row[$key[1]]] = $row;
                     break;
             }
+        elseif (is_null($key))
+            $tr[] = $row;
         else
             $tr[$row[$key]] = $row;
     }
