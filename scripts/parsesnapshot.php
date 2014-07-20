@@ -70,7 +70,7 @@ function NextDataFile()
     $snapshot = intval($res[1],10);
     $house = intval($res[2],10);
 
-    DebugMessage("Decoding house $house data file from ".TimeDiff($snapshot));
+    DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." data file from ".TimeDiff($snapshot, array('parts' => 2, 'precision' => 'second')));
     $json = json_decode(fread($handle, filesize(SNAPSHOT_PATH.$fileName)), true);
 
     ftruncate($handle, 0);
@@ -79,7 +79,7 @@ function NextDataFile()
 
     if (json_last_error() != JSON_ERROR_NONE)
     {
-        DebugMessage("$house $snapshot data file corrupted! ".json_last_error_msg());
+        DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." $snapshot data file corrupted! ".json_last_error_msg());
         return 0;
     }
 
@@ -122,6 +122,53 @@ function ParseAuctionData($house, $snapshot, &$json)
     }
     $stmt->close();
 
+    $naiveMax = 0;
+    $lowMax = -1;
+    $highMax = -1;
+    $hasRollOver = false;
+    foreach ($json as $faction => &$factionData)
+        if (isset($factionData['auctions']))
+        {
+            if ($faction == 'neutral')
+                continue;
+
+            $auctionCount = count($factionData['auctions']);
+
+            for ($x = 0; $x < $auctionCount; $x++)
+            {
+                $auctionId = $factionData['auctions'][$x]['auc'];
+
+                $naiveMax = max($naiveMax, $auctionId);
+                if ($auctionId < 0x20000000)
+                    $lowMax = max($lowMax, $auctionId);
+                if ($auctionId > 0x60000000)
+                    $highMax = max($highMax, $auctionId);
+            }
+        }
+
+    if (($lowMax != -1) && ($highMax != -1))
+    {
+        $hasRollOver = true;
+        $max = $lowMax; // rolled over
+    }
+    else
+        $max = $naiveMax;
+
+    unset($naiveMax, $lowMax, $highMax);
+
+    $stmt = $ourDb->prepare('update tblSnapshot set maxid = ? where house = ? and updated = from_unixtime(?)');
+    $stmt->bind_param('iii', $max, $house, $snapshot);
+    $stmt->execute();
+    $stmt->close();
+
+    $stmt = $ourDb->prepare('select ifnull(maxid,0) from tblSnapshot s where house = ? and updated = (select max(s2.updated) from tblSnapshot s2 where s2.house = s.house and s2.updated < from_unixtime(?))');
+    $stmt->bind_param('ii', $house, $snapshot);
+    $stmt->execute();
+    $stmt->bind_result($lastMax);
+    if ($stmt->fetch() !== true)
+        $lastMax = 0;
+    $stmt->close();
+
     $sqlStart = 'insert ignore into tblAuction (house, id, item, quantity, bid, buy, seller, rand, seed) values ';
     $sql = '';
 
@@ -132,7 +179,7 @@ function ParseAuctionData($house, $snapshot, &$json)
                 continue;
             $factionHouse = ($faction == 'horde') ? ($house * -1) : $house;
 
-            DebugMessage("Parsing ".count($factionData['auctions'])." $faction auctions for house $house");
+            DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." parsing ".count($factionData['auctions'])." $faction auctions");
 
             $auctionCount =  count($factionData['auctions']);
             $sellerInfo = array();
@@ -150,6 +197,8 @@ function ParseAuctionData($house, $snapshot, &$json)
                         'id' => 0,
                     );
                 $sellerInfo[$auction['ownerRealm']][$auction['owner']]['total']++;
+                if ((!$hasRollOver || $auction['id'] < 0x20000000) && ($auction['auc'] > $lastMax))
+                    $sellerInfo[$auction['ownerRealm']][$auction['owner']]['new']++;
             }
 
             GetSellerIds($maxPacketSize, $region, $sellerInfo, $snapshot);
@@ -184,6 +233,8 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     $ourDb->commit();
     $ourDb->close();
+    DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." finished");
+
 }
 
 function GetSellerIds($maxPacketSize, $region, &$sellerInfo, $snapshot, $afterInsert = false)
