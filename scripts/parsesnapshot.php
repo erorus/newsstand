@@ -157,6 +157,8 @@ function ParseAuctionData($house, $snapshot, &$json)
             for ($x = 0; $x < $auctionCount; $x++)
             {
                 $auction =& $factionData['auctions'][$x];
+                if ($auction['item'] == 82800 || isset($auction['petSpeciesId']))
+                    continue;
 
                 $thisSql = sprintf('(%d, %u, %u, %u, %u, %u, %u, %d, %d)',
                     $factionHouse,
