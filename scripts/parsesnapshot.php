@@ -100,6 +100,8 @@ function ParseAuctionData($house, $snapshot, &$json)
     global $maxPacketSize;
     global $houseRegionCache;
 
+    $snapshotString = Date('Y-m-d H:i:s', $snapshot);
+
     $ourDb = DBConnect(true);
 
     $region = $houseRegionCache[$house]['region'];
@@ -107,7 +109,7 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     $ourDb->begin_transaction();
 
-    $stmt = $ourDb->prepare('select id, bid from tblAuction where house in (?,?)');
+    $stmt = $ourDb->prepare('select id, bid, item, house from tblAuction where house in (?,?)');
     $stmt->bind_param('ii',$house, $hordeHouse);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -147,13 +149,13 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     unset($naiveMax, $lowMax, $highMax);
 
-    $stmt = $ourDb->prepare('update tblSnapshot set maxid = ? where house = ? and updated = from_unixtime(?)');
-    $stmt->bind_param('iii', $max, $house, $snapshot);
+    $stmt = $ourDb->prepare('update tblSnapshot set maxid = ? where house = ? and updated = ?');
+    $stmt->bind_param('iis', $max, $house, $snapshotString);
     $stmt->execute();
     $stmt->close();
 
-    $stmt = $ourDb->prepare('select ifnull(maxid,0) from tblSnapshot s where house = ? and updated = (select max(s2.updated) from tblSnapshot s2 where s2.house = s.house and s2.updated < from_unixtime(?))');
-    $stmt->bind_param('ii', $house, $snapshot);
+    $stmt = $ourDb->prepare('select ifnull(maxid,0) from tblSnapshot s where house = ? and updated = (select max(s2.updated) from tblSnapshot s2 where s2.house = s.house and s2.updated < ?)');
+    $stmt->bind_param('is', $house, $snapshotString);
     $stmt->execute();
     $stmt->bind_result($lastMax);
     if ($stmt->fetch() !== true)
@@ -164,6 +166,7 @@ function ParseAuctionData($house, $snapshot, &$json)
     $sql = '';
 
     $totalAuctions = 0;
+    $itemInfo = array();
 
     foreach ($json as $faction => &$factionData)
         if (isset($factionData['auctions']))
@@ -174,7 +177,7 @@ function ParseAuctionData($house, $snapshot, &$json)
 
             DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." parsing ".count($factionData['auctions'])." $faction auctions");
 
-            $auctionCount =  count($factionData['auctions']);
+            $auctionCount = count($factionData['auctions']);
             $sellerInfo = array();
             for ($x = 0; $x < $auctionCount; $x++)
             {
@@ -203,6 +206,15 @@ function ParseAuctionData($house, $snapshot, &$json)
                     continue;
 
                 $totalAuctions++;
+                if ($auction['buyout'] != 0)
+                {
+                    if (!isset($itemInfo[$auction['item']]))
+                        $itemInfo[$auction['item']] = array('a' => array(), 'tq' => 0);
+
+                    $itemInfo[$auction['item']]['a'][] = array('q' => $auction['quantity'], 'p' => $auction['buyout']);
+                    $itemInfo[$auction['item']]['tq'] += $auction['quantity'];
+                }
+
                 if (isset($existingIds[$auction['auc']]))
                 {
                     $needUpdate = ($auction['bid'] != $existingIds[$auction['auc']]['bid']);
@@ -228,10 +240,19 @@ function ParseAuctionData($house, $snapshot, &$json)
                 }
                 $sql .= ($sql == '' ? $sqlStart : ',') . $thisSql;
             }
-        }
 
-    if ($sql != '')
-        $ourDb->query($sql);
+            if ($sql != '')
+                $ourDb->query($sql);
+
+            // move out of loop once no longer using $factionHouse
+            DebugMessage("House ".str_pad($factionHouse, 5, ' ', STR_PAD_LEFT)." updating ".count($itemInfo)." item info");
+            foreach ($existingIds as &$oldRow)
+                if (($oldRow['house'] == $factionHouse) && (!isset($itemInfo[$oldRow['item']])))
+                    $itemInfo[$oldRow['item']] = array('tq' => 0, 'a' => array());
+            unset($oldRow);
+            UpdateItemInfo($factionHouse, $itemInfo, $snapshot);
+            $itemInfo = '';
+        }
 
     if (count($existingIds) > 0)
     {
@@ -269,6 +290,7 @@ function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
 {
     global $db, $realmCache, $maxPacketSize;
 
+    $snapshotString = Date('Y-m-d H:i:s', $snapshot);
     $workingRealms = array_keys($sellerInfo);
     $neededInserts = false;
 
@@ -315,7 +337,7 @@ function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
                     }
 
                 if (count($lastSeenIds) > 0 && !$afterInsert)
-                     $db->query(sprintf('update tblSeller set lastseen = from_unixtime(%d) where id in (%d)', $snapshot, implode(',',$lastSeenIds)));
+                     $db->query(sprintf('update tblSeller set lastseen = \'%s\' where id in (%d)', $snapshotString, implode(',',$lastSeenIds)));
 
                 $needInserts |= ($foundNames < $namesInQuery);
 
@@ -346,7 +368,7 @@ function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
                 }
 
             if (count($lastSeenIds) > 0 && !$afterInsert)
-                $db->query(sprintf('update tblSeller set lastseen = from_unixtime(%d) where id in (%d)', $snapshot, implode(',',$lastSeenIds)));
+                $db->query(sprintf('update tblSeller set lastseen = \'%s\' where id in (%d)', $snapshotString, implode(',',$lastSeenIds)));
 
             $needInserts |= ($foundNames < $namesInQuery);
         }
@@ -365,7 +387,7 @@ function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
             if ($sellerInfo[$realmName][$names[$s]]['id'] != 0)
                 continue;
 
-            $insertBit = sprintf('(%d,%s,from_unixtime(%u),from_unixtime(%u))', $realmId, '\''.$db->real_escape_string($names[$s]).'\'', $snapshot, $snapshot);
+            $insertBit = sprintf('(%1$d,\'%2$s\',\'%3$s\',\'%3$s\')', $realmId, $db->real_escape_string($names[$s]), $snapshotString);
             if (strlen($sql) + strlen($insertBit) + 5 > $maxPacketSize)
             {
                 $db->query($sql);
@@ -389,6 +411,7 @@ function UpdateSellerInfo(&$sellerInfo, $snapshot)
 {
     global $db, $maxPacketSize;
 
+    $snapshotString = Date('Y-m-d H:i:s', $snapshot);
     $realms = array_keys($sellerInfo);
 
     $sqlStart = 'insert into tblSellerHistory (seller, snapshot, `new`, `total`) values ';
@@ -401,7 +424,7 @@ function UpdateSellerInfo(&$sellerInfo, $snapshot)
             if ($info['id'] == 0)
                 continue;
 
-            $sqlBit = sprintf('(%d,from_unixtime(%d),%d,%d)', $info['id'], $snapshot, $info['new'], $info['total']);
+            $sqlBit = sprintf('(%d,\'%s\',%d,%d)', $info['id'], $snapshotString, $info['new'], $info['total']);
             if (strlen($sql) + strlen($sqlBit) + 5 > $maxPacketSize)
             {
                 $db->query($sql);
@@ -414,4 +437,57 @@ function UpdateSellerInfo(&$sellerInfo, $snapshot)
 
     if ($sql != '')
         $db->query($sql);
+}
+
+function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
+{
+    global $db, $maxPacketSize;
+
+    $snapshotString = Date('Y-m-d H:i:s', $snapshot);
+    $sqlStart = 'insert into tblItemSummary (house, item, price, quantity, lastseen) values ';
+    $sqlEnd = ' on duplicate key update quantity=values(quantity), price=if(quantity=0,price,values(price)), lastseen=if(quantity=0,lastseen,values(lastseen))';
+    $sql = '';
+
+    foreach ($itemInfo as $item => &$info)
+    {
+        $price = GetMarketPrice($info);
+        $sqlBit = sprintf('(%d,%d,%d,%d,\'%s\')', $factionHouse, $item, $price, $info['tq'], $snapshotString);
+        if (strlen($sql) + strlen($sqlBit) + strlen($sqlEnd) + 5 > $maxPacketSize)
+        {
+            $db->query($sql);
+            $sql = '';
+        }
+        $sql .= ($sql == '' ? $sqlStart : ',') . $sqlBit;
+    }
+    unset($info);
+
+    if ($sql != '')
+        $db->query($sql);
+}
+
+function GetMarketPrice(&$info)
+{
+    if ($info['tq'] == 0)
+        return 0;
+
+    usort($info['a'], 'MarketPriceSort');
+    $gq = 0;
+    $gp = 0;
+    $x = 0;
+    while ($gq < ceil($info['tq'] * 0.15))
+    {
+        $gq += $info['a'][$x]['q'];
+        $gp += $info['a'][$x]['p'];
+        $x++;
+    }
+    return ceil($gp/$gq);
+}
+
+function MarketPriceSort($a,$b)
+{
+    $ap = ceil($a['p']/$a['q']);
+    $bp = ceil($b['p']/$b['q']);
+    if ($ap - $bp != 0)
+        return ($ap - $bp);
+    return ($a['q'] - $b['q']);
 }
