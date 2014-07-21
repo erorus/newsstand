@@ -448,6 +448,9 @@ function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
     $sqlEnd = ' on duplicate key update quantity=values(quantity), price=if(quantity=0,price,values(price)), lastseen=if(quantity=0,lastseen,values(lastseen))';
     $sql = '';
 
+    $sqlHistoryStart = 'replace into tblItemHistory (house, item, price, quantity, snapshot) values ';
+    $sqlHistory = '';
+
     foreach ($itemInfo as $item => &$info)
     {
         $price = GetMarketPrice($info);
@@ -458,11 +461,23 @@ function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
             $sql = '';
         }
         $sql .= ($sql == '' ? $sqlStart : ',') . $sqlBit;
+
+        if ($info['tq'] > 0)
+        {
+            if (strlen($sqlHistory) + strlen($sqlBit) + 5 > $maxPacketSize)
+            {
+                $db->query($sqlHistory);
+                $sqlHistory = '';
+            }
+            $sqlHistory .= ($sqlHistory == '' ? $sqlHistoryStart : ',') . $sqlBit;
+        }
     }
     unset($info);
 
     if ($sql != '')
         $db->query($sql);
+    if ($sqlHistory != '')
+        $db->query($sqlHistory);
 }
 
 function GetMarketPrice(&$info)
