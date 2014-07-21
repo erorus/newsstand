@@ -101,6 +101,7 @@ function ParseAuctionData($house, $snapshot, &$json)
     global $houseRegionCache;
 
     $snapshotString = Date('Y-m-d H:i:s', $snapshot);
+    $startTimer = microtime(true);
 
     $ourDb = DBConnect(true);
 
@@ -282,7 +283,7 @@ function ParseAuctionData($house, $snapshot, &$json)
     DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." updating seller history");
     UpdateSellerInfo($sellerInfo, $snapshot);
 
-    DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." finished with $totalAuctions auctions");
+    DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." finished with $totalAuctions auctions in ".round(microtime(true) - $startTimer,2)." sec");
 
 }
 
@@ -443,6 +444,9 @@ function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
 {
     global $db, $maxPacketSize;
 
+    $month = (2014 - intval(Date('Y', $snapshot),10)) * 12 + intval(Date('m', $snapshot),10);
+    $day = Date('d', $snapshot);
+
     $snapshotString = Date('Y-m-d H:i:s', $snapshot);
     $sqlStart = 'insert into tblItemSummary (house, item, price, quantity, lastseen) values ';
     $sqlEnd = ' on duplicate key update quantity=values(quantity), price=if(quantity=0,price,values(price)), lastseen=if(quantity=0,lastseen,values(lastseen))';
@@ -451,13 +455,17 @@ function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
     $sqlHistoryStart = 'replace into tblItemHistory (house, item, price, quantity, snapshot) values ';
     $sqlHistory = '';
 
+    $sqlDeepStart = sprintf('insert into tblItemHistoryMonthly (house, item, mktslvr%1$s, qty%1$s, `month`) values ', $day);
+    $sqlDeepEnd = sprintf(' on duplicate key update mktslvr%1$s=if(values(qty%1$s) > ifnull(qty%1$s,0), values(mktslvr%1$s), mktslvr%1$s), qty%1$s=if(values(qty%1$s) > ifnull(qty%1$s,0), values(qty%1$s), qty%1$s)', $day);
+    $sqlDeep = '';
+
     foreach ($itemInfo as $item => &$info)
     {
         $price = GetMarketPrice($info);
         $sqlBit = sprintf('(%d,%d,%d,%d,\'%s\')', $factionHouse, $item, $price, $info['tq'], $snapshotString);
         if (strlen($sql) + strlen($sqlBit) + strlen($sqlEnd) + 5 > $maxPacketSize)
         {
-            $db->query($sql);
+            $db->query($sql.$sqlEnd);
             $sql = '';
         }
         $sql .= ($sql == '' ? $sqlStart : ',') . $sqlBit;
@@ -470,14 +478,24 @@ function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
                 $sqlHistory = '';
             }
             $sqlHistory .= ($sqlHistory == '' ? $sqlHistoryStart : ',') . $sqlBit;
+
+            $sqlDeepBit = sprintf('(%d,%d,%d,%d,%d)', $factionHouse, $item, round($price/100), $info['tq'], $month);
+            if (strlen($sqlDeep) + strlen($sqlDeepBit) + strlen($sqlDeepEnd) + 5 > $maxPacketSize)
+            {
+                $db->query($sqlDeep.$sqlDeepEnd);
+                $sqlDeep = '';
+            }
+            $sqlDeep .= ($sqlDeep == '' ? $sqlDeepStart : ',') . $sqlDeepBit;
         }
     }
     unset($info);
 
     if ($sql != '')
-        $db->query($sql);
+        $db->query($sql.$sqlEnd);
     if ($sqlHistory != '')
         $db->query($sqlHistory);
+    if ($sqlDeep != '')
+        $db->query($sqlDeep.$sqlDeepEnd);
 }
 
 function GetMarketPrice(&$info)
