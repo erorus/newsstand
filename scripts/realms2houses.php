@@ -170,6 +170,7 @@ function CleanOldHouses()
     $stmt->execute();
     $result = $stmt->get_result();
     $oldIds = DBMapArray($result);
+    $stmt->close();
 
     $sql = 'delete from tblAuction where house = %d limit 2000';
     foreach ($oldIds as $oldId)
@@ -196,6 +197,7 @@ function CleanOldHouses()
     $stmt->execute();
     $result = $stmt->get_result();
     $oldIds = DBMapArray($result);
+    $stmt->close();
     if (count($oldIds))
         $db->real_query(sprintf('delete from tblHouseCheck where house in (%s)', implode(',',$oldIds)));
 
@@ -207,6 +209,7 @@ function CleanOldHouses()
     $stmt->execute();
     $result = $stmt->get_result();
     $oldIds = DBMapArray($result);
+    $stmt->close();
 
     $sql = 'delete from tblItemHistory where house = %d limit 2000';
     foreach ($oldIds as $oldId)
@@ -233,6 +236,7 @@ function CleanOldHouses()
     $stmt->execute();
     $result = $stmt->get_result();
     $oldIds = DBMapArray($result);
+    $stmt->close();
 
     $sql = 'delete from tblItemSummary where house = %d limit 2000';
     foreach ($oldIds as $oldId)
@@ -259,6 +263,7 @@ function CleanOldHouses()
     $stmt->execute();
     $result = $stmt->get_result();
     $oldIds = DBMapArray($result);
+    $stmt->close();
 
     $sql = 'delete from tblSnapshot where house = %d limit 2000';
     foreach ($oldIds as $oldId)
