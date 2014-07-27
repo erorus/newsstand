@@ -59,7 +59,19 @@ function FetchItems($items)
         $json = FetchHTTP($url);
         $dta = json_decode($json, true);
         if ((json_last_error() != JSON_ERROR_NONE) || (!isset($dta['id'])))
-            continue;
+        {
+            DebugMessage('Error fetching item '.$id.' from battle.net, trying wowhead..');
+            $json = FetchWowheadItem($id);
+            if ($json === false)
+                continue;
+            $dta = json_decode($json, true);
+            if ((json_last_error() != JSON_ERROR_NONE) || (!isset($dta['id'])))
+            {
+                DebugMessage('Error parsing Wowhead item '.$id);
+                continue;
+            }
+            DebugMessage('Using wowhead for item '.$id);
+        }
 
         $results[$dta['id']] = array('json' => $json);
         foreach ($itemMap as $ours => $details)
@@ -114,4 +126,33 @@ function SaveItems($items)
         else
             DebugMessage('Error updating item '.$item['id'], E_USER_WARNING);
     }
+}
+
+function FetchWowheadItem($id)
+{
+    $url = sprintf('http://www.wowhead.com/item=%d&xml', $id);
+    $xml = FetchHTTP($url);
+    if ($xml == '')
+        return false;
+
+    $xml = new SimpleXMLElement($xml);
+    $item = $xml->item[0];
+    if (!isset($item['id']) || ($item['id'] != $id))
+        return false;
+
+    $json = array();
+    $json['id'] = $id;
+    $json['wowhead'] = true;
+    $json['name'] = (string)$item->name;
+    $json['quality'] = intval($item->quality['id'],10);
+    $json['itemLevel'] = intval($item->level,10);
+    $json['itemClass'] = intval($item->{'class'}['id'],10);
+    $json['itemSubClass'] = intval($item->subclass['id'],10);
+    $json['icon'] = strtolower((string)$item->icon);
+    if (preg_match('/Max Stack: (\d+)/', $item->htmlTooltip, $res) > 0)
+        $json['stackable'] = intval($res[1],10);
+    if (preg_match('/"sellprice":(\d+)/', $item->jsonEquip, $res) > 0)
+        $json['sellPrice'] = intval($res[1],10);
+
+    return json_encode($json);
 }
