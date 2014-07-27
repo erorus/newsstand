@@ -72,7 +72,7 @@ ENDSQL;
         return 30;
     }
 
-    if (strtotime($nextDate) > time())
+    if (strtotime($nextDate) > time() && (strtotime($nextDate) < (time() + 3.5*60*60)))
     {
         DebugMessage("No $region realms ready yet, waiting ".TimeDiff(strtotime($nextDate)));
         return strtotime($nextDate) - time();
@@ -87,7 +87,7 @@ ENDSQL;
     if (!isset($dta['files']))
     {
         DebugMessage("$region $slug returned no files.", E_USER_WARNING);
-        SetHouseNextCheck($house, time() + GetCheckDelay($modified));
+        SetHouseNextCheck($house, time() + GetCheckDelay($lastDate));
         return 0;
     }
 
