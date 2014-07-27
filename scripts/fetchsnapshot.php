@@ -1,19 +1,33 @@
 <?php
 
+chdir(__DIR__);
+
 require_once('../incl/incl.php');
+require_once('../incl/heartbeat.incl.php');
+
+RunMeNTimes(1);
+CatchKill();
 
 define('SNAPSHOT_PATH', '/var/newsstand/snapshots/');
+
+$regions = array('US','EU');
+
+if (!isset($argv[1]) || !in_array($argv[1], $regions))
+    DebugMessage('Need region US or EU', E_USER_ERROR);
 
 if (!DBConnect())
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
 
-$region = 'US'; //TODO: pull from command line
+$region = $argv[1];
 
 $loopStart = time();
 $toSleep = 0;
-while (time() < ($loopStart + 60 * 30))
+while ((!$caughtKill) && (time() < ($loopStart + 60 * 30)))
 {
+    heartbeat();
     sleep(min($toSleep, 30));
+    if ($caughtKill)
+        break;
     $toSleep = FetchSnapshot();
     if ($toSleep === false)
         break;

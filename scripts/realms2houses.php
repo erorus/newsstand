@@ -1,6 +1,12 @@
 <?php
 
+chdir(__DIR__);
+
 require_once('../incl/incl.php');
+require_once('../incl/heartbeat.incl.php');
+
+RunMeNTimes(1);
+CatchKill();
 
 if (!DBConnect())
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
@@ -9,6 +15,9 @@ $regions = array('US','EU');
 
 foreach ($regions as $region)
 {
+    heartbeat();
+    if ($caughtKill)
+        break;
     $url = sprintf('https://%s.battle.net/api/wow/realm/status', strtolower($region));
 
     $json = FetchHTTP($url);
@@ -64,6 +73,9 @@ foreach ($regions as $region)
         $started = time();
         foreach ($houses as &$realm)
         {
+            heartbeat();
+            if ($caughtKill)
+                break 3;
             DebugMessage("Fetching $region {$realm['slug']}");
             $url = sprintf('https://%s.battle.net/api/wow/auction/data/%s', strtolower($region), $realm['slug']);
 
@@ -98,6 +110,9 @@ foreach ($regions as $region)
         }
     }
 
+    heartbeat();
+    if ($caughtKill)
+        break;
     $stmt = $db->prepare('update tblRealm set house = ? where region = ? and slug = ?');
     foreach ($hashes as $hash => $slugs)
     {
@@ -106,7 +121,7 @@ foreach ($regions as $region)
             if (!is_null($houses[$slug]['house']))
             {
                 if (!isset($candidates[$houses[$slug]['house']]))
-                    $candidates[$houses[$slug]['house']] = array();
+                    $candidates[$houses[$slug]['house']] = 0;
                 $candidates[$houses[$slug]['house']]++;
             }
         if (count($candidates) > 0)
@@ -128,7 +143,7 @@ foreach ($regions as $region)
         {
             if ($houses[$slug]['house'] != $curHouse)
             {
-                //echo "$region $slug changing from ".(is_null($houses[$slug]['house']) ? 'null' : $houses[$slug]['house'])." to $curHouse\n";
+                DebugMessage("$region $slug changing from ".(is_null($houses[$slug]['house']) ? 'null' : $houses[$slug]['house'])." to $curHouse");
                 $stmt->bind_param('iss', $curHouse, $region, $slug);
                 $stmt->execute();
                 $stmt->reset();

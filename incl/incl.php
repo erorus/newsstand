@@ -222,3 +222,44 @@ function TimeDiff($time, $opt = array()) {
     $opt['distance'] && $str.=($str&&$opt['to']>=$time)?' ago':' away';
     return $str;
 }
+
+$caughtKill = false;
+function CatchKill()
+{
+    static $setCatch = false;
+    if ($setCatch)
+        return;
+    $setCatch = true;
+
+    if (php_sapi_name() != 'cli')
+    {
+        DebugMessage('Cannot catch kill if not CLI', E_USER_WARNING);
+        return;
+    }
+
+    declare(ticks = 1);
+    pcntl_signal(SIGTERM, 'KillSigHandler');
+}
+
+function KillSigHandler($sig)
+{
+    global $caughtKill;
+    if ($sig == SIGTERM)
+    {
+        $caughtKill = true;
+        DebugMessage('Caught kill message, exiting soon..');
+    }
+}
+
+function RunMeNTimes($howMany = 1)
+{
+    global $argv;
+
+    if (php_sapi_name() != 'cli')
+    {
+        DebugMessage('Cannot run once if not CLI', E_USER_WARNING);
+        return;
+    }
+
+    if (intval(shell_exec('ps -o args -C php | grep '.escapeshellarg(implode(' ',$argv)).' | wc -l')) > $howMany) die();
+}

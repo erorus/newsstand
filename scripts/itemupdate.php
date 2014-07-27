@@ -1,6 +1,11 @@
 <?php
 
+chdir(__DIR__);
+
 require_once('../incl/incl.php');
+require_once('../incl/heartbeat.incl.php');
+
+RunMeNTimes(1);
 
 if (!DBConnect())
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
@@ -20,6 +25,7 @@ $itemMap = array(
     'auctionable'       => array('name' => 'isAuctionable',     'required' => false),
 );
 
+heartbeat();
 $ids = NewItems(100);
 if (count($ids))
     SaveItems(FetchItems($ids));
@@ -54,6 +60,7 @@ function FetchItems($items)
 
     foreach ($items as &$id)
     {
+        heartbeat();
         DebugMessage('Fetching item '.$id);
         $url = 'http://us.battle.net/api/wow/item/'.$id;
         $json = FetchHTTP($url);

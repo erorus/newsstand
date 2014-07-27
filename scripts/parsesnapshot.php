@@ -1,6 +1,12 @@
 <?php
 
+chdir(__DIR__);
+
 require_once('../incl/incl.php');
+require_once('../incl/heartbeat.incl.php');
+
+RunMeNTimes(1);
+CatchKill();
 
 define('SNAPSHOT_PATH', '/var/newsstand/snapshots/');
 
@@ -31,9 +37,12 @@ unset($nonsense);
 
 $loopStart = time();
 $toSleep = 0;
-while (time() < ($loopStart + 60 * 30))
+while ((!$caughtKill) && (time() < ($loopStart + 60 * 30)))
 {
+    heartbeat();
     sleep(min($toSleep,10));
+    if ($caughtKill)
+        break;
     $toSleep = NextDataFile();
     if ($toSleep === false)
         break;
