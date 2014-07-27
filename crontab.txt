@@ -1,0 +1,14 @@
+* * * * * php /var/newsstand/scripts/itemupdate.php >> /var/newsstand/logs/itemupdate.log 2>&1
+0 0 * * * mv /var/newsstand/logs/itemupdate.log /var/newsstand/logs/itemupdate.yesterday.log
+
+*/5 * * * * /var/newsstand/scripts/heartbeat.sh >> /var/newsstand/logs/heartbeat.log 2>&1
+
+* * * * * php /var/newsstand/scripts/fetchsnapshot.php US >> /var/newsstand/logs/fetchsnapshot.US.log 2>&1
+0 0 * * * mv /var/newsstand/logs/fetchsnapshot.US.log /var/newsstand/logs/fetchsnapshot.US.yesterday.log
+
+* * * * * php /var/newsstand/scripts/parsesnapshot.php >> /var/newsstand/logs/parsesnapshot.log 2>&1
+0 0 * * * mv /var/newsstand/logs/parsesnapshot.log /var/newsstand/logs/parsesnapshot.yesterday.log
+
+23 4,16 * * * php /var/newsstand/scripts/realms2houses.php >> /var/newsstand/logs/realms2houses.log 2>&1
+0 0 * * 0 mv /var/newsstand/logs/realms2houses.log /var/newsstand/logs/realms2houses.lastweek.log
+
