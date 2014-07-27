@@ -86,7 +86,7 @@ function CleanOldData()
 
     $rowCount = 0;
     DebugMessage('Clearing out old seller history');
-    $sql = 'delete from tblSellerHistory where snapshot < timestampadd(day, -15, now()) limit 5000';
+    $sql = 'delete from tblSellerHistory where snapshot < timestampadd(day, -'.HISTORY_DAYS.', now()) limit 5000';
     while (!$caughtKill)
     {
         heartbeat();
