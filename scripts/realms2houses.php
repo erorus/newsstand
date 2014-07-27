@@ -154,4 +154,127 @@ foreach ($regions as $region)
     $stmt->close();
 }
 
+CleanOldHouses();
+
 DebugMessage('Done!');
+
+function CleanOldHouses()
+{
+    global $db, $caughtKill;
+
+    if ($caughtKill)
+        return;
+
+    $sql = 'select distinct house from tblAuction where house not in (select cast(house as signed) * -1 from tblRealm union select cast(house as signed) from tblRealm)';
+    $stmt = $db->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $oldIds = DBMapArray($result);
+
+    $sql = 'delete from tblAuction where house = %d limit 2000';
+    foreach ($oldIds as $oldId)
+    {
+        if ($caughtKill)
+            return;
+
+        DebugMessage('Clearing out auctions from old house '.$oldId);
+
+        while (!$caughtKill)
+        {
+            heartbeat();
+            $ok = $db->real_query(sprintf($sql, $oldId));
+            if (!$ok || $db->affected_rows == 0)
+                break;
+        }
+    }
+
+    if ($caughtKill)
+        return;
+
+    $sql = 'select distinct house from tblHouseCheck where house not in (select distinct house from tblRealm)';
+    $stmt = $db->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $oldIds = DBMapArray($result);
+    if (count($oldIds))
+        $db->real_query(sprintf('delete from tblHouseCheck where house in (%s)', implode(',',$oldIds)));
+
+    if ($caughtKill)
+        return;
+
+    $sql = 'select distinct house from tblItemHistory where house not in (select cast(house as signed) * -1 from tblRealm union select cast(house as signed) from tblRealm)';
+    $stmt = $db->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $oldIds = DBMapArray($result);
+
+    $sql = 'delete from tblItemHistory where house = %d limit 2000';
+    foreach ($oldIds as $oldId)
+    {
+        if ($caughtKill)
+            return;
+
+        DebugMessage('Clearing out item history from old house '.$oldId);
+
+        while (!$caughtKill)
+        {
+            heartbeat();
+            $ok = $db->real_query(sprintf($sql, $oldId));
+            if (!$ok || $db->affected_rows == 0)
+                break;
+        }
+    }
+
+    if ($caughtKill)
+        return;
+
+    $sql = 'select distinct house from tblItemSummary where house not in (select cast(house as signed) * -1 from tblRealm union select cast(house as signed) from tblRealm)';
+    $stmt = $db->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $oldIds = DBMapArray($result);
+
+    $sql = 'delete from tblItemSummary where house = %d limit 2000';
+    foreach ($oldIds as $oldId)
+    {
+        if ($caughtKill)
+            return;
+
+        DebugMessage('Clearing out item summary from old house '.$oldId);
+
+        while (!$caughtKill)
+        {
+            heartbeat();
+            $ok = $db->real_query(sprintf($sql, $oldId));
+            if (!$ok || $db->affected_rows == 0)
+                break;
+        }
+    }
+
+    if ($caughtKill)
+        return;
+
+    $sql = 'select distinct house from tblSnapshot where house not in (select distinct house from tblRealm)';
+    $stmt = $db->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $oldIds = DBMapArray($result);
+
+    $sql = 'delete from tblSnapshot where house = %d limit 2000';
+    foreach ($oldIds as $oldId)
+    {
+        if ($caughtKill)
+            return;
+
+        DebugMessage('Clearing out snapshots from old house '.$oldId);
+
+        while (!$caughtKill)
+        {
+            heartbeat();
+            $ok = $db->real_query(sprintf($sql, $oldId));
+            if (!$ok || $db->affected_rows == 0)
+                break;
+        }
+    }
+
+}
