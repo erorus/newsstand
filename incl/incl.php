@@ -4,6 +4,8 @@ $db = false;
 
 if (php_sapi_name() == 'cli')
     error_reporting(E_ALL);
+else
+    $region = 'US'; // TODO: check url
 
 date_default_timezone_set('UTC');
 
@@ -16,6 +18,8 @@ function DebugMessage($message, $debugLevel = E_USER_NOTICE)
         else
             trigger_error(Date('Y-m-d H:i:s')." $message", $debugLevel);
     }
+    elseif ($debugLevel != E_USER_NOTICE)
+        trigger_error($message, $debugLevel);
 }
 
 function DBConnect($alternate = false)

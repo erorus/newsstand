@@ -4,6 +4,7 @@ chdir(__DIR__);
 
 require_once('../incl/incl.php');
 require_once('../incl/heartbeat.incl.php');
+require_once('../incl/memcache.incl.php');
 
 RunMeNTimes(1);
 CatchKill();
@@ -291,6 +292,9 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." updating seller history");
     UpdateSellerInfo($sellerInfo, $snapshot);
+
+    MCSetHouse($house, 'ts', $snapshot);
+    MCSetHouse(-1 * $house, 'ts', $snapshot);
 
     DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." finished with $totalAuctions auctions in ".round(microtime(true) - $startTimer,2)." sec");
 

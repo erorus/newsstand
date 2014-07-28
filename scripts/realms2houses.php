@@ -4,6 +4,7 @@ chdir(__DIR__);
 
 require_once('../incl/incl.php');
 require_once('../incl/heartbeat.incl.php');
+require_once('../incl/memcache.incl.php');
 
 RunMeNTimes(1);
 CatchKill();
@@ -152,6 +153,7 @@ foreach ($regions as $region)
         }
     }
     $stmt->close();
+    $memcache->delete('realms_'.$region);
 }
 
 CleanOldHouses();
