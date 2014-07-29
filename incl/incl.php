@@ -4,8 +4,6 @@ $db = false;
 
 if (php_sapi_name() == 'cli')
     error_reporting(E_ALL);
-else
-    $region = 'US'; // TODO: check url
 
 date_default_timezone_set('UTC');
 

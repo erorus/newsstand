@@ -4,6 +4,8 @@ require_once('../../incl/incl.php');
 require_once('../../incl/memcache.incl.php');
 require_once('../../incl/api.incl.php');
 
+$region = isset($_GET['region']) ? $_GET['region'] : 'US'; // todo: check domain
+
 if ($json = MCGet('realms_'.$region))
     json_return($json);
 
