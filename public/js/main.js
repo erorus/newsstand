@@ -22,7 +22,7 @@ var TUJ = function()
         realms = dta;
 
         var realmList = libtuj.ce();
-        realmList.className = 'realm-list';
+        realmList.id = 'realm-list';
         $('#main').append(realmList);
 
         DrawRealms();
@@ -31,9 +31,9 @@ var TUJ = function()
 
     function DrawRealms()
     {
-        realmList = $('#main div.realm-list')[0];
+        realmList = $('#realm-list')[0];
 
-        var maxWidth = realmList.offsetWidth;
+        var maxWidth = realmList.clientWidth;
         var oldColCount = realmList.childNodes.length;
 
         var cols = [];

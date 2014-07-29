@@ -1,5 +1,6 @@
 body {background-color: #CCC}
-#main {margin: 5%; background-color: white}
+#main {margin: 25px; background-color: white}
 
-.realms-column {width: 15em; display: inline-block; vertical-align: top}
+#realm-list {border: 5px solid white; text-align: center}
+.realms-column {width: 15em; display: inline-block; vertical-align: top; text-align: left}
 .realms-column a {display: block}
