@@ -47,6 +47,7 @@ while ((!$caughtKill) && (time() < ($loopStart + 60 * 30)))
     $toSleep = NextDataFile();
     if ($toSleep === false)
         break;
+    break;
 }
 DebugMessage('Done!');
 
@@ -126,6 +127,12 @@ function ParseAuctionData($house, $snapshot, &$json)
     $result = $stmt->get_result();
     $existingIds = DBMapArray($result);
 
+    $stmt = $ourDb->prepare('select id, species, breed, house from tblAuctionPet where house in (?,?)');
+    $stmt->bind_param('ii',$house, $hordeHouse);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $existingPetIds = DBMapArray($result);
+
     $naiveMax = 0;
     $lowMax = -1;
     $highMax = -1;
@@ -174,10 +181,13 @@ function ParseAuctionData($house, $snapshot, &$json)
     $stmt->close();
 
     $sqlStart = 'replace into tblAuction (house, id, item, quantity, bid, buy, seller, rand, seed) values ';
+    $sqlStartPet = 'replace into tblAuctionPet (house, id, species, breed, `level`, quality) values ';
     $sql = '';
+    $sqlPet = '';
 
     $totalAuctions = 0;
     $itemInfo = array();
+    $petInfo = array();
 
     foreach ($json as $faction => &$factionData)
         if (isset($factionData['auctions']))
@@ -213,23 +223,33 @@ function ParseAuctionData($house, $snapshot, &$json)
             for ($x = 0; $x < $auctionCount; $x++)
             {
                 $auction =& $factionData['auctions'][$x];
-                if ($auction['item'] == 82800 || isset($auction['petSpeciesId']))
-                    continue;
 
                 $totalAuctions++;
                 if ($auction['buyout'] != 0)
                 {
-                    if (!isset($itemInfo[$auction['item']]))
-                        $itemInfo[$auction['item']] = array('a' => array(), 'tq' => 0);
+                    if (isset($auction['petSpeciesId']))
+                    {
+                        if (!isset($petInfo[$auction['petSpeciesId']][$auction['petBreedId']]))
+                            $petInfo[$auction['petSpeciesId']][$auction['petBreedId']] = array('a' => array(), 'tq' => 0);
 
-                    $itemInfo[$auction['item']]['a'][] = array('q' => $auction['quantity'], 'p' => $auction['buyout']);
-                    $itemInfo[$auction['item']]['tq'] += $auction['quantity'];
+                        $petInfo[$auction['petSpeciesId']][$auction['petBreedId']]['a'][] = array('q' => $auction['quantity'], 'p' => $auction['buyout']);
+                        $petInfo[$auction['petSpeciesId']][$auction['petBreedId']]['tq'] += $auction['quantity'];
+                    }
+                    else
+                    {
+                        if (!isset($itemInfo[$auction['item']]))
+                            $itemInfo[$auction['item']] = array('a' => array(), 'tq' => 0);
+
+                        $itemInfo[$auction['item']]['a'][] = array('q' => $auction['quantity'], 'p' => $auction['buyout']);
+                        $itemInfo[$auction['item']]['tq'] += $auction['quantity'];
+                    }
                 }
 
                 if (isset($existingIds[$auction['auc']]))
                 {
                     $needUpdate = ($auction['bid'] != $existingIds[$auction['auc']]['bid']);
                     unset($existingIds[$auction['auc']]);
+                    unset($existingPetIds[$auction['auc']]);
                     if (!$needUpdate)
                         continue;
                 }
@@ -250,19 +270,48 @@ function ParseAuctionData($house, $snapshot, &$json)
                     $sql = '';
                 }
                 $sql .= ($sql == '' ? $sqlStart : ',') . $thisSql;
+
+                if (isset($auction['petSpeciesId']))
+                {
+                    $thisSql = sprintf('(%d, %u, %u, %u, %u, %u)',
+                        $factionHouse,
+                        $auction['auc'],
+                        $auction['petSpeciesId'],
+                        $auction['petBreedId'],
+                        $auction['petLevel'],
+                        $auction['petQualityId']);
+
+                    if (strlen($sqlPet) + 5 + strlen($thisSql) > $maxPacketSize)
+                    {
+                        $ourDb->query($sqlPet);
+                        $sqlPet = '';
+                    }
+                    $sqlPet .= ($sqlPet == '' ? $sqlStartPet : ',') . $thisSql;
+                }
             }
 
             if ($sql != '')
                 $ourDb->query($sql);
 
+            if ($sqlPet != '')
+                $ourDb->query($sqlPet);
+
             // move out of loop once no longer using $factionHouse
             DebugMessage("House ".str_pad($factionHouse, 5, ' ', STR_PAD_LEFT)." updating ".count($itemInfo)." item info");
             foreach ($existingIds as &$oldRow)
-                if (($oldRow['house'] == $factionHouse) && (!isset($itemInfo[$oldRow['item']])))
+                if (($oldRow['house'] == $factionHouse) && (!isset($existingPetIds[$oldRow['id']])) && (!isset($itemInfo[$oldRow['item']])))
                     $itemInfo[$oldRow['item']] = array('tq' => 0, 'a' => array());
             unset($oldRow);
             UpdateItemInfo($factionHouse, $itemInfo, $snapshot);
-            $itemInfo = '';
+            $itemInfo = array();
+
+            DebugMessage("House ".str_pad($factionHouse, 5, ' ', STR_PAD_LEFT)." updating ".count($petInfo)." pet info");
+            foreach ($existingPetIds as &$oldRow)
+                if (($oldRow['house'] == $factionHouse) && (!isset($petInfo[$oldRow['species']][$oldRow['breed']])))
+                    $petInfo[$oldRow['species']][$oldRow['breed']] = array('tq' => 0, 'a' => array());
+            unset($oldRow);
+            UpdatePetInfo($factionHouse, $petInfo, $snapshot);
+            $petInfo = array();
         }
 
     if (count($existingIds) > 0)
@@ -475,7 +524,7 @@ function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
     foreach ($itemInfo as $item => &$info)
     {
         $price = GetMarketPrice($info);
-        $sqlBit = sprintf('(%d,%d,%d,%d,\'%s\')', $factionHouse, $item, $price, $info['tq'], $snapshotString);
+        $sqlBit = sprintf('(%d,%u,%u,%u,\'%s\')', $factionHouse, $item, $price, $info['tq'], $snapshotString);
         if (strlen($sql) + strlen($sqlBit) + strlen($sqlEnd) + 5 > $maxPacketSize)
         {
             $db->query($sql.$sqlEnd);
@@ -492,7 +541,7 @@ function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
             }
             $sqlHistory .= ($sqlHistory == '' ? $sqlHistoryStart : ',') . $sqlBit;
 
-            $sqlDeepBit = sprintf('(%d,%d,%d,%d,%d)', $factionHouse, $item, round($price/100), $info['tq'], $month);
+            $sqlDeepBit = sprintf('(%d,%u,%u,%u,%u)', $factionHouse, $item, round($price/100), $info['tq'], $month);
             if (strlen($sqlDeep) + strlen($sqlDeepBit) + strlen($sqlDeepEnd) + 5 > $maxPacketSize)
             {
                 $db->query($sqlDeep.$sqlDeepEnd);
@@ -509,6 +558,51 @@ function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
         $db->query($sqlHistory);
     if ($sqlDeep != '')
         $db->query($sqlDeep.$sqlDeepEnd);
+}
+
+function UpdatePetInfo($factionHouse, &$petInfo, $snapshot)
+{
+    global $db, $maxPacketSize;
+
+    $snapshotString = Date('Y-m-d H:i:s', $snapshot);
+    $sqlStart = 'insert into tblPetSummary (house, species, breed, price, quantity, lastseen) values ';
+    $sqlEnd = ' on duplicate key update quantity=values(quantity), price=if(quantity=0,price,values(price)), lastseen=if(quantity=0,lastseen,values(lastseen))';
+    $sql = '';
+
+    $sqlHistoryStart = 'replace into tblPetHistory (house, species, breed, price, quantity, snapshot) values ';
+    $sqlHistory = '';
+
+    foreach ($petInfo as $species => &$breeds)
+    {
+        foreach ($breeds as $breed => &$info)
+        {
+            $price = GetMarketPrice($info);
+            $sqlBit = sprintf('(%d,%u,%u,%u,%u,\'%s\')', $factionHouse, $species, $breed, $price, $info['tq'], $snapshotString);
+            if (strlen($sql) + strlen($sqlBit) + strlen($sqlEnd) + 5 > $maxPacketSize)
+            {
+                $db->query($sql.$sqlEnd);
+                $sql = '';
+            }
+            $sql .= ($sql == '' ? $sqlStart : ',') . $sqlBit;
+
+            if ($info['tq'] > 0)
+            {
+                if (strlen($sqlHistory) + strlen($sqlBit) + 5 > $maxPacketSize)
+                {
+                    $db->query($sqlHistory);
+                    $sqlHistory = '';
+                }
+                $sqlHistory .= ($sqlHistory == '' ? $sqlHistoryStart : ',') . $sqlBit;
+            }
+        }
+        unset($info);
+    }
+    unset($breeds);
+
+    if ($sql != '')
+        $db->query($sql.$sqlEnd);
+    if ($sqlHistory != '')
+        $db->query($sqlHistory);
 }
 
 function GetMarketPrice(&$info)
