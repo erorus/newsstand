@@ -47,7 +47,6 @@ while ((!$caughtKill) && (time() < ($loopStart + 60 * 30)))
     $toSleep = NextDataFile();
     if ($toSleep === false)
         break;
-    break;
 }
 DebugMessage('Done!');
 
