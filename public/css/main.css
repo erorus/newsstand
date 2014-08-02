@@ -1,6 +1,22 @@
-body {background-color: #CCC}
-#main {margin: 25px; background-color: white}
+body {background-color: white; margin: 0; overflow-y: scroll}
+#title {height: 20em; min-width: 600px; background-image: url('../images/title3.edges.png'); background-repeat: repeat-x; background-size: contain}
+#title div {background-image: url('../images/title3.middle.png'); background-position: center; background-repeat: no-repeat; height: 100%; background-size: contain}
+#main {margin: 2em; background-color: white}
 
-#realm-list {border: 5px solid white; text-align: center}
-.realms-column {width: 15em; display: inline-block; vertical-align: top; text-align: left}
+
+#realm-list {display: none; text-align: center}
+#realm-list.width-test, #realm-list.show {display: block}
+#realm-list.width-test #faction-pick {display: none}
+.realms-column {width: 15em; display: none; vertical-align: top; text-align: left}
+#realm-list.width-test .realms-column {display: inline-block}
+#realm-list #faction-pick {font-size: 200%}
+#realm-list #faction-pick a {padding: 0.5em; display: inline-block; width: 25%; margin: 0.5em 5%; border: 0.2em solid #666; border-radius: 0.5em; cursor: pointer}
+#realm-list #faction-pick a.alliance {background-color: #BBE}
+#realm-list #faction-pick a.horde {background-color: #E99}
+#realm-list.alliance #faction-pick a.horde {opacity: 0.5}
+#realm-list.horde #faction-pick a.alliance {opacity: 0.5}
 .realms-column a {display: block}
+#realm-list.alliance .realms-column {display: inline-block}
+#realm-list.horde .realms-column {display: inline-block}
+#realm-list.alliance .realms-column a {color: #006}
+#realm-list.horde .realms-column a {color: #600}

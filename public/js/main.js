@@ -5,36 +5,75 @@ var libtuj = {
 var TUJ = function()
 {
     var realms;
+    var realm;
 
     function Main()
     {
-        $.ajax({
-            data: {
-                region: 'US'
-            },
-            success: ReadRealms,
-            url: 'api/realms.php'
-        });
-    }
+        if (typeof realms == 'undefined')
+        {
+            $.ajax({
+                data: {
+                    region: 'US'
+                },
+                success: function(dta)
+                {
+                    realms = dta;
+                    Main();
+                },
+                url: 'api/realms.php'
+            });
+            return;
+        }
 
-    function ReadRealms(dta)
-    {
-        realms = dta;
+        if ($('#realm-list').length == 0)
+        {
+            DrawRealms();
+            return;
+        }
 
-        var realmList = libtuj.ce();
-        realmList.id = 'realm-list';
-        $('#main').append(realmList);
-
-        DrawRealms();
-        optimizedResize.add(DrawRealms);
+        if (typeof realm == 'undefined')
+        {
+            $('#realm-list').addClass('show');
+            return;
+        }
     }
 
     function DrawRealms()
     {
-        realmList = $('#realm-list')[0];
+        var addResize = false;
+        var realmList = $('#realm-list')[0];
 
+        if (!realmList)
+        {
+            realmList = libtuj.ce();
+            realmList.id = 'realm-list';
+            $('#main')[0].insertBefore(realmList, $('#main')[0].firstChild);
+
+            var factionPick = libtuj.ce();
+            factionPick.id = 'faction-pick';
+            realmList.appendChild(factionPick);
+
+            var directions = libtuj.ce();
+            directions.className = 'directions';
+            factionPick.appendChild(directions);
+            directions.appendChild(document.createTextNode('Choose your faction, then realm.'));
+
+            var factionAlliance = libtuj.ce('a');
+            factionAlliance.className = 'alliance';
+            factionAlliance.appendChild(document.createTextNode('Alliance'));
+            $(factionAlliance).click({addClass: 'alliance', removeClass: 'horde'}, ChooseFaction);
+            factionPick.appendChild(factionAlliance);
+            var factionHorde = libtuj.ce('a');
+            factionHorde.className = 'horde';
+            factionHorde.appendChild(document.createTextNode('Horde'));
+            $(factionHorde).click({addClass: 'horde', removeClass: 'alliance'}, ChooseFaction);
+            factionPick.appendChild(factionHorde);
+            addResize = true;
+        }
+
+        $(realmList).addClass('width-test');
         var maxWidth = realmList.clientWidth;
-        var oldColCount = realmList.childNodes.length;
+        var oldColCount = realmList.getElementsByClassName('realms-column').length;
 
         var cols = [];
         var colWidth = 0;
@@ -48,8 +87,9 @@ var TUJ = function()
         }
         else
         {
-            colWidth = realmList.childNodes[0].offsetWidth;
+            colWidth = realmList.getElementsByClassName('realms-column')[0].offsetWidth;
         }
+        $(realmList).removeClass('width-test');
 
         var numCols = Math.floor(maxWidth / colWidth);
         if (numCols == 0)
@@ -59,7 +99,7 @@ var TUJ = function()
             return;
 
         if (oldColCount > 0)
-            $(realmList).empty();
+            $(realmList).children('.realms-column').remove();
 
         for (var x = cols.length; x < numCols; x++)
         {
@@ -90,6 +130,16 @@ var TUJ = function()
 
             $(cols[Math.min(cols.length-1, Math.floor(c++ / cnt * numCols))]).append(a);
         }
+
+        if (addResize)
+            optimizedResize.add(DrawRealms);
+
+        Main();
+    }
+
+    function ChooseFaction(dta)
+    {
+        $('#realm-list').addClass(dta.data.addClass).removeClass(dta.data.removeClass);
     }
 
     Main();
