@@ -6,6 +6,7 @@ var TUJ = function()
 {
     var realms;
     var realm;
+    var faction = 1;
 
     function Main()
     {
@@ -47,7 +48,7 @@ var TUJ = function()
         {
             realmList = libtuj.ce();
             realmList.id = 'realm-list';
-            $('#main')[0].insertBefore(realmList, $('#main')[0].firstChild);
+            $('#main').prepend(realmList);
 
             var factionPick = libtuj.ce();
             factionPick.id = 'faction-pick';
@@ -56,17 +57,13 @@ var TUJ = function()
             var directions = libtuj.ce();
             directions.className = 'directions';
             factionPick.appendChild(directions);
-            directions.appendChild(document.createTextNode('Choose your faction, then realm.'));
+            $(directions).text('Choose your faction, then realm.');
 
             var factionAlliance = libtuj.ce('a');
-            factionAlliance.className = 'alliance';
-            factionAlliance.appendChild(document.createTextNode('Alliance'));
-            $(factionAlliance).click({addClass: 'alliance', removeClass: 'horde'}, ChooseFaction);
+            $(factionAlliance).addClass('alliance').text('Alliance').click({addClass: 'alliance', removeClass: 'horde'}, ChooseFaction);
             factionPick.appendChild(factionAlliance);
             var factionHorde = libtuj.ce('a');
-            factionHorde.className = 'horde';
-            factionHorde.appendChild(document.createTextNode('Horde'));
-            $(factionHorde).click({addClass: 'horde', removeClass: 'alliance'}, ChooseFaction);
+            $(factionHorde).addClass('horde').text('Horde').click({addClass: 'horde', removeClass: 'alliance'}, ChooseFaction);
             factionPick.appendChild(factionHorde);
             addResize = true;
         }
@@ -126,7 +123,7 @@ var TUJ = function()
                 continue;
 
             a = libtuj.ce('a');
-            $(a).text(realms[x].name);
+            $(a).text(realms[x].name).click({id: x}, ChooseRealm);
 
             $(cols[Math.min(cols.length-1, Math.floor(c++ / cnt * numCols))]).append(a);
         }
@@ -140,6 +137,25 @@ var TUJ = function()
     function ChooseFaction(dta)
     {
         $('#realm-list').addClass(dta.data.addClass).removeClass(dta.data.removeClass);
+        faction = (dta.data.addClass == 'horde' ? -1 : 1);
+    }
+
+    function ChooseRealm(dta)
+    {
+        realm = realms[dta.data.id];
+        console.log(realm, faction);
+        $('#realm-list').removeClass('show');
+
+        var realmHeader = $('#realm-header')[0];
+        if (!realmHeader)
+        {
+            realmHeader = libtuj.ce();
+            realmHeader.id = 'realm-header';
+            $('#realm-list').after(realmHeader);
+
+        }
+
+        Main();
     }
 
     Main();
@@ -173,9 +189,8 @@ var optimizedResize = (function() {
     // run the actual callbacks
     function runCallbacks() {
 
-        callbacks.forEach(function(callback) {
-            callback();
-        });
+        for (var x = 0; x < callbacks.length; x++)
+            callbacks[x]();
 
         running = false;
     }

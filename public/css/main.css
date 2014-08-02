@@ -15,7 +15,7 @@ body {background-color: white; margin: 0; overflow-y: scroll}
 #realm-list #faction-pick a.horde {background-color: #E99}
 #realm-list.alliance #faction-pick a.horde {opacity: 0.5}
 #realm-list.horde #faction-pick a.alliance {opacity: 0.5}
-.realms-column a {display: block}
+.realms-column a {display: block; cursor: pointer; margin: 0.1em 0}
 #realm-list.alliance .realms-column {display: inline-block}
 #realm-list.horde .realms-column {display: inline-block}
 #realm-list.alliance .realms-column a {color: #006}
