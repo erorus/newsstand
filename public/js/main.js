@@ -5,13 +5,30 @@ var libtuj = {
 var TUJ = function()
 {
     var realms;
-    var realm;
-    var faction = 1;
+    var validPages = ['item','seller','category'];
+    var validFactions = {'alliance': 1, 'horde': -1};
+    var params = {
+        realm: undefined,
+        faction: undefined,
+        page: undefined,
+        id: undefined
+    }
+    var hash = {
+        sets: 0,
+        changes: 0,
+        watching: false
+    }
+    var inMain = false;
 
     function Main()
     {
+        if (inMain)
+            return;
+        inMain = true;
+
         if (typeof realms == 'undefined')
         {
+            inMain = false;
             $.ajax({
                 data: {
                     region: 'US'
@@ -26,17 +43,120 @@ var TUJ = function()
             return;
         }
 
+        ReadParams();
+
         if ($('#realm-list').length == 0)
         {
+            inMain = false;
             DrawRealms();
             return;
         }
 
-        if (typeof realm == 'undefined')
+        if (!params.realm)
         {
+            if (params.faction)
+                ChooseFaction(params.faction);
+            inMain = false;
             $('#realm-list').addClass('show');
             return;
         }
+
+        inMain = false;
+    }
+
+    function ReadParams()
+    {
+        if (!hash.watching)
+            hash.watching = $(window).on('hashchange', ReadParams);
+
+        if (hash.sets > hash.changes)
+        {
+            hash.changes++;
+            return false;
+        }
+
+        if (hash.sets != hash.changes)
+            return false;
+
+        var p = {
+            realm: undefined,
+            faction: undefined,
+            page: undefined,
+            id: undefined
+        }
+
+        var h = location.hash.toLowerCase();
+        if (h.charAt(0) == '#')
+            h = h.substr(1);
+        h = h.split('/');
+
+        var y;
+
+        nextParam:
+        for (var x = 0; x < h.length; x++)
+        {
+            if (!p.page)
+                for (y = 0; y < validPages.length; y++)
+                    if (h[x] == validPages[y])
+                    {
+                        p.page = y;
+                        continue nextParam;
+                    }
+            if (!p.faction)
+                for (y in validFactions)
+                    if (validFactions.hasOwnProperty(y) && h[x] == y)
+                    {
+                        p.faction = y;
+                        continue nextParam;
+                    }
+            if (!p.realm)
+                for (y in realms)
+                    if (realms.hasOwnProperty(y) && h[x] == realms[y].slug)
+                    {
+                        p.realm = y;
+                        continue nextParam;
+                    }
+            p.id = h[x];
+        }
+
+        if (!SetParams(p))
+            Main();
+    }
+
+    function SetParams(p)
+    {
+        if (p)
+            for (var x in p)
+                if (p.hasOwnProperty(x) && params.hasOwnProperty(x))
+                    params[x] = p[x];
+
+        if (!params.page)
+            params.id = undefined;
+        if (!params.faction)
+            params.realm = undefined;
+
+        var h = '';
+        if (params.realm)
+            h += '/' + realms[params.realm].slug;
+        if (params.faction)
+            h += '/' + params.faction;
+        if (params.page)
+            h += '/' + validPages[params.page];
+        if (params.id)
+            h += '/' + params.id;
+        if (h != '')
+        {
+            h = '#' + h.substr(1);
+            if (h != location.hash)
+            {
+                hash.sets++;
+                location.hash = h;
+                Main();
+                return true;
+            }
+        }
+
+        return false;
     }
 
     function DrawRealms()
@@ -65,6 +185,7 @@ var TUJ = function()
             var factionHorde = libtuj.ce('a');
             $(factionHorde).addClass('horde').text('Horde').click({addClass: 'horde', removeClass: 'alliance'}, ChooseFaction);
             factionPick.appendChild(factionHorde);
+
             addResize = true;
         }
 
@@ -136,14 +257,20 @@ var TUJ = function()
 
     function ChooseFaction(dta)
     {
-        $('#realm-list').addClass(dta.data.addClass).removeClass(dta.data.removeClass);
-        faction = (dta.data.addClass == 'horde' ? -1 : 1);
+        var toRemove = '';
+        var toAdd = (dta.hasOwnProperty('data') ? dta.data.addClass : dta);
+
+        for (var f in validFactions)
+            if (validFactions.hasOwnProperty(f) && toAdd.indexOf(f) < 0)
+                toRemove += (toRemove == '' ? '' : ' ') + f;
+        $('#realm-list').addClass(toAdd).removeClass(toRemove);
+        SetParams({faction: toAdd});
+        Main();
     }
 
     function ChooseRealm(dta)
     {
-        realm = realms[dta.data.id];
-        console.log(realm, faction);
+        SetParams({realm: dta.data.id});
         $('#realm-list').removeClass('show');
 
         var realmHeader = $('#realm-header')[0];
