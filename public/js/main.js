@@ -145,15 +145,14 @@ var TUJ = function()
         if (params.id)
             h += '/' + params.id;
         if (h != '')
-        {
             h = '#' + h.substr(1);
-            if (h != location.hash)
-            {
-                hash.sets++;
-                location.hash = h;
-                Main();
-                return true;
-            }
+
+        if (h != location.hash)
+        {
+            hash.sets++;
+            location.hash = h;
+            Main();
+            return true;
         }
 
         return false;
