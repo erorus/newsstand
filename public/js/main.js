@@ -52,12 +52,21 @@ var TUJ = function()
             return;
         }
 
+        ShowRealmHeader();
+
         if (!params.realm)
         {
             if (params.faction)
                 ChooseFaction(params.faction);
             inMain = false;
             $('#realm-list').addClass('show');
+            return;
+        }
+
+        if (!params.page)
+        {
+            inMain = false;
+            ShowRealmFrontPage();
             return;
         }
 
@@ -271,19 +280,48 @@ var TUJ = function()
     {
         SetParams({realm: dta.data.id});
         $('#realm-list').removeClass('show');
+        Main();
+    }
 
+    function ShowRealmHeader()
+    {
         var realmHeader = $('#realm-header')[0];
+        var realmText;
         if (!realmHeader)
         {
             realmHeader = libtuj.ce();
             realmHeader.id = 'realm-header';
             $('#realm-list').after(realmHeader);
 
+            realmText = libtuj.ce('a');
+            $(realmText).click(function() { SetParams({realm: undefined}); });
+            $(realmHeader).append(realmText);
         }
+        else
+            realmText = $(realmHeader).children('a')[0];
 
-        Main();
+        if (!params.realm)
+        {
+            realmHeader.style.display = 'none';
+            return;
+        }
+        realmHeader.style.display = '';
+
+        $(realmText).text(realms[params.realm].name + ' - ' + params.faction.substr(0,1).toUpperCase() + params.faction.substr(1));
     }
 
+    function ShowRealmFrontPage()
+    {
+        var frontPage = $('#front-page')[0];
+        if (!frontPage)
+        {
+            frontPage = libtuj.ce();
+            frontPage.id = 'front-page';
+            $('#realm-header').after(frontPage);
+        }
+
+        $(frontPage).text('o hai');
+    }
     Main();
 };
 

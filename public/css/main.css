@@ -20,3 +20,6 @@ body {background-color: white; margin: 0; overflow-y: scroll}
 #realm-list.horde .realms-column {display: inline-block}
 #realm-list.alliance .realms-column a {color: #006}
 #realm-list.horde .realms-column a {color: #600}
+
+#realm-header { font-size: 200%; text-align: center }
+#realm-header a {cursor: pointer}
