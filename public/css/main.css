@@ -21,5 +21,9 @@ body {background-color: white; margin: 0; overflow-y: scroll}
 #realm-list.alliance .realms-column a {color: #006}
 #realm-list.horde .realms-column a {color: #600}
 
-#realm-header { font-size: 200%; text-align: center }
-#realm-header a {cursor: pointer}
+#realm-header span {font-size: 200%; cursor: pointer; margin: 0 2em }
+#realm-header a {cursor: pointer; margin: 0.75em 1em 0; float: right}
+#realm-header form {display: inline; margin: 0}
+#realm-header input {text-size: 150%; padding: 0.5em; margin: 0 2em; float: right; width: 20em }
+
+#front-page { text-align: center; margin: 2em }

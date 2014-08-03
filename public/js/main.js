@@ -5,7 +5,7 @@ var libtuj = {
 var TUJ = function()
 {
     var realms;
-    var validPages = ['item','seller','category'];
+    var validPages = ['','search','item','seller','category','battlepet'];
     var validFactions = {'alliance': 1, 'horde': -1};
     var params = {
         realm: undefined,
@@ -68,6 +68,10 @@ var TUJ = function()
             inMain = false;
             ShowRealmFrontPage();
             return;
+        }
+        else
+        {
+            $('#front-page').hide();
         }
 
         inMain = false;
@@ -166,6 +170,21 @@ var TUJ = function()
 
         return false;
     }
+
+    this.SetPage = function(page, id)
+    {
+        var pageId;
+        if (typeof page == 'string')
+        {
+            for (var x = 0; x < validPages.length; x++)
+                if (validPages[x] == page)
+                    pageId = x;
+        }
+        else
+            pageId = page;
+
+        SetParams({page: pageId, id: id});
+    };
 
     function DrawRealms()
     {
@@ -293,12 +312,28 @@ var TUJ = function()
             realmHeader.id = 'realm-header';
             $('#realm-list').after(realmHeader);
 
-            realmText = libtuj.ce('a');
+            realmText = libtuj.ce('span');
             $(realmText).click(function() { SetParams({realm: undefined}); });
             $(realmHeader).append(realmText);
+
+            var frontPageLink = libtuj.ce('a');
+            $(frontPageLink).text('Home').click(function() { tuj.SetPage(); });
+
+            var form = libtuj.ce('form');
+            var i = libtuj.ce('input');
+            i.name = 'search';
+            i.type = 'text';
+            i.placeholder = 'Search for items and sellers';
+
+            $(form).on('submit', function() {
+                tuj.SetPage('search', this.search.value);
+                return false;
+            }).append(i);
+
+            $(realmHeader).append(form).append(frontPageLink);
         }
         else
-            realmText = $(realmHeader).children('a')[0];
+            realmText = $(realmHeader).children('span')[0];
 
         if (!params.realm)
         {
@@ -319,8 +354,7 @@ var TUJ = function()
             frontPage.id = 'front-page';
             $('#realm-header').after(frontPage);
         }
-
-        $(frontPage).text('o hai');
+        $(frontPage).show();
     }
     Main();
 };
