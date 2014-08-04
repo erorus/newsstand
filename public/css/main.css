@@ -1,8 +1,19 @@
-body {background-color: white; margin: 0; overflow-y: scroll}
+body {background-color: white; color: #333; margin: 0; overflow-y: scroll}
 #title {height: 20em; min-width: 600px; background-image: url('../images/title3.edges.png'); background-repeat: repeat-x; background-size: contain}
 #title div {background-image: url('../images/title3.middle.png'); background-position: center; background-repeat: no-repeat; height: 100%; background-size: contain}
-#main {margin: 2em; background-color: white}
+#main {margin: 1em; background-color: white; min-width: 50em}
 
+a {text-decoration: none; color: black}
+a:hover {text-decoration: underline}
+
+.q0, .q0 a { color: #9d9d9d } /* Poor */
+.q1, .q1 a { color: #ffffff } /* Common */
+.q2, .q2 a { color: #1eff00 } /* Uncommon */
+.q3, .q3 a { color: #0070dd } /* Rare */
+.q4, .q4 a { color: #a335ee } /* Epic */
+.q5, .q5 a { color: #ff8000 } /* Legendary */
+.q6, .q6 a { color: #e5cc80 } /* Artifact */
+.q7, .q7 a { color: #e5cc80 } /* Heirloom */
 
 #realm-list {display: none; text-align: center}
 #realm-list.width-test, #realm-list.show {display: block}
@@ -10,21 +21,33 @@ body {background-color: white; margin: 0; overflow-y: scroll}
 .realms-column {width: 15em; display: none; vertical-align: top; text-align: left}
 #realm-list.width-test .realms-column {display: inline-block}
 #realm-list #faction-pick {font-size: 200%}
-#realm-list #faction-pick a {padding: 0.5em; display: inline-block; width: 25%; margin: 0.5em 5%; text-decoration: none; color: black}
+#realm-list #faction-pick a {padding: 0.5em; display: inline-block; width: 25%; margin: 0.5em 5%; color: black}
 #realm-list #faction-pick a.alliance {background-color: #BBE}
 #realm-list #faction-pick a.horde {background-color: #E99}
 #realm-list.alliance #faction-pick a.horde {opacity: 0.5}
 #realm-list.horde #faction-pick a.alliance {opacity: 0.5}
-.realms-column a {display: block; margin: 0.2em 0; text-decoration: none}
+.realms-column a {display: block; margin: 0.2em 0}
 #realm-list.alliance .realms-column {display: inline-block}
 #realm-list.horde .realms-column {display: inline-block}
 #realm-list.alliance .realms-column a {color: #006}
 #realm-list.horde .realms-column a {color: #600}
 
 #realm-header { font-size: 200%; margin: 0 2em 1em; height: 1.5em; position: relative}
-#realm-header a.realm {position: absolute; top: 0.2em; text-decoration: none; color: black}
-#realm-header a.front-page {position: absolute; right: 23em; top: 0.75em; font-size: 50%; text-decoration: none; color: black}
+#realm-header a.realm {position: absolute; top: 0.2em; color: black}
+#realm-header a.front-page {position: absolute; right: 23em; top: 0.75em; font-size: 50%; color: black}
 #realm-header form {display: inline-block; position: absolute; right: 0; margin: 0}
 #realm-header input {text-size: 150%; padding: 0.5em; width: 20em }
 
 #front-page { margin: 2em }
+
+#search-page .header { font-size: 150%; text-align: center }
+
+table.search-items { width: 45em; margin: 2em auto; border: 1px solid black; border-spacing: 0 }
+table.search-items th {padding: 0.2em}
+table.search-items td {padding: 0.2em; border-top: 1px solid #CCC}
+
+th.name { text-align: left }
+
+td.price, th.price,
+td.quantity, th.quantity,
+td.date, th.date { text-align: right; width: 6em }

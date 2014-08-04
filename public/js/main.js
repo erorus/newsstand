@@ -1,19 +1,43 @@
 var libtuj = {
     ce: function(tag) { if (!tag) tag = 'div'; return document.createElement(tag); },
-    addScript: function(url) {
+    AddScript: function(url) {
         var s = libtuj.ce('script');
         s.type = 'text/javascript';
         s.src = url;
         document.getElementsByTagName('head')[0].appendChild(s);
+    },
+    FormatPrice: function(amt)
+    {
+        var s = libtuj.ce('span');
+        if (amt)
+            s.appendChild(document.createTextNode('' + Math.round(amt/10000,2) + 'g'));
+        return s;
+    },
+    FormatQuantity: function(amt)
+    {
+        var s = libtuj.ce('span');
+        if (amt)
+            s.appendChild(document.createTextNode(amt));
+        return s;
+    },
+    FormatDate: function(unix)
+    {
+        var s = libtuj.ce('span');
+        if (unix)
+        {
+            var dt = new Date(unix*1000);
+            s.appendChild(document.createTextNode(dt.toLocaleDateString()));
+        }
+        return s;
     }
 };
 
 var TUJ = function()
 {
-    var realms;
     var validPages = ['','search','item','seller','category','battlepet'];
     var validFactions = {'alliance': 1, 'horde': -1};
-    var params = {
+    this.realms = undefined;
+    this.params = {
         realm: undefined,
         faction: undefined,
         page: undefined,
@@ -25,6 +49,7 @@ var TUJ = function()
         watching: false
     }
     var inMain = false;
+    var self = this;
 
     function Main()
     {
@@ -32,7 +57,7 @@ var TUJ = function()
             return;
         inMain = true;
 
-        if (typeof realms == 'undefined')
+        if (typeof self.realms == 'undefined')
         {
             inMain = false;
             $.ajax({
@@ -41,7 +66,7 @@ var TUJ = function()
                 },
                 success: function(dta)
                 {
-                    realms = dta;
+                    self.realms = dta;
                     Main();
                 },
                 url: 'api/realms.php'
@@ -62,28 +87,28 @@ var TUJ = function()
 
         $('#main .page').hide();
         $('#realm-list').removeClass('show');
-        if (!params.realm)
+        if (!self.params.realm)
         {
-            if (params.faction)
-                ChooseFaction(params.faction);
+            if (self.params.faction)
+                ChooseFaction(self.params.faction);
             inMain = false;
-            $('#faction-pick a').each(function() { this.href = BuildHash({realm: undefined, faction: this.rel});});
-            $('#realm-list .realms-column a').each(function() { this.href = BuildHash({realm: this.rel}); });
+            $('#faction-pick a').each(function() { this.href = self.BuildHash({realm: undefined, faction: this.rel});});
+            $('#realm-list .realms-column a').each(function() { this.href = self.BuildHash({realm: this.rel}); });
             $('#realm-list').addClass('show');
             return;
         }
 
-        if (!params.page)
+        if (!self.params.page)
         {
             inMain = false;
             ShowRealmFrontPage();
             return;
         }
 
-        if (typeof tuj['page_'+validPages[params.page]] == 'undefined')
-            libtuj.addScript('js/'+validPages[params.page]+'.js');
+        if (typeof tuj['page_'+validPages[self.params.page]] == 'undefined')
+            libtuj.AddScript('js/'+validPages[self.params.page]+'.js');
         else
-            tuj['page_'+validPages[params.page]].load(params);
+            tuj['page_'+validPages[self.params.page]].load(self.params);
 
         inMain = false;
     }
@@ -134,8 +159,8 @@ var TUJ = function()
                         continue nextParam;
                     }
             if (!p.realm)
-                for (y in realms)
-                    if (realms.hasOwnProperty(y) && h[x] == realms[y].slug)
+                for (y in self.realms)
+                    if (self.realms.hasOwnProperty(y) && h[x] == self.realms[y].slug)
                     {
                         p.realm = y;
                         continue nextParam;
@@ -151,10 +176,10 @@ var TUJ = function()
     {
         if (p)
             for (var x in p)
-                if (p.hasOwnProperty(x) && params.hasOwnProperty(x))
-                    params[x] = p[x];
+                if (p.hasOwnProperty(x) && self.params.hasOwnProperty(x))
+                    self.params[x] = p[x];
 
-        var h = BuildHash(params);
+        var h = self.BuildHash(self.params);
 
         if (h != location.hash)
         {
@@ -167,15 +192,25 @@ var TUJ = function()
         return false;
     }
 
-    function BuildHash(p)
+    this.BuildHash = function(p)
     {
         var tParams = {};
-        for (var x in params)
+        for (var x in self.params)
         {
-            if (params.hasOwnProperty(x))
-                tParams[x] = params[x];
+            if (self.params.hasOwnProperty(x))
+                tParams[x] = self.params[x];
             if (p.hasOwnProperty(x))
                 tParams[x] = p[x];
+        }
+
+        if (typeof tParams.page == 'string')
+        {
+            for (var x = 0; x < validPages.length; x++)
+                if (validPages[x] == tParams.page)
+                    tParams.page = x;
+
+            if (typeof tParams.page == 'string')
+                tParams.page = undefined;
         }
 
         if (!tParams.page)
@@ -185,7 +220,7 @@ var TUJ = function()
 
         var h = '';
         if (tParams.realm)
-            h += '/' + realms[tParams.realm].slug;
+            h += '/' + self.realms[tParams.realm].slug;
         if (tParams.faction)
             h += '/' + tParams.faction;
         if (tParams.page)
@@ -196,11 +231,6 @@ var TUJ = function()
             h = '#' + h.substr(1);
 
         return h;
-    }
-
-    this.GetParams = function()
-    {
-        return params;
     }
 
     this.SetPage = function(page, id)
@@ -289,9 +319,9 @@ var TUJ = function()
 
         var cnt = 0;
 
-        for (var x in realms)
+        for (var x in self.realms)
         {
-            if (!realms.hasOwnProperty(x))
+            if (!self.realms.hasOwnProperty(x))
                 continue;
 
             cnt++;
@@ -299,14 +329,14 @@ var TUJ = function()
 
         var a;
         var c = 0;
-        for (var x in realms)
+        for (var x in self.realms)
         {
-            if (!realms.hasOwnProperty(x))
+            if (!self.realms.hasOwnProperty(x))
                 continue;
 
             a = libtuj.ce('a');
             a.rel = x;
-            $(a).text(realms[x].name);
+            $(a).text(self.realms[x].name);
 
             $(cols[Math.min(cols.length-1, Math.floor(c++ / cnt * numCols))]).append(a);
         }
@@ -367,16 +397,16 @@ var TUJ = function()
             frontPageLink = $(realmHeader).children('a.front-page')[0];
         }
 
-        if (!params.realm)
+        if (!self.params.realm)
         {
             realmHeader.style.display = 'none';
             return;
         }
         realmHeader.style.display = '';
 
-        $(realmText).text(realms[params.realm].name + ' - ' + params.faction.substr(0,1).toUpperCase() + params.faction.substr(1));
-        realmText.href = BuildHash({realm: undefined});
-        frontPageLink.href = BuildHash({page: undefined, id: undefined});
+        $(realmText).text(self.realms[self.params.realm].name + ' - ' + self.params.faction.substr(0,1).toUpperCase() + self.params.faction.substr(1));
+        realmText.href = self.BuildHash({realm: undefined});
+        frontPageLink.href = self.BuildHash({page: undefined, id: undefined});
     }
 
     function ShowRealmFrontPage()
