@@ -48,7 +48,7 @@ a:hover {text-decoration: underline}
 #search-page tr:hover td {background-color: #EEE}
 
 td.name, th.name { text-align: left }
-td.icon, th.icon { width: 1.5em; height: 1.5em }
+td.icon, th.icon { width: 1.5em; height: 1.5em; padding-right: 0 ! important }
 img.icon {width: 1.5em; height: 1.5em}
 td.price, th.price,
 td.quantity, th.quantity,

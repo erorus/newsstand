@@ -97,6 +97,7 @@ var TUJ_Search = function()
                 i = libtuj.ce('img');
                 td.appendChild(i);
                 i.className = 'icon';
+                i.src = 'icon/medium/' + item.icon + '.jpg';
 
                 td = libtuj.ce('td');
                 td.className = 'name';
