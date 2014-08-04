@@ -10,12 +10,12 @@ body {background-color: white; margin: 0; overflow-y: scroll}
 .realms-column {width: 15em; display: none; vertical-align: top; text-align: left}
 #realm-list.width-test .realms-column {display: inline-block}
 #realm-list #faction-pick {font-size: 200%}
-#realm-list #faction-pick a {padding: 0.5em; display: inline-block; width: 25%; margin: 0.5em 5%; border: 0.2em solid #666; border-radius: 0.5em; cursor: pointer}
+#realm-list #faction-pick a {padding: 0.5em; display: inline-block; width: 25%; margin: 0.5em 5%; text-decoration: none; color: black}
 #realm-list #faction-pick a.alliance {background-color: #BBE}
 #realm-list #faction-pick a.horde {background-color: #E99}
 #realm-list.alliance #faction-pick a.horde {opacity: 0.5}
 #realm-list.horde #faction-pick a.alliance {opacity: 0.5}
-.realms-column a {display: block; cursor: pointer; margin: 0.1em 0}
+.realms-column a {display: block; margin: 0.2em 0; text-decoration: none}
 #realm-list.alliance .realms-column {display: inline-block}
 #realm-list.horde .realms-column {display: inline-block}
 #realm-list.alliance .realms-column a {color: #006}
