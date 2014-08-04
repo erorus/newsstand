@@ -1,5 +1,11 @@
 var libtuj = {
     ce: function(tag) { if (!tag) tag = 'div'; return document.createElement(tag); },
+    addScript: function(url) {
+        var s = libtuj.ce('script');
+        s.type = 'text/javascript';
+        s.src = url;
+        document.getElementsByTagName('head')[0].appendChild(s);
+    }
 };
 
 var TUJ = function()
@@ -73,6 +79,11 @@ var TUJ = function()
             ShowRealmFrontPage();
             return;
         }
+
+        if (typeof tuj['page_'+validPages[params.page]] == 'undefined')
+            libtuj.addScript('js/'+validPages[params.page]+'.js');
+        else
+            tuj['page_'+validPages[params.page]].load(params);
 
         inMain = false;
     }
@@ -185,6 +196,11 @@ var TUJ = function()
             h = '#' + h.substr(1);
 
         return h;
+    }
+
+    this.GetParams = function()
+    {
+        return params;
     }
 
     this.SetPage = function(page, id)
