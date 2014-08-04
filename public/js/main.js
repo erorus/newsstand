@@ -35,7 +35,7 @@ var libtuj = {
 var TUJ = function()
 {
     var validPages = ['','search','item','seller','category','battlepet'];
-    var validFactions = {'alliance': 1, 'horde': -1};
+    this.validFactions = {'alliance': 1, 'horde': -1};
     this.realms = undefined;
     this.params = {
         realm: undefined,
@@ -152,8 +152,8 @@ var TUJ = function()
                         continue nextParam;
                     }
             if (!p.faction)
-                for (y in validFactions)
-                    if (validFactions.hasOwnProperty(y) && h[x] == y)
+                for (y in self.validFactions)
+                    if (self.validFactions.hasOwnProperty(y) && h[x] == y)
                     {
                         p.faction = y;
                         continue nextParam;
@@ -337,8 +337,8 @@ var TUJ = function()
         var toRemove = '';
         var toAdd = (dta.hasOwnProperty('data') ? dta.data.addClass : dta);
 
-        for (var f in validFactions)
-            if (validFactions.hasOwnProperty(f) && toAdd.indexOf(f) < 0)
+        for (var f in self.validFactions)
+            if (self.validFactions.hasOwnProperty(f) && toAdd.indexOf(f) < 0)
                 toRemove += (toRemove == '' ? '' : ' ') + f;
         $('#realm-list').addClass(toAdd).removeClass(toRemove);
         SetParams({faction: toAdd});

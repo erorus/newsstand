@@ -40,7 +40,7 @@ a:hover {text-decoration: underline}
 
 #front-page { margin: 2em }
 
-#search-page .header { font-size: 150%; text-align: center }
+.page .header { font-size: 150%; text-align: center }
 
 #search-page table { width: 45em; margin: 2em auto; border: 1px solid black; border-spacing: 0 }
 #search-page table th {padding: 0.2em}
