@@ -92,12 +92,14 @@ var TUJ_Search = function()
                 t.appendChild(tr);
 
                 td = libtuj.ce('td');
+                td.className = 'icon';
                 tr.appendChild(td);
                 i = libtuj.ce('img');
                 td.appendChild(i);
                 i.className = 'icon';
 
                 td = libtuj.ce('td');
+                td.className = 'name';
                 tr.appendChild(td);
                 a = libtuj.ce('a');
                 td.appendChild(a);
@@ -121,6 +123,53 @@ var TUJ_Search = function()
             }
         }
 
+        if (dta.sellers)
+        {
+            gotResult = true;
+
+            var seller;
+
+            t = libtuj.ce('table');
+            t.className = 'search-sellers';
+            searchPage.append(t);
+
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+
+            td = libtuj.ce('th');
+            td.className = 'name';
+            tr.appendChild(td);
+            $(td).text('Name');
+
+            td = libtuj.ce('th');
+            td.className = 'date';
+            tr.appendChild(td);
+            $(td).text('Last Seen');
+
+            for (var x in dta.sellers)
+            {
+                if (!dta.sellers.hasOwnProperty(x))
+                    continue;
+
+                seller = dta.sellers[x];
+
+                tr = libtuj.ce('tr');
+                t.appendChild(tr);
+
+                td = libtuj.ce('td');
+                td.className = 'name';
+                tr.appendChild(td);
+                a = libtuj.ce('a');
+                td.appendChild(a);
+                a.href = tuj.BuildHash({page: 'seller', id: seller.name, realm: seller.realm});
+                $(a).text(seller.name + ' - ' + tuj.realms[seller.realm].name);
+
+                td = libtuj.ce('td');
+                td.className = 'date';
+                tr.appendChild(td);
+                td.appendChild(libtuj.FormatDate(seller.lastseen));
+            }
+        }
         searchPage.show();
     }
 

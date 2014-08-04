@@ -228,25 +228,10 @@ var TUJ = function()
         if (tParams.id)
             h += '/' + tParams.id;
         if (h != '')
-            h = '#' + h.substr(1);
+            h = '#' + h.substr(1).toLowerCase();
 
         return h;
     }
-
-    this.SetPage = function(page, id)
-    {
-        var pageId;
-        if (typeof page == 'string')
-        {
-            for (var x = 0; x < validPages.length; x++)
-                if (validPages[x] == page)
-                    pageId = x;
-        }
-        else
-            pageId = page;
-
-        SetParams({page: pageId, id: id.replace('/','')});
-    };
 
     function DrawRealms()
     {
@@ -385,7 +370,7 @@ var TUJ = function()
             i.placeholder = 'Search for items and sellers';
 
             $(form).on('submit', function() {
-                tuj.SetPage('search', this.search.value);
+                location.href = self.BuildHash({page: 'search', id: this.search.value.replace('/','')});
                 return false;
             }).append(i);
 

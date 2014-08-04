@@ -42,12 +42,14 @@ a:hover {text-decoration: underline}
 
 #search-page .header { font-size: 150%; text-align: center }
 
-table.search-items { width: 45em; margin: 2em auto; border: 1px solid black; border-spacing: 0 }
-table.search-items th {padding: 0.2em}
-table.search-items td {padding: 0.2em; border-top: 1px solid #CCC}
+#search-page table { width: 45em; margin: 2em auto; border: 1px solid black; border-spacing: 0 }
+#search-page table th {padding: 0.2em}
+#search-page table td {padding: 0.2em 0.4em; border-top: 1px solid #CCC}
+#search-page tr:hover td {background-color: #EEE}
 
-th.name { text-align: left }
-
+td.name, th.name { text-align: left }
+td.icon, th.icon { width: 1.5em; height: 1.5em }
+img.icon {width: 1.5em; height: 1.5em}
 td.price, th.price,
 td.quantity, th.quantity,
-td.date, th.date { text-align: right; width: 6em }
+td.date, th.date { text-align: right; width: 6em; cursor: default }
