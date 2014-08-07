@@ -45,7 +45,7 @@ EOF;
 
     $sqlPattern = <<<EOF
 replace into tblItemHistoryDaily
-(select id, %1\$d, '%2\$s', pricemin, priceavg, pricemax, pricestart, priceend, quantitymin, quantityavg, quantitymax, ceil(seensnapshots / totalsnapshots * 255) from (
+(select id, %1\$d, '%2\$s', round(pricemin/100), round(priceavg/100), round(pricemax/100), round(pricestart/100), round(priceend/100), quantitymin, quantityavg, quantitymax, ceil(seensnapshots / totalsnapshots * 255) from (
     select i.id,
     min(price) pricemin,
     round(avg(price)) priceavg,
