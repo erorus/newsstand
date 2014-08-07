@@ -1,4 +1,4 @@
-* * * * * php /var/newsstand/scripts/itemupdate.php >> /var/newsstand/logs/itemupdate.log 2>&1
+*/15 * * * * php /var/newsstand/scripts/itemupdate.php >> /var/newsstand/logs/itemupdate.log 2>&1
 0 0 * * * mv /var/newsstand/logs/itemupdate.log /var/newsstand/logs/itemupdate.yesterday.log
 
 */5 * * * * /var/newsstand/scripts/heartbeat.sh >> /var/newsstand/logs/heartbeat.log 2>&1
@@ -14,3 +14,6 @@
 
 30 */2 * * * php /var/newsstand/scripts/historyprune.php >> /var/newsstand/logs/historyprune.log 2>&1
 0 0 * * * mv /var/newsstand/logs/historyprune.log /var/newsstand/logs/historyprune.yesterday.log
+
+30 */2 * * * php /var/newsstand/scripts/itemdaily.php >> /var/newsstand/logs/itemdaily.log 2>&1
+0 0 * * * mv /var/newsstand/logs/itemdaily.log /var/newsstand/logs/itemdaily.yesterday.log
