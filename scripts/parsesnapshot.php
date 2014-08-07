@@ -540,7 +540,6 @@ function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
             }
             $sqlHistory .= ($sqlHistory == '' ? $sqlHistoryStart : ',') . $sqlBit;
 
-            /*
             $sqlDeepBit = sprintf('(%d,%u,%u,%u,%u)', $factionHouse, $item, round($price/100), $info['tq'], $month);
             if (strlen($sqlDeep) + strlen($sqlDeepBit) + strlen($sqlDeepEnd) + 5 > $maxPacketSize)
             {
@@ -548,7 +547,6 @@ function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
                 $sqlDeep = '';
             }
             $sqlDeep .= ($sqlDeep == '' ? $sqlDeepStart : ',') . $sqlDeepBit;
-            */
         }
     }
     unset($info);
