@@ -114,7 +114,6 @@ foreach ($regions as $region)
     heartbeat();
     if ($caughtKill)
         break;
-    $stmt = $db->prepare('update tblRealm set house = ? where region = ? and slug = ?');
     foreach ($hashes as $hash => $slugs)
     {
         $candidates = array();
@@ -145,14 +144,11 @@ foreach ($regions as $region)
             if ($houses[$slug]['house'] != $curHouse)
             {
                 DebugMessage("$region $slug changing from ".(is_null($houses[$slug]['house']) ? 'null' : $houses[$slug]['house'])." to $curHouse");
-                $stmt->bind_param('iss', $curHouse, $region, $slug);
-                $stmt->execute();
-                $stmt->reset();
+                $db->real_query(sprintf('update tblRealm set house = %d where region = \'%s\' and slug = \'%s\'', $curHouse, $db->escape_string($region), $db->escape_string($slug)));
                 $houses[$slug]['house'] = $curHouse;
             }
         }
     }
-    $stmt->close();
     $memcache->delete('realms_'.$region);
 }
 
