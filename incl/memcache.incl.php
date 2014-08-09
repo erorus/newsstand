@@ -43,3 +43,11 @@ function MCGet($key)
 
     return $memcache->get($key);
 }
+
+function MCSet($key, $val, $expire = 10800)
+{
+    global $memcache;
+
+    return $memcache->set($key, $val, false, $expire);
+}
+

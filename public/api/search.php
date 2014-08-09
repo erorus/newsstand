@@ -47,11 +47,12 @@ left join tblItemSummary s on s.house=? and s.item=i.id
 where i.name like ?
 and ifnull(i.auctionable,1) = 1
 order by i.class, i.name
-limit 200
+limit ?
 EOF;
+    $limit = 100 * strlen(preg_replace('/\s/','',$search));
 
     $stmt = $db->prepare($sql);
-    $stmt->bind_param('is', $house, $terms);
+    $stmt->bind_param('isi', $house, $terms, $limit);
     $stmt->execute();
     $result = $stmt->get_result();
     $tr = DBMapArray($result);

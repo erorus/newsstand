@@ -141,43 +141,6 @@ function FetchHTTPError($errno, $errstr, $errfile,  $errline,  $errcontext) {
     return true;
 }
 
-function BattleNetGet($url, $headers = array(), &$outHeaders = array())
-{
-    if (preg_match('/^https?:\/\/(?:[a-z]+\.)?battle\.net\//',$url))
-    {
-        $publicKey = 'S63F5VS9YZP4';
-        $privateKey = '2295QXK07YZJ';
-
-        $dt = date_format(date_create('now',timezone_open('GMT')),'D, d M Y H:i:s').' GMT';
-        // TODO: remove protocol/host from url in $toSign
-        $toSign = "GET\n$dt\n$url\n";
-        $sig = base64_encode(hmacsha1($privateKey,$toSign));
-        $headers = array('Date' => $dt, 'Authorization' => "BNET $publicKey:$sig");;
-    }
-
-    return FetchHTTP($url, $headers, $eTag, $outHeaders);
-}
-
-function hmacsha1($key,$data) {
-    $blocksize=64;
-    $hashfunc='sha1';
-    if (strlen($key)>$blocksize)
-        $key=pack('H*', $hashfunc($key));
-    $key=str_pad($key,$blocksize,chr(0x00));
-    $ipad=str_repeat(chr(0x36),$blocksize);
-    $opad=str_repeat(chr(0x5c),$blocksize);
-    $hmac = pack(
-        'H*',$hashfunc(
-            ($key^$opad).pack(
-                'H*',$hashfunc(
-                    ($key^$ipad).$data
-                )
-            )
-        )
-    );
-    return $hmac;
-}
-
 function TimeDiff($time, $opt = array()) {
     if (is_null($time)) return '';
 
