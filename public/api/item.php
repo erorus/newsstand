@@ -163,8 +163,15 @@ EOF;
                 $tr[] = array('date' => "$year-$month-$day", 'silver' => $rows[$x]['mktslvr'.$day], 'quantity' => $rows[$x]['qty'.$day]);
                 $prevPrice = $rows[$x]['mktslvr'.$day];
             }
-            elseif (checkdate($monthNum, $dayNum, $year) && $prevPrice)
-                $tr[] = array('date' => "$year-$month-$day", 'silver' => $prevPrice, 'quantity' => 0);
+            else
+            {
+                if (!checkdate($monthNum, $dayNum, $year))
+                    break;
+                if (strtotime("$year-$month-$day") > time())
+                    break;
+                if ($prevPrice)
+                    $tr[] = array('date' => "$year-$month-$day", 'silver' => $prevPrice, 'quantity' => 0);
+            }
         }
     }
 
