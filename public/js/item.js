@@ -422,7 +422,7 @@ var TUJ_Item = function()
                     tr += '<br><table class="highcharts-tuj-tooltip" style="color: #000099;" cellspacing="0" cellpadding="0">';
                     tr += '<tr><td>Open:</td><td align="right">'+libtuj.FormatPrice(this.points[0].point.open, true)+'</td></tr>';
                     tr += '<tr><td>High:</td><td align="right">'+libtuj.FormatPrice(this.points[0].point.high, true)+'</td></tr>';
-                    tr += '<tr><td>Avg:</td><td align="right">'+libtuj.FormatPrice(this.points[3].y, true)+'</td></tr>';
+                    tr += '<tr style="color: #009900"><td>Avg:</td><td align="right">'+libtuj.FormatPrice(this.points[3].y, true)+'</td></tr>';
                     tr += '<tr><td>Low:</td><td align="right">'+libtuj.FormatPrice(this.points[0].point.low, true)+'</td></tr>';
                     tr += '<tr><td>Close:</td><td align="right">'+libtuj.FormatPrice(this.points[0].point.close, true)+'</td></tr>';
                     tr += '</table>';
@@ -488,7 +488,7 @@ var TUJ_Item = function()
             },{
                 type: 'line',
                 name: 'Market Price',
-                color: '#0000FF',
+                color: '#009900',
                 data: hcdata.price
             }]
         });
