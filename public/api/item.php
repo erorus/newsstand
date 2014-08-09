@@ -68,19 +68,26 @@ function ItemHistory($house, $item)
 
     DBConnect();
 
+    $historyDays = HISTORY_DAYS;
+
     $sql = <<<EOF
-select unix_timestamp(snapshot) snapshot, price, quantity
-from tblItemHistory
-where house = ? and item = ?
-order by snapshot asc
+select unix_timestamp(s.updated) snapshot, cast(if(quantity is null, @price, @price := price) as decimal(11,0)) `price`, ifnull(quantity,0) as quantity
+from (select @price := null) priceSetup, tblSnapshot s
+left join tblItemHistory ih on s.updated = ih.snapshot and ih.house=? and ih.item=?
+where s.house = ? and s.updated >= timestampadd(day,-$historyDays,now())
+order by s.updated asc
 EOF;
 
     $stmt = $db->prepare($sql);
-    $stmt->bind_param('ii', $house, $item);
+    $realHouse = abs($house);
+    $stmt->bind_param('iii', $house, $item, $realHouse);
     $stmt->execute();
     $result = $stmt->get_result();
     $tr = DBMapArray($result, null);
     $stmt->close();
+
+    while(count($tr) > 0 && is_null($tr[0]['price']))
+        array_shift($tr);
 
     MCSetHouse($house, 'item_history_'.$item, $tr);
 
@@ -142,16 +149,22 @@ EOF;
     $stmt->close();
 
     $tr = array();
+    $prevPrice = 0;
     for($x = 0; $x < count($rows); $x++)
     {
         $year = 2014 + floor(($rows[$x]['month']-1) / 12);
-        $month = $rows[$x]['month'] % 12;
-        $month = ($month < 10 ? '0' : '') . $month;
+        $monthNum = $rows[$x]['month'] % 12;
+        $month = ($monthNum < 10 ? '0' : '') . $monthNum;
         for ($dayNum = 1; $dayNum <= 31; $dayNum++)
         {
             $day = ($dayNum < 10 ? '0' : '') . $dayNum;
             if (!is_null($rows[$x]['mktslvr'.$day]))
+            {
                 $tr[] = array('date' => "$year-$month-$day", 'silver' => $rows[$x]['mktslvr'.$day], 'quantity' => $rows[$x]['qty'.$day]);
+                $prevPrice = $rows[$x]['mktslvr'.$day];
+            }
+            elseif (checkdate($monthNum, $dayNum, $year) && $prevPrice)
+                $tr[] = array('date' => "$year-$month-$day", 'silver' => $prevPrice, 'quantity' => 0);
         }
     }
 

@@ -2,8 +2,6 @@
 
 chdir(__DIR__);
 
-define('HISTORY_DAYS', 14);
-
 require_once('../incl/incl.php');
 require_once('../incl/heartbeat.incl.php');
 

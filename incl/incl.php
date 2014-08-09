@@ -7,6 +7,8 @@ if (php_sapi_name() == 'cli')
 
 date_default_timezone_set('UTC');
 
+define('HISTORY_DAYS', 14);
+
 function DebugMessage($message, $debugLevel = E_USER_NOTICE)
 {
     if (php_sapi_name() == 'cli')
