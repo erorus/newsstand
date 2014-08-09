@@ -6,18 +6,26 @@ var libtuj = {
         s.src = url;
         document.getElementsByTagName('head')[0].appendChild(s);
     },
-    FormatPrice: function(amt)
+    FormatPrice: function(amt,justValue)
     {
+        var v = amt ? ('' + (amt/10000).toFixed(2) + 'g') : '';
+        if (justValue)
+            return v;
+
         var s = libtuj.ce('span');
-        if (amt)
-            s.appendChild(document.createTextNode('' + Math.round(amt/10000,2) + 'g'));
+        if (v)
+            s.appendChild(document.createTextNode(v));
         return s;
     },
-    FormatQuantity: function(amt)
+    FormatQuantity: function(amt,justValue)
     {
+        var v = amt ? Number(amt).toLocaleString() : '';
+        if (justValue)
+            return v;
+
         var s = libtuj.ce('span');
-        if (amt)
-            s.appendChild(document.createTextNode(amt));
+        if (v)
+            s.appendChild(document.createTextNode(v));
         return s;
     },
     FormatDate: function(unix)
