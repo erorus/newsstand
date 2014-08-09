@@ -313,6 +313,7 @@ var TUJ_Item = function()
         var hcdata = {
             ohlc: [],
             ohlcMaxVal: 0,
+            price: [],
             quantity: [],
             quantityRange: [],
             quantityMaxVal: 0
@@ -332,6 +333,8 @@ var TUJ_Item = function()
                 data.daily[x].silverend * 100
             ]);
             allPrices.push(data.daily[x].silvermax * 100);
+
+            hcdata.price.push([dt, data.daily[x].silveravg * 100]);
 
             hcdata.quantity.push([dt, data.daily[x].quantityavg]);
             hcdata.quantityRange.push([dt, data.daily[x].quantitymin, data.daily[x].quantitymax]);
@@ -419,6 +422,7 @@ var TUJ_Item = function()
                     tr += '<br><table class="highcharts-tuj-tooltip" style="color: #000099;" cellspacing="0" cellpadding="0">';
                     tr += '<tr><td>Open:</td><td align="right">'+libtuj.FormatPrice(this.points[0].point.open, true)+'</td></tr>';
                     tr += '<tr><td>High:</td><td align="right">'+libtuj.FormatPrice(this.points[0].point.high, true)+'</td></tr>';
+                    tr += '<tr><td>Avg:</td><td align="right">'+libtuj.FormatPrice(this.points[3].y, true)+'</td></tr>';
                     tr += '<tr><td>Low:</td><td align="right">'+libtuj.FormatPrice(this.points[0].point.low, true)+'</td></tr>';
                     tr += '<tr><td>Close:</td><td align="right">'+libtuj.FormatPrice(this.points[0].point.close, true)+'</td></tr>';
                     tr += '</table>';
@@ -481,6 +485,11 @@ var TUJ_Item = function()
                 yAxis: 1,
                 color: '#FFCCCC',
                 data: hcdata.quantityRange
+            },{
+                type: 'line',
+                name: 'Market Price',
+                color: '#0000FF',
+                data: hcdata.price
             }]
         });
     }
