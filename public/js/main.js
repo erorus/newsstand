@@ -8,7 +8,7 @@ var libtuj = {
     },
     FormatPrice: function(amt,justValue)
     {
-        var v = amt ? ('' + (amt/10000).toFixed(2) + 'g') : '';
+        var v = (typeof amt == 'number') ? ('' + (amt/10000).toFixed(2) + 'g') : '';
         if (justValue)
             return v;
 
@@ -19,7 +19,7 @@ var libtuj = {
     },
     FormatQuantity: function(amt,justValue)
     {
-        var v = amt ? Number(amt).toLocaleString() : '';
+        var v = Number(amt).toLocaleString();
         if (justValue)
             return v;
 

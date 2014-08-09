@@ -53,6 +53,14 @@ var TUJ_Item = function()
             itemPage.append(d);
             ItemMonthlyChart(dta, d);
         }
+
+        if (dta.daily)
+        {
+            d = libtuj.ce();
+            d.className = 'chart daily';
+            itemPage.append(d);
+            ItemDailyChart(dta, d);
+        }
     }
 
     function ItemHistoryChart(data, dest)
@@ -71,7 +79,7 @@ var TUJ_Item = function()
 
         allPrices.sort(function(a,b){ return a - b; });
         var q1 = allPrices[Math.floor(allPrices.length * 0.25)];
-        var q3 = allPrices[Math.ceil(allPrices.length * 0.75)];
+        var q3 = allPrices[Math.floor(allPrices.length * 0.75)];
         var iqr = q3 - q1;
         hcdata.priceMaxVal = q3 + (1.5 * iqr);
 
@@ -109,7 +117,7 @@ var TUJ_Item = function()
                 },
                 labels: {
                     enabled: true,
-                    formatter: function() { return ''+this.value+'g'; }
+                    formatter: function() { return ''+libtuj.FormatPrice(this.value, true); }
                 },
                 min: 0,
                 max: hcdata.priceMaxVal
@@ -181,10 +189,11 @@ var TUJ_Item = function()
         var hcdata = {price: [], priceMaxVal: 0, quantity: [], quantityMaxVal: 0};
 
         var allPrices = [], dt, dtParts;
+        var offset = (new Date()).getTimezoneOffset() * 60 * 1000;
         for (var x = 0; x < data.monthly.length; x++)
         {
             dtParts = data.monthly[x].date.split('-');
-            dt = Date.UTC(dtParts[0], parseInt(dtParts[1],10)-1, dtParts[2]);
+            dt = Date.UTC(dtParts[0], parseInt(dtParts[1],10)-1, dtParts[2]) + offset;
             hcdata.price.push([dt, data.monthly[x].silver * 100]);
             hcdata.quantity.push([dt, data.monthly[x].quantity]);
             if (data.monthly[x].quantity > hcdata.quantityMaxVal)
@@ -194,7 +203,7 @@ var TUJ_Item = function()
 
         allPrices.sort(function(a,b){ return a - b; });
         var q1 = allPrices[Math.floor(allPrices.length * 0.25)];
-        var q3 = allPrices[Math.ceil(allPrices.length * 0.75)];
+        var q3 = allPrices[Math.floor(allPrices.length * 0.75)];
         var iqr = q3 - q1;
         hcdata.priceMaxVal = q3 + (1.5 * iqr);
 
@@ -232,7 +241,7 @@ var TUJ_Item = function()
                 },
                 labels: {
                     enabled: true,
-                    formatter: function() { return ''+this.value+'g'; }
+                    formatter: function() { return ''+libtuj.FormatPrice(this.value, true); }
                 },
                 min: 0,
                 max: hcdata.priceMaxVal
@@ -295,6 +304,183 @@ var TUJ_Item = function()
                 yAxis: 1,
                 color: '#FF3333',
                 data: hcdata.quantity
+            }]
+        });
+    }
+
+    function ItemDailyChart(data, dest)
+    {
+        var hcdata = {
+            ohlc: [],
+            ohlcMaxVal: 0,
+            quantity: [],
+            quantityRange: [],
+            quantityMaxVal: 0
+        };
+
+        var allPrices = [], dt, dtParts;
+        var offset = (new Date()).getTimezoneOffset() * 60 * 1000;
+        for (var x = 0; x < data.daily.length; x++)
+        {
+            dtParts = data.daily[x].date.split('-');
+            dt = Date.UTC(dtParts[0], parseInt(dtParts[1],10)-1, dtParts[2]) + offset;
+
+            hcdata.ohlc.push([dt,
+                data.daily[x].silverstart * 100,
+                data.daily[x].silvermax * 100,
+                data.daily[x].silvermin * 100,
+                data.daily[x].silverend * 100
+            ]);
+            allPrices.push(data.daily[x].silvermax * 100);
+
+            hcdata.quantity.push([dt, data.daily[x].quantityavg]);
+            hcdata.quantityRange.push([dt, data.daily[x].quantitymin, data.daily[x].quantitymax]);
+            if (data.daily[x].quantityavg > hcdata.quantityMaxVal)
+                hcdata.quantityMaxVal = data.daily[x].quantityavg;
+        }
+
+        allPrices.sort(function(a,b){ return a - b; });
+        var q1 = allPrices[Math.floor(allPrices.length * 0.25)];
+        var q3 = allPrices[Math.floor(allPrices.length * 0.75)];
+        var iqr = q3 - q1;
+        hcdata.ohlcMaxVal = q3 + (1.5 * iqr);
+
+        Highcharts.setOptions({
+            global: {
+                useUTC: false
+            }
+        });
+
+        $(dest).highcharts('StockChart', {
+            chart: {
+                zoomType: 'x'
+            },
+            rangeSelector: {
+                enabled: false
+            },
+            navigator: {
+                enabled: false
+            },
+            scrollbar: {
+                enabled: false
+            },
+            title: {
+                text: null
+            },
+            subtitle: {
+                text: document.ontouchstart === undefined ?
+                    'Click and drag in the plot area to zoom in' :
+                    'Pinch the chart to zoom in'
+            },
+            xAxis: {
+                type: 'datetime',
+                maxZoom: 4 * 24 * 3600000, // four days
+                title: {
+                    text: null
+                }
+            },
+            yAxis: [{
+                title: {
+                    text: 'Market Price',
+                    style: {
+                        color: '#0000FF'
+                    }
+                },
+                labels: {
+                    enabled: true,
+                    formatter: function() { return ''+libtuj.FormatPrice(this.value, true); },
+                },
+                height: '60%',
+                min: 0,
+                max: hcdata.ohlcMaxVal
+            }, {
+                title: {
+                    text: 'Quantity Available',
+                    style: {
+                        color: '#FF3333'
+                    }
+                },
+                labels: {
+                    enabled: true
+                },
+                top: '65%',
+                height: '35%',
+                min: 0,
+                max: hcdata.quantityMaxVal,
+                offset: -25
+            }],
+            legend: {
+                enabled: false
+            },
+            tooltip: {
+                shared: true,
+                formatter: function() {
+                    var tr = '<b>'+Highcharts.dateFormat('%a %b %d', this.x)+'</b>';
+                    tr += '<br><table class="highcharts-tuj-tooltip" style="color: #000099;" cellspacing="0" cellpadding="0">';
+                    tr += '<tr><td>Open:</td><td align="right">'+libtuj.FormatPrice(this.points[0].point.open, true)+'</td></tr>';
+                    tr += '<tr><td>High:</td><td align="right">'+libtuj.FormatPrice(this.points[0].point.high, true)+'</td></tr>';
+                    tr += '<tr><td>Low:</td><td align="right">'+libtuj.FormatPrice(this.points[0].point.low, true)+'</td></tr>';
+                    tr += '<tr><td>Close:</td><td align="right">'+libtuj.FormatPrice(this.points[0].point.close, true)+'</td></tr>';
+                    tr += '</table>';
+                    tr += '<br><table class="highcharts-tuj-tooltip" style="color: #FF3333;" cellspacing="0" cellpadding="0">';
+                    tr += '<tr><td>Min&nbsp;Qty:</td><td align="right">'+libtuj.FormatQuantity(this.points[2].point.low, true)+'</td></tr>';
+                    tr += '<tr><td>Avg&nbsp;Qty:</td><td align="right">'+libtuj.FormatQuantity(this.points[1].y, true)+'</td></tr>';
+                    tr += '<tr><td>Max&nbsp;Qty:</td><td align="right">'+libtuj.FormatQuantity(this.points[2].point.high, true)+'</td></tr>';
+                    tr += '</table>';
+                    return tr;
+                    // &lt;br/&gt;&lt;span style="color: #990000"&gt;Quantity: '+this.points[1].y+'&lt;/span&gt;<xsl:if test="itemgraphs/d[@matsprice != '']">&lt;br/&gt;&lt;span style="color: #999900"&gt;Materials Price: '+this.points[2].y.toFixed(2)+'g&lt;/span&gt;</xsl:if>';
+                },
+                useHTML: true,
+                positioner: function(w,h,p)
+                {
+                    var x = p.plotX, y = p.plotY;
+                    if (y < 0)
+                        y = 0;
+                    if (x < (this.chart.plotWidth/2))
+                        x += w/2;
+                    else
+                        x -= w*1.25;
+                    return {x: x, y: y};
+                }
+            },
+            plotOptions: {
+                series: {
+                    lineWidth: 1,
+                    marker: {
+                        enabled: false,
+                        radius: 1,
+                        states: {
+                            hover: {
+                                enabled: true
+                            }
+                        }
+                    },
+                    states: {
+                        hover: {
+                            lineWidth: 1
+                        }
+                    }
+                }
+            },
+            series: [{
+                type: 'candlestick',
+                name: 'Market Price',
+                color: '#CCCCFF',
+                lineColor: '#0000FF',
+                data: hcdata.ohlc
+            },{
+                type: 'line',
+                name: 'Quantity',
+                yAxis: 1,
+                color: '#FF3333',
+                data: hcdata.quantity,
+                lineWidth: 2
+            },{
+                type: 'arearange',
+                name: 'Quantity Range',
+                yAxis: 1,
+                color: '#FFCCCC',
+                data: hcdata.quantityRange
             }]
         });
     }
