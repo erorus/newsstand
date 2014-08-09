@@ -37,12 +37,21 @@ var TUJ_Item = function()
 
         itemPage.show();
 
+        var d;
         if (dta.history)
         {
-            var d = libtuj.ce();
+            d = libtuj.ce();
             d.className = 'chart history';
             itemPage.append(d);
             ItemHistoryChart(dta, d);
+        }
+
+        if (dta.monthly)
+        {
+            d = libtuj.ce();
+            d.className = 'chart monthly';
+            itemPage.append(d);
+            ItemMonthlyChart(dta, d);
         }
     }
 
@@ -86,7 +95,7 @@ var TUJ_Item = function()
             },
             xAxis: {
                 type: 'datetime',
-                maxZoom: 4 * 3600000, // one hour
+                maxZoom: 4 * 3600000, // four hours
                 title: {
                     text: null
                 }
@@ -125,6 +134,129 @@ var TUJ_Item = function()
                 shared: true,
                 formatter: function() {
                     var tr = '<b>'+Highcharts.dateFormat('%a %b %d, %I:%M%P', this.x)+'</b>';
+                    tr += '<br><span style="color: #000099">Market Price: '+libtuj.FormatPrice(this.points[0].y, true)+'</span>';
+                    tr += '<br><span style="color: #990000">Quantity: '+libtuj.FormatQuantity(this.points[1].y, true)+'</span>';
+                    return tr;
+                    // &lt;br/&gt;&lt;span style="color: #990000"&gt;Quantity: '+this.points[1].y+'&lt;/span&gt;<xsl:if test="itemgraphs/d[@matsprice != '']">&lt;br/&gt;&lt;span style="color: #999900"&gt;Materials Price: '+this.points[2].y.toFixed(2)+'g&lt;/span&gt;</xsl:if>';
+                }
+            },
+            plotOptions: {
+                series: {
+                    lineWidth: 1,
+                    marker: {
+                        enabled: false,
+                        radius: 1,
+                        states: {
+                            hover: {
+                                enabled: true
+                            }
+                        }
+                    },
+                    states: {
+                        hover: {
+                            lineWidth: 1
+                        }
+                    }
+                }
+            },
+            series: [{
+                type: 'area',
+                name: 'Market Price',
+                color: '#0000FF',
+                lineColor: '#0000FF',
+                fillColor: '#CCCCFF',
+                data: hcdata.price
+            },{
+                type: 'line',
+                name: 'Quantity Available',
+                yAxis: 1,
+                color: '#FF3333',
+                data: hcdata.quantity
+            }]
+        });
+    }
+
+    function ItemMonthlyChart(data, dest)
+    {
+        var hcdata = {price: [], priceMaxVal: 0, quantity: [], quantityMaxVal: 0};
+
+        var allPrices = [], dt, dtParts;
+        for (var x = 0; x < data.monthly.length; x++)
+        {
+            dtParts = data.monthly[x].date.split('-');
+            dt = Date.UTC(dtParts[0], parseInt(dtParts[1],10)-1, dtParts[2]);
+            hcdata.price.push([dt, data.monthly[x].silver * 100]);
+            hcdata.quantity.push([dt, data.monthly[x].quantity]);
+            if (data.monthly[x].quantity > hcdata.quantityMaxVal)
+                hcdata.quantityMaxVal = data.monthly[x].quantity;
+            allPrices.push(data.monthly[x].silver * 100);
+        }
+
+        allPrices.sort(function(a,b){ return a - b; });
+        var q1 = allPrices[Math.floor(allPrices.length * 0.25)];
+        var q3 = allPrices[Math.ceil(allPrices.length * 0.75)];
+        var iqr = q3 - q1;
+        hcdata.priceMaxVal = q3 + (1.5 * iqr);
+
+        Highcharts.setOptions({
+            global: {
+                useUTC: false
+            }
+        });
+
+        $(dest).highcharts({
+            chart: {
+                zoomType: 'x'
+            },
+            title: {
+                text: null
+            },
+            subtitle: {
+                text: document.ontouchstart === undefined ?
+                    'Click and drag in the plot area to zoom in' :
+                    'Pinch the chart to zoom in'
+            },
+            xAxis: {
+                type: 'datetime',
+                maxZoom: 4 * 24 * 3600000, // four days
+                title: {
+                    text: null
+                }
+            },
+            yAxis: [{
+                title: {
+                    text: 'Market Price',
+                    style: {
+                        color: '#0000FF'
+                    }
+                },
+                labels: {
+                    enabled: true,
+                    formatter: function() { return ''+this.value+'g'; }
+                },
+                min: 0,
+                max: hcdata.priceMaxVal
+            }, {
+                title: {
+                    text: 'Quantity Available',
+                    style: {
+                        color: '#FF3333'
+                    }
+                },
+                labels: {
+                    enabled: true
+                },
+                opposite: true,
+                min: 0,
+                max: hcdata.quantityMaxVal
+            }],
+            legend: {
+                enabled: false
+            },
+            tooltip: {
+                shared: true,
+                formatter: function() {
+                    var tr = '<b>'+Highcharts.dateFormat('%a %b %d', this.x)+'</b>';
                     tr += '<br><span style="color: #000099">Market Price: '+libtuj.FormatPrice(this.points[0].y, true)+'</span>';
                     tr += '<br><span style="color: #990000">Quantity: '+libtuj.FormatQuantity(this.points[1].y, true)+'</span>';
                     return tr;
