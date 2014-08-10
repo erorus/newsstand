@@ -1,7 +1,22 @@
+html {min-height: 100%}
 body {background-color: white; color: #333; margin: 0; overflow-y: scroll}
-#title {height: 20em; min-width: 600px; background-image: url('../images/title3.edges.png'); background-repeat: repeat-x; background-size: contain}
-#title div {background-image: url('../images/title3.middle.png'); background-position: center; background-repeat: no-repeat; height: 100%; background-size: contain}
-#main {margin: 1em; background-color: white; min-width: 50em}
+
+#page {position: relative; min-width: 65em; min-height: 100%}
+
+body            {background-image: linear-gradient(to right, #666, #666 20em, white 20em)}
+body.realm      {background-image: linear-gradient(to right, #969, #969 20em, white 20em)}
+body.front      {background-image: linear-gradient(to right, #669, #669 20em, white 20em)}
+body.item       {background-image: linear-gradient(to right, #696, #696 20em, white 20em)}
+
+#topbar { position: relative; height: 12em; width: 100%; }
+#topcorner { position: absolute; top: 0; left: 0; width: 20em; height: 100% }
+#title { position: absolute; top: 0; left: 20em; right: 0; bottom: 0; background-color: #FFF; }
+#title > div { position: absolute; bottom: 0}
+
+#sidebar { float: left; width: 20em }
+#main-outer { margin-left: 20em; background-color: #FFF }
+
+.give-padding > div, .get-padding { padding: 2em }
 
 a {text-decoration: none; color: black}
 a:hover {text-decoration: underline}

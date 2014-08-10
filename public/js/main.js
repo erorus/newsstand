@@ -65,6 +65,8 @@ var TUJ = function()
             return;
         inMain = true;
 
+        document.body.className = '';
+
         if (typeof self.realms == 'undefined')
         {
             inMain = false;
@@ -103,15 +105,19 @@ var TUJ = function()
             $('#faction-pick a').each(function() { this.href = self.BuildHash({realm: undefined, faction: this.rel});});
             $('#realm-list .realms-column a').each(function() { this.href = self.BuildHash({realm: this.rel}); });
             $('#realm-list').addClass('show');
+            document.body.className = 'realm';
             return;
         }
 
         if (!self.params.page)
         {
             inMain = false;
+            document.body.className = 'front';
             ShowRealmFrontPage();
             return;
         }
+
+        document.body.className = validPages[self.params.page];
 
         if (typeof tuj['page_'+validPages[self.params.page]] == 'undefined')
             libtuj.AddScript('js/'+validPages[self.params.page]+'.js');
