@@ -3,20 +3,26 @@ body {background-color: white; color: #333; margin: 0; overflow-y: scroll}
 
 #page {position: relative; min-width: 65em; min-height: 100%}
 
-body            {background-image: linear-gradient(to right, #666, #666 20em, white 20em)}
-body.realm      {background-image: linear-gradient(to right, #969, #969 20em, white 20em)}
-body.front      {background-image: linear-gradient(to right, #669, #669 20em, white 20em)}
-body.item       {background-image: linear-gradient(to right, #696, #696 20em, white 20em)}
+body.realm        #topcorner {display: none}
 
 #topbar { position: relative; height: 12em; width: 100%; }
-#topcorner { position: absolute; top: 0; left: 0; width: 20em; height: 100% }
-#title { position: absolute; top: 0; left: 20em; right: 0; bottom: 0; background-color: #FFF; }
-#title > div { position: absolute; bottom: 0}
-
-#sidebar { float: left; width: 20em }
-#main-outer { margin-left: 20em; background-color: #FFF }
+#topcorner { position: absolute; top: 0; right: 0; width: 20em; height: 100% }
+#title { position: absolute; top: 0; right: 20em; left: 0; bottom: 0 }
+#title a { border: 0; background-image: url('../images/underminetitle.2000.png'); background-repeat: no-repeat; background-size: contain; height: 4em; display: block; margin-bottom: 0.5em }
+#page-title { font-size: 2em; padding-left: 1em }
 
 .give-padding > div, .get-padding { padding: 2em }
+
+#topcorner .faction span { display: none }
+#topcorner .faction.alliance span.alliance { display: inline }
+#topcorner .faction.horde span.horde { display: inline }
+
+#topcorner .realm-faction { font-size: 150% }
+body.realm #topcorner .realm { display: none }
+
+#topcorner form {display: inline}
+#topcorner input {text-size: 150%; margin-top: 1em; padding: 0.5em; width: 100% }
+body.realm #topcorner form { display: none }
 
 a {text-decoration: none; color: black}
 a:hover {text-decoration: underline}
@@ -47,17 +53,9 @@ a:hover {text-decoration: underline}
 #realm-list.alliance .realms-column a {color: #006}
 #realm-list.horde .realms-column a {color: #600}
 
-#realm-header { font-size: 200%; margin: 0 2em 1em; height: 1.5em; position: relative}
-#realm-header a.realm {position: absolute; top: 0.2em; color: black}
-#realm-header a.front-page {position: absolute; right: 23em; top: 0.75em; font-size: 50%; color: black}
-#realm-header form {display: inline-block; position: absolute; right: 0; margin: 0}
-#realm-header input {text-size: 150%; padding: 0.5em; width: 20em }
+#front-page { display: none }
 
-#front-page { margin: 2em }
-
-.page .header { font-size: 150%; text-align: center }
-
-#search-page table { width: 45em; margin: 2em auto; border: 1px solid black; border-spacing: 0 }
+#search-page table { width: 45em; margin: 0 auto 2em; border: 1px solid black; border-spacing: 0 }
 #search-page table th {padding: 0.2em}
 #search-page table td {padding: 0.2em 0.4em; border-top: 1px solid #CCC}
 #search-page tr:hover td {background-color: #EEE}

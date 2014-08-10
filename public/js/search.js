@@ -13,7 +13,7 @@ var TUJ_Search = function()
             searchPage = libtuj.ce();
             searchPage.id = 'search-page';
             searchPage.className = 'page';
-            $('#realm-header').after(searchPage);
+            $('#main').append(searchPage);
         }
         $.ajax({
             data: {
@@ -33,10 +33,7 @@ var TUJ_Search = function()
         var searchPage = $('#search-page');
         searchPage.empty();
 
-        var h = libtuj.ce();
-        h.className = 'header';
-        searchPage.append(h);
-        $(h).text('Search: '+params.id);
+        $('#page-title').text('Search: '+params.id);
 
         var gotResult = false;
         var t, tr, td, i, a;

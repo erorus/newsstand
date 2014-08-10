@@ -86,14 +86,14 @@ var TUJ = function()
 
         ReadParams();
 
+        UpdateSidebar();
+
         if ($('#realm-list').length == 0)
         {
             inMain = false;
             DrawRealms();
             return;
         }
-
-        ShowRealmHeader();
 
         $('#main .page').hide();
         $('#realm-list').removeClass('show');
@@ -204,6 +204,37 @@ var TUJ = function()
         }
 
         return false;
+    }
+
+    function UpdateSidebar()
+    {
+        var factionLink = $('#topcorner a.faction')[0];
+        factionLink.className = 'faction '+(self.params.faction ? self.params.faction : 'none');
+        var otherFaction = self.params.faction ? (self.params.faction == 'alliance' ? 'horde' : 'alliance') : undefined;
+        factionLink.href = self.BuildHash({faction: otherFaction});
+
+        var realmLink = $('#topcorner a.realm');
+        realmLink[0].href = self.BuildHash({realm: undefined});
+        realmLink.text(self.params.realm ? self.realms[self.params.realm].name : '');
+
+        $('#title a')[0].href = self.BuildHash({page: undefined});
+        $('#page-title').empty();
+
+        if ($('#topcorner form').length == 0)
+        {
+            var form = libtuj.ce('form');
+            var i = libtuj.ce('input');
+            i.name = 'search';
+            i.type = 'text';
+            i.placeholder = 'Search';
+
+            $(form).on('submit', function() {
+                location.href = self.BuildHash({page: 'search', id: this.search.value.replace('/','')});
+                return false;
+            }).append(i);
+
+            $('#topcorner .realm-faction').after(form);
+        }
     }
 
     this.BuildHash = function(p)
@@ -359,66 +390,9 @@ var TUJ = function()
         Main();
     }
 
-    function ShowRealmHeader()
-    {
-        var realmHeader = $('#realm-header')[0];
-        var realmText, frontPageLink;
-        if (!realmHeader)
-        {
-            realmHeader = libtuj.ce();
-            realmHeader.id = 'realm-header';
-            $('#realm-list').after(realmHeader);
-
-            realmText = libtuj.ce('a');
-            realmText.className = 'realm';
-            $(realmHeader).append(realmText);
-
-            frontPageLink = libtuj.ce('a');
-            frontPageLink.className = 'front-page'
-            $(frontPageLink).text('Home');
-
-            var form = libtuj.ce('form');
-            var i = libtuj.ce('input');
-            i.name = 'search';
-            i.type = 'text';
-            i.placeholder = 'Search for items and sellers';
-
-            $(form).on('submit', function() {
-                location.href = self.BuildHash({page: 'search', id: this.search.value.replace('/','')});
-                return false;
-            }).append(i);
-
-            $(realmHeader).append(form).append(frontPageLink);
-        }
-        else
-        {
-            realmText = $(realmHeader).children('a.realm')[0];
-            frontPageLink = $(realmHeader).children('a.front-page')[0];
-        }
-
-        if (!self.params.realm)
-        {
-            realmHeader.style.display = 'none';
-            return;
-        }
-        realmHeader.style.display = '';
-
-        $(realmText).text(self.realms[self.params.realm].name + ' - ' + self.params.faction.substr(0,1).toUpperCase() + self.params.faction.substr(1));
-        realmText.href = self.BuildHash({realm: undefined});
-        frontPageLink.href = self.BuildHash({page: undefined, id: undefined});
-    }
-
     function ShowRealmFrontPage()
     {
         var frontPage = $('#front-page')[0];
-        if (!frontPage)
-        {
-            frontPage = libtuj.ce();
-            frontPage.id = 'front-page';
-            frontPage.className = 'page';
-            $('#realm-header').after(frontPage);
-            $(frontPage).text('hi front page');
-        }
         $(frontPage).show();
     }
     Main();

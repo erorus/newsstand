@@ -2,9 +2,23 @@
 var TUJ_Item = function()
 {
     var params;
+    var lastResult;
 
     this.load = function(inParams)
     {
+        var diffParams = false;
+        if (params && lastResult)
+        {
+            for (var p in inParams)
+                diffParams |= (!params.hasOwnProperty(p) || params[p] != inParams[p])
+
+            if (!diffParams)
+            {
+                ItemResult(lastResult);
+                return;
+            }
+        }
+
         params = inParams;
 
         var itemPage = $('#item-page')[0];
@@ -13,7 +27,7 @@ var TUJ_Item = function()
             itemPage = libtuj.ce();
             itemPage.id = 'item-page';
             itemPage.className = 'page';
-            $('#realm-header').after(itemPage);
+            $('#main').append(itemPage);
         }
         $.ajax({
             data: {
@@ -27,14 +41,12 @@ var TUJ_Item = function()
 
     function ItemResult(dta)
     {
+        lastResult = dta;
+
+        $('#page-title').text('Item: '+dta.stats.name);
+
         var itemPage = $('#item-page');
         itemPage.empty();
-
-        var h = libtuj.ce();
-        h.className = 'header';
-        itemPage.append(h);
-        $(h).text('Item: '+dta.stats.name);
-
         itemPage.show();
 
         var d;
