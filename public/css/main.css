@@ -25,6 +25,7 @@ body.realm #topcorner .realm { display: none }
 body.realm #topcorner form { display: none }
 
 a {text-decoration: none; color: black}
+a:active,a:focus { outline: none; }
 a:hover {text-decoration: underline}
 
 .q0, .q0 a { color: #9d9d9d } /* Poor */
