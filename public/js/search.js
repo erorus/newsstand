@@ -2,10 +2,27 @@
 var TUJ_Search = function()
 {
     var params;
+    var lastResults = [];
 
     this.load = function(inParams)
     {
-        params = inParams;
+        params = {};
+        for (var p in inParams)
+            if (inParams.hasOwnProperty(p))
+                params[p] = inParams[p];
+
+        var qs = {
+            house: tuj.realms[params.realm].house,
+            search: params.id
+        };
+        var hash = JSON.stringify(qs);
+
+        for (var x = 0; x < lastResults.length; x++)
+            if (lastResults[x].hash == hash)
+            {
+                SearchResult(false, lastResults[x].data);
+                return;
+            }
 
         var searchPage = $('#search-page')[0];
         if (!searchPage)
@@ -16,20 +33,21 @@ var TUJ_Search = function()
             $('#main').append(searchPage);
         }
         $.ajax({
-            data: {
-                house: tuj.realms[params.realm].house,
-                search: params.id
-            },
-            success: function(dta)
-            {
-                SearchResult(dta);
-            },
+            data: qs,
+            success: function(d) { SearchResult(hash, d); },
             url: 'api/search.php'
         });
     }
 
-    function SearchResult(dta)
+    function SearchResult(hash, dta)
     {
+        if (hash)
+        {
+            lastResults.push({hash: hash, data: dta});
+            while (lastResults.length > 10)
+                lastResults.shift();
+        }
+
         var searchPage = $('#search-page');
         searchPage.empty();
 

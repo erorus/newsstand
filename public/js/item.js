@@ -2,24 +2,27 @@
 var TUJ_Item = function()
 {
     var params;
-    var lastResult;
+    var lastResults = [];
 
     this.load = function(inParams)
     {
-        var diffParams = false;
-        if (params && lastResult)
-        {
-            for (var p in inParams)
-                diffParams |= (!params.hasOwnProperty(p) || params[p] != inParams[p])
+        params = {};
+        for (var p in inParams)
+            if (inParams.hasOwnProperty(p))
+                params[p] = inParams[p];
 
-            if (!diffParams)
+        var qs = {
+            house: tuj.realms[params.realm].house * tuj.validFactions[params.faction],
+            item: params.id
+        };
+        var hash = JSON.stringify(qs);
+
+        for (var x = 0; x < lastResults.length; x++)
+            if (lastResults[x].hash == hash)
             {
-                ItemResult(lastResult);
+                ItemResult(false, lastResults[x].data);
                 return;
             }
-        }
-
-        params = inParams;
 
         var itemPage = $('#item-page')[0];
         if (!itemPage)
@@ -29,19 +32,22 @@ var TUJ_Item = function()
             itemPage.className = 'page';
             $('#main').append(itemPage);
         }
+
         $.ajax({
-            data: {
-                house: tuj.realms[params.realm].house * tuj.validFactions[params.faction],
-                item: params.id
-            },
-            success: ItemResult,
+            data: qs,
+            success: function(d) { ItemResult(hash, d); },
             url: 'api/item.php'
         });
     }
 
-    function ItemResult(dta)
+    function ItemResult(hash, dta)
     {
-        lastResult = dta;
+        if (hash)
+        {
+            lastResults.push({hash: hash, data: dta});
+            while (lastResults.length > 10)
+                lastResults.shift();
+        }
 
         $('#page-title').text('Item: '+dta.stats.name);
 
