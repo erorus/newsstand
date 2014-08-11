@@ -182,11 +182,11 @@ var TUJ = function()
             p.id = h[x];
         }
 
-        if (!SetParams(p))
+        if (!self.SetParams(p))
             Main();
     }
 
-    function SetParams(p)
+    this.SetParams = function(p)
     {
         if (p)
             for (var x in p)
@@ -386,7 +386,7 @@ var TUJ = function()
             if (self.validFactions.hasOwnProperty(f) && toAdd.indexOf(f) < 0)
                 toRemove += (toRemove == '' ? '' : ' ') + f;
         $('#realm-list').addClass(toAdd).removeClass(toRemove);
-        SetParams({faction: toAdd});
+        self.SetParams({faction: toAdd});
         Main();
     }
 

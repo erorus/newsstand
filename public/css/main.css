@@ -15,7 +15,7 @@ body.realm        #topcorner {display: none}
 #title > div > a { border: 0; background-image: url('../images/underminetitle.2000.png'); background-repeat: no-repeat; background-size: contain; height: 4em; display: block; margin-bottom: 0.5em }
 
 #page-title { font-size: 2em; padding-left: 1em }
-#page-title a.item img { vertical-align: bottom; height: 1.25em; width: 1.25em; }
+#page-title a.item img { vertical-align: middle; height: 1.2em; width: 1.2em; border-radius: 5px; border: 1px solid #333 }
 #page-title a:hover { text-decoration: none }
 
 .give-padding > div, .get-padding { padding: 2em }
@@ -41,6 +41,7 @@ body.realm #topcorner form { display: none }
 .q7, .q7 a { color: #e5cc80 } /* Heirloom */
 
 .wowhead-tooltip-powered { visibility: hidden }
+.wowhead-tooltip > table { background-color: black; border-radius: 5px }
 
 #realm-list {display: none; text-align: center}
 #realm-list.width-test, #realm-list.show {display: block}

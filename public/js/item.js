@@ -177,7 +177,7 @@ var TUJ_Item = function()
             },
             plotOptions: {
                 series: {
-                    lineWidth: 1,
+                    lineWidth: 2,
                     marker: {
                         enabled: false,
                         radius: 1,
@@ -189,7 +189,7 @@ var TUJ_Item = function()
                     },
                     states: {
                         hover: {
-                            lineWidth: 1
+                            lineWidth: 2
                         }
                     }
                 }
@@ -301,7 +301,7 @@ var TUJ_Item = function()
             },
             plotOptions: {
                 series: {
-                    lineWidth: 1,
+                    lineWidth: 2,
                     marker: {
                         enabled: false,
                         radius: 1,
@@ -313,7 +313,7 @@ var TUJ_Item = function()
                     },
                     states: {
                         hover: {
-                            lineWidth: 1
+                            lineWidth: 2
                         }
                     }
                 }
@@ -476,7 +476,7 @@ var TUJ_Item = function()
             },
             plotOptions: {
                 series: {
-                    lineWidth: 1,
+                    lineWidth: 2,
                     marker: {
                         enabled: false,
                         radius: 1,
@@ -488,7 +488,7 @@ var TUJ_Item = function()
                     },
                     states: {
                         hover: {
-                            lineWidth: 1
+                            lineWidth: 2
                         }
                     }
                 }

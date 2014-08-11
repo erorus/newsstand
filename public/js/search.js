@@ -53,13 +53,12 @@ var TUJ_Search = function()
 
         $('#page-title').text('Search: '+params.id);
 
-        var gotResult = false;
+        var results = 0;
+        var lastResult;
         var t, tr, td, i, a;
 
         if (dta.items)
         {
-            gotResult = true;
-
             var lastClass = -1;
             var item;
 
@@ -69,6 +68,8 @@ var TUJ_Search = function()
                     continue;
 
                 item = dta.items[x];
+                lastResult = {page: 'item', id: item.id};
+                results++;
 
                 if (lastClass != item.classid)
                 {
@@ -142,8 +143,6 @@ var TUJ_Search = function()
 
         if (dta.sellers)
         {
-            gotResult = true;
-
             var seller;
 
             t = libtuj.ce('table');
@@ -168,6 +167,8 @@ var TUJ_Search = function()
                 if (!dta.sellers.hasOwnProperty(x))
                     continue;
 
+                results++;
+                lastResult = {page: 'seller', id: seller.name, realm: seller.realm};
                 seller = dta.sellers[x];
 
                 tr = libtuj.ce('tr');
@@ -187,7 +188,11 @@ var TUJ_Search = function()
                 td.appendChild(libtuj.FormatDate(seller.lastseen));
             }
         }
-        searchPage.show();
+
+        if (results == 1)
+            tuj.SetParams(lastResult);
+        else
+            searchPage.show();
     }
 
     this.load(tuj.params);
