@@ -24,8 +24,9 @@ body.realm        #topcorner {display: none}
 #topcorner .faction.alliance span.alliance { display: inline }
 #topcorner .faction.horde span.horde { display: inline }
 
-#topcorner .realm-faction { font-size: 150% }
+#topcorner .realm-faction { font-size: 125% }
 body.realm #topcorner .realm { display: none }
+#topcorner span.region { cursor: default }
 
 #topcorner form {display: inline}
 #topcorner input {text-size: 150%; margin-top: 1em; padding: 0.5em; width: 100% }

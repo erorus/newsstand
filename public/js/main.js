@@ -48,6 +48,7 @@ var TUJ = function()
 {
     var validPages = ['','search','item','seller','category','battlepet'];
     this.validFactions = {'alliance': 1, 'horde': -1};
+    this.region = undefined;
     this.realms = undefined;
     this.params = {
         realm: undefined,
@@ -75,12 +76,10 @@ var TUJ = function()
         {
             inMain = false;
             $.ajax({
-                data: {
-                    region: 'US'
-                },
                 success: function(dta)
                 {
-                    self.realms = dta;
+                    self.region = dta.region;
+                    self.realms = dta.realms;
                     Main();
                 },
                 url: 'api/realms.php'
@@ -212,6 +211,9 @@ var TUJ = function()
 
     function UpdateSidebar()
     {
+        var regionLink = $('#topcorner span.region');
+        regionLink.text(self.region);
+
         var factionLink = $('#topcorner a.faction')[0];
         factionLink.className = 'faction '+(self.params.faction ? self.params.faction : 'none');
         var otherFaction = self.params.faction ? (self.params.faction == 'alliance' ? 'horde' : 'alliance') : undefined;

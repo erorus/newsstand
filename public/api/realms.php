@@ -4,10 +4,10 @@ require_once('../../incl/incl.php');
 require_once('../../incl/memcache.incl.php');
 require_once('../../incl/api.incl.php');
 
-$region = isset($_GET['region']) ? $_GET['region'] : 'US'; // todo: check domain
+$region = 'US'; // todo: check domain
 
 if ($json = MCGet('realms_'.$region))
-    json_return($json);
+    json_return(array('region' => $region, 'realms' => $json));
 
 DBConnect();
 
@@ -18,8 +18,6 @@ $result = $stmt->get_result();
 $houses = DBMapArray($result);
 $stmt->close();
 
-$houses = json_encode($houses, JSON_NUMERIC_CHECK);
-
 $memcache->set('realms_'.$region, $houses, false, 10800);
 
-json_return($houses);
+json_return(array('region' => $region, 'realms' => $houses));
