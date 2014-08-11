@@ -168,8 +168,8 @@ var TUJ_Search = function()
                     continue;
 
                 results++;
-                lastResult = {page: 'seller', id: seller.name, realm: seller.realm};
                 seller = dta.sellers[x];
+                lastResult = {page: 'seller', id: seller.name, realm: seller.realm};
 
                 tr = libtuj.ce('tr');
                 t.appendChild(tr);
