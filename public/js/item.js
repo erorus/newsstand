@@ -64,30 +64,126 @@ var TUJ_Item = function()
         itemPage.empty();
         itemPage.show();
 
-        var d;
-        if (dta.history)
+        var d, cht, h;
+
+        d = libtuj.ce();
+        d.className = 'item-stats';
+        itemPage.append(d);
+        ItemStats(dta, d);
+
+        if (dta.history.length >= 4)
         {
             d = libtuj.ce();
-            d.className = 'chart history';
+            d.className = 'chart-section';
+            h = libtuj.ce('h2');
+            d.appendChild(h);
+            $(h).text('Snapshots');
+            d.appendChild(document.createTextNode('Here is the available quantity and market price of the item for every auction house snapshot seen recently.'))
+            cht = libtuj.ce();
+            cht.className = 'chart history';
+            d.appendChild(cht);
             itemPage.append(d);
-            ItemHistoryChart(dta, d);
+            ItemHistoryChart(dta, cht);
         }
 
-        if (dta.monthly)
+        if (dta.monthly.length >= 7)
         {
             d = libtuj.ce();
-            d.className = 'chart monthly';
+            d.className = 'chart-section';
+            h = libtuj.ce('h2');
+            d.appendChild(h);
+            $(h).text('Daily Summary');
+            d.appendChild(document.createTextNode('Here is the maximum available quantity, and the market price at that time, for the item each day.'))
+            cht = libtuj.ce();
+            cht.className = 'chart monthly';
+            d.appendChild(cht);
             itemPage.append(d);
-            ItemMonthlyChart(dta, d);
+            ItemMonthlyChart(dta, cht);
         }
 
-        if (dta.daily)
+        if (dta.daily.length >= 7)
         {
             d = libtuj.ce();
-            d.className = 'chart daily';
+            d.className = 'chart-section';
+            h = libtuj.ce('h2');
+            d.appendChild(h);
+            $(h).text('Daily Details');
+            d.appendChild(document.createTextNode('This chart is similar to the Daily Summary, but includes the "OHLC" market prices for the item each day, along with the minimum, average, and maximum available quantity.'))
+            cht = libtuj.ce();
+            cht.className = 'chart daily';
+            d.appendChild(cht)
             itemPage.append(d);
-            ItemDailyChart(dta, d);
+            ItemDailyChart(dta, cht);
         }
+    }
+
+    function ItemStats(data, dest)
+    {
+        var t, tr, td;
+
+        t = libtuj.ce('table');
+        dest.appendChild(t);
+
+        tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.appendChild(document.createTextNode('Market Price:'));
+        td = libtuj.ce('td');
+        tr.appendChild(td);
+        td.appendChild(libtuj.FormatPrice(data.stats.price));
+
+        tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.appendChild(document.createTextNode('Available:'));
+        td = libtuj.ce('td');
+        tr.appendChild(td);
+        td.appendChild(libtuj.FormatQuantity(data.stats.quantity));
+
+        tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.appendChild(document.createTextNode('Last Seen:'));
+        td = libtuj.ce('td');
+        tr.appendChild(td);
+        td.appendChild(libtuj.FormatDate(data.stats.lastseen));
+
+        t = libtuj.ce('table');
+        dest.appendChild(t);
+
+        tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.appendChild(document.createTextNode('Stack Size:'));
+        td = libtuj.ce('td');
+        tr.appendChild(td);
+        td.appendChild(document.createTextNode(data.stats.stacksize ? data.stats.stacksize : '?'));
+
+        tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.appendChild(document.createTextNode('Sell to Vendor:'));
+        td = libtuj.ce('td');
+        tr.appendChild(td);
+        td.appendChild(data.stats.selltovendor ? libtuj.FormatPrice(data.stats.selltovendor) : document.createTextNode('(Does not buy)'));
+
+        tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.appendChild(document.createTextNode('48hr Listing Fee:'));
+        td = libtuj.ce('td');
+        tr.appendChild(td);
+        td.appendChild(libtuj.FormatPrice(Math.max(100, data.stats.selltovendor ? data.stats.selltovendor * 0.6 : 0)));
+
+        var ad = libtuj.ce();
+        ad.className = 'ad';
+        dest.appendChild(ad);
     }
 
     function ItemHistoryChart(data, dest)

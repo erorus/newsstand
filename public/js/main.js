@@ -33,7 +33,11 @@ var libtuj = {
         var s = libtuj.ce('span');
         if (unix)
         {
-            var dt = new Date(unix*1000);
+            var dt;
+            if (typeof unix == 'string')
+                dt = new Date(unix.replace(/^(\d{4}-\d\d-\d\d) (\d\d:\d\d:\d\d)$/, '$1T$2.000Z'));
+            else
+                dt = new Date(unix*1000);
             s.appendChild(document.createTextNode(dt.toLocaleDateString()));
         }
         return s;
