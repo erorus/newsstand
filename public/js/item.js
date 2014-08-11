@@ -180,6 +180,11 @@ var TUJ_Item = function()
         td = libtuj.ce('td');
         tr.appendChild(td);
         td.appendChild(libtuj.FormatPrice(Math.max(100, data.stats.selltovendor ? data.stats.selltovendor * 0.6 : 0)));
+        if (data.stats.stacksize)
+        {
+            td.appendChild(document.createTextNode(' / '));;
+            td.appendChild(libtuj.FormatPrice(Math.max(100, data.stats.selltovendor ? data.stats.selltovendor * 0.6 * data.stats.stacksize : 0)));
+        }
 
         var ad = libtuj.ce();
         ad.className = 'ad';
