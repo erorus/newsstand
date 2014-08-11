@@ -1,6 +1,10 @@
 html {min-height: 100%}
 body {background-color: white; color: #333; margin: 0; overflow-y: scroll}
 
+a {text-decoration: none; color: black}
+a:active,a:focus { outline: none; }
+a:hover {text-decoration: underline}
+
 #page {position: relative; min-width: 65em; min-height: 100%}
 
 body.realm        #topcorner {display: none}
@@ -8,8 +12,11 @@ body.realm        #topcorner {display: none}
 #topbar { position: relative; height: 12em; width: 100%; }
 #topcorner { position: absolute; top: 0; right: 0; width: 20em; height: 100% }
 #title { position: absolute; top: 0; right: 20em; left: 0; bottom: 0 }
-#title a { border: 0; background-image: url('../images/underminetitle.2000.png'); background-repeat: no-repeat; background-size: contain; height: 4em; display: block; margin-bottom: 0.5em }
+#title > div > a { border: 0; background-image: url('../images/underminetitle.2000.png'); background-repeat: no-repeat; background-size: contain; height: 4em; display: block; margin-bottom: 0.5em }
+
 #page-title { font-size: 2em; padding-left: 1em }
+#page-title a.item img { vertical-align: bottom; height: 1.25em; width: 1.25em; }
+#page-title a:hover { text-decoration: none }
 
 .give-padding > div, .get-padding { padding: 2em }
 
@@ -24,10 +31,6 @@ body.realm #topcorner .realm { display: none }
 #topcorner input {text-size: 150%; margin-top: 1em; padding: 0.5em; width: 100% }
 body.realm #topcorner form { display: none }
 
-a {text-decoration: none; color: black}
-a:active,a:focus { outline: none; }
-a:hover {text-decoration: underline}
-
 .q0, .q0 a { color: #9d9d9d } /* Poor */
 .q1, .q1 a { color: #ffffff } /* Common */
 .q2, .q2 a { color: #1eff00 } /* Uncommon */
@@ -36,6 +39,8 @@ a:hover {text-decoration: underline}
 .q5, .q5 a { color: #ff8000 } /* Legendary */
 .q6, .q6 a { color: #e5cc80 } /* Artifact */
 .q7, .q7 a { color: #e5cc80 } /* Heirloom */
+
+.wowhead-tooltip-powered { visibility: hidden }
 
 #realm-list {display: none; text-align: center}
 #realm-list.width-test, #realm-list.show {display: block}

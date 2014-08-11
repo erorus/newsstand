@@ -120,6 +120,7 @@ var TUJ_Search = function()
                 a = libtuj.ce('a');
                 td.appendChild(a);
                 a.href = tuj.BuildHash({page: 'item', id: item.id});
+                a.rel = 'item=' + item.id;
                 $(a).text('[' + item.name + ']');
 
                 td = libtuj.ce('td');

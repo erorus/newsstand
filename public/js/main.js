@@ -449,3 +449,5 @@ var optimizedResize = (function() {
         }
     }
 }());
+
+var wowhead_tooltips = { "hide": { "extra": true, "sellprice": true } };
