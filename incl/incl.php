@@ -103,6 +103,7 @@ function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
 
     $fetchHTTPErrorCaught = false;
     if (!isset($inHeaders['Connection'])) $inHeaders['Connection']='Keep-Alive';
+    $inHeaders['Accept-Encoding'] = 'gzip';
     $http_opt = array(
         'timeout' => 60,
         'connecttimeout' => 6,

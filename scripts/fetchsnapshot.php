@@ -119,6 +119,8 @@ ENDSQL;
 
     $xferBytes = isset($outHeaders['X-Original-Content-Length']) ? $outHeaders['X-Original-Content-Length'] : strlen($data);
     DebugMessage("$region $slug data file ".strlen($data)." bytes".($xferBytes != strlen($data) ? (' (transfer length '.$xferBytes.', '.round($xferBytes/strlen($data)*100,1).'%)') : '').", ".round($dlDuration,2)."sec, ".round($xferBytes/1000/$dlDuration)."KBps");
+    if ($xferBytes >= strlen($data) && strlen($data) > 65536)
+        DebugMessage('No compression? '.print_r($outHeaders,true));
 
     $stmt = $db->prepare('insert into tblHouseCheck (house, nextcheck) values (?, null) on duplicate key update nextcheck=values(nextcheck)');
     $stmt->bind_param('i', $house);
