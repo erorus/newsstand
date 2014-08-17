@@ -151,8 +151,14 @@ var TUJ_Item = function()
         tr.appendChild(td);
         td.appendChild(libtuj.FormatDate(data.stats.lastseen));
 
-        t = libtuj.ce('table');
-        dest.appendChild(t);
+        //t = libtuj.ce('table');
+        //dest.appendChild(t);
+        tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        td = libtuj.ce('td');
+        td.colSpan = 2;
+        td.style.height = '0.5em';
+        tr.appendChild(td);
 
         tr = libtuj.ce('tr');
         t.appendChild(tr);
@@ -179,15 +185,25 @@ var TUJ_Item = function()
         td.appendChild(document.createTextNode('48hr Listing Fee:'));
         td = libtuj.ce('td');
         tr.appendChild(td);
-        td.appendChild(libtuj.FormatPrice(Math.max(100, data.stats.selltovendor ? data.stats.selltovendor * 0.6 : 0)));
         if (data.stats.stacksize)
         {
+            var abbr = libtuj.ce('abbr');
+            abbr.title = 'Each';
+            abbr.appendChild(libtuj.FormatPrice(Math.max(100, data.stats.selltovendor ? data.stats.selltovendor * 0.6 : 0)));
+            td.appendChild(abbr);
+
             td.appendChild(document.createTextNode(' / '));;
-            td.appendChild(libtuj.FormatPrice(Math.max(100, data.stats.selltovendor ? data.stats.selltovendor * 0.6 * data.stats.stacksize : 0)));
+
+            abbr = libtuj.ce('abbr');
+            abbr.title = 'Stack';
+            abbr.appendChild(libtuj.FormatPrice(Math.max(100, data.stats.selltovendor ? data.stats.selltovendor * 0.6 * data.stats.stacksize : 0)));
+            td.appendChild(abbr);
         }
+        else
+            td.appendChild(libtuj.FormatPrice(Math.max(100, data.stats.selltovendor ? data.stats.selltovendor * 0.6 : 0)));
 
         var ad = libtuj.ce();
-        ad.className = 'ad';
+        ad.className = 'ad box';
         dest.appendChild(ad);
     }
 
