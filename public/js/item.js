@@ -122,13 +122,23 @@ var TUJ_Item = function()
             d.className = 'chart-section';
             h = libtuj.ce('h2');
             d.appendChild(h);
-            $(h).text('Posting Heat Map');
-            d.appendChild(document.createTextNode('This heat map displays the average price across the hours and days of the week.'))
+            $(h).text('Pricing Heat Map');
             cht = libtuj.ce();
             cht.className = 'chart heatmap';
             d.appendChild(cht);
             itemPage.append(d);
             ItemPriceHeatMap(dta, cht);
+
+            d = libtuj.ce();
+            d.className = 'chart-section';
+            h = libtuj.ce('h2');
+            d.appendChild(h);
+            $(h).text('Quantity Heat Map');
+            cht = libtuj.ce();
+            cht.className = 'chart heatmap';
+            d.appendChild(cht);
+            itemPage.append(d);
+            ItemQuantityHeatMap(dta, cht);
         }
     }
 
@@ -655,8 +665,8 @@ var TUJ_Item = function()
 
     function ItemPriceHeatMap(data, dest)
     {
-        var hcdata = {days: {}, heat: [], categories: {
-            x: ['0-2','3-5','6-8','9-11','12-14','15-17','18-20','21-23'],
+        var hcdata = {minVal: undefined, maxVal: 0, days: {}, heat: [], categories: {
+            x: ['Midnight - 3am','3am - 6am','6am - 9am','9am - Noon','Noon - 3pm','3pm - 6pm','6pm - 9pm','9pm - Midnight'],
             y: ['Saturday','Friday','Thursday','Wednesday','Tuesday','Monday','Sunday']
         }};
 
@@ -699,7 +709,9 @@ var TUJ_Item = function()
                     p = Math.round(CalcAvg(hcdata.days[wkdy][hr]));
 
                 lastprice = p;
-                hcdata.heat.push([hr, wkdy, p]);
+                hcdata.heat.push([hr, wkdy, p/10000]);
+                hcdata.minVal = (typeof hcdata.minVal == 'undefined' || hcdata.minVal > p/10000) ? p/10000 : hcdata.minVal;
+                hcdata.maxVal = hcdata.maxVal < p/10000 ? p/10000 : hcdata.maxVal;
             }
 
         $(dest).highcharts({
@@ -722,9 +734,10 @@ var TUJ_Item = function()
             },
 
             colorAxis: {
-                min: 0,
+                min: hcdata.minVal,
+                max: hcdata.maxVal,
                 minColor: '#FFFFFF',
-                maxColor: '#9999FF'
+                maxColor: '#6666FF'
             },
 
             legend: {
@@ -736,9 +749,17 @@ var TUJ_Item = function()
                 symbolHeight: 320
             },
 
+            tooltip: {
+                shared: true,
+                formatter: function() {
+                    return hcdata.categories.y[this.point.y] + ' ' + hcdata.categories.x[this.point.x] + ': ' + libtuj.FormatPrice(this.point.value*10000, true);
+                }
+            },
+
             series: [{
                 name: 'Market Price',
                 borderWidth: 1,
+                borderColor: '#FFFFFF',
                 data: hcdata.heat,
                 dataLabels: {
                     enabled: true,
@@ -746,7 +767,120 @@ var TUJ_Item = function()
                     style: {
                         textShadow: 'none',
                         HcTextStroke: null
-                    }
+                    },
+                    formatter: function() { return ''+libtuj.FormatPrice(this.point.value*10000, true); }
+                }
+            }]
+
+        });
+    }
+
+    function ItemQuantityHeatMap(data, dest)
+    {
+        var hcdata = {minVal: undefined, maxVal: 0, days: {}, heat: [], categories: {
+            x: ['Midnight - 3am','3am - 6am','6am - 9am','9am - Noon','Noon - 3pm','3pm - 6pm','6pm - 9pm','9pm - Midnight'],
+            y: ['Saturday','Friday','Thursday','Wednesday','Tuesday','Monday','Sunday']
+        }};
+
+        var CalcAvg = function(a)
+        {
+            if (a.length == 0)
+                return null;
+            var s = 0;
+            for (var x = 0; x < a.length; x++)
+                s += a[x];
+            return s/a.length;
+        }
+
+        var d, wkdy, hr, lastqty;
+        for (wkdy = 0; wkdy <= 6; wkdy++)
+        {
+            hcdata.days[wkdy] = {};
+            for (hr = 0; hr <= 7; hr++)
+                hcdata.days[wkdy][hr] = [];
+        }
+
+        for (var x = 0; x < data.history.length; x++)
+        {
+            if (typeof lastqty == 'undefined')
+                lastqty = data.history[x].quantity;
+
+            var d = new Date(data.history[x].snapshot*1000);
+            wkdy = 6-d.getDay();
+            hr = Math.floor(d.getHours()/3);
+            hcdata.days[wkdy][hr].push(data.history[x].quantity);
+        }
+
+        var p;
+        for (wkdy = 0; wkdy <= 6; wkdy++)
+            for (hr = 0; hr <= 7; hr++)
+            {
+                if (hcdata.days[wkdy][hr].length == 0)
+                    p = lastqty;
+                else
+                    p = Math.round(CalcAvg(hcdata.days[wkdy][hr]));
+
+                lastqty = p;
+                hcdata.heat.push([hr, wkdy, p]);
+                hcdata.minVal = (typeof hcdata.minVal == 'undefined' || hcdata.minVal > p) ? p : hcdata.minVal;
+                hcdata.maxVal = hcdata.maxVal < p ? p : hcdata.maxVal;
+            }
+
+        $(dest).highcharts({
+
+            chart: {
+                type: 'heatmap'
+            },
+
+            title: {
+                text: null
+            },
+
+            xAxis: {
+                categories: hcdata.categories.x
+            },
+
+            yAxis: {
+                categories: hcdata.categories.y,
+                title: null
+            },
+
+            colorAxis: {
+                min: hcdata.minVal,
+                max: hcdata.maxVal,
+                minColor: '#FFFFFF',
+                maxColor: '#FF6666'
+            },
+
+            legend: {
+                align: 'right',
+                layout: 'vertical',
+                margin: 0,
+                verticalAlign: 'top',
+                y: 25,
+                symbolHeight: 320
+            },
+
+            tooltip: {
+                shared: true,
+                formatter: function() {
+                    return hcdata.categories.y[this.point.y] + ' ' + hcdata.categories.x[this.point.x] + ': ' + libtuj.FormatQuantity(this.point.value, true);
+                }
+            },
+
+            series: [{
+                name: 'Quantity',
+                borderWidth: 1,
+                borderColor: '#FFFFFF',
+                data: hcdata.heat,
+                dataLabels: {
+                    enabled: true,
+                    color: 'black',
+                    style: {
+                        textShadow: 'none',
+                        HcTextStroke: null
+                    },
+                    formatter: function() { return ''+libtuj.FormatQuantity(this.point.value, true); }
                 }
             }]
 
