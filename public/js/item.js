@@ -115,6 +115,21 @@ var TUJ_Item = function()
             itemPage.append(d);
             ItemDailyChart(dta, cht);
         }
+
+        if (dta.history.length >= 14)
+        {
+            d = libtuj.ce();
+            d.className = 'chart-section';
+            h = libtuj.ce('h2');
+            d.appendChild(h);
+            $(h).text('Posting Heat Map');
+            d.appendChild(document.createTextNode('This heat map displays the average price across the hours and days of the week.'))
+            cht = libtuj.ce();
+            cht.className = 'chart heatmap';
+            d.appendChild(cht);
+            itemPage.append(d);
+            ItemPriceHeatMap(dta, cht);
+        }
     }
 
     function ItemStats(data, dest)
@@ -635,6 +650,106 @@ var TUJ_Item = function()
                 color: '#009900',
                 data: hcdata.price
             }]
+        });
+    }
+
+    function ItemPriceHeatMap(data, dest)
+    {
+        var hcdata = {days: {}, heat: [], categories: {
+            x: ['0-2','3-5','6-8','9-11','12-14','15-17','18-20','21-23'],
+            y: ['Saturday','Friday','Thursday','Wednesday','Tuesday','Monday','Sunday']
+        }};
+
+        var CalcAvg = function(a)
+        {
+            if (a.length == 0)
+                return null;
+            var s = 0;
+            for (var x = 0; x < a.length; x++)
+                s += a[x];
+            return s/a.length;
+        }
+
+        var d, wkdy, hr, lastprice;
+        for (wkdy = 0; wkdy <= 6; wkdy++)
+        {
+            hcdata.days[wkdy] = {};
+            for (hr = 0; hr <= 7; hr++)
+                hcdata.days[wkdy][hr] = [];
+        }
+
+        for (var x = 0; x < data.history.length; x++)
+        {
+            if (typeof lastprice == 'undefined')
+                lastprice = data.history[x].price;
+
+            var d = new Date(data.history[x].snapshot*1000);
+            wkdy = 6-d.getDay();
+            hr = Math.floor(d.getHours()/3);
+            hcdata.days[wkdy][hr].push(data.history[x].price);
+        }
+
+        var p;
+        for (wkdy = 0; wkdy <= 6; wkdy++)
+            for (hr = 0; hr <= 7; hr++)
+            {
+                if (hcdata.days[wkdy][hr].length == 0)
+                    p = lastprice;
+                else
+                    p = Math.round(CalcAvg(hcdata.days[wkdy][hr]));
+
+                lastprice = p;
+                hcdata.heat.push([hr, wkdy, p]);
+            }
+
+        $(dest).highcharts({
+
+            chart: {
+                type: 'heatmap'
+            },
+
+            title: {
+                text: null
+            },
+
+            xAxis: {
+                categories: hcdata.categories.x
+            },
+
+            yAxis: {
+                categories: hcdata.categories.y,
+                title: null
+            },
+
+            colorAxis: {
+                min: 0,
+                minColor: '#FFFFFF',
+                maxColor: '#9999FF'
+            },
+
+            legend: {
+                align: 'right',
+                layout: 'vertical',
+                margin: 0,
+                verticalAlign: 'top',
+                y: 25,
+                symbolHeight: 320
+            },
+
+            series: [{
+                name: 'Market Price',
+                borderWidth: 1,
+                data: hcdata.heat,
+                dataLabels: {
+                    enabled: true,
+                    color: 'black',
+                    style: {
+                        textShadow: 'none',
+                        HcTextStroke: null
+                    }
+                }
+            }]
+
         });
     }
 
