@@ -89,7 +89,7 @@ ENDSQL;
     {
         DebugMessage("$region $slug returned no files.", E_USER_WARNING);
         SetHouseNextCheck($house, time() + GetCheckDelay($lastDate));
-        return 10;
+        return 0;
     }
 
     usort($dta['files'], 'AuctionFileSort');
@@ -102,7 +102,7 @@ ENDSQL;
         DebugMessage("$region $slug still not updated. Waiting ".floor($delay/60)." minutes.");
         SetHouseNextCheck($house, time() + $delay);
 
-        return 10;
+        return 0;
     }
 
     DebugMessage("$region $slug updated ".TimeDiff($modified).", fetching auction data file");
