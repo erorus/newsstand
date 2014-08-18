@@ -111,7 +111,15 @@ ENDSQL;
     $dlDuration = microtime(true) - $dlStart;
     if (!$data)
     {
-        DebugMessage("$region $slug data file empty. Waiting 30 seconds.");
+        DebugMessage("$region $slug data file empty. Waiting 5 seconds and trying again.");
+        sleep(5);
+        $dlStart = microtime(true);
+        $data = FetchHTTP(preg_replace('/^http:\/\/((?:us|eu)\.battle\.net\/)/', 'https://$1', $fileInfo['url'].(parse_url($fileInfo['url'], PHP_URL_QUERY) ? '&' : '?').'please'), array(), $outHeaders);
+        $dlDuration = microtime(true) - $dlStart;
+    }
+    if (!$data)
+    {
+        DebugMessage("$region $slug data file empty. Will try again in 30 seconds.");
         SetHouseNextCheck($house, time() + 30);
         http_persistent_handles_clean();
 
