@@ -54,6 +54,7 @@ function FetchSnapshot()
         ) s on s.house = r.house
     left join tblHouseCheck hc on hc.house = r.house
     where r.region = ?
+    and r.house is not null
     group by r.house
     order by ifnull(upd, '2000-01-01') asc, c desc, r.house asc
     limit 1
@@ -88,7 +89,7 @@ ENDSQL;
     {
         DebugMessage("$region $slug returned no files.", E_USER_WARNING);
         SetHouseNextCheck($house, time() + GetCheckDelay($lastDate));
-        return 0;
+        return 10;
     }
 
     usort($dta['files'], 'AuctionFileSort');
@@ -101,7 +102,7 @@ ENDSQL;
         DebugMessage("$region $slug still not updated. Waiting ".floor($delay/60)." minutes.");
         SetHouseNextCheck($house, time() + $delay);
 
-        return 0;
+        return 10;
     }
 
     DebugMessage("$region $slug updated ".TimeDiff($modified).", fetching auction data file");

@@ -80,7 +80,7 @@ foreach ($regions as $region)
             DebugMessage("Fetching $region {$realm['slug']}");
             $url = sprintf('https://%s.battle.net/api/wow/auction/data/%s', strtolower($region), $realm['slug']);
 
-            $json = FetchHTTP($url);
+            $json = FetchHTTP($url, array('noFetchLimit' => true));
             $dta = json_decode($json, true);
             if (!isset($dta['files']))
             {

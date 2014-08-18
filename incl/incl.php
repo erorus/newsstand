@@ -99,7 +99,27 @@ function DBMapArray(&$result, $key = false, $autoClose = true)
 
 function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
 {
+    static $fetchMinute = '', $fetchMinuteCount = 0;
     global $fetchHTTPErrorCaught;
+
+    if ($fetchMinute != Date('i'))
+    {
+        $fetchMinute = Date('i');
+        $fetchMinuteCount = 1;
+    }
+    else if (isset($inHeaders['noFetchLimit']))
+    {
+        unset($inHeaders['noFetchLimit']);
+    }
+    else
+    {
+        if ($fetchMinuteCount++ > 90)
+        {
+            DebugMessage('Over 60 fetches performed this minute, waiting a minute.', E_USER_WARNING);
+            sleep(60);
+            $fetchMinuteCount = 0;
+        }
+    }
 
     $fetchHTTPErrorCaught = false;
     if (!isset($inHeaders['Connection'])) $inHeaders['Connection']='Keep-Alive';
