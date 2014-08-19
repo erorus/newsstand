@@ -144,7 +144,7 @@ var TUJ_Item = function()
 
     function ItemStats(data, dest)
     {
-        var t, tr, td;
+        var t, tr, td, abbr;
 
         t = libtuj.ce('table');
         dest.appendChild(t);
@@ -158,12 +158,15 @@ var TUJ_Item = function()
         tr.appendChild(td);
         td.appendChild(libtuj.FormatPrice(data.stats.price));
 
-        var prices = [], x;
+        var prices = [], quantities = [], x;
 
         if (data.history.length > 8)
         {
             for (x = 0; x < data.history.length; x++)
+            {
                 prices.push(data.history[x].price);
+                quantities.push(data.history[x].quantity);
+            }
         }
 
         if (prices.length)
@@ -172,22 +175,48 @@ var TUJ_Item = function()
             t.appendChild(tr);
             td = libtuj.ce('th');
             tr.appendChild(td);
+            td.appendChild(document.createTextNode('Median Price:'));
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.appendChild(libtuj.FormatPrice(libtuj.Median(prices)));
+
+            var mn = libtuj.Mean(prices);
+            var std = libtuj.StdDev(prices, mn);
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+            td = libtuj.ce('th');
+            tr.appendChild(td);
             td.appendChild(document.createTextNode('Mean Price:'));
             td = libtuj.ce('td');
             tr.appendChild(td);
-            td.appendChild(libtuj.FormatPrice(libtuj.Mean(prices)));
+            td.appendChild(libtuj.FormatPrice(mn));
 
             tr = libtuj.ce('tr');
             t.appendChild(tr);
             td = libtuj.ce('th');
             tr.appendChild(td);
-            td.appendChild(document.createTextNode('Median Price:'));
+            td.appendChild(document.createTextNode('Standard Deviation:'));
             td = libtuj.ce('td');
             tr.appendChild(td);
-            td.appendChild(libtuj.FormatPrice(libtuj.Median(prices)));
+            td.appendChild(libtuj.FormatPrice(std));
+            if (std / mn > 0.33)
+            {
+                abbr = libtuj.ce('abbr');
+                abbr.title = 'Market price is highly volatile!';
+                abbr.style.fontSize = '80%';
+                abbr.appendChild(document.createTextNode('(!)'));
+                td.appendChild(document.createTextNode(' '));
+                td.appendChild(abbr);
+            }
         }
 
-        /*
+        tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        td = libtuj.ce('td');
+        td.colSpan = 2;
+        td.style.height = '0.5em';
+        tr.appendChild(td);
+
         tr = libtuj.ce('tr');
         t.appendChild(tr);
         td = libtuj.ce('th');
@@ -196,7 +225,6 @@ var TUJ_Item = function()
         td = libtuj.ce('td');
         tr.appendChild(td);
         td.appendChild(libtuj.FormatQuantity(data.stats.quantity));
-         */
 
         if (data.stats.quantity == 0)
         {
@@ -210,6 +238,27 @@ var TUJ_Item = function()
             td.appendChild(libtuj.FormatDate(data.stats.lastseen));
         }
 
+        if (quantities.length)
+        {
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+            td = libtuj.ce('th');
+            tr.appendChild(td);
+            td.appendChild(document.createTextNode('Average Quantity:'));
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.appendChild(libtuj.FormatQuantity(libtuj.Mean(quantities)));
+
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+            td = libtuj.ce('th');
+            tr.appendChild(td);
+            td.appendChild(document.createTextNode('Median Quantity:'));
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.appendChild(libtuj.FormatQuantity(libtuj.Median(quantities)));
+        }
+
         //t = libtuj.ce('table');
         //dest.appendChild(t);
         tr = libtuj.ce('tr');
@@ -219,14 +268,17 @@ var TUJ_Item = function()
         td.style.height = '0.5em';
         tr.appendChild(td);
 
-        tr = libtuj.ce('tr');
-        t.appendChild(tr);
-        td = libtuj.ce('th');
-        tr.appendChild(td);
-        td.appendChild(document.createTextNode('Stack Size:'));
-        td = libtuj.ce('td');
-        tr.appendChild(td);
-        td.appendChild(document.createTextNode(data.stats.stacksize ? data.stats.stacksize : '?'));
+        if (data.stats.stacksize > 1)
+        {
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+            td = libtuj.ce('th');
+            tr.appendChild(td);
+            td.appendChild(document.createTextNode('Stack Size:'));
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.appendChild(document.createTextNode(data.stats.stacksize ? data.stats.stacksize : '?'));
+        }
 
         tr = libtuj.ce('tr');
         t.appendChild(tr);
@@ -235,7 +287,7 @@ var TUJ_Item = function()
         td.appendChild(document.createTextNode('Sell to Vendor:'));
         td = libtuj.ce('td');
         tr.appendChild(td);
-        td.appendChild(data.stats.selltovendor ? libtuj.FormatPrice(data.stats.selltovendor) : document.createTextNode('(Does not buy)'));
+        td.appendChild(data.stats.selltovendor ? libtuj.FormatPrice(data.stats.selltovendor) : document.createTextNode('Cannot'));
 
         tr = libtuj.ce('tr');
         t.appendChild(tr);
@@ -244,17 +296,17 @@ var TUJ_Item = function()
         td.appendChild(document.createTextNode('48hr Listing Fee:'));
         td = libtuj.ce('td');
         tr.appendChild(td);
-        if (data.stats.stacksize)
+        if (data.stats.stacksize > 1)
         {
-            var abbr = libtuj.ce('abbr');
-            abbr.title = 'Each';
+            abbr = libtuj.ce('abbr');
+            abbr.title = 'Per Each';
             abbr.appendChild(libtuj.FormatPrice(Math.max(100, data.stats.selltovendor ? data.stats.selltovendor * 0.6 : 0)));
             td.appendChild(abbr);
 
             td.appendChild(document.createTextNode(' / '));;
 
             abbr = libtuj.ce('abbr');
-            abbr.title = 'Stack';
+            abbr.title = 'Per Stack';
             abbr.appendChild(libtuj.FormatPrice(Math.max(100, data.stats.selltovendor ? data.stats.selltovendor * 0.6 * data.stats.stacksize : 0)));
             td.appendChild(abbr);
         }

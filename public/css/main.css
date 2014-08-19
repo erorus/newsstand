@@ -92,4 +92,4 @@ table.highcharts-tuj-tooltip td + td {padding-left: 0.4em}
 
 #item-page .item-stats { position: relative; text-align: right; font-size: 115%; display: inline-block; width: 100% }
 #item-page .item-stats table { width: 20em; float: left; margin: 1em 0; font-size: 100% }
-#item-page .item-stats th { width: 50%; text-align: left }
+#item-page .item-stats th { width: 66%; text-align: left }

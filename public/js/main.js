@@ -28,6 +28,15 @@ var libtuj = {
         else
             return (a[a.length / 2] + a[a.length / 2 + 1]) / 2;
     },
+    StdDev: function(a,mn)
+    {
+        if (typeof mn == 'undefined')
+            mn = libtuj.Mean(a);
+        var s = 0;
+        for (var x = 0; x < a.length; x++)
+            s += Math.pow(a[x] - mn, 2);
+        return Math.sqrt(s/ a.length);
+    },
     FormatPrice: function(amt,justValue)
     {
         var v = '';
@@ -52,7 +61,7 @@ var libtuj = {
     },
     FormatQuantity: function(amt,justValue)
     {
-        var v = Number(amt).toLocaleString();
+        var v = Number(Math.round(amt)).toLocaleString();
         if (justValue)
             return v;
 
