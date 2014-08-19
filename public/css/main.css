@@ -87,8 +87,8 @@ table.highcharts-tuj-tooltip td + td {padding-left: 0.4em}
 
 #item-page .chart-section { margin: 2em 0 }
 #item-page .chart-section h2 { font-size: 150%; margin-top: 0; margin-bottom: 0.75em }
-#item-page .chart { width: 100%; height: 22.5em; margin-top: 1em }
-#item-page .chart.daily { width: 100%; height: 35em }
+#item-page .chart { width: 100%; height: 18em; margin-top: 1em }
+#item-page .chart.daily { width: 100%; height: 30em }
 
 #item-page .item-stats { position: relative; text-align: right; font-size: 115%; display: inline-block; width: 100% }
 #item-page .item-stats table { width: 20em; float: left; margin: 1em 0; font-size: 100% }

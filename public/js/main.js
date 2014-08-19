@@ -6,9 +6,42 @@ var libtuj = {
         s.src = url;
         document.getElementsByTagName('head')[0].appendChild(s);
     },
+    Mean: function(a)
+    {
+        if (a.length < 1)
+            return null;
+        var s = 0;
+        for (var x = 0; x < a.length; x++)
+            s += a[x];
+        return s / a.length;
+    },
+    Median: function(a)
+    {
+        if (a.length < 1)
+            return null;
+        if (a.length == 1)
+            return a[0];
+
+        a.sort(function(x,y) { return y-x; });
+        if (a.length % 2 == 1)
+            return a[Math.floor(a.length / 2)];
+        else
+            return (a[a.length / 2] + a[a.length / 2 + 1]) / 2;
+    },
     FormatPrice: function(amt,justValue)
     {
-        var v = (typeof amt == 'number') ? ('' + (amt/10000).toFixed(2) + 'g') : '';
+        var v = '';
+        if (typeof amt == 'number') {
+            amt = Math.round(amt);
+            if (amt >= 1000000) // 100g
+                v = '' + Math.floor(amt/10000) + 'g';
+            else if (amt >= 5000) // 50s
+                v = '' + (amt/10000).toFixed(2) + 'g';
+            else if (amt >= 100) // 1s
+                v = '' + Math.floor(amt/100) + 's';
+            else
+                v = ''+amt+'c';
+        }
         if (justValue)
             return v;
 

@@ -153,11 +153,41 @@ var TUJ_Item = function()
         t.appendChild(tr);
         td = libtuj.ce('th');
         tr.appendChild(td);
-        td.appendChild(document.createTextNode('Market Price:'));
+        td.appendChild(document.createTextNode('Current Price:'));
         td = libtuj.ce('td');
         tr.appendChild(td);
         td.appendChild(libtuj.FormatPrice(data.stats.price));
 
+        var prices = [], x;
+
+        if (data.history.length > 8)
+        {
+            for (x = 0; x < data.history.length; x++)
+                prices.push(data.history[x].price);
+        }
+
+        if (prices.length)
+        {
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+            td = libtuj.ce('th');
+            tr.appendChild(td);
+            td.appendChild(document.createTextNode('Mean Price:'));
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.appendChild(libtuj.FormatPrice(libtuj.Mean(prices)));
+
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+            td = libtuj.ce('th');
+            tr.appendChild(td);
+            td.appendChild(document.createTextNode('Median Price:'));
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.appendChild(libtuj.FormatPrice(libtuj.Median(prices)));
+        }
+
+        /*
         tr = libtuj.ce('tr');
         t.appendChild(tr);
         td = libtuj.ce('th');
@@ -166,15 +196,19 @@ var TUJ_Item = function()
         td = libtuj.ce('td');
         tr.appendChild(td);
         td.appendChild(libtuj.FormatQuantity(data.stats.quantity));
+         */
 
-        tr = libtuj.ce('tr');
-        t.appendChild(tr);
-        td = libtuj.ce('th');
-        tr.appendChild(td);
-        td.appendChild(document.createTextNode('Last Seen:'));
-        td = libtuj.ce('td');
-        tr.appendChild(td);
-        td.appendChild(libtuj.FormatDate(data.stats.lastseen));
+        if (data.stats.quantity == 0)
+        {
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+            td = libtuj.ce('th');
+            tr.appendChild(td);
+            td.appendChild(document.createTextNode('Last Seen:'));
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.appendChild(libtuj.FormatDate(data.stats.lastseen));
+        }
 
         //t = libtuj.ce('table');
         //dest.appendChild(t);
