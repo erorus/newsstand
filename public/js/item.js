@@ -221,7 +221,7 @@ var TUJ_Item = function()
         t.appendChild(tr);
         td = libtuj.ce('th');
         tr.appendChild(td);
-        td.appendChild(document.createTextNode('Available:'));
+        td.appendChild(document.createTextNode('Available Quantity:'));
         td = libtuj.ce('td');
         tr.appendChild(td);
         td.appendChild(libtuj.FormatQuantity(data.stats.quantity));
