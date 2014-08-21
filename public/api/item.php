@@ -19,12 +19,8 @@ $json = array(
     'daily'     => ItemHistoryDaily($house, $item),
     'monthly'   => ItemHistoryMonthly($house, $item),
     'auctions'  => ItemAuctions($house, $item),
+    'globalnow' => ItemGlobalNow(GetRegion($house), $house < 0 ? -1 : 1, $item),
 );
-
-$ak = array_keys($json);
-foreach ($ak as $k)
-    if (count($json[$k]) == 0)
-        unset($json[$k]);
 
 json_return($json);
 
@@ -206,6 +202,60 @@ EOF;
     $stmt->close();
 
     MCSetHouse($house, 'item_auctions_'.$item, $tr);
+
+    return $tr;
+}
+
+function GetRegion($house)
+{
+    global $db;
+
+    $house = abs($house);
+    if (($tr = MCGet('item_getregion_'.$house)) !== false)
+        return $tr;
+
+    DBConnect();
+
+    $sql = 'SELECT max(region) from `tblRealm` where house=?';
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('i', $house);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $tr = DBMapArray($result, null);
+    $stmt->close();
+    $tr = array_pop($tr);
+
+    MCSet('item_getregion_'.$house, $tr, 24*60*60);
+
+    return $tr;
+}
+
+function ItemGlobalNow($region, $faction, $item)
+{
+    global $db;
+
+    $key = 'item_globalnow_'.$region.'_'.$faction.'_'.$item;
+    if (($tr = MCGet($key)) !== false)
+        return $tr;
+
+    DBConnect();
+
+    $sql = <<<EOF
+    SELECT r.house, i.price, i.quantity, unix_timestamp(i.lastseen) as lastseen
+FROM `tblItemSummary` i
+join tblRealm r on i.house = cast(r.house as signed) * ? and r.region = ?
+WHERE i.item=?
+group by r.house
+EOF;
+
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('isi', $faction, $region, $item);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $tr = DBMapArray($result, null);
+    $stmt->close();
+
+    MCSet($key, $tr);
 
     return $tr;
 }

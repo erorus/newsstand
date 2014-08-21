@@ -140,6 +140,20 @@ var TUJ_Item = function()
             itemPage.append(d);
             ItemQuantityHeatMap(dta, cht);
         }
+
+        if (dta.globalnow.length > 2)
+        {
+            d = libtuj.ce();
+            d.className = 'chart-section';
+            h = libtuj.ce('h2');
+            d.appendChild(h);
+            $(h).text('Current Regional Prices');
+            cht = libtuj.ce();
+            cht.className = 'chart columns';
+            d.appendChild(cht);
+            itemPage.append(d);
+            ItemGlobalNowColumns(dta, cht);
+        }
     }
 
     function ItemStats(data, dest)
@@ -384,7 +398,8 @@ var TUJ_Item = function()
                     }
                 },
                 labels: {
-                    enabled: true
+                    enabled: true,
+                    formatter: function() { return ''+libtuj.FormatQuantity(this.value, true); }
                 },
                 opposite: true,
                 min: 0,
@@ -508,7 +523,8 @@ var TUJ_Item = function()
                     }
                 },
                 labels: {
-                    enabled: true
+                    enabled: true,
+                    formatter: function() { return ''+libtuj.FormatQuantity(this.value, true); }
                 },
                 opposite: true,
                 min: 0,
@@ -659,7 +675,8 @@ var TUJ_Item = function()
                     }
                 },
                 labels: {
-                    enabled: true
+                    enabled: true,
+                    formatter: function() { return ''+libtuj.FormatQuantity(this.value, true); }
                 },
                 top: '65%',
                 height: '35%',
@@ -970,6 +987,160 @@ var TUJ_Item = function()
                 }
             }]
 
+        });
+    }
+
+    function ItemGlobalNowColumns(data, dest)
+    {
+        var hcdata = {categories: [], price: [], quantity: [], lastseen: [], houses: []};
+        var allPrices = [];
+        var allQuantities = [];
+        data.globalnow.sort(function(a,b){ return (b.price - a.price) || (b.quantity - a.quantity); });
+
+        for (var x = 0; x < data.globalnow.length; x++)
+        {
+            hcdata.categories.push(data.globalnow[x].house);
+            hcdata.quantity.push(data.globalnow[x].quantity);
+            hcdata.price.push(data.globalnow[x].price);
+            hcdata.lastseen.push(data.globalnow[x].lastseen);
+            hcdata.houses.push(data.globalnow[x].house);
+
+            allQuantities.push(data.globalnow[x].quantity);
+            allPrices.push(data.globalnow[x].price);
+
+        }
+
+        allPrices.sort(function(a,b){ return a - b; });
+        var q1 = allPrices[Math.floor(allPrices.length * 0.25)];
+        var q3 = allPrices[Math.floor(allPrices.length * 0.75)];
+        var iqr = q3 - q1;
+        hcdata.priceMaxVal = Math.min(allPrices.pop(), q3 + (2.5 * iqr));
+
+        allQuantities.sort(function(a,b){ return a - b; });
+        var q1 = allQuantities[Math.floor(allQuantities.length * 0.25)];
+        var q3 = allQuantities[Math.floor(allQuantities.length * 0.75)];
+        var iqr = q3 - q1;
+        hcdata.quantityMaxVal = q3 + (1.5 * iqr);
+
+        Highcharts.setOptions({
+            global: {
+                useUTC: false
+            }
+        });
+
+        $(dest).highcharts({
+            chart: {
+                zoomType: 'x'
+            },
+            title: {
+                text: null
+            },
+            subtitle: {
+                text: document.ontouchstart === undefined ?
+                    'Click and drag in the plot area to zoom in' :
+                    'Pinch the chart to zoom in'
+            },
+            xAxis: {
+                labels: {
+                    enabled: false
+                }
+            },
+            yAxis: [{
+                title: {
+                    text: 'Market Price',
+                    style: {
+                        color: '#0000FF'
+                    }
+                },
+                min: 0,
+                max: hcdata.priceMaxVal,
+                labels: {
+                    enabled: true,
+                    formatter: function() { return ''+libtuj.FormatPrice(this.value, true); }
+                }
+            },{
+                title: {
+                    text: 'Quantity',
+                    style: {
+                        color: '#FF3333'
+                    }
+                },
+                min: 0,
+                max: hcdata.quantityMaxVal,
+                labels: {
+                    enabled: true,
+                    formatter: function() { return ''+libtuj.FormatQuantity(this.value, true); }
+                },
+                opposite: true
+            }],
+            legend: {
+                enabled: false
+            },
+            tooltip: {
+                shared: true,
+                formatter: function() {
+                    var realmNames = '';
+                    var lineLength = 0;
+                    for (var x in tuj.realms)
+                        if (tuj.realms.hasOwnProperty(x) && tuj.realms[x].house == hcdata.houses[this.x])
+                        {
+                            if (lineLength > 0 && lineLength + tuj.realms[x].name.length > 40)
+                            {
+                                realmNames += '<br>';
+                                lineLength = 0;
+                            }
+                            lineLength += 2 + tuj.realms[x].name.length;
+                            realmNames += tuj.realms[x].name + ', ';
+                        }
+
+                    if (realmNames == '')
+                        realmNames = '(House '+hcdata.houses[this.x]+')';
+                    else
+                        realmNames = realmNames.substr(0, realmNames.length - 2);
+
+                    var tr = '<b>'+realmNames+'</b>';
+                    tr += '<br><span style="color: #000099">Market Price: '+libtuj.FormatPrice(this.points[0].y, true)+'</span>';
+                    tr += '<br><span style="color: #990000">Quantity: '+libtuj.FormatQuantity(this.points[1].y, true)+'</span>';
+                    tr += '<br><span style="color: #990000">Last seen: '+libtuj.FormatDate(hcdata.lastseen[this.x], true)+'</span>';
+                    return tr;
+                },
+                useHTML: true
+            },
+            plotOptions: {
+                series: {
+                    lineWidth: 2,
+                    marker: {
+                        enabled: false,
+                        radius: 1,
+                        states: {
+                            hover: {
+                                enabled: true
+                            }
+                        }
+                    },
+                    states: {
+                        hover: {
+                            lineWidth: 2
+                        }
+                    }
+                }
+            },
+            series: [{
+                type: 'line',
+                name: 'Market Price',
+                color: '#CCCCFF',
+                lineColor: '#0000FF',
+                data: hcdata.price,
+                yAxis: 0,
+                zIndex: 2
+            },{
+                type: 'column',
+                name: 'Quantity',
+                color: '#FF9999',
+                data: hcdata.quantity,
+                zIndex: 1,
+                yAxis: 1
+            }]
         });
     }
 

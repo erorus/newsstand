@@ -44,7 +44,7 @@ var libtuj = {
             amt = Math.round(amt);
             if (amt >= 1000000) // 100g
                 v = '' + Math.floor(amt/10000) + 'g';
-            else if (amt >= 5000) // 50s
+            else if (amt >= 10000) // 1g
                 v = '' + (amt/10000).toFixed(2) + 'g';
             else if (amt >= 100) // 1s
                 v = '' + Math.floor(amt/100) + 's';
@@ -70,9 +70,9 @@ var libtuj = {
             s.appendChild(document.createTextNode(v));
         return s;
     },
-    FormatDate: function(unix)
+    FormatDate: function(unix,justValue)
     {
-        var s = libtuj.ce('span');
+        var v = '';
         if (unix)
         {
             var dt;
@@ -80,8 +80,14 @@ var libtuj = {
                 dt = new Date(unix.replace(/^(\d{4}-\d\d-\d\d) (\d\d:\d\d:\d\d)$/, '$1T$2.000Z'));
             else
                 dt = new Date(unix*1000);
-            s.appendChild(document.createTextNode(dt.toLocaleDateString()));
+            v = dt.toLocaleDateString();
         }
+        if (justValue)
+            return v;
+
+        var s = libtuj.ce('span');
+        if (v)
+            s.appendChild(document.createTextNode(v));
         return s;
     }
 };
