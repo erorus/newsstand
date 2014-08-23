@@ -66,6 +66,7 @@ var TUJ_Search = function()
 
             var lastClass = -1;
             var item;
+            var tableHeader, classResults;
 
             for (x = 0; item = dta.items[x]; x++)
             {
@@ -75,6 +76,7 @@ var TUJ_Search = function()
                 if (lastClass != item.classid)
                 {
                     lastClass = item.classid;
+                    classResults = 1;
 
                     t = libtuj.ce('table');
                     t.className = 'search-items';
@@ -86,10 +88,11 @@ var TUJ_Search = function()
                     td = libtuj.ce('th');
                     td.className = 'title';
                     tr.appendChild(td);
-                    td.colSpan=5;
+                    td.colSpan=6;
                     $(td).text(libtuj.itemClasses.hasOwnProperty(item.classid) ? libtuj.itemClasses[item.classid] : ('Class ' + item.classid));
 
                     tr = libtuj.ce('tr');
+                    tableHeader = tr;
                     t.appendChild(tr);
 
                     td = libtuj.ce('th');
@@ -99,20 +102,27 @@ var TUJ_Search = function()
                     $(td).text('Name');
 
                     td = libtuj.ce('th');
-                    td.className = 'price';
-                    tr.appendChild(td);
-                    $(td).text('Price');
-
-                    td = libtuj.ce('th');
                     td.className = 'quantity';
                     tr.appendChild(td);
-                    $(td).text('Quantity');
+                    $(td).text('Avail');
+
+                    td = libtuj.ce('th');
+                    td.className = 'price';
+                    tr.appendChild(td);
+                    $(td).text('Current');
+
+                    td = libtuj.ce('th');
+                    td.className = 'price';
+                    tr.appendChild(td);
+                    $(td).text('Mean');
 
                     td = libtuj.ce('th');
                     td.className = 'date';
                     tr.appendChild(td);
                     $(td).text('Last Seen');
                 }
+                else if (++classResults % 30 == 0)
+                    t.appendChild(tableHeader.cloneNode(true));
 
                 tr = libtuj.ce('tr');
                 t.appendChild(tr);
@@ -135,14 +145,19 @@ var TUJ_Search = function()
                 $(a).text('[' + item.name + ']');
 
                 td = libtuj.ce('td');
+                td.className = 'quantity';
+                tr.appendChild(td);
+                td.appendChild(libtuj.FormatQuantity(item.quantity));
+
+                td = libtuj.ce('td');
                 td.className = 'price';
                 tr.appendChild(td);
                 td.appendChild(libtuj.FormatPrice(item.price));
 
                 td = libtuj.ce('td');
-                td.className = 'quantity';
+                td.className = 'price';
                 tr.appendChild(td);
-                td.appendChild(libtuj.FormatQuantity(item.quantity));
+                td.appendChild(libtuj.FormatPrice(item.avgprice));
 
                 td = libtuj.ce('td');
                 td.className = 'date';

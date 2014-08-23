@@ -42,12 +42,8 @@ var libtuj = {
         var v = '';
         if (typeof amt == 'number') {
             amt = Math.round(amt);
-            if (amt >= 1000000) // 100g
-                v = '' + Math.floor(amt/10000) + 'g';
-            else if (amt >= 10000) // 1g
+            if (amt >= 100) // 1s
                 v = '' + (amt/10000).toFixed(2) + 'g';
-            else if (amt >= 100) // 1s
-                v = '' + Math.floor(amt/100) + 's';
             else
                 v = ''+amt+'c';
         }

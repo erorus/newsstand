@@ -41,17 +41,19 @@ function SearchItems($house, $search)
     $terms = preg_replace('/\s+/', '%', " $search ");
 
     $sql = <<<EOF
-select i.id, i.name, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen
+select i.id, i.name, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice
 from tblItem i
 left join tblItemSummary s on s.house=? and s.item=i.id
+left join tblItemHistory h on h.house=? and h.item=i.id
 where i.name like ?
 and ifnull(i.auctionable,1) = 1
+group by i.id
 limit ?
 EOF;
-    $limit = 100 * strlen(preg_replace('/\s/','',$search));
+    $limit = 50 * strlen(preg_replace('/\s/','',$search));
 
     $stmt = $db->prepare($sql);
-    $stmt->bind_param('isi', $house, $terms, $limit);
+    $stmt->bind_param('iisi', $house, $house, $terms, $limit);
     $stmt->execute();
     $result = $stmt->get_result();
     $tr = DBMapArray($result, null);

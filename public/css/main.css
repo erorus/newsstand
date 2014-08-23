@@ -74,23 +74,23 @@ abbr:hover.full-date { border-bottom: 1px dotted }
 #front-page { display: none }
 
 #search-page table, table.auctionlist { width: 54em; margin: 0 auto 2em; border: 1px solid black; border-spacing: 0 }
-#search-page table th, table.auctionlist th {padding: 0.2em}
+#search-page table th, table.auctionlist th {padding: 0.4em 0.2em 0}
 #search-page table td, table.auctionlist td {padding: 0.2em 0.4em; border-top: 1px solid #CCC}
 #search-page tr:hover td, table.auctionlist tr:hover td {background-color: #EEE}
 
 #search-page th.title { font-size: 125% }
 
-table.auctionlist { margin: 0 }
+table.auctionlist { margin: 0 auto }
 table.auctionlist td.price abbr { border-bottom: 0 }
 table.auctionlist td.price abbr:hover { border-bottom: 1px dotted }
-table.auctionlist td.seller { padding-left: 2em }
+table.auctionlist td.seller, table.auctionlist th.seller { padding-left: 2em; text-align: left }
 
 td.name, th.name { text-align: left }
 td.icon, th.icon { width: 1.5em; height: 1.5em; padding-right: 0 ! important }
 img.icon {width: 1.5em; height: 1.5em}
 td.price, th.price,
 td.quantity, th.quantity,
-td.date, th.date { text-align: right; width: 7em; cursor: default }
+td.date, th.date { text-align: right; cursor: default }
 
 table.highcharts-tuj-tooltip {font-size: 100%; min-width: 8em}
 table.highcharts-tuj-tooltip td {padding: 0}
