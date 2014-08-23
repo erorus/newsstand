@@ -997,17 +997,30 @@ var TUJ_Item = function()
         var allQuantities = [];
         data.globalnow.sort(function(a,b){ return (b.price - a.price) || (b.quantity - a.quantity); });
 
+        var isThisHouse = false;
         for (var x = 0; x < data.globalnow.length; x++)
         {
+            isThisHouse = data.globalnow[x].house == tuj.realms[params.realm].house;
+
             hcdata.categories.push(data.globalnow[x].house);
             hcdata.quantity.push(data.globalnow[x].quantity);
-            hcdata.price.push(data.globalnow[x].price);
+            hcdata.price.push(isThisHouse ? {
+                y: data.globalnow[x].price,
+                dataLabels: {
+                    enabled: true,
+                    formatter: function() {
+                        return '<b>' + tuj.realms[params.realm].name + '</b>';
+                    },
+                    backgroundColor: '#FFFFFF',
+                    borderColor: '#000000',
+                    borderRadius: 2,
+                    borderWidth: 1
+                }} : data.globalnow[x].price);
             hcdata.lastseen.push(data.globalnow[x].lastseen);
             hcdata.houses.push(data.globalnow[x].house);
 
             allQuantities.push(data.globalnow[x].quantity);
             allPrices.push(data.globalnow[x].price);
-
         }
 
         allPrices.sort(function(a,b){ return a - b; });
@@ -1021,6 +1034,18 @@ var TUJ_Item = function()
         var q3 = allQuantities[Math.floor(allQuantities.length * 0.75)];
         var iqr = q3 - q1;
         hcdata.quantityMaxVal = q3 + (1.5 * iqr);
+
+        var PriceClick = function(houses, evt){
+            var realm;
+            for (var x in tuj.realms)
+                if (tuj.realms.hasOwnProperty(x) && tuj.realms[x].house == houses[evt.point.x])
+                {
+                    realm = tuj.realms[x].id;
+                    break;
+                }
+            if (realm)
+                tuj.SetParams({realm: realm});
+        };
 
         Highcharts.setOptions({
             global: {
@@ -1079,25 +1104,7 @@ var TUJ_Item = function()
             tooltip: {
                 shared: true,
                 formatter: function() {
-                    var realmNames = '';
-                    var lineLength = 0;
-                    for (var x in tuj.realms)
-                        if (tuj.realms.hasOwnProperty(x) && tuj.realms[x].house == hcdata.houses[this.x])
-                        {
-                            if (lineLength > 0 && lineLength + tuj.realms[x].name.length > 40)
-                            {
-                                realmNames += '<br>';
-                                lineLength = 0;
-                            }
-                            lineLength += 2 + tuj.realms[x].name.length;
-                            realmNames += tuj.realms[x].name + ', ';
-                        }
-
-                    if (realmNames == '')
-                        realmNames = '(House '+hcdata.houses[this.x]+')';
-                    else
-                        realmNames = realmNames.substr(0, realmNames.length - 2);
-
+                    var realmNames = libtuj.GetRealmsForHouse(hcdata.houses[this.x], 40);
                     var tr = '<b>'+realmNames+'</b>';
                     tr += '<br><span style="color: #000099">Market Price: '+libtuj.FormatPrice(this.points[0].y, true)+'</span>';
                     tr += '<br><span style="color: #990000">Quantity: '+libtuj.FormatQuantity(this.points[1].y, true)+'</span>';
@@ -1132,14 +1139,20 @@ var TUJ_Item = function()
                 lineColor: '#0000FF',
                 data: hcdata.price,
                 yAxis: 0,
-                zIndex: 2
+                zIndex: 2,
+                events: {
+                    click: PriceClick.bind(null, hcdata.houses)
+                }
             },{
                 type: 'column',
                 name: 'Quantity',
                 color: '#FF9999',
                 data: hcdata.quantity,
                 zIndex: 1,
-                yAxis: 1
+                yAxis: 1,
+                events: {
+                    click: PriceClick.bind(null, hcdata.houses)
+                }
             }]
         });
     }

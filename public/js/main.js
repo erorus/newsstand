@@ -89,6 +89,29 @@ var libtuj = {
         if (v)
             s.appendChild(document.createTextNode(v));
         return s;
+    },
+    GetRealmsForHouse: function(house, maxLineLength)
+    {
+        var lineLength = 0;
+        var realmNames = '';
+        for (var x in tuj.realms)
+            if (tuj.realms.hasOwnProperty(x) && tuj.realms[x].house == house)
+            {
+                if (maxLineLength && lineLength > 0 && lineLength + tuj.realms[x].name.length > maxLineLength)
+                {
+                    realmNames += '<br>';
+                    lineLength = 0;
+                }
+                lineLength += 2 + tuj.realms[x].name.length;
+                realmNames += tuj.realms[x].name + ', ';
+            }
+
+        if (realmNames == '')
+            realmNames = '(House '+hcdata.houses[this.x]+')';
+        else
+            realmNames = realmNames.substr(0, realmNames.length - 2);
+
+        return realmNames;
     }
 };
 
@@ -128,7 +151,17 @@ var TUJ = function()
                 {
                     self.region = dta.region;
                     self.realms = dta.realms;
+                    if (typeof self.realms == 'undefined')
+                    {
+                        alert('Error getting realms');
+                        self.realms = [];
+                    }
                     Main();
+                },
+                error: function(xhr, stat, er)
+                {
+                    alert('Error getting realms: '+stat + ' ' + er);
+                    self.realms = [];
                 },
                 url: 'api/realms.php'
             });
