@@ -51,6 +51,8 @@ body.realm #topcorner form { display: none }
 .wowhead-tooltip > table { background-color: black; border-radius: 5px }
 
 span.price.full { white-space: nowrap }
+abbr.full-date { border-bottom: 0 }
+abbr:hover.full-date { border-bottom: 1px dotted }
 
 #realm-list {display: none; text-align: center}
 #realm-list.width-test, #realm-list.show {display: block}
@@ -79,7 +81,8 @@ span.price.full { white-space: nowrap }
 #search-page th.title { font-size: 125% }
 
 table.auctionlist { margin: 0 }
-table.auctionlist td.price abbr {border-bottom: 0}
+table.auctionlist td.price abbr { border-bottom: 0 }
+table.auctionlist td.price abbr:hover { border-bottom: 1px dotted }
 table.auctionlist td.seller { padding-left: 2em }
 
 td.name, th.name { text-align: left }

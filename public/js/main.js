@@ -97,22 +97,42 @@ var libtuj = {
     },
     FormatDate: function(unix,justValue)
     {
-        var v = '';
+        var v = '', n, a;
         if (unix)
         {
-            var dt;
+            var dt, now = new Date();
             if (typeof unix == 'string')
                 dt = new Date(unix.replace(/^(\d{4}-\d\d-\d\d) (\d\d:\d\d:\d\d)$/, '$1T$2.000Z'));
             else
                 dt = new Date(unix*1000);
-            v = dt.toLocaleDateString();
+
+            var diff = Math.floor((now.getTime() - dt.getTime()) / 1000);
+            var suffix = diff < 0 ? ' from now' : ' ago';
+            diff = Math.abs(diff);
+
+            if (diff < 60)
+                v = '' + (n = diff) + ' second' + (n != 1 ? 's' : '') + suffix;
+            else if (diff < 60*60)
+                v = '' + (n = Math.round(diff/60)) + ' minute' + (n != 1 ? 's' : '') + suffix;
+            else if (diff < 24*60*60)
+                v = '' + (n = Math.round(diff/(60*60))) + ' hour' + (n != 1 ? 's' : '') + suffix;
+            else if (diff < 10*24*60*60)
+                v = '' + (n = Math.round(diff/(24*60*60))) + ' day' + (n != 1 ? 's' : '') + suffix;
+            else
+                v = dt.toLocaleDateString();
         }
         if (justValue)
             return v;
 
         var s = libtuj.ce('span');
         if (v)
-            s.appendChild(document.createTextNode(v));
+        {
+            a = libtuj.ce('abbr');
+            a.className = 'full-date';
+            a.title = dt.toLocaleString();
+            a.appendChild(document.createTextNode(v));
+            s.appendChild(a);
+        }
         return s;
     },
     GetRealmsForHouse: function(house, maxLineLength)
