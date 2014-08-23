@@ -55,6 +55,31 @@ var libtuj = {
             return v;
 
         var s = libtuj.ce('span');
+        s.class = 'price';
+        if (v)
+            s.appendChild(document.createTextNode(v));
+        return s;
+    },
+    FormatFullPrice: function(amt,justValue)
+    {
+        var v = '';
+        if (typeof amt == 'number') {
+            amt = Math.round(amt);
+            var g = Math.floor(amt/10000);
+            var s = Math.floor((amt % 10000) / 100);
+            var c = Math.floor(amt % 100);
+
+            if (g)
+                v += '' + g + 'g ';
+            if (g || s)
+                v += '' + s + 's ';
+            v += '' + c + 'c';
+        }
+        if (justValue)
+            return v;
+
+        var s = libtuj.ce('span');
+        s.class = 'price full';
         if (v)
             s.appendChild(document.createTextNode(v));
         return s;

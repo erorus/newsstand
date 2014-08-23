@@ -154,6 +154,20 @@ var TUJ_Item = function()
             itemPage.append(d);
             ItemGlobalNowColumns(dta, cht);
         }
+
+        if (dta.auctions.length)
+        {
+            d = libtuj.ce();
+            d.className = 'chart-section';
+            h = libtuj.ce('h2');
+            d.appendChild(h);
+            $(h).text('Current Auctions');
+            cht = libtuj.ce();
+            cht.className = 'auctionlist';
+            d.appendChild(cht);
+            itemPage.append(d);
+            ItemAuctions(dta, cht);
+        }
     }
 
     function ItemStats(data, dest)
@@ -1157,6 +1171,96 @@ var TUJ_Item = function()
         });
     }
 
+    function ItemAuctions(data, dest)
+    {
+        var t,tr,td;
+        t = libtuj.ce('table');
+        t.className = 'auctionlist';
+
+        tr = libtuj.ce('tr');
+        t.appendChild(tr);
+
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.className = 'quantity';
+        $(td).text('Quantity');
+
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.className = 'price';
+        $(td).text('Bid');
+
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.className = 'price';
+        $(td).text('Buyout');
+
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.className = 'seller';
+        $(td).text('Seller');
+
+        data.auctions.sort(function(a,b){
+            return Math.floor(a.buy / a.quantity) - Math.floor(b.buy / b.quantity) ||
+                Math.floor(a.bid / a.quantity) - Math.floor(b.bid / b.quantity) ||
+                a.quantity - b.quantity ||
+                tuj.realms[a.sellerrealm].name.localeCompare(tuj.realms[b.sellerrealm].name) ||
+                a.sellername.localeCompare(b.sellername);
+        });
+
+        var s, a, stackable = data.stats.stacksize > 1;
+        for (var x = 0, auc; auc = data.auctions[x]; x++)
+        {
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.className = 'quantity';
+            td.appendChild(libtuj.FormatQuantity(auc.quantity));
+
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.className = 'price';
+            s = libtuj.FormatFullPrice(auc.bid);
+            if (stackable && auc.quantity > 1)
+            {
+                a = libtuj.ce('abbr');
+                a.title = libtuj.FormatPrice(auc.bid / auc.quantity, true) + ' each';
+                a.appendChild(s);
+            }
+            else
+                a = s;
+            td.appendChild(a);
+
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.className = 'price';
+            s = libtuj.FormatFullPrice(auc.buy);
+            if (stackable && auc.quantity > 1 && auc.buy)
+            {
+                a = libtuj.ce('abbr');
+                a.title = libtuj.FormatPrice(auc.buy / auc.quantity, true) + ' each';
+                a.appendChild(s);
+            }
+            else if (!auc.buy)
+                a = libtuj.ce('span');
+            else
+                a = s;
+            if (a)
+                td.appendChild(a);
+
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.className = 'seller';
+            a = libtuj.ce('a');
+            td.appendChild(a);
+            a.href = tuj.BuildHash({realm: auc.sellerrealm, page: 'seller', id: auc.sellername});
+            $(a).text(auc.sellername + (auc.sellerrealm != params.realm ? (' - ' + tuj.realms[auc.sellerrealm].name) : ''));
+        }
+
+        dest.appendChild(t);
+    }
     this.load(tuj.params);
 }
 

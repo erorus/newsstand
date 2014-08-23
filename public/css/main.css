@@ -50,6 +50,8 @@ body.realm #topcorner form { display: none }
 .wowhead-tooltip-powered { visibility: hidden }
 .wowhead-tooltip > table { background-color: black; border-radius: 5px }
 
+span.price.full { white-space: nowrap }
+
 #realm-list {display: none; text-align: center}
 #realm-list.width-test, #realm-list.show {display: block}
 #realm-list.width-test #faction-pick {display: none}
@@ -69,17 +71,20 @@ body.realm #topcorner form { display: none }
 
 #front-page { display: none }
 
-#search-page table { width: 45em; margin: 0 auto 2em; border: 1px solid black; border-spacing: 0 }
-#search-page table th {padding: 0.2em}
-#search-page table td {padding: 0.2em 0.4em; border-top: 1px solid #CCC}
-#search-page tr:hover td {background-color: #EEE}
+#search-page table, table.auctionlist { width: 45em; margin: 0 auto 2em; border: 1px solid black; border-spacing: 0 }
+#search-page table th, table.auctionlist th {padding: 0.2em}
+#search-page table td, table.auctionlist td {padding: 0.2em 0.4em; border-top: 1px solid #CCC}
+#search-page tr:hover td, table.auctionlist tr:hover td {background-color: #EEE}
+
+table.auctionlist { margin: 0 }
+table.auctionlist td.price abbr {border-bottom: 0}
 
 td.name, th.name { text-align: left }
 td.icon, th.icon { width: 1.5em; height: 1.5em; padding-right: 0 ! important }
 img.icon {width: 1.5em; height: 1.5em}
 td.price, th.price,
 td.quantity, th.quantity,
-td.date, th.date { text-align: right; width: 6em; cursor: default }
+td.date, th.date { text-align: right; width: 7em; cursor: default }
 
 table.highcharts-tuj-tooltip {font-size: 100%; min-width: 8em}
 table.highcharts-tuj-tooltip td {padding: 0}
