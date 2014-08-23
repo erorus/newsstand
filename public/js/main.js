@@ -137,7 +137,35 @@ var libtuj = {
             realmNames = realmNames.substr(0, realmNames.length - 2);
 
         return realmNames;
-    }
+    },
+    itemClasses: {
+        7: 'Trade Goods',
+        0: 'Consumable',
+        5: 'Reagent',
+
+        3: 'Gem',
+        16: 'Glyph',
+
+        2: 'Weapon',
+        4: 'Armor',
+
+        9: 'Recipe',
+
+        1: 'Container',
+        11: 'Quiver',
+
+        17: 'Battle Pets',
+
+        12: 'Quest',
+        13: 'Key',
+
+        6: 'Projectile',
+        8: 'Generic',
+        10: 'Money',
+        14: 'Permanent',
+        15: 'Miscellaneous'
+    },
+    itemClassOrder: [2,9,6,4,7,3,14,1,15,8,16,10,12,13,17,18,5,11]
 };
 
 var TUJ = function()

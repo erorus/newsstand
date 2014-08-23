@@ -55,19 +55,20 @@ var TUJ_Search = function()
 
         var results = 0;
         var lastResult;
-        var t, tr, td, i, a;
+        var t, tr, td, i, a, x;
 
         if (dta.items)
         {
+            dta.items.sort(function(a,b){
+                return libtuj.itemClassOrder[a.classid] - libtuj.itemClassOrder[b.classid] ||
+                    a.name.localeCompare(b.name);
+            });
+
             var lastClass = -1;
             var item;
 
-            for (var x in dta.items)
+            for (x = 0; item = dta.items[x]; x++)
             {
-                if (!dta.items.hasOwnProperty(x))
-                    continue;
-
-                item = dta.items[x];
                 lastResult = {page: 'item', id: item.id};
                 results++;
 
@@ -78,6 +79,15 @@ var TUJ_Search = function()
                     t = libtuj.ce('table');
                     t.className = 'search-items';
                     searchPage.append(t);
+
+                    tr = libtuj.ce('tr');
+                    t.appendChild(tr);
+
+                    td = libtuj.ce('th');
+                    td.className = 'title';
+                    tr.appendChild(td);
+                    td.colSpan=5;
+                    $(td).text(libtuj.itemClasses.hasOwnProperty(item.classid) ? libtuj.itemClasses[item.classid] : ('Class ' + item.classid));
 
                     tr = libtuj.ce('tr');
                     t.appendChild(tr);
@@ -143,11 +153,24 @@ var TUJ_Search = function()
 
         if (dta.sellers)
         {
+            dta.sellers.sort(function(a,b){
+                return a.name.localeCompare(b.name) || tuj.realms[a.realm].name.localeCompare(tuj.realms[b.realm].name);
+            });
+
             var seller;
 
             t = libtuj.ce('table');
             t.className = 'search-sellers';
             searchPage.append(t);
+
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+
+            td = libtuj.ce('th');
+            td.className = 'title';
+            tr.appendChild(td);
+            td.colSpan=5;
+            $(td).text('Sellers');
 
             tr = libtuj.ce('tr');
             t.appendChild(tr);
@@ -162,13 +185,9 @@ var TUJ_Search = function()
             tr.appendChild(td);
             $(td).text('Last Seen');
 
-            for (var x in dta.sellers)
+            for (x = 0; seller = dta.sellers[x]; x++)
             {
-                if (!dta.sellers.hasOwnProperty(x))
-                    continue;
-
                 results++;
-                seller = dta.sellers[x];
                 lastResult = {page: 'seller', id: seller.name, realm: seller.realm};
 
                 tr = libtuj.ce('tr');

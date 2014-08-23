@@ -46,7 +46,6 @@ from tblItem i
 left join tblItemSummary s on s.house=? and s.item=i.id
 where i.name like ?
 and ifnull(i.auctionable,1) = 1
-order by i.class, i.name
 limit ?
 EOF;
     $limit = 100 * strlen(preg_replace('/\s/','',$search));
@@ -55,7 +54,7 @@ EOF;
     $stmt->bind_param('isi', $house, $terms, $limit);
     $stmt->execute();
     $result = $stmt->get_result();
-    $tr = DBMapArray($result);
+    $tr = DBMapArray($result, null);
     $stmt->close();
     return $tr;
 }
@@ -72,7 +71,6 @@ select s.id, r.id realm, s.name, unix_timestamp(s.firstseen) firstseen, unix_tim
 from tblSeller s
 join tblRealm r on s.realm=r.id and r.house=?
 where s.name like ?
-order by s.name, r.name
 limit 50
 EOF;
 
@@ -80,7 +78,7 @@ EOF;
     $stmt->bind_param('is', $house, $terms);
     $stmt->execute();
     $result = $stmt->get_result();
-    $tr = DBMapArray($result);
+    $tr = DBMapArray($result, null);
     $stmt->close();
     return $tr;
 }
