@@ -262,6 +262,8 @@ var TUJ = function()
             return;
         }
 
+        window.scrollTo(0,0);
+
         if (!self.params.page)
         {
             inMain = false;
@@ -375,6 +377,7 @@ var TUJ = function()
 
         $('#title a')[0].href = self.BuildHash({page: undefined});
         $('#page-title').empty();
+        self.SetTitle();
 
         if ($('#topcorner form').length == 0)
         {
@@ -391,6 +394,25 @@ var TUJ = function()
 
             $('#topcorner .realm-faction').after(form);
         }
+    }
+
+    this.SetTitle = function(titlePart)
+    {
+        var title = 'The Undermine Journal';
+
+        if (self.params.realm)
+            title += ' - ' + self.region + ' ' + self.realms[self.params.realm].name + ' ' + self.params.faction.substr(0,1).toUpperCase() + self.params.faction.substr(1);
+
+        if (titlePart)
+            title += ' - ' + titlePart
+        else if (self.params.page)
+        {
+            title += ' - ' + validPages[self.params.page].substr(0,1).toUpperCase() + validPages[self.params.page].substr(1);
+            if (self.params.id)
+                title += ': ' + self.params.id;
+        }
+
+        document.title = title;
     }
 
     this.BuildHash = function(p)
