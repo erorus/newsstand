@@ -1286,12 +1286,12 @@ var TUJ_Item = function()
         td = libtuj.ce('th');
         tr.appendChild(td);
         td.className = 'price';
-        $(td).text('Bid');
+        $(td).text('Bid Each');
 
         td = libtuj.ce('th');
         tr.appendChild(td);
         td.className = 'price';
-        $(td).text('Buyout');
+        $(td).text('Buyout Each');
 
         td = libtuj.ce('th');
         tr.appendChild(td);
@@ -1320,11 +1320,11 @@ var TUJ_Item = function()
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.className = 'price';
-            s = libtuj.FormatFullPrice(auc.bid);
+            s = libtuj.FormatFullPrice(auc.bid / auc.quantity);
             if (stackable && auc.quantity > 1)
             {
                 a = libtuj.ce('abbr');
-                a.title = libtuj.FormatPrice(auc.bid / auc.quantity, true) + ' each';
+                a.title = libtuj.FormatFullPrice(auc.bid, true) + ' total';
                 a.appendChild(s);
             }
             else
@@ -1334,11 +1334,11 @@ var TUJ_Item = function()
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.className = 'price';
-            s = libtuj.FormatFullPrice(auc.buy);
+            s = libtuj.FormatFullPrice(auc.buy / auc.quantity);
             if (stackable && auc.quantity > 1 && auc.buy)
             {
                 a = libtuj.ce('abbr');
-                a.title = libtuj.FormatPrice(auc.buy / auc.quantity, true) + ' each';
+                a.title = libtuj.FormatFullPrice(auc.buy, true) + ' total';
                 a.appendChild(s);
             }
             else if (!auc.buy)
