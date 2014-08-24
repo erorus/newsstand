@@ -82,7 +82,10 @@ function DBMapArray(&$result, $key = false, $autoClose = true)
                     $tr[$row[$key[0]]] = $singleCol ? $row[$singleCol] : $row;
                     break;
                 case 2:
-                    $tr[$row[$key[0]]][$row[$key[1]]] = $singleCol ? $row[$singleCol] : $row;
+                    if($key[1])
+                        $tr[$row[$key[0]]][$row[$key[1]]] = $singleCol ? $row[$singleCol] : $row;
+                    else
+                        $tr[$row[$key[0]]][] = $singleCol ? $row[$singleCol] : $row;
                     break;
             }
         elseif (is_null($key))

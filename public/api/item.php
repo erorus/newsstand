@@ -34,7 +34,7 @@ function ItemStats($house, $item)
     DBConnect();
 
     $sql = <<<EOF
-select i.id, i.name, i.quality, i.icon, i.class as classid, i.subclass, i.quality, i.level, i.stacksize, i.binds, i.buyfromvendor, i.selltovendor, i.auctionable,
+select i.id, i.name, i.icon, i.class as classid, i.subclass, i.quality, i.level, i.stacksize, i.binds, i.buyfromvendor, i.selltovendor, i.auctionable,
 s.price, s.quantity, s.lastseen
 from tblItem i
 left join tblItemSummary s on s.house = ? and s.item = i.id
@@ -202,30 +202,6 @@ EOF;
     $stmt->close();
 
     MCSetHouse($house, 'item_auctions_'.$item, $tr);
-
-    return $tr;
-}
-
-function GetRegion($house)
-{
-    global $db;
-
-    $house = abs($house);
-    if (($tr = MCGet('item_getregion_'.$house)) !== false)
-        return $tr;
-
-    DBConnect();
-
-    $sql = 'SELECT max(region) from `tblRealm` where house=?';
-    $stmt = $db->prepare($sql);
-    $stmt->bind_param('i', $house);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $tr = DBMapArray($result, null);
-    $stmt->close();
-    $tr = array_pop($tr);
-
-    MCSet('item_getregion_'.$house, $tr, 24*60*60);
 
     return $tr;
 }
