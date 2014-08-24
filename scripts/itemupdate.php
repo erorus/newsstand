@@ -25,10 +25,22 @@ $itemMap = array(
     'auctionable'       => array('name' => 'isAuctionable',     'required' => false),
 );
 
+$petMap = array(
+    'id'                => array('name' => 'speciesId',         'required' => true),
+    'name'              => array('name' => 'name',              'required' => true),
+    'type'              => array('name' => 'petTypeId',         'required' => true),
+    'icon'              => array('name' => 'icon',              'required' => true),
+);
+
 heartbeat();
 $ids = NewItems(100);
 if (count($ids))
     SaveItems(FetchItems($ids));
+
+heartbeat();
+$ids = NewPets(50);
+if (count($ids))
+    SavePets(FetchPets($ids));
 
 function NewItems($limit = 20)
 {
@@ -162,4 +174,100 @@ function FetchWowheadItem($id)
         $json['sellPrice'] = intval($res[1],10);
 
     return json_encode($json);
+}
+
+function NewPets($limit = 20)
+{
+    global $db;
+
+    $sql = <<<EOF
+    select `is`.species from
+    (select distinct species from tblPetSummary) `is`
+    left join tblPet i on i.id = `is`.species
+    where i.id is null
+    limit ?
+EOF;
+
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('i',$limit);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $items = DBMapArray($result);
+    $stmt->close();
+
+    return $items;
+}
+
+function SavePets($pets)
+{
+    global $petMap, $db;
+
+    $cols = array_keys($petMap);
+
+    $sql = 'insert into tblPet (`json`,`created`,`updated`,`'.implode('`,`', $cols).'`) values (%s,NOW(),NOW()';
+    foreach ($cols as $col)
+        $sql .= ',%s';
+
+    $sql .= ') on duplicate key update `updated` = values(`updated`), `json` = values(`json`)';
+    foreach ($cols as $col)
+        if ($col != 'id')
+            $sql .= ", `$col` = values(`$col`)";
+
+    foreach ($pets as $pet)
+    {
+        $params[0] = $sql;
+        $params[1] = "'" . $db->real_escape_string($pet['json']) . "'";
+        $x = 2;
+        foreach ($cols as $col)
+            $params[$x++] = (is_null($pet[$col]) ? 'null' : "'" . $db->real_escape_string($pet[$col]) . "'");
+
+        $q = call_user_func_array('sprintf', $params);
+
+        if ($db->query($q))
+            DebugMessage('Pet '.$pet['id'].' updated');
+        else
+            DebugMessage('Error updating pet '.$pet['id'], E_USER_WARNING);
+    }
+}
+
+function FetchPets($pets)
+{
+    global $petMap;
+
+    $results = array();
+
+    foreach ($pets as &$id)
+    {
+        heartbeat();
+        DebugMessage('Fetching pet '.$id);
+        $url = 'http://us.battle.net/api/wow/battlePet/species/'.$id;
+        $json = FetchHTTP($url);
+        $dta = json_decode($json, true);
+        if ((json_last_error() != JSON_ERROR_NONE) || (!isset($dta['speciesId'])))
+        {
+            DebugMessage('Error fetching pet '.$id.' from battle.net..');
+            continue;
+        }
+
+        $results[$dta['speciesId']] = array('json' => $json);
+        foreach ($petMap as $ours => $details)
+        {
+            if (!isset($dta[$details['name']]))
+            {
+                if ($details['required'])
+                {
+                    DebugMessage('Pet '.$dta['speciesId'].' did not have required column '.$details['name'], E_USER_WARNING);
+                    unset($results[$dta['speciesId']]);
+                    continue 2;
+                }
+                $dta[$details['name']] = null;
+            }
+            if (is_bool($dta[$details['name']]))
+                $results[$dta['speciesId']][$ours] = $dta[$details['name']] ? 1 : 0;
+            else
+                $results[$dta['speciesId']][$ours] = $dta[$details['name']];
+        }
+    }
+
+    return $results;
 }
