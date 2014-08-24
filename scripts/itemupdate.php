@@ -30,10 +30,11 @@ $petMap = array(
     'name'              => array('name' => 'name',              'required' => true),
     'type'              => array('name' => 'petTypeId',         'required' => true),
     'icon'              => array('name' => 'icon',              'required' => true),
+    'npc'               => array('name' => 'creatureId',        'required' => false),
 );
 
 heartbeat();
-$ids = NewItems(100);
+$ids = NewItems(50);
 if (count($ids))
     SaveItems(FetchItems($ids));
 
