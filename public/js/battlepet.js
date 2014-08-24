@@ -13,12 +13,12 @@ var TUJ_BattlePet = function()
             if (inParams.hasOwnProperty(p))
                 params[p] = inParams[p];
 
-        speciesId = params.id;
+        speciesId = ''+params.id;
         breedId = 0;
-        if (params.id.indexOf('.') > 0)
+        if (speciesId.indexOf('.') > 0)
         {
-            speciesId = params.id.substr(0, params.id.indexOf('.'));
-            breedId = params.id.substr(params.id.indexOf('.')+1);
+            speciesId = (''+params.id).substr(0, (''+params.id).indexOf('.'));
+            breedId = (''+params.id).substr((''+params.id).indexOf('.')+1);
         }
 
         var qs = {
@@ -67,153 +67,7 @@ var TUJ_BattlePet = function()
             if (dtaAll.stats.hasOwnProperty(x))
                 breeds.push(x);
 
-        var dta = {};
-        if (breedId)
-        {
-            dta.stats =      dtaAll.stats[breedId];
-            dta.history =    dtaAll.history[breedId] || [];
-            dta.auctions =   dtaAll.auctions[breedId] || [];
-            dta.globalnow =  dtaAll.globalnow[breedId] || [];
-        }
-        else
-        {
-            dta.stats = {};
-            for (x in dtaAll.stats[breeds[0]])
-                if (dtaAll.stats[breeds[0]].hasOwnProperty(x))
-                    dta.stats[x] = dtaAll.stats[breeds[0]][x];
-            for (x = 1; x < breeds.length; x++)
-            {
-                if (dta.stats.quantity == 0)
-                {
-                    if (dtaAll.stats[breeds[x]].quantity || (dtaAll.stats[breeds[x]].price < dta.stats.price))
-                        dta.stats.price = dtaAll.stats[breeds[x]].price;
-                }
-                else
-                {
-                    if (dtaAll.stats[breeds[x]].quantity && (dtaAll.stats[breeds[x]].price < dta.stats.price))
-                        dta.stats.price = dtaAll.stats[breeds[x]].price;
-                }
-                dta.stats.quantity += dtaAll.stats[breeds[x]].quantity;
-                if (!dta.stats.lastseen || dta.stats.lastseen < dtaAll.stats[breeds[x]].lastseen)
-                    dta.stats.lastseen = dtaAll.stats[breeds[x]].lastseen;
-            }
-            delete dta.stats.breed;
-
-            var h, o, baseBreed;
-            if (breeds.length > 1)
-            {
-                dta.history = [];
-                baseBreed = -1;
-                for (x = 0; x < breeds.length && baseBreed == -1; x++)
-                    if (dtaAll.history.hasOwnProperty(breeds[x]))
-                    {
-                        baseBreed = x;
-                        for (y = 0; h = dtaAll.history[breeds[0]][y]; y++)
-                        {
-                            o = {};
-                            for (x in h)
-                                if (h.hasOwnProperty(x))
-                                    o[x] = h[x];
-                            dta.history.push(o);
-                        }
-                    }
-
-                if (baseBreed != -1)
-                    for (y = 0; h = dta.history[y]; y++)
-                    {
-                        for (x = 0; x < breeds.length; x++)
-                        {
-                            if (x == baseBreed)
-                                continue;
-                            if (h.quantity == 0)
-                            {
-                                if (dtaAll.history[breeds[x]][y].quantity || (dtaAll.history[breeds[x]][y].price < h.price))
-                                    h.price = dtaAll.history[breeds[x]][y].price;
-                            }
-                            else
-                            {
-                                if (dtaAll.history[breeds[x]][y].quantity && (dtaAll.history[breeds[x]][y].price < h.price))
-                                    h.price = dtaAll.history[breeds[x]][y].price;
-                            }
-                            h.quantity += dtaAll.history[breeds[x]][y].quantity;
-                        }
-                    }
-            }
-            else
-                dta.history = dtaAll.history[breeds[0]] || [];
-
-            dta.auctions = [];
-            for (x = 0; x < breeds.length; x++)
-                if (dtaAll.auctions.hasOwnProperty(breeds[x]))
-                    dta.auctions.concat(dtaAll.auctions[breeds[x]]);
-
-            if (breeds.length > 1)
-            {
-                dta.globalnow = {};
-                baseBreed = -1;
-                for (x = 0; x < breeds.length && baseBreed == -1; x++)
-                    if (dtaAll.globalnow.hasOwnProperty(breeds[x]))
-                    {
-                        baseBreed = x;
-                        for (y = 0; h = dtaAll.globalnow[breeds[0]][y]; y++)
-                        {
-                            o = {};
-                            for (x in h)
-                                if (h.hasOwnProperty(x))
-                                    o[x] = h[x];
-                            dta.globalnow[o.house] = o;
-                        }
-                    }
-
-                if (baseBreed != -1)
-                {
-                    var cur,grp,z;
-                    for (x = 0; x < breeds.length; x++)
-                    {
-                        if (x == baseBreed)
-                            continue;
-                        if (!dtaAll.globalnow.hasOwnProperty(breeds[x]))
-                            continue;
-
-                        for (y = 0; y < dtaAll.globalnow[breeds[x]].length; y++)
-                        {
-                            cur = dtaAll.globalnow[breeds[x]][y];
-                            if (!dta.globalnow.hasOwnProperty(cur.house))
-                            {
-                                o = {};
-                                for (z in cur)
-                                    if (cur.hasOwnProperty(z))
-                                        o[z] = cur[z];
-                                dta.globalnow[o.house] = o;
-                                continue;
-                            }
-
-                            grp = dta.globalnow[cur.house];
-                            if (grp.quantity == 0)
-                            {
-                                if (cur.quantity || (cur.price < grp.price))
-                                    grp.price = cur.price;
-                            }
-                            else
-                            {
-                                if (cur.quantity && (cur.price < grp.price))
-                                    grp.price = cur.price;
-                            }
-                            grp.quantity += cur.quantity;
-                            if (!grp.lastseen || grp.lastseen < cur.lastseen)
-                                grp.lastseen = cur.lastseen;
-                        }
-                    }
-                    var a = [];
-                    for (x in dta.globalnow)
-                        if (dta.globalnow.hasOwnProperty(x))
-                            a.push(dta.globalnow[x]);
-                    dta.globalnow = a;
-                }
-            }
-            else
-                dta.globalnow = dtaAll.globalnow[breeds[0]] || [];
-        }
+        var dta = BattlePetBreedData(dtaAll, breeds);
 
         var ta = libtuj.ce('a');
         ta.href = 'http://www.wowhead.com/npc=' + dta.stats.npc;
@@ -222,16 +76,41 @@ var TUJ_BattlePet = function()
         var timg = libtuj.ce('img');
         ta.appendChild(timg);
         timg.src = 'icon/large/' + dta.stats.icon + '.jpg';
-        ta.appendChild(document.createTextNode('[' + dta.stats.name + ']'));
+        var ttl = '[' + dta.stats.name + ']' + (breedId && breeds.length > 1 ? ' ' + tujConstants.breeds[breedId] : '');
+        ta.appendChild(document.createTextNode(ttl));
 
         $('#page-title').empty().append(ta);
-        tuj.SetTitle('[' + dta.stats.name + ']');
+        tuj.SetTitle(ttl);
 
         var battlePetPage = $('#battlepet-page');
         battlePetPage.empty();
         battlePetPage.show();
 
-        var d, cht, h;
+        var d, cht, h, a;
+
+        if (breeds.length > 1)
+        {
+            d = libtuj.ce();
+            d.className = 'battlepet-breeds';
+            battlePetPage.append(d);
+
+            a = libtuj.ce('a');
+            d.appendChild(a);
+            a.href = tuj.BuildHash({page: 'battlepet', id: '' + speciesId});
+            a.appendChild(document.createTextNode(tujConstants.breeds[0]));
+            if (breedId == 0)
+                a.className = 'selected';
+
+            for (var x = 0; x < breeds.length; x++)
+            {
+                a = libtuj.ce('a');
+                d.appendChild(a);
+                a.href = tuj.BuildHash({page: 'battlepet', id: '' + speciesId + '.' + breeds[x]});
+                a.appendChild(document.createTextNode(tujConstants.breeds[breeds[x]]));
+                if (breedId == breeds[x])
+                    a.className = 'selected';
+            }
+        }
 
         d = libtuj.ce();
         d.className = 'battlepet-stats';
@@ -305,6 +184,182 @@ var TUJ_BattlePet = function()
             battlePetPage.append(d);
             BattlePetAuctions(dta, cht);
         }
+    }
+
+    function BattlePetBreedData(dtaAll, breeds)
+    {
+        var dta = {};
+        if (breedId)
+        {
+            if (dtaAll.stats.hasOwnProperty(breedId))
+            {
+                dta.stats =      dtaAll.stats[breedId];
+                dta.history =    dtaAll.history[breedId] || [];
+                dta.auctions =   dtaAll.auctions[breedId] || [];
+                dta.globalnow =  dtaAll.globalnow[breedId] || [];
+                return dta;
+            }
+            breedId = 0;
+        }
+
+        dta.stats = {};
+        for (x in dtaAll.stats[breeds[0]])
+            if (dtaAll.stats[breeds[0]].hasOwnProperty(x))
+                dta.stats[x] = dtaAll.stats[breeds[0]][x];
+        for (x = 1; x < breeds.length; x++)
+        {
+            if (dta.stats.quantity == 0)
+            {
+                if (dtaAll.stats[breeds[x]].quantity || (dtaAll.stats[breeds[x]].price < dta.stats.price))
+                    dta.stats.price = dtaAll.stats[breeds[x]].price;
+            }
+            else
+            {
+                if (dtaAll.stats[breeds[x]].quantity && (dtaAll.stats[breeds[x]].price < dta.stats.price))
+                    dta.stats.price = dtaAll.stats[breeds[x]].price;
+            }
+            dta.stats.quantity += dtaAll.stats[breeds[x]].quantity;
+            if (!dta.stats.lastseen || dta.stats.lastseen < dtaAll.stats[breeds[x]].lastseen)
+                dta.stats.lastseen = dtaAll.stats[breeds[x]].lastseen;
+        }
+        delete dta.stats.breed;
+
+        var h, o, baseBreed, cur, grp, z, a;
+        if (breeds.length > 1)
+        {
+            dta.history = {};
+            baseBreed = -1;
+            for (x = 0; x < breeds.length && baseBreed == -1; x++)
+                if (dtaAll.history.hasOwnProperty(breeds[x]))
+                {
+                    baseBreed = x;
+                    for (y = 0; h = dtaAll.history[breeds[0]][y]; y++)
+                    {
+                        o = {};
+                        for (x in h)
+                            if (h.hasOwnProperty(x))
+                                o[x] = h[x];
+                        delete o.breed;
+                        dta.history[o.snapshot] = o;
+                    }
+                }
+
+            if (baseBreed != -1)
+                for (x = 0; x < breeds.length; x++)
+                {
+                    if (x == baseBreed)
+                        continue;
+                    if (!dtaAll.history.hasOwnProperty(breeds[x]))
+                        continue;
+
+                    for (y = 0; y < dtaAll.history[breeds[x]].length; y++)
+                    {
+                        cur = dtaAll.history[breeds[x]][y];
+                        if (!dta.history.hasOwnProperty(cur.snapshot))
+                        {
+                            o = {};
+                            for (x in h)
+                                if (h.hasOwnProperty(x))
+                                    o[x] = h[x];
+                            delete o.breed;
+                            dta.history[o.snapshot] = o;
+                            continue;
+                        }
+                        grp = dta.history[cur.snapshot];
+                        if (grp.quantity == 0)
+                        {
+                            if (cur.quantity || (cur.price < grp.price))
+                                grp.price = cur.price;
+                        }
+                        else
+                        {
+                            if (cur.quantity && (cur.price < grp.price))
+                                grp.price = cur.price;
+                        }
+                        grp.quantity += cur.quantity;
+                    }
+                }
+
+            a = [];
+            for (x in dta.history)
+                if (dta.history.hasOwnProperty(x))
+                    a.push(dta.history[x]);
+            dta.history = a;
+        }
+        else
+            dta.history = dtaAll.history[breeds[0]] || [];
+
+        dta.auctions = [];
+        for (x = 0; x < breeds.length; x++)
+            if (dtaAll.auctions.hasOwnProperty(breeds[x]))
+                dta.auctions.concat(dtaAll.auctions[breeds[x]]);
+
+        if (breeds.length > 1)
+        {
+            dta.globalnow = {};
+            baseBreed = -1;
+            for (x = 0; x < breeds.length && baseBreed == -1; x++)
+                if (dtaAll.globalnow.hasOwnProperty(breeds[x]))
+                {
+                    baseBreed = x;
+                    for (y = 0; h = dtaAll.globalnow[breeds[0]][y]; y++)
+                    {
+                        o = {};
+                        for (x in h)
+                            if (h.hasOwnProperty(x))
+                                o[x] = h[x];
+                        dta.globalnow[o.house] = o;
+                    }
+                }
+
+            if (baseBreed != -1)
+                for (x = 0; x < breeds.length; x++)
+                {
+                    if (x == baseBreed)
+                        continue;
+                    if (!dtaAll.globalnow.hasOwnProperty(breeds[x]))
+                        continue;
+
+                    for (y = 0; y < dtaAll.globalnow[breeds[x]].length; y++)
+                    {
+                        cur = dtaAll.globalnow[breeds[x]][y];
+                        if (!dta.globalnow.hasOwnProperty(cur.house))
+                        {
+                            o = {};
+                            for (z in cur)
+                                if (cur.hasOwnProperty(z))
+                                    o[z] = cur[z];
+                            dta.globalnow[o.house] = o;
+                            continue;
+                        }
+
+                        grp = dta.globalnow[cur.house];
+                        if (grp.quantity == 0)
+                        {
+                            if (cur.quantity || (cur.price < grp.price))
+                                grp.price = cur.price;
+                        }
+                        else
+                        {
+                            if (cur.quantity && (cur.price < grp.price))
+                                grp.price = cur.price;
+                        }
+                        grp.quantity += cur.quantity;
+                        if (!grp.lastseen || grp.lastseen < cur.lastseen)
+                            grp.lastseen = cur.lastseen;
+                    }
+                }
+
+            a = [];
+            for (x in dta.globalnow)
+                if (dta.globalnow.hasOwnProperty(x))
+                    a.push(dta.globalnow[x]);
+            dta.globalnow = a;
+        }
+        else
+            dta.globalnow = dtaAll.globalnow[breeds[0]] || [];
+
+        return dta;
     }
 
     function BattlePetStats(data, dest)

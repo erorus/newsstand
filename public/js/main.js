@@ -153,6 +153,22 @@ var libtuj = {
             realmNames = realmNames.substr(0, realmNames.length - 2);
 
         return realmNames;
+    }
+};
+
+var tujConstants = {
+    breeds: {
+        0: 'All Breeds',
+        3: 'B/B',
+        4: 'P/P',
+        5: 'S/S',
+        6: 'H/H',
+        7: 'H/P',
+        8: 'P/S',
+        9: 'H/S',
+        10: 'P/B',
+        11: 'S/B',
+        12: 'H/B'
     },
     itemClasses: {
         7: 'Trade Goods',
@@ -182,7 +198,7 @@ var libtuj = {
         15: 'Miscellaneous'
     },
     itemClassOrder: [2,9,6,4,7,3,14,1,15,8,16,10,12,13,17,18,5,11]
-};
+}
 
 var TUJ = function()
 {
@@ -348,6 +364,16 @@ var TUJ = function()
                 if (p.hasOwnProperty(x) && self.params.hasOwnProperty(x))
                     self.params[x] = p[x];
 
+        if (typeof self.params.page == 'string')
+        {
+            for (var x = 0; x < validPages.length; x++)
+                if (validPages[x] == self.params.page)
+                    self.params.page = x;
+
+            if (typeof self.params.page == 'string')
+                self.params.page = undefined;
+        }
+
         var h = self.BuildHash(self.params);
 
         if (h != location.hash)
@@ -407,6 +433,7 @@ var TUJ = function()
             title += ' - ' + titlePart
         else if (self.params.page)
         {
+            console.log(self.params.page);
             title += ' - ' + validPages[self.params.page].substr(0,1).toUpperCase() + validPages[self.params.page].substr(1);
             if (self.params.id)
                 title += ': ' + self.params.id;

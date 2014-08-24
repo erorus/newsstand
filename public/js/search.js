@@ -60,7 +60,7 @@ var TUJ_Search = function()
         if (dta.items)
         {
             dta.items.sort(function(a,b){
-                return libtuj.itemClassOrder[a.classid] - libtuj.itemClassOrder[b.classid] ||
+                return tujConstants.itemClassOrder[a.classid] - tujConstants.itemClassOrder[b.classid] ||
                     a.name.localeCompare(b.name);
             });
 
@@ -89,7 +89,7 @@ var TUJ_Search = function()
                     td.className = 'title';
                     tr.appendChild(td);
                     td.colSpan=6;
-                    $(td).text(libtuj.itemClasses.hasOwnProperty(item.classid) ? libtuj.itemClasses[item.classid] : ('Class ' + item.classid));
+                    $(td).text(tujConstants.itemClasses.hasOwnProperty(item.classid) ? tujConstants.itemClasses[item.classid] : ('Class ' + item.classid));
 
                     tr = libtuj.ce('tr');
                     tableHeader = tr;
