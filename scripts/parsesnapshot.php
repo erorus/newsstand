@@ -228,6 +228,8 @@ function ParseAuctionData($house, $snapshot, &$json)
                 {
                     if (isset($auction['petSpeciesId']))
                     {
+                        if ($auction['petBreedId'] > 12) $auction['petBreedId'] -= 10; // squash gender
+
                         if (!isset($petInfo[$auction['petSpeciesId']][$auction['petBreedId']]))
                             $petInfo[$auction['petSpeciesId']][$auction['petBreedId']] = array('a' => array(), 'tq' => 0);
 
