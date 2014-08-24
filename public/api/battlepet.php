@@ -44,6 +44,9 @@ EOF;
     $stmt->execute();
     $result = $stmt->get_result();
     $tr = DBMapArray($result, array('breed', null));
+    foreach ($tr as &$breedRow)
+        $breedRow = array_pop($breedRow);
+    unset($breedRow);
     $stmt->close();
 
     MCSetHouse($house, 'battlepet_stats_'.$species, $tr);
@@ -63,12 +66,19 @@ function PetHistory($house, $species)
     $historyDays = HISTORY_DAYS;
 
     $sql = <<<EOF
-select ps.breed, unix_timestamp(s.updated) snapshot, cast(if(ph.quantity is null, @price, @price := ph.price) as decimal(11,0)) `price`, ifnull(ph.quantity,0) as quantity
-from (select @price := null) priceSetup, tblSnapshot s
-join tblPetSummary ps on ps.house = ?
-left join tblPetHistory ph on s.updated = ph.snapshot and ph.house = ps.house and ph.species = ps.species and ph.breed = ps.breed
-where s.house = ? and ps.species = ? and s.updated >= timestampadd(day,-$historyDays,now())
-order by ps.breed, s.updated asc
+select breed, snapshot, price, quantity
+from (
+    select if(breed = @prevBreed, null, @price := null) resetprice, @prevBreed := breed as breed, unix_timestamp(updated) snapshot,
+        cast(if(quantity is null, @price, @price := price) as decimal(11,0)) `price`, ifnull(quantity,0) as quantity
+    from (select @price := null, @prevBreed := null) priceSetup, (
+    select ps.breed, s.updated, ph.quantity, ph.price
+    from tblSnapshot s
+    join tblPetSummary ps on ps.house = ?
+    left join tblPetHistory ph on s.updated = ph.snapshot and ph.house = ps.house and ph.species = ps.species and ph.breed = ps.breed
+    where s.house = ? and ps.species = ? and s.updated >= timestampadd(day,-$historyDays,now())
+    order by ps.breed, s.updated asc
+    ) ordered
+) withoutresets
 EOF;
 
     $stmt = $db->prepare($sql);

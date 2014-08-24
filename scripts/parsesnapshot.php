@@ -324,9 +324,10 @@ function ParseAuctionData($house, $snapshot, &$json)
 
         foreach ($existingIds as $lostId => &$lostRow)
         {
-            if (strlen($sql) + 5 + strlen($lostId) > $maxPacketSize)
+            if (strlen($sql) + 10 + strlen($lostId) > $maxPacketSize)
             {
                 $ourDb->query($sql.')');
+                $ourDb->query(preg_replace('/\btblAuction\b/', 'tblAuctionPet', $sql, 1).')');
                 $sql = '';
             }
             $sql .= ($sql == '' ? $sqlStart : ',') . $lostId;
@@ -334,7 +335,10 @@ function ParseAuctionData($house, $snapshot, &$json)
         unset($lostRow);
 
         if ($sql != '')
+        {
             $ourDb->query($sql.')');
+            $ourDb->query(preg_replace('/\btblAuction\b/', 'tblAuctionPet', $sql, 1).')');
+        }
     }
 
     $ourDb->commit();

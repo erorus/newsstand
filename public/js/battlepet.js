@@ -1,8 +1,10 @@
 
-var TUJ_Item = function()
+var TUJ_BattlePet = function()
 {
     var params;
     var lastResults = [];
+    var speciesId;
+    var breedId;
 
     this.load = function(inParams)
     {
@@ -11,48 +13,212 @@ var TUJ_Item = function()
             if (inParams.hasOwnProperty(p))
                 params[p] = inParams[p];
 
+        speciesId = params.id;
+        breedId = 0;
+        if (params.id.indexOf('.') > 0)
+        {
+            speciesId = params.id.substr(0, params.id.indexOf('.'));
+            breedId = params.id.substr(params.id.indexOf('.')+1);
+        }
+
         var qs = {
             house: tuj.realms[params.realm].house * tuj.validFactions[params.faction],
-            item: params.id
+            species: speciesId
         };
         var hash = JSON.stringify(qs);
 
         for (var x = 0; x < lastResults.length; x++)
             if (lastResults[x].hash == hash)
             {
-                ItemResult(false, lastResults[x].data);
+                BattlePetResult(false, lastResults[x].data);
                 return;
             }
 
-        var itemPage = $('#item-page')[0];
-        if (!itemPage)
+        var battlePetPage = $('#battlepet-page')[0];
+        if (!battlePetPage)
         {
-            itemPage = libtuj.ce();
-            itemPage.id = 'item-page';
-            itemPage.className = 'page';
-            $('#main').append(itemPage);
+            battlePetPage = libtuj.ce();
+            battlePetPage.id = 'battlepet-page';
+            battlePetPage.className = 'page';
+            $('#main').append(battlePetPage);
         }
 
         $.ajax({
             data: qs,
-            success: function(d) { ItemResult(hash, d); },
-            url: 'api/item.php'
+            success: function(d) { BattlePetResult(hash, d); },
+            url: 'api/battlepet.php'
         });
     }
 
-    function ItemResult(hash, dta)
+    function BattlePetResult(hash, dtaAll)
     {
         if (hash)
         {
-            lastResults.push({hash: hash, data: dta});
+            lastResults.push({hash: hash, data: dtaAll});
             while (lastResults.length > 10)
                 lastResults.shift();
         }
 
+        if (breedId && !dtaAll.stats.hasOwnProperty(breedId))
+            breedId = 0;
+
+        var x, y, breeds = [];
+        for (x in dtaAll.stats)
+            if (dtaAll.stats.hasOwnProperty(x))
+                breeds.push(x);
+
+        var dta = {};
+        if (breedId)
+        {
+            dta.stats =      dtaAll.stats[breedId];
+            dta.history =    dtaAll.history[breedId] || [];
+            dta.auctions =   dtaAll.auctions[breedId] || [];
+            dta.globalnow =  dtaAll.globalnow[breedId] || [];
+        }
+        else
+        {
+            dta.stats = {};
+            for (x in dtaAll.stats[breeds[0]])
+                if (dtaAll.stats[breeds[0]].hasOwnProperty(x))
+                    dta.stats[x] = dtaAll.stats[breeds[0]][x];
+            for (x = 1; x < breeds.length; x++)
+            {
+                if (dta.stats.quantity == 0)
+                {
+                    if (dtaAll.stats[breeds[x]].quantity || (dtaAll.stats[breeds[x]].price < dta.stats.price))
+                        dta.stats.price = dtaAll.stats[breeds[x]].price;
+                }
+                else
+                {
+                    if (dtaAll.stats[breeds[x]].quantity && (dtaAll.stats[breeds[x]].price < dta.stats.price))
+                        dta.stats.price = dtaAll.stats[breeds[x]].price;
+                }
+                dta.stats.quantity += dtaAll.stats[breeds[x]].quantity;
+                if (!dta.stats.lastseen || dta.stats.lastseen < dtaAll.stats[breeds[x]].lastseen)
+                    dta.stats.lastseen = dtaAll.stats[breeds[x]].lastseen;
+            }
+            delete dta.stats.breed;
+
+            var h, o, baseBreed;
+            if (breeds.length > 1)
+            {
+                dta.history = [];
+                baseBreed = -1;
+                for (x = 0; x < breeds.length && baseBreed == -1; x++)
+                    if (dtaAll.history.hasOwnProperty(breeds[x]))
+                    {
+                        baseBreed = x;
+                        for (y = 0; h = dtaAll.history[breeds[0]][y]; y++)
+                        {
+                            o = {};
+                            for (x in h)
+                                if (h.hasOwnProperty(x))
+                                    o[x] = h[x];
+                            dta.history.push(o);
+                        }
+                    }
+
+                if (baseBreed != -1)
+                    for (y = 0; h = dta.history[y]; y++)
+                    {
+                        for (x = 0; x < breeds.length; x++)
+                        {
+                            if (x == baseBreed)
+                                continue;
+                            if (h.quantity == 0)
+                            {
+                                if (dtaAll.history[breeds[x]][y].quantity || (dtaAll.history[breeds[x]][y].price < h.price))
+                                    h.price = dtaAll.history[breeds[x]][y].price;
+                            }
+                            else
+                            {
+                                if (dtaAll.history[breeds[x]][y].quantity && (dtaAll.history[breeds[x]][y].price < h.price))
+                                    h.price = dtaAll.history[breeds[x]][y].price;
+                            }
+                            h.quantity += dtaAll.history[breeds[x]][y].quantity;
+                        }
+                    }
+            }
+            else
+                dta.history = dtaAll.history[breeds[0]] || [];
+
+            dta.auctions = [];
+            for (x = 0; x < breeds.length; x++)
+                if (dtaAll.auctions.hasOwnProperty(breeds[x]))
+                    dta.auctions.concat(dtaAll.auctions[breeds[x]]);
+
+            if (breeds.length > 1)
+            {
+                dta.globalnow = {};
+                baseBreed = -1;
+                for (x = 0; x < breeds.length && baseBreed == -1; x++)
+                    if (dtaAll.globalnow.hasOwnProperty(breeds[x]))
+                    {
+                        baseBreed = x;
+                        for (y = 0; h = dtaAll.globalnow[breeds[0]][y]; y++)
+                        {
+                            o = {};
+                            for (x in h)
+                                if (h.hasOwnProperty(x))
+                                    o[x] = h[x];
+                            dta.globalnow[o.house] = o;
+                        }
+                    }
+
+                if (baseBreed != -1)
+                {
+                    var cur,grp,z;
+                    for (x = 0; x < breeds.length; x++)
+                    {
+                        if (x == baseBreed)
+                            continue;
+                        if (!dtaAll.globalnow.hasOwnProperty(breeds[x]))
+                            continue;
+
+                        for (y = 0; y < dtaAll.globalnow[breeds[x]].length; y++)
+                        {
+                            cur = dtaAll.globalnow[breeds[x]][y];
+                            if (!dta.globalnow.hasOwnProperty(cur.house))
+                            {
+                                o = {};
+                                for (z in cur)
+                                    if (cur.hasOwnProperty(z))
+                                        o[z] = cur[z];
+                                dta.globalnow[o.house] = o;
+                                continue;
+                            }
+
+                            grp = dta.globalnow[cur.house];
+                            if (grp.quantity == 0)
+                            {
+                                if (cur.quantity || (cur.price < grp.price))
+                                    grp.price = cur.price;
+                            }
+                            else
+                            {
+                                if (cur.quantity && (cur.price < grp.price))
+                                    grp.price = cur.price;
+                            }
+                            grp.quantity += cur.quantity;
+                            if (!grp.lastseen || grp.lastseen < cur.lastseen)
+                                grp.lastseen = cur.lastseen;
+                        }
+                    }
+                    var a = [];
+                    for (x in dta.globalnow)
+                        if (dta.globalnow.hasOwnProperty(x))
+                            a.push(dta.globalnow[x]);
+                    dta.globalnow = a;
+                }
+            }
+            else
+                dta.globalnow = dtaAll.globalnow[breeds[0]] || [];
+        }
+
         var ta = libtuj.ce('a');
-        ta.href = 'http://www.wowhead.com/item=' + dta.stats.id;
+        ta.href = 'http://www.wowhead.com/npc=' + dta.stats.npc;
         ta.target = '_blank';
-        ta.className = 'item'
+        ta.className = 'battlepet'
         var timg = libtuj.ce('img');
         ta.appendChild(timg);
         timg.src = 'icon/large/' + dta.stats.icon + '.jpg';
@@ -61,16 +227,16 @@ var TUJ_Item = function()
         $('#page-title').empty().append(ta);
         tuj.SetTitle('[' + dta.stats.name + ']');
 
-        var itemPage = $('#item-page');
-        itemPage.empty();
-        itemPage.show();
+        var battlePetPage = $('#battlepet-page');
+        battlePetPage.empty();
+        battlePetPage.show();
 
         var d, cht, h;
 
         d = libtuj.ce();
-        d.className = 'item-stats';
-        itemPage.append(d);
-        ItemStats(dta, d);
+        d.className = 'battlepet-stats';
+        battlePetPage.append(d);
+        BattlePetStats(dta, d);
 
         if (dta.history.length >= 4)
         {
@@ -79,42 +245,12 @@ var TUJ_Item = function()
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text('Snapshots');
-            d.appendChild(document.createTextNode('Here is the available quantity and market price of the item for every auction house snapshot seen recently.'))
+            d.appendChild(document.createTextNode('Here is the available quantity and market price of the battle pet for every auction house snapshot seen recently.'))
             cht = libtuj.ce();
             cht.className = 'chart history';
             d.appendChild(cht);
-            itemPage.append(d);
-            ItemHistoryChart(dta, cht);
-        }
-
-        if (dta.monthly.length >= 7)
-        {
-            d = libtuj.ce();
-            d.className = 'chart-section';
-            h = libtuj.ce('h2');
-            d.appendChild(h);
-            $(h).text('Daily Summary');
-            d.appendChild(document.createTextNode('Here is the maximum available quantity, and the market price at that time, for the item each day.'))
-            cht = libtuj.ce();
-            cht.className = 'chart monthly';
-            d.appendChild(cht);
-            itemPage.append(d);
-            ItemMonthlyChart(dta, cht);
-        }
-
-        if (dta.daily.length >= 7)
-        {
-            d = libtuj.ce();
-            d.className = 'chart-section';
-            h = libtuj.ce('h2');
-            d.appendChild(h);
-            $(h).text('Daily Details');
-            d.appendChild(document.createTextNode('This chart is similar to the Daily Summary, but includes the "OHLC" market prices for the item each day, along with the minimum, average, and maximum available quantity.'))
-            cht = libtuj.ce();
-            cht.className = 'chart daily';
-            d.appendChild(cht)
-            itemPage.append(d);
-            ItemDailyChart(dta, cht);
+            battlePetPage.append(d);
+            BattlePetHistoryChart(dta, cht);
         }
 
         if (dta.history.length >= 14)
@@ -127,8 +263,8 @@ var TUJ_Item = function()
             cht = libtuj.ce();
             cht.className = 'chart heatmap';
             d.appendChild(cht);
-            itemPage.append(d);
-            ItemPriceHeatMap(dta, cht);
+            battlePetPage.append(d);
+            BattlePetPriceHeatMap(dta, cht);
 
             d = libtuj.ce();
             d.className = 'chart-section';
@@ -138,8 +274,8 @@ var TUJ_Item = function()
             cht = libtuj.ce();
             cht.className = 'chart heatmap';
             d.appendChild(cht);
-            itemPage.append(d);
-            ItemQuantityHeatMap(dta, cht);
+            battlePetPage.append(d);
+            BattlePetQuantityHeatMap(dta, cht);
         }
 
         if (dta.globalnow.length > 2)
@@ -152,8 +288,8 @@ var TUJ_Item = function()
             cht = libtuj.ce();
             cht.className = 'chart columns';
             d.appendChild(cht);
-            itemPage.append(d);
-            ItemGlobalNowColumns(dta, cht);
+            battlePetPage.append(d);
+            BattlePetGlobalNowColumns(dta, cht);
         }
 
         if (dta.auctions.length)
@@ -166,37 +302,19 @@ var TUJ_Item = function()
             cht = libtuj.ce();
             cht.className = 'auctionlist';
             d.appendChild(cht);
-            itemPage.append(d);
-            ItemAuctions(dta, cht);
+            battlePetPage.append(d);
+            BattlePetAuctions(dta, cht);
         }
     }
 
-    function ItemStats(data, dest)
+    function BattlePetStats(data, dest)
     {
         var t, tr, td, abbr;
 
-        var stack = data.stats.stacksize > 1 ? data.stats.stacksize : 0;
-        var spacerColSpan = stack ? 3 : 2;
+        var spacerColSpan = 2;
 
         t = libtuj.ce('table');
         dest.appendChild(t);
-
-        if (stack)
-        {
-            t.className = 'with-stack';
-            tr = libtuj.ce('tr');
-            t.appendChild(tr);
-            tr.className = 'stack-header';
-            td = libtuj.ce('th');
-            tr.appendChild(td);
-            td = libtuj.ce('td');
-            tr.appendChild(td);
-            td.appendChild(document.createTextNode('One'));
-            td = libtuj.ce('td');
-            tr.appendChild(td);
-            td.style.whiteSpace = 'nowrap';
-            td.appendChild(document.createTextNode('Stack of '+stack));
-        }
 
         tr = libtuj.ce('tr');
         t.appendChild(tr);
@@ -207,12 +325,6 @@ var TUJ_Item = function()
         td = libtuj.ce('td');
         tr.appendChild(td);
         td.appendChild(libtuj.FormatQuantity(data.stats.quantity));
-        if (stack)
-        {
-            td = libtuj.ce('td');
-            tr.appendChild(td);
-            td.appendChild(libtuj.FormatQuantity(Math.floor(data.stats.quantity/stack)));
-        }
 
         if (data.stats.quantity == 0)
         {
@@ -224,7 +336,6 @@ var TUJ_Item = function()
             td.appendChild(document.createTextNode('Last Seen'));
             td = libtuj.ce('td');
             tr.appendChild(td);
-            td.colSpan = stack ? 2 : 1;
             td.appendChild(libtuj.FormatDate(data.stats.lastseen));
         }
 
@@ -244,12 +355,6 @@ var TUJ_Item = function()
         td = libtuj.ce('td');
         tr.appendChild(td);
         td.appendChild(libtuj.FormatPrice(data.stats.price));
-        if (stack)
-        {
-            td = libtuj.ce('td');
-            tr.appendChild(td);
-            td.appendChild(libtuj.FormatPrice(data.stats.price*stack));
-        }
 
         var prices = [], x;
 
@@ -269,12 +374,6 @@ var TUJ_Item = function()
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.appendChild(libtuj.FormatPrice(median = libtuj.Median(prices)));
-            if (stack)
-            {
-                td = libtuj.ce('td');
-                tr.appendChild(td);
-                td.appendChild(libtuj.FormatPrice(median*stack));
-            }
 
             var mn = libtuj.Mean(prices);
             var std = libtuj.StdDev(prices, mn);
@@ -287,12 +386,6 @@ var TUJ_Item = function()
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.appendChild(libtuj.FormatPrice(mn));
-            if (stack)
-            {
-                td = libtuj.ce('td');
-                tr.appendChild(td);
-                td.appendChild(libtuj.FormatPrice(mn*stack));
-            }
 
             tr = libtuj.ce('tr');
             t.appendChild(tr);
@@ -312,12 +405,6 @@ var TUJ_Item = function()
                 td.appendChild(document.createTextNode(' '));
             }
             td.appendChild(libtuj.FormatPrice(std));
-            if (stack)
-            {
-                td = libtuj.ce('td');
-                tr.appendChild(td);
-                td.appendChild(libtuj.FormatPrice(std*stack));
-            }
         }
 
         if (data.globalnow.length)
@@ -353,12 +440,6 @@ var TUJ_Item = function()
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.appendChild(libtuj.FormatQuantity(globalStats.quantity));
-            if (stack)
-            {
-                td = libtuj.ce('td');
-                tr.appendChild(td);
-                td.appendChild(libtuj.FormatQuantity(Math.floor(globalStats.quantity/stack)));
-            }
 
             var median;
             tr = libtuj.ce('tr');
@@ -370,12 +451,6 @@ var TUJ_Item = function()
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.appendChild(libtuj.FormatPrice(median = libtuj.Median(globalStats.prices)));
-            if (stack)
-            {
-                td = libtuj.ce('td');
-                tr.appendChild(td);
-                td.appendChild(libtuj.FormatPrice(median*stack));
-            }
 
             var mn = libtuj.Mean(globalStats.prices);
             tr = libtuj.ce('tr');
@@ -387,56 +462,6 @@ var TUJ_Item = function()
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.appendChild(libtuj.FormatPrice(mn));
-            if (stack)
-            {
-                td = libtuj.ce('td');
-                tr.appendChild(td);
-                td.appendChild(libtuj.FormatPrice(mn*stack));
-            }
-        }
-
-        tr = libtuj.ce('tr');
-        t.appendChild(tr);
-        tr.className = 'spacer';
-        td = libtuj.ce('td');
-        td.colSpan = spacerColSpan;
-        tr.appendChild(td);
-
-        tr = libtuj.ce('tr');
-        t.appendChild(tr);
-        tr.className = 'vendor';
-        td = libtuj.ce('th');
-        tr.appendChild(td);
-        td.appendChild(document.createTextNode('Sell to Vendor'));
-        td = libtuj.ce('td');
-        tr.appendChild(td);
-        td.appendChild(data.stats.selltovendor ? libtuj.FormatPrice(data.stats.selltovendor) : document.createTextNode('Cannot'));
-        if (stack)
-        {
-            if (data.stats.selltovendor)
-            {
-                td = libtuj.ce('td');
-                tr.appendChild(td);
-                td.appendChild(libtuj.FormatPrice(data.stats.selltovendor*stack));
-            }
-            else
-                td.colSpan = 2;
-        }
-
-        tr = libtuj.ce('tr');
-        t.appendChild(tr);
-        tr.className = 'listing';
-        td = libtuj.ce('th');
-        tr.appendChild(td);
-        td.appendChild(document.createTextNode('48hr Listing Fee'));
-        td = libtuj.ce('td');
-        tr.appendChild(td);
-        td.appendChild(libtuj.FormatPrice(Math.max(100, data.stats.selltovendor ? data.stats.selltovendor * 0.6 : 0)));
-        if (stack)
-        {
-            td = libtuj.ce('td');
-            tr.appendChild(td);
-            td.appendChild(libtuj.FormatPrice(Math.max(100, data.stats.selltovendor ? data.stats.selltovendor * 0.6 * stack : 0)));
         }
 
         var ad = libtuj.ce();
@@ -444,7 +469,7 @@ var TUJ_Item = function()
         dest.appendChild(ad);
     }
 
-    function ItemHistoryChart(data, dest)
+    function BattlePetHistoryChart(data, dest)
     {
         var hcdata = {price: [], priceMaxVal: 0, quantity: [], quantityMaxVal: 0};
 
@@ -527,7 +552,7 @@ var TUJ_Item = function()
                     tr += '<br><span style="color: #000099">Market Price: '+libtuj.FormatPrice(this.points[0].y, true)+'</span>';
                     tr += '<br><span style="color: #990000">Quantity: '+libtuj.FormatQuantity(this.points[1].y, true)+'</span>';
                     return tr;
-                    // &lt;br/&gt;&lt;span style="color: #990000"&gt;Quantity: '+this.points[1].y+'&lt;/span&gt;<xsl:if test="itemgraphs/d[@matsprice != '']">&lt;br/&gt;&lt;span style="color: #999900"&gt;Materials Price: '+this.points[2].y.toFixed(2)+'g&lt;/span&gt;</xsl:if>';
+                    // &lt;br/&gt;&lt;span style="color: #990000"&gt;Quantity: '+this.points[1].y+'&lt;/span&gt;<xsl:if test="battlepetgraphs/d[@matsprice != '']">&lt;br/&gt;&lt;span style="color: #999900"&gt;Materials Price: '+this.points[2].y.toFixed(2)+'g&lt;/span&gt;</xsl:if>';
                 }
             },
             plotOptions: {
@@ -566,319 +591,7 @@ var TUJ_Item = function()
         });
     }
 
-    function ItemMonthlyChart(data, dest)
-    {
-        var hcdata = {price: [], priceMaxVal: 0, quantity: [], quantityMaxVal: 0};
-
-        var allPrices = [], dt, dtParts;
-        var offset = (new Date()).getTimezoneOffset() * 60 * 1000;
-        for (var x = 0; x < data.monthly.length; x++)
-        {
-            dtParts = data.monthly[x].date.split('-');
-            dt = Date.UTC(dtParts[0], parseInt(dtParts[1],10)-1, dtParts[2]) + offset;
-            hcdata.price.push([dt, data.monthly[x].silver * 100]);
-            hcdata.quantity.push([dt, data.monthly[x].quantity]);
-            if (data.monthly[x].quantity > hcdata.quantityMaxVal)
-                hcdata.quantityMaxVal = data.monthly[x].quantity;
-            allPrices.push(data.monthly[x].silver * 100);
-        }
-
-        allPrices.sort(function(a,b){ return a - b; });
-        var q1 = allPrices[Math.floor(allPrices.length * 0.25)];
-        var q3 = allPrices[Math.floor(allPrices.length * 0.75)];
-        var iqr = q3 - q1;
-        hcdata.priceMaxVal = q3 + (1.5 * iqr);
-
-        Highcharts.setOptions({
-            global: {
-                useUTC: false
-            }
-        });
-
-        $(dest).highcharts({
-            chart: {
-                zoomType: 'x'
-            },
-            title: {
-                text: null
-            },
-            subtitle: {
-                text: document.ontouchstart === undefined ?
-                    'Click and drag in the plot area to zoom in' :
-                    'Pinch the chart to zoom in'
-            },
-            xAxis: {
-                type: 'datetime',
-                maxZoom: 4 * 24 * 3600000, // four days
-                title: {
-                    text: null
-                }
-            },
-            yAxis: [{
-                title: {
-                    text: 'Market Price',
-                    style: {
-                        color: '#0000FF'
-                    }
-                },
-                labels: {
-                    enabled: true,
-                    formatter: function() { return ''+libtuj.FormatPrice(this.value, true); }
-                },
-                min: 0,
-                max: hcdata.priceMaxVal
-            }, {
-                title: {
-                    text: 'Quantity Available',
-                    style: {
-                        color: '#FF3333'
-                    }
-                },
-                labels: {
-                    enabled: true,
-                    formatter: function() { return ''+libtuj.FormatQuantity(this.value, true); }
-                },
-                opposite: true,
-                min: 0,
-                max: hcdata.quantityMaxVal
-            }],
-            legend: {
-                enabled: false
-            },
-            tooltip: {
-                shared: true,
-                formatter: function() {
-                    var tr = '<b>'+Highcharts.dateFormat('%a %b %d', this.x)+'</b>';
-                    tr += '<br><span style="color: #000099">Market Price: '+libtuj.FormatPrice(this.points[0].y, true)+'</span>';
-                    tr += '<br><span style="color: #990000">Quantity: '+libtuj.FormatQuantity(this.points[1].y, true)+'</span>';
-                    return tr;
-                    // &lt;br/&gt;&lt;span style="color: #990000"&gt;Quantity: '+this.points[1].y+'&lt;/span&gt;<xsl:if test="itemgraphs/d[@matsprice != '']">&lt;br/&gt;&lt;span style="color: #999900"&gt;Materials Price: '+this.points[2].y.toFixed(2)+'g&lt;/span&gt;</xsl:if>';
-                }
-            },
-            plotOptions: {
-                series: {
-                    lineWidth: 2,
-                    marker: {
-                        enabled: false,
-                        radius: 1,
-                        states: {
-                            hover: {
-                                enabled: true
-                            }
-                        }
-                    },
-                    states: {
-                        hover: {
-                            lineWidth: 2
-                        }
-                    }
-                }
-            },
-            series: [{
-                type: 'area',
-                name: 'Market Price',
-                color: '#0000FF',
-                lineColor: '#0000FF',
-                fillColor: '#CCCCFF',
-                data: hcdata.price
-            },{
-                type: 'line',
-                name: 'Quantity Available',
-                yAxis: 1,
-                color: '#FF3333',
-                data: hcdata.quantity
-            }]
-        });
-    }
-
-    function ItemDailyChart(data, dest)
-    {
-        var hcdata = {
-            ohlc: [],
-            ohlcMaxVal: 0,
-            price: [],
-            quantity: [],
-            quantityRange: [],
-            quantityMaxVal: 0
-        };
-
-        var allPrices = [], dt, dtParts;
-        var offset = (new Date()).getTimezoneOffset() * 60 * 1000;
-        for (var x = 0; x < data.daily.length; x++)
-        {
-            dtParts = data.daily[x].date.split('-');
-            dt = Date.UTC(dtParts[0], parseInt(dtParts[1],10)-1, dtParts[2]) + offset;
-
-            hcdata.ohlc.push([dt,
-                data.daily[x].silverstart * 100,
-                data.daily[x].silvermax * 100,
-                data.daily[x].silvermin * 100,
-                data.daily[x].silverend * 100
-            ]);
-            allPrices.push(data.daily[x].silvermax * 100);
-
-            hcdata.price.push([dt, data.daily[x].silveravg * 100]);
-
-            hcdata.quantity.push([dt, data.daily[x].quantityavg]);
-            hcdata.quantityRange.push([dt, data.daily[x].quantitymin, data.daily[x].quantitymax]);
-            if (data.daily[x].quantityavg > hcdata.quantityMaxVal)
-                hcdata.quantityMaxVal = data.daily[x].quantityavg;
-        }
-
-        allPrices.sort(function(a,b){ return a - b; });
-        var q1 = allPrices[Math.floor(allPrices.length * 0.25)];
-        var q3 = allPrices[Math.floor(allPrices.length * 0.75)];
-        var iqr = q3 - q1;
-        hcdata.ohlcMaxVal = q3 + (1.5 * iqr);
-
-        Highcharts.setOptions({
-            global: {
-                useUTC: false
-            }
-        });
-
-        $(dest).highcharts('StockChart', {
-            chart: {
-                zoomType: 'x'
-            },
-            rangeSelector: {
-                enabled: false
-            },
-            navigator: {
-                enabled: false
-            },
-            scrollbar: {
-                enabled: false
-            },
-            title: {
-                text: null
-            },
-            subtitle: {
-                text: document.ontouchstart === undefined ?
-                    'Click and drag in the plot area to zoom in' :
-                    'Pinch the chart to zoom in'
-            },
-            xAxis: {
-                type: 'datetime',
-                maxZoom: 4 * 24 * 3600000, // four days
-                title: {
-                    text: null
-                }
-            },
-            yAxis: [{
-                title: {
-                    text: 'Market Price',
-                    style: {
-                        color: '#0000FF'
-                    }
-                },
-                labels: {
-                    enabled: true,
-                    formatter: function() { return ''+libtuj.FormatPrice(this.value, true); },
-                },
-                height: '60%',
-                min: 0,
-                max: hcdata.ohlcMaxVal
-            }, {
-                title: {
-                    text: 'Quantity Available',
-                    style: {
-                        color: '#FF3333'
-                    }
-                },
-                labels: {
-                    enabled: true,
-                    formatter: function() { return ''+libtuj.FormatQuantity(this.value, true); }
-                },
-                top: '65%',
-                height: '35%',
-                min: 0,
-                max: hcdata.quantityMaxVal,
-                offset: -25
-            }],
-            legend: {
-                enabled: false
-            },
-            tooltip: {
-                shared: true,
-                formatter: function() {
-                    var tr = '<b>'+Highcharts.dateFormat('%a %b %d', this.x)+'</b>';
-                    tr += '<br><table class="highcharts-tuj-tooltip" style="color: #000099;" cellspacing="0" cellpadding="0">';
-                    tr += '<tr><td>Open:</td><td align="right">'+libtuj.FormatPrice(this.points[0].point.open, true)+'</td></tr>';
-                    tr += '<tr><td>High:</td><td align="right">'+libtuj.FormatPrice(this.points[0].point.high, true)+'</td></tr>';
-                    tr += '<tr style="color: #009900"><td>Avg:</td><td align="right">'+libtuj.FormatPrice(this.points[3].y, true)+'</td></tr>';
-                    tr += '<tr><td>Low:</td><td align="right">'+libtuj.FormatPrice(this.points[0].point.low, true)+'</td></tr>';
-                    tr += '<tr><td>Close:</td><td align="right">'+libtuj.FormatPrice(this.points[0].point.close, true)+'</td></tr>';
-                    tr += '</table>';
-                    tr += '<br><table class="highcharts-tuj-tooltip" style="color: #FF3333;" cellspacing="0" cellpadding="0">';
-                    tr += '<tr><td>Min&nbsp;Qty:</td><td align="right">'+libtuj.FormatQuantity(this.points[2].point.low, true)+'</td></tr>';
-                    tr += '<tr><td>Avg&nbsp;Qty:</td><td align="right">'+libtuj.FormatQuantity(this.points[1].y, true)+'</td></tr>';
-                    tr += '<tr><td>Max&nbsp;Qty:</td><td align="right">'+libtuj.FormatQuantity(this.points[2].point.high, true)+'</td></tr>';
-                    tr += '</table>';
-                    return tr;
-                    // &lt;br/&gt;&lt;span style="color: #990000"&gt;Quantity: '+this.points[1].y+'&lt;/span&gt;<xsl:if test="itemgraphs/d[@matsprice != '']">&lt;br/&gt;&lt;span style="color: #999900"&gt;Materials Price: '+this.points[2].y.toFixed(2)+'g&lt;/span&gt;</xsl:if>';
-                },
-                useHTML: true,
-                positioner: function(w,h,p)
-                {
-                    var x = p.plotX, y = p.plotY;
-                    if (y < 0)
-                        y = 0;
-                    if (x < (this.chart.plotWidth/2))
-                        x += w/2;
-                    else
-                        x -= w*1.25;
-                    return {x: x, y: y};
-                }
-            },
-            plotOptions: {
-                series: {
-                    lineWidth: 2,
-                    marker: {
-                        enabled: false,
-                        radius: 1,
-                        states: {
-                            hover: {
-                                enabled: true
-                            }
-                        }
-                    },
-                    states: {
-                        hover: {
-                            lineWidth: 2
-                        }
-                    }
-                }
-            },
-            series: [{
-                type: 'candlestick',
-                name: 'Market Price',
-                color: '#CCCCFF',
-                lineColor: '#0000FF',
-                data: hcdata.ohlc
-            },{
-                type: 'line',
-                name: 'Quantity',
-                yAxis: 1,
-                color: '#FF3333',
-                data: hcdata.quantity,
-                lineWidth: 2
-            },{
-                type: 'arearange',
-                name: 'Quantity Range',
-                yAxis: 1,
-                color: '#FFCCCC',
-                data: hcdata.quantityRange
-            },{
-                type: 'line',
-                name: 'Market Price',
-                color: '#009900',
-                data: hcdata.price
-            }]
-        });
-    }
-
-    function ItemPriceHeatMap(data, dest)
+    function BattlePetPriceHeatMap(data, dest)
     {
         var hcdata = {minVal: undefined, maxVal: 0, days: {}, heat: [], categories: {
             x: ['Midnight - 3am','3am - 6am','6am - 9am','9am - Noon','Noon - 3pm','3pm - 6pm','6pm - 9pm','9pm - Midnight'],
@@ -990,7 +703,7 @@ var TUJ_Item = function()
         });
     }
 
-    function ItemQuantityHeatMap(data, dest)
+    function BattlePetQuantityHeatMap(data, dest)
     {
         var hcdata = {minVal: undefined, maxVal: 0, days: {}, heat: [], categories: {
             x: ['Midnight - 3am','3am - 6am','6am - 9am','9am - Noon','Noon - 3pm','3pm - 6pm','6pm - 9pm','9pm - Midnight'],
@@ -1102,7 +815,7 @@ var TUJ_Item = function()
         });
     }
 
-    function ItemGlobalNowColumns(data, dest)
+    function BattlePetGlobalNowColumns(data, dest)
     {
         var hcdata = {categories: [], price: [], quantity: [], lastseen: [], houses: []};
         var allPrices = [];
@@ -1269,7 +982,7 @@ var TUJ_Item = function()
         });
     }
 
-    function ItemAuctions(data, dest)
+    function BattlePetAuctions(data, dest)
     {
         var t,tr,td;
         t = libtuj.ce('table');
@@ -1362,4 +1075,4 @@ var TUJ_Item = function()
     this.load(tuj.params);
 }
 
-tuj.page_item = new TUJ_Item();
+tuj.page_battlepet = new TUJ_BattlePet();
