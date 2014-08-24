@@ -223,6 +223,111 @@ var TUJ_Search = function()
             }
         }
 
+        if (dta.battlepets)
+        {
+            dta.battlepets.sort(function(a,b){
+                return a.name.localeCompare(b.name);
+            });
+
+            var pet;
+            var tableHeader, petResults = 0;
+
+            for (x = 0; pet = dta.battlepets[x]; x++)
+            {
+                lastResult = {page: 'battlepet', id: pet.id};
+                results++;
+
+                if (petResults++ == 0)
+                {
+                    t = libtuj.ce('table');
+                    t.className = 'search-pets';
+                    searchPage.append(t);
+
+                    tr = libtuj.ce('tr');
+                    t.appendChild(tr);
+
+                    td = libtuj.ce('th');
+                    td.className = 'title';
+                    tr.appendChild(td);
+                    td.colSpan=6;
+                    $(td).text('Battle Pets');
+
+                    tr = libtuj.ce('tr');
+                    tableHeader = tr;
+                    t.appendChild(tr);
+
+                    td = libtuj.ce('th');
+                    td.className = 'name';
+                    tr.appendChild(td);
+                    td.colSpan=2;
+                    $(td).text('Name');
+
+                    td = libtuj.ce('th');
+                    td.className = 'quantity';
+                    tr.appendChild(td);
+                    $(td).text('Avail');
+
+                    td = libtuj.ce('th');
+                    td.className = 'price';
+                    tr.appendChild(td);
+                    $(td).text('Current');
+
+                    td = libtuj.ce('th');
+                    td.className = 'price';
+                    tr.appendChild(td);
+                    $(td).text('Mean');
+
+                    td = libtuj.ce('th');
+                    td.className = 'date';
+                    tr.appendChild(td);
+                    $(td).text('Last Seen');
+                }
+                else if (petResults % 30 == 0)
+                    t.appendChild(tableHeader.cloneNode(true));
+
+                tr = libtuj.ce('tr');
+                t.appendChild(tr);
+
+                td = libtuj.ce('td');
+                td.className = 'icon';
+                tr.appendChild(td);
+                i = libtuj.ce('img');
+                td.appendChild(i);
+                i.className = 'icon';
+                i.src = 'icon/medium/' + pet.icon + '.jpg';
+
+                td = libtuj.ce('td');
+                td.className = 'name';
+                tr.appendChild(td);
+                a = libtuj.ce('a');
+                td.appendChild(a);
+                a.href = tuj.BuildHash({page: 'battlepet', id: pet.id});
+                if (pet.npc)
+                    a.rel = 'npc=' + pet.npc;
+                $(a).text('[' + pet.name + ']');
+
+                td = libtuj.ce('td');
+                td.className = 'quantity';
+                tr.appendChild(td);
+                td.appendChild(libtuj.FormatQuantity(pet.quantity));
+
+                td = libtuj.ce('td');
+                td.className = 'price';
+                tr.appendChild(td);
+                td.appendChild(libtuj.FormatPrice(pet.price));
+
+                td = libtuj.ce('td');
+                td.className = 'price';
+                tr.appendChild(td);
+                td.appendChild(libtuj.FormatPrice(pet.avgprice));
+
+                td = libtuj.ce('td');
+                td.className = 'date';
+                tr.appendChild(td);
+                td.appendChild(libtuj.FormatDate(pet.lastseen));
+            }
+        }
+
         if (results == 1)
             tuj.SetParams(lastResult);
         else

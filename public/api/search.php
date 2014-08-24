@@ -21,6 +21,7 @@ DBConnect();
 $json = array(
     'items' => SearchItems($house, $search),
     'sellers' => SearchSellers($house, $search),
+    'battlepets' => SearchBattlePets($house, $search),
 );
 
 $ak = array_keys($json);
@@ -78,6 +79,33 @@ EOF;
 
     $stmt = $db->prepare($sql);
     $stmt->bind_param('is', $house, $terms);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $tr = DBMapArray($result, null);
+    $stmt->close();
+    return $tr;
+}
+
+function SearchBattlePets($house, $search)
+{
+    global $db;
+
+    $terms = preg_replace('/\s+/', '%', " $search ");
+
+    $sql = <<<EOF
+select i.id, i.name, i.icon, i.type, i.npc,
+min(if(s.quantity>0,s.price,null)) price, sum(s.quantity) quantity, unix_timestamp(max(s.lastseen)) lastseen,
+(select round(avg(h.price)) from tblPetHistory h where h.house=? and h.species=i.id group by h.breed order by 1 asc limit 1) avgprice
+from tblPet i
+left join tblPetSummary s on s.house=? and s.species=i.id
+where i.name like ?
+group by i.id
+limit ?
+EOF;
+    $limit = 50 * strlen(preg_replace('/\s/','',$search));
+
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('iisi', $house, $house, $terms, $limit);
     $stmt->execute();
     $result = $stmt->get_result();
     $tr = DBMapArray($result, null);
