@@ -132,12 +132,13 @@ foreach ($regions as $region)
         }
         else
             $curHouse = ++$maxHouse;
-        foreach ($houses as $slug => &$row)
+        $houseKeys = array_keys($houses);
+        foreach ($houseKeys as $slug)
         {
             if (in_array($slug, $slugs))
                 continue;
-            if ($row['house'] == $curHouse)
-                $row['house'] = null;
+            if ($houses[$slug]['house'] == $curHouse)
+                $houses[$slug]['house'] = null;
         }
         foreach ($slugs as $slug)
         {
