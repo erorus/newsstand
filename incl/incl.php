@@ -9,6 +9,8 @@ date_default_timezone_set('UTC');
 
 define('HISTORY_DAYS', 14);
 
+require_once __DIR__.'/battlenet.credentials.php';
+
 function DebugMessage($message, $debugLevel = E_USER_NOTICE)
 {
     if (php_sapi_name() == 'cli')
@@ -102,25 +104,30 @@ function DBMapArray(&$result, $key = false, $autoClose = true)
 
 function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
 {
-    static $fetchMinute = '', $fetchMinuteCount = 0;
+    static $fetches = [];
+    static $isRetry = false;
     global $fetchHTTPErrorCaught;
 
-    if ($fetchMinute != Date('i'))
+    $wasRetry = $isRetry;
+    $isRetry = false;
+
+    if (count($fetches) >= 5)
     {
-        $fetchMinute = Date('i');
-        $fetchMinuteCount = 1;
+        while (count($fetches) >= 5)
+            $lastFetch = array_shift($fetches);
+        while ($lastFetch == time())
+            usleep(100000);
     }
-    else if (isset($inHeaders['noFetchLimit']))
+    array_push($fetches, time());
+
+    if (preg_match('/^https:\/\/(?:us|eu)\.api\.battle\.net\//', $url) > 0)
     {
-        unset($inHeaders['noFetchLimit']);
-    }
-    else
-    {
-        if ($fetchMinuteCount++ > 90)
+        $q = array();
+        parse_str(parse_url($url, PHP_URL_QUERY), $q);
+        if (!isset($q['apikey']))
         {
-            DebugMessage('Over 60 fetches performed this minute, waiting a minute.', E_USER_WARNING);
-            sleep(60);
-            $fetchMinuteCount = 0;
+            $creds = BattleNetCredentials();
+            $url .= ((strpos($url, '?') !== false) ? '&' : '?') . 'apikey=' . $creds['key'];
         }
     }
 
@@ -157,6 +164,14 @@ function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
     if ($fetchHTTPErrorCaught) return false;
     if (preg_match('/^2\d\d$/',$http_info['response_code']) > 0)
         return $data->body;
+    elseif (!$wasRetry && isset($data->headers['Retry-After']))
+    {
+        $delay = intval($data->headers['Retry-After'],10);
+        if ($delay > 0 && $delay <= 10)
+            sleep($delay);
+        $isRetry = true;
+        return FetchHTTP($url, $inHeaders, $outHeaders);
+    }
     else
         return false;
 }

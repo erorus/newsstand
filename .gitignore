@@ -4,4 +4,4 @@ snapshots/
 public/icon/
 lighttpd.conf/
 private/
-
+incl/*.credentials.php
