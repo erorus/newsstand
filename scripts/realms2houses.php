@@ -19,10 +19,10 @@ foreach ($regions as $region)
     heartbeat();
     if ($caughtKill)
         break;
-    $url = sprintf('https://%s.battle.net/api/wow/realm/status', strtolower($region));
+    $url = sprintf('https://%s.api.battle.net/wow/realm/status', strtolower($region));
 
     $json = FetchHTTP($url);
-    $realms = json_decode($json, true, 512, JSON_BIGINT_AS_STRING);
+    $realms = json_decode($json, true);
     if (json_last_error() != JSON_ERROR_NONE)
     {
         DebugMessage("$url did not return valid JSON");
@@ -43,7 +43,8 @@ foreach ($regions as $region)
     $nextId++;
 
     $stmt = $db->prepare('insert into tblRealm (id, region, slug, name, locale) values (?, ?, ?, ?, ?) on duplicate key update name=values(name), locale=values(locale)');
-    foreach ($realms['realms'] as &$realm)
+    $realms = $realms['realms'];
+    foreach ($realms as $realm)
     {
         $stmt->bind_param('issss', $nextId, $region, $realm['slug'], $realm['name'], $realm['locale']);
         $stmt->execute();
@@ -69,46 +70,43 @@ foreach ($regions as $region)
     $hashes = array();
     $retries = 0;
 
-    while ($retries++ < 10 && (count($hashes) == 0))
+    usort($realms, function($a,$b){
+        $r = strcmp($a['battlegroup'],$b['battlegroup']);
+        if ($r != 0) return $r;
+        $r = strcmp($a['type'],$b['type']);
+        if ($r != 0) return $r;
+        $r = strcmp($a['locale'],$b['locale']);
+        if ($r != 0) return $r;
+        $r = $a['tol-barad']['status'] - $b['tol-barad']['status'];
+        if ($r != 0) return $r;
+        $r = $a['tol-barad']['controlling-faction'] - $b['tol-barad']['controlling-faction'];
+        if ($r != 0) return $r;
+        $r = $a['tol-barad']['next'] - $b['tol-barad']['next'];
+        return $r;
+    });
+
+    $lastTime = 0;
+    $lastHash = '';
+
+    foreach ($realms as $r)
     {
-        $started = time();
-        foreach ($houses as &$realm)
-        {
-            heartbeat();
-            if ($caughtKill)
-                break 3;
-            DebugMessage("Fetching $region {$realm['slug']}");
-            $url = sprintf('https://%s.battle.net/api/wow/auction/data/%s', strtolower($region), $realm['slug']);
+        heartbeat();
+        if ($caughtKill)
+            break 2;
 
-            $json = FetchHTTP($url, array('noFetchLimit' => true));
-            $dta = json_decode($json, true);
-            if (!isset($dta['files']))
-            {
-                DebugMessage("$region {$realm['slug']} returned no files.", E_USER_WARNING);
-                continue;
-            }
+        $n = $r['tol-barad']['next'];
+        $thisHash = 'x' . $r['type'] . 'x' . $r['tol-barad']['controlling-faction'] . 'x' . $r['tol-barad']['status'] . $r['battlegroup'] . $r['locale'];
+        if (($lastHash != $thisHash) || ($n - $lastTime > 1000))
+            $lastTime = $n;
 
-            $hash = preg_match('/\b[a-f0-9]{32}\b/', $dta['files'][0]['url'], $res) > 0 ? $res[0] : '';
-            if ($hash == '')
-            {
-                DebugMessage("$region {$realm['slug']} had no hash in the URL: {$dta['files'][0]['url']}", E_USER_WARNING);
-                continue;
-            }
+        $lastHash = $thisHash;
+        $hash = md5(''.$lastTime.$lastHash);
 
-            $modified = intval($dta['files'][0]['lastModified'], 10)/1000;
-            if ($modified > $started)
-            {
-                DebugMessage("$region {$realm['slug']} was updated after we started. Starting over.");
-                $hashes = array();
-                break;
-            }
+        $houses[$r['slug']]['hash'] = $hash;
+        if (!isset($hashes[$hash]))
+            $hashes[$hash] = array();
 
-            $realm['hash'] = $hash;
-            if (!isset($hashes[$hash]))
-                $hashes[$hash] = array();
-
-            $hashes[$hash][] = $realm['slug'];
-        }
+        $hashes[$hash][] = $r['slug'];
     }
 
     heartbeat();
