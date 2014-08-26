@@ -4,4 +4,4 @@ snapshots/
 public/icon/
 lighttpd.conf/
 private/
-
+scripts/realms2houses_cache/*
