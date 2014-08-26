@@ -198,8 +198,8 @@ foreach ($regions as $region)
     $memcache->delete('realms_'.$region);
 }
 
-//CleanOldHouses();
-DebugMessage('Skipped cleaning old houses!');
+CleanOldHouses();
+//DebugMessage('Skipped cleaning old houses!');
 
 DebugMessage('Done!');
 
