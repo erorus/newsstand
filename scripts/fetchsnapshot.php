@@ -39,7 +39,7 @@ function FetchSnapshot()
     global $db, $region;
 
     $nextRealmSql = <<<ENDSQL
-    select r.house, min(r.slug), count(*) c, ifnull(hc.nextcheck, s.nextcheck) upd, s.lastupdate
+    select r.house, min(r.canonical), count(*) c, ifnull(hc.nextcheck, s.nextcheck) upd, s.lastupdate
     from tblRealm r
     left join (
         select deltas.house, timestampadd(second, least(ifnull(min(delta)+15, 45*60), 150*60), max(deltas.updated)) nextcheck, max(deltas.updated) lastupdate
@@ -55,6 +55,7 @@ function FetchSnapshot()
     left join tblHouseCheck hc on hc.house = r.house
     where r.region = ?
     and r.house is not null
+    and r.canonical is not null
     group by r.house
     order by ifnull(upd, '2000-01-01') asc, c desc, r.house asc
     limit 1
