@@ -54,6 +54,12 @@ function DBConnect($alternate = false)
     return $thisDb;
 }
 
+// key = false, use 1st column as key
+// key = 'abc', use col 'abc' as key
+// key = null, no key
+// key = array('abc', 'def'), use abc as first key, def as second
+// key = array('abc', false), use abc as first key, no key for second
+
 function DBMapArray(&$result, $key = false, $autoClose = true)
 {
     $tr = array();

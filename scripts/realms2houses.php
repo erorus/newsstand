@@ -19,6 +19,8 @@ foreach ($regions as $region)
     heartbeat();
     if ($caughtKill)
         break;
+    if (isset($argv[1]) && $argv[1] != $region)
+        continue;
     $url = sprintf('https://%s.battle.net/api/wow/realm/status', strtolower($region));
 
     $json = FetchHTTP($url);
@@ -43,7 +45,7 @@ foreach ($regions as $region)
     $nextId++;
 
     $stmt = $db->prepare('insert into tblRealm (id, region, slug, name, locale) values (?, ?, ?, ?, ?) on duplicate key update name=values(name), locale=values(locale)');
-    foreach ($realms['realms'] as &$realm)
+    foreach ($realms['realms'] as $realm)
     {
         $stmt->bind_param('issss', $nextId, $region, $realm['slug'], $realm['name'], $realm['locale']);
         $stmt->execute();
@@ -69,46 +71,74 @@ foreach ($regions as $region)
     $hashes = array();
     $retries = 0;
 
-    while ($retries++ < 10 && (count($hashes) == 0))
+    while ($retries++ < 10)
     {
         $started = time();
-        foreach ($houses as &$realm)
+        $needRetry = false;
+        $slugs = array_keys($houses);
+        foreach ($slugs as $slug)
         {
             heartbeat();
             if ($caughtKill)
                 break 3;
-            DebugMessage("Fetching $region {$realm['slug']}");
-            $url = sprintf('https://%s.battle.net/api/wow/auction/data/%s', strtolower($region), $realm['slug']);
+
+            if (isset($houses[$slug]['modified']))
+                continue;
+
+            //DebugMessage("Fetching $region $slug");
+            $url = sprintf('https://%s.battle.net/api/wow/auction/data/%s', strtolower($region), $slug);
 
             $json = FetchHTTP($url, array('noFetchLimit' => true));
             $dta = json_decode($json, true);
             if (!isset($dta['files']))
             {
-                DebugMessage("$region {$realm['slug']} returned no files.", E_USER_WARNING);
+                DebugMessage("$region $slug returned no files.", E_USER_WARNING);
                 continue;
             }
 
             $hash = preg_match('/\b[a-f0-9]{32}\b/', $dta['files'][0]['url'], $res) > 0 ? $res[0] : '';
             if ($hash == '')
             {
-                DebugMessage("$region {$realm['slug']} had no hash in the URL: {$dta['files'][0]['url']}", E_USER_WARNING);
+                DebugMessage("$region $slug had no hash in the URL: {$dta['files'][0]['url']}", E_USER_WARNING);
                 continue;
             }
 
-            $modified = intval($dta['files'][0]['lastModified'], 10)/1000;
+            DebugMessage("$region $slug $hash");
+
+            $modified = floor(intval($dta['files'][0]['lastModified'], 10)/1000);
             if ($modified > $started)
             {
-                DebugMessage("$region {$realm['slug']} was updated after we started. Starting over.");
-                $hashes = array();
-                break;
+                if (isset($hashes[$hash]))
+                {
+                    DebugMessage("$region $slug was updated $modified after we started $started, but we've already seen that hash. Continuing.");
+                }
+                else
+                {
+                    DebugMessage("$region $slug was updated $modified after we started $started. Starting over.");
+                    $k = array_keys($hashes);
+                    foreach ($k as $hash)
+                    {
+                        if ($houses[$hashes[$hash][0]]['modified'] < (time() - 20 * 60))
+                        {
+                            foreach ($hashes[$hash] as $wipeSlug)
+                                unset($houses[$wipeSlug]['hash'], $houses[$wipeSlug]['modified']);
+                            unset($hashes[$hash]);
+                        }
+                    }
+                    $needRetry = true;
+                    break;
+                }
             }
 
-            $realm['hash'] = $hash;
+            $houses[$slug]['hash'] = $hash;
+            $houses[$slug]['modified'] = $modified;
             if (!isset($hashes[$hash]))
                 $hashes[$hash] = array();
 
-            $hashes[$hash][] = $realm['slug'];
+            $hashes[$hash][] = $slug;
         }
+        if (!$needRetry)
+            break;
     }
 
     heartbeat();
