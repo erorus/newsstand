@@ -22,10 +22,10 @@ $result = $stmt->get_result();
 $houseRegionCache = DBMapArray($result);
 $stmt->close();
 
-$stmt = $db->prepare('select id, region, name from tblRealm');
+$stmt = $db->prepare('select id, region, name, replace(name, \' \', \'\') as ownerrealm from tblRealm');
 $stmt->execute();
 $result = $stmt->get_result();
-$realmCache = DBMapArray($result, array('region','name'));
+$ownerRealmCache = DBMapArray($result, array('region','ownerrealm'));
 $stmt->close();
 
 $maxPacketSize = 0;
@@ -356,7 +356,7 @@ function ParseAuctionData($house, $snapshot, &$json)
 
 function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
 {
-    global $db, $realmCache, $maxPacketSize;
+    global $db, $ownerRealmCache, $maxPacketSize;
 
     $snapshotString = Date('Y-m-d H:i:s', $snapshot);
     $workingRealms = array_keys($sellerInfo);
@@ -364,12 +364,12 @@ function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
 
     for ($r = 0; $r < count($workingRealms); $r++)
     {
-        if (!isset($realmCache[$region][$workingRealms[$r]]))
+        if (!isset($ownerRealmCache[$region][$workingRealms[$r]]))
             continue;
 
         $realmName = $workingRealms[$r];
 
-        $realmId = $realmCache[$region][$realmName]['id'];
+        $realmId = $ownerRealmCache[$region][$realmName]['id'];
 
         $sqlStart = "select name, id from tblSeller where realm = $realmId and name in (";
         $sql = $sqlStart;
