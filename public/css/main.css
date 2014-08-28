@@ -22,7 +22,7 @@ body.realm        #topcorner {display: none}
 #page-title a:hover { text-decoration: none }
 
 .give-padding > div, .get-padding { padding: 2em }
-#main { padding: 4em }
+#main { padding: 2em 4em }
 
 #topcorner .faction span { display: none }
 #topcorner .faction.alliance span.alliance { display: inline }
@@ -103,8 +103,9 @@ table.highcharts-tuj-tooltip td + td {padding-left: 0.4em}
 #item-page .chart { width: 100%; height: 22em; margin-top: 1em }
 #item-page .chart.daily { width: 100%; height: 30em }
 
+#item-page .item-stats .ad { margin-top: 0 }
 #item-page .item-stats { position: relative; text-align: right; font-size: 110%; display: inline-block; width: 100% }
-#item-page .item-stats table { width: 20em; float: left; margin: 1em 0; font-size: 100% }
+#item-page .item-stats table { width: 20em; float: left; margin: 0 0 1em; font-size: 100% }
 #item-page .item-stats table.with-stack { width: 25em }
 #item-page .item-stats tr.spacer td { height: 0.5em }
 #item-page .item-stats tr.stack-header td { padding-bottom: 0.5em; font-size: 80% }
@@ -132,6 +133,7 @@ table.highcharts-tuj-tooltip td + td {padding-left: 0.4em}
 .battlepet-breeds a.selected { opacity: 1; font-weight: bold }
 .battlepet-breeds a:hover { opacity: 1 }
 
+#seller-page .ad { margin-top: 0 }
 #seller-page .chart-section { margin: 2em 0 }
 #seller-page .chart-section h2 { font-size: 150%; margin-top: 0; margin-bottom: 0.75em }
 #seller-page .chart { width: 100%; height: 22em; margin-top: 1em }
