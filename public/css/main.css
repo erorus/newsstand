@@ -12,8 +12,8 @@ abbr { cursor: default }
 body.realm        #topcorner {display: none}
 
 #topbar { position: relative; width: 100%; }
-#topcorner { position: absolute; top: 0; right: 0; width: 20em; height: 100% }
-#title { margin-right: 20em; min-height: 11.5em }
+#topcorner { position: absolute; top: 0; right: 0; width: 22em; height: 100% }
+#title { margin-right: 22em; min-height: 11.5em }
 #title > div > a { border: 0; background-image: url('../images/underminetitle.2000.png'); background-repeat: no-repeat; background-size: contain; height: 4em; display: block; margin-bottom: 0.5em }
 
 #page-title { font-size: 2em; padding-left: 1em }
@@ -32,12 +32,12 @@ body.realm        #topcorner {display: none}
 body.realm #topcorner .realm { display: none }
 #topcorner span.region { cursor: default }
 
-#topcorner form {display: inline}
-#topcorner input {text-size: 150%; margin-top: 1em; padding: 0.5em; width: 100% }
+#topcorner form {margin: 0}
+#topcorner input {text-size: 150%; margin-top: 1em; padding: 0.5em; width: 100%; width: calc(100% - 1.5em); border: 0.25em solid #444; border-radius: 0.75em }
 body.realm #topcorner form { display: none }
 
-.ad { width: 720px; height: 70px; border: 1px solid red; margin: 1em 0; display: inline-block }
-.ad.box { width: 336px; height: 280px; }
+.ad { width: 720px; height: 70px; border: 1px solid red; margin: 1em auto }
+.ad.box { width: 336px; height: 280px; display: inline-block; margin: 1em 0 }
 
 .q0, .q0 a { color: #9d9d9d } /* Poor */
 .q1, .q1 a { color: #ffffff } /* Common */
@@ -88,6 +88,7 @@ table.auctionlist td.seller, table.auctionlist th.seller { padding-left: 2em; te
 
 td.name, th.name { text-align: left }
 td.icon, th.icon { width: 1.5em; height: 1.5em; padding-right: 0 ! important }
+td.icon img, th.icon img { border-radius: 3px; }
 img.icon {width: 1.5em; height: 1.5em}
 td.price, th.price,
 td.quantity, th.quantity,
@@ -99,9 +100,8 @@ table.highcharts-tuj-tooltip td + td {padding-left: 0.4em}
 
 #item-page .chart-section { margin: 2em 0 }
 #item-page .chart-section h2 { font-size: 150%; margin-top: 0; margin-bottom: 0.75em }
-#item-page .chart { width: 100%; height: 18em; margin-top: 1em }
+#item-page .chart { width: 100%; height: 22em; margin-top: 1em }
 #item-page .chart.daily { width: 100%; height: 30em }
-#item-page .chart.columns { width: 100%; height: 22em }
 
 #item-page .item-stats { position: relative; text-align: right; font-size: 110%; display: inline-block; width: 100% }
 #item-page .item-stats table { width: 20em; float: left; margin: 1em 0; font-size: 100% }
@@ -116,8 +116,7 @@ table.highcharts-tuj-tooltip td + td {padding-left: 0.4em}
 
 #battlepet-page .chart-section { margin: 2em 0 }
 #battlepet-page .chart-section h2 { font-size: 150%; margin-top: 0; margin-bottom: 0.75em }
-#battlepet-page .chart { width: 100%; height: 18em; margin-top: 1em }
-#battlepet-page .chart.columns { width: 100%; height: 22em }
+#battlepet-page .chart { width: 100%; height: 22em; margin-top: 1em }
 
 #battlepet-page .battlepet-stats { position: relative; text-align: right; font-size: 110%; display: inline-block; width: 100% }
 #battlepet-page .battlepet-stats table { width: 20em; float: left; margin: 1em 0; font-size: 100% }
@@ -132,3 +131,8 @@ table.highcharts-tuj-tooltip td + td {padding-left: 0.4em}
 .battlepet-breeds a:first-child { margin-left: 0 }
 .battlepet-breeds a.selected { opacity: 1; font-weight: bold }
 .battlepet-breeds a:hover { opacity: 1 }
+
+#seller-page .chart-section { margin: 2em 0 }
+#seller-page .chart-section h2 { font-size: 150%; margin-top: 0; margin-bottom: 0.75em }
+#seller-page .chart { width: 100%; height: 22em; margin-top: 1em }
+
