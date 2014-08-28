@@ -424,22 +424,22 @@ var TUJ = function()
 
     this.SetTitle = function(titlePart)
     {
-        var title = 'The Undermine Journal';
-
-        if (self.params.realm)
-            title += ' - ' + self.region + ' ' + self.realms[self.params.realm].name + ' ' + self.params.faction.substr(0,1).toUpperCase() + self.params.faction.substr(1);
+        var title = '';
 
         if (titlePart)
-            title += ' - ' + titlePart
+            title += titlePart + ' - '
         else if (self.params.page)
         {
-            console.log(self.params.page);
-            title += ' - ' + validPages[self.params.page].substr(0,1).toUpperCase() + validPages[self.params.page].substr(1);
+            title += validPages[self.params.page].substr(0,1).toUpperCase() + validPages[self.params.page].substr(1);
             if (self.params.id)
                 title += ': ' + self.params.id;
+            title += ' - ';
         }
 
-        document.title = title;
+        if (self.params.realm)
+            title += self.region + ' ' + self.realms[self.params.realm].name + ' ' + self.params.faction.substr(0,1).toUpperCase() + self.params.faction.substr(1) + ' - ';
+
+        document.title = title + 'The Undermine Journal';
     }
 
     this.BuildHash = function(p)
