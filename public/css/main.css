@@ -4,6 +4,7 @@ body {background-color: white; color: #333; margin: 0; overflow-y: scroll; font-
 a {text-decoration: none; color: black}
 a:active,a:focus { outline: none; }
 a:hover {text-decoration: underline}
+a img {border: 0}
 
 abbr { cursor: default }
 
@@ -14,7 +15,7 @@ body.realm        #topcorner {display: none}
 #topbar { position: relative; width: 100%; }
 #topcorner { position: absolute; top: 0; right: 0; width: 22em; height: 100% }
 #title { margin-right: 22em; min-height: 11.5em }
-#title > div > a { border: 0; background-image: url('../images/underminetitle.2000.png'); background-repeat: no-repeat; background-size: contain; height: 4em; display: block; margin-bottom: 0.5em }
+#title > div > a img { max-width: 100%; max-height: 4em }
 
 #page-title { font-size: 2em; padding-left: 1em }
 #page-title a.item img { vertical-align: middle; height: 1.2em; width: 1.2em; border-radius: 5px; border: 1px solid #333 }
@@ -33,7 +34,7 @@ body.realm #topcorner .realm { display: none }
 #topcorner span.region { cursor: default }
 
 #topcorner form {margin: 0}
-#topcorner input {text-size: 150%; margin-top: 1em; padding: 0.5em; width: 100%; width: calc(100% - 1.5em); border: 0.25em solid #444; border-radius: 0.75em }
+#topcorner input {text-size: 150%; margin-top: 1em; padding: 0.5em; width: 100%; width: calc(100% - 1.5em); border: 0.25em solid #444; box-shadow: 0.3em 0.3em #999 }
 body.realm #topcorner form { display: none }
 
 .ad { width: 720px; height: 70px; border: 1px solid red; margin: 1em auto }
