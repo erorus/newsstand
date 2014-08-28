@@ -62,7 +62,7 @@ abbr:hover.full-date { border-bottom: 1px dotted }
 .realms-column {width: 15em; display: none; vertical-align: top; text-align: left}
 #realm-list.width-test .realms-column {display: inline-block}
 #realm-list #faction-pick {font-size: 200%}
-#realm-list #faction-pick a {padding: 0.5em; display: inline-block; width: 25%; margin: 0.5em 5%; color: black; text-decoration: none }
+#realm-list #faction-pick a {padding: 0.5em; display: inline-block; width: 25%; margin: 0.5em 5%; color: black; text-decoration: none; box-shadow: 0.2em 0.2em #DDD }
 #realm-list #faction-pick a.alliance {background-color: #BBE}
 #realm-list #faction-pick a.horde {background-color: #E99}
 #realm-list.alliance #faction-pick a.horde {opacity: 0.5}
@@ -129,9 +129,9 @@ table.highcharts-tuj-tooltip td + td {padding-left: 0.4em}
 #battlepet-page .battlepet-stats th { width: 66%; text-align: left }
 
 .battlepet-breeds { margin-bottom: 2em; font-size: 120% }
-.battlepet-breeds a { padding: 1em; margin: 0em 1em; color: black; background-color: #DDD; opacity: 0.5; text-decoration: none }
+.battlepet-breeds a { padding: 1em; margin: 0em 1em; color: black; background-color: #DDD; opacity: 0.5; text-decoration: none; box-shadow: 0.2em 0.2em #CCC }
 .battlepet-breeds a:first-child { margin-left: 0 }
-.battlepet-breeds a.selected { opacity: 1; font-weight: bold }
+.battlepet-breeds a.selected { opacity: 1 }
 .battlepet-breeds a:hover { opacity: 1 }
 
 #seller-page .ad { margin-top: 0 }
