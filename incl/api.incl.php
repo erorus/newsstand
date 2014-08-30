@@ -34,3 +34,26 @@ function GetRegion($house)
 
     return $tr;
 }
+
+function GetHouse($realm)
+{
+    global $db;
+
+    if (($tr = MCGet('gethouse_'.$realm)) !== false)
+        return $tr;
+
+    DBConnect();
+
+    $sql = 'SELECT house from `tblRealm` where id=?';
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('i', $realm);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $tr = DBMapArray($result, null);
+    $stmt->close();
+    $tr = array_pop($tr);
+
+    MCSet('gethouse_'.$realm, $tr);
+
+    return $tr;
+}

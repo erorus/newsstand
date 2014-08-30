@@ -22,10 +22,10 @@ $result = $stmt->get_result();
 $houseRegionCache = DBMapArray($result);
 $stmt->close();
 
-$stmt = $db->prepare('select id, region, name from tblRealm');
+$stmt = $db->prepare('select id, region, name, replace(name, \' \', \'\') as ownerrealm from tblRealm');
 $stmt->execute();
 $result = $stmt->get_result();
-$realmCache = DBMapArray($result, array('region','name'));
+$ownerRealmCache = DBMapArray($result, array('region','ownerrealm'));
 $stmt->close();
 
 $maxPacketSize = 0;
@@ -187,6 +187,7 @@ function ParseAuctionData($house, $snapshot, &$json)
     $totalAuctions = 0;
     $itemInfo = array();
     $petInfo = array();
+    $sellerInfo = array();
 
     foreach ($json as $faction => &$factionData)
         if (isset($factionData['auctions']))
@@ -198,7 +199,6 @@ function ParseAuctionData($house, $snapshot, &$json)
             DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." parsing ".count($factionData['auctions'])." $faction auctions");
 
             $auctionCount = count($factionData['auctions']);
-            $sellerInfo = array();
             for ($x = 0; $x < $auctionCount; $x++)
             {
                 $auction =& $factionData['auctions'][$x];
@@ -313,6 +313,10 @@ function ParseAuctionData($house, $snapshot, &$json)
             unset($oldRow);
             UpdatePetInfo($factionHouse, $petInfo, $snapshot);
             $petInfo = array();
+
+            DebugMessage("House ".str_pad($factionHouse, 5, ' ', STR_PAD_LEFT)." updating seller history");
+            UpdateSellerInfo($sellerInfo, $snapshot);
+            $sellerInfo = array();
         }
 
     if (count($existingIds) > 0)
@@ -344,9 +348,6 @@ function ParseAuctionData($house, $snapshot, &$json)
     $ourDb->commit();
     $ourDb->close();
 
-    DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." updating seller history");
-    UpdateSellerInfo($sellerInfo, $snapshot);
-
     MCSetHouse($house, 'ts', $snapshot);
     MCSetHouse(-1 * $house, 'ts', $snapshot);
 
@@ -356,7 +357,7 @@ function ParseAuctionData($house, $snapshot, &$json)
 
 function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
 {
-    global $db, $realmCache, $maxPacketSize;
+    global $db, $ownerRealmCache, $maxPacketSize;
 
     $snapshotString = Date('Y-m-d H:i:s', $snapshot);
     $workingRealms = array_keys($sellerInfo);
@@ -364,12 +365,12 @@ function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
 
     for ($r = 0; $r < count($workingRealms); $r++)
     {
-        if (!isset($realmCache[$region][$workingRealms[$r]]))
+        if (!isset($ownerRealmCache[$region][$workingRealms[$r]]))
             continue;
 
         $realmName = $workingRealms[$r];
 
-        $realmId = $realmCache[$region][$realmName]['id'];
+        $realmId = $ownerRealmCache[$region][$realmName]['id'];
 
         $sqlStart = "select name, id from tblSeller where realm = $realmId and name in (";
         $sql = $sqlStart;
@@ -405,7 +406,7 @@ function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
                     }
 
                 if (count($lastSeenIds) > 0 && !$afterInsert)
-                     $db->query(sprintf('update tblSeller set lastseen = \'%s\' where id in (%d)', $snapshotString, implode(',',$lastSeenIds)));
+                     $db->query(sprintf('update tblSeller set lastseen = \'%s\' where id in (%s)', $snapshotString, implode(',',$lastSeenIds)));
 
                 $needInserts |= ($foundNames < $namesInQuery);
 
@@ -436,7 +437,7 @@ function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
                 }
 
             if (count($lastSeenIds) > 0 && !$afterInsert)
-                $db->query(sprintf('update tblSeller set lastseen = \'%s\' where id in (%d)', $snapshotString, implode(',',$lastSeenIds)));
+                $db->query(sprintf('update tblSeller set lastseen = \'%s\' where id in (%s)', $snapshotString, implode(',',$lastSeenIds)));
 
             $needInserts |= ($foundNames < $namesInQuery);
         }

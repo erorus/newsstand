@@ -1351,10 +1351,15 @@ var TUJ_Item = function()
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.className = 'seller';
-            a = libtuj.ce('a');
+            if (auc.sellerrealm)
+            {
+                a = libtuj.ce('a');
+                a.href = tuj.BuildHash({realm: auc.sellerrealm, page: 'seller', id: auc.sellername});
+            }
+            else
+                a = libtuj.ce('span');
             td.appendChild(a);
-            a.href = tuj.BuildHash({realm: auc.sellerrealm, page: 'seller', id: auc.sellername});
-            $(a).text(auc.sellername + (auc.sellerrealm != params.realm ? (' - ' + tuj.realms[auc.sellerrealm].name) : ''));
+            $(a).text(auc.sellername + (auc.sellerrealm && auc.sellerrealm != params.realm ? (' - ' + tuj.realms[auc.sellerrealm].name) : ''));
         }
 
         dest.appendChild(t);
