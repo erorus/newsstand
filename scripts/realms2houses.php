@@ -21,7 +21,7 @@ foreach ($regions as $region)
         break;
     if (isset($argv[1]) && $argv[1] != $region)
         continue;
-    $url = sprintf('https://%s.battle.net/api/wow/realm/status', strtolower($region));
+    $url = sprintf('http://local.theunderminejournal.com/api/bnetapi.php?region=%s&path=wow/realm/status', strtolower($region));
 
     $json = FetchHTTP($url);
     $realms = json_decode($json, true, 512, JSON_BIGINT_AS_STRING);
@@ -78,9 +78,9 @@ foreach ($regions as $region)
         $bySellerRealm[str_replace(' ', '', $row['name'])] = $row['slug'];
 
         DebugMessage("Fetching $region $slug");
-        $url = sprintf('https://%s.battle.net/api/wow/auction/data/%s', strtolower($region), $slug);
+        $url = sprintf('http://local.theunderminejournal.com/api/bnetapi.php?region=%s&path=%s', strtolower($region), rawurlencode("wow/auction/data/$slug"));
 
-        $json = FetchHTTP($url, array('noFetchLimit' => true));
+        $json = FetchHTTP($url);
         $dta = json_decode($json, true);
         if (!isset($dta['files']))
         {

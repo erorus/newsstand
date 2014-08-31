@@ -108,21 +108,11 @@ function DBMapArray(&$result, $key = false, $autoClose = true)
 
 function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
 {
-    static $fetches = [];
     static $isRetry = false;
     global $fetchHTTPErrorCaught;
 
     $wasRetry = $isRetry;
     $isRetry = false;
-
-    if (count($fetches) >= 5)
-    {
-        while (count($fetches) >= 5)
-            $lastFetch = array_shift($fetches);
-        while ($lastFetch == time())
-            usleep(100000);
-    }
-    array_push($fetches, time());
 
     $fetchHTTPErrorCaught = false;
     if (!isset($inHeaders['Connection'])) $inHeaders['Connection']='Keep-Alive';
