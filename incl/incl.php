@@ -9,8 +9,6 @@ date_default_timezone_set('UTC');
 
 define('HISTORY_DAYS', 14);
 
-require_once __DIR__.'/battlenet.credentials.php';
-
 function DebugMessage($message, $debugLevel = E_USER_NOTICE)
 {
     if (php_sapi_name() == 'cli')
@@ -126,17 +124,6 @@ function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
     }
     array_push($fetches, time());
 
-    if (preg_match('/^https:\/\/(?:us|eu)\.api\.battle\.net\//', $url) > 0)
-    {
-        $q = array();
-        parse_str(parse_url($url, PHP_URL_QUERY), $q);
-        if (!isset($q['apikey']))
-        {
-            $creds = BattleNetCredentials();
-            $url .= ((strpos($url, '?') !== false) ? '&' : '?') . 'apikey=' . $creds['key'];
-        }
-    }
-
     $fetchHTTPErrorCaught = false;
     if (!isset($inHeaders['Connection'])) $inHeaders['Connection']='Keep-Alive';
     $inHeaders['Accept-Encoding'] = 'gzip';
@@ -145,7 +132,7 @@ function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
         'connecttimeout' => 6,
         'headers' => $inHeaders,
         'compress' => true,
-        'redirect' => (preg_match('/^https?:\/\/(?:[a-z]+\.)?battle\.net\//',$url) > 0)?0:6
+        'redirect' => (preg_match('/^https?:\/\/(?:[a-z]+\.)*\bbattle\.net\//',$url) > 0)?0:3
     );
     //if ($eTag) $http_opt['etag'] = $eTag;
 
