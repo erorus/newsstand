@@ -108,27 +108,11 @@ function DBMapArray(&$result, $key = false, $autoClose = true)
 
 function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
 {
-    static $fetchMinute = '', $fetchMinuteCount = 0;
+    static $isRetry = false;
     global $fetchHTTPErrorCaught;
 
-    if ($fetchMinute != Date('i'))
-    {
-        $fetchMinute = Date('i');
-        $fetchMinuteCount = 1;
-    }
-    else if (isset($inHeaders['noFetchLimit']))
-    {
-        unset($inHeaders['noFetchLimit']);
-    }
-    else
-    {
-        if ($fetchMinuteCount++ > 90)
-        {
-            DebugMessage('Over 60 fetches performed this minute, waiting a minute.', E_USER_WARNING);
-            sleep(60);
-            $fetchMinuteCount = 0;
-        }
-    }
+    $wasRetry = $isRetry;
+    $isRetry = false;
 
     $fetchHTTPErrorCaught = false;
     if (!isset($inHeaders['Connection'])) $inHeaders['Connection']='Keep-Alive';
@@ -138,7 +122,7 @@ function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
         'connecttimeout' => 6,
         'headers' => $inHeaders,
         'compress' => true,
-        'redirect' => (preg_match('/^https?:\/\/(?:[a-z]+\.)?battle\.net\//',$url) > 0)?0:6
+        'redirect' => (preg_match('/^https?:\/\/(?:[a-z]+\.)*\bbattle\.net\//',$url) > 0)?0:3
     );
     //if ($eTag) $http_opt['etag'] = $eTag;
 
@@ -163,6 +147,14 @@ function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
     if ($fetchHTTPErrorCaught) return false;
     if (preg_match('/^2\d\d$/',$http_info['response_code']) > 0)
         return $data->body;
+    elseif (!$wasRetry && isset($data->headers['Retry-After']))
+    {
+        $delay = intval($data->headers['Retry-After'],10);
+        if ($delay > 0 && $delay <= 10)
+            sleep($delay);
+        $isRetry = true;
+        return FetchHTTP($url, $inHeaders, $outHeaders);
+    }
     else
         return false;
 }
