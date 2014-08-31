@@ -82,7 +82,7 @@ ENDSQL;
 
     DebugMessage("$region $slug fetch for house $house to update $realmCount realms, due since ".(is_null($nextDate) ? 'unknown' : TimeDiff(strtotime($nextDate), array('precision' => 'second'))));
 
-    $url = sprintf('https://%s.battle.net/api/wow/auction/data/%s', strtolower($region), $slug);
+    $url = sprintf('https://%s.api.battle.net/wow/auction/data/%s', strtolower($region), $slug);
 
     $json = FetchHTTP($url);
     $dta = json_decode($json, true);
@@ -108,14 +108,14 @@ ENDSQL;
 
     DebugMessage("$region $slug updated ".TimeDiff($modified).", fetching auction data file");
     $dlStart = microtime(true);
-    $data = FetchHTTP(preg_replace('/^http:\/\/((?:us|eu)\.battle\.net\/)/', 'https://$1', $fileInfo['url']), array(), $outHeaders);
+    $data = FetchHTTP($fileInfo['url'], array(), $outHeaders);
     $dlDuration = microtime(true) - $dlStart;
     if (!$data)
     {
         DebugMessage("$region $slug data file empty. Waiting 5 seconds and trying again.");
         sleep(5);
         $dlStart = microtime(true);
-        $data = FetchHTTP(preg_replace('/^http:\/\/((?:us|eu)\.battle\.net\/)/', 'https://$1', $fileInfo['url'].(parse_url($fileInfo['url'], PHP_URL_QUERY) ? '&' : '?').'please'), array(), $outHeaders);
+        $data = FetchHTTP($fileInfo['url'].(parse_url($fileInfo['url'], PHP_URL_QUERY) ? '&' : '?').'please', array(), $outHeaders);
         $dlDuration = microtime(true) - $dlStart;
     }
     if (!$data)
