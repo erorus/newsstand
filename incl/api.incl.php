@@ -2,6 +2,12 @@
 
 function json_return($json)
 {
+    if ($json === false)
+    {
+        header('HTTP/1.1 400 Bad Request');
+        exit;
+    }
+
     if (!is_string($json))
         $json = json_encode($json, JSON_NUMERIC_CHECK);
 

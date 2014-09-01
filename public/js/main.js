@@ -203,6 +203,7 @@ var tujConstants = {
 var TUJ = function()
 {
     var validPages = ['','search','item','seller','battlepet','contact'];
+    var pagesNeedRealm = [true, true, true, true, true, false];
     this.validFactions = {'alliance': 1, 'horde': -1};
     this.region = undefined;
     this.realms = undefined;
@@ -266,7 +267,7 @@ var TUJ = function()
 
         $('#main .page').hide();
         $('#realm-list').removeClass('show');
-        if (!self.params.realm)
+        if (!self.params.realm && (!self.params.page || pagesNeedRealm[self.params.page]))
         {
             if (self.params.faction)
                 ChooseFaction(self.params.faction);
@@ -389,6 +390,11 @@ var TUJ = function()
 
     function UpdateSidebar()
     {
+        if (self.params.realm)
+            $('#topcorner').show();
+        else
+            $('#topcorner').hide();
+
         var regionLink = $('#topcorner span.region');
         regionLink.text(self.region);
 

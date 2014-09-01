@@ -41,15 +41,33 @@
 
                     Our data collection is fresh as well, and we no longer have the old history data. This isn't as big a problem as you'd guess, since realms are getting connected all the time, and the Alliance and Horde auction houses will be joined with WoW 6.0 later this season anyway. When that happens, we'll wipe the data once again, since it'll be a whole new market.<p>
 
-                    Category pages are not yet available, but we plan on getting those back up and running over the next few weeks. There are no plans to rebuild market notifications, the market API, or the addon. EU realms are also unavailable, though we plan on supporting all EU realms when the Warlords of Draenor pre-patch is released.<p/>
+                    Category pages are not yet available, but we plan on getting those back up and running over the next few weeks. There are no plans to rebuild market notifications, the market API, or the addon. EU realms are also unavailable, though we plan on supporting all EU realms when the Warlords of Draenor pre-patch is released.<p>
 
-                    Since we are beta testing, we welcome your feedback <a href="http://stormspire.net/official-forum-undermine-journal/">in our official forum</a>. Expect things to change and grow over the coming weeks.<p/>
+                    Since we are beta testing, we welcome your feedback <a href="http://stormspire.net/official-forum-undermine-journal/">in our official forum</a>. Expect things to change and grow over the coming weeks.<p>
 
                     Thank you for your patience and support while we were away. We hope you like our new look, and we're happy to continue serving your auction house data needs.
                     </div>
                 </div>
                 <div class="page" id="contact-page">
-                    Contact us
+                    <div class="form">
+                        We encourage you to use <a href="http://stormspire.net/official-forum-undermine-journal/">our official forum</a> for your comments and suggestions, so we can cut down on answering the same question multiple times.<p>
+
+                        However, if your comment is very specific or must be kept private, you can contact us directly by using the form below.
+
+                        <form method="POST" onsubmit="return tuj.page_contact.submit(this)"><input type="text" name="subject" class="namefield" value="Subject">
+                            <table border="0" cellspacing="0" cellpadding="5">
+                                <tr><th>Your Email Address</th><td><input type="text" name="from" size="30" maxlength="200"></td></tr>
+                                <tr><th style="vertical-align: top">Message</th><td><textarea name="message" wrap="soft"></textarea></td></tr>
+                                <tr><th colspan="2"><input type="submit" value="Send Message"></th></tr>
+                            </table>
+                        </form>
+                    </div>
+                    <div class="error">
+                        There was a problem sending your message. Please try again later. Your message follows: <div id="contact-error-message"></div>
+                    </div>
+                    <div class="done">
+                        Thanks for your comments. We read all messages we receive, but replies may be delayed by a few days.
+                    </div>
                 </div>
             </div>
         </div>
