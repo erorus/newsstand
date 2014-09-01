@@ -3,6 +3,7 @@
 $memcache = new Memcache;
 if (!$memcache->connect('127.0.0.1', 11211))
     DebugMessage('Cannot connect to memcached!', E_USER_ERROR);
+$memcache->setCompressThreshold(50*1024);
 
 function MCGetHouse($house, $key = 'ts')
 {
