@@ -1,5 +1,8 @@
 <?php
 
+define('THROTTLE_PERIOD', 3600); // seconds
+define('THROTTLE_MAXHITS', 200);
+
 function json_return($json)
 {
     if ($json === false)
@@ -62,4 +65,55 @@ function GetHouse($realm)
     MCSet('gethouse_'.$realm, $tr);
 
     return $tr;
+}
+
+function BotCheck()
+{
+    $c = UserThrottleCount();
+    if ($c > THROTTLE_MAXHITS * 2)
+        BanIP();
+    if ($c > THROTTLE_MAXHITS)
+        json_return(CaptchaDetails());
+}
+
+function BanIP()
+{
+    // TODO
+    header('HTTP/1.1 429 Too Many Requests');
+    exit;
+}
+
+function CaptchaDetails()
+{
+
+}
+
+function UserThrottleCount($reset = false)
+{
+    static $returned = false;
+    if (!$reset && $returned !== false)
+        return $returned;
+
+    global $memcache;
+
+    $k = 'throttle_%s_'.$_SERVER['REMOTE_ADDR'];
+    $kTime = sprintf($k, 'time');
+    $kCount = sprintf($k, 'count');
+
+    if ($reset)
+    {
+        $memcache->delete($kTime);
+        return $returned = 0;
+    }
+
+    $vals = $memcache->get(array($kTime,$kCount));
+    $memcache->set($kTime, time(), false, THROTTLE_PERIOD);
+    if (!isset($vals[$kTime]) || !isset($vals[$kCount]) || ($vals[$kTime] < time() - THROTTLE_PERIOD))
+    {
+        $memcache->set($kCount, 1, false, THROTTLE_PERIOD*2);
+        return $returned = 1;
+    }
+    $memcache->increment($kCount);
+
+    return $returned = ++$vals[$kCount];
 }

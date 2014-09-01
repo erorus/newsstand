@@ -13,6 +13,8 @@ $item = intval($_GET['item'], 10);
 if (!$item)
     json_return(array());
 
+BotCheck();
+
 $json = array(
     'stats'     => ItemStats($house, $item),
     'history'   => ItemHistory($house, $item),

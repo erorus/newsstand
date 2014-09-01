@@ -16,6 +16,7 @@ if ($search == '')
 if ($json = MCGetHouse($house, 'search_'.$search))
     json_return($json);
 
+BotCheck();
 DBConnect();
 
 $json = array(
