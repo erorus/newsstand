@@ -202,7 +202,7 @@ var tujConstants = {
 
 var TUJ = function()
 {
-    var validPages = ['','search','item','seller','category','battlepet'];
+    var validPages = ['','search','item','seller','battlepet','contact'];
     this.validFactions = {'alliance': 1, 'horde': -1};
     this.region = undefined;
     this.realms = undefined;
@@ -400,6 +400,9 @@ var TUJ = function()
         var realmLink = $('#topcorner a.realm');
         realmLink[0].href = self.BuildHash({realm: undefined});
         realmLink.text(self.params.realm ? self.realms[self.params.realm].name : '');
+
+        var contactLink = $('#bottom-bar a.contact');
+        contactLink[0].href = self.BuildHash({page: 'contact', id: undefined});
 
         $('#title a')[0].href = self.BuildHash({page: undefined});
         $('#page-title').empty();
