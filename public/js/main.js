@@ -308,6 +308,8 @@ var TUJ = function()
             return;
         }
 
+        inMain = false;
+
         document.body.className = validPages[self.params.page];
 
         if (typeof tuj['page_'+validPages[self.params.page]] == 'undefined')
@@ -315,7 +317,6 @@ var TUJ = function()
         else
             tuj['page_'+validPages[self.params.page]].load(self.params);
 
-        inMain = false;
     }
 
     function ReadParams()
