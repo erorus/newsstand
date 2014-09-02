@@ -268,9 +268,9 @@ var TUJ_BattlePet = function()
                         if (!dta.history.hasOwnProperty(cur.snapshot))
                         {
                             o = {};
-                            for (x in h)
-                                if (h.hasOwnProperty(x))
-                                    o[x] = h[x];
+                            for (z in cur)
+                                if (cur.hasOwnProperty(z))
+                                    o[z] = cur[z];
                             delete o.breed;
                             dta.history[o.snapshot] = o;
                             continue;
