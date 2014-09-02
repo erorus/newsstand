@@ -32,7 +32,7 @@ function DBConnect($alternate = false)
         return $db;
 
     $host = 'localhost';
-    $user = 'newsstand';
+    $user = (php_sapi_name() == 'cli') ? 'newsstand' : 'newsstand_web';
     $pass = 'D2seYZcwz3sPcTYt';
     $database = 'newsstand';
 
