@@ -34,7 +34,12 @@ var TUJ_Search = function()
         }
         $.ajax({
             data: qs,
-            success: function(d) { SearchResult(hash, d); },
+            success: function(d) {
+                if (d.captcha)
+                    tuj.AskCaptcha(d.captcha);
+                else
+                    SearchResult(hash, d);
+            },
             url: 'api/search.php'
         });
     }

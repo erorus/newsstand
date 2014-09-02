@@ -35,7 +35,12 @@ var TUJ_Item = function()
 
         $.ajax({
             data: qs,
-            success: function(d) { ItemResult(hash, d); },
+            success: function(d) {
+                if (d.captcha)
+                    tuj.AskCaptcha(d.captcha);
+                else
+                    ItemResult(hash, d);
+            },
             url: 'api/item.php'
         });
     }

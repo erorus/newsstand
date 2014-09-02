@@ -1,7 +1,7 @@
 <?php
 
 define('THROTTLE_PERIOD', 3600); // seconds
-define('THROTTLE_MAXHITS', 5);
+define('THROTTLE_MAXHITS', 200);
 
 function json_return($json)
 {
@@ -133,7 +133,7 @@ function CaptchaDetails()
     if (isset($raceExclude[$goodRace]))
         $exclude = array_merge($exclude, $raceExclude[$goodRace]);
 
-    $sql = sprintf($sql, implode(',',$exclude), 10 - $howMany);
+    $sql = sprintf($sql, implode(',',$exclude), 12 - $howMany);
     $stmt = $db->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();

@@ -150,3 +150,9 @@ table.highcharts-tuj-tooltip td + td {padding-left: 0.4em}
 #contact-page textarea { width: 30em; height: 12em; font-family: sans-serif; font-size: 12pt }
 
 #contact-error-message { white-space: pre-line; max-width: 50em; margin: 2em }
+
+#captcha-page { font-size: 125%; }
+div.captcha { margin: 2em auto; width: 60em; text-align: center }
+img.captcha-button { width: 16em; margin: 0.5em; border-radius: 1em; border: 0.5em solid white }
+img.captcha-button.selected { border-color: #006600 }
+#captcha-page input { font-size: 125% }

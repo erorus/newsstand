@@ -197,7 +197,20 @@ var tujConstants = {
         14: 'Permanent',
         15: 'Miscellaneous'
     },
-    itemClassOrder: [2,9,6,4,7,3,14,1,15,8,16,10,12,13,17,18,5,11]
+    itemClassOrder: [2,9,6,4,7,3,14,1,15,8,16,10,12,13,17,18,5,11],
+    races: {
+        10: 'Blood Elves',
+        11: 'Draenei',
+         3: 'Dwarves',
+         7: 'Gnomes',
+         9: 'Goblins',
+         1: 'Humans',
+         4: 'Night Elves',
+         2: 'Orcs',
+         6: 'Tauren',
+         8: 'Trolls',
+         5: 'Undead'
+    }
 }
 
 var TUJ = function()
@@ -603,6 +616,85 @@ var TUJ = function()
         self.SetParams({faction: toAdd});
         Main();
     }
+
+    var CaptchaClick = function()
+    {
+        var i = $(this);
+        if (i.hasClass('selected'))
+            i.removeClass('selected');
+        else
+            i.addClass('selected');
+    };
+
+    var CaptchaSubmit = function()
+    {
+        var answer = '';
+        var imgs = this.parentNode.getElementsByTagName('img');
+        for (var x = 0; x < imgs.length; x++)
+        {
+            if ($(imgs[x]).hasClass('selected'))
+                answer += imgs[x].id.substr(8);
+        }
+
+        if (answer == '')
+            return;
+
+        $.ajax({
+            data: {answer: answer},
+            success: function(d) {
+                if (d.captcha)
+                    tuj.AskCaptcha(d.captcha);
+                else
+                    Main();
+            },
+            url: 'api/captcha.php'
+        });
+    };
+
+    this.AskCaptcha = function(c)
+    {
+        var captchaPage = $('#captcha-page')[0];
+        if (!captchaPage)
+        {
+            captchaPage = libtuj.ce();
+            captchaPage.id = 'captcha-page';
+            captchaPage.className = 'page';
+            $('#main').append(captchaPage);
+        }
+
+        $('#page-title').text('Solve Captcha');
+        tuj.SetTitle('Solve Captcha');
+
+        $(captchaPage).empty();
+
+        captchaPage.appendChild(document.createTextNode("You viewed a lot of pages recently. To make sure you're not a script, please select all the "+tujConstants.races[c.lookfor]+" without helms."));
+
+        d = libtuj.ce();
+        d.className = 'captcha';
+        captchaPage.appendChild(d);
+
+        for (var x = 0; x < c.ids.length; x++)
+        {
+            var img = libtuj.ce('img');
+            img.className = 'captcha-button';
+            img.src = 'captcha/'+ c.ids[x]+'.jpg';
+            img.id = 'captcha-'+(x+1);
+            $(img).click(CaptchaClick);
+            d.appendChild(img);
+        }
+
+        var b = libtuj.ce('br');
+        b.clear = 'all';
+        d.appendChild(b);
+
+        b = libtuj.ce('input');
+        b.value = 'Submit';
+        b.type = 'button';
+        $(b).click(CaptchaSubmit);
+        d.appendChild(b);
+
+        $(captchaPage).show();
+    };
 
     function ShowRealmFrontPage()
     {

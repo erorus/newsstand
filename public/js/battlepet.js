@@ -45,7 +45,12 @@ var TUJ_BattlePet = function()
 
         $.ajax({
             data: qs,
-            success: function(d) { BattlePetResult(hash, d); },
+            success: function(d) {
+                if (d.captcha)
+                    tuj.AskCaptcha(d.captcha);
+                else
+                    BattlePetResult(hash, d);
+            },
             url: 'api/battlepet.php'
         });
     }
