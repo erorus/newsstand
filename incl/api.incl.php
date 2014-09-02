@@ -1,7 +1,7 @@
 <?php
 
 define('THROTTLE_PERIOD', 3600); // seconds
-define('THROTTLE_MAXHITS', 200);
+define('THROTTLE_MAXHITS', 5);
 
 function json_return($json)
 {
@@ -69,18 +69,17 @@ function GetHouse($realm)
 
 function BotCheck()
 {
-    // TODO
-    return;
-    
     $c = UserThrottleCount();
     if ($c > THROTTLE_MAXHITS * 2)
         BanIP();
     if ($c > THROTTLE_MAXHITS)
-        json_return(CaptchaDetails());
+        json_return(array('captcha' => CaptchaDetails()));
 }
 
 function BanIP()
 {
+    return;
+
     // TODO
     header('HTTP/1.1 429 Too Many Requests');
     exit;
@@ -88,7 +87,80 @@ function BanIP()
 
 function CaptchaDetails()
 {
+    global $db;
 
+    $cacheKey = 'captcha_'.$_SERVER['REMOTE_ADDR'];
+    if (($details = MCGet($cacheKey)) !== false)
+        return $details['public'];
+
+    DBConnect();
+
+    $races = array(
+        'bloodelf' => 10,
+        'draenei' => 11,
+        'dwarf' => 3,
+        'gnome' => 7,
+        'goblin' => 9,
+        'human' => 1,
+        'nightelf' => 4,
+        'orc' => 2,
+        'tauren' => 6,
+        'troll' => 8,
+        'undead' => 5,
+    );
+
+    $raceExclude = array(
+        $races['bloodelf'] => array($races['nightelf']),
+        $races['nightelf'] => array($races['bloodelf']),
+    );
+
+    $keys = array_keys($races);
+    $goodRace = $races[$keys[rand(0, count($keys)-1)]];
+
+    $howMany = rand(2,3);
+
+    $sql = 'select * from tblCaptcha where race = ? and helm = 0 order by rand() limit ?';
+
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('ii', $goodRace, $howMany);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $goodRows = DBMapArray($result);
+    $stmt->close();
+
+    $sql = 'select * from tblCaptcha where race not in (%s) order by rand() limit %d';
+    $exclude = array($goodRace);
+    if (isset($raceExclude[$goodRace]))
+        $exclude = array_merge($exclude, $raceExclude[$goodRace]);
+
+    $sql = sprintf($sql, implode(',',$exclude), 10 - $howMany);
+    $stmt = $db->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $badRows = DBMapArray($result);
+    $stmt->close();
+
+    $allRows = array_merge($goodRows, $badRows);
+    shuffle($allRows);
+
+    $details = array(
+        'answer' => '',
+        'public' => array(
+            'lookfor' => $goodRace,
+            'ids' => array()
+        )
+    );
+
+    for ($x = 0; $x < count($allRows); $x++)
+    {
+        if (isset($goodRows[$allRows[$x]['id']]))
+            $details['answer'] .= ($x+1);
+        $details['public']['ids'][] = $allRows[$x]['id'];
+    };
+
+    MCSet($cacheKey, $details);
+
+    return $details['public'];
 }
 
 function UserThrottleCount($reset = false)

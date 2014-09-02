@@ -39,8 +39,8 @@ function MCGet($key)
 {
     global $memcache;
 
-    if (isset($_GET['refresh']))
-        return false;
+    //if (isset($_GET['refresh']))
+    //    return false;
 
     return $memcache->get($key);
 }
