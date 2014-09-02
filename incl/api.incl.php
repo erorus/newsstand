@@ -69,6 +69,9 @@ function GetHouse($realm)
 
 function BotCheck()
 {
+    // TODO
+    return;
+    
     $c = UserThrottleCount();
     if ($c > THROTTLE_MAXHITS * 2)
         BanIP();
