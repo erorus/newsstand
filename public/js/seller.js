@@ -33,6 +33,8 @@ var TUJ_Seller = function()
             $('#main').append(sellerPage);
         }
 
+        $('#progress-page').show();
+
         $.ajax({
             data: qs,
             success: function(d) {
@@ -40,6 +42,9 @@ var TUJ_Seller = function()
                     tuj.AskCaptcha(d.captcha);
                 else
                     SellerResult(hash, d);
+            },
+            complete: function() {
+                $('#progress-page').hide();
             },
             url: 'api/seller.php'
         });

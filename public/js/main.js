@@ -245,6 +245,9 @@ var TUJ = function()
         if (typeof self.realms == 'undefined')
         {
             inMain = false;
+
+            $('#progress-page').show();
+
             $.ajax({
                 success: function(dta)
                 {
@@ -261,6 +264,9 @@ var TUJ = function()
                 {
                     alert('Error getting realms: '+stat + ' ' + er);
                     self.realms = [];
+                },
+                complete: function() {
+                    $('#progress-page').hide();
                 },
                 url: 'api/realms.php'
             });
@@ -639,6 +645,8 @@ var TUJ = function()
         if (answer == '')
             return;
 
+        $('#progress-page').show();
+
         $.ajax({
             data: {answer: answer},
             success: function(d) {
@@ -646,6 +654,9 @@ var TUJ = function()
                     tuj.AskCaptcha(d.captcha);
                 else
                     Main();
+            },
+            complete: function() {
+                $('#progress-page').hide();
             },
             url: 'api/captcha.php'
         });

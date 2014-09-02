@@ -43,6 +43,8 @@ var TUJ_BattlePet = function()
             $('#main').append(battlePetPage);
         }
 
+        $('#progress-page').show();
+
         $.ajax({
             data: qs,
             success: function(d) {
@@ -50,6 +52,9 @@ var TUJ_BattlePet = function()
                     tuj.AskCaptcha(d.captcha);
                 else
                     BattlePetResult(hash, d);
+            },
+            complete: function() {
+                $('#progress-page').hide();
             },
             url: 'api/battlepet.php'
         });

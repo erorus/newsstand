@@ -32,6 +32,9 @@ var TUJ_Search = function()
             searchPage.className = 'page';
             $('#main').append(searchPage);
         }
+
+        $('#progress-page').show();
+
         $.ajax({
             data: qs,
             success: function(d) {
@@ -39,6 +42,9 @@ var TUJ_Search = function()
                     tuj.AskCaptcha(d.captcha);
                 else
                     SearchResult(hash, d);
+            },
+            complete: function() {
+                $('#progress-page').hide();
             },
             url: 'api/search.php'
         });

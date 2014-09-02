@@ -78,9 +78,11 @@ abbr:hover.full-date { border-bottom: 1px dotted }
 #realm-list.alliance .realms-column a {color: #006}
 #realm-list.horde .realms-column a {color: #600}
 
-#front-page, #contact-page { display: none }
+#front-page, #contact-page, #progress-page { display: none }
 #front-page a {text-decoration: underline}
 #front-page .news { max-width: 55em; margin: 2em 0 }
+
+#progress-page { padding: 3em; text-align: center; }
 
 #search-page table, table.auctionlist { width: 54em; margin: 0 auto 2em; border: 1px solid black; border-spacing: 0 }
 #search-page table th, table.auctionlist th {padding: 0.4em 0.2em 0}

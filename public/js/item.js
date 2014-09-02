@@ -33,6 +33,8 @@ var TUJ_Item = function()
             $('#main').append(itemPage);
         }
 
+        $('#progress-page').show();
+
         $.ajax({
             data: qs,
             success: function(d) {
@@ -40,6 +42,9 @@ var TUJ_Item = function()
                     tuj.AskCaptcha(d.captcha);
                 else
                     ItemResult(hash, d);
+            },
+            complete: function() {
+                $('#progress-page').hide();
             },
             url: 'api/item.php'
         });
