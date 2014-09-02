@@ -13,6 +13,7 @@ $species = intval($_GET['species'], 10);
 if (!$species)
     json_return(array());
 
+HouseETag($house);
 BotCheck();
 
 $json = array(

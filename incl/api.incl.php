@@ -11,11 +11,12 @@ function json_return($json)
         exit;
     }
 
+    ini_set('zlib.output_compression', 1);
+
     if (!is_string($json))
         $json = json_encode($json, JSON_NUMERIC_CHECK);
 
     header('Content-type: application/json');
-    // expires
     echo $json;
     exit;
 }
@@ -78,8 +79,6 @@ function BotCheck()
 
 function BanIP()
 {
-    return;
-
     // TODO
     header('HTTP/1.1 429 Too Many Requests');
     exit;
@@ -191,4 +190,18 @@ function UserThrottleCount($reset = false)
     $memcache->increment($kCount);
 
     return $returned = ++$vals[$kCount];
+}
+
+function HouseETag($house)
+{
+    $curTag = 'W/"'.MCGetHouse($house).'"';
+    $theirTag = isset($_SERVER['HTTP_IF_NONE_MATCH']) ? $_SERVER['HTTP_IF_NONE_MATCH'] : '';
+
+    if ($curTag && $curTag == $theirTag)
+    {
+        header('HTTP/1.1 304 Not Modified');
+        exit;
+    }
+
+    header('ETag: '.$curTag);
 }

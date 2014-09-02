@@ -13,6 +13,7 @@ $item = intval($_GET['item'], 10);
 if (!$item)
     json_return(array());
 
+HouseETag($house);
 BotCheck();
 
 $json = array(
