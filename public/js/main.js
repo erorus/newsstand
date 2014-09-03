@@ -215,7 +215,7 @@ var tujConstants = {
 
 var TUJ = function()
 {
-    var validPages = ['','search','item','seller','battlepet','contact'];
+    var validPages = ['','search','item','seller','battlepet','contact','donate'];
     var pagesNeedRealm = [true, true, true, true, true, false];
     this.validFactions = {'alliance': 1, 'horde': -1};
     this.region = undefined;
@@ -429,6 +429,9 @@ var TUJ = function()
 
         var contactLink = $('#bottom-bar a.contact');
         contactLink[0].href = self.BuildHash({page: 'contact', id: undefined});
+
+        var donateLink = $('#bottom-bar a.donate');
+        donateLink[0].href = self.BuildHash({page: 'donate', id: undefined});
 
         $('#title a')[0].href = self.BuildHash({page: undefined});
         $('#page-title').empty();
