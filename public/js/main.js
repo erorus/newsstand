@@ -428,7 +428,8 @@ var TUJ = function()
         else
             $('#topcorner').hide();
 
-        var regionLink = $('#topcorner span.region');
+        var regionLink = $('#topcorner a.region');
+        regionLink[0].href = self.region == 'US' ? '//eu.theunderminejournal.com' : '//theunderminejournal.com';
         regionLink.text(self.region);
 
         var factionLink = $('#topcorner a.faction')[0];
