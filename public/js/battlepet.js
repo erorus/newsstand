@@ -294,6 +294,8 @@ var TUJ_BattlePet = function()
             for (x in dta.history)
                 if (dta.history.hasOwnProperty(x))
                     a.push(dta.history[x]);
+            a.sort(function(b,c){ return b.snapshot - c.snapshot; });
+
             dta.history = a;
         }
         else
