@@ -752,10 +752,7 @@ var TUJ_BattlePet = function()
             },
 
             tooltip: {
-                shared: true,
-                formatter: function() {
-                    return hcdata.categories.y[this.point.y] + ' ' + hcdata.categories.x[this.point.x] + ': ' + libtuj.FormatPrice(this.point.value*10000, true);
-                }
+                enabled: false
             },
 
             series: [{
@@ -864,10 +861,7 @@ var TUJ_BattlePet = function()
             },
 
             tooltip: {
-                shared: true,
-                formatter: function() {
-                    return hcdata.categories.y[this.point.y] + ' ' + hcdata.categories.x[this.point.x] + ': ' + libtuj.FormatQuantity(this.point.value, true);
-                }
+                enabled: false
             },
 
             series: [{

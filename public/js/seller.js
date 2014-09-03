@@ -301,10 +301,7 @@ var TUJ_Seller = function()
             },
 
             tooltip: {
-                shared: true,
-                formatter: function() {
-                    return hcdata.categories.y[this.point.y] + ' ' + hcdata.categories.x[this.point.x] + ': ' + libtuj.FormatQuantity(this.point.value, true);
-                }
+                enabled: false
             },
 
             series: [{
