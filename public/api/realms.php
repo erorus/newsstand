@@ -6,6 +6,8 @@ require_once('../../incl/api.incl.php');
 
 $region = 'US'; // todo: check domain
 
+header('Expires: '.Date(DATE_RFC1123, strtotime('+3 hours')));
+
 if ($json = MCGet('realms_'.$region))
     json_return(array('region' => $region, 'realms' => $json));
 
