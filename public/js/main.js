@@ -273,6 +273,19 @@ var TUJ = function()
             return;
         }
 
+        if (self.region == 'EU' && !document.getElementById('eu-warning'))
+        {
+            var d = libtuj.ce();
+            d.id = 'eu-warning';
+            document.getElementById('main').insertBefore(d, document.getElementById('main').firstChild);
+            var h2 = libtuj.ce('h2');
+            d.appendChild(h2);
+            h2.appendChild(document.createTextNode('EU Realms Unavailable'));
+            d.appendChild(document.createTextNode('While we are back in beta testing, we do not collect any data for EU realms yet.'));
+            d.appendChild(libtuj.ce('p'));
+            d.appendChild(document.createTextNode('Please check back with us after Blizzard releases the Warlords of Draenor pre-patch!'));
+        }
+
         ReadParams();
 
         UpdateSidebar();
