@@ -72,6 +72,13 @@ var TUJ_Seller = function()
         ad.className = 'ad';
         sellerPage.append(ad);
 
+        var ins = libtuj.ce('ins');
+        ad.appendChild(ins);
+        ins.className = 'adsbygoogle';
+        ins.setAttribute('data-ad-client', 'ca-pub-1018837251546750');
+        ins.setAttribute('data-ad-slot', '3896661119');
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+
         d = libtuj.ce();
         d.className = 'chart-section';
         h = libtuj.ce('h2');

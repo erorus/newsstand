@@ -452,6 +452,13 @@ var TUJ_Item = function()
         var ad = libtuj.ce();
         ad.className = 'ad box';
         dest.appendChild(ad);
+
+        var ins = libtuj.ce('ins');
+        ad.appendChild(ins);
+        ins.className = 'adsbygoogle';
+        ins.setAttribute('data-ad-client', 'ca-pub-1018837251546750');
+        ins.setAttribute('data-ad-slot', '9943194718');
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
     }
 
     function ItemHistoryChart(data, dest)
