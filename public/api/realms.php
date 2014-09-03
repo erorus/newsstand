@@ -4,7 +4,7 @@ require_once('../../incl/incl.php');
 require_once('../../incl/memcache.incl.php');
 require_once('../../incl/api.incl.php');
 
-$region = 'US'; // todo: check domain
+$region = (isset($_SERVER['HTTP_HOST']) && (preg_match('/^eu./i',$_SERVER['HTTP_HOST']) > 0))?'EU':'US';
 
 header('Expires: '.Date(DATE_RFC1123, strtotime('+3 hours')));
 
