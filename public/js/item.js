@@ -59,6 +59,22 @@ var TUJ_Item = function()
                 lastResults.shift();
         }
 
+        var itemPage = $('#item-page');
+        itemPage.empty();
+        itemPage.show();
+
+        if (!dta.stats || !dta.stats.name)
+        {
+            $('#page-title').empty().append(document.createTextNode('Item: ' + params.id));
+            tuj.SetTitle('Item: ' + params.id);
+
+            var h2 = libtuj.ce('h2');
+            itemPage.append(h2);
+            h2.appendChild(document.createTextNode('Item '+ params.id + ' not found.'));
+
+            return;
+        }
+
         var ta = libtuj.ce('a');
         ta.href = 'http://www.wowhead.com/item=' + dta.stats.id;
         ta.target = '_blank';
@@ -70,10 +86,6 @@ var TUJ_Item = function()
 
         $('#page-title').empty().append(ta);
         tuj.SetTitle('[' + dta.stats.name + ']');
-
-        var itemPage = $('#item-page');
-        itemPage.empty();
-        itemPage.show();
 
         var d, cht, h;
 

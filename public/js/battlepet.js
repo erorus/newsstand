@@ -69,6 +69,10 @@ var TUJ_BattlePet = function()
                 lastResults.shift();
         }
 
+        var battlePetPage = $('#battlepet-page');
+        battlePetPage.empty();
+        battlePetPage.show();
+
         if (breedId && !dtaAll.stats.hasOwnProperty(breedId))
             breedId = 0;
 
@@ -76,6 +80,18 @@ var TUJ_BattlePet = function()
         for (x in dtaAll.stats)
             if (dtaAll.stats.hasOwnProperty(x))
                 breeds.push(x);
+
+        if (breeds.length == 0)
+        {
+            $('#page-title').empty().append(document.createTextNode('Battle Pet: ' + params.id));
+            tuj.SetTitle('Battle Pet: ' + params.id);
+
+            var h2 = libtuj.ce('h2');
+            battlePetPage.append(h2);
+            h2.appendChild(document.createTextNode('Battle Pet '+ params.id + ' not found.'));
+
+            return;
+        }
 
         var dta = BattlePetBreedData(dtaAll, breeds);
 
@@ -91,10 +107,6 @@ var TUJ_BattlePet = function()
 
         $('#page-title').empty().append(ta);
         tuj.SetTitle(ttl);
-
-        var battlePetPage = $('#battlepet-page');
-        battlePetPage.empty();
-        battlePetPage.show();
 
         var d, cht, h, a;
 

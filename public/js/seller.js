@@ -59,12 +59,24 @@ var TUJ_Seller = function()
                 lastResults.shift();
         }
 
-        $('#page-title').empty().append(document.createTextNode('Seller: ' + dta.stats.name));
-        tuj.SetTitle('Seller: ' + dta.stats.name);
-
         var sellerPage = $('#seller-page');
         sellerPage.empty();
         sellerPage.show();
+
+        if (!dta.stats)
+        {
+            $('#page-title').empty().append(document.createTextNode('Seller: ' + params.id));
+            tuj.SetTitle('Seller: ' + params.id);
+
+            var h2 = libtuj.ce('h2');
+            sellerPage.append(h2);
+            h2.appendChild(document.createTextNode('Seller '+ params.id + ' not found.'));
+
+            return;
+        }
+
+        $('#page-title').empty().append(document.createTextNode('Seller: ' + dta.stats.name));
+        tuj.SetTitle('Seller: ' + dta.stats.name);
 
         var d, cht, h;
 
