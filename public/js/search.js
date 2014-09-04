@@ -342,7 +342,15 @@ var TUJ_Search = function()
         if (results == 1)
             tuj.SetParams(lastResult);
         else
+        {
+            if (results == 0)
+            {
+                var h2 = libtuj.ce('h2');
+                h2.appendChild(document.createTextNode('No results found.'));
+                searchPage.append(h2);
+            }
             searchPage.show();
+        }
     }
 
     this.load(tuj.params);
