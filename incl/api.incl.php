@@ -1,5 +1,7 @@
 <?php
 
+require_once('memcache.incl.php');
+
 define('THROTTLE_PERIOD', 3600); // seconds
 define('THROTTLE_MAXHITS', 200);
 
@@ -19,6 +21,27 @@ function json_return($json)
     header('Content-type: application/json');
     echo $json;
     exit;
+}
+
+function GetRealms($region)
+{
+    global $db;
+
+    if ($realms = MCGet('realms_'.$region))
+        return $realms;
+
+    DBConnect();
+
+    $stmt = $db->prepare('select * from tblRealm where region = ?');
+    $stmt->bind_param('s', $region);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $realms = DBMapArray($result);
+    $stmt->close();
+
+    MCSet('realms_'.$region, $realms);
+
+    return $realms;
 }
 
 function GetRegion($house)
