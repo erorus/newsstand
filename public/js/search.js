@@ -12,7 +12,7 @@ var TUJ_Search = function()
                 params[p] = inParams[p];
 
         var qs = {
-            house: tuj.realms[params.realm].house,
+            house: tuj.realms[params.realm].house * tuj.validFactions[params.faction],
             search: params.id
         };
         var hash = JSON.stringify(qs);
