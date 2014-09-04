@@ -153,6 +153,26 @@ var libtuj = {
             realmNames = realmNames.substr(0, realmNames.length - 2);
 
         return realmNames;
+    },
+    Storage: {
+        Get: function(key)
+        {
+            if (!window.localStorage)
+                return false;
+
+            var v = window.localStorage.getItem(key);
+            if (v != null)
+                return JSON.parse(v);
+            else
+                return false;
+        },
+        Set: function(key, val)
+        {
+            if (!window.localStorage)
+                return false;
+
+            window.localStorage.setItem(key, JSON.stringify(val));
+        }
     }
 };
 
@@ -286,7 +306,14 @@ var TUJ = function()
             d.appendChild(document.createTextNode('Please check back with us after Blizzard releases the Warlords of Draenor pre-patch!'));
         }
 
+        var ls, firstRun = !hash.watching;
         ReadParams();
+        if (firstRun && !self.params.realm && (ls = libtuj.Storage.Get('defaultRealm')))
+        {
+            inMain = false;
+            tuj.SetParams(ls);
+            return;
+        }
 
         UpdateSidebar();
 
@@ -407,6 +434,9 @@ var TUJ = function()
             if (typeof self.params.page == 'string')
                 self.params.page = undefined;
         }
+
+        if (self.params.realm && !self.params.page)
+            libtuj.Storage.Set('defaultRealm', {faction: self.params.faction, realm: self.params.realm});
 
         var h = self.BuildHash(self.params);
 
