@@ -12,7 +12,7 @@ h2 sub { display: block; font-weight: normal; font-size: 66%; margin-left: 2em }
 
 #page {position: relative; min-height: 100%}
 * html #page { height: 100%; }
-#bottom-bar { position: relative; font-size: 75%; margin-top: -3em; height: 3em; overflow: hidden; text-align: center }
+#bottom-bar { position: relative; font-size: 85%; margin-top: -3em; height: 3em; overflow: hidden; text-align: center }
 #bottom-bar .disclaimer { font-size: 75%; position: absolute; width: 100%; bottom: 0; }
 
 body.realm        #topcorner {display: none}
