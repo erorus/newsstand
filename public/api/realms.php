@@ -6,6 +6,6 @@ require_once('../../incl/api.incl.php');
 
 header('Expires: '.Date(DATE_RFC1123, strtotime('+3 hours')));
 
-$region = (isset($_SERVER['HTTP_HOST']) && (preg_match('/^eu./i',$_SERVER['HTTP_HOST']) > 0))?'EU':'US';
+$region = GetSiteRegion();
 
 json_return(array('region' => $region, 'realms' => GetRealms($region)));

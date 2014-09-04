@@ -23,6 +23,11 @@ function json_return($json)
     exit;
 }
 
+function GetSiteRegion()
+{
+    return (isset($_SERVER['HTTP_HOST']) && (preg_match('/^eu./i',$_SERVER['HTTP_HOST']) > 0))?'EU':'US';
+}
+
 function GetRealms($region)
 {
     global $db;
