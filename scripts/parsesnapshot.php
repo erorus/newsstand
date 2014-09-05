@@ -6,7 +6,7 @@ require_once('../incl/incl.php');
 require_once('../incl/heartbeat.incl.php');
 require_once('../incl/memcache.incl.php');
 
-RunMeNTimes(1);
+RunMeNTimes(2);
 CatchKill();
 
 define('SNAPSHOT_PATH', '/var/newsstand/snapshots/');
@@ -44,7 +44,9 @@ while ((!$caughtKill) && (time() < ($loopStart + 60 * 30)))
     sleep(min($toSleep,10));
     if ($caughtKill)
         break;
+    ob_start();
     $toSleep = NextDataFile();
+    ob_end_flush();
     if ($toSleep === false)
         break;
 }
