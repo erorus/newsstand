@@ -1095,7 +1095,7 @@ var TUJ_BattlePet = function()
             return Math.floor(a.buy / a.quantity) - Math.floor(b.buy / b.quantity) ||
                 Math.floor(a.bid / a.quantity) - Math.floor(b.bid / b.quantity) ||
                 a.quantity - b.quantity ||
-                tuj.realms[a.sellerrealm].name.localeCompare(tuj.realms[b.sellerrealm].name) ||
+                (tuj.realms[a.sellerrealm] ? tuj.realms[a.sellerrealm].name : '').localeCompare(tuj.realms[b.sellerrealm] ? tuj.realms[b.sellerrealm].name : '') ||
                 a.sellername.localeCompare(b.sellername);
         });
 
