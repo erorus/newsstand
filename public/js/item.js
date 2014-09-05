@@ -601,54 +601,33 @@ var TUJ_Item = function()
 
         var allPrices = [], dt, dtParts;
         var offset = (new Date()).getTimezoneOffset() * 60 * 1000;
+        var earliestDate = Date.UTC();
         for (var x = 0; x < data.monthly.length; x++)
         {
             dtParts = data.monthly[x].date.split('-');
             dt = Date.UTC(dtParts[0], parseInt(dtParts[1],10)-1, dtParts[2]) + offset;
+            if (dt < earliestDate)
+                earliestDate = dt;
             hcdata.price.push([dt, data.monthly[x].silver * 100]);
             hcdata.quantity.push([dt, data.monthly[x].quantity]);
             if (data.monthly[x].quantity > hcdata.quantityMaxVal)
                 hcdata.quantityMaxVal = data.monthly[x].quantity;
             allPrices.push(data.monthly[x].silver * 100);
         }
-        if (data.globalmonthly)
-            for (var x = 0; x < data.globalmonthly.length; x++)
-            {
-                dtParts = data.globalmonthly[x].date.split('-');
-                dt = Date.UTC(dtParts[0], parseInt(dtParts[1],10)-1, dtParts[2]) + offset;
-                hcdata.globalprice.push([dt, data.globalmonthly[x].silver * 100]);
-            }
+        for (var x = 0; x < data.globalmonthly.length; x++)
+        {
+            dtParts = data.globalmonthly[x].date.split('-');
+            dt = Date.UTC(dtParts[0], parseInt(dtParts[1],10)-1, dtParts[2]) + offset;
+            if (dt < earliestDate)
+                continue;
+            hcdata.globalprice.push([dt, data.globalmonthly[x].silver * 100]);
+        }
 
         allPrices.sort(function(a,b){ return a - b; });
         var q1 = allPrices[Math.floor(allPrices.length * 0.25)];
         var q3 = allPrices[Math.floor(allPrices.length * 0.75)];
         var iqr = q3 - q1;
         hcdata.priceMaxVal = q3 + (1.5 * iqr);
-
-        hcdata.series = [{
-            type: 'area',
-            name: 'Market Price',
-            color: '#0000FF',
-            lineColor: '#0000FF',
-            fillColor: 'rgba(153,153,255,0.66)',
-            data: hcdata.price
-        },{
-            type: 'line',
-            name: 'Quantity Available',
-            yAxis: 1,
-            color: '#FF3333',
-            data: hcdata.quantity
-        }];
-
-        if (hcdata.globalprice.length)
-            hcdata.series.unshift({
-                type: 'area',
-                name: 'Market Price',
-                color: '#00FF00',
-                lineColor: '#00FF00',
-                fillColor: 'rgba(204,255,204,0.5)',
-                data: hcdata.globalprice
-            });
 
         Highcharts.setOptions({
             global: {
@@ -710,10 +689,9 @@ var TUJ_Item = function()
                 shared: true,
                 formatter: function() {
                     var tr = '<b>'+Highcharts.dateFormat('%a %b %d', this.x)+'</b>';
-                    tr += '<br><span style="color: #000099">Market Price: '+libtuj.FormatPrice(this.points[0].y, true)+'</span>';
-                    if (this.points[2])
-                        tr += '<br><span style="color: #009900">Region Price: '+libtuj.FormatPrice(this.points[2].y, true)+'</span>';
-                    tr += '<br><span style="color: #990000">Quantity: '+libtuj.FormatQuantity(this.points[1].y, true)+'</span>';
+                    tr += '<br><span style="color: #000099">Market Price: '+libtuj.FormatPrice(this.points[1].y, true)+'</span>';
+                    tr += '<br><span style="color: #009900">Region Price: '+libtuj.FormatPrice(this.points[0].y, true)+'</span>';
+                    tr += '<br><span style="color: #990000">Quantity: '+libtuj.FormatQuantity(this.points[2].y, true)+'</span>';
                     return tr;
                     // &lt;br/&gt;&lt;span style="color: #990000"&gt;Quantity: '+this.points[1].y+'&lt;/span&gt;<xsl:if test="itemgraphs/d[@matsprice != '']">&lt;br/&gt;&lt;span style="color: #999900"&gt;Materials Price: '+this.points[2].y.toFixed(2)+'g&lt;/span&gt;</xsl:if>';
                 }
@@ -737,7 +715,27 @@ var TUJ_Item = function()
                     }
                 }
             },
-            series: hcdata.series
+            series: [{
+                type: 'area',
+                name: 'Market Price',
+                color: '#00FF00',
+                lineColor: '#00FF00',
+                fillColor: 'rgba(204,255,204,0.5)',
+                data: hcdata.globalprice
+            },{
+                type: 'area',
+                name: 'Market Price',
+                color: '#0000FF',
+                lineColor: '#0000FF',
+                fillColor: 'rgba(153,153,255,0.66)',
+                data: hcdata.price
+            },{
+                type: 'line',
+                name: 'Quantity Available',
+                yAxis: 1,
+                color: '#FF3333',
+                data: hcdata.quantity
+            }]
         });
     }
 
