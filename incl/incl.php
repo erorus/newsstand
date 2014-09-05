@@ -11,12 +11,16 @@ define('HISTORY_DAYS', 14);
 
 function DebugMessage($message, $debugLevel = E_USER_NOTICE)
 {
+    static $myPid = false;
+    if (!$myPid)
+        $myPid = str_pad(getmypid(),5," ",STR_PAD_LEFT);
+    
     if (php_sapi_name() == 'cli')
     {
         if ($debugLevel == E_USER_NOTICE)
-            echo Date('Y-m-d H:i:s')." $message\n";
+            echo Date('Y-m-d H:i:s')." $myPid $message\n";
         else
-            trigger_error(Date('Y-m-d H:i:s')." $message", $debugLevel);
+            trigger_error(Date('Y-m-d H:i:s')." $myPid $message", $debugLevel);
     }
     elseif ($debugLevel != E_USER_NOTICE)
         trigger_error($message, $debugLevel);
