@@ -23,6 +23,7 @@ $json = array(
     'monthly'   => ItemHistoryMonthly($house, $item),
     'auctions'  => ItemAuctions($house, $item),
     'globalnow' => ItemGlobalNow(GetRegion($house), $house < 0 ? -1 : 1, $item),
+    'globalmonthly' => ItemGlobalMonthly(GetRegion($house), $house < 0 ? -1 : 1, $item),
 );
 
 json_return($json);
@@ -233,6 +234,72 @@ EOF;
     $result = $stmt->get_result();
     $tr = DBMapArray($result, null);
     $stmt->close();
+
+    MCSet($key, $tr);
+
+    return $tr;
+}
+
+
+function ItemGlobalMonthly($region, $faction, $item)
+{
+    global $db;
+
+    $key = 'item_globalmonthly_'.$region.'_'.$faction.'_'.$item;
+    if (($tr = MCGet($key)) !== false)
+        return $tr;
+
+    DBConnect();
+
+    $sqlCols = '';
+    for ($x = 1; $x <= 31; $x++)
+    {
+        $padded = str_pad($x, 2, '0', STR_PAD_LEFT);
+        $sqlCols .= ", round(avg(mktslvr$padded)*100) mkt$padded";
+    }
+
+
+    $sql = <<<EOF
+SELECT month $sqlCols
+FROM `tblItemHistoryMonthly` ihm
+join tblRealm r on ihm.house = cast(r.house as signed) * ? and r.region = ?
+WHERE ihm.item=?
+group by month
+EOF;
+
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('isi', $faction, $region, $item);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $rows = DBMapArray($result, null);
+    $stmt->close();
+
+    $tr = array();
+    $prevPrice = 0;
+    for($x = 0; $x < count($rows); $x++)
+    {
+        $year = 2014 + floor(($rows[$x]['month']-1) / 12);
+        $monthNum = $rows[$x]['month'] % 12;
+        $month = ($monthNum < 10 ? '0' : '') . $monthNum;
+        for ($dayNum = 1; $dayNum <= 31; $dayNum++)
+        {
+            $day = ($dayNum < 10 ? '0' : '') . $dayNum;
+            if (!is_null($rows[$x]['mkt'.$day]))
+            {
+                $tr[] = array('date' => "$year-$month-$day", 'silver' => round($rows[$x]['mkt'.$day]/100,2));
+                $prevPrice = round($rows[$x]['mkt'.$day]/100,2);
+            }
+            else
+            {
+                if (!checkdate($monthNum, $dayNum, $year))
+                    break;
+                if (strtotime("$year-$month-$day") > time())
+                    break;
+                if ($prevPrice)
+                    $tr[] = array('date' => "$year-$month-$day", 'silver' => $prevPrice);
+            }
+        }
+    }
 
     MCSet($key, $tr);
 
