@@ -601,7 +601,7 @@ var TUJ_Item = function()
 
         var allPrices = [], dt, dtParts;
         var offset = (new Date()).getTimezoneOffset() * 60 * 1000;
-        var earliestDate = Date.UTC();
+        var earliestDate = Date.now();
         for (var x = 0; x < data.monthly.length; x++)
         {
             dtParts = data.monthly[x].date.split('-');
