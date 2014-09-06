@@ -34,6 +34,12 @@ var TUJ_Category = function()
             $('#main').append(categoryPage);
         }
 
+        if (!params.id)
+        {
+            CategoryFrontPage();
+            return;
+        }
+
         $('#progress-page').show();
 
         $.ajax({
@@ -91,6 +97,16 @@ var TUJ_Category = function()
                 categoryPage.append(d);
                 resultFunctions[f.name](f.data, d);
             }
+    }
+
+    function CategoryFrontPage()
+    {
+        var categoryPage = $('#category-page');
+        categoryPage.empty();
+        categoryPage.show();
+
+        $('#page-title').empty().append(document.createTextNode('Categories'));
+        tuj.SetTitle('Categories');
     }
 
     resultFunctions.ItemList = function(data, dest)
