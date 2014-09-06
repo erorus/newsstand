@@ -316,7 +316,7 @@ var TUJ_BattlePet = function()
         dta.auctions = [];
         for (x = 0; x < breeds.length; x++)
             if (dtaAll.auctions.hasOwnProperty(breeds[x]))
-                dta.auctions.concat(dtaAll.auctions[breeds[x]]);
+                dta.auctions = dta.auctions.concat(dtaAll.auctions[breeds[x]]);
 
         if (breeds.length > 1)
         {
@@ -1073,8 +1073,18 @@ var TUJ_BattlePet = function()
 
         td = libtuj.ce('th');
         tr.appendChild(td);
-        td.className = 'quantity';
-        $(td).text('Quantity');
+        td.className = 'breed';
+        $(td).text('Breed');
+
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.className = 'quality';
+        $(td).text('Quality');
+
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.className = 'level';
+        $(td).text('Level');
 
         td = libtuj.ce('th');
         tr.appendChild(td);
@@ -1107,8 +1117,18 @@ var TUJ_BattlePet = function()
 
             td = libtuj.ce('td');
             tr.appendChild(td);
-            td.className = 'quantity';
-            td.appendChild(libtuj.FormatQuantity(auc.quantity));
+            td.className = 'breed';
+            td.appendChild(document.createTextNode(tujConstants.breeds[auc.breed]));
+
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.className = 'quality';
+            td.appendChild(document.createTextNode(tujConstants.qualities[auc.quality]));
+
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.className = 'level';
+            td.appendChild(document.createTextNode(auc.level));
 
             td = libtuj.ce('td');
             tr.appendChild(td);

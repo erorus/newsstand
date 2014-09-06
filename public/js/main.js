@@ -190,6 +190,16 @@ var tujConstants = {
         11: 'S/B',
         12: 'H/B'
     },
+    qualities: {
+        0: 'Poor',
+        1: 'Common',
+        2: 'Uncommon',
+        3: 'Rare',
+        4: 'Epic',
+        5: 'Legendary',
+        6: 'Artifact',
+        7: 'Heirloom'
+    },
     itemClasses: {
         7: 'Trade Goods',
         0: 'Consumable',
