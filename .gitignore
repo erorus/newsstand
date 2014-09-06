@@ -7,3 +7,4 @@ private/
 incl/*.credentials.php
 scripts/realms2houses_cache/*
 compress/*
+gamedata/DBC/versions/*
