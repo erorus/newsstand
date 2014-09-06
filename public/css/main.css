@@ -87,12 +87,12 @@ abbr:hover.full-date { border-bottom: 1px dotted }
 
 #progress-page { padding: 3em; text-align: center; }
 
-#search-page table, table.auctionlist { width: 54em; margin: 0 auto 2em; border: 1px solid black; border-spacing: 0 }
-#search-page table th, table.auctionlist th {padding: 0.4em 0.2em 0}
-#search-page table td, table.auctionlist td {padding: 0.2em 0.4em; border-top: 1px solid #CCC}
-#search-page tr:hover td, table.auctionlist tr:hover td {background-color: #EEE}
+#search-page table, table.auctionlist, table.category-items { width: 54em; margin: 0 auto 2em; border: 1px solid black; border-spacing: 0 }
+#search-page table th, table.auctionlist th, table.category-items th {padding: 0.4em 0.2em 0}
+#search-page table td, table.auctionlist td, table.category-items td {padding: 0.2em 0.4em; border-top: 1px solid #CCC}
+#search-page tr:hover td, table.auctionlist tr:hover td, table.category-items tr:hover td {background-color: #EEE}
 
-#search-page th.title { font-size: 125% }
+#search-page th.title, table.category-items th.title { font-size: 125% }
 
 table.auctionlist { margin: 0 auto }
 table.auctionlist td.price abbr { border-bottom: 0 }

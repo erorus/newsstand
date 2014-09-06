@@ -1109,7 +1109,7 @@ var TUJ_BattlePet = function()
                 a.sellername.localeCompare(b.sellername);
         });
 
-        var s, a, stackable = data.stats.stacksize > 1;
+        var s, a;
         for (var x = 0, auc; auc = data.auctions[x]; x++)
         {
             tr = libtuj.ce('tr');
@@ -1134,32 +1134,15 @@ var TUJ_BattlePet = function()
             tr.appendChild(td);
             td.className = 'price';
             s = libtuj.FormatFullPrice(auc.bid / auc.quantity);
-            if (stackable && auc.quantity > 1)
-            {
-                a = libtuj.ce('abbr');
-                a.title = libtuj.FormatFullPrice(auc.bid, true) + ' total';
-                a.appendChild(s);
-            }
-            else
-                a = s;
-            td.appendChild(a);
+            td.appendChild(s);
 
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.className = 'price';
             s = libtuj.FormatFullPrice(auc.buy / auc.quantity);
-            if (stackable && auc.quantity > 1 && auc.buy)
-            {
-                a = libtuj.ce('abbr');
-                a.title = libtuj.FormatFullPrice(auc.buy, true) + ' total';
-                a.appendChild(s);
-            }
-            else if (!auc.buy)
-                a = libtuj.ce('span');
-            else
-                a = s;
-            if (a)
-                td.appendChild(a);
+            if (!auc.buy)
+                s = libtuj.ce('span');
+            td.appendChild(s);
 
             td = libtuj.ce('td');
             tr.appendChild(td);
