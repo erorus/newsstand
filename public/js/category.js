@@ -143,7 +143,9 @@ var TUJ_Category = function()
         $(td).text('Last Seen');
 
         data.items.sort(function(a,b){
-            return a.name.localeCompare(b.name);
+            return ((a.price ? 0 : 1) - (b.price ? 0 : 1)) ||
+                (a.price - b.price) ||
+                a.name.localeCompare(b.name);
         });
 
         for (x = 0; item = data.items[x]; x++)

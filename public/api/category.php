@@ -16,6 +16,11 @@ if (!function_exists($resultFunc))
 
 HouseETag($house);
 BotCheck();
+
+$expansionLevels = array(60,70,80,85,90);
+$expansions = array('Classic', 'Burning Crusade', 'Wrath of the Lich King', 'Cataclysm', 'Mists of Pandaria');
+$qualities = array('Poor', 'Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Artifact', 'Heirloom');
+
 json_return($resultFunc($house));
 
 function CategoryResult_mining($house)
@@ -35,6 +40,25 @@ function CategoryResult_mining($house)
             ['name' => 'ItemList', 'data' => ['name' => 'Classic Bar', 'items' => CategoryGenericItemList($house, 'i.id in (17771,12655,11371,12359,6037,3860,3859,3575,3577,2841,3576,2840,2842)')]],
         ]
     ];
+}
+
+function CategoryResult_skinning($house)
+{
+    global $expansions, $expansionLevels;
+
+    $tr = ['name' => 'Skinning', 'results' => []];
+
+    for ($x = count($expansions); $x--; $x >= 0) {
+        $lsql = (($x > 0)?(' i.level >'.(($x <= 2)?'=':'').' '.$expansionLevels[$x-1].' and '):'').' i.level <'.(($x >= 3)?'=':'').' '.$expansionLevels[$x];
+        if ($x == 0) $lsql .= ' or i.id in (17012,15414,15410,20381)';
+        if ($x == 1) $lsql .= ' and i.id not in (17012,15414,15410,20381) or i.id = 25707';
+        if ($x == 2) $lsql .= ' and i.id not in (25707,52977) or i.id = 38425';
+        if ($x == 3) $lsql .= ' and i.id != 38425 or i.id = 52977';
+        $lsql = 'i.class=7 and i.subclass=6 and i.quality > 0 and ('.$lsql.')';
+        $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => $expansions[$x].' Leather', 'items' => CategoryGenericItemList($house, $lsql)]];
+    }
+
+    return $tr;
 }
 
 function CategoryResult_demo($house)
