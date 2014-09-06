@@ -825,4 +825,4 @@ var optimizedResize = (function() {
     }
 }());
 
-var wowhead_tooltips = { "hide": { "extra": true, "sellprice": true } };
+var wowhead_tooltips = { "hide": { "droppedby": true, "dropchance": true, "reagents": true, "sellprice": true } };

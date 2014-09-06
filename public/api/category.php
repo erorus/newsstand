@@ -61,6 +61,29 @@ function CategoryResult_skinning($house)
     return $tr;
 }
 
+function CategoryResult_herbalism($house)
+{
+    global $expansions, $expansionLevels;
+
+    $tr = ['name' => 'Herbalism', 'results' => []];
+
+    for ($x = count($expansions); $x--; $x >= 0) {
+        $lsql = (($x > 0)?(' i.level >'.(($x == 1)?'=':'').' '.$expansionLevels[$x-1].' and '):'').' i.level <'.(($x > 0)?'=':'').' '.$expansionLevels[$x];
+        $lsql2 = '';
+        if ($x == 0) $lsql .= ' or i.id=13468';
+        if ($x == 1) $lsql .= ' and i.id != 13468';
+        if ($x == 3) $lsql .= ' and i.id < 70000';
+        if ($x == 4) {
+            $lsql .= ' or i.id in (72234,72237)';
+            $lsql2 = ' or i.id in (89639)';
+        }
+        $lsql = '((i.class=7 and i.subclass=9 and i.quality in (1,2) and ('.$lsql.'))'.$lsql2.')';
+        $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => $expansions[$x].' Herbs', 'items' => CategoryGenericItemList($house, $lsql)]];
+    }
+
+    return $tr;
+}
+
 function CategoryResult_demo($house)
 {
     return [
