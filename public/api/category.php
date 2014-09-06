@@ -18,6 +18,25 @@ HouseETag($house);
 BotCheck();
 json_return($resultFunc($house));
 
+function CategoryResult_mining($house)
+{
+    return [
+        'name' => 'Mining',
+        'results' => [
+            ['name' => 'ItemList', 'data' => ['name' => 'Pandarian Ore', 'items' => CategoryGenericItemList($house, 'i.id in (72092,72093,72103,72094)')]],
+            ['name' => 'ItemList', 'data' => ['name' => 'Pandarian Bar', 'items' => CategoryGenericItemList($house, 'i.id in (72096,72095)')]],
+            ['name' => 'ItemList', 'data' => ['name' => 'Cataclysm Ore', 'items' => CategoryGenericItemList($house, 'i.id in (52183,52185,53038)')]],
+            ['name' => 'ItemList', 'data' => ['name' => 'Cataclysm Bar', 'items' => CategoryGenericItemList($house, 'i.id in (51950,53039,52186,54849)')]],
+            ['name' => 'ItemList', 'data' => ['name' => 'Northrend Ore', 'items' => CategoryGenericItemList($house, 'i.id in (36912,36909,36910)')]],
+            ['name' => 'ItemList', 'data' => ['name' => 'Northrend Bar', 'items' => CategoryGenericItemList($house, 'i.id in (36913,37663,41163,36916)')]],
+            ['name' => 'ItemList', 'data' => ['name' => 'Outland Ore', 'items' => CategoryGenericItemList($house, 'i.id in (23424,23425,23426,23427)')]],
+            ['name' => 'ItemList', 'data' => ['name' => 'Outland Bar', 'items' => CategoryGenericItemList($house, 'i.id in (23447,23449,35128,23446,23573,23445,23448)')]],
+            ['name' => 'ItemList', 'data' => ['name' => 'Classic Ore', 'items' => CategoryGenericItemList($house, 'i.id in (7911,3858,10620,2772,2776,2771,2775,2770)')]],
+            ['name' => 'ItemList', 'data' => ['name' => 'Classic Bar', 'items' => CategoryGenericItemList($house, 'i.id in (17771,12655,11371,12359,6037,3860,3859,3575,3577,2841,3576,2840,2842)')]],
+        ]
+    ];
+}
+
 function CategoryResult_demo($house)
 {
     return [
@@ -30,37 +49,52 @@ function CategoryResult_demo($house)
 
 function CategoryDemoItemList($house)
 {
+    $params = ['where' => 'i.name like \'%cloth%\' and i.class=7'];
+
+    return [
+        'name' => 'Item List',
+        'items' => CategoryGenericItemList($house, $params)
+    ];
+}
+
+function CategoryGenericItemList($house, $params)
+{
     global $db;
 
-    $key = 'category_demo_itemlist2';
+    $key = 'category_gi_' . md5(json_encode($params));
 
     if (($tr = MCGetHouse($house, $key)) !== false)
         return $tr;
 
     DBConnect();
 
+    if (is_array($params))
+    {
+        $joins = isset($params['joins']) ? $params['joins'] : '';
+        $where = isset($params['where']) ? (' and '.$params['where']) : '';
+    } else {
+        $where = ($params == '') ? '' : (' and ' . $params);
+    }
+
     $sql = <<<EOF
 select i.id, i.name, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice
 from tblItem i
 left join tblItemSummary s on s.house=? and s.item=i.id
 left join tblItemHistory h on h.house=? and h.item=i.id
-where i.name like '%cloth%'
-and ifnull(i.auctionable,1) = 1
+$joins
+where ifnull(i.auctionable,1) = 1
+$where
 group by i.id
-limit 25
 EOF;
 
     $stmt = $db->prepare($sql);
     $stmt->bind_param('ii', $house, $house);
     $stmt->execute();
     $result = $stmt->get_result();
-    $items = DBMapArray($result, null);
+    $tr = DBMapArray($result, null);
     $stmt->close();
-
-    $tr = ['name' => 'Item List', 'items' => $items];
 
     MCSetHouse($house, $key, $tr);
 
     return $tr;
 }
-
