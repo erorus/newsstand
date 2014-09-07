@@ -23,6 +23,7 @@ $itemMap = array(
     'buyfromvendor'     => array('name' => 'buyPrice',          'required' => false),
     'selltovendor'      => array('name' => 'sellPrice',         'required' => false),
     'auctionable'       => array('name' => 'isAuctionable',     'required' => false),
+    'vendorsource'      => array('name' => null,                'required' => false),
 );
 
 $petMap = array(
@@ -33,15 +34,28 @@ $petMap = array(
     'npc'               => array('name' => 'creatureId',        'required' => false),
 );
 
-heartbeat();
-$ids = NewItems(50);
-if (count($ids))
-    SaveItems(FetchItems($ids));
+$reparse = false;
+for ($x = 0; $x < count($argv); $x++)
+    $reparse |= (strpos($argv[$x], 'reparse') !== false);
 
-heartbeat();
-$ids = NewPets(50);
-if (count($ids))
-    SavePets(FetchPets($ids));
+if ($reparse)
+{
+    heartbeat();
+    $idSet = GetItemsToReparse();
+    for ($x = 0; $x < count($idSet); $x++)
+        SaveItems($idSet[$x]);
+} else {
+    heartbeat();
+    $ids = NewItems(50);
+    if (count($ids))
+        SaveItems(FetchItems($ids));
+
+    heartbeat();
+    $ids = NewPets(50);
+    if (count($ids))
+        SavePets(FetchPets($ids));
+}
+
 
 function NewItems($limit = 20)
 {
@@ -67,11 +81,9 @@ EOF;
 
 function FetchItems($items)
 {
-    global $itemMap;
-
     $results = array();
 
-    foreach ($items as &$id)
+    foreach ($items as $id)
     {
         heartbeat();
         DebugMessage('Fetching item '.$id);
@@ -93,27 +105,52 @@ function FetchItems($items)
             DebugMessage('Using wowhead for item '.$id);
         }
 
-        $results[$dta['id']] = array('json' => $json);
-        foreach ($itemMap as $ours => $details)
-        {
-            if (!isset($dta[$details['name']]))
-            {
-                if ($details['required'])
-                {
-                    DebugMessage('Item '.$dta['id'].' did not have required column '.$details['name'], E_USER_WARNING);
-                    unset($results[$dta['id']]);
-                    continue 2;
-                }
-                $dta[$details['name']] = null;
-            }
-            if (is_bool($dta[$details['name']]))
-                $results[$dta['id']][$ours] = $dta[$details['name']] ? 1 : 0;
-            else
-                $results[$dta['id']][$ours] = $dta[$details['name']];
-        }
+        $results[$id] = ParseItem($json);
+        if ($results[$id] === false)
+            unset($results[$id]);
     }
 
     return $results;
+}
+
+function ParseItem($json)
+{
+    global $itemMap;
+
+    heartbeat();
+    $dta = json_decode($json, true);
+    $tr = array('json' => $json);
+
+    foreach ($itemMap as $ours => $details)
+    {
+        if ($ours == 'vendorsource')
+        {
+            $tr[$ours] = null;
+            if (isset($dta['itemSource']) && isset($dta['itemSource']['sourceType']))
+            {
+                $tr[$ours] = 0;
+                if ($dta['itemSource']['sourceType'] == 'VENDOR')
+                    $tr[$ours] = isset($dta['itemSource']['sourceId']) ? $dta['itemSource']['sourceId'] : 1;
+            }
+
+            continue;
+        }
+        if (!isset($dta[$details['name']]))
+        {
+            if ($details['required'])
+            {
+                DebugMessage('Item '.$dta['id'].' did not have required column '.$details['name'], E_USER_WARNING);
+                return false;
+            }
+            $dta[$details['name']] = null;
+        }
+        if (is_bool($dta[$details['name']]))
+            $tr[$ours] = $dta[$details['name']] ? 1 : 0;
+        else
+            $tr[$ours] = $dta[$details['name']];
+    }
+
+    return $tr;
 }
 
 function SaveItems($items)
@@ -148,6 +185,38 @@ function SaveItems($items)
     }
 }
 
+function GetItemsToReparse()
+{
+    global $db;
+
+    $tr = array();
+
+    $maxSaveSet = 50;
+
+    $stmt = $db->prepare('select `id`, `json` from tblItem where `json` is not null');
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $items = DBMapArray($result, null);
+    $stmt->close();
+
+    $set = array();
+    for ($x = 0; $x < count($items); $x++)
+    {
+        heartbeat();
+        if (count($set) >= $maxSaveSet)
+        {
+            $tr[] = $set;
+            DebugMessage(str_pad(''.(count($tr) * $maxSaveSet), 6, ' ', STR_PAD_LEFT).' items reparsed.');
+            $set = array();
+        }
+        $set[$items[$x]['id']] = ParseItem($items[$x]['json']);
+    }
+    if (count($set) >= 0)
+        $tr[] = $set;
+
+    return $tr;
+}
+
 function FetchWowheadItem($id)
 {
     $url = sprintf('http://www.wowhead.com/item=%d&xml', $id);
@@ -169,10 +238,12 @@ function FetchWowheadItem($id)
     $json['itemClass'] = intval($item->{'class'}['id'],10);
     $json['itemSubClass'] = intval($item->subclass['id'],10);
     $json['icon'] = strtolower((string)$item->icon);
-    if (preg_match('/Max Stack: (\d+)/', $item->htmlTooltip, $res) > 0)
+    if (preg_match('/Max Stack: (\d+)/', (string)$item->htmlTooltip, $res) > 0)
         $json['stackable'] = intval($res[1],10);
-    if (preg_match('/"sellprice":(\d+)/', $item->jsonEquip, $res) > 0)
+    if (preg_match('/"sellprice":(\d+)/', (string)$item->jsonEquip, $res) > 0)
         $json['sellPrice'] = intval($res[1],10);
+    if (preg_match('/"source":\[5\]/', (string)$item->json, $res) > 0)
+        $json['itemSource']['sourceType'] = 'VENDOR';
 
     return json_encode($json);
 }
