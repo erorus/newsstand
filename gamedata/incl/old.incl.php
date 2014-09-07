@@ -2,7 +2,7 @@
 
 // wrapper for some old TUJ functions to newsstand
 
-require_once('../../incl/incl.php');
+require_once(__DIR__.'/../../incl/incl.php');
 
 function do_connect() {
     DBConnect();
@@ -66,4 +66,8 @@ function sql_esc($str) {
     global $db;
 
     return $db->real_escape_string($str);
+}
+
+function get_url_old($url) {
+    return FetchHTTP($url);
 }

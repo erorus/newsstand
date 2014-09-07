@@ -1,5 +1,5 @@
 <?php
-require_once('old.incl.php');
+require_once('../incl/old.incl.php');
 require_once('dbcdecode.php');
 
 header('Content-type: text/plain');

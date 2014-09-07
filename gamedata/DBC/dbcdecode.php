@@ -1,6 +1,6 @@
 <?php
 
-require_once('old.incl.php');
+require_once('../incl/old.incl.php');
 
 $dirnm = 'current';
 
