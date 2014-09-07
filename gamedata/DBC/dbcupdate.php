@@ -120,7 +120,7 @@ for ($x = 1; $x <= 8; $x++) {
 }
 
 dtecho(run_sql('truncate tblDBCSpell'));
-$sql = 'insert into tblDBCSpell (spell,name,icon,description,cooldown,qtymade,yellow,skillline,crafteditem) ';
+$sql = 'insert into tblDBCSpell (id,name,icon,description,cooldown,qtymade,yellow,skillline,crafteditem) ';
 $sql .= ' (select distinct s.spellid, s.spellname, si.iconpath, s.longdescription, null,  ';
 $sql .= ' if(se.itemcreated=0,0,if(se.diesides=0,if(se.qtymade=0,1,se.qtymade),(se.qtymade * 2 + se.diesides + 1)/2)),  ';
 $sql .= ' sla.yellowat,sla.lineid,if(se.itemcreated=0,null,se.itemcreated) ';

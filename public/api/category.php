@@ -14,7 +14,8 @@ $resultFunc = 'CategoryResult_'.$page;
 if (!function_exists($resultFunc))
     json_return(array());
 
-HouseETag($house);
+$canCache = false; //TODO
+//HouseETag($house);
 BotCheck();
 
 $expansionLevels = array(60,70,80,85,90);
@@ -84,6 +85,40 @@ function CategoryResult_herbalism($house)
     return $tr;
 }
 
+function CategoryResult_alchemy($house)
+{
+    global $expansions, $expansionLevels;
+
+    $tr = ['name' => 'Alchemy', 'results' => []];
+
+    $tr['results'][] = ['name' => 'ItemList', 'data' => [
+        'name' => $expansions[count($expansions)-1].' Flasks',
+        'items' => CategoryGenericItemList($house, 'i.id in (SELECT distinct xic.id FROM tblDBCSpell xs JOIN tblItem xic on xs.crafteditem=xic.id WHERE xs.skillline=171 and xic.level > '.$expansionLevels[count($expansionLevels)-2].' and xic.class=0 and xic.subclass=3)')
+    ]];
+    $tr['results'][] = ['name' => 'ItemList', 'data' => [
+        'name' => $expansions[count($expansions)-1].' Restorative Potions',
+        'items' => CategoryGenericItemList($house, 'i.id in (SELECT distinct xic.id FROM tblDBCSpell xs JOIN tblItem xic on xs.crafteditem=xic.id WHERE xs.skillline=171 and xic.level > '.$expansionLevels[count($expansionLevels)-2].' and xic.class=0 and xic.subclass=1 and xic.json like \'%restor%\')')
+    ]];
+    $tr['results'][] = ['name' => 'ItemList', 'data' => [
+        'name' => $expansions[count($expansions)-1].' Buff Potions',
+        'items' => CategoryGenericItemList($house, 'i.id in (SELECT distinct xic.id FROM tblDBCSpell xs JOIN tblItem xic on xs.crafteditem=xic.id WHERE xs.skillline=171 and xic.level > '.$expansionLevels[count($expansionLevels)-2].' and xic.class=0 and xic.subclass=1 and xic.json like \'%increas%\')')
+    ]];
+    $tr['results'][] = ['name' => 'ItemList', 'data' => [
+        'name' => $expansions[count($expansions)-1].' Elixirs',
+        'items' => CategoryGenericItemList($house, 'i.id in (SELECT distinct xic.id FROM tblDBCSpell xs JOIN tblItem xic on xs.crafteditem=xic.id WHERE xs.skillline=171 and xic.level > '.$expansionLevels[count($expansionLevels)-2].' and xic.class=0 and xic.subclass=2)')
+    ]];
+    $tr['results'][] = ['name' => 'ItemList', 'data' => [
+        'name' => $expansions[count($expansions)-1].' Transmutes',
+        'items' => CategoryGenericItemList($house, 'i.id in (SELECT distinct xic.id FROM tblDBCSpell xs JOIN tblItem xic on xs.crafteditem=xic.id WHERE xs.skillline=171 and xic.level > '.$expansionLevels[count($expansionLevels)-2].' and xic.class in (3,7))')
+    ]];
+    $tr['results'][] = ['name' => 'ItemList', 'data' => [
+        'name' => 'General Purpose Elixirs and Potions',
+        'items' => CategoryGenericItemList($house, 'i.id in (SELECT distinct xic.id FROM tblDBCSpell xs JOIN tblItem xic on xs.crafteditem=xic.id WHERE xs.skillline=171 and xic.class=0 and xic.subclass in (1,2) and xic.json not like \'%increas%\' and xic.json not like \'%restor%\' and xic.json not like \'%heal%\' and xic.json not like \'%regenerate%\' and xic.name not like \'%protection%\')')
+    ]];
+
+    return $tr;
+}
+
 function CategoryResult_demo($house)
 {
     return [
@@ -106,11 +141,11 @@ function CategoryDemoItemList($house)
 
 function CategoryGenericItemList($house, $params)
 {
-    global $db;
+    global $db, $canCache;
 
     $key = 'category_gi_' . md5(json_encode($params));
 
-    if (($tr = MCGetHouse($house, $key)) !== false)
+    if ($canCache && (($tr = MCGetHouse($house, $key)) !== false))
         return $tr;
 
     DBConnect();
@@ -120,6 +155,7 @@ function CategoryGenericItemList($house, $params)
         $joins = isset($params['joins']) ? $params['joins'] : '';
         $where = isset($params['where']) ? (' and '.$params['where']) : '';
     } else {
+        $joins = '';
         $where = ($params == '') ? '' : (' and ' . $params);
     }
 
