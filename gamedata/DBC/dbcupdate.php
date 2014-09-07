@@ -277,6 +277,39 @@ $sql = 'delete from tblDBCItemReagents where spell=28021 and item=22445 and skil
 run_sql($sql);
 run_sql('delete FROM tblDBCItemReagents WHERE spell in (102366,140040,140041)');
 
+dtecho('Getting spell expansion IDs..');
+$sql = <<<EOF
+SELECT s.id, max(ic.level) mx, min(ic.level) mn
+FROM tblDBCItemReagents ir, tblItem ic, tblDBCSpell s
+WHERE ir.spell=s.id
+and ir.reagent=ic.id
+and ic.level < 100
+and ic.id not in (select item from tblDBCItemVendorCost)
+and s.expansion is null
+group by s.id
+EOF;
+
+$rst = get_rst($sql);
+while ($row = next_row($rst))
+{
+    $exp = 0;
+
+    if (is_null($row['mx']))
+        $exp = 'null';
+    elseif ($row['mx'] > 85)
+        $exp = 4; // mop
+    elseif ($row['mx'] > 80)
+        $exp = 3; // cata
+    elseif ($row['mx'] > 70)
+        $exp = 2; // wotlk
+    elseif ($row['mx'] > 60)
+        $exp = 1; // bc
+    elseif ($row['mn'] == 60)
+        $exp = 1;
+
+    run_sql(sprintf('update tblDBCSpell set expansion=%s where id=%d', $exp, $row['id']));
+}
+
 
 /* */
 dtecho("Done.\n ");
