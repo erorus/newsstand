@@ -23,6 +23,7 @@ $itemMap = array(
     'buyfromvendor'     => array('name' => 'buyPrice',          'required' => false),
     'selltovendor'      => array('name' => 'sellPrice',         'required' => false),
     'auctionable'       => array('name' => 'isAuctionable',     'required' => false),
+    'vendorsource'      => array('name' => null,                'required' => false),
 );
 
 $petMap = array(
@@ -96,6 +97,13 @@ function FetchItems($items)
         $results[$dta['id']] = array('json' => $json);
         foreach ($itemMap as $ours => $details)
         {
+            if ($ours == 'vendorsource')
+            {
+                if (isset($dta['itemSource']) && isset($dta['itemSource']['sourceType']))
+                    $results[$dta['id']][$ours] = ($dta['itemSource']['sourceType'] == 'VENDOR') ? 1 : 0;
+
+                continue;
+            }
             if (!isset($dta[$details['name']]))
             {
                 if ($details['required'])
@@ -169,10 +177,12 @@ function FetchWowheadItem($id)
     $json['itemClass'] = intval($item->{'class'}['id'],10);
     $json['itemSubClass'] = intval($item->subclass['id'],10);
     $json['icon'] = strtolower((string)$item->icon);
-    if (preg_match('/Max Stack: (\d+)/', $item->htmlTooltip, $res) > 0)
+    if (preg_match('/Max Stack: (\d+)/', (string)$item->htmlTooltip, $res) > 0)
         $json['stackable'] = intval($res[1],10);
-    if (preg_match('/"sellprice":(\d+)/', $item->jsonEquip, $res) > 0)
+    if (preg_match('/"sellprice":(\d+)/', (string)$item->jsonEquip, $res) > 0)
         $json['sellPrice'] = intval($res[1],10);
+    if (preg_match('/"source":\[5\]/', (string)$item->json, $res) > 0)
+        $json['itemSource']['sourceType'] = 'VENDOR';
 
     return json_encode($json);
 }
