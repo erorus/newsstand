@@ -121,7 +121,7 @@ function CategoryResult_alchemy($house)
 
 function CategoryResult_leatherworking($house)
 {
-    global $expansions, $expansionLevels, $db;;
+    global $expansions, $expansionLevels, $db;
 
     $tr = ['name' => 'Leatherworking', 'results' => []];
 
@@ -161,6 +161,91 @@ EOF;
         $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'PVP Rare '.$itemLevel.' Leather', 'items' => CategoryGenericItemList($house, 'i.id in (select distinct x.id from tblItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.requiredlevel = '.$expansionLevels[count($expansionLevels)-1].' and x.level='.$itemLevel.' and x.quality=3 and x.class=4 and x.subclass=2 and xs.skillline=165 and x.json like \'%pvp%\')')]];
         $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'PVP Rare '.$itemLevel.' Mail',    'items' => CategoryGenericItemList($house, 'i.id in (select distinct x.id from tblItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.requiredlevel = '.$expansionLevels[count($expansionLevels)-1].' and x.level='.$itemLevel.' and x.quality=3 and x.class=4 and x.subclass=3 and xs.skillline=165 and x.json like \'%pvp%\')')]];
     }
+
+    return $tr;
+}
+
+function CategoryResult_blacksmithing($house)
+{
+    global $expansions, $expansionLevels, $db, $qualities;
+
+    $tr = ['name' => 'Blacksmithing', 'results' => []];
+    $sortIndex = 0;
+
+    for ($x = 1; $x <= 3; $x++)
+    {
+        $idx = count($expansions) - $x;
+        $nm = ($x == 3) ? 'Other' : $expansions[$idx];
+        $tr['results'][] = ['name' => 'ItemList', 'sort' => ['main' => $sortIndex++], 'data' => ['name' => $nm.' Consumables', 'items' => CategoryGenericItemList($house, 'i.id in (select distinct x.id from tblItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion'.($x == 3 ? '<=' : '=').$idx.' and x.level>40 and x.class=0 and xs.skillline=164)')]];
+    }
+
+    $key = 'category_blacksmithing_levels_'.(count($expansionLevels)-1);
+    if (($armorLevels = MCGet($key)) === false)
+    {
+        DBConnect();
+
+        $sql = <<<EOF
+SELECT x.class, x.level, x.quality, sum( if( x.json LIKE '%pvp%', 1, 0 ) ) haspvp, sum( if( x.json NOT LIKE '%pvp%', 1, 0 ) ) haspve
+FROM tblItem x, tblDBCSpell s
+WHERE x.quality BETWEEN 2 AND 4
+AND s.expansion = ?
+AND s.crafteditem = x.id
+AND x.binds != 1
+AND x.class IN ( 2, 4 )
+AND s.skillline = 164
+GROUP BY x.class, x.level, x.quality
+ORDER BY x.class DESC, x.quality DESC, x.level DESC
+
+EOF;
+
+        $stmt = $db->prepare($sql);
+        $exp = count($expansionLevels)-1;
+        $stmt->bind_param('i', $exp);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $rows = DBMapArray($result, null);
+        $stmt->close();
+
+        $armorLevels = ['PvE Armor' => [], 'PvP Armor' => [], 'Weapon' => []];
+        foreach ($armorLevels as $k => $v) for ($x = 4; $x >= 2; $x--) $armorLevels[$k][$x] = array();
+
+        foreach ($rows as $row) {
+            if ($row['class'] == 2) {
+                if (!in_array($row['level'],$armorLevels['Weapon'][$row['quality']])) {
+                    $armorLevels['Weapon'][$row['quality']][] = $row['level'];
+                }
+            } else {
+                if ($row['haspvp'] > 0) {
+                    $armorLevels['PvP Armor'][$row['quality']][] = $row['level'];
+                }
+                if ($row['haspve'] > 0) {
+                    $armorLevels['PvE Armor'][$row['quality']][] = $row['level'];
+                }
+            }
+        }
+
+        MCSet($key, $armorLevels, 24*60*60);
+    }
+
+    foreach ($armorLevels as $armorName => $armorQualities) {
+        $classId = ($armorName == 'Weapon')?2:4;
+        foreach ($armorQualities as $q => $levels) {
+            foreach ($levels as $level) {
+                $tr['results'][] = ['name' => 'ItemList', 'sort' => ['main' => $sortIndex, 'level' => $level, 'quality' => $q, 'name' => $armorName], 'data' => ['name' => $qualities[$q].' '.$level.' '.$armorName, 'items' => CategoryGenericItemList($house, 'i.id in (select distinct x.id from tblItem x, tblDBCItemReagents xir where xir.item=x.id and x.json '.(($armorName == 'PvP Armor')?'':'not').' like \'%pvp%\' and x.level='.$level.' and x.class='.$classId.' and xir.skillline=164 and x.quality='.$q.')')]];
+            }
+        }
+    }
+    $sortIndex++;
+
+    usort($tr['results'], function($a,$b) {
+        if ($a['sort']['main'] != $b['sort']['main'])
+            return $a['sort']['main'] - $b['sort']['main'];
+        if ($a['sort']['level'] != $b['sort']['level'])
+            return $b['sort']['level'] - $a['sort']['level'];
+        if ($a['sort']['quality'] != $b['sort']['quality'])
+            return $b['sort']['quality'] - $a['sort']['quality'];
+        return strcmp($a['sort']['name'], $b['sort']['name']);
+    });
 
     return $tr;
 }
