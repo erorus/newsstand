@@ -287,6 +287,59 @@ EOF;
     return $tr;
 }
 
+function CategoryResult_tailoring($house)
+{
+    global $expansions, $expansionLevels, $db;
+
+    $tr = ['name' => 'Tailoring', 'results' => []];
+
+
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Common Cloth', 'items' => CategoryGenericItemList($house, 'i.id in (2589,2592,4306,4338,14047,21877,33470,53010,72988)')]];
+
+    $x = count($expansions);
+    $x--; $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => $expansions[$x].' Bags', 'items' => CategoryGenericItemList($house, 'i.id in (select distinct x.id from tblItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.level between '.$expansionLevels[$x-1].'+1 and '.$expansionLevels[$x].' and x.class=1 and x.subclass=0 and xs.skillline=197)')]];
+    $x--; $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => $expansions[$x].' Bags', 'items' => CategoryGenericItemList($house, 'i.id in (select distinct x.id from tblItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.level between '.$expansionLevels[$x-1].'+1 and '.$expansionLevels[$x].' and x.class=1 and x.subclass=0 and xs.skillline=197)')]];
+    $x--; $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Other Bags',            'items' => CategoryGenericItemList($house, 'i.id in (select distinct x.id from tblItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.level<='.$expansionLevels[$x].' and x.level>40 and x.class=1 and x.subclass=0 and xs.skillline=197)')]];
+
+    $x = count($expansions);
+    $x--; $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => $expansions[$x].' Profession Bags', 'items' => CategoryGenericItemList($house, 'i.id in (select distinct x.id from tblItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.level between '.$expansionLevels[$x-1].'+1 and '.$expansionLevels[$x].' and x.class=1 and x.subclass!=0 and xs.skillline=197)')]];
+    $x--; $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => $expansions[$x].' Profession Bags', 'items' => CategoryGenericItemList($house, 'i.id in (select distinct x.id from tblItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.level between '.$expansionLevels[$x-1].'+1 and '.$expansionLevels[$x].' and x.class=1 and x.subclass!=0 and xs.skillline=197)')]];
+    $x--; $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Other Profession Bags',            'items' => CategoryGenericItemList($house, 'i.id in (select distinct x.id from tblItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.level<='.$expansionLevels[$x].' and x.level>40 and x.class=1 and x.subclass!=0 and xs.skillline=197)')]];
+
+    $x = count($expansions);
+    $x--; $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => $expansions[$x].' Spellthread', 'items' => CategoryGenericItemList($house, 'i.id in (select distinct x.id from tblItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion='.$x.' and x.class=0 and x.subclass=6 and xs.skillline=197)')]];
+    $x--; $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => $expansions[$x].' Spellthread', 'items' => CategoryGenericItemList($house, 'i.id in (select distinct x.id from tblItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion='.$x.' and x.class=0 and x.subclass=6 and xs.skillline=197)')]];
+    $x--; $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Other Spellthread',            'items' => CategoryGenericItemList($house, 'i.id in (select distinct x.id from tblItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion<='.$x.' and x.class=0 and x.subclass=6 and xs.skillline=197)')]];
+
+    if (($pvpLevels = MCGet('category_tailoring_pvplevels_'.$expansionLevels[count($expansionLevels)-1])) === false)
+    {
+        DBConnect();
+        $sql = <<<EOF
+SELECT distinct i.level
+FROM tblItem i
+JOIN tblDBCSpell s on s.crafteditem=i.id
+WHERE i.quality=3 and i.class=4 and s.skillline=197 and i.requiredlevel=? and i.json like '%pvp%'
+order by 1 desc
+EOF;
+
+        $stmt = $db->prepare($sql);
+        $stmt->bind_param('i', $expansionLevels[count($expansionLevels)-1]);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $pvpLevels = DBMapArray($result, null);
+        $stmt->close();
+
+        MCSet('category_tailoring_pvplevels_'.$expansionLevels[count($expansionLevels)-1], $pvpLevels, 24*60*60);
+    }
+
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Epic Armor', 'items' => CategoryGenericItemList($house, 'i.id in (select distinct x.id from tblItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.requiredlevel = '.$expansionLevels[count($expansionLevels)-1].' and x.quality=4 and x.class=4 and xs.skillline=197)')]];
+
+    foreach ($pvpLevels as $pvpLevel)
+        $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'PVP '.$pvpLevel.' Rare Armor',  'items' => CategoryGenericItemList($house, 'i.id in (select distinct x.id from tblItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.requiredlevel = '.$expansionLevels[count($expansionLevels)-1].' and x.level = '.$pvpLevel.' and x.quality=3 and x.class=4 and xs.skillline=197 and x.json like \'%pvp%\')')]];
+
+    return $tr;
+}
+
 function CategoryResult_demo($house)
 {
     return [

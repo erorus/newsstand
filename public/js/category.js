@@ -113,6 +113,9 @@ var TUJ_Category = function()
     {
         var item, x, t, td, th, tr, a;
 
+        if (!data.items.length)
+            return;
+
         t = libtuj.ce('table');
         t.className = 'category-items';
         dest.appendChild(t);
