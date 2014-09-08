@@ -24,6 +24,9 @@ $itemMap = array(
     'selltovendor'      => array('name' => 'sellPrice',         'required' => false),
     'auctionable'       => array('name' => 'isAuctionable',     'required' => false),
     'vendorsource'      => array('name' => null,                'required' => false),
+    'type'              => array('name' => 'inventoryType',     'required' => false),
+    'requiredlevel'     => array('name' => 'requiredLevel',     'required' => false),
+    'requiredskill'     => array('name' => 'requiredSkill',     'required' => false),
 );
 
 $petMap = array(
@@ -244,6 +247,11 @@ function FetchWowheadItem($id)
         $json['sellPrice'] = intval($res[1],10);
     if (preg_match('/"source":\[5\]/', (string)$item->json, $res) > 0)
         $json['itemSource']['sourceType'] = 'VENDOR';
+    $json['inventoryType'] = intval($item->inventorySlot['id'],10);
+    if (preg_match('/"reqlevel":(\d+)/', (string)$item->jsonEquip, $res) > 0)
+        $json['requiredLevel'] = intval($res[1],10);
+    if (preg_match('/"reqskill":(\d+)/', (string)$item->jsonEquip, $res) > 0)
+        $json['requiredSkill'] = intval($res[1],10);
 
     return json_encode($json);
 }
