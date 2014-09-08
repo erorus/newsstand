@@ -250,6 +250,43 @@ EOF;
     return $tr;
 }
 
+function CategoryResult_engineering($house)
+{
+    global $expansions, $expansionLevels;
+
+    $tr = ['name' => 'Engineering', 'results' => []];
+
+    $exp = $expansions[count($expansions)-1];
+
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => $exp.' Weapons and Armor',  'items' => CategoryGenericItemList($house, 'i.id in (select distinct x.id from tblItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion='.(count($expansions)-1).' and x.level>40 and (x.class=2 or (x.class=4 and x.subclass>0)) and xs.skillline=202)')]];
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Ranged Enchants (Scopes)', 'items' => CategoryGenericItemList($house, 'i.id in (select distinct x.id from tblItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.level>40 and (x.json like \'%bow or gun%\' or x.json like \'%ranged weapon%\') and xs.skillline=202)')]];
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Companions',               'items' => CategoryGenericItemList($house, 'i.id in (select distinct x.id from tblItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.class=15 and x.subclass=2 and xs.skillline=202)')]];
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Mounts',                   'items' => CategoryGenericItemList($house, 'i.id in (select distinct x.id from tblItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.class=15 and x.subclass=5 and xs.skillline=202)')]];
+
+$sql = <<<EOF
+i.id in (
+    select distinct x.id
+    from tblItem x, tblDBCSpell xs
+    where xs.crafteditem=x.id
+    and ifnull(x.requiredskill,0) != 202
+    and (
+        (x.class=4 and (x.subclass not in (1,2,3,4) or x.level < 10))
+        or (x.class in (0,7) and x.id not in (
+            select reagent
+            from tblDBCItemReagents xir2
+            where xir2.reagent=x.id))
+        )
+    and xs.skillline=202
+    and x.json not like '%bow or gun%'
+    and x.json not like '%ranged weapon%'
+    )
+EOF;
+
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Non-Engineer Items', 'items' => CategoryGenericItemList($house, $sql)]];
+
+    return $tr;
+}
+
 function CategoryResult_demo($house)
 {
     return [
@@ -302,6 +339,9 @@ group by i.id
 EOF;
 
     $stmt = $db->prepare($sql);
+    if (!$stmt) {
+        DebugMessage("Bad SQL: \n".$sql, E_USER_ERROR);
+    }
     $stmt->bind_param('ii', $house, $house);
     $stmt->execute();
     $result = $stmt->get_result();
