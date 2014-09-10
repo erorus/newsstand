@@ -5,6 +5,7 @@ chdir(__DIR__);
 require_once('../incl/incl.php');
 require_once('../incl/heartbeat.incl.php');
 require_once('../incl/memcache.incl.php');
+require_once('../incl/battlenet.incl.php');
 
 ini_set('memory_limit','512M');
 
@@ -23,7 +24,7 @@ foreach ($regions as $region)
         break;
     if (isset($argv[1]) && $argv[1] != $region)
         continue;
-    $url = sprintf('http://local.theunderminejournal.com/api/bnetapi.php?region=%s&path=wow/realm/status', strtolower($region));
+    $url = GetBattleNetURL($region, 'wow/realm/status');
 
     $json = FetchHTTP($url);
     $realms = json_decode($json, true, 512, JSON_BIGINT_AS_STRING);
@@ -80,7 +81,7 @@ foreach ($regions as $region)
         $bySellerRealm[str_replace(' ', '', $row['name'])] = $row['slug'];
 
         DebugMessage("Fetching $region $slug");
-        $url = sprintf('http://local.theunderminejournal.com/api/bnetapi.php?region=%s&path=%s', strtolower($region), rawurlencode("wow/auction/data/$slug"));
+        $url = GetBattleNetURL($region, "wow/auction/data/$slug");
 
         $json = FetchHTTP($url);
         $dta = json_decode($json, true);

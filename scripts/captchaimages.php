@@ -6,6 +6,7 @@ define('CAPTCHA_DIR', '../public/captcha');
 
 require_once('../incl/incl.php');
 require_once('../incl/heartbeat.incl.php');
+require_once('../incl/battlenet.incl.php');
 
 ini_set('memory_limit','512M');
 
@@ -41,7 +42,7 @@ EOF;
     $stmt->close();
 
     DebugMessage("Fetching $region $slug");
-    $url = sprintf('http://local.theunderminejournal.com/api/bnetapi.php?region=%s&path=%s', strtolower($region), rawurlencode("wow/auction/data/$slug"));
+    $url = GetBattleNetURL($region, "wow/auction/data/$slug");
 
     $json = FetchHTTP($url);
     $dta = json_decode($json, true);
@@ -115,7 +116,7 @@ foreach ($factions as $faction)
 
         $tries++;
         DebugMessage("Fetching $region $slug $toon");
-        $url = sprintf('http://local.theunderminejournal.com/api/bnetapi.php?region=%s&path=%s', strtolower($region), rawurlencode("wow/character/$slug/$toon?fields=guild"));
+        $url = GetBattleNetURL($region, "wow/character/$slug/$toon?fields=guild");
         $json = json_decode(FetchHTTP($url), true);
 
         if (!isset($json['guild']))
@@ -125,7 +126,7 @@ foreach ($factions as $faction)
 
         $tries++;
         DebugMessage("Fetching $region $slug <$guild>");
-        $url = sprintf('http://local.theunderminejournal.com/api/bnetapi.php?region=%s&path=%s', strtolower($region), rawurlencode("wow/guild/$slug/$guild?fields=members"));
+        $url = GetBattleNetURL($region, "wow/guild/$slug/$guild?fields=members");
         $json = json_decode(FetchHTTP($url), true);
 
         if (!isset($json['members']))
@@ -143,7 +144,7 @@ foreach ($factions as $faction)
             $toon = $c['name'];
 
             DebugMessage("Fetching $region $slug $toon of <$guild>");
-            $url = sprintf('http://local.theunderminejournal.com/api/bnetapi.php?region=%s&path=%s', strtolower($region), rawurlencode("wow/character/$slug/$toon?fields=appearance"));
+            $url = GetBattleNetURL($region, "wow/character/$slug/$toon?fields=appearance");
             $cjson = json_decode(FetchHTTP($url), true);
 
             if (!isset($cjson['appearance']))

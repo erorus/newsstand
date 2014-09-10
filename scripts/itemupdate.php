@@ -4,6 +4,7 @@ chdir(__DIR__);
 
 require_once('../incl/incl.php');
 require_once('../incl/heartbeat.incl.php');
+require_once('../incl/battlenet.incl.php');
 
 RunMeNTimes(1);
 
@@ -90,7 +91,7 @@ function FetchItems($items)
     {
         heartbeat();
         DebugMessage('Fetching item '.$id);
-        $url = 'http://local.theunderminejournal.com/api/bnetapi.php?region=us&path=wow/item/'.$id;
+        $url = GetBattleNetURL('us', 'wow/item/'.$id);
         $json = FetchHTTP($url);
         $dta = json_decode($json, true);
         if ((json_last_error() != JSON_ERROR_NONE) || (!isset($dta['id'])))
@@ -320,7 +321,7 @@ function FetchPets($pets)
     {
         heartbeat();
         DebugMessage('Fetching pet '.$id);
-        $url = 'http://local.theunderminejournal.com/api/bnetapi.php?region=us&path=wow/battlePet/species/'.$id;
+        $url = GetBattleNetURL('us', 'wow/battlePet/species/'.$id);
         $json = FetchHTTP($url);
         $dta = json_decode($json, true);
         if ((json_last_error() != JSON_ERROR_NONE) || (!isset($dta['speciesId'])))
