@@ -246,7 +246,7 @@ var tujConstants = {
 var TUJ = function()
 {
     var validPages = ['','search','item','seller','battlepet','contact','donate'];
-    var pagesNeedRealm = [true, true, true, true, true, false];
+    var pagesNeedRealm = [true, true, true, true, true, false, false];
     this.validFactions = {'alliance': 1, 'horde': -1};
     this.region = undefined;
     this.realms = undefined;
