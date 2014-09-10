@@ -4,6 +4,7 @@ chdir(__DIR__);
 
 require_once('../incl/incl.php');
 require_once('../incl/heartbeat.incl.php');
+require_once('../incl/battlenet.incl.php');
 
 RunMeNTimes(1);
 CatchKill();
