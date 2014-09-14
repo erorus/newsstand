@@ -22,7 +22,7 @@ $result = $stmt->get_result();
 $houseRegionCache = DBMapArray($result);
 $stmt->close();
 
-$stmt = $db->prepare('select id, region, name, replace(name, \' \', \'\') as ownerrealm from tblRealm');
+$stmt = $db->prepare('select id, region, name, ifnull(ownerrealm, replace(name, \' \', \'\')) as ownerrealm from tblRealm');
 $stmt->execute();
 $result = $stmt->get_result();
 $ownerRealmCache = DBMapArray($result, array('region','ownerrealm'));
