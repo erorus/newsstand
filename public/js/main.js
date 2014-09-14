@@ -450,10 +450,9 @@ var TUJ = function()
 
     function UpdateSidebar()
     {
-        if (self.params.realm)
-            $('#topcorner').show();
-        else
-            $('#topcorner').hide();
+        $('#topcorner .region-pick').hide();
+        if (!self.params.realm)
+            $('#topcorner #region-pick-' + self.region).show();
 
         var regionLink = $('#topcorner a.region');
         regionLink[0].href = self.region == 'US' ? '//eu.theunderminejournal.com' : '//theunderminejournal.com';
