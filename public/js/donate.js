@@ -16,6 +16,9 @@ var TUJ_Donate = function()
 
         $('#page-title').text('Donate to The Undermine Journal');
         tuj.SetTitle('Donate');
+
+        if (params.id && params.id == 'thanks')
+            $('#donate-thanks').show();
     }
 
     this.load(tuj.params);
