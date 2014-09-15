@@ -4,6 +4,7 @@ chdir(__DIR__);
 
 require_once('../incl/incl.php');
 require_once('../incl/heartbeat.incl.php');
+require_once('../incl/battlenet.incl.php');
 
 RunMeNTimes(1);
 CatchKill();
@@ -82,14 +83,15 @@ ENDSQL;
 
     DebugMessage("$region $slug fetch for house $house to update $realmCount realms, due since ".(is_null($nextDate) ? 'unknown' : TimeDiff(strtotime($nextDate), array('precision' => 'second'))));
 
-    $url = sprintf('http://local.theunderminejournal.com/api/bnetapi.php?region=%s&path=%s', strtolower($region), rawurlencode("wow/auction/data/$slug"));
+    $url = GetBattleNetURL($region, "wow/auction/data/$slug");
 
     $json = FetchHTTP($url);
     $dta = json_decode($json, true);
     if (!isset($dta['files']))
     {
-        DebugMessage("$region $slug returned no files.", E_USER_WARNING);
-        SetHouseNextCheck($house, time() + GetCheckDelay($lastDate));
+        $delay = GetCheckDelay(strtotime($lastDate));
+        DebugMessage("$region $slug returned no files. Waiting ".floor($delay/60)." minutes.", E_USER_WARNING);
+        SetHouseNextCheck($house, time() + $delay);
         return 0;
     }
 

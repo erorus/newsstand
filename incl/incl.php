@@ -139,6 +139,11 @@ function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
     error_reporting($oldErrorReporting);
     unset($oldErrorReporting);
 
+    if (!$data) {
+        $outHeaders = array();
+        return false;
+    }
+
     $outHeaders = array_merge(array(
         'httpVersion' => $data->httpVersion,
         'responseCode' => $data->responseCode,

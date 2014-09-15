@@ -2,3 +2,8 @@ User-agent: *
 Disallow: /images/
 Disallow: /icon/
 Disallow: /api/
+Disallow: /item.php
+Disallow: /seller.php
+Disallow: /user.php
+Disallow: /item.php
+Disallow: /category.php

@@ -5,6 +5,7 @@ chdir(__DIR__);
 require_once('../incl/incl.php');
 require_once('../incl/heartbeat.incl.php');
 require_once('../incl/memcache.incl.php');
+require_once('../incl/battlenet.incl.php');
 
 ini_set('memory_limit','512M');
 
@@ -23,7 +24,7 @@ foreach ($regions as $region)
         break;
     if (isset($argv[1]) && $argv[1] != $region)
         continue;
-    $url = sprintf('http://local.theunderminejournal.com/api/bnetapi.php?region=%s&path=wow/realm/status', strtolower($region));
+    $url = GetBattleNetURL($region, 'wow/realm/status');
 
     $json = FetchHTTP($url);
     $realms = json_decode($json, true, 512, JSON_BIGINT_AS_STRING);
@@ -57,7 +58,11 @@ foreach ($regions as $region)
     }
     $stmt->close();
 
-    $stmt = $db->prepare('select slug, house, name from tblRealm where region = ?');
+    GetRussianOwnerRealms($region);
+    if ($caughtKill)
+        break;
+
+    $stmt = $db->prepare('select slug, house, name, ifnull(ownerrealm, replace(name, \' \', \'\')) as ownerrealm from tblRealm where region = ?');
     $stmt->bind_param('s', $region);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -77,10 +82,10 @@ foreach ($regions as $region)
             break 2;
 
         $slug = $row['slug'];
-        $bySellerRealm[str_replace(' ', '', $row['name'])] = $row['slug'];
+        $bySellerRealm[$row['ownerrealm']] = $row['slug'];
 
         DebugMessage("Fetching $region $slug");
-        $url = sprintf('http://local.theunderminejournal.com/api/bnetapi.php?region=%s&path=%s', strtolower($region), rawurlencode("wow/auction/data/$slug"));
+        $url = GetBattleNetURL($region, "wow/auction/data/$slug");
 
         $json = FetchHTTP($url);
         $dta = json_decode($json, true);
@@ -263,6 +268,55 @@ function GetDataRealms($region, $hash)
     file_put_contents($cachePath, json_encode($result));
 
     return $result;
+}
+
+function GetRussianOwnerRealms($region)
+{
+    global $db, $caughtKill;
+
+    $ruID = 0;
+    $ruSlug = '';
+    $ruToRun = array();
+    $stmt = $db->prepare('select id, slug from tblRealm where region=? and locale=\'ru_RU\' and ownerrealm is null');
+    $stmt->bind_param('s', $region);
+    $stmt->execute();
+    $stmt->bind_result($ruID, $ruSlug);
+    while ($stmt->fetch())
+    {
+        heartbeat();
+        if ($caughtKill)
+            return;
+
+        DebugMessage("Getting ownerrealm for russian slug $ruSlug");
+        $url = GetBattleNetURL($region, 'wow/realm/status?realms='.$ruSlug.'&locale=ru_RU');
+        $ruRealm = json_decode(FetchHTTP($url), true, 512, JSON_BIGINT_AS_STRING);
+        if (json_last_error() != JSON_ERROR_NONE)
+        {
+            DebugMessage("$url did not return valid JSON");
+            continue;
+        }
+
+        if (!isset($ruRealm['realms']) || (count($ruRealm['realms']) == 0))
+        {
+            DebugMessage("$url returned no realms");
+            continue;
+        }
+
+        $ruOwner = str_replace(' ', '', $ruRealm['realms'][0]['name']);
+        $ruToRun[] = sprintf('update tblRealm set ownerrealm = \'%s\' where id = %d', $db->escape_string($ruOwner), $ruID);
+    }
+    $stmt->close();
+    if ($caughtKill)
+        return;
+
+    foreach ($ruToRun as $sql)
+    {
+        heartbeat();
+        if ($caughtKill)
+            return;
+        if (!$db->real_query($sql))
+            DebugMessage(sprintf("%s: %s", $sql, $db->error), E_USER_WARNING);
+    }
 }
 
 function CleanOldHouses()
