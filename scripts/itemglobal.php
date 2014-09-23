@@ -44,7 +44,7 @@ for ($z = 0; $z < $itemsCount; $z++) {
         DebugMessage("Processing item $z/$itemsCount (".round($z / $itemsCount * 100).'%)');
 
     $stmt = $db->prepare($sql);
-    $stmt->bind_param('ii', $item, $item);
+    $stmt->bind_param('i', $item);
     $stmt->execute();
     $result = $stmt->get_result();
     $prices = DBMapArray($result, null);
