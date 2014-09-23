@@ -25,11 +25,16 @@ if ($caughtKill)
 
 $sql = <<<END
 SELECT price
-FROM tblItemHistory ih, tblRealm r
+FROM tblItemSummary ih, tblRealm r
 WHERE item = ?
-and snapshot > timestampadd(hour, -24, now())
 and r.canonical is not null
 and ih.house = r.house
+union all
+SELECT price
+FROM tblItemSummary ih, tblRealm r
+WHERE item = ?
+and r.canonical is not null
+and ih.house = cast(r.house as signed) * -1
 END;
 
 DebugMessage('Updating items..');
@@ -44,7 +49,7 @@ for ($z = 0; $z < $itemsCount; $z++) {
         DebugMessage("Processing item $z/$itemsCount (".round($z / $itemsCount * 100).'%)');
 
     $stmt = $db->prepare($sql);
-    $stmt->bind_param('i', $item);
+    $stmt->bind_param('ii', $item, $item);
     $stmt->execute();
     $result = $stmt->get_result();
     $prices = DBMapArray($result, null);
