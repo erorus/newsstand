@@ -62,13 +62,13 @@ for ($z = 0; $z < $itemsCount; $z++) {
         continue;
 
     $mean = 0;
-    for ($x = 0; $x < count($prices); $x++) {
+    for ($x = 0; $x < $cnt; $x++) {
         $mean += $prices[$x] / $cnt;
     }
     $mean = round($mean);
 
     $stdDev = 0;
-    for ($x = 0; $x < count($prices); $x++) {
+    for ($x = 0; $x < $cnt; $x++) {
         $stdDev += pow($prices[$x] - $mean, 2) / $cnt;
     }
     $stdDev = round(sqrt($stdDev));
