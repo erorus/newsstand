@@ -116,6 +116,15 @@ var TUJ_Category = function()
         if (!data.items.length)
             return;
 
+        if (!data.hiddenCols)
+            data.hiddenCols = {};
+
+        if (!data.visibleCols)
+            data.visibleCols = {};
+
+        if (!data['sort'])
+            data['sort'] = '';
+
         t = libtuj.ce('table');
         t.className = 'category-items';
         dest.appendChild(t);
@@ -151,21 +160,47 @@ var TUJ_Category = function()
         tr.appendChild(td);
         $(td).text('Current');
 
-        td = libtuj.ce('th');
-        td.className = 'price';
-        tr.appendChild(td);
-        $(td).text('Mean');
+        if (!data.hiddenCols.avgprice)
+        {
+            td = libtuj.ce('th');
+            td.className = 'price';
+            tr.appendChild(td);
+            $(td).text('Mean');
+        }
+
+        if (!data.visibleCols.globalmedian)
+        {
+            td = libtuj.ce('th');
+            td.className = 'price';
+            tr.appendChild(td);
+            $(td).text('Global Median');
+        }
 
         td = libtuj.ce('th');
         td.className = 'date';
         tr.appendChild(td);
         $(td).text('Last Seen');
 
-        data.items.sort(function(a,b){
-            return ((a.price ? 0 : 1) - (b.price ? 0 : 1)) ||
-                (a.price - b.price) ||
-                a.name.localeCompare(b.name);
-        });
+        switch (data['sort']) {
+            case 'none':
+                break;
+
+            case 'globalmedian diff':
+                data.items.sort(function(a,b){
+                    return ((b.globalmedian - b.price) - (a.globalmedian - a.price)) ||
+                        ((a.price ? 0 : 1) - (b.price ? 0 : 1)) ||
+                        (a.price - b.price) ||
+                        a.name.localeCompare(b.name);
+                });
+                break;
+
+            default:
+                data.items.sort(function(a,b){
+                    return ((a.price ? 0 : 1) - (b.price ? 0 : 1)) ||
+                        (a.price - b.price) ||
+                        a.name.localeCompare(b.name);
+                });
+        }
 
         for (x = 0; item = data.items[x]; x++)
         {
@@ -199,10 +234,21 @@ var TUJ_Category = function()
             tr.appendChild(td);
             td.appendChild(libtuj.FormatPrice(item.price));
 
-            td = libtuj.ce('td');
-            td.className = 'price';
-            tr.appendChild(td);
-            td.appendChild(libtuj.FormatPrice(item.avgprice));
+            if (!data.hiddenCols.avgprice)
+            {
+                td = libtuj.ce('td');
+                td.className = 'price';
+                tr.appendChild(td);
+                td.appendChild(libtuj.FormatPrice(item.avgprice));
+            }
+
+            if (!data.visibleCols.globalmedian)
+            {
+                td = libtuj.ce('td');
+                td.className = 'price';
+                tr.appendChild(td);
+                td.appendChild(libtuj.FormatPrice(item.globalmedian));
+            }
 
             td = libtuj.ce('td');
             td.className = 'date';

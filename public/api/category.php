@@ -24,6 +24,25 @@ $qualities = array('Poor', 'Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'A
 
 json_return($resultFunc($house));
 
+function CategoryResult_deals($house)
+{
+    return [
+        'name' => 'Deals',
+        'results' => [
+            ['name' => 'ItemList', 'data' => ['name' => 'Dropped Rare and Epic Armor/Weapons', 'items' => CategoryDealsItemList($house, 'i.class in (2,4) and i.quality > 2'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true], 'sort' => 'none']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Dropped Uncommon Armor/Weapons', 'items' => CategoryDealsItemList($house, 'i.class in (2,4) and i.quality = 2'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true], 'sort' => 'none']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Dropped Common/Junk Armor/Weapons', 'items' => CategoryDealsItemList($house, 'i.class in (2,4) and i.quality < 2'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true], 'sort' => 'none']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Uncommon Recipes', 'items' => CategoryDealsItemList($house, 'i.class = 9 and i.quality > 1'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true], 'sort' => 'none']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Common Recipes', 'items' => CategoryDealsItemList($house, 'i.class = 9 and i.quality <= 1'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true], 'sort' => 'none']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Crafted Armor/Weapons', 'items' => CategoryDealsItemList($house, 'i.class in (2,4)', -1), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true], 'sort' => 'none']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Dropped Consumables', 'items' => CategoryDealsItemList($house, 'i.class = 0'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true], 'sort' => 'none']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Trade Goods', 'items' => CategoryDealsItemList($house, 'i.class = 7'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true], 'sort' => 'none']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Companion Deals', 'items' => CategoryDealsItemList($house, 'i.class = 15 and i.subclass in (2,5)'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true], 'sort' => 'none']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Miscellaneous Items', 'items' => CategoryDealsItemList($house, '(i.class in (12,13) or (i.class=15 and i.subclass not in (2,5)))'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true], 'sort' => 'none']],
+        ]
+    ];
+}
+
 function CategoryResult_mining($house)
 {
     return [
@@ -381,10 +400,12 @@ function CategoryGenericItemList($house, $params)
     }
 
     $sql = <<<EOF
-select i.id, i.name, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice
+select i.id, i.name, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice,
+g.median globalmedian, g.mean globalmean, g.stddev globalstddev
 from tblItem i
 left join tblItemSummary s on s.house=? and s.item=i.id
 left join tblItemHistory h on h.house=? and h.item=i.id
+left join tblItemGlobal g on g.item=i.id
 $joins
 where ifnull(i.auctionable,1) = 1
 $where
@@ -402,6 +423,113 @@ EOF;
     $stmt->close();
 
     MCSetHouse($house, $key, $tr);
+
+    return $tr;
+}
+
+function CategoryDealsItemList($house, $dealsSql, $allowCrafted = 0) {
+    /* $allowCrafted
+        0 = no crafted items
+        1 = crafted and drops
+        -1 = crafted only
+    */
+
+    global $db, $canCache;
+
+    $key = 'category_di_' . md5($dealsSql).'_'.$allowCrafted;
+
+    if ($canCache && (($tr = MCGetHouse($house, $key)) !== false)) {
+        if (count($tr) == 0)
+            return [];
+
+        $sql = 'i.id in ('.implode(',',$tr).')';
+
+        $iids = array_flip($tr);
+
+        $tr = CategoryGenericItemList($house, $sql);
+
+        usort($tr, function ($a, $b) use ($iids) {
+            return $iids[$a['id']] - $iids[$b['id']];
+        });
+
+        return $tr;
+    }
+
+    DBConnect();
+
+    $region = GetRegion($house);
+    $sideCompare = $house > 0 ? '>' : '<';
+
+    $fullSql = <<<EOF
+select aa.item
+from (
+    select ac.item, ac.c_total, ac.c_over, ac.price, gs.median
+    from (
+        select ab.item, count(*) c_total, sum(if(tis2.price > ab.price,1,0)) c_over, ab.price
+        from (
+            select tis.item, tis.price
+            from tblItemSummary tis
+            join tblItem i on tis.item=i.id
+            where tis.house = ?
+            and tis.quantity > 0
+            and 0 = (select count(*) from tblDBCItemVendorCost ivc where ivc.item=i.id)
+            and i.class not in (16)
+            and $dealsSql
+EOF;
+            switch ($allowCrafted) {
+                case '0':
+                    $fullSql .= ' and 0 = (select count(*) from tblDBCSpell s where s.crafteditem=i.id) ';
+                    break;
+                case '-1' :
+                    $fullSql .= ' and 0 < (select count(*) from tblDBCSpell s where s.crafteditem=i.id) ';
+                    break;
+            }
+            $fullSql .= <<<EOF
+        ) ab
+        join tblItemSummary tis2 on tis2.item = ab.item
+        join tblRealm r on tis2.house = r.house and r.canonical is not null
+        where r.region = ?
+        and r.house $sideCompare 0
+        group by ab.item
+    ) ac
+    join tblItemGlobal gs on gs.item = ac.item
+    where ((c_over/c_total) > 2/3 or c_total < 15)
+) aa
+where median > 1500000
+and median > price
+order by (cast(median as signed) - cast(price as signed))/median * (c_over/c_total) desc
+limit 15
+EOF;
+
+    $stmt = $db->prepare($fullSql);
+    if (!$stmt) {
+        DebugMessage("Bad SQL: \n".$fullSql, E_USER_ERROR);
+    }
+    $stmt->bind_param('is', $house, $region);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $iidList = DBMapArray($result, null);
+    $stmt->close();
+
+    MCSetHouse($house, $key, $iidList);
+
+    if (count($iidList) == 0)
+        return array();
+
+    $sql = 'i.id in ('.implode(',',$iidList).')';
+
+    $iids = array_flip($iidList);
+
+    $tr = CategoryGenericItemList($house, $sql);
+
+    usort($tr, function ($a, $b) use ($iids) {
+        return $iids[$a['id']] - $iids[$b['id']];
+    });
+
+    return $tr;
+
+
+    $tr = CategoryGenericItemList($house, 'i.id in ('.implode(',',$iidList).')');
 
     return $tr;
 }
