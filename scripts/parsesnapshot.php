@@ -311,8 +311,8 @@ and a.item not in (82800)
 and ifnull(tis.lastseen, '2000-01-01') < timestampadd(day,-14,'%s'))
 EOF;
             $sql = sprintf($sql, $factionHouse, $lastMax, $hasRollOver ? ' and a.id < 0x20000000 ' : '', $snapshotString);
-            //DebugMessage("House ".str_pad($factionHouse, 5, ' ', STR_PAD_LEFT)." finding rare auctions");
-            //$ourDb->query($sql);
+            $ourDb->query($sql);
+            $ourDb->commit(MYSQLI_TRANS_COR_AND_CHAIN);
 
             // move out of loop once no longer using $factionHouse
             DebugMessage("House ".str_pad($factionHouse, 5, ' ', STR_PAD_LEFT)." updating ".count($itemInfo)." item info");
@@ -334,6 +334,8 @@ EOF;
             DebugMessage("House ".str_pad($factionHouse, 5, ' ', STR_PAD_LEFT)." updating seller history");
             UpdateSellerInfo($sellerInfo, $snapshot);
             $sellerInfo = array();
+
+            $ourDb->commit(MYSQLI_TRANS_COR_AND_CHAIN);
         }
 
     if (count($existingIds) > 0)
@@ -553,7 +555,7 @@ function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
         if (strlen($sql) + strlen($sqlBit) + strlen($sqlEnd) + 5 > $maxPacketSize)
         {
             if (!$db->query($sql.$sqlEnd))
-            	DebugMessage("SQL error: ".$db->error." - ".preg_replace('/[\r\n]/', ' ', $sql.$sqlEnd));
+                DebugMessage("SQL error: ".$db->error." - ".preg_replace('/[\r\n]/', ' ', $sql.$sqlEnd));
             $sql = '';
         }
         $sql .= ($sql == '' ? $sqlStart : ',') . $sqlBit;
@@ -563,7 +565,7 @@ function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
             if (strlen($sqlHistory) + strlen($sqlBit) + 5 > $maxPacketSize)
             {
                 if (!$db->query($sqlHistory))
-	            	DebugMessage("SQL error: ".$db->error." - ".preg_replace('/[\r\n]/', ' ', $sqlHistory));
+                    DebugMessage("SQL error: ".$db->error." - ".preg_replace('/[\r\n]/', ' ', $sqlHistory));
                 $sqlHistory = '';
             }
             $sqlHistory .= ($sqlHistory == '' ? $sqlHistoryStart : ',') . $sqlBit;
@@ -572,7 +574,7 @@ function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
             if (strlen($sqlDeep) + strlen($sqlDeepBit) + strlen($sqlDeepEnd) + 5 > $maxPacketSize)
             {
                 if (!$db->query($sqlDeep.$sqlDeepEnd))
-	            	DebugMessage("SQL error: ".$db->error." - ".preg_replace('/[\r\n]/', ' ', $sqlDeep.$sqlDeepEnd));
+                    DebugMessage("SQL error: ".$db->error." - ".preg_replace('/[\r\n]/', ' ', $sqlDeep.$sqlDeepEnd));
                 $sqlDeep = '';
             }
             $sqlDeep .= ($sqlDeep == '' ? $sqlDeepStart : ',') . $sqlDeepBit;
@@ -582,13 +584,13 @@ function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
 
     if ($sql != '')
         if (!$db->query($sql.$sqlEnd))
-			DebugMessage("SQL error: ".$db->error." - ".preg_replace('/[\r\n]/', ' ', $sql.$sqlEnd));
+            DebugMessage("SQL error: ".$db->error." - ".preg_replace('/[\r\n]/', ' ', $sql.$sqlEnd));
     if ($sqlHistory != '')
         if (!$db->query($sqlHistory))
-			DebugMessage("SQL error: ".$db->error." - ".preg_replace('/[\r\n]/', ' ', $sqlHistory));
+            DebugMessage("SQL error: ".$db->error." - ".preg_replace('/[\r\n]/', ' ', $sqlHistory));
     if ($sqlDeep != '')
         if (!$db->query($sqlDeep.$sqlDeepEnd))
-			DebugMessage("SQL error: ".$db->error." - ".preg_replace('/[\r\n]/', ' ', $sqlDeep.$sqlDeepEnd));
+            DebugMessage("SQL error: ".$db->error." - ".preg_replace('/[\r\n]/', ' ', $sqlDeep.$sqlDeepEnd));
 }
 
 function UpdatePetInfo($factionHouse, &$petInfo, $snapshot)
