@@ -306,10 +306,12 @@ from tblAuction a
 left join tblItemSummary tis on tis.house=a.house and tis.item=a.item
 where a.house = %d
 and a.id > %d
+and a.item not in (82800)
 %s
 and ifnull(tis.lastseen, '2000-01-01') < timestampadd(day,-14,'%s'))
 EOF;
             $sql = sprintf($sql, $factionHouse, $lastMax, $hasRollOver ? ' and a.id < 0x20000000 ' : '', $snapshotString);
+            DebugMessage("House ".str_pad($factionHouse, 5, ' ', STR_PAD_LEFT)." finding rare auctions");
             $ourDb->query($sql);
 
             // move out of loop once no longer using $factionHouse
