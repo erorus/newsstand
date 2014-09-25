@@ -575,7 +575,7 @@ function CategoryUnusualItemList($house, $unusualSql, $allowCrafted = 0) {
     $params = [
         'where' => $unusualSql.$craftedSql,
         'joins' => 'join tblAuction a on a.house=s.house and a.item=i.id join tblAuctionRare ar on ar.house=a.house and ar.id=a.id',
-        'cols' => 'min(ar.prevseen) `prevseen`, min(a.bid) `bid`',
+        'cols' => 'min(ar.prevseen) `lastseen`, min(a.bid) `bid`',
     ];
 
     return CategoryGenericItemList($house, $params);
