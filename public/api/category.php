@@ -43,6 +43,25 @@ function CategoryResult_deals($house)
     ];
 }
 
+function CategoryResult_unusuals($house)
+{
+    return [
+        'name' => 'Unusual Items',
+        'results' => [
+            ['name' => 'ItemList', 'data' => ['name' => 'Dropped Rare and Epic Armor/Weapons', 'items' => CategoryUnusualItemList($house, 'i.class in (2,4) and i.quality > 2'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true, 'bid' => true]]],
+            ['name' => 'ItemList', 'data' => ['name' => 'Dropped Uncommon Armor/Weapons', 'items' => CategoryUnusualItemList($house, 'i.class in (2,4) and i.quality = 2'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true, 'bid' => true]]],
+            ['name' => 'ItemList', 'data' => ['name' => 'Dropped Common/Junk Armor/Weapons', 'items' => CategoryUnusualItemList($house, 'i.class in (2,4) and i.quality < 2'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true, 'bid' => true]]],
+            ['name' => 'ItemList', 'data' => ['name' => 'Uncommon Recipes', 'items' => CategoryUnusualItemList($house, 'i.class = 9 and i.quality > 1'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true, 'bid' => true]]],
+            ['name' => 'ItemList', 'data' => ['name' => 'Common Recipes', 'items' => CategoryUnusualItemList($house, 'i.class = 9 and i.quality <= 1'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true, 'bid' => true]]],
+            ['name' => 'ItemList', 'data' => ['name' => 'Crafted Armor/Weapons', 'items' => CategoryUnusualItemList($house, 'i.class in (2,4)', -1), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true, 'bid' => true]]],
+            ['name' => 'ItemList', 'data' => ['name' => 'Dropped Consumables', 'items' => CategoryUnusualItemList($house, 'i.class = 0'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true, 'bid' => true]]],
+            ['name' => 'ItemList', 'data' => ['name' => 'Trade Goods', 'items' => CategoryUnusualItemList($house, 'i.class = 7'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true, 'bid' => true]]],
+            ['name' => 'ItemList', 'data' => ['name' => 'Companion Deals', 'items' => CategoryUnusualItemList($house, 'i.class = 15 and i.subclass in (2,5)'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true, 'bid' => true]]],
+            ['name' => 'ItemList', 'data' => ['name' => 'Miscellaneous Items', 'items' => CategoryUnusualItemList($house, '(i.class in (12,13) or (i.class=15 and i.subclass not in (2,5)))'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true, 'bid' => true]]],
+        ]
+    ];
+}
+
 function CategoryResult_mining($house)
 {
     return [
@@ -394,14 +413,16 @@ function CategoryGenericItemList($house, $params)
     {
         $joins = isset($params['joins']) ? $params['joins'] : '';
         $where = isset($params['where']) ? (' and '.$params['where']) : '';
+        $cols = isset($params['cols']) ? (', ' . $params['cols']) : '';
     } else {
         $joins = '';
         $where = ($params == '') ? '' : (' and ' . $params);
+        $cols = '';
     }
 
     $sql = <<<EOF
 select i.id, i.name, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice,
-g.median globalmedian, g.mean globalmean, g.stddev globalstddev
+g.median globalmedian, g.mean globalmean, g.stddev globalstddev $cols
 from tblItem i
 left join tblItemSummary s on s.house=? and s.item=i.id
 left join tblItemHistory h on h.house=? and h.item=i.id
@@ -532,4 +553,30 @@ EOF;
     $tr = CategoryGenericItemList($house, 'i.id in ('.implode(',',$iidList).')');
 
     return $tr;
+}
+
+function CategoryUnusualItemList($house, $unusualSql, $allowCrafted = 0) {
+    /* $allowCrafted
+        0 = no crafted items
+        1 = crafted and drops
+        -1 = crafted only
+    */
+
+    $craftedSql = '';
+    switch ($allowCrafted) {
+        case '0':
+            $craftedSql .= ' and 0 = (select count(*) from tblDBCSpell s where s.crafteditem=i.id) ';
+            break;
+        case '-1' :
+            $craftedSql .= ' and 0 < (select count(*) from tblDBCSpell s where s.crafteditem=i.id) ';
+            break;
+    }
+
+    $params = [
+        'where' => $unusualSql.$craftedSql,
+        'joins' => 'join tblAuction a on a.house=s.house and a.item=i.id join tblAuctionRare ar on ar.house=a.house and ar.id=a.id',
+        'cols' => 'min(ar.prevseen) `prevseen`, min(a.bid) `bid`',
+    ];
+
+    return CategoryGenericItemList($house, $params);
 }
