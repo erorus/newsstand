@@ -215,7 +215,7 @@ function ParseAuctionData($house, $snapshot, &$json)
                         'id' => 0,
                     );
                 $sellerInfo[$auction['ownerRealm']][$auction['owner']]['total']++;
-                if ((!$hasRollOver || $auction['id'] < 0x20000000) && ($auction['auc'] > $lastMax))
+                if ((!$hasRollOver || $auction['auc'] < 0x20000000) && ($auction['auc'] > $lastMax))
                     $sellerInfo[$auction['ownerRealm']][$auction['owner']]['new']++;
             }
 
@@ -298,6 +298,17 @@ function ParseAuctionData($house, $snapshot, &$json)
 
             if ($sqlPet != '')
                 $ourDb->query($sqlPet);
+
+            $sql = <<<EOF
+update tblAuction a
+set flags = flags | 1
+where house = %d
+and id > %d
+%s
+and not exists (select 1 from tblItemSummary tis where tis.house=a.house and tis.item=a.item and tis.lastseen >= timestampadd(day,-14,%s))
+EOF;
+            $sql = sprintf($sql, $factionHouse, $lastMax, $hasRollOver ? ' and id < 0x20000000 ' : '', $snapshotString);
+            $ourDb->query($sql);
 
             // move out of loop once no longer using $factionHouse
             DebugMessage("House ".str_pad($factionHouse, 5, ' ', STR_PAD_LEFT)." updating ".count($itemInfo)." item info");
