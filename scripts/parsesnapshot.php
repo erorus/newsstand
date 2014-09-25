@@ -552,7 +552,8 @@ function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
         $sqlBit = sprintf('(%d,%u,%u,%u,\'%s\')', $factionHouse, $item, $price, $info['tq'], $snapshotString);
         if (strlen($sql) + strlen($sqlBit) + strlen($sqlEnd) + 5 > $maxPacketSize)
         {
-            $db->query($sql.$sqlEnd);
+            if (!$db->query($sql.$sqlEnd))
+            	DebugMessage("SQL error: ".$db->error." - ".preg_replace('/[\r\n]/', ' ', $sql.$sqlEnd));
             $sql = '';
         }
         $sql .= ($sql == '' ? $sqlStart : ',') . $sqlBit;
@@ -561,7 +562,8 @@ function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
         {
             if (strlen($sqlHistory) + strlen($sqlBit) + 5 > $maxPacketSize)
             {
-                $db->query($sqlHistory);
+                if (!$db->query($sqlHistory))
+	            	DebugMessage("SQL error: ".$db->error." - ".preg_replace('/[\r\n]/', ' ', $sqlHistory));
                 $sqlHistory = '';
             }
             $sqlHistory .= ($sqlHistory == '' ? $sqlHistoryStart : ',') . $sqlBit;
@@ -569,7 +571,8 @@ function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
             $sqlDeepBit = sprintf('(%d,%u,%u,%u,%u)', $factionHouse, $item, round($price/100), $info['tq'], $month);
             if (strlen($sqlDeep) + strlen($sqlDeepBit) + strlen($sqlDeepEnd) + 5 > $maxPacketSize)
             {
-                $db->query($sqlDeep.$sqlDeepEnd);
+                if (!$db->query($sqlDeep.$sqlDeepEnd))
+	            	DebugMessage("SQL error: ".$db->error." - ".preg_replace('/[\r\n]/', ' ', $sqlDeep.$sqlDeepEnd));
                 $sqlDeep = '';
             }
             $sqlDeep .= ($sqlDeep == '' ? $sqlDeepStart : ',') . $sqlDeepBit;
@@ -578,11 +581,14 @@ function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
     unset($info);
 
     if ($sql != '')
-        $db->query($sql.$sqlEnd);
+        if (!$db->query($sql.$sqlEnd))
+			DebugMessage("SQL error: ".$db->error." - ".preg_replace('/[\r\n]/', ' ', $sql.$sqlEnd));
     if ($sqlHistory != '')
-        $db->query($sqlHistory);
+        if (!$db->query($sqlHistory))
+			DebugMessage("SQL error: ".$db->error." - ".preg_replace('/[\r\n]/', ' ', $sqlHistory));
     if ($sqlDeep != '')
-        $db->query($sqlDeep.$sqlDeepEnd);
+        if (!$db->query($sqlDeep.$sqlDeepEnd))
+			DebugMessage("SQL error: ".$db->error." - ".preg_replace('/[\r\n]/', ' ', $sqlDeep.$sqlDeepEnd));
 }
 
 function UpdatePetInfo($factionHouse, &$petInfo, $snapshot)
