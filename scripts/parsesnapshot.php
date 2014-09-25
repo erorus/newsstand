@@ -300,14 +300,16 @@ function ParseAuctionData($house, $snapshot, &$json)
                 $ourDb->query($sqlPet);
 
             $sql = <<<EOF
-update tblAuction a
-set flags = flags | 1
-where house = %d
-and id > %d
+insert ignore into tblAuctionRare (house, id, prevseen) (
+select a.house, a.id, tis.lastseen
+from tblAuction a
+left join tblItemSummary tis on tis.house=a.house and tis.item=a.item
+where a.house = %d
+and a.id > %d
 %s
-and not exists (select 1 from tblItemSummary tis where tis.house=a.house and tis.item=a.item and tis.lastseen >= timestampadd(day,-14,%s))
+and ifnull(tis.lastseen, '2000-01-01') < timestampadd(day,-14,%s))
 EOF;
-            $sql = sprintf($sql, $factionHouse, $lastMax, $hasRollOver ? ' and id < 0x20000000 ' : '', $snapshotString);
+            $sql = sprintf($sql, $factionHouse, $lastMax, $hasRollOver ? ' and a.id < 0x20000000 ' : '', $snapshotString);
             $ourDb->query($sql);
 
             // move out of loop once no longer using $factionHouse
@@ -345,6 +347,7 @@ EOF;
             {
                 $ourDb->query($sql.')');
                 $ourDb->query(preg_replace('/\btblAuction\b/', 'tblAuctionPet', $sql, 1).')');
+                $ourDb->query(preg_replace('/\btblAuction\b/', 'tblAuctionRare', $sql, 1).')');
                 $sql = '';
             }
             $sql .= ($sql == '' ? $sqlStart : ',') . $lostId;
@@ -355,6 +358,7 @@ EOF;
         {
             $ourDb->query($sql.')');
             $ourDb->query(preg_replace('/\btblAuction\b/', 'tblAuctionPet', $sql, 1).')');
+            $ourDb->query(preg_replace('/\btblAuction\b/', 'tblAuctionRare', $sql, 1).')');
         }
     }
 
