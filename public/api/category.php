@@ -394,6 +394,54 @@ function CategoryResult_enchanting($house)
     //$pagexml .= topitems('iid in (select iid from (select vic.iid from undermine.tblItemCache vic, (select distinct crafteditem as itemid from undermine.tblSpell ir where ir.skilllineid=333) iids where vic.class=0 and  vic.subclass=6 and  vic.iid=iids.itemid order by (undermine.getMarketPrice(\''.sql_esc($realmid).'\',vic.iid,null,null) - undermine.getReagentPrice(\''.sql_esc($realmid).'\',vic.iid,null)) desc limit 15) alias)','Profitable Scrolls');
 }
 
+function CategoryResult_inscription($house)
+{
+    global $expansions;
+
+    $tr = ['name' => 'Inscription', 'results' => []];
+
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Shoulder Inscription', 'items' => CategoryGenericItemList($house, [
+        'joins' => 'join tblDBCSpell xs on xs.crafteditem = i.id',
+        'where' => 'xs.skillline = 773 and xs.expansion='.(count($expansions)-1).' and i.class = 0 and i.quality > 1'
+    ])]];
+
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Crafted Weapons', 'items' => CategoryGenericItemList($house, [
+        'joins' => 'join tblDBCSpell xs on xs.crafteditem = i.id',
+        'where' => 'xs.skillline = 773 and xs.expansion='.(count($expansions)-1).' and i.class = 2'
+    ])]];
+
+    for ($y = 0; $y <= 1; $y++) {
+        $x = count($expansions) - 1 - $y;
+        $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => $expansions[$x].' Crafted Armor', 'items' => CategoryGenericItemList($house, [
+            'joins' => 'join tblDBCSpell xs on xs.crafteditem = i.id',
+            'where' => 'xs.skillline = 773 and xs.expansion='.$x.' and i.level > 40 and i.class = 4'
+        ])]];
+    }
+
+    $x--;
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Other Crafted Armor', 'items' => CategoryGenericItemList($house, [
+        'joins' => 'join tblDBCSpell xs on xs.crafteditem = i.id',
+        'where' => 'xs.skillline = 773 and xs.expansion<='.$x.' and i.level > 40 and i.class = 4'
+    ])]];
+
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Crafted Consumable', 'items' => CategoryGenericItemList($house, [
+        'joins' => 'join tblDBCSpell xs on xs.crafteditem = i.id',
+        'where' => 'xs.skillline = 773 and ((xs.expansion='.(count($expansions)-1).' and i.class = 0 and i.quality=1) or (i.id in (60838,43850)))'
+    ])]];
+
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Common Ink', 'items' => CategoryGenericItemList($house, [
+        'joins' => 'join tblDBCSpell xs on xs.crafteditem = i.id',
+        'where' => 'xs.skillline = 773 and i.class=7 and i.subclass=1 and i.quality=1'
+    ])]];
+
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Uncommon Ink', 'items' => CategoryGenericItemList($house, [
+        'joins' => 'join tblDBCSpell xs on xs.crafteditem = i.id',
+        'where' => 'xs.skillline = 773 and i.class=7 and i.subclass=1 and i.quality>1'
+    ])]];
+
+    return $tr;
+}
+
 
 function CategoryResult_demo($house)
 {
