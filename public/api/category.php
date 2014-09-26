@@ -26,19 +26,24 @@ json_return($resultFunc($house));
 
 function CategoryResult_deals($house)
 {
+    $genArray = [
+        'cols' => 'g.median globalmedian, g.mean globalmean, g.stddev globalstddev',
+        'joins' => 'left join tblItemGlobal g on g.item=i.id',
+    ];
+
     return [
         'name' => 'Deals',
         'results' => [
-            ['name' => 'ItemList', 'data' => ['name' => 'Dropped Rare and Epic Armor/Weapons', 'items' => CategoryDealsItemList($house, 'i.class in (2,4) and i.quality > 2'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true], 'sort' => 'none']],
-            ['name' => 'ItemList', 'data' => ['name' => 'Dropped Uncommon Armor/Weapons', 'items' => CategoryDealsItemList($house, 'i.class in (2,4) and i.quality = 2'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true], 'sort' => 'none']],
-            ['name' => 'ItemList', 'data' => ['name' => 'Dropped Common/Junk Armor/Weapons', 'items' => CategoryDealsItemList($house, 'i.class in (2,4) and i.quality < 2'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true], 'sort' => 'none']],
-            ['name' => 'ItemList', 'data' => ['name' => 'Uncommon Recipes', 'items' => CategoryDealsItemList($house, 'i.class = 9 and i.quality > 1'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true], 'sort' => 'none']],
-            ['name' => 'ItemList', 'data' => ['name' => 'Common Recipes', 'items' => CategoryDealsItemList($house, 'i.class = 9 and i.quality <= 1'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true], 'sort' => 'none']],
-            ['name' => 'ItemList', 'data' => ['name' => 'Crafted Armor/Weapons', 'items' => CategoryDealsItemList($house, 'i.class in (2,4)', -1), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true], 'sort' => 'none']],
-            ['name' => 'ItemList', 'data' => ['name' => 'Dropped Consumables', 'items' => CategoryDealsItemList($house, 'i.class = 0'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true], 'sort' => 'none']],
-            ['name' => 'ItemList', 'data' => ['name' => 'Trade Goods', 'items' => CategoryDealsItemList($house, 'i.class = 7'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true], 'sort' => 'none']],
-            ['name' => 'ItemList', 'data' => ['name' => 'Companion Deals', 'items' => CategoryDealsItemList($house, 'i.class = 15 and i.subclass in (2,5)'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true], 'sort' => 'none']],
-            ['name' => 'ItemList', 'data' => ['name' => 'Miscellaneous Items', 'items' => CategoryDealsItemList($house, '(i.class in (12,13) or (i.class=15 and i.subclass not in (2,5)))'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true], 'sort' => 'none']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Dropped Rare and Epic Armor/Weapons', 'items' => CategoryDealsItemList($house, 'i.class in (2,4) and i.quality > 2'), 'hiddenCols' => ['avgprice' => true, 'lastseen' => true], 'visibleCols' => ['globalmedian' => true], 'sort' => 'none']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Dropped Uncommon Armor/Weapons', 'items' => CategoryDealsItemList($house, 'i.class in (2,4) and i.quality = 2'), 'hiddenCols' => ['avgprice' => true, 'lastseen' => true], 'visibleCols' => ['globalmedian' => true], 'sort' => 'none']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Dropped Common/Junk Armor/Weapons', 'items' => CategoryDealsItemList($house, 'i.class in (2,4) and i.quality < 2'), 'hiddenCols' => ['avgprice' => true, 'lastseen' => true], 'visibleCols' => ['globalmedian' => true], 'sort' => 'none']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Uncommon Recipes', 'items' => CategoryDealsItemList($house, 'i.class = 9 and i.quality > 1'), 'hiddenCols' => ['avgprice' => true, 'lastseen' => true], 'visibleCols' => ['globalmedian' => true], 'sort' => 'none']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Common Recipes', 'items' => CategoryDealsItemList($house, 'i.class = 9 and i.quality <= 1'), 'hiddenCols' => ['avgprice' => true, 'lastseen' => true], 'visibleCols' => ['globalmedian' => true], 'sort' => 'none']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Crafted Armor/Weapons', 'items' => CategoryDealsItemList($house, 'i.class in (2,4)', -1), 'hiddenCols' => ['avgprice' => true, 'lastseen' => true], 'visibleCols' => ['globalmedian' => true], 'sort' => 'none']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Dropped Consumables', 'items' => CategoryDealsItemList($house, 'i.class = 0'), 'hiddenCols' => ['avgprice' => true, 'lastseen' => true], 'visibleCols' => ['globalmedian' => true], 'sort' => 'none']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Trade Goods', 'items' => CategoryDealsItemList($house, 'i.class = 7'), 'hiddenCols' => ['avgprice' => true, 'lastseen' => true], 'visibleCols' => ['globalmedian' => true], 'sort' => 'none']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Companion Deals', 'items' => CategoryDealsItemList($house, 'i.class = 15 and i.subclass in (2,5)'), 'hiddenCols' => ['avgprice' => true, 'lastseen' => true], 'visibleCols' => ['globalmedian' => true], 'sort' => 'none']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Miscellaneous Items', 'items' => CategoryDealsItemList($house, '(i.class in (12,13) or (i.class=15 and i.subclass not in (2,5)))'), 'hiddenCols' => ['avgprice' => true, 'lastseen' => true], 'visibleCols' => ['globalmedian' => true], 'sort' => 'none']],
         ]
     ];
 }
@@ -48,16 +53,16 @@ function CategoryResult_unusuals($house)
     return [
         'name' => 'Unusual Items',
         'results' => [
-            ['name' => 'ItemList', 'data' => ['name' => 'Dropped Rare and Epic Armor/Weapons', 'items' => CategoryUnusualItemList($house, 'i.class in (2,4) and i.quality > 2'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true, 'bid' => true]]],
-            ['name' => 'ItemList', 'data' => ['name' => 'Dropped Uncommon Armor/Weapons', 'items' => CategoryUnusualItemList($house, 'i.class in (2,4) and i.quality = 2'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true, 'bid' => true]]],
-            ['name' => 'ItemList', 'data' => ['name' => 'Dropped Common/Junk Armor/Weapons', 'items' => CategoryUnusualItemList($house, 'i.class in (2,4) and i.quality < 2'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true, 'bid' => true]]],
-            ['name' => 'ItemList', 'data' => ['name' => 'Uncommon Recipes', 'items' => CategoryUnusualItemList($house, 'i.class = 9 and i.quality > 1'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true, 'bid' => true]]],
-            ['name' => 'ItemList', 'data' => ['name' => 'Common Recipes', 'items' => CategoryUnusualItemList($house, 'i.class = 9 and i.quality <= 1'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true, 'bid' => true]]],
-            ['name' => 'ItemList', 'data' => ['name' => 'Crafted Armor/Weapons', 'items' => CategoryUnusualItemList($house, 'i.class in (2,4)', -1), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true, 'bid' => true]]],
-            ['name' => 'ItemList', 'data' => ['name' => 'Dropped Consumables', 'items' => CategoryUnusualItemList($house, 'i.class = 0'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true, 'bid' => true]]],
-            ['name' => 'ItemList', 'data' => ['name' => 'Trade Goods', 'items' => CategoryUnusualItemList($house, 'i.class = 7'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true, 'bid' => true]]],
-            ['name' => 'ItemList', 'data' => ['name' => 'Companion Deals', 'items' => CategoryUnusualItemList($house, 'i.class = 15 and i.subclass in (2,5)'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true, 'bid' => true]]],
-            ['name' => 'ItemList', 'data' => ['name' => 'Miscellaneous Items', 'items' => CategoryUnusualItemList($house, '(i.class in (12,13) or (i.class=15 and i.subclass not in (2,5)))'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['median' => true, 'bid' => true]]],
+            ['name' => 'ItemList', 'data' => ['name' => 'Dropped Rare and Epic Armor/Weapons', 'items' => CategoryUnusualItemList($house, 'i.class in (2,4) and i.quality > 2'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['globalmedian' => true], 'sort' => 'lowprice']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Dropped Uncommon Armor/Weapons', 'items' => CategoryUnusualItemList($house, 'i.class in (2,4) and i.quality = 2'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['globalmedian' => true], 'sort' => 'lowprice']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Dropped Common/Junk Armor/Weapons', 'items' => CategoryUnusualItemList($house, 'i.class in (2,4) and i.quality < 2'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['globalmedian' => true], 'sort' => 'lowprice']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Uncommon Recipes', 'items' => CategoryUnusualItemList($house, 'i.class = 9 and i.quality > 1'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['globalmedian' => true], 'sort' => 'lowprice']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Common Recipes', 'items' => CategoryUnusualItemList($house, 'i.class = 9 and i.quality <= 1'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['globalmedian' => true], 'sort' => 'lowprice']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Crafted Armor/Weapons', 'items' => CategoryUnusualItemList($house, 'i.class in (2,4)', -1), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['globalmedian' => true], 'sort' => 'lowprice']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Dropped Consumables', 'items' => CategoryUnusualItemList($house, 'i.class = 0'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['globalmedian' => true], 'sort' => 'lowprice']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Trade Goods', 'items' => CategoryUnusualItemList($house, 'i.class = 7'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['globalmedian' => true], 'sort' => 'lowprice']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Companion Deals', 'items' => CategoryUnusualItemList($house, 'i.class = 15 and i.subclass in (2,5)'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['globalmedian' => true], 'sort' => 'lowprice']],
+            ['name' => 'ItemList', 'data' => ['name' => 'Miscellaneous Items', 'items' => CategoryUnusualItemList($house, '(i.class in (12,13) or (i.class=15 and i.subclass not in (2,5)))'), 'hiddenCols' => ['avgprice' => true], 'visibleCols' => ['globalmedian' => true], 'sort' => 'lowprice']],
         ]
     ];
 }
@@ -527,12 +532,10 @@ function CategoryGenericItemList($house, $params)
     }
 
     $sql = <<<EOF
-select i.id, i.name, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice,
-g.median globalmedian, g.mean globalmean, g.stddev globalstddev $cols
+select i.id, i.name, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice $cols
 from tblItem i
 left join tblItemSummary s on s.house=? and s.item=i.id
 left join tblItemHistory h on h.house=? and h.item=i.id
-left join tblItemGlobal g on g.item=i.id
 $joins
 where ifnull(i.auctionable,1) = 1
 $where
@@ -561,6 +564,11 @@ function CategoryDealsItemList($house, $dealsSql, $allowCrafted = 0) {
         -1 = crafted only
     */
 
+    $genArray = [
+        'cols' => 'g.median globalmedian', // , g.mean globalmean, g.stddev globalstddev
+        'joins' => 'left join tblItemGlobal g on g.item=i.id',
+    ];
+
     global $db, $canCache;
 
     $key = 'category_di_' . md5($dealsSql).'_'.$allowCrafted;
@@ -573,7 +581,7 @@ function CategoryDealsItemList($house, $dealsSql, $allowCrafted = 0) {
 
         $iids = array_flip($tr);
 
-        $tr = CategoryGenericItemList($house, $sql);
+        $tr = CategoryGenericItemList($house, array_merge($genArray, ['where' => $sql]));
 
         usort($tr, function ($a, $b) use ($iids) {
             return $iids[$a['id']] - $iids[$b['id']];
@@ -647,16 +655,11 @@ EOF;
 
     $iids = array_flip($iidList);
 
-    $tr = CategoryGenericItemList($house, $sql);
+    $tr = CategoryGenericItemList($house, array_merge($genArray, ['where' => $sql]));
 
     usort($tr, function ($a, $b) use ($iids) {
         return $iids[$a['id']] - $iids[$b['id']];
     });
-
-    return $tr;
-
-
-    $tr = CategoryGenericItemList($house, 'i.id in ('.implode(',',$iidList).')');
 
     return $tr;
 }
@@ -680,8 +683,8 @@ function CategoryUnusualItemList($house, $unusualSql, $allowCrafted = 0) {
 
     $params = [
         'where' => $unusualSql.$craftedSql,
-        'joins' => 'join tblAuction a on a.house=s.house and a.item=i.id join tblAuctionRare ar on ar.house=a.house and ar.id=a.id',
-        'cols' => 'min(ar.prevseen) `lastseen`, min(a.bid) `bid`',
+        'joins' => 'left join tblItemGlobal g on g.item=i.id join tblAuction a on a.house=s.house and a.item=i.id join tblAuctionRare ar on ar.house=a.house and ar.id=a.id',
+        'cols' => 'g.median globalmedian, min(ar.prevseen) `lastseen`, min(ifnull(a.buy/a.quantity, a.bid/a.quantity)) `price`',
     ];
 
     return CategoryGenericItemList($house, $params);

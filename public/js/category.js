@@ -125,7 +125,7 @@ var TUJ_Category = function()
         if (!data['sort'])
             data['sort'] = '';
 
-        var titleColSpan = 6;
+        var titleColSpan = 5;
         var titleTd;
 
         t = libtuj.ce('table');
@@ -158,6 +158,15 @@ var TUJ_Category = function()
         tr.appendChild(td);
         $(td).text('Avail');
 
+        if (data.visibleCols.bid)
+        {
+            td = libtuj.ce('th');
+            td.className = 'price';
+            tr.appendChild(td);
+            $(td).text('Bid');
+            titleColSpan++;
+        }
+
         td = libtuj.ce('th');
         td.className = 'price';
         tr.appendChild(td);
@@ -181,10 +190,14 @@ var TUJ_Category = function()
             titleColSpan++;
         }
 
-        td = libtuj.ce('th');
-        td.className = 'date';
-        tr.appendChild(td);
-        $(td).text('Last Seen');
+        if (!data.hiddenCols.lastseen)
+        {
+            td = libtuj.ce('th');
+            td.className = 'date';
+            tr.appendChild(td);
+            $(td).text('Last Seen');
+            titleColSpan++;
+        }
 
         titleTd.colSpan = titleColSpan;
 
@@ -196,6 +209,14 @@ var TUJ_Category = function()
                 data.items.sort(function(a,b){
                     return ((b.globalmedian - b.price) - (a.globalmedian - a.price)) ||
                         ((a.price ? 0 : 1) - (b.price ? 0 : 1)) ||
+                        (a.price - b.price) ||
+                        a.name.localeCompare(b.name);
+                });
+                break;
+
+            case 'lowprice':
+                data.items.sort(function(a,b){
+                    return ((a.price ? 0 : 1) - (b.price ? 0 : 1)) ||
                         (a.price - b.price) ||
                         a.name.localeCompare(b.name);
                 });
@@ -236,6 +257,14 @@ var TUJ_Category = function()
             tr.appendChild(td);
             td.appendChild(libtuj.FormatQuantity(item.quantity));
 
+            if (data.visibleCols.bid)
+            {
+                td = libtuj.ce('td');
+                td.className = 'price';
+                tr.appendChild(td);
+                td.appendChild(libtuj.FormatPrice(item.bid));
+            }
+
             td = libtuj.ce('td');
             td.className = 'price';
             tr.appendChild(td);
@@ -257,10 +286,13 @@ var TUJ_Category = function()
                 td.appendChild(libtuj.FormatPrice(item.globalmedian));
             }
 
-            td = libtuj.ce('td');
-            td.className = 'date';
-            tr.appendChild(td);
-            td.appendChild(libtuj.FormatDate(item.lastseen));
+            if (!data.hiddenCols.lastseen)
+            {
+                td = libtuj.ce('td');
+                td.className = 'date';
+                tr.appendChild(td);
+                td.appendChild(libtuj.FormatDate(item.lastseen));
+            }
         }
     }
     this.load(tuj.params);
