@@ -755,6 +755,12 @@ var TUJ = function()
     {
         var frontPage = $('#front-page')[0];
         $(frontPage).show();
+
+        $('#category-sidebar a').each(function() {
+            if (this.rel) {
+                this.href = tuj.BuildHash({page: 'category', id: this.rel});
+            }
+        });
     }
     Main();
 };

@@ -62,7 +62,7 @@ body.realm #topcorner form { display: none }
 .wowhead-tooltip-powered { visibility: hidden }
 .wowhead-tooltip > table { background-color: black; border-radius: 5px }
 
-span.price.full { white-space: nowrap }
+span.price.full, span.nowrap { white-space: nowrap }
 abbr.full-date { border-bottom: 0 }
 abbr:hover.full-date { border-bottom: 1px dotted }
 
@@ -169,3 +169,9 @@ img.captcha-button.selected { border-color: #006600 }
 
 #donate-page form { margin: 2em }
 #donate-thanks { display: none; margin: 2em; font-size: 125%; border-bottom: 1px solid black; padding: 0 2em 2em }
+
+#category-sidebar { float: right; margin-left: 2em; width: 14em }
+#category-sidebar a { display: block; text-decoration: none }
+#category-sidebar a[href] { text-decoration: underline }
+#category-sidebar a small { font-style: italic }
+
