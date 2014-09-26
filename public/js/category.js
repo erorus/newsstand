@@ -125,6 +125,9 @@ var TUJ_Category = function()
         if (!data['sort'])
             data['sort'] = '';
 
+        var titleColSpan = 6;
+        var titleTd;
+
         t = libtuj.ce('table');
         t.className = 'category-items';
         dest.appendChild(t);
@@ -137,7 +140,7 @@ var TUJ_Category = function()
             td = libtuj.ce('th');
             td.className = 'title';
             tr.appendChild(td);
-            td.colSpan=6;
+            titleTd = td;
             $(td).text(data.name);
         }
 
@@ -165,21 +168,25 @@ var TUJ_Category = function()
             td = libtuj.ce('th');
             td.className = 'price';
             tr.appendChild(td);
-            $(td).text('Mean');
+            $(td).text('Mean')
+            titleColSpan++;
         }
 
-        if (!data.visibleCols.globalmedian)
+        if (data.visibleCols.globalmedian)
         {
             td = libtuj.ce('th');
             td.className = 'price';
             tr.appendChild(td);
             $(td).text('Global Median');
+            titleColSpan++;
         }
 
         td = libtuj.ce('th');
         td.className = 'date';
         tr.appendChild(td);
         $(td).text('Last Seen');
+
+        titleTd.colSpan = titleColSpan;
 
         switch (data['sort']) {
             case 'none':

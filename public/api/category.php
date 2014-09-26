@@ -378,6 +378,23 @@ EOF;
     return $tr;
 }
 
+function CategoryResult_enchanting($house)
+{
+    global $expansions;
+
+    $tr = ['name' => 'Enchanting', 'results' => []];
+
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Dust', 'items' => CategoryGenericItemList($house, 'i.class=7 and i.subclass=12 and i.quality=1 and i.name like \'%Dust\'')]];
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Essence', 'items' => CategoryGenericItemList($house, 'i.class=7 and i.subclass=12 and i.quality=2 and ((i.level>85 and i.name like \'%Essence\') or (i.name like \'Greater%Essence\'))')]];
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Shard', 'items' => CategoryGenericItemList($house, 'i.class=7 and i.subclass=12 and i.quality=3 and i.name not like \'Small%\' and i.name like \'%Shard\'')]];
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Crystal', 'items' => CategoryGenericItemList($house, 'i.class=7 and i.subclass=12 and i.quality=4 and i.name like \'%Crystal\'')]];
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => $expansions[count($expansions)-1].' Enchanted Scrolls', 'items' => CategoryGenericItemList($house, 'i.class=0 and i.subclass=6 and i.id in (select ir.crafteditem from tblDBCSpell ir where ir.skillline=333 and ir.expansion='.(count($expansions)-1).')')]];
+
+    return $tr;
+    //$pagexml .= topitems('iid in (select iid from (select vic.iid from undermine.tblItemCache vic, (select distinct crafteditem as itemid from undermine.tblSpell ir where ir.skilllineid=333) iids where vic.class=0 and  vic.subclass=6 and  vic.iid=iids.itemid order by (undermine.getMarketPrice(\''.sql_esc($realmid).'\',vic.iid,null,null) - undermine.getReagentPrice(\''.sql_esc($realmid).'\',vic.iid,null)) desc limit 15) alias)','Profitable Scrolls');
+}
+
+
 function CategoryResult_demo($house)
 {
     return [
