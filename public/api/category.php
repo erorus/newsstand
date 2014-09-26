@@ -14,8 +14,8 @@ $resultFunc = 'CategoryResult_'.$page;
 if (!function_exists($resultFunc))
     json_return(array());
 
-$canCache = false; //TODO
-//HouseETag($house);
+$canCache = true;
+HouseETag($house);
 BotCheck();
 
 $expansionLevels = array(60,70,80,85,90);
