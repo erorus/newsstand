@@ -442,27 +442,6 @@ function CategoryResult_inscription($house)
     return $tr;
 }
 
-
-function CategoryResult_demo($house)
-{
-    return [
-        'name' => 'Demo',
-        'results' => [
-            ['name' => 'ItemList', 'data' => CategoryDemoItemList($house)]
-        ]
-    ];
-}
-
-function CategoryDemoItemList($house)
-{
-    $params = ['where' => 'i.name like \'%cloth%\' and i.class=7'];
-
-    return [
-        'name' => 'Item List',
-        'items' => CategoryGenericItemList($house, $params)
-    ];
-}
-
 function CategoryGenericItemList($house, $params)
 {
     global $db, $canCache;
