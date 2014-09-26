@@ -442,6 +442,58 @@ function CategoryResult_inscription($house)
     return $tr;
 }
 
+function CategoryResult_cooking($house)
+{
+    global $expansions, $db;
+
+    $tr = ['name' => 'Cooking', 'results' => []];
+
+    $cexp = count($expansions)-1;
+    $fish = '74856,74857,74859,74860,74861,74863,74864,74865,74866,83064';
+    $farmed = '74840,74841,74842,74843,74844,74845,74846,74847,74848,74849,74850';
+    $ironpaw = '74853,74661,74662';
+
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'From the Farm', 'items' => CategoryGenericItemList($house, "i.id in ($farmed)")]];
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Raw Pandaria Fish', 'items' => CategoryGenericItemList($house, "i.id in ($fish)")]];
+
+    $sql = <<<EOF
+select distinct x.id
+from tblItem x, tblDBCItemReagents xir, tblDBCSkillLines xsl, tblDBCSpell xs
+where x.class=7
+and x.id=xir.reagent
+and x.id not in (select xx.item from tblDBCItemVendorCost xx where xx.item=x.id)
+and xir.spell=xs.id
+and xs.skillline=xsl.id
+and (xsl.name like 'Way of %' or xsl.name='Cooking')
+and xs.expansion=$cexp
+and x.id not in ($fish,$farmed,$ironpaw)
+EOF;
+
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Raw Meat and Miscellaneous', 'items' => CategoryGenericItemList($house, "i.id in ($sql)")]];
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Ironpaw Token Ingredients', 'items' => CategoryGenericItemList($house, "i.id in ($ironpaw)")]];
+
+    $ways = MCGet('category_cooking_ways');
+    if ($ways === false) {
+        $stmt = $db->prepare('select * from tblDBCSkillLines where name like \'Way of%\' order by name asc');
+        if (!$stmt) {
+            DebugMessage("Bad SQL: \n".$sql, E_USER_ERROR);
+        }
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $ways = DBMapArray($result, null);
+        $stmt->close();
+        MCSet('category_cooking_ways', $ways);
+    }
+
+    foreach ($ways as $row) {
+        $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => $row['name'].' Food', 'items' => CategoryGenericItemList($house, "i.id in (select x.crafteditem from tblDBCSpell x where x.skillline=".$row['id'].")")]];
+    }
+
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Other Cooked Food', 'items' => CategoryGenericItemList($house, "i.id in (select x.crafteditem from tblDBCSpell x where x.skillline=185 and expansion=$cexp)")]];
+
+    return $tr;
+}
+
 function CategoryGenericItemList($house, $params)
 {
     global $db, $canCache;
