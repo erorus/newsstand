@@ -204,7 +204,7 @@ var TUJ_Category = function()
             default:
                 data.items.sort(function(a,b){
                     return ((a.price ? 0 : 1) - (b.price ? 0 : 1)) ||
-                        (a.price - b.price) ||
+                        (b.price - a.price) ||
                         a.name.localeCompare(b.name);
                 });
         }
@@ -249,7 +249,7 @@ var TUJ_Category = function()
                 td.appendChild(libtuj.FormatPrice(item.avgprice));
             }
 
-            if (!data.visibleCols.globalmedian)
+            if (data.visibleCols.globalmedian)
             {
                 td = libtuj.ce('td');
                 td.className = 'price';

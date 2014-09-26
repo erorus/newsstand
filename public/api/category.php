@@ -494,6 +494,16 @@ EOF;
     return $tr;
 }
 
+function CategoryResult_companions($house)
+{
+    $tr = ['name' => 'Companions', 'results' => []];
+
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Mounts', 'items' => CategoryGenericItemList($house, "i.class=15 and i.subclass=5")]];
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Companion Items', 'items' => CategoryGenericItemList($house, "i.class=15 and i.subclass=2")]];
+
+    return $tr;
+}
+
 function CategoryGenericItemList($house, $params)
 {
     global $db, $canCache;
