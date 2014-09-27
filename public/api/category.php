@@ -26,12 +26,7 @@ json_return($resultFunc($house));
 
 function CategoryResult_deals($house)
 {
-    $genArray = [
-        'cols' => 'g.median globalmedian, g.mean globalmean, g.stddev globalstddev',
-        'joins' => 'left join tblItemGlobal g on g.item=i.id',
-    ];
-
-    return [
+    $tr = [
         'name' => 'Deals',
         'results' => [
             ['name' => 'ItemList', 'data' => ['name' => 'Dropped Rare and Epic Armor/Weapons', 'items' => CategoryDealsItemList($house, 'i.class in (2,4) and i.quality > 2'), 'hiddenCols' => ['avgprice' => true, 'lastseen' => true], 'visibleCols' => ['globalmedian' => true], 'sort' => 'none']],
@@ -46,6 +41,39 @@ function CategoryResult_deals($house)
             ['name' => 'ItemList', 'data' => ['name' => 'Miscellaneous Items', 'items' => CategoryDealsItemList($house, '(i.class in (12,13) or (i.class=15 and i.subclass not in (2,5)))'), 'hiddenCols' => ['avgprice' => true, 'lastseen' => true], 'visibleCols' => ['globalmedian' => true], 'sort' => 'none']],
         ]
     ];
+
+    $joins = <<<EOF
+join (select item, bidper as bid from
+(select ib.item, ib.bidper, avg(ih.price) avgprice, stddev_pop(ih.price) sdprice from
+(select i.id as item, min(a.bid/a.quantity) bidper
+from tblAuction a
+join tblItem i on i.id=a.item
+left join tblDBCItemVendorCost ivc on ivc.item=i.id
+where a.house=%d
+and i.quality > 0
+and ivc.copper is null
+group by i.id) ib
+join tblItemHistory ih on ih.item=ib.item and ih.house=58
+group by ib.item) iba
+where iba.sdprice < iba.avgprice/2
+and iba.bidper / iba.avgprice < 0.2
+order by iba.bidper / iba.avgprice asc
+limit 20) lowbids on i.id=lowbids.item
+left join tblItemGlobal g on g.item=i.id
+EOF;
+
+    $tr['results'][] = ['name' => 'ItemList', 'data' => [
+        'name' => 'Potential Low Bids',
+        'items' => CategoryGenericItemList($house, [
+                'joins' => sprintf($joins, $house),
+                'where' => 'ifnull(lowbids.bid / g.median, 0) < 0.2',
+                'cols' => 'lowbids.bid, g.median globalmedian'
+            ]),
+        'hiddenCols' => ['price' => true, 'lastseen' => true],
+        'visibleCols' => ['bid' => true, 'globalmedian' => true],
+        'sort' => 'lowbids']];
+
+    return $tr;
 }
 
 function CategoryResult_unusuals($house)

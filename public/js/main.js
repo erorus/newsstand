@@ -37,6 +37,18 @@ var libtuj = {
             s += Math.pow(a[x] - mn, 2);
         return Math.sqrt(s/ a.length);
     },
+    Least: function(a)
+    {
+        if (a.length == 0)
+            return undefined;
+
+        var tr = a[0];
+        for (var x = 1; x < a.length; x++) {
+            if (a[x] < tr)
+                tr = a[x];
+        }
+        return tr;
+    },
     FormatPrice: function(amt,justValue)
     {
         var v = '';
