@@ -324,7 +324,7 @@ EOF;
             UpdateItemInfo($factionHouse, $itemInfo, $snapshot);
             $itemInfo = array();
 
-            $preDeleted = count($itemInfo);
+            $preDeleted = count($petInfo);
             foreach ($existingPetIds as &$oldRow)
                 if (($oldRow['house'] == $factionHouse) && (!isset($petInfo[$oldRow['species']][$oldRow['breed']])))
                     $petInfo[$oldRow['species']][$oldRow['breed']] = array('tq' => 0, 'a' => array());
@@ -333,7 +333,7 @@ EOF;
             UpdatePetInfo($factionHouse, $petInfo, $snapshot);
             $petInfo = array();
 
-            DebugMessage("House ".str_pad($factionHouse, 5, ' ', STR_PAD_LEFT)." updating seller history");
+            DebugMessage("House ".str_pad($factionHouse, 5, ' ', STR_PAD_LEFT)." updating seller history for ".count($sellerInfo));
             UpdateSellerInfo($sellerInfo, $snapshot);
             $sellerInfo = array();
 
