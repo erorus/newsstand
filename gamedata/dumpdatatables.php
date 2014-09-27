@@ -17,7 +17,7 @@ if (!(touch($sqlFile) && ($sqlFile = realpath($sqlFile)))) {
     exit(1);
 }
 
-$cmd = 'mysqldump --result-file='.escapeshellarg($sqlFile).' --user='.escapeshellarg(DATABASE_USERNAME_CLI).' --password='.escapeshellarg(DATABASE_PASSWORD_CLI).' '.escapeshellarg(DATABASE_SCHEMA);
+$cmd = 'mysqldump --verbose --allow-keywords --result-file='.escapeshellarg($sqlFile).' --user='.escapeshellarg(DATABASE_USERNAME_CLI).' --password='.escapeshellarg(DATABASE_PASSWORD_CLI).' '.escapeshellarg(DATABASE_SCHEMA);
 foreach ($tables as $table)
     $cmd .= ' ' . escapeshellarg($table);
 
