@@ -315,19 +315,21 @@ EOF;
             $ourDb->commit(MYSQLI_TRANS_COR_AND_CHAIN);
 
             // move out of loop once no longer using $factionHouse
-            DebugMessage("House ".str_pad($factionHouse, 5, ' ', STR_PAD_LEFT)." updating ".count($itemInfo)." item info");
+            $preDeleted = count($itemInfo);
             foreach ($existingIds as &$oldRow)
                 if (($oldRow['house'] == $factionHouse) && (!isset($existingPetIds[$oldRow['id']])) && (!isset($itemInfo[$oldRow['item']])))
                     $itemInfo[$oldRow['item']] = array('tq' => 0, 'a' => array());
             unset($oldRow);
+            DebugMessage("House ".str_pad($factionHouse, 5, ' ', STR_PAD_LEFT)." updating ".count($itemInfo)." item info (including ".(count($itemInfo) - $preDeleted)." no longer available)");
             UpdateItemInfo($factionHouse, $itemInfo, $snapshot);
             $itemInfo = array();
 
-            DebugMessage("House ".str_pad($factionHouse, 5, ' ', STR_PAD_LEFT)." updating ".count($petInfo)." pet info");
+            $preDeleted = count($itemInfo);
             foreach ($existingPetIds as &$oldRow)
                 if (($oldRow['house'] == $factionHouse) && (!isset($petInfo[$oldRow['species']][$oldRow['breed']])))
                     $petInfo[$oldRow['species']][$oldRow['breed']] = array('tq' => 0, 'a' => array());
             unset($oldRow);
+            DebugMessage("House ".str_pad($factionHouse, 5, ' ', STR_PAD_LEFT)." updating ".count($petInfo)." pet info (including ".(count($petInfo) - $preDeleted)." no longer available)");
             UpdatePetInfo($factionHouse, $petInfo, $snapshot);
             $petInfo = array();
 
