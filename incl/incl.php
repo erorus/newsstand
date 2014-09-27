@@ -1,5 +1,7 @@
 <?php
 
+require_once(__DIR__.'/database.credentials.php');
+
 $db = false;
 
 if (php_sapi_name() == 'cli')
@@ -35,10 +37,12 @@ function DBConnect($alternate = false)
     if ($connected && !$alternate)
         return $db;
 
+    $isCLI = (php_sapi_name() == 'cli');
+
     $host = 'localhost';
-    $user = (php_sapi_name() == 'cli') ? 'newsstand' : 'newsstand_web';
-    $pass = 'D2seYZcwz3sPcTYt';
-    $database = 'newsstand';
+    $user = $isCLI ? DATABASE_USERNAME_CLI : DATABASE_USERNAME_WEB;
+    $pass = $isCLI ? DATABASE_PASSWORD_CLI : DATABASE_PASSWORD_WEB;
+    $database = DATABASE_SCHEMA;
 
     $thisDb = new mysqli($host, $user, $pass, $database);
     if ($thisDb->connect_error)
