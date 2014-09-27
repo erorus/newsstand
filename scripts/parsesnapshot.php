@@ -664,7 +664,7 @@ function MarketPriceSort($a,$b)
 function DBQueryWithError(&$db, $sql)
 {
     if (!$db->query($sql)) {
-        DebugMessage("SQL error: ".$db->error." - ".substr(preg_replace('/[\r\n]/', ' ', $sql), 0, 250));
+        DebugMessage("SQL error: ".$db->error." - ".substr(preg_replace('/[\r\n]/', ' ', $sql), 0, 500));
         return false;
     }
     return true;
