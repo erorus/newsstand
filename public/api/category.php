@@ -594,6 +594,7 @@ function CategoryDealsItemList($house, $dealsSql, $allowCrafted = 0) {
 
     $region = GetRegion($house);
     $sideCompare = $house > 0 ? '>' : '<';
+    $sideMult = $house > 0 ? 1 : -1;
 
     $fullSql = <<<EOF
 select aa.item
@@ -622,9 +623,9 @@ EOF;
             $fullSql .= <<<EOF
         ) ab
         join tblItemSummary tis2 on tis2.item = ab.item
-        join tblRealm r on tis2.house = r.house and r.canonical is not null
+        join tblRealm r on cast(r.house as signed) * $sideMult = tis2.house and r.canonical is not null
         where r.region = ?
-        and r.house $sideCompare 0
+        and tis2.house $sideCompare 0
         group by ab.item
     ) ac
     join tblItemGlobal gs on gs.item = ac.item
