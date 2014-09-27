@@ -221,6 +221,8 @@ function ParseAuctionData($house, $snapshot, &$json)
 
             GetSellerIds($region, $sellerInfo, $snapshot);
 
+            $sql = $sqlPet = '';
+
             for ($x = 0; $x < $auctionCount; $x++)
             {
                 $auction =& $factionData['auctions'][$x];
