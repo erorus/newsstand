@@ -269,7 +269,7 @@ function ParseAuctionData($house, $snapshot, &$json)
                     $auction['seed']);
                 if (strlen($sql) + 5 + strlen($thisSql) > $maxPacketSize)
                 {
-                    $ourDb->query($sql);
+                    DBQueryWithError($ourDb, $sql);
                     $sql = '';
                 }
                 $sql .= ($sql == '' ? $sqlStart : ',') . $thisSql;
@@ -286,7 +286,7 @@ function ParseAuctionData($house, $snapshot, &$json)
 
                     if (strlen($sqlPet) + 5 + strlen($thisSql) > $maxPacketSize)
                     {
-                        $ourDb->query($sqlPet);
+                        DBQueryWithError($ourDb, $sqlPet);
                         $sqlPet = '';
                     }
                     $sqlPet .= ($sqlPet == '' ? $sqlStartPet : ',') . $thisSql;
@@ -294,10 +294,10 @@ function ParseAuctionData($house, $snapshot, &$json)
             }
 
             if ($sql != '')
-                $ourDb->query($sql);
+                DBQueryWithError($ourDb,$sql);
 
             if ($sqlPet != '')
-                $ourDb->query($sqlPet);
+                DBQueryWithError($ourDb, $sqlPet);
 
             $sql = <<<EOF
 insert ignore into tblAuctionRare (house, id, prevseen) (
@@ -311,7 +311,7 @@ and a.item not in (82800)
 and ifnull(tis.lastseen, '2000-01-01') < timestampadd(day,-14,'%s'))
 EOF;
             $sql = sprintf($sql, $factionHouse, $lastMax, $hasRollOver ? ' and a.id < 0x20000000 ' : '', $snapshotString);
-            $ourDb->query($sql);
+            DBQueryWithError($ourDb,$sql);
             $ourDb->commit(MYSQLI_TRANS_COR_AND_CHAIN);
 
             // move out of loop once no longer using $factionHouse
@@ -333,7 +333,7 @@ EOF;
             UpdatePetInfo($factionHouse, $petInfo, $snapshot);
             $petInfo = array();
 
-            DebugMessage("House ".str_pad($factionHouse, 5, ' ', STR_PAD_LEFT)." updating seller history for ".count($sellerInfo));
+            DebugMessage("House ".str_pad($factionHouse, 5, ' ', STR_PAD_LEFT)." updating seller history");
             UpdateSellerInfo($sellerInfo, $snapshot);
             $sellerInfo = array();
 
@@ -351,9 +351,9 @@ EOF;
         {
             if (strlen($sql) + 10 + strlen($lostId) > $maxPacketSize)
             {
-                $ourDb->query($sql.')');
-                $ourDb->query(preg_replace('/\btblAuction\b/', 'tblAuctionPet', $sql, 1).')');
-                $ourDb->query(preg_replace('/\btblAuction\b/', 'tblAuctionRare', $sql, 1).')');
+                DBQueryWithError($ourDb, $sql.')');
+                DBQueryWithError($ourDb, preg_replace('/\btblAuction\b/', 'tblAuctionPet', $sql, 1).')');
+                DBQueryWithError($ourDb, preg_replace('/\btblAuction\b/', 'tblAuctionRare', $sql, 1).')');
                 $sql = '';
             }
             $sql .= ($sql == '' ? $sqlStart : ',') . $lostId;
@@ -362,9 +362,9 @@ EOF;
 
         if ($sql != '')
         {
-            $ourDb->query($sql.')');
-            $ourDb->query(preg_replace('/\btblAuction\b/', 'tblAuctionPet', $sql, 1).')');
-            $ourDb->query(preg_replace('/\btblAuction\b/', 'tblAuctionRare', $sql, 1).')');
+            DBQueryWithError($ourDb, $sql.')');
+            DBQueryWithError($ourDb, preg_replace('/\btblAuction\b/', 'tblAuctionPet', $sql, 1).')');
+            DBQueryWithError($ourDb, preg_replace('/\btblAuction\b/', 'tblAuctionRare', $sql, 1).')');
         }
     }
 
@@ -429,7 +429,7 @@ function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
                     }
 
                 if (count($lastSeenIds) > 0 && !$afterInsert)
-                     $db->query(sprintf('update tblSeller set lastseen = \'%s\' where id in (%s)', $snapshotString, implode(',',$lastSeenIds)));
+                    DBQueryWithError($db, sprintf('update tblSeller set lastseen = \'%s\' where id in (%s)', $snapshotString, implode(',',$lastSeenIds)));
 
                 $needInserts |= ($foundNames < $namesInQuery);
 
@@ -460,7 +460,7 @@ function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
                 }
 
             if (count($lastSeenIds) > 0 && !$afterInsert)
-                $db->query(sprintf('update tblSeller set lastseen = \'%s\' where id in (%s)', $snapshotString, implode(',',$lastSeenIds)));
+                DBQueryWithError($db, sprintf('update tblSeller set lastseen = \'%s\' where id in (%s)', $snapshotString, implode(',',$lastSeenIds)));
 
             $needInserts |= ($foundNames < $namesInQuery);
         }
@@ -482,7 +482,7 @@ function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
             $insertBit = sprintf('(%1$d,\'%2$s\',\'%3$s\',\'%3$s\')', $realmId, $db->real_escape_string($names[$s]), $snapshotString);
             if (strlen($sql) + strlen($insertBit) + 5 > $maxPacketSize)
             {
-                $db->query($sql);
+                DBQueryWithError($db, $sql);
 
                 $sql = $sqlStart;
                 $namesInQuery = 0;
@@ -491,7 +491,7 @@ function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
         }
 
         if ($namesInQuery > 0)
-            $db->query($sql);
+            DBQueryWithError($db, $sql);
     }
 
     if ($neededInserts)
@@ -519,7 +519,7 @@ function UpdateSellerInfo(&$sellerInfo, $snapshot)
             $sqlBit = sprintf('(%d,\'%s\',%d,%d)', $info['id'], $snapshotString, $info['new'], $info['total']);
             if (strlen($sql) + strlen($sqlBit) + 5 > $maxPacketSize)
             {
-                $db->query($sql);
+                DBQueryWithError($db, $sql);
                 $sql = '';
             }
             $sql .= ($sql == '' ? $sqlStart : ',') . $sqlBit;
@@ -528,7 +528,7 @@ function UpdateSellerInfo(&$sellerInfo, $snapshot)
     }
 
     if ($sql != '')
-        $db->query($sql);
+        DBQueryWithError($db, $sql);
 }
 
 function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
@@ -556,8 +556,7 @@ function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
         $sqlBit = sprintf('(%d,%u,%u,%u,\'%s\')', $factionHouse, $item, $price, $info['tq'], $snapshotString);
         if (strlen($sql) + strlen($sqlBit) + strlen($sqlEnd) + 5 > $maxPacketSize)
         {
-            if (!$db->query($sql.$sqlEnd))
-                DebugMessage("SQL error: ".$db->error." - ".preg_replace('/[\r\n]/', ' ', $sqlStart));
+            DBQueryWithError($db, $sql.$sqlEnd);
             $sql = '';
         }
         $sql .= ($sql == '' ? $sqlStart : ',') . $sqlBit;
@@ -566,8 +565,7 @@ function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
         {
             if (strlen($sqlHistory) + strlen($sqlBit) + 5 > $maxPacketSize)
             {
-                if (!$db->query($sqlHistory))
-                    DebugMessage("SQL error: ".$db->error." - ".preg_replace('/[\r\n]/', ' ', $sqlHistoryStart));
+                DBQueryWithError($db, $sqlHistory);
                 $sqlHistory = '';
             }
             $sqlHistory .= ($sqlHistory == '' ? $sqlHistoryStart : ',') . $sqlBit;
@@ -575,8 +573,7 @@ function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
             $sqlDeepBit = sprintf('(%d,%u,%u,%u,%u)', $factionHouse, $item, round($price/100), $info['tq'], $month);
             if (strlen($sqlDeep) + strlen($sqlDeepBit) + strlen($sqlDeepEnd) + 5 > $maxPacketSize)
             {
-                if (!$db->query($sqlDeep.$sqlDeepEnd))
-                    DebugMessage("SQL error: ".$db->error." - ".preg_replace('/[\r\n]/', ' ', $sqlDeepStart));
+                DBQueryWithError($db, $sqlDeep.$sqlDeepEnd);
                 $sqlDeep = '';
             }
             $sqlDeep .= ($sqlDeep == '' ? $sqlDeepStart : ',') . $sqlDeepBit;
@@ -585,14 +582,11 @@ function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
     unset($info);
 
     if ($sql != '')
-        if (!$db->query($sql.$sqlEnd))
-            DebugMessage("SQL error: ".$db->error." - ".preg_replace('/[\r\n]/', ' ', $sqlStart));
+        DBQueryWithError($db, $sql.$sqlEnd);
     if ($sqlHistory != '')
-        if (!$db->query($sqlHistory))
-            DebugMessage("SQL error: ".$db->error." - ".preg_replace('/[\r\n]/', ' ', $sqlHistoryStart));
+        DBQueryWithError($db, $sqlHistory);
     if ($sqlDeep != '')
-        if (!$db->query($sqlDeep.$sqlDeepEnd))
-            DebugMessage("SQL error: ".$db->error." - ".preg_replace('/[\r\n]/', ' ', $sqlDeepStart));
+        DBQueryWithError($db, $sqlDeep.$sqlDeepEnd);
 }
 
 function UpdatePetInfo($factionHouse, &$petInfo, $snapshot)
@@ -615,7 +609,7 @@ function UpdatePetInfo($factionHouse, &$petInfo, $snapshot)
             $sqlBit = sprintf('(%d,%u,%u,%u,%u,\'%s\')', $factionHouse, $species, $breed, $price, $info['tq'], $snapshotString);
             if (strlen($sql) + strlen($sqlBit) + strlen($sqlEnd) + 5 > $maxPacketSize)
             {
-                $db->query($sql.$sqlEnd);
+                DBQueryWithError($db, $sql.$sqlEnd);
                 $sql = '';
             }
             $sql .= ($sql == '' ? $sqlStart : ',') . $sqlBit;
@@ -624,7 +618,7 @@ function UpdatePetInfo($factionHouse, &$petInfo, $snapshot)
             {
                 if (strlen($sqlHistory) + strlen($sqlBit) + 5 > $maxPacketSize)
                 {
-                    $db->query($sqlHistory);
+                    DBQueryWithError($db, $sqlHistory);
                     $sqlHistory = '';
                 }
                 $sqlHistory .= ($sqlHistory == '' ? $sqlHistoryStart : ',') . $sqlBit;
@@ -635,9 +629,9 @@ function UpdatePetInfo($factionHouse, &$petInfo, $snapshot)
     unset($breeds);
 
     if ($sql != '')
-        $db->query($sql.$sqlEnd);
+        DBQueryWithError($db, $sql.$sqlEnd);
     if ($sqlHistory != '')
-        $db->query($sqlHistory);
+        DBQueryWithError($db, $sqlHistory);
 }
 
 function GetMarketPrice(&$info)
@@ -665,4 +659,13 @@ function MarketPriceSort($a,$b)
     if ($ap - $bp != 0)
         return ($ap - $bp);
     return ($a['q'] - $b['q']);
+}
+
+function DBQueryWithError(&$db, $sql)
+{
+    if (!$db->query($sql)) {
+        DebugMessage("SQL error: ".$db->error." - ".substr(preg_replace('/[\r\n]/', ' ', $sql), 0, 250));
+        return false;
+    }
+    return true;
 }
