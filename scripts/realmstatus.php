@@ -95,7 +95,7 @@ EOF;
             $updateDelta = time() - strtotime($row['lastupdate']);
             if ($updateDelta > ($row['maxdelta'] + 180)) {
                 $css = 'color: red';
-            } elseif ($updateDelta > $row['avgdelta']) {
+            } elseif ($updateDelta > $row['avgdelta'] + 60) {
                 $css = 'color: #999900';
             }
             echo '<td style="'.$css.'" class="r">'.TimeDiff(strtotime($row['lastupdate'])).'</td>';
