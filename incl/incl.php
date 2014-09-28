@@ -15,13 +15,15 @@ function DebugMessage($message, $debugLevel = E_USER_NOTICE)
 {
     global $argv;
 
-    $bt = debug_backtrace();
-    $bt = isset($bt[1]) ? (' ' . $bt[1]['file'] . (isset($bt[1]['function']) ? (' ' . $bt[1]['function']) : '') . ' Line '. $bt[1]['line']) : '';
+    if ($debugLevel != E_USER_NOTICE) {
+        $bt = debug_backtrace();
+        $bt = isset($bt[1]) ? (' ' . $bt[1]['file'] . (isset($bt[1]['function']) ? (' ' . $bt[1]['function']) : '') . ' Line '. $bt[1]['line']) : '';
 
-    $pth = realpath(__DIR__.'/../logs/scripterrors.log');
-    if ($pth) {
-        $me = (php_sapi_name() == 'cli') ? ('CLI:' . realpath($argv[0])) : ('Web:' . $_SERVER['REQUEST_URI']);
-        file_put_contents($pth, Date('Y-m-d H:i:s')." $me$bt $message\n", FILE_APPEND | LOCK_EX);
+        $pth = realpath(__DIR__.'/../logs/scripterrors.log');
+        if ($pth) {
+            $me = (php_sapi_name() == 'cli') ? ('CLI:' . realpath($argv[0])) : ('Web:' . $_SERVER['REQUEST_URI']);
+            file_put_contents($pth, Date('Y-m-d H:i:s')." $me$bt $message\n", FILE_APPEND | LOCK_EX);
+        }
     }
 
     static $myPid = false;
