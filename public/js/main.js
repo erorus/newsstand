@@ -166,6 +166,22 @@ var libtuj = {
 
         return realmNames;
     },
+    AddAd: function(slot, cssClass) {
+        var ad = libtuj.ce();
+        ad.className = 'ad';
+        if (cssClass) {
+            ad.className += ' ' + cssClass;
+        }
+
+        var ins = libtuj.ce('ins');
+        ad.appendChild(ins);
+        ins.className = 'adsbygoogle';
+        ins.setAttribute('data-ad-client', 'ca-pub-1018837251546750');
+        ins.setAttribute('data-ad-slot', slot);
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+
+        return ad;
+    },
     Storage: {
         Get: function(key)
         {

@@ -178,6 +178,8 @@ var TUJ_Item = function()
             ItemGlobalNowColumns(dta, cht);
         }
 
+        itemPage.append(libtuj.AddAd('3753400314'));
+
         if (dta.auctions.length)
         {
             d = libtuj.ce();
@@ -461,16 +463,7 @@ var TUJ_Item = function()
             td.appendChild(libtuj.FormatPrice(Math.max(100, data.stats.selltovendor ? data.stats.selltovendor * 0.6 * stack : 0)));
         }
 
-        var ad = libtuj.ce();
-        ad.className = 'ad box';
-        dest.appendChild(ad);
-
-        var ins = libtuj.ce('ins');
-        ad.appendChild(ins);
-        ins.className = 'adsbygoogle';
-        ins.setAttribute('data-ad-client', 'ca-pub-1018837251546750');
-        ins.setAttribute('data-ad-slot', '9943194718');
-        (window.adsbygoogle = window.adsbygoogle || []).push({});
+        dest.appendChild(libtuj.AddAd('9943194718', 'box'));
     }
 
     function ItemHistoryChart(data, dest)

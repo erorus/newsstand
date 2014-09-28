@@ -88,14 +88,20 @@ var TUJ_Category = function()
         if (!dta.hasOwnProperty('results'))
             return;
 
-        var f;
+        categoryPage.append(libtuj.AddAd('8323200718'));
+
+        var f, resultCount = 0;
         for (var x = 0; f = dta.results[x]; x++)
             if (resultFunctions.hasOwnProperty(f.name))
             {
                 d = libtuj.ce();
                 d.className = 'category-'+ f.name.toLowerCase();
                 categoryPage.append(d);
-                resultFunctions[f.name](f.data, d);
+                resultCount += resultFunctions[f.name](f.data, d) ? 1 : 0;
+
+                if (resultCount == 5) {
+                    categoryPage.append(libtuj.AddAd('2276667118'));
+                }
             }
     }
 
@@ -114,7 +120,7 @@ var TUJ_Category = function()
         var item, x, t, td, th, tr, a;
 
         if (!data.items.length)
-            return;
+            return false;
 
         if (!data.hiddenCols)
             data.hiddenCols = {};
@@ -309,6 +315,8 @@ var TUJ_Category = function()
                 td.appendChild(libtuj.FormatDate(item.lastseen));
             }
         }
+
+        return true;
     }
     this.load(tuj.params);
 }

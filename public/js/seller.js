@@ -80,16 +80,7 @@ var TUJ_Seller = function()
 
         var d, cht, h;
 
-        var ad = libtuj.ce();
-        ad.className = 'ad';
-        sellerPage.append(ad);
-
-        var ins = libtuj.ce('ins');
-        ad.appendChild(ins);
-        ins.className = 'adsbygoogle';
-        ins.setAttribute('data-ad-client', 'ca-pub-1018837251546750');
-        ins.setAttribute('data-ad-slot', '3896661119');
-        (window.adsbygoogle = window.adsbygoogle || []).push({});
+        sellerPage.append(libtuj.AddAd('3896661119'));
 
         d = libtuj.ce();
         d.className = 'chart-section';

@@ -543,16 +543,7 @@ var TUJ_BattlePet = function()
             td.appendChild(libtuj.FormatPrice(mn));
         }
 
-        var ad = libtuj.ce();
-        ad.className = 'ad box';
-        dest.appendChild(ad);
-
-        var ins = libtuj.ce('ins');
-        ad.appendChild(ins);
-        ins.className = 'adsbygoogle';
-        ins.setAttribute('data-ad-client', 'ca-pub-1018837251546750');
-        ins.setAttribute('data-ad-slot', '2419927914');
-        (window.adsbygoogle = window.adsbygoogle || []).push({});
+        dest.appendChild(libtuj.AddAd('2419927914', 'box'));
     }
 
     function BattlePetHistoryChart(data, dest)
