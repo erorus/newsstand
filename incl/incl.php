@@ -206,7 +206,7 @@ function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
     elseif (!$wasRetry && isset($data->headers['Retry-After']))
     {
         if ($usesBattleNetKey && count($apiHits)) {
-            file_put_contents(__DIR__.'../logs/battlenetwaits.log', print_r($apiHits, true), FILE_APPEND | LOCK_EX);
+            file_put_contents(__DIR__.'/../logs/battlenetwaits.log', print_r($apiHits, true), FILE_APPEND | LOCK_EX);
         }
         $delay = intval($data->headers['Retry-After'],10);
         if ($delay > 0 && $delay <= 10)
