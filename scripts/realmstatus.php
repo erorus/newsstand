@@ -3,6 +3,10 @@
 require_once(__DIR__.'/../incl/incl.php');
 require_once(__DIR__.'/../incl/battlenet.incl.php');
 
+if (php_sapi_name() == 'cli') {
+    DebugMessage('This script is meant to be run from the private/admin area as a web page.', E_USER_ERROR);
+}
+
 if (isset($_GET['bnetget'])) {
     BnetGet();
     exit;
@@ -139,9 +143,11 @@ function ShowLogs() {
     sort($files);
 
     foreach ($files as $path) {
-        echo '<h2>'.htmlentities($path).'</h2>';
-        echo '<pre>';
+        ob_start();
         passthru('tail -n 20 '.escapeshellarg($path));
-        echo '</pre>';
+        $log = ob_get_clean();
+
+        echo '<h2>'.htmlentities($path).'</h2>';
+        echo '<pre>'.htmlentities($log).'</pre>';
     }
 }

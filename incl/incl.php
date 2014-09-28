@@ -13,16 +13,27 @@ define('HISTORY_DAYS', 14);
 
 function DebugMessage($message, $debugLevel = E_USER_NOTICE)
 {
+    global $argv;
+
+    $bt = debug_backtrace();
+    $bt = isset($bt[1]) ? (' ' . $bt[1]['file'] . (isset($bt[1]['function']) ? (' ' . $bt[1]['function']) : '') . ' Line '. $bt[1]['line']) : '';
+
+    $pth = realpath(__DIR__.'/../logs/scripterrors.log');
+    if ($pth) {
+        $me = (php_sapi_name() == 'cli') ? ('CLI:' . realpath($argv[0])) : ('Web:' . $_SERVER['REQUEST_URI']);
+        file_put_contents($pth, Date('Y-m-d H:i:s')." $me$bt $message\n", FILE_APPEND | LOCK_EX);
+    }
+
     static $myPid = false;
     if (!$myPid)
         $myPid = str_pad(getmypid(),5," ",STR_PAD_LEFT);
-    
+
     if (php_sapi_name() == 'cli')
     {
         if ($debugLevel == E_USER_NOTICE)
             echo Date('Y-m-d H:i:s')." $myPid $message\n";
         else
-            trigger_error(Date('Y-m-d H:i:s')." $myPid $message", $debugLevel);
+            trigger_error("\n".Date('Y-m-d H:i:s')." $myPid $message\n", $debugLevel);
     }
     elseif ($debugLevel != E_USER_NOTICE)
         trigger_error($message, $debugLevel);
