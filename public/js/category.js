@@ -88,7 +88,7 @@ var TUJ_Category = function()
         if (!dta.hasOwnProperty('results'))
             return;
 
-        categoryPage.append(libtuj.AddAd('8323200718'));
+        categoryPage.append(libtuj.Ads.Add('8323200718'));
 
         var f, resultCount = 0;
         for (var x = 0; f = dta.results[x]; x++)
@@ -100,11 +100,11 @@ var TUJ_Category = function()
                 resultCount += resultFunctions[f.name](f.data, d) ? 1 : 0;
 
                 if (resultCount == 5) {
-                    categoryPage.append(libtuj.AddAd('2276667118'));
+                    categoryPage.append(libtuj.Ads.Add('2276667118'));
                 }
             }
 
-        libtuj.RefreshAds();
+        libtuj.Ads.Show();
     }
 
     function CategoryFrontPage()

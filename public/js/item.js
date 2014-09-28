@@ -178,7 +178,7 @@ var TUJ_Item = function()
             ItemGlobalNowColumns(dta, cht);
         }
 
-        itemPage.append(libtuj.AddAd('3753400314'));
+        itemPage.append(libtuj.Ads.Add('3753400314'));
 
         if (dta.auctions.length)
         {
@@ -194,7 +194,7 @@ var TUJ_Item = function()
             ItemAuctions(dta, cht);
         }
 
-        libtuj.RefreshAds();
+        libtuj.Ads.Show();
     }
 
     function ItemStats(data, dest)
@@ -465,7 +465,7 @@ var TUJ_Item = function()
             td.appendChild(libtuj.FormatPrice(Math.max(100, data.stats.selltovendor ? data.stats.selltovendor * 0.6 * stack : 0)));
         }
 
-        dest.appendChild(libtuj.AddAd('9943194718', 'box'));
+        dest.appendChild(libtuj.Ads.Add('9943194718', 'box'));
     }
 
     function ItemHistoryChart(data, dest)

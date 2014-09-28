@@ -80,7 +80,7 @@ var TUJ_Seller = function()
 
         var d, cht, h;
 
-        sellerPage.append(libtuj.AddAd('3896661119'));
+        sellerPage.append(libtuj.Ads.Add('3896661119'));
 
         d = libtuj.ce();
         d.className = 'chart-section';
@@ -122,7 +122,7 @@ var TUJ_Seller = function()
             SellerAuctions(dta, cht);
         }
 
-        libtuj.RefreshAds();
+        libtuj.Ads.Show();
     }
 
     function SellerHistoryChart(data, dest)

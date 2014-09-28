@@ -207,7 +207,7 @@ var TUJ_BattlePet = function()
             BattlePetAuctions(dta, cht);
         }
 
-        libtuj.RefreshAds();
+        libtuj.Ads.Show();
     }
 
     function BattlePetBreedData(dtaAll, breeds)
@@ -545,7 +545,7 @@ var TUJ_BattlePet = function()
             td.appendChild(libtuj.FormatPrice(mn));
         }
 
-        dest.appendChild(libtuj.AddAd('2419927914', 'box'));
+        dest.appendChild(libtuj.Ads.Add('2419927914', 'box'));
     }
 
     function BattlePetHistoryChart(data, dest)

@@ -166,23 +166,31 @@ var libtuj = {
 
         return realmNames;
     },
-    AddAd: function(slot, cssClass) {
-        var ad = libtuj.ce();
-        ad.className = 'ad';
-        if (cssClass) {
-            ad.className += ' ' + cssClass;
+    Ads: {
+        addCount: 0,
+        Add: function(slot, cssClass) {
+            var ad = libtuj.ce();
+            ad.className = 'ad';
+            if (cssClass) {
+                ad.className += ' ' + cssClass;
+            }
+
+            var ins = libtuj.ce('ins');
+            ad.appendChild(ins);
+            ins.className = 'adsbygoogle';
+            ins.setAttribute('data-ad-client', 'ca-pub-1018837251546750');
+            ins.setAttribute('data-ad-slot', slot);
+
+            libtuj.Ads.addCount++;
+
+            return ad;
+        },
+        Show: function() {
+            while (libtuj.Ads.addCount > 0) {
+                (window.adsbygoogle = window.adsbygoogle || []).push({});
+                libtuj.Ads.addCount--;
+            }
         }
-
-        var ins = libtuj.ce('ins');
-        ad.appendChild(ins);
-        ins.className = 'adsbygoogle';
-        ins.setAttribute('data-ad-client', 'ca-pub-1018837251546750');
-        ins.setAttribute('data-ad-slot', slot);
-
-        return ad;
-    },
-    RefreshAds: function() {
-        (window.adsbygoogle = window.adsbygoogle || []).push({});
     },
     Storage: {
         Get: function(key)
