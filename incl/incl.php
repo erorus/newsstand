@@ -134,6 +134,7 @@ function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
 
     $wasRetry = $isRetry;
     $isRetry = false;
+    $usesBattleNetKey = preg_match('/^https:\/\/(us|eu)\.api\.battle\.net\/[\w\W]+\bapikey=/', $url) > 0;
 
     $fetchHTTPErrorCaught = false;
     if (!isset($inHeaders['Connection'])) $inHeaders['Connection']='Keep-Alive';
@@ -146,6 +147,35 @@ function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
         'redirect' => (preg_match('/^https?:\/\/(?:[a-z]+\.)*\bbattle\.net\//',$url) > 0)?0:3
     );
     //if ($eTag) $http_opt['etag'] = $eTag;
+
+    if ($usesBattleNetKey) {
+        $apiHits = [];
+        if (!function_exists('MCAdd')) {
+            DebugMessage('Can\'t add battle net request to memcache because memcache file is not included.', E_USER_NOTICE);
+        } else {
+            $mcTries = 0;
+            $mcKey = 'FetchHTTP_bnetapi';
+            while ($mcTries++ < 10) {
+                if (MCAdd($mcKey.'_critical', 1, 5) === false) {
+                    usleep(200000);
+                    continue;
+                }
+
+                $apiHits = MCGet($mcKey);
+                if ($apiHits === false) {
+                    $apiHits = [];
+                }
+                $apiHits[] = ['when' => microtime(), 'url' => $url];
+                if (count($apiHits) > 30) {
+                    array_splice($apiHits, 0, count($apiHits) - 30);
+                }
+                MCSet($mcKey, $apiHits, 10);
+
+                MCDelete($mcKey.'_critical');
+                break;
+            }
+        }
+    }
 
     $http_info = array();
     $fetchHTTPErrorCaught = false;
@@ -175,6 +205,9 @@ function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
         return $data->body;
     elseif (!$wasRetry && isset($data->headers['Retry-After']))
     {
+        if ($usesBattleNetKey && count($apiHits)) {
+            file_put_contents(__DIR__.'../logs/battlenetwaits.log', print_r($apiHits, true), FILE_APPEND | LOCK_EX);
+        }
         $delay = intval($data->headers['Retry-After'],10);
         if ($delay > 0 && $delay <= 10)
             sleep($delay);
