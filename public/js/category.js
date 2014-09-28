@@ -103,6 +103,8 @@ var TUJ_Category = function()
                     categoryPage.append(libtuj.AddAd('2276667118'));
                 }
             }
+
+        libtuj.RefreshAds();
     }
 
     function CategoryFrontPage()

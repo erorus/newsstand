@@ -121,6 +121,8 @@ var TUJ_Seller = function()
             sellerPage.append(d);
             SellerAuctions(dta, cht);
         }
+
+        libtuj.RefreshAds();
     }
 
     function SellerHistoryChart(data, dest)

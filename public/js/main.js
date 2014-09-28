@@ -178,9 +178,11 @@ var libtuj = {
         ins.className = 'adsbygoogle';
         ins.setAttribute('data-ad-client', 'ca-pub-1018837251546750');
         ins.setAttribute('data-ad-slot', slot);
-        (window.adsbygoogle = window.adsbygoogle || []).push({});
 
         return ad;
+    },
+    RefreshAds: function() {
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
     },
     Storage: {
         Get: function(key)

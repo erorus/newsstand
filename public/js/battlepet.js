@@ -206,6 +206,8 @@ var TUJ_BattlePet = function()
             battlePetPage.append(d);
             BattlePetAuctions(dta, cht);
         }
+
+        libtuj.RefreshAds();
     }
 
     function BattlePetBreedData(dtaAll, breeds)

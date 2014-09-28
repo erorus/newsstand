@@ -193,6 +193,8 @@ var TUJ_Item = function()
             itemPage.append(d);
             ItemAuctions(dta, cht);
         }
+
+        libtuj.RefreshAds();
     }
 
     function ItemStats(data, dest)
