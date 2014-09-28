@@ -70,7 +70,7 @@ left join (
         group by deltas.house
         ) sch on sch.house = r.house
 where r.canonical is not null
-order by sch.lastupdate, ifnull(delayednext, scheduled), region, canonical
+order by if(delayednext is null, 1, 0) asc, ifnull(delayednext, scheduled), sch.lastupdate, region, canonical
 EOF;
 
     $stmt = $db->prepare($sql);
@@ -89,7 +89,7 @@ EOF;
         } else {
             $css='';
             $updateDelta = time() - strtotime($row['lastupdate']);
-            if ($updateDelta > $row['maxdelta']) {
+            if ($updateDelta > ($row['maxdelta'] + 180)) {
                 $css = 'color: red';
             } elseif ($updateDelta > $row['avgdelta']) {
                 $css = 'color: #999900';
