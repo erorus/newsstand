@@ -70,7 +70,7 @@ left join (
         group by deltas.house
         ) sch on sch.house = r.house
 where r.canonical is not null
-order by if(delayednext is null, 1, 0) asc, ifnull(delayednext, scheduled), sch.lastupdate, region, canonical
+order by unix_timestamp(ifnull(delayednext, scheduled)) - unix_timestamp(scheduled), ifnull(delayednext, scheduled), sch.lastupdate, region, canonical
 EOF;
 
     $stmt = $db->prepare($sql);
