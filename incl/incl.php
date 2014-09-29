@@ -1,5 +1,7 @@
 <?php
 
+require_once(__DIR__.'/database.credentials.php');
+
 $db = false;
 
 if (php_sapi_name() == 'cli')
@@ -11,16 +13,29 @@ define('HISTORY_DAYS', 14);
 
 function DebugMessage($message, $debugLevel = E_USER_NOTICE)
 {
+    global $argv;
+
+    if ($debugLevel != E_USER_NOTICE) {
+        $bt = debug_backtrace();
+        $bt = isset($bt[1]) ? (' ' . $bt[1]['file'] . (isset($bt[1]['function']) ? (' ' . $bt[1]['function']) : '') . ' Line '. $bt[1]['line']) : '';
+
+        $pth = realpath(__DIR__.'/../logs/scripterrors.log');
+        if ($pth) {
+            $me = (php_sapi_name() == 'cli') ? ('CLI:' . realpath($argv[0])) : ('Web:' . $_SERVER['REQUEST_URI']);
+            file_put_contents($pth, Date('Y-m-d H:i:s')." $me$bt $message\n", FILE_APPEND | LOCK_EX);
+        }
+    }
+
     static $myPid = false;
     if (!$myPid)
         $myPid = str_pad(getmypid(),5," ",STR_PAD_LEFT);
-    
+
     if (php_sapi_name() == 'cli')
     {
         if ($debugLevel == E_USER_NOTICE)
             echo Date('Y-m-d H:i:s')." $myPid $message\n";
         else
-            trigger_error(Date('Y-m-d H:i:s')." $myPid $message", $debugLevel);
+            trigger_error("\n".Date('Y-m-d H:i:s')." $myPid $message\n", $debugLevel);
     }
     elseif ($debugLevel != E_USER_NOTICE)
         trigger_error($message, $debugLevel);
@@ -35,10 +50,12 @@ function DBConnect($alternate = false)
     if ($connected && !$alternate)
         return $db;
 
+    $isCLI = (php_sapi_name() == 'cli');
+
     $host = 'localhost';
-    $user = (php_sapi_name() == 'cli') ? 'newsstand' : 'newsstand_web';
-    $pass = 'D2seYZcwz3sPcTYt';
-    $database = 'newsstand';
+    $user = $isCLI ? DATABASE_USERNAME_CLI : DATABASE_USERNAME_WEB;
+    $pass = $isCLI ? DATABASE_PASSWORD_CLI : DATABASE_PASSWORD_WEB;
+    $database = DATABASE_SCHEMA;
 
     $thisDb = new mysqli($host, $user, $pass, $database);
     if ($thisDb->connect_error)
@@ -117,6 +134,8 @@ function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
 
     $wasRetry = $isRetry;
     $isRetry = false;
+    $usesBattleNetKey = preg_match('/^https:\/\/(us|eu)\.api\.battle\.net\/[\w\W]+\bapikey=/', $url) > 0;
+    $debuggingBattleNetCalls = false;
 
     $fetchHTTPErrorCaught = false;
     if (!isset($inHeaders['Connection'])) $inHeaders['Connection']='Keep-Alive';
@@ -130,6 +149,35 @@ function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
     );
     //if ($eTag) $http_opt['etag'] = $eTag;
 
+    if ($debuggingBattleNetCalls && $usesBattleNetKey) {
+        $apiHits = [];
+        if (!function_exists('MCAdd')) {
+            DebugMessage('Can\'t add battle net request to memcache because memcache file is not included.', E_USER_NOTICE);
+        } else {
+            $mcTries = 0;
+            $mcKey = 'FetchHTTP_bnetapi';
+            while ($mcTries++ < 10) {
+                if (MCAdd($mcKey.'_critical', 1, 5) === false) {
+                    usleep(50000);
+                    continue;
+                }
+
+                $apiHits = MCGet($mcKey);
+                if ($apiHits === false) {
+                    $apiHits = [];
+                }
+                $apiHits[] = ['when' => microtime(), 'url' => $url];
+                if (count($apiHits) > 30) {
+                    array_splice($apiHits, 0, count($apiHits) - 30);
+                }
+                MCSet($mcKey, $apiHits, 10);
+
+                MCDelete($mcKey.'_critical');
+                break;
+            }
+        }
+    }
+
     $http_info = array();
     $fetchHTTPErrorCaught = false;
     $oldErrorReporting = error_reporting(error_reporting()|E_WARNING);
@@ -138,6 +186,11 @@ function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
     restore_error_handler();
     error_reporting($oldErrorReporting);
     unset($oldErrorReporting);
+
+    if (!$data) {
+        $outHeaders = array();
+        return false;
+    }
 
     $outHeaders = array_merge(array(
         'httpVersion' => $data->httpVersion,
@@ -154,6 +207,10 @@ function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
     elseif (!$wasRetry && isset($data->headers['Retry-After']))
     {
         $delay = intval($data->headers['Retry-After'],10);
+        DebugMessage("Asked to wait $delay seconds for $url", E_USER_NOTICE);
+        if ($debuggingBattleNetCalls && $usesBattleNetKey && count($apiHits)) {
+            file_put_contents(__DIR__.'/../logs/battlenetwaits.log', print_r($apiHits, true), FILE_APPEND | LOCK_EX);
+        }
         if ($delay > 0 && $delay <= 10)
             sleep($delay);
         $isRetry = true;

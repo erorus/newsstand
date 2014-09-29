@@ -52,3 +52,19 @@ function MCSet($key, $val, $expire = 10800)
     return $memcache->set($key, $val, false, $expire);
 }
 
+function MCAdd($key, $val, $expire = 10800)
+{
+    global $memcache;
+
+    return $memcache->add($key, $val, false, $expire);
+}
+
+function MCDelete($key)
+{
+    global $memcache;
+
+    //if (isset($_GET['refresh']))
+    //    return false;
+
+    return $memcache->delete($key);
+}

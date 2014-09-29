@@ -14,7 +14,7 @@ function heartbeat()
     static $lastHeartbeat = 0;
 
     if ($lastHeartbeat + 5 > time())
-        return;
+        return false;
 
     $lastHeartbeat = time();
 
@@ -28,4 +28,6 @@ function heartbeat()
     }
 
     touch(HEARTBEATPATH.$pid);
+
+    return true;
 }

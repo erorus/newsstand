@@ -206,6 +206,8 @@ var TUJ_BattlePet = function()
             battlePetPage.append(d);
             BattlePetAuctions(dta, cht);
         }
+
+        libtuj.Ads.Show();
     }
 
     function BattlePetBreedData(dtaAll, breeds)
@@ -543,16 +545,7 @@ var TUJ_BattlePet = function()
             td.appendChild(libtuj.FormatPrice(mn));
         }
 
-        var ad = libtuj.ce();
-        ad.className = 'ad box';
-        dest.appendChild(ad);
-
-        var ins = libtuj.ce('ins');
-        ad.appendChild(ins);
-        ins.className = 'adsbygoogle';
-        ins.setAttribute('data-ad-client', 'ca-pub-1018837251546750');
-        ins.setAttribute('data-ad-slot', '2419927914');
-        (window.adsbygoogle = window.adsbygoogle || []).push({});
+        dest.appendChild(libtuj.Ads.Add('2419927914', 'box'));
     }
 
     function BattlePetHistoryChart(data, dest)
@@ -1109,7 +1102,7 @@ var TUJ_BattlePet = function()
                 a.sellername.localeCompare(b.sellername);
         });
 
-        var s, a, stackable = data.stats.stacksize > 1;
+        var s, a;
         for (var x = 0, auc; auc = data.auctions[x]; x++)
         {
             tr = libtuj.ce('tr');
@@ -1134,32 +1127,15 @@ var TUJ_BattlePet = function()
             tr.appendChild(td);
             td.className = 'price';
             s = libtuj.FormatFullPrice(auc.bid / auc.quantity);
-            if (stackable && auc.quantity > 1)
-            {
-                a = libtuj.ce('abbr');
-                a.title = libtuj.FormatFullPrice(auc.bid, true) + ' total';
-                a.appendChild(s);
-            }
-            else
-                a = s;
-            td.appendChild(a);
+            td.appendChild(s);
 
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.className = 'price';
             s = libtuj.FormatFullPrice(auc.buy / auc.quantity);
-            if (stackable && auc.quantity > 1 && auc.buy)
-            {
-                a = libtuj.ce('abbr');
-                a.title = libtuj.FormatFullPrice(auc.buy, true) + ' total';
-                a.appendChild(s);
-            }
-            else if (!auc.buy)
-                a = libtuj.ce('span');
-            else
-                a = s;
-            if (a)
-                td.appendChild(a);
+            if (!auc.buy)
+                s = libtuj.ce('span');
+            td.appendChild(s);
 
             td = libtuj.ce('td');
             tr.appendChild(td);

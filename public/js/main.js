@@ -37,6 +37,18 @@ var libtuj = {
             s += Math.pow(a[x] - mn, 2);
         return Math.sqrt(s/ a.length);
     },
+    Least: function(a)
+    {
+        if (a.length == 0)
+            return undefined;
+
+        var tr = a[0];
+        for (var x = 1; x < a.length; x++) {
+            if (a[x] < tr)
+                tr = a[x];
+        }
+        return tr;
+    },
     FormatPrice: function(amt,justValue)
     {
         var v = '';
@@ -154,6 +166,32 @@ var libtuj = {
 
         return realmNames;
     },
+    Ads: {
+        addCount: 0,
+        Add: function(slot, cssClass) {
+            var ad = libtuj.ce();
+            ad.className = 'ad';
+            if (cssClass) {
+                ad.className += ' ' + cssClass;
+            }
+
+            var ins = libtuj.ce('ins');
+            ad.appendChild(ins);
+            ins.className = 'adsbygoogle';
+            ins.setAttribute('data-ad-client', 'ca-pub-1018837251546750');
+            ins.setAttribute('data-ad-slot', slot);
+
+            libtuj.Ads.addCount++;
+
+            return ad;
+        },
+        Show: function() {
+            while (libtuj.Ads.addCount > 0) {
+                (window.adsbygoogle = window.adsbygoogle || []).push({});
+                libtuj.Ads.addCount--;
+            }
+        }
+    },
     Storage: {
         Get: function(key)
         {
@@ -245,8 +283,8 @@ var tujConstants = {
 
 var TUJ = function()
 {
-    var validPages = ['','search','item','seller','battlepet','contact','donate'];
-    var pagesNeedRealm = [true, true, true, true, true, false];
+    var validPages = ['','search','item','seller','battlepet','contact','donate','category'];
+    var pagesNeedRealm = [true, true, true, true, true, false, false, true];
     this.validFactions = {'alliance': 1, 'horde': -1};
     this.region = undefined;
     this.realms = undefined;
@@ -301,19 +339,6 @@ var TUJ = function()
                 url: 'api/realms.php'
             });
             return;
-        }
-
-        if (self.region == 'EU' && !document.getElementById('eu-warning'))
-        {
-            var d = libtuj.ce();
-            d.id = 'eu-warning';
-            document.getElementById('main').insertBefore(d, document.getElementById('main').firstChild);
-            var h2 = libtuj.ce('h2');
-            d.appendChild(h2);
-            h2.appendChild(document.createTextNode('EU Realms Unavailable'));
-            d.appendChild(document.createTextNode('While we are back in beta testing, we do not collect any data for EU realms yet.'));
-            d.appendChild(libtuj.ce('p'));
-            d.appendChild(document.createTextNode('Please check back with us after Blizzard releases the Warlords of Draenor pre-patch!'));
         }
 
         var ls, firstRun = !hash.watching;
@@ -463,10 +488,9 @@ var TUJ = function()
 
     function UpdateSidebar()
     {
-        if (self.params.realm)
-            $('#topcorner').show();
-        else
-            $('#topcorner').hide();
+        $('#topcorner .region-pick').hide();
+        if (!self.params.realm)
+            $('#topcorner #region-pick-' + self.region).show();
 
         var regionLink = $('#topcorner a.region');
         regionLink[0].href = self.region == 'US' ? '//eu.theunderminejournal.com' : '//theunderminejournal.com';
@@ -769,6 +793,12 @@ var TUJ = function()
     {
         var frontPage = $('#front-page')[0];
         $(frontPage).show();
+
+        $('#category-sidebar a').each(function() {
+            if (this.rel) {
+                this.href = tuj.BuildHash({page: 'category', id: this.rel});
+            }
+        });
     }
     Main();
 };
@@ -825,4 +855,4 @@ var optimizedResize = (function() {
     }
 }());
 
-var wowhead_tooltips = { "hide": { "extra": true, "sellprice": true } };
+var wowhead_tooltips = { "hide": { "droppedby": true, "dropchance": true, "reagents": true, "sellprice": true } };

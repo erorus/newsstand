@@ -12,6 +12,9 @@
 23 4 * * * php /var/newsstand/scripts/realms2houses.php >> /var/newsstand/logs/realms2houses.log 2>&1
 0 0 * * 0 mv /var/newsstand/logs/realms2houses.log /var/newsstand/logs/realms2houses.lastweek.log
 
+10 2 * * * php /var/newsstand/scripts/itemglobal.php >> /var/newsstand/logs/itemglobal.log 2>&1
+0 0 * * 0 mv /var/newsstand/logs/itemglobal.log /var/newsstand/logs/itemglobal.lastweek.log
+
 30 */2 * * * php /var/newsstand/scripts/historyprune.php >> /var/newsstand/logs/historyprune.log 2>&1
 0 0 * * * mv /var/newsstand/logs/historyprune.log /var/newsstand/logs/historyprune.yesterday.log
 
