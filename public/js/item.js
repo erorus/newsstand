@@ -496,7 +496,8 @@ var TUJ_Item = function()
 
         $(dest).highcharts({
             chart: {
-                zoomType: 'x'
+                zoomType: 'x',
+                backgroundColor: tujConstants.siteColors[tuj.colorTheme].background
             },
             title: {
                 text: null
@@ -504,25 +505,36 @@ var TUJ_Item = function()
             subtitle: {
                 text: document.ontouchstart === undefined ?
                     'Click and drag in the plot area to zoom in' :
-                    'Pinch the chart to zoom in'
+                    'Pinch the chart to zoom in',
+                style: {
+                    color: tujConstants.siteColors[tuj.colorTheme].text
+                }
             },
             xAxis: {
                 type: 'datetime',
                 maxZoom: 4 * 3600000, // four hours
                 title: {
                     text: null
+                },
+                labels: {
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
                 }
             },
             yAxis: [{
                 title: {
                     text: 'Market Price',
                     style: {
-                        color: '#0000FF'
+                        color: tujConstants.siteColors[tuj.colorTheme].bluePrice
                     }
                 },
                 labels: {
                     enabled: true,
-                    formatter: function() { return ''+libtuj.FormatPrice(this.value, true); }
+                    formatter: function() { return ''+libtuj.FormatPrice(this.value, true); },
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
                 },
                 min: 0,
                 max: hcdata.priceMaxVal
@@ -530,12 +542,15 @@ var TUJ_Item = function()
                 title: {
                     text: 'Quantity Available',
                     style: {
-                        color: '#FF3333'
+                        color: tujConstants.siteColors[tuj.colorTheme].redQuantity
                     }
                 },
                 labels: {
                     enabled: true,
-                    formatter: function() { return ''+libtuj.FormatQuantity(this.value, true); }
+                    formatter: function() { return ''+libtuj.FormatQuantity(this.value, true); },
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
                 },
                 opposite: true,
                 min: 0,
@@ -576,15 +591,15 @@ var TUJ_Item = function()
             series: [{
                 type: 'area',
                 name: 'Market Price',
-                color: '#0000FF',
-                lineColor: '#0000FF',
-                fillColor: '#CCCCFF',
+                color: tujConstants.siteColors[tuj.colorTheme].bluePrice,
+                lineColor: tujConstants.siteColors[tuj.colorTheme].bluePrice,
+                fillColor: tujConstants.siteColors[tuj.colorTheme].bluePriceFill,
                 data: hcdata.price
             },{
                 type: 'line',
                 name: 'Quantity Available',
                 yAxis: 1,
-                color: '#FF3333',
+                color: tujConstants.siteColors[tuj.colorTheme].redQuantity,
                 data: hcdata.quantity
             }]
         });
@@ -632,7 +647,8 @@ var TUJ_Item = function()
 
         $(dest).highcharts({
             chart: {
-                zoomType: 'x'
+                zoomType: 'x',
+                backgroundColor: tujConstants.siteColors[tuj.colorTheme].background
             },
             title: {
                 text: null
@@ -640,25 +656,36 @@ var TUJ_Item = function()
             subtitle: {
                 text: document.ontouchstart === undefined ?
                     'Click and drag in the plot area to zoom in' :
-                    'Pinch the chart to zoom in'
+                    'Pinch the chart to zoom in',
+                style: {
+                    color: tujConstants.siteColors[tuj.colorTheme].text
+                }
             },
             xAxis: {
                 type: 'datetime',
                 maxZoom: 4 * 24 * 3600000, // four days
                 title: {
                     text: null
+                },
+                labels: {
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
                 }
             },
             yAxis: [{
                 title: {
                     text: 'Market Price',
                     style: {
-                        color: '#0000FF'
+                        color: tujConstants.siteColors[tuj.colorTheme].bluePrice
                     }
                 },
                 labels: {
                     enabled: true,
-                    formatter: function() { return ''+libtuj.FormatPrice(this.value, true); }
+                    formatter: function() { return ''+libtuj.FormatPrice(this.value, true); },
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
                 },
                 min: 0,
                 max: hcdata.priceMaxVal
@@ -666,12 +693,15 @@ var TUJ_Item = function()
                 title: {
                     text: 'Quantity Available',
                     style: {
-                        color: '#FF3333'
+                        color: tujConstants.siteColors[tuj.colorTheme].redQuantity
                     }
                 },
                 labels: {
                     enabled: true,
-                    formatter: function() { return ''+libtuj.FormatQuantity(this.value, true); }
+                    formatter: function() { return ''+libtuj.FormatQuantity(this.value, true); },
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
                 },
                 opposite: true,
                 min: 0,
@@ -716,22 +746,22 @@ var TUJ_Item = function()
             series: [{
                 type: 'area',
                 name: 'Market Price',
-                color: '#00FF00',
-                lineColor: '#00FF00',
-                fillColor: 'rgba(204,255,204,0.5)',
+                color: tujConstants.siteColors[tuj.colorTheme].greenPrice,
+                lineColor: tujConstants.siteColors[tuj.colorTheme].greenPrice,
+                fillColor: tujConstants.siteColors[tuj.colorTheme].greenPriceFill,
                 data: hcdata.globalprice
             },{
                 type: 'area',
                 name: 'Market Price',
-                color: '#0000FF',
-                lineColor: '#0000FF',
-                fillColor: 'rgba(153,153,255,0.66)',
+                color: tujConstants.siteColors[tuj.colorTheme].bluePrice,
+                lineColor: tujConstants.siteColors[tuj.colorTheme].bluePrice,
+                fillColor: tujConstants.siteColors[tuj.colorTheme].bluePriceFillAlpha,
                 data: hcdata.price
             },{
                 type: 'line',
                 name: 'Quantity Available',
                 yAxis: 1,
-                color: '#FF3333',
+                color: tujConstants.siteColors[tuj.colorTheme].redQuantity,
                 data: hcdata.quantity
             }]
         });
@@ -785,7 +815,8 @@ var TUJ_Item = function()
 
         $(dest).highcharts('StockChart', {
             chart: {
-                zoomType: 'x'
+                zoomType: 'x',
+                backgroundColor: tujConstants.siteColors[tuj.colorTheme].background
             },
             rangeSelector: {
                 enabled: false
@@ -802,25 +833,37 @@ var TUJ_Item = function()
             subtitle: {
                 text: document.ontouchstart === undefined ?
                     'Click and drag in the plot area to zoom in' :
-                    'Pinch the chart to zoom in'
+                    'Pinch the chart to zoom in',
+                style: {
+                    color: tujConstants.siteColors[tuj.colorTheme].text
+                }
+
             },
             xAxis: {
                 type: 'datetime',
                 maxZoom: 4 * 24 * 3600000, // four days
                 title: {
                     text: null
+                },
+                labels: {
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
                 }
             },
             yAxis: [{
                 title: {
                     text: 'Market Price',
                     style: {
-                        color: '#0000FF'
+                        color: tujConstants.siteColors[tuj.colorTheme].bluePrice
                     }
                 },
                 labels: {
                     enabled: true,
                     formatter: function() { return ''+libtuj.FormatPrice(this.value, true); },
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
                 },
                 height: '60%',
                 min: 0,
@@ -829,12 +872,15 @@ var TUJ_Item = function()
                 title: {
                     text: 'Quantity Available',
                     style: {
-                        color: '#FF3333'
+                        color: tujConstants.siteColors[tuj.colorTheme].redQuantity
                     }
                 },
                 labels: {
                     enabled: true,
-                    formatter: function() { return ''+libtuj.FormatQuantity(this.value, true); }
+                    formatter: function() { return ''+libtuj.FormatQuantity(this.value, true); },
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
                 },
                 top: '65%',
                 height: '35%',
@@ -899,26 +945,27 @@ var TUJ_Item = function()
             series: [{
                 type: 'candlestick',
                 name: 'Market Price',
-                color: '#CCCCFF',
-                lineColor: '#0000FF',
+                upColor: tujConstants.siteColors[tuj.colorTheme].background,
+                color: tujConstants.siteColors[tuj.colorTheme].bluePriceFill,
+                lineColor: tujConstants.siteColors[tuj.colorTheme].bluePrice,
                 data: hcdata.ohlc
             },{
                 type: 'line',
                 name: 'Quantity',
                 yAxis: 1,
-                color: '#FF3333',
+                color: tujConstants.siteColors[tuj.colorTheme].redQuantity,
                 data: hcdata.quantity,
                 lineWidth: 2
             },{
                 type: 'arearange',
                 name: 'Quantity Range',
                 yAxis: 1,
-                color: '#FFCCCC',
+                color: tujConstants.siteColors[tuj.colorTheme].redQuantityFillLight,
                 data: hcdata.quantityRange
             },{
                 type: 'line',
                 name: 'Market Price',
-                color: '#009900',
+                color: tujConstants.siteColors[tuj.colorTheme].greenPriceDim,
                 data: hcdata.price
             }]
         });
@@ -978,7 +1025,8 @@ var TUJ_Item = function()
         $(dest).highcharts({
 
             chart: {
-                type: 'heatmap'
+                type: 'heatmap',
+                backgroundColor: tujConstants.siteColors[tuj.colorTheme].background
             },
 
             title: {
@@ -986,19 +1034,29 @@ var TUJ_Item = function()
             },
 
             xAxis: {
-                categories: hcdata.categories.x
+                categories: hcdata.categories.x,
+                labels: {
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
+                }
             },
 
             yAxis: {
                 categories: hcdata.categories.y,
-                title: null
+                title: null,
+                labels: {
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
+                }
             },
 
             colorAxis: {
                 min: hcdata.minVal,
                 max: hcdata.maxVal,
-                minColor: '#FFFFFF',
-                maxColor: '#6666FF'
+                minColor: tujConstants.siteColors[tuj.colorTheme].background,
+                maxColor: tujConstants.siteColors[tuj.colorTheme].bluePriceBackground
             },
 
             legend: {
@@ -1017,11 +1075,11 @@ var TUJ_Item = function()
             series: [{
                 name: 'Market Price',
                 borderWidth: 1,
-                borderColor: '#FFFFFF',
+                borderColor: tujConstants.siteColors[tuj.colorTheme].background,
                 data: hcdata.heat,
                 dataLabels: {
                     enabled: true,
-                    color: 'black',
+                    color: tujConstants.siteColors[tuj.colorTheme].data,
                     style: {
                         textShadow: 'none',
                         HcTextStroke: null
@@ -1087,7 +1145,8 @@ var TUJ_Item = function()
         $(dest).highcharts({
 
             chart: {
-                type: 'heatmap'
+                type: 'heatmap',
+                backgroundColor: tujConstants.siteColors[tuj.colorTheme].background
             },
 
             title: {
@@ -1095,19 +1154,29 @@ var TUJ_Item = function()
             },
 
             xAxis: {
-                categories: hcdata.categories.x
+                categories: hcdata.categories.x,
+                labels: {
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
+                }
             },
 
             yAxis: {
                 categories: hcdata.categories.y,
-                title: null
+                title: null,
+                labels: {
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
+                }
             },
 
             colorAxis: {
                 min: hcdata.minVal,
                 max: hcdata.maxVal,
-                minColor: '#FFFFFF',
-                maxColor: '#FF6666'
+                minColor: tujConstants.siteColors[tuj.colorTheme].background,
+                maxColor: tujConstants.siteColors[tuj.colorTheme].redQuantityBackground
             },
 
             legend: {
@@ -1126,11 +1195,11 @@ var TUJ_Item = function()
             series: [{
                 name: 'Quantity',
                 borderWidth: 1,
-                borderColor: '#FFFFFF',
+                borderColor: tujConstants.siteColors[tuj.colorTheme].background,
                 data: hcdata.heat,
                 dataLabels: {
                     enabled: true,
-                    color: 'black',
+                    color: tujConstants.siteColors[tuj.colorTheme].data,
                     style: {
                         textShadow: 'none',
                         HcTextStroke: null
@@ -1207,7 +1276,8 @@ var TUJ_Item = function()
 
         $(dest).highcharts({
             chart: {
-                zoomType: 'x'
+                zoomType: 'x',
+                backgroundColor: tujConstants.siteColors[tuj.colorTheme].background
             },
             title: {
                 text: null
@@ -1215,7 +1285,10 @@ var TUJ_Item = function()
             subtitle: {
                 text: document.ontouchstart === undefined ?
                     'Click and drag in the plot area to zoom in' :
-                    'Pinch the chart to zoom in'
+                    'Pinch the chart to zoom in',
+                style: {
+                    color: tujConstants.siteColors[tuj.colorTheme].text
+                }
             },
             xAxis: {
                 labels: {
@@ -1226,27 +1299,33 @@ var TUJ_Item = function()
                 title: {
                     text: 'Market Price',
                     style: {
-                        color: '#0000FF'
+                        color: tujConstants.siteColors[tuj.colorTheme].bluePrice
                     }
                 },
                 min: 0,
                 max: hcdata.priceMaxVal,
                 labels: {
                     enabled: true,
-                    formatter: function() { return ''+libtuj.FormatPrice(this.value, true); }
+                    formatter: function() { return ''+libtuj.FormatPrice(this.value, true); },
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
                 }
             },{
                 title: {
                     text: 'Quantity',
                     style: {
-                        color: '#FF3333'
+                        color: tujConstants.siteColors[tuj.colorTheme].redQuantity
                     }
                 },
                 min: 0,
                 max: hcdata.quantityMaxVal,
                 labels: {
                     enabled: true,
-                    formatter: function() { return ''+libtuj.FormatQuantity(this.value, true); }
+                    formatter: function() { return ''+libtuj.FormatQuantity(this.value, true); },
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
                 },
                 opposite: true
             }],
@@ -1287,8 +1366,8 @@ var TUJ_Item = function()
             series: [{
                 type: 'line',
                 name: 'Market Price',
-                color: '#CCCCFF',
-                lineColor: '#0000FF',
+                color: tujConstants.siteColors[tuj.colorTheme].bluePriceFill,
+                lineColor: tujConstants.siteColors[tuj.colorTheme].bluePrice,
                 data: hcdata.price,
                 yAxis: 0,
                 zIndex: 2,
@@ -1298,7 +1377,8 @@ var TUJ_Item = function()
             },{
                 type: 'column',
                 name: 'Quantity',
-                color: '#FF9999',
+                color: tujConstants.siteColors[tuj.colorTheme].redQuantityFill,
+                borderColor: tujConstants.siteColors[tuj.colorTheme].background,
                 data: hcdata.quantity,
                 zIndex: 1,
                 yAxis: 1,
