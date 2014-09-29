@@ -39,11 +39,12 @@ END;
 
 DebugMessage('Updating items..');
 $itemsCount = count($items);
+$now = Date('Y-m-d H:i:s');
 for ($z = 0; $z < $itemsCount; $z++) {
     $item = $items[$z];
 
     if ($caughtKill)
-        exit;
+        break;
 
     if (heartbeat())
         DebugMessage("Processing item $z/$itemsCount (".round($z / $itemsCount * 100).'%)');
@@ -79,10 +80,22 @@ for ($z = 0; $z < $itemsCount; $z++) {
         $median = round(($prices[floor($cnt / 2) - 1] + $prices[floor($cnt / 2)]) / 2);
     }
 
-    $stmt = $db->prepare('replace into tblItemGlobal (item, `median`, `mean`, `stddev`) values (?, ?, ?, ?)');
-    $stmt->bind_param('iiii', $item, $median, $mean, $stdDev);
+    $stmt = $db->prepare('insert into tblItemGlobalWorking (`when`, item, `median`, `mean`, `stddev`) values (?, ?, ?, ?, ?)');
+    $stmt->bind_param('siiii', $now, $item, $median, $mean, $stdDev);
     $stmt->execute();
     $stmt->close();
+}
+
+if (!$caughtKill) {
+    heartbeat();
+    DebugMessage("Deleting old working rows");
+    $db->query('delete from tblItemGlobalWorking where `when` < timestampadd(day, -1, now())');
+}
+
+if (!$caughtKill) {
+    heartbeat();
+    DebugMessage("Updating tblItemGlobal rows");
+    $db->query('replace into tblItemGlobal (select `item`, avg(`median`), avg(`mean`), avg(`stddev`) from tblItemGlobalWorking group by `item`)');
 }
 
 DebugMessage('Done!');
