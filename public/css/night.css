@@ -1,16 +1,21 @@
-body {background-color: black; color: #CCC}
+body {background-color: #333; color: #CCC}
+#title > div > a img { background-image: url("../images/underminetitle.2000.dark.png"); }
 
 a {color: white}
 
-#realm-list #faction-pick a {color: black; box-shadow: 0.2em 0.2em #DDD }
+#realm-list #faction-pick a {color: black; box-shadow: 0.2em 0.2em #222 }
 #realm-list #faction-pick a.alliance {background-color: #BBE}
 #realm-list #faction-pick a.horde {background-color: #E99}
 
-#realm-list.alliance .realms-column a {color: #006}
-#realm-list.horde .realms-column a {color: #600}
+#realm-list.alliance .realms-column a {color: #AAE}
+#realm-list.horde .realms-column a {color: #C88}
 
-#search-page table, table.auctionlist, table.category-items { border-color: #CCC }
-#search-page table td, table.auctionlist td, table.category-items td { border-color: #333}
+#topcorner input {border: 0; box-shadow: 0.3em 0.3em #222 }
+
+#progress-page div { background-image: url("../images/progress.dark.gif"); }
+
+#search-page table, table.auctionlist, table.category-items { border-color: #666 }
+#search-page table td, table.auctionlist td, table.category-items td { border-color: #444}
 #search-page tr:hover td, table.auctionlist tr:hover td, table.category-items tr:hover td {background-color: #444}
 
-.battlepet-breeds a { color: white; background-color: #444; box-shadow: 0.2em 0.2em #333 }
+.battlepet-breeds a { color: white; background-color: #444; box-shadow: 0.2em 0.2em #222 }

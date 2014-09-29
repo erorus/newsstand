@@ -18,7 +18,7 @@ h2 sub { display: block; font-weight: normal; font-size: 66%; margin-left: 2em }
 #topbar { position: relative; width: 100%; }
 #topcorner { position: absolute; top: 0; right: 0; width: 22em; height: 100% }
 #title { margin-right: 22em; min-height: 11.5em }
-#title > div > a img { max-width: 100%; max-height: 4em }
+#title > div > a img { background-image: url("../images/underminetitle.2000.png"); background-size: contain; background-repeat: no-repeat; max-width: 100%; max-height: 4em }
 
 #page-title { font-size: 2em; padding-left: 1em }
 #page-title a.item img { vertical-align: middle; height: 1.2em; width: 1.2em; border-radius: 5px; border: 1px solid #333 }
@@ -72,7 +72,7 @@ abbr:hover.full-date { border-bottom: 1px dotted }
 .realms-column {width: 15em; display: none; vertical-align: top; text-align: left}
 #realm-list.width-test .realms-column {display: inline-block}
 #realm-list #faction-pick {font-size: 200%}
-#realm-list #faction-pick a {padding: 0.5em; display: inline-block; width: 25%; margin: 0.5em 5%; color: black; text-decoration: none; box-shadow: 0.2em 0.2em #DDD }
+#realm-list #faction-pick a {padding: 0.5em; display: inline-block; width: 25%; margin: 0.5em 5%; text-decoration: none; box-shadow: 0.2em 0.2em #CCC }
 #realm-list #faction-pick a.alliance {background-color: #BBE}
 #realm-list #faction-pick a.horde {background-color: #E99}
 #realm-list.alliance #faction-pick a.horde {opacity: 0.5}
@@ -88,6 +88,7 @@ abbr:hover.full-date { border-bottom: 1px dotted }
 #front-page .news, #donate-page .news { max-width: 55em; margin: 2em 0 }
 
 #progress-page { padding: 3em; text-align: center; }
+#progress-page div { background-image: url("../images/progress.gif"); background-repeat: no-repeat; background-position: center; height: 20px; }
 
 #search-page table, table.auctionlist, table.category-items { width: 54em; margin: 0 auto 2em; border: 1px solid black; border-spacing: 0 }
 #search-page table th, table.auctionlist th, table.category-items th {padding: 0.4em 0.2em 0}
@@ -144,7 +145,7 @@ table.highcharts-tuj-tooltip td + td {padding-left: 0.4em}
 #battlepet-page .battlepet-stats th { width: 66%; text-align: left }
 
 .battlepet-breeds { margin-bottom: 2em; font-size: 120% }
-.battlepet-breeds a { padding: 1em; margin: 0em 1em; color: black; background-color: #DDD; opacity: 0.5; text-decoration: none; box-shadow: 0.2em 0.2em #CCC }
+.battlepet-breeds a { padding: 1em; margin: 0em 1em; background-color: #DDD; opacity: 0.5; text-decoration: none; box-shadow: 0.2em 0.2em #CCC }
 .battlepet-breeds a:first-child { margin-left: 0 }
 .battlepet-breeds a.selected { opacity: 1 }
 .battlepet-breeds a:hover { opacity: 1 }
