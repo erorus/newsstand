@@ -338,7 +338,7 @@ var TUJ = function()
     var inMain = false;
     var self = this;
 
-    this.colorTheme = 'dark';
+    this.colorTheme = '';
 
     function Main()
     {
@@ -347,6 +347,13 @@ var TUJ = function()
         inMain = true;
 
         document.body.className = '';
+
+        if (self.colorTheme == '') {
+            $('#bottom-bar .dark-only').click(SetDarkTheme.bind(self, false));
+            $('#bottom-bar .light-only').click(SetDarkTheme.bind(self, true));
+
+            SetDarkTheme(libtuj.Storage.Get('colorTheme') == 'dark');
+        }
 
         if (typeof self.realms == 'undefined')
         {
@@ -838,6 +845,37 @@ var TUJ = function()
             }
         });
     }
+
+    function SetDarkTheme(dark) {
+        var darkSheet = document.getElementById('dark-sheet');
+
+        var duringStartup = self.colorTheme == '';
+
+        if (!dark) {
+            self.colorTheme = 'light';
+            if (darkSheet) {
+                darkSheet.disabled = true;
+            }
+        } else {
+            self.colorTheme = 'dark';
+            if (darkSheet) {
+                darkSheet.disabled = false;
+            } else {
+                darkSheet = libtuj.ce('link');
+                darkSheet.rel = 'stylesheet';
+                darkSheet.href = 'css/night.css';
+                darkSheet.id = 'dark-sheet';
+                document.getElementsByTagName('head')[0].appendChild(darkSheet);
+            }
+        }
+
+        if (!duringStartup) {
+            libtuj.Storage.Set('colorTheme', self.colorTheme);
+
+            Main();
+        }
+    }
+
     Main();
 };
 

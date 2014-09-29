@@ -14,6 +14,7 @@ h2 sub { display: block; font-weight: normal; font-size: 66%; margin-left: 2em }
 * html #page { height: 100%; }
 #bottom-bar { position: relative; font-size: 85%; margin-top: -3em; height: 3em; overflow: hidden; text-align: center }
 #bottom-bar .disclaimer { font-size: 75%; position: absolute; width: 100%; bottom: 0; }
+#bottom-bar a { cursor: pointer }
 
 #topbar { position: relative; width: 100%; }
 #topcorner { position: absolute; top: 0; right: 0; width: 22em; height: 100% }
@@ -176,3 +177,4 @@ img.captcha-button.selected { border-color: #006600 }
 #category-sidebar a[href] { text-decoration: underline }
 #category-sidebar a small { font-style: italic }
 
+.dark-only { display: none }

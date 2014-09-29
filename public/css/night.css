@@ -19,3 +19,6 @@ a {color: white}
 #search-page tr:hover td, table.auctionlist tr:hover td, table.category-items tr:hover td {background-color: #444}
 
 .battlepet-breeds a { color: white; background-color: #444; box-shadow: 0.2em 0.2em #222 }
+
+.dark-only { display: inline }
+.light-only { display: none }
