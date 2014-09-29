@@ -145,7 +145,8 @@ var TUJ_Seller = function()
 
         $(dest).highcharts({
             chart: {
-                zoomType: 'x'
+                zoomType: 'x',
+                backgroundColor: tujConstants.siteColors[tuj.colorTheme].background
             },
             title: {
                 text: null
@@ -153,25 +154,36 @@ var TUJ_Seller = function()
             subtitle: {
                 text: document.ontouchstart === undefined ?
                     'Click and drag in the plot area to zoom in' :
-                    'Pinch the chart to zoom in'
+                    'Pinch the chart to zoom in',
+                style: {
+                    color: tujConstants.siteColors[tuj.colorTheme].text
+                }
             },
             xAxis: {
                 type: 'datetime',
                 maxZoom: 4 * 3600000, // four hours
                 title: {
                     text: null
+                },
+                labels: {
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
                 }
             },
             yAxis: [{
                 title: {
                     text: 'Number of Auctions',
                     style: {
-                        color: '#0000FF'
+                        color: tujConstants.siteColors[tuj.colorTheme].bluePrice
                     }
                 },
                 labels: {
                     enabled: true,
-                    formatter: function() { return ''+libtuj.FormatQuantity(this.value, true); }
+                    formatter: function() { return ''+libtuj.FormatQuantity(this.value, true); },
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
                 },
                 min: 0,
                 max: hcdata.max
@@ -210,14 +222,14 @@ var TUJ_Seller = function()
             series: [{
                 type: 'area',
                 name: 'Total',
-                color: '#0000FF',
-                lineColor: '#0000FF',
-                fillColor: '#CCCCFF',
+                color: tujConstants.siteColors[tuj.colorTheme].bluePrice,
+                lineColor: tujConstants.siteColors[tuj.colorTheme].bluePrice,
+                fillColor: tujConstants.siteColors[tuj.colorTheme].bluePriceFill,
                 data: hcdata.total
             },{
                 type: 'line',
                 name: 'New',
-                color: '#FF3333',
+                color: tujConstants.siteColors[tuj.colorTheme].redQuantity,
                 data: hcdata.newAuc
             }]
         });
@@ -273,7 +285,8 @@ var TUJ_Seller = function()
         $(dest).highcharts({
 
             chart: {
-                type: 'heatmap'
+                type: 'heatmap',
+                backgroundColor: tujConstants.siteColors[tuj.colorTheme].background
             },
 
             title: {
@@ -281,19 +294,29 @@ var TUJ_Seller = function()
             },
 
             xAxis: {
-                categories: hcdata.categories.x
+                categories: hcdata.categories.x,
+                labels: {
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
+                }
             },
 
             yAxis: {
                 categories: hcdata.categories.y,
-                title: null
+                title: null,
+                labels: {
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
+                }
             },
 
             colorAxis: {
                 min: hcdata.minVal,
                 max: hcdata.maxVal,
-                minColor: '#FFFFFF',
-                maxColor: '#6666FF'
+                minColor: tujConstants.siteColors[tuj.colorTheme].background,
+                maxColor: tujConstants.siteColors[tuj.colorTheme].bluePriceBackground
             },
 
             legend: {
@@ -312,11 +335,11 @@ var TUJ_Seller = function()
             series: [{
                 name: 'New Auctions',
                 borderWidth: 1,
-                borderColor: '#FFFFFF',
+                borderColor: tujConstants.siteColors[tuj.colorTheme].background,
                 data: hcdata.heat,
                 dataLabels: {
                     enabled: true,
-                    color: 'black',
+                    color: tujConstants.siteColors[tuj.colorTheme].data,
                     style: {
                         textShadow: 'none',
                         HcTextStroke: null
