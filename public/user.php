@@ -38,4 +38,4 @@ EOF;
     exit;
 }
 
-echo '404 Not Found';
+echo '410 Gone';
