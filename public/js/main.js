@@ -278,6 +278,30 @@ var tujConstants = {
          6: 'Tauren',
          8: 'Trolls',
          5: 'Undead'
+    },
+    siteColors: {
+        light: {
+            background: '#FFFFFF',
+            text: '#666666',
+            data: '#000000',
+            bluePrice: '#0000FF',
+            bluePriceFill: '#CCCCFF',
+            bluePriceBackground: '#6666FF',
+            redQuantity: '#FF3333',
+            redQuantityFill: '#FF9999',
+            redQuantityBackground: '#FF6666',
+        },
+        dark: {
+            background: '#333333',
+            text: '#CCCCCC',
+            data: '#FFFFFF',
+            bluePrice: '#9999FF',
+            bluePriceFill: '#6666CC',
+            bluePriceBackground: '#6666CC',
+            redQuantity: '#DD3333',
+            redQuantityFill: '#996666',
+            redQuantityBackground: '#CC6666',
+        }
     }
 }
 
@@ -301,6 +325,8 @@ var TUJ = function()
     }
     var inMain = false;
     var self = this;
+
+    this.colorTheme = 'dark';
 
     function Main()
     {
