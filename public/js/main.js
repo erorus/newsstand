@@ -26,7 +26,7 @@ var libtuj = {
         if (a.length % 2 == 1)
             return a[Math.floor(a.length / 2)];
         else
-            return (a[a.length / 2] + a[a.length / 2 + 1]) / 2;
+            return (a[a.length / 2 - 1] + a[a.length / 2]) / 2;
     },
     StdDev: function(a,mn)
     {

@@ -164,7 +164,7 @@ var TUJ_Item = function()
             ItemQuantityHeatMap(dta, cht);
         }
 
-        if (dta.globalnow.length > 2)
+        if (dta.globalnow.length > 0)
         {
             d = libtuj.ce();
             d.className = 'chart-section';

@@ -179,7 +179,7 @@ var TUJ_BattlePet = function()
             BattlePetQuantityHeatMap(dta, cht);
         }
 
-        if (dta.globalnow.length > 2)
+        if (dta.globalnow.length > 0)
         {
             d = libtuj.ce();
             d.className = 'chart-section';
