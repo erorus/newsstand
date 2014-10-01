@@ -185,4 +185,19 @@ function CleanOldData()
         $rowCount += $db->affected_rows;
     }
     DebugMessage("$rowCount seller history rows deleted in total");
+
+    for ($hx = 0; $hx < count($houses); $hx++)
+    {
+        heartbeat();
+        if ($caughtKill)
+            return;
+
+        $house = $houses[$hx];
+        $cutoffDate = Date('Y-m-d H:i:s', strtotime(''.(HISTORY_DAYS + 3).' days ago'));
+
+        $sql = sprintf('delete from tblSnapshot where house = %d and updated < \'%s\'', $house, $cutoffDate);
+        $db->query($sql);
+
+        DebugMessage(sprintf('%d snapshot rows removed from house %d since %s', $db->affected_rows, $house, $cutoffDate));
+    }
 }
