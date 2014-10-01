@@ -186,7 +186,12 @@ var TUJ_Item = function()
             d.className = 'chart-section';
             h = libtuj.ce('h2');
             d.appendChild(h);
-            $(h).text('Current Auctions');
+
+            var a = libtuj.ce('a');
+            h.appendChild(a);
+            a.href = 'https://' + tuj.region.toLowerCase() + '.battle.net/wow/en/vault/character/auction/' + params.faction + '/browse?sort=unitBuyout&itemId=' + params.id + '&start=0&end=40';
+            $(a).text('Current Auctions');
+
             cht = libtuj.ce();
             cht.className = 'auctionlist';
             d.appendChild(cht);
