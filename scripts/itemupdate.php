@@ -2,6 +2,8 @@
 
 chdir(__DIR__);
 
+$startTime = time();
+
 require_once('../incl/incl.php');
 require_once('../incl/heartbeat.incl.php');
 require_once('../incl/battlenet.incl.php');
@@ -59,6 +61,8 @@ if ($reparse)
     if (count($ids))
         SavePets(FetchPets($ids));
 }
+
+DebugMessage('Done! Started '.TimeDiff($startTime));
 
 
 function NewItems($limit = 20)

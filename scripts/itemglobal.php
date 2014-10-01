@@ -2,6 +2,8 @@
 
 chdir(__DIR__);
 
+$startTime = time();
+
 require_once('../incl/incl.php');
 require_once('../incl/heartbeat.incl.php');
 
@@ -98,4 +100,4 @@ if (!$caughtKill) {
     $db->query('replace into tblItemGlobal (select `item`, avg(`median`), avg(`mean`), avg(`stddev`) from tblItemGlobalWorking group by `item`)');
 }
 
-DebugMessage('Done!');
+DebugMessage('Done! Started '.TimeDiff($startTime));

@@ -2,6 +2,8 @@
 
 chdir(__DIR__);
 
+$startTime = time();
+
 require_once('../incl/incl.php');
 require_once('../incl/heartbeat.incl.php');
 require_once('../incl/memcache.incl.php');
@@ -208,7 +210,7 @@ foreach ($regions as $region)
 CleanOldHouses();
 //DebugMessage('Skipped cleaning old houses!');
 
-DebugMessage('Done!');
+DebugMessage('Done! Started '.TimeDiff($startTime));
 
 function GetDataRealms($region, $hash)
 {

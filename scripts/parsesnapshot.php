@@ -2,6 +2,8 @@
 
 chdir(__DIR__);
 
+$startTime = time();
+
 require_once('../incl/incl.php');
 require_once('../incl/heartbeat.incl.php');
 require_once('../incl/memcache.incl.php');
@@ -50,7 +52,7 @@ while ((!$caughtKill) && (time() < ($loopStart + 60 * 30)))
     if ($toSleep === false)
         break;
 }
-DebugMessage('Done!');
+DebugMessage('Done! Started '.TimeDiff($startTime));
 
 function NextDataFile()
 {

@@ -2,6 +2,8 @@
 
 chdir(__DIR__);
 
+$startTime = time();
+
 require_once('../incl/incl.php');
 require_once('../incl/heartbeat.incl.php');
 
@@ -12,7 +14,7 @@ if (!DBConnect())
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
 
 AddDailyData();
-DebugMessage('Done!');
+DebugMessage('Done! Started '.TimeDiff($startTime));
 
 function AddDailyData()
 {
