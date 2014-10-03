@@ -389,11 +389,33 @@ var TUJ = function()
 
         var ls, firstRun = !hash.watching;
         ReadParams();
-        if (firstRun && !self.params.realm && (ls = libtuj.Storage.Get('defaultRealm')))
+        if (firstRun)
         {
-            inMain = false;
-            tuj.SetParams(ls);
-            return;
+            if (!self.params.realm && !self.params.faction)
+            {
+                var searchRealm;
+                if (searchRealm = /^\?realm=([AH])-([^&]+)/i.exec(decodeURIComponent(location.search)))
+                {
+                    ls = {faction: searchRealm[1].toUpperCase()=='A' ? 'alliance' : 'horde'};
+                    for (var x in tuj.realms)
+                        if (tuj.realms[x].name.toLowerCase() == searchRealm[2].toLowerCase())
+                            ls.realm = tuj.realms[x].id;
+
+                    inMain = false;
+                    tuj.SetParams(ls);
+                    return;
+                }
+
+                if (ls = libtuj.Storage.Get('defaultRealm'))
+                {
+                    inMain = false;
+                    tuj.SetParams(ls);
+                    return;
+                }
+            }
+
+            if (location.search)
+                location.href = location.pathname + location.hash;
         }
 
         UpdateSidebar();
@@ -524,6 +546,8 @@ var TUJ = function()
         if (h != location.hash)
         {
             hash.sets++;
+            if (location.search)
+                location.href = location.pathname + h;
             location.hash = h;
             Main();
             return true;
