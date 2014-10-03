@@ -15,8 +15,8 @@ if (!function_exists($resultFunc))
     json_return(array());
 
 $canCache = true;
-HouseETag($house);
 BotCheck();
+HouseETag($house);
 
 $expansionLevels = array(60,70,80,85,90);
 $expansions = array('Classic', 'Burning Crusade', 'Wrath of the Lich King', 'Cataclysm', 'Mists of Pandaria');

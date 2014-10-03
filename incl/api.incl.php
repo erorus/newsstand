@@ -101,8 +101,10 @@ function BotCheck()
     $c = UserThrottleCount();
     if ($c > THROTTLE_MAXHITS * 2)
         BanIP();
-    if ($c > THROTTLE_MAXHITS)
+    if ($c > THROTTLE_MAXHITS) {
+        header('Expires: 0');
         json_return(array('captcha' => CaptchaDetails()));
+    }
 }
 
 function BanIP()

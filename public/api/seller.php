@@ -15,8 +15,8 @@ $seller = mb_convert_case(mb_substr($_GET['seller'], 0, 12), MB_CASE_LOWER);
 if (!$seller || !$realm || (!($house = GetHouse($realm))))
     json_return(array());
 
-HouseETag($house);
 BotCheck();
+HouseETag($house);
 
 $sellerRow = SellerStats($house, $realm, $seller);
 if (!$sellerRow)

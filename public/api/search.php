@@ -13,8 +13,8 @@ $search = strtolower(substr(trim($_GET['search']), 0, 50));
 if ($search == '')
     json_return(array());
 
-HouseETag($house);
 BotCheck();
+HouseETag($house);
 
 if ($json = MCGetHouse($house, 'search_'.$search))
     json_return($json);
