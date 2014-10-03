@@ -314,7 +314,8 @@ var tujConstants = {
             redQuantityFillLight:   '#996666',
             redQuantityBackground:  '#CC6666',
         }
-    }
+    },
+    randEnchants: {}
 }
 
 var TUJ = function()

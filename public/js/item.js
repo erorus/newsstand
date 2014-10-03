@@ -1396,6 +1396,11 @@ var TUJ_Item = function()
 
     function ItemAuctions(data, dest)
     {
+        var hasRand = false, x, auc;
+        for (x = 0; (!hasRand) && (auc = data.auctions[x]); x++) {
+            hasRand |= !!auc.rand;
+        }
+
         var t,tr,td;
         t = libtuj.ce('table');
         t.className = 'auctionlist';
@@ -1403,10 +1408,19 @@ var TUJ_Item = function()
         tr = libtuj.ce('tr');
         t.appendChild(tr);
 
-        td = libtuj.ce('th');
-        tr.appendChild(td);
-        td.className = 'quantity';
-        $(td).text('Quantity');
+        if (hasRand) {
+            td = libtuj.ce('th');
+            tr.appendChild(td);
+            td.className = 'name';
+            $(td).text('Name');
+        }
+
+        if (data.stats.stacksize > 1) {
+            td = libtuj.ce('th');
+            tr.appendChild(td);
+            td.className = 'quantity';
+            $(td).text('Quantity');
+        }
 
         td = libtuj.ce('th');
         tr.appendChild(td);
@@ -1432,15 +1446,28 @@ var TUJ_Item = function()
         });
 
         var s, a, stackable = data.stats.stacksize > 1;
-        for (var x = 0, auc; auc = data.auctions[x]; x++)
+        for (x = 0; auc = data.auctions[x]; x++)
         {
             tr = libtuj.ce('tr');
             t.appendChild(tr);
 
-            td = libtuj.ce('td');
-            tr.appendChild(td);
-            td.className = 'quantity';
-            td.appendChild(libtuj.FormatQuantity(auc.quantity));
+            if (hasRand) {
+                td = libtuj.ce('td');
+                tr.appendChild(td);
+                td.className = 'name';
+                a = libtuj.ce('a');
+                a.rel = 'item=' + data.stats.id + (auc.rand ? '&rand=' + auc.rand : '');
+                a.href = tuj.BuildHash({page: 'item', id: data.stats.id});
+                td.appendChild(a);
+                $(a).text('[' + data.stats.name + ((auc.rand && tujConstants.randEnchants.hasOwnProperty(auc.rand)) ? (' ' + tujConstants.randEnchants[auc.rand].name) : '') + ']');
+            }
+
+            if (data.stats.stacksize > 1) {
+                td = libtuj.ce('td');
+                tr.appendChild(td);
+                td.className = 'quantity';
+                td.appendChild(libtuj.FormatQuantity(auc.quantity));
+            }
 
             td = libtuj.ce('td');
             tr.appendChild(td);

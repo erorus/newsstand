@@ -42,14 +42,37 @@ function SearchItems($house, $search)
 {
     global $db;
 
+    $suffixes = MCGet('search_itemsuffixes');
+    if ($suffixes === false) {
+        $stmt = $db->prepare('select lower(suffix) from tblDBCItemRandomSuffix');
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $suffixes = DBMapArray($result, null);
+        $stmt->close();
+
+        MCSet('search_itemsuffixes', $suffixes, 86400);
+    }
+
     $terms = preg_replace('/\s+/', '%', " $search ");
+    $nameSearch = 'i.name like ?';
+
+    $terms2 = '';
+
+    $barewords = trim(preg_replace('/ {2,}/', ' ', preg_replace('/[^ a-zA-Z0-9\'\.]/', '', $search)));
+
+    for ($x = 0; $x < count($suffixes); $x++) {
+        if (substr($barewords, -1 * strlen($suffixes[$x])) == $suffixes[$x]) {
+            $terms2 = '%'.str_replace(' ', '%', substr($barewords, 0, -1 * strlen($suffixes[$x]) - 1)).'%';
+            $nameSearch = '(i.name like ? or i.name like ?)';
+        }
+    }
 
     $sql = <<<EOF
 select i.id, i.name, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice
 from tblItem i
 left join tblItemSummary s on s.house=? and s.item=i.id
 left join tblItemHistory h on h.house=? and h.item=i.id
-where i.name like ?
+where $nameSearch
 and ifnull(i.auctionable,1) = 1
 group by i.id
 limit ?
@@ -57,7 +80,11 @@ EOF;
     $limit = 50 * strlen(preg_replace('/\s/','',$search));
 
     $stmt = $db->prepare($sql);
-    $stmt->bind_param('iisi', $house, $house, $terms, $limit);
+    if ($terms2 == '') {
+        $stmt->bind_param('iisi', $house, $house, $terms, $limit);
+    } else {
+        $stmt->bind_param('iissi', $house, $house, $terms, $terms2, $limit);
+    }
     $stmt->execute();
     $result = $stmt->get_result();
     $tr = DBMapArray($result, null);

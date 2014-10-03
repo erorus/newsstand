@@ -414,10 +414,10 @@ var TUJ_Seller = function()
             tr.appendChild(td);
             td.className = 'name';
             a = libtuj.ce('a');
-            a.rel = 'item=' + auc.item;
+            a.rel = 'item=' + auc.item + (auc.rand ? '&rand=' + auc.rand : '');
             a.href = tuj.BuildHash({page: 'item', id: auc.item});
             td.appendChild(a);
-            $(a).text('[' + auc.name + ']');
+            $(a).text('[' + auc.name + ((auc.rand && tujConstants.randEnchants.hasOwnProperty(auc.rand)) ? (' ' + tujConstants.randEnchants[auc.rand].name) : '') + ']');
 
             td = libtuj.ce('td');
             tr.appendChild(td);
