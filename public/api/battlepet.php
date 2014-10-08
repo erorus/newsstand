@@ -20,7 +20,7 @@ $json = array(
     'stats'     => PetStats($house, $species),
     'history'   => PetHistory($house, $species),
     'auctions'  => PetAuctions($house, $species),
-    'globalnow' => PetGlobalNow(GetRegion($house), $house < 0 ? -1 : 1, $species),
+    'globalnow' => PetGlobalNow(GetRegion($house), $species),
 );
 
 json_return($json);
@@ -131,11 +131,11 @@ EOF;
     return $tr;
 }
 
-function PetGlobalNow($region, $faction, $species)
+function PetGlobalNow($region, $species)
 {
     global $db;
 
-    $key = 'battlepet_globalnow_'.$region.'_'.$faction.'_'.$species;
+    $key = 'battlepet_globalnow_'.$region.'_'.$species;
     if (($tr = MCGet($key)) !== false)
         return $tr;
 
@@ -144,13 +144,13 @@ function PetGlobalNow($region, $faction, $species)
     $sql = <<<EOF
     SELECT i.breed, r.house, i.price, i.quantity, unix_timestamp(i.lastseen) as lastseen
 FROM `tblPetSummary` i
-join tblRealm r on i.house = cast(r.house as signed) * ? and r.region = ?
+join tblRealm r on i.house = r.house and r.region = ?
 WHERE i.species=?
 group by i.breed, r.house
 EOF;
 
     $stmt = $db->prepare($sql);
-    $stmt->bind_param('isi', $faction, $region, $species);
+    $stmt->bind_param('si', $region, $species);
     $stmt->execute();
     $result = $stmt->get_result();
     $tr = DBMapArray($result, array('breed', null));

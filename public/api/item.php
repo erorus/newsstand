@@ -22,8 +22,8 @@ $json = array(
     'daily'     => ItemHistoryDaily($house, $item),
     'monthly'   => ItemHistoryMonthly($house, $item),
     'auctions'  => ItemAuctions($house, $item),
-    'globalnow' => ItemGlobalNow(GetRegion($house), $house < 0 ? -1 : 1, $item),
-    'globalmonthly' => ItemGlobalMonthly(GetRegion($house), $house < 0 ? -1 : 1, $item),
+    'globalnow' => ItemGlobalNow(GetRegion($house), $item),
+    'globalmonthly' => ItemGlobalMonthly(GetRegion($house), $item),
 );
 
 json_return($json);
@@ -210,11 +210,11 @@ EOF;
     return $tr;
 }
 
-function ItemGlobalNow($region, $faction, $item)
+function ItemGlobalNow($region, $item)
 {
     global $db;
 
-    $key = 'item_globalnow_'.$region.'_'.$faction.'_'.$item;
+    $key = 'item_globalnow_'.$region.'_'.$item;
     if (($tr = MCGet($key)) !== false)
         return $tr;
 
@@ -223,13 +223,13 @@ function ItemGlobalNow($region, $faction, $item)
     $sql = <<<EOF
     SELECT r.house, i.price, i.quantity, unix_timestamp(i.lastseen) as lastseen
 FROM `tblItemSummary` i
-join tblRealm r on i.house = cast(r.house as signed) * ? and r.region = ?
+join tblRealm r on i.house = r.house and r.region = ?
 WHERE i.item=?
 group by r.house
 EOF;
 
     $stmt = $db->prepare($sql);
-    $stmt->bind_param('isi', $faction, $region, $item);
+    $stmt->bind_param('si', $region, $item);
     $stmt->execute();
     $result = $stmt->get_result();
     $tr = DBMapArray($result, null);
@@ -241,11 +241,11 @@ EOF;
 }
 
 
-function ItemGlobalMonthly($region, $faction, $item)
+function ItemGlobalMonthly($region, $item)
 {
     global $db;
 
-    $key = 'item_globalmonthly_'.$region.'_'.$faction.'_'.$item;
+    $key = 'item_globalmonthly_'.$region.'_'.$item;
     if (($tr = MCGet($key)) !== false)
         return $tr;
 
@@ -262,13 +262,13 @@ function ItemGlobalMonthly($region, $faction, $item)
     $sql = <<<EOF
 SELECT month $sqlCols
 FROM `tblItemHistoryMonthly` ihm
-join tblRealm r on ihm.house = cast(r.house as signed) * ? and r.region = ?
+join tblRealm r on ihm.house = r.house and r.region = ?
 WHERE ihm.item=?
 group by month
 EOF;
 
     $stmt = $db->prepare($sql);
-    $stmt->bind_param('isi', $faction, $region, $item);
+    $stmt->bind_param('si', $region, $item);
     $stmt->execute();
     $result = $stmt->get_result();
     $rows = DBMapArray($result, null);

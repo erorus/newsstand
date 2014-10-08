@@ -102,13 +102,12 @@ function SellerAuctions($house, $seller)
     $sql = <<<EOF
 SELECT a.item, i.name, i.quality, i.class, i.subclass, i.icon, i.stacksize, a.quantity, a.bid, a.buy, a.`rand`, a.seed
 FROM `tblAuction` a
-left join tblItem i on a.item=i.id
-WHERE a.house in (?,?) and a.seller=?
+left join tblItem i on a.item = i.id
+WHERE a.house = ? and a.seller = ?
 EOF;
 
     $stmt = $db->prepare($sql);
-    $hordeHouse = -1 * $house;
-    $stmt->bind_param('iii', $house, $hordeHouse, $seller);
+    $stmt->bind_param('ii', $house, $seller);
     $stmt->execute();
     $result = $stmt->get_result();
     $tr = DBMapArray($result, null);

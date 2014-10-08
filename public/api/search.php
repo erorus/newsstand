@@ -97,7 +97,6 @@ function SearchSellers($house, $search)
     global $db;
 
     $terms = preg_replace('/\s+/', '%', " $search ");
-    $house = abs($house);
 
     $sql = <<<EOF
 select s.id, r.id realm, s.name, unix_timestamp(s.firstseen) firstseen, unix_timestamp(s.lastseen) lastseen
