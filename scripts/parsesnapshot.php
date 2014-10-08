@@ -120,18 +120,17 @@ function ParseAuctionData($house, $snapshot, &$json)
     $ourDb = DBConnect(true);
 
     $region = $houseRegionCache[$house]['region'];
-    $hordeHouse = $house * -1;
 
     $ourDb->begin_transaction();
 
-    $stmt = $ourDb->prepare('select id, bid, item, house from tblAuction where house in (?,?)');
-    $stmt->bind_param('ii',$house, $hordeHouse);
+    $stmt = $ourDb->prepare('select id, bid, item, house from tblAuction where house = ?');
+    $stmt->bind_param('i',$house);
     $stmt->execute();
     $result = $stmt->get_result();
     $existingIds = DBMapArray($result);
 
-    $stmt = $ourDb->prepare('select id, species, breed, house from tblAuctionPet where house in (?,?)');
-    $stmt->bind_param('ii',$house, $hordeHouse);
+    $stmt = $ourDb->prepare('select id, species, breed, house from tblAuctionPet where house = ?');
+    $stmt->bind_param('i',$house);
     $stmt->execute();
     $result = $stmt->get_result();
     $existingPetIds = DBMapArray($result);
@@ -194,12 +193,7 @@ function ParseAuctionData($house, $snapshot, &$json)
     $sellerInfo = array();
 
     foreach ($json as $faction => &$factionData)
-        if (isset($factionData['auctions']))
-        {
-            if ($faction == 'neutral')
-                continue;
-            $factionHouse = ($faction == 'horde') ? ($house * -1) : $house;
-
+        if (isset($factionData['auctions'])) {
             DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." parsing ".count($factionData['auctions'])." $faction auctions");
 
             $auctionCount = count($factionData['auctions']);
@@ -261,8 +255,8 @@ function ParseAuctionData($house, $snapshot, &$json)
                         continue;
                 }
 
-                $thisSql = sprintf('(%d, %u, %u, %u, %u, %u, %u, %d, %d)',
-                    $factionHouse,
+                $thisSql = sprintf('(%u, %u, %u, %u, %u, %u, %u, %d, %d)',
+                    $house,
                     $auction['auc'],
                     $auction['item'],
                     $auction['quantity'],
@@ -280,8 +274,8 @@ function ParseAuctionData($house, $snapshot, &$json)
 
                 if (isset($auction['petSpeciesId']))
                 {
-                    $thisSql = sprintf('(%d, %u, %u, %u, %u, %u)',
-                        $factionHouse,
+                    $thisSql = sprintf('(%u, %u, %u, %u, %u, %u)',
+                        $house,
                         $auction['auc'],
                         $auction['petSpeciesId'],
                         $auction['petBreedId'],
@@ -314,41 +308,38 @@ and a.item not in (82800)
 %s
 and ifnull(tis.lastseen, '2000-01-01') < timestampadd(day,-14,'%s'))
 EOF;
-            $sql = sprintf($sql, $factionHouse, $lastMax, $hasRollOver ? ' and a.id < 0x20000000 ' : '', $snapshotString);
+            $sql = sprintf($sql, $house, $lastMax, $hasRollOver ? ' and a.id < 0x20000000 ' : '', $snapshotString);
             DBQueryWithError($ourDb,$sql);
             $ourDb->commit(MYSQLI_TRANS_COR_AND_CHAIN);
-
-            // move out of loop once no longer using $factionHouse
-            $preDeleted = count($itemInfo);
-            foreach ($existingIds as &$oldRow)
-                if (($oldRow['house'] == $factionHouse) && (!isset($existingPetIds[$oldRow['id']])) && (!isset($itemInfo[$oldRow['item']])))
-                    $itemInfo[$oldRow['item']] = array('tq' => 0, 'a' => array());
-            unset($oldRow);
-            DebugMessage("House ".str_pad($factionHouse, 5, ' ', STR_PAD_LEFT)." updating ".count($itemInfo)." item info (including ".(count($itemInfo) - $preDeleted)." no longer available)");
-            UpdateItemInfo($factionHouse, $itemInfo, $snapshot);
-            $itemInfo = array();
-
-            $preDeleted = count($petInfo);
-            foreach ($existingPetIds as &$oldRow)
-                if (($oldRow['house'] == $factionHouse) && (!isset($petInfo[$oldRow['species']][$oldRow['breed']])))
-                    $petInfo[$oldRow['species']][$oldRow['breed']] = array('tq' => 0, 'a' => array());
-            unset($oldRow);
-            DebugMessage("House ".str_pad($factionHouse, 5, ' ', STR_PAD_LEFT)." updating ".count($petInfo)." pet info (including ".(count($petInfo) - $preDeleted)." no longer available)");
-            UpdatePetInfo($factionHouse, $petInfo, $snapshot);
-            $petInfo = array();
-
-            DebugMessage("House ".str_pad($factionHouse, 5, ' ', STR_PAD_LEFT)." updating seller history");
-            UpdateSellerInfo($sellerInfo, $snapshot);
-            $sellerInfo = array();
-
-            $ourDb->commit(MYSQLI_TRANS_COR_AND_CHAIN);
         }
+    unset($factionData);
+
+    $preDeleted = count($itemInfo);
+    foreach ($existingIds as &$oldRow)
+        if ((!isset($existingPetIds[$oldRow['id']])) && (!isset($itemInfo[$oldRow['item']])))
+            $itemInfo[$oldRow['item']] = array('tq' => 0, 'a' => array());
+    unset($oldRow);
+    DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." updating ".count($itemInfo)." item info (including ".(count($itemInfo) - $preDeleted)." no longer available)");
+    UpdateItemInfo($house, $itemInfo, $snapshot);
+
+    $preDeleted = count($petInfo);
+    foreach ($existingPetIds as &$oldRow)
+        if (!isset($petInfo[$oldRow['species']][$oldRow['breed']]))
+            $petInfo[$oldRow['species']][$oldRow['breed']] = array('tq' => 0, 'a' => array());
+    unset($oldRow);
+    DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." updating ".count($petInfo)." pet info (including ".(count($petInfo) - $preDeleted)." no longer available)");
+    UpdatePetInfo($house, $petInfo, $snapshot);
+
+    DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." updating seller history");
+    UpdateSellerInfo($sellerInfo, $snapshot);
+
+    $ourDb->commit(MYSQLI_TRANS_COR_AND_CHAIN);
 
     if (count($existingIds) > 0)
     {
         DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." deleting ".count($existingIds)." auctions");
 
-        $sqlStart = sprintf('delete from tblAuction where house in (%d,%d) and id in (', $house, $hordeHouse);
+        $sqlStart = sprintf('delete from tblAuction where house = %d and id in (', $house);
         $sql = '';
 
         foreach ($existingIds as $lostId => &$lostRow)
@@ -376,10 +367,8 @@ EOF;
     $ourDb->close();
 
     MCSetHouse($house, 'ts', $snapshot);
-    MCSetHouse(-1 * $house, 'ts', $snapshot);
 
     DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." finished with $totalAuctions auctions in ".round(microtime(true) - $startTimer,2)." sec");
-
 }
 
 function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
@@ -535,7 +524,7 @@ function UpdateSellerInfo(&$sellerInfo, $snapshot)
         DBQueryWithError($db, $sql);
 }
 
-function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
+function UpdateItemInfo($house, &$itemInfo, $snapshot)
 {
     global $db, $maxPacketSize;
 
@@ -557,7 +546,7 @@ function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
     foreach ($itemInfo as $item => &$info)
     {
         $price = GetMarketPrice($info);
-        $sqlBit = sprintf('(%d,%u,%u,%u,\'%s\')', $factionHouse, $item, $price, $info['tq'], $snapshotString);
+        $sqlBit = sprintf('(%d,%u,%u,%u,\'%s\')', $house, $item, $price, $info['tq'], $snapshotString);
         if (strlen($sql) + strlen($sqlBit) + strlen($sqlEnd) + 5 > $maxPacketSize)
         {
             DBQueryWithError($db, $sql.$sqlEnd);
@@ -574,7 +563,7 @@ function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
             }
             $sqlHistory .= ($sqlHistory == '' ? $sqlHistoryStart : ',') . $sqlBit;
 
-            $sqlDeepBit = sprintf('(%d,%u,%u,%u,%u)', $factionHouse, $item, round($price/100), $info['tq'], $month);
+            $sqlDeepBit = sprintf('(%d,%u,%u,%u,%u)', $house, $item, round($price/100), $info['tq'], $month);
             if (strlen($sqlDeep) + strlen($sqlDeepBit) + strlen($sqlDeepEnd) + 5 > $maxPacketSize)
             {
                 DBQueryWithError($db, $sqlDeep.$sqlDeepEnd);
@@ -593,7 +582,7 @@ function UpdateItemInfo($factionHouse, &$itemInfo, $snapshot)
         DBQueryWithError($db, $sqlDeep.$sqlDeepEnd);
 }
 
-function UpdatePetInfo($factionHouse, &$petInfo, $snapshot)
+function UpdatePetInfo($house, &$petInfo, $snapshot)
 {
     global $db, $maxPacketSize;
 
@@ -610,7 +599,7 @@ function UpdatePetInfo($factionHouse, &$petInfo, $snapshot)
         foreach ($breeds as $breed => &$info)
         {
             $price = GetMarketPrice($info);
-            $sqlBit = sprintf('(%d,%u,%u,%u,%u,\'%s\')', $factionHouse, $species, $breed, $price, $info['tq'], $snapshotString);
+            $sqlBit = sprintf('(%d,%u,%u,%u,%u,\'%s\')', $house, $species, $breed, $price, $info['tq'], $snapshotString);
             if (strlen($sql) + strlen($sqlBit) + strlen($sqlEnd) + 5 > $maxPacketSize)
             {
                 DBQueryWithError($db, $sql.$sqlEnd);

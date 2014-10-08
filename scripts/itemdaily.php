@@ -23,8 +23,6 @@ function AddDailyData()
     if ($caughtKill)
         return;
 
-    $workingDate = Date('Y-m-d', strtotime('yesterday'));
-
     $sql = <<<EOF
 select s2.house, date(max(s2.updated)) `start`, max(s2.updated) `end`
 from (
@@ -76,16 +74,11 @@ EOF;
         if ($caughtKill)
             return;
 
-        foreach (array($house, -1 * $house) as $factionHouse)
-        {
-            heartbeat();
+        $sql = sprintf($sqlPattern, $house, $houseRow['start'], $houseRow['end'], $house);
+        $db->real_query($sql);
+        $rowCount = $db->affected_rows;
 
-            $sql = sprintf($sqlPattern, $factionHouse, $houseRow['start'], $houseRow['end'], $house);
-            $db->real_query($sql);
-            $rowCount = $db->affected_rows;
-
-            DebugMessage("$rowCount item daily rows updated for house $factionHouse for date {$houseRow['start']}");
-        }
+        DebugMessage("$rowCount item daily rows updated for house $house for date {$houseRow['start']}");
 
         $stmt = $db->prepare('insert into tblHouseCheck (house, lastdaily) values (?, ?) on duplicate key update lastdaily = values(lastdaily)');
         $stmt->bind_param('is',$house,$houseRow['start']);

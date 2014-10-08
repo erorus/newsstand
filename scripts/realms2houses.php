@@ -328,7 +328,7 @@ function CleanOldHouses()
     if ($caughtKill)
         return;
 
-    $sql = 'select distinct house from tblAuction where house not in (select cast(house as signed) * -1 from tblRealm union select cast(house as signed) from tblRealm)';
+    $sql = 'select distinct house from tblAuction where house not in (select distinct house from tblRealm)';
     $stmt = $db->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -355,7 +355,7 @@ function CleanOldHouses()
     if ($caughtKill)
         return;
 
-    $sql = 'select distinct house from tblAuctionPet where house not in (select cast(house as signed) * -1 from tblRealm union select cast(house as signed) from tblRealm)';
+    $sql = 'select distinct house from tblAuctionPet where house not in (select distinct house from tblRealm)';
     $stmt = $db->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -394,7 +394,7 @@ function CleanOldHouses()
     if ($caughtKill)
         return;
 
-    $sql = 'select distinct house from tblItemHistory where house not in (select cast(house as signed) * -1 from tblRealm union select cast(house as signed) from tblRealm)';
+    $sql = 'select distinct house from tblItemHistory where house not in (select distinct house from tblRealm)';
     $stmt = $db->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -421,7 +421,7 @@ function CleanOldHouses()
     if ($caughtKill)
         return;
 
-    $sql = 'select distinct house from tblItemSummary where house not in (select cast(house as signed) * -1 from tblRealm union select cast(house as signed) from tblRealm)';
+    $sql = 'select distinct house from tblItemSummary where house not in (select distinct house from tblRealm)';
     $stmt = $db->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -448,7 +448,7 @@ function CleanOldHouses()
     if ($caughtKill)
         return;
 
-    $sql = 'select distinct house from tblPetHistory where house not in (select cast(house as signed) * -1 from tblRealm union select cast(house as signed) from tblRealm)';
+    $sql = 'select distinct house from tblPetHistory where house not in (select distinct house from tblRealm)';
     $stmt = $db->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -475,7 +475,7 @@ function CleanOldHouses()
     if ($caughtKill)
         return;
 
-    $sql = 'select distinct house from tblPetSummary where house not in (select cast(house as signed) * -1 from tblRealm union select cast(house as signed) from tblRealm)';
+    $sql = 'select distinct house from tblPetSummary where house not in (select distinct house from tblRealm)';
     $stmt = $db->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();

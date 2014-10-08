@@ -58,45 +58,42 @@ function CleanOldData()
         if (strtotime($ssDate) < strtotime($cutoffDate))
             $cutoffDate = $ssDate;
 
-        foreach (array($house, -1 * $house) as $factionHouse)
+        heartbeat();
+        if ($caughtKill)
+            return;
+
+        $stmt = $db->prepare('select distinct item from tblItemSummary where house = ? and lastseen > timestampadd(day, -1, ?)');
+        $stmt->bind_param('is',$house,$cutoffDate);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $items = array_values(DBMapArray($result));
+        $stmt->close();
+
+        $rowCount = 0;
+
+        if (count($items) > 0)
         {
-            heartbeat();
-            if ($caughtKill)
-                return;
+            $db->real_query(sprintf(str_replace('item between %d and %d', 'item < %d', $sqlPattern), $house, $items[0], $cutoffDate));
+            $rowCount += $db->affected_rows;
+            $db->real_query(sprintf(str_replace('item between %d and %d', 'item > %d', $sqlPattern), $house, $items[count($items) - 1], $cutoffDate));
+            $rowCount += $db->affected_rows;
 
-            $stmt = $db->prepare('select distinct item from tblItemSummary where house = ? and lastseen > timestampadd(day, -1, ?)');
-            $stmt->bind_param('is',$factionHouse,$cutoffDate);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $items = array_values(DBMapArray($result));
-            $stmt->close();
+            $itemChunks = array_chunk($items, 100);
 
-            $rowCount = 0;
-
-            if (count($items) > 0)
+            for($x = 0; $x < count($itemChunks); $x++)
             {
-                $db->real_query(sprintf(str_replace('item between %d and %d', 'item < %d', $sqlPattern), $factionHouse, $items[0], $cutoffDate));
-                $rowCount += $db->affected_rows;
-                $db->real_query(sprintf(str_replace('item between %d and %d', 'item > %d', $sqlPattern), $factionHouse, $items[count($items) - 1], $cutoffDate));
-                $rowCount += $db->affected_rows;
-
-                $itemChunks = array_chunk($items, 100);
-
-                for($x = 0; $x < count($itemChunks); $x++)
-                {
-                    heartbeat();
-                    $minItem = array_shift($itemChunks[$x]);
-                    $maxItem = count($itemChunks[$x]) > 0 ? array_pop($itemChunks[$x]) : $minItem;
-                    $db->real_query(sprintf($sqlPattern, $factionHouse, $minItem, $maxItem, $cutoffDate));
-                    $rowCount += $db->affected_rows;
-                }
-
-                $db->real_query(sprintf(str_replace(' and item between %d and %d', '', $sqlPattern), $factionHouse, $cutoffDate));
+                heartbeat();
+                $minItem = array_shift($itemChunks[$x]);
+                $maxItem = count($itemChunks[$x]) > 0 ? array_pop($itemChunks[$x]) : $minItem;
+                $db->real_query(sprintf($sqlPattern, $house, $minItem, $maxItem, $cutoffDate));
                 $rowCount += $db->affected_rows;
             }
 
-            DebugMessage("$rowCount item history rows deleted from house $factionHouse since $cutoffDate");
+            $db->real_query(sprintf(str_replace(' and item between %d and %d', '', $sqlPattern), $house, $cutoffDate));
+            $rowCount += $db->affected_rows;
         }
+
+        DebugMessage("$rowCount item history rows deleted from house $house since $cutoffDate");
     }
 
     if ($caughtKill)
@@ -131,45 +128,42 @@ function CleanOldData()
         if (strtotime($ssDate) < strtotime($cutoffDate))
             $cutoffDate = $ssDate;
 
-        foreach (array($house, -1 * $house) as $factionHouse)
+        heartbeat();
+        if ($caughtKill)
+            return;
+
+        $stmt = $db->prepare('select distinct species from tblPetSummary where house = ? and lastseen > timestampadd(day, -1, ?)');
+        $stmt->bind_param('is',$house,$cutoffDate);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $items = array_values(DBMapArray($result));
+        $stmt->close();
+
+        $rowCount = 0;
+
+        if (count($items) > 0)
         {
-            heartbeat();
-            if ($caughtKill)
-                return;
+            $db->real_query(sprintf(str_replace('species between %d and %d', 'species < %d', $sqlPattern), $house, $items[0], $cutoffDate));
+            $rowCount += $db->affected_rows;
+            $db->real_query(sprintf(str_replace('species between %d and %d', 'species > %d', $sqlPattern), $house, $items[count($items) - 1], $cutoffDate));
+            $rowCount += $db->affected_rows;
 
-            $stmt = $db->prepare('select distinct species from tblPetSummary where house = ? and lastseen > timestampadd(day, -1, ?)');
-            $stmt->bind_param('is',$factionHouse,$cutoffDate);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $items = array_values(DBMapArray($result));
-            $stmt->close();
+            $itemChunks = array_chunk($items, 100);
 
-            $rowCount = 0;
-
-            if (count($items) > 0)
+            for($x = 0; $x < count($itemChunks); $x++)
             {
-                $db->real_query(sprintf(str_replace('species between %d and %d', 'species < %d', $sqlPattern), $factionHouse, $items[0], $cutoffDate));
-                $rowCount += $db->affected_rows;
-                $db->real_query(sprintf(str_replace('species between %d and %d', 'species > %d', $sqlPattern), $factionHouse, $items[count($items) - 1], $cutoffDate));
-                $rowCount += $db->affected_rows;
-
-                $itemChunks = array_chunk($items, 100);
-
-                for($x = 0; $x < count($itemChunks); $x++)
-                {
-                    heartbeat();
-                    $minItem = array_shift($itemChunks[$x]);
-                    $maxItem = count($itemChunks[$x]) > 0 ? array_pop($itemChunks[$x]) : $minItem;
-                    $db->real_query(sprintf($sqlPattern, $factionHouse, $minItem, $maxItem, $cutoffDate));
-                    $rowCount += $db->affected_rows;
-                }
-
-                $db->real_query(sprintf(str_replace(' and species between %d and %d', '', $sqlPattern), $factionHouse, $cutoffDate));
+                heartbeat();
+                $minItem = array_shift($itemChunks[$x]);
+                $maxItem = count($itemChunks[$x]) > 0 ? array_pop($itemChunks[$x]) : $minItem;
+                $db->real_query(sprintf($sqlPattern, $house, $minItem, $maxItem, $cutoffDate));
                 $rowCount += $db->affected_rows;
             }
 
-            DebugMessage("$rowCount pet history rows deleted from house $factionHouse since $cutoffDate");
+            $db->real_query(sprintf(str_replace(' and species between %d and %d', '', $sqlPattern), $house, $cutoffDate));
+            $rowCount += $db->affected_rows;
         }
+
+        DebugMessage("$rowCount pet history rows deleted from house $house since $cutoffDate");
     }
 
     if ($caughtKill)

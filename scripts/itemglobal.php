@@ -31,12 +31,6 @@ FROM tblItemSummary ih, tblRealm r
 WHERE item = ?
 and r.canonical is not null
 and ih.house = r.house
-union all
-SELECT price
-FROM tblItemSummary ih, tblRealm r
-WHERE item = ?
-and r.canonical is not null
-and ih.house = cast(r.house as signed) * -1
 END;
 
 DebugMessage('Updating items..');
