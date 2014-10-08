@@ -322,12 +322,10 @@ var TUJ = function()
 {
     var validPages = ['','search','item','seller','battlepet','contact','donate','category'];
     var pagesNeedRealm = [true, true, true, true, true, false, false, true];
-    this.validFactions = {'alliance': 1, 'horde': -1};
     this.region = undefined;
     this.realms = undefined;
     this.params = {
         realm: undefined,
-        faction: undefined,
         page: undefined,
         id: undefined
     }
@@ -391,12 +389,12 @@ var TUJ = function()
         ReadParams();
         if (firstRun)
         {
-            if (!self.params.realm && !self.params.faction)
+            if (!self.params.realm)
             {
                 var searchRealm;
                 if (searchRealm = /^\?realm=([AH])-([^&]+)/i.exec(decodeURIComponent(location.search)))
                 {
-                    ls = {faction: searchRealm[1].toUpperCase()=='A' ? 'alliance' : 'horde'};
+                    ls = {};
                     for (var x in tuj.realms)
                         if (tuj.realms[x].name.toLowerCase() == searchRealm[2].toLowerCase())
                             ls.realm = tuj.realms[x].id;
@@ -431,10 +429,7 @@ var TUJ = function()
         $('#realm-list').removeClass('show');
         if (!self.params.realm && (!self.params.page || pagesNeedRealm[self.params.page]))
         {
-            if (self.params.faction)
-                ChooseFaction(self.params.faction);
             inMain = false;
-            $('#faction-pick a').each(function() { this.href = self.BuildHash({realm: undefined, faction: this.rel});});
             $('#realm-list .realms-column a').each(function() { this.href = self.BuildHash({realm: this.rel}); });
             $('#realm-list').addClass('show');
             document.body.className = 'realm';
@@ -478,7 +473,6 @@ var TUJ = function()
 
         var p = {
             realm: undefined,
-            faction: undefined,
             page: undefined,
             id: undefined
         }
@@ -489,6 +483,7 @@ var TUJ = function()
         h = h.split('/');
 
         var y;
+        var gotFaction = false;
 
         nextParam:
         for (var x = 0; x < h.length; x++)
@@ -500,11 +495,11 @@ var TUJ = function()
                         p.page = y;
                         continue nextParam;
                     }
-            if (!p.faction)
+            if (!gotFaction)
                 for (y in self.validFactions)
-                    if (self.validFactions.hasOwnProperty(y) && h[x] == y)
+                    if (h[x] == 'alliance' || h[x] == 'horde')
                     {
-                        p.faction = y;
+                        gotFaction = true;
                         continue nextParam;
                     }
             if (!p.realm)
@@ -539,7 +534,7 @@ var TUJ = function()
         }
 
         if (self.params.realm && !self.params.page)
-            libtuj.Storage.Set('defaultRealm', {faction: self.params.faction, realm: self.params.realm});
+            libtuj.Storage.Set('defaultRealm', {realm: self.params.realm});
 
         var h = self.BuildHash(self.params);
 
@@ -565,11 +560,6 @@ var TUJ = function()
         var regionLink = $('#topcorner a.region');
         regionLink[0].href = self.region == 'US' ? '//eu.theunderminejournal.com' : '//theunderminejournal.com';
         regionLink.text(self.region);
-
-        var factionLink = $('#topcorner a.faction')[0];
-        factionLink.className = 'faction '+(self.params.faction ? self.params.faction : 'none');
-        var otherFaction = self.params.faction ? (self.params.faction == 'alliance' ? 'horde' : 'alliance') : undefined;
-        factionLink.href = self.BuildHash({faction: otherFaction});
 
         var realmLink = $('#topcorner a.realm');
         realmLink[0].href = self.BuildHash({realm: undefined});
@@ -598,7 +588,7 @@ var TUJ = function()
                 return false;
             }).append(i);
 
-            $('#topcorner .realm-faction').after(form);
+            $('#topcorner .region-realm').after(form);
         }
     }
 
@@ -617,7 +607,7 @@ var TUJ = function()
         }
 
         if (self.params.realm)
-            title += self.region + ' ' + self.realms[self.params.realm].name + ' ' + self.params.faction.substr(0,1).toUpperCase() + self.params.faction.substr(1) + ' - ';
+            title += self.region + ' ' + self.realms[self.params.realm].name + ' - ';
 
         document.title = title + 'The Undermine Journal';
     }
@@ -645,14 +635,10 @@ var TUJ = function()
 
         if (!tParams.page)
             tParams.id = undefined;
-        if (!tParams.faction)
-            tParams.realm = undefined;
 
         var h = '';
         if (tParams.realm)
             h += '/' + self.realms[tParams.realm].slug;
-        if (tParams.faction)
-            h += '/' + tParams.faction;
         if (tParams.page)
             h += '/' + validPages[tParams.page];
         if (tParams.id)
@@ -674,23 +660,10 @@ var TUJ = function()
             realmList.id = 'realm-list';
             $('#main').prepend(realmList);
 
-            var factionPick = libtuj.ce();
-            factionPick.id = 'faction-pick';
-            realmList.appendChild(factionPick);
-
             var directions = libtuj.ce();
             directions.className = 'directions';
-            factionPick.appendChild(directions);
-            $(directions).text('Choose your faction, then realm.');
-
-            var factionAlliance = libtuj.ce('a');
-            factionAlliance.rel = 'alliance';
-            $(factionAlliance).addClass('alliance').text('Alliance');
-            factionPick.appendChild(factionAlliance);
-            var factionHorde = libtuj.ce('a');
-            $(factionHorde).addClass('horde').text('Horde');
-            factionHorde.rel = 'horde';
-            factionPick.appendChild(factionHorde);
+            realmList.appendChild(directions);
+            $(directions).text('Choose your realm below:');
 
             addResize = true;
         }
@@ -759,19 +732,6 @@ var TUJ = function()
         if (addResize)
             optimizedResize.add(DrawRealms);
 
-        Main();
-    }
-
-    function ChooseFaction(dta)
-    {
-        var toRemove = '';
-        var toAdd = (dta.hasOwnProperty('data') ? dta.data.addClass : dta);
-
-        for (var f in self.validFactions)
-            if (self.validFactions.hasOwnProperty(f) && toAdd.indexOf(f) < 0)
-                toRemove += (toRemove == '' ? '' : ' ') + f;
-        $('#realm-list').addClass(toAdd).removeClass(toRemove);
-        self.SetParams({faction: toAdd});
         Main();
     }
 

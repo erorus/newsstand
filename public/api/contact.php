@@ -29,7 +29,6 @@ $body = "Date: ".Date('Y-m-d H:i:s')."\nFrom: ".$_POST['from']."\nIP: ".$_SERVER
 
 if (isset($_POST['region'])) $body .= "Region: ".$_POST['region']."\n";
 if (isset($_POST['realm'])) $body .= "Realm: ".$_POST['realm']."\n";
-if (isset($_POST['faction'])) $body .= "Faction: ".$_POST['faction']."\n";
 if (isset($_POST['house'])) $body .= "House: ".$_POST['house']."\n";
 
 $body .= "\n---------------\n".$_POST['message'];

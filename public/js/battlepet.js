@@ -22,7 +22,7 @@ var TUJ_BattlePet = function()
         }
 
         var qs = {
-            house: tuj.realms[params.realm].house * tuj.validFactions[params.faction],
+            house: tuj.realms[params.realm].house,
             species: speciesId
         };
         var hash = JSON.stringify(qs);
@@ -496,7 +496,7 @@ var TUJ_BattlePet = function()
                 lastseen: 0
             };
 
-            var headerPrefix = tuj.region + '-' + params.faction.substr(0,1).toUpperCase() + ' ';
+            var headerPrefix = tuj.region + ' ';
             var row;
             for (x = 0; row = data.globalnow[x]; x++)
             {

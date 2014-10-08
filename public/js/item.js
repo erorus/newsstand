@@ -12,7 +12,7 @@ var TUJ_Item = function()
                 params[p] = inParams[p];
 
         var qs = {
-            house: tuj.realms[params.realm].house * tuj.validFactions[params.faction],
+            house: tuj.realms[params.realm].house,
             item: params.id
         };
         var hash = JSON.stringify(qs);
@@ -189,7 +189,7 @@ var TUJ_Item = function()
 
             var a = libtuj.ce('a');
             h.appendChild(a);
-            a.href = 'https://' + tuj.region.toLowerCase() + '.battle.net/wow/en/vault/character/auction/' + params.faction + '/browse?sort=unitBuyout&itemId=' + params.id + '&start=0&end=40';
+            a.href = 'https://' + tuj.region.toLowerCase() + '.battle.net/wow/en/vault/character/auction/alliance/browse?sort=unitBuyout&itemId=' + params.id + '&start=0&end=40';
             $(a).text('Current Auctions');
 
             cht = libtuj.ce();
@@ -359,7 +359,7 @@ var TUJ_Item = function()
                 lastseen: 0
             };
 
-            var headerPrefix = tuj.region + '-' + params.faction.substr(0,1).toUpperCase() + ' ';
+            var headerPrefix = tuj.region + ' ';
             var row;
             for (x = 0; row = data.globalnow[x]; x++)
             {

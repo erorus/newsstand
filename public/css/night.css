@@ -3,13 +3,6 @@ body {background-color: #333; color: #CCC}
 
 a {color: white}
 
-#realm-list #faction-pick a {color: black; box-shadow: 0.2em 0.2em #222 }
-#realm-list #faction-pick a.alliance {background-color: #BBE}
-#realm-list #faction-pick a.horde {background-color: #E99}
-
-#realm-list.alliance .realms-column a {color: #AAE}
-#realm-list.horde .realms-column a {color: #C88}
-
 #topcorner input {border: 0; box-shadow: 0.3em 0.3em #222 }
 
 #progress-page div { background-image: url("../images/progress.dark.gif"); }

@@ -13,7 +13,7 @@ var TUJ_Category = function()
                 params[p] = inParams[p];
 
         var qs = {
-            house: tuj.realms[params.realm].house * tuj.validFactions[params.faction],
+            house: tuj.realms[params.realm].house,
             id: params.id
         };
         var hash = JSON.stringify(qs);
