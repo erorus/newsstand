@@ -122,8 +122,6 @@ function ParseAuctionData($house, $snapshot, &$json)
     $region = $houseRegionCache[$house]['region'];
     $hordeHouse = $house * -1;
 
-    $ourDb->begin_transaction();
-
     $stmt = $ourDb->prepare('select id, bid, item, house from tblAuction where house in (?,?)');
     $stmt->bind_param('ii',$house, $hordeHouse);
     $stmt->execute();
@@ -201,6 +199,7 @@ function ParseAuctionData($house, $snapshot, &$json)
             $factionHouse = ($faction == 'horde') ? ($house * -1) : $house;
 
             DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." parsing ".count($factionData['auctions'])." $faction auctions");
+            $ourDb->begin_transaction();
 
             $auctionCount = count($factionData['auctions']);
             for ($x = 0; $x < $auctionCount; $x++)
@@ -303,6 +302,8 @@ function ParseAuctionData($house, $snapshot, &$json)
             if ($sqlPet != '')
                 DBQueryWithError($ourDb, $sqlPet);
 
+            $ourDb->commit();
+
             $sql = <<<EOF
 insert ignore into tblAuctionRare (house, id, prevseen) (
 select a.house, a.id, tis.lastseen
@@ -316,7 +317,6 @@ and ifnull(tis.lastseen, '2000-01-01') < timestampadd(day,-14,'%s'))
 EOF;
             $sql = sprintf($sql, $factionHouse, $lastMax, $hasRollOver ? ' and a.id < 0x20000000 ' : '', $snapshotString);
             DBQueryWithError($ourDb,$sql);
-            $ourDb->commit(MYSQLI_TRANS_COR_AND_CHAIN);
 
             // move out of loop once no longer using $factionHouse
             $preDeleted = count($itemInfo);
@@ -340,8 +340,6 @@ EOF;
             DebugMessage("House ".str_pad($factionHouse, 5, ' ', STR_PAD_LEFT)." updating seller history");
             UpdateSellerInfo($sellerInfo, $snapshot);
             $sellerInfo = array();
-
-            $ourDb->commit(MYSQLI_TRANS_COR_AND_CHAIN);
         }
 
     if (count($existingIds) > 0)
@@ -372,7 +370,6 @@ EOF;
         }
     }
 
-    $ourDb->commit();
     $ourDb->close();
 
     MCSetHouse($house, 'ts', $snapshot);
@@ -668,7 +665,7 @@ function MarketPriceSort($a,$b)
 function DBQueryWithError(&$db, $sql)
 {
     if (!$db->query($sql)) {
-        DebugMessage("SQL error: ".$db->error." - ".substr(preg_replace('/[\r\n]/', ' ', $sql), 0, 500));
+        DebugMessage("SQL error: ".$db->error." - ".substr(preg_replace('/[\r\n]/', ' ', $sql), 0, 500), E_USER_WARNING);
         return false;
     }
     return true;
