@@ -507,7 +507,7 @@ function UpdateSellerInfo(&$sellerInfo, $snapshot)
     $snapshotString = Date('Y-m-d H:i:s', $snapshot);
     $realms = array_keys($sellerInfo);
 
-    $sqlStart = 'insert into tblSellerHistory (seller, snapshot, `new`, `total`) values ';
+    $sqlStart = 'insert ignore into tblSellerHistory (seller, snapshot, `new`, `total`) values ';
     $sql = '';
 
     for ($r = 0; $r < count($realms); $r++)
