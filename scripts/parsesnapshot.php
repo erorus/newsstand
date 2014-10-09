@@ -101,7 +101,7 @@ function NextDataFile()
 
     if (json_last_error() != JSON_ERROR_NONE)
     {
-        DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." $snapshot data file corrupted! ".json_last_error_msg());
+        DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." $snapshot data file corrupted! ".json_last_error_msg(), E_USER_WARNING);
         return 0;
     }
 
