@@ -137,7 +137,7 @@ var TUJ_Category = function()
         var titleTd;
 
         t = libtuj.ce('table');
-        t.className = 'category-items';
+        t.className = 'category category-items';
         dest.appendChild(t);
 
         if (data.hasOwnProperty('name'))
@@ -320,6 +320,145 @@ var TUJ_Category = function()
 
         return true;
     }
+
+    resultFunctions.BattlePetList = function(data, dest)
+    {
+        var t, td, tr, firstBreed, breed, species, petType, allSpecies, o, x;
+
+        var d = libtuj.ce('div');
+        dest.appendChild(d);
+        d.appendChild(document.createTextNode('This page is not yet complete, and I could use your feedback!'));
+        d.appendChild(libtuj.ce('br'));
+        var a = libtuj.ce('a');
+        a.style.textDecoration = 'underline';
+        d.appendChild(a);
+        a.href = 'http://stormspire.net/official-forum-undermine-journal/15269-battle-pets-category-page-feedback.html';
+        $(a).text('Please check out this post and let me know what would make this page better.');
+        d.style.marginBottom = '2em';
+        d.style.textAlign='center';
+
+        for (petType in tujConstants.petTypes) {
+            if (!tujConstants.petTypes.hasOwnProperty(petType))
+                continue;
+
+            if (!data.hasOwnProperty(petType))
+                continue;
+
+            t = libtuj.ce('table');
+            dest.appendChild(t);
+            t.className = 'category category-battlepets';
+
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+            td = libtuj.ce('th');
+            tr.appendChild(td);
+            td.colSpan=12;
+            $(td).text(tujConstants.petTypes[petType]);
+
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.colSpan=2;
+            td.className = 'name';
+            $(td).text('Name');
+
+            for (breed = 3; breed <= 12; breed++) {
+                td = libtuj.ce('td');
+                td.className = 'price';
+                tr.appendChild(td);
+                $(td).text(tujConstants.breeds[breed]);
+            }
+
+            allSpecies = [];
+
+            for (species in data[petType]) {
+                if (!data[petType].hasOwnProperty(species))
+                    continue;
+
+                o = {id: species, breeds: {}};
+
+                firstBreed = false;
+                for (breed in data[petType][species]) {
+                    if (!data[petType][species].hasOwnProperty(breed))
+                        continue;
+                    if (!firstBreed)
+                        firstBreed = breed;
+                    o.breeds[breed] = data[petType][species][breed];
+                }
+
+                if (!firstBreed)
+                    continue;
+
+                o.name = data[petType][species][firstBreed].name;
+                o.icon = data[petType][species][firstBreed].icon;
+                o.npc = data[petType][species][firstBreed].npc;
+
+                allSpecies.push(o);
+            }
+
+            allSpecies.sort(function(a,b) {
+                var firstBreedSeen = 0;
+                for (var x = 3; x <= 12; x++) {
+                    if (a.breeds.hasOwnProperty(x)) {
+                        if (b.breeds.hasOwnProperty(x)) {
+                            if (!firstBreedSeen)
+                                firstBreedSeen = x;
+                            continue;
+                        }
+                        return -1;
+                    } else if (b.breeds.hasOwnProperty(x)) {
+                        return 1;
+                    }
+                }
+                return (b.breeds[firstBreedSeen].price - a.breeds[firstBreedSeen].price) || a.name.localeCompare(b.name);
+            });
+
+            for (x = 0; x < allSpecies.length; x++) {
+
+                tr = libtuj.ce('tr');
+                t.appendChild(tr);
+
+                td = libtuj.ce('td');
+                td.className = 'icon';
+                tr.appendChild(td);
+                i = libtuj.ce('img');
+                td.appendChild(i);
+                i.className = 'icon';
+                i.src = 'icon/medium/' + allSpecies[x].icon + '.jpg';
+
+                td = libtuj.ce('td');
+                td.className = 'name';
+                tr.appendChild(td);
+                a = libtuj.ce('a');
+                td.appendChild(a);
+                a.href = tuj.BuildHash({page: 'battlepet', id: allSpecies[x].id});
+                a.rel = 'npc=' + allSpecies[x].npc;
+                $(a).text('[' + allSpecies[x].name + ']');
+
+                for (breed = 3; breed <= 12; breed++) {
+                    td = libtuj.ce('td');
+                    td.className = 'price';
+                    tr.appendChild(td);
+                    if (!allSpecies[x].breeds.hasOwnProperty(breed))
+                        continue;
+
+                    var a = libtuj.ce('a');
+                    td.appendChild(a);
+                    a.href = tuj.BuildHash({page: 'battlepet', id: '' + allSpecies[x].id + '.' + breed});
+                    a.rel = 'npc=' + allSpecies[x].npc;
+                    $(a).text(Math.ceil(allSpecies[x].breeds[breed].price/10000));
+                }
+
+            }
+
+        }
+
+
+
+    }
+
     this.load(tuj.params);
 }
 

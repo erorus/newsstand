@@ -653,9 +653,23 @@ function MarketPriceSort($a,$b)
 
 function DBQueryWithError(&$db, $sql)
 {
-    if (!$db->query($sql)) {
-        DebugMessage("SQL error: ".$db->error." - ".substr(preg_replace('/[\r\n]/', ' ', $sql), 0, 500), E_USER_WARNING);
-        return false;
+    $queryOk = false;
+    $retryCount = 0;
+
+    while (!($queryOk = $db->query($sql))) {
+        if ($db->errno == 1213) { // deadlock
+            if ($retryCount++ >= 3) {
+                break;
+            }
+            sleep($retryCount);
+        } else {
+            break;
+        }
     }
-    return true;
+
+    if (!$queryOk) {
+        DebugMessage("SQL error: ".$db->errno.' '.$db->error." - ".substr(preg_replace('/[\r\n]/', ' ', $sql), 0, 500), E_USER_WARNING);
+    }
+
+    return $queryOk;
 }

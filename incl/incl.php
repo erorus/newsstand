@@ -114,6 +114,12 @@ function DBMapArray(&$result, $key = false, $autoClose = true)
                     else
                         $tr[$row[$key[0]]][] = $singleCol ? $row[$singleCol] : $row;
                     break;
+                case 3:
+                    if($key[2])
+                        $tr[$row[$key[0]]][$row[$key[1]]][$row[$key[2]]] = $row;
+                    else
+                        $tr[$row[$key[0]]][$row[$key[1]]][] = $singleCol ? $row[$singleCol] : $row;
+                    break;
             }
         elseif (is_null($key))
             $tr[] = $singleCol ? $row[$singleCol] : $row;

@@ -279,6 +279,18 @@ var tujConstants = {
          8: 'Trolls',
          5: 'Undead'
     },
+    petTypes: {
+        8: 'Aquatic',
+        7: 'Beast',
+        4: 'Critter',
+        1: 'Dragonkin',
+        6: 'Elemental',
+        2: 'Flying',
+        0: 'Humanoid',
+        5: 'Magic',
+        9: 'Mechanical',
+        3: 'Undead'
+    },
     siteColors: {
         light: {
             background:             '#FFFFFF',

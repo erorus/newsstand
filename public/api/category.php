@@ -24,6 +24,41 @@ $qualities = array('Poor', 'Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'A
 
 json_return($resultFunc($house));
 
+function CategoryResult_battlepets($house)
+{
+    global $db, $canCache;
+
+    $key = 'category_bpets';
+
+    if ($canCache && (($tr = MCGetHouse($house, $key)) !== false))
+        return ['name' => 'Battle Pets', 'results' => [['name' => 'BattlePetList', 'data' => $tr]]];
+
+    DBConnect();
+
+    $sql = <<<EOF
+SELECT ps.species, ps.breed, ps.price, ps.quantity, ps.lastseen, round(avg(ph.price)) avgprice, p.name, p.type, p.icon, p.npc
+FROM tblPetSummary ps
+JOIN tblPet p on ps.species=p.id
+LEFT JOIN tblPetHistory ph on ph.house = ps.house and ph.species = ps.species and ph.breed = ps.breed
+WHERE ps.house = ?
+group by ps.species, ps.breed
+EOF;
+
+    $stmt = $db->prepare($sql);
+    if (!$stmt) {
+        DebugMessage("Bad SQL: \n".$sql, E_USER_ERROR);
+    }
+    $stmt->bind_param('i', $house);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $tr = DBMapArray($result, array('type', 'species', 'breed'));
+    $stmt->close();
+
+    MCSetHouse($house, $key, $tr);
+
+    return ['name' => 'Battle Pets', 'results' => [['name' => 'BattlePetList', 'data' => $tr]]];
+}
+
 function CategoryResult_deals($house)
 {
     $tr = [
