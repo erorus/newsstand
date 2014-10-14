@@ -5,24 +5,32 @@ require_once('dbcdecode.php');
 header('Content-type: text/plain');
 error_reporting(E_ALL);
 
-/*
-tblEnchants
-tblItemRandomSuffix
-tblDBCItemReagents
-tblItemSubClass
-tblRandEnchants
-tblRandEnchantStats
-tblSkillLines
-tblSpell
-tblTips
-
-
-*/
-
 DBConnect();
 
 $tables = array();
 dtecho(run_sql('set session max_heap_table_size='.(1024*1024*1024)));
+
+dtecho(dbcdecode('FileData', array(1=>'id', 2=>'name')));
+dtecho(dbcdecode('Item', array(1=>'id', 2=>'classid', 3=>'subclassid', 8=>'iconfiledataid')));
+dtecho(dbcdecode('Item-sparse', array(
+    1=>'id', 2=>'quality', 8=>'buycount', 9=>'buyprice', 10=>'sellprice', 11=>'type', 14=>'level',
+    15=>'requiredlevel', 16=>'requiredskill', 24=>'stacksize', 70=>'binds', 71=>'name')));
+
+dtecho('Running items..');
+dtecho(run_sql('truncate table tblDBCItem'));
+$sql = <<<EOF
+insert into tblDBCItem (id, name, quality, level, class, subclass, icon, stacksize, binds,
+buyfromvendor, selltovendor, auctionable, type, requiredlevel, requiredskill)
+(select i.id, s.name, s.quality, s.level, i.classid, i.subclassid,
+if(right(lower(fd.name), 4) = '.blp', lower(substr(fd.name, 1, length(fd.name) - 4)), lower(fd.name)),
+s.stacksize, s.binds, s.buyprice, s.sellprice, case s.binds when 0 then 1 when 2 then 1 when 3 then 1 else 0 end,
+s.type, s.requiredlevel, s.requiredskill
+from ttblItem i
+join `ttblItem-sparse` s on s.id = i.id
+left join ttblFileData fd on fd.id = i.iconfiledataid)
+EOF;
+dtecho(run_sql($sql));
+
 
 dtecho(dbcdecode('ItemSubClass', array(2=>'classid',3=>'subclassid',12=>'subclassname',13=>'subclassfullname')));
 dtecho(run_sql('truncate table tblDBCItemSubClass'));
@@ -37,9 +45,11 @@ dtecho(run_sql('insert into tblDBCRandEnchants (id, name) (select suffixid * -1,
 dtecho(run_sql('truncate table tblDBCItemRandomSuffix'));
 dtecho(run_sql('insert into tblDBCItemRandomSuffix (suffix) (select distinct name from tblDBCRandEnchants where trim(name) like \'of %\')'));
 
+/*
 dtecho(dbcdecode('ItemToBattlePet', array(1=>'itemid',2=>'speciesid')));
 dtecho(run_sql('truncate table tblDBCItemToBattlePet'));
 dtecho(run_sql('insert ignore into tblDBCItemToBattlePet (select * from ttblItemToBattlePet)'));
+*/
 
 dtecho(dbcdecode('SpellIcon', array(1=>'iconid',2=>'iconpath')));
 dtecho(run_sql('update ttblSpellIcon set iconpath = substring_index(iconpath,\'\\\\\',-1) where instr(iconpath,\'\\\\\') > 0'));
@@ -73,8 +83,8 @@ dtecho(dbcdecode('Spell', array(
 	1=>'spellid',
 	2=>'spellname',
 	4=>'longdescription',
-	25=>'miscid',
-	20=>'reagentsid'
+	24=>'miscid',
+	19=>'reagentsid'
 	)));
 
 dtecho(dbcdecode('SpellMisc', array(
@@ -132,7 +142,7 @@ dtecho(run_sql($sql));
 $sql = <<<EOF
 replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip)
 select ic.id, ir.skillline, ir.reagent, ir.quantity, ir.spell, 0
-from tblItem ic, tblItem ic2, tblDBCItemReagents ir
+from tblDBCItem ic, tblDBCItem ic2, tblDBCItemReagents ir
 where ic.class=3 and ic.quality=2 and ic.name like 'Perfect %'
 and ic2.class=3 and ic2.name = substr(ic.name,9)
 and ic2.id=ir.item
@@ -149,7 +159,7 @@ echo "$sql\n\n".run_sql($sql)."\n---\n";
 $sql = 'insert into tblDBCItemReagents (select 45853, skilllineid, reagentid, quantity, spellid from tblDBCItemReagents where itemid=45854)';
 echo "$sql\n\n".run_sql($sql)."\n---\n";
 */
-$sql = 'update tblDBCItemReagents set quantity=quantity*1000 where item in (select id from tblItem where class=6)';
+$sql = 'update tblDBCItemReagents set quantity=quantity*1000 where item in (select id from tblDBCItem where class=6)';
 run_sql($sql);
 
 //$sql = 'replace INTO tblItemVendorCost (itemid, copper) VALUES (52078, 0)';
@@ -280,7 +290,7 @@ run_sql('delete FROM tblDBCItemReagents WHERE spell in (102366,140040,140041)');
 dtecho('Getting spell expansion IDs..');
 $sql = <<<EOF
 SELECT s.id, max(ic.level) mx, min(ic.level) mn
-FROM tblDBCItemReagents ir, tblItem ic, tblDBCSpell s
+FROM tblDBCItemReagents ir, tblDBCItem ic, tblDBCSpell s
 WHERE ir.spell=s.id
 and ir.reagent=ic.id
 and ic.level < 100
@@ -335,7 +345,7 @@ function dtecho($msg) {
 }
 
 foreach ($tables as $tbl) {
-	run_sql('drop temporary table ttbl'.$tbl);
+	run_sql('drop temporary table `ttbl'.$tbl.'`');
 }
 cleanup('');
 ?>

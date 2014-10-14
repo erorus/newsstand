@@ -89,7 +89,7 @@ $forcevendor[90146] = 20000; //tinker's kit
 $forbiddenitems = Array(43007,14256,10940,52185,53010,52555,10938,74853);
 
 // also exclude all herbs and elemental (motes, etc) trade goods
-$sql = 'select id from tblItem where class=7 and subclass in (9,10)';
+$sql = 'select id from tblDBCItem where class=7 and subclass in (9,10)';
 $rst = get_rst($sql);
 while ($row = next_row($rst)) $forbiddenitems[] = intval($row['id']);
 

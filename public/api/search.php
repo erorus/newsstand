@@ -69,7 +69,7 @@ function SearchItems($house, $search)
 
     $sql = <<<EOF
 select i.id, i.name, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice
-from tblItem i
+from tblDBCItem i
 left join tblItemSummary s on s.house=? and s.item=i.id
 left join tblItemHistory h on h.house=? and h.item=i.id
 where $nameSearch

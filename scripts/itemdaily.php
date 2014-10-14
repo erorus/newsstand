@@ -58,7 +58,7 @@ replace into tblItemHistoryDaily
     avg(ifnull(quantity,0)) quantityavg,
     max(quantity) quantitymax
     from (select @previtem := 0, @lastprice := 0) itemsetup, tblSnapshot sn
-    join tblItem i
+    join tblDBCItem i
     left join tblItemHistory ih on ih.house=%1\$d and sn.updated=ih.snapshot and ih.item=i.id
     where sn.house=%4\$d
     and sn.updated between '%2\$s' and '%3\$s'
