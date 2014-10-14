@@ -212,7 +212,7 @@ EOF;
 		return;
 	}
 	
-	$sql = 'create temporary table ttbl'.$filenmpart.' (';
+	$sql = 'create temporary table `ttbl'.$filenmpart.'` (';
 	$y = 0;
 	$idxfields = array();
 	$stringcount = 1;
@@ -254,7 +254,7 @@ EOF;
 	
 	if (!$gotfloat)
 	{
-		$sql = 'insert into ttbl'.$filenmpart.' (';
+		$sql = 'insert into `ttbl'.$filenmpart.'` (';
 		foreach ($fields as $col=>$val) $sql .= "$val,";
 		$sql = substr($sql,0,strlen($sql)-1).') (select ';
 		foreach ($fields as $col=>$val) $sql .= "n$col,";
@@ -276,7 +276,7 @@ EOF;
 			$rowcount++;
 			if ($sql == '')
 			{
-				$sql = 'insert into ttbl'.$filenmpart.' (';
+				$sql = 'insert into `ttbl'.$filenmpart.'` (';
 				foreach ($fields as $col=>$val) $sql .= "$val,";
 				$sql = substr($sql,0,strlen($sql)-1).') values ';
 			}
@@ -308,7 +308,7 @@ EOF;
 
 	foreach ($fields as $col=>$val)
 		if ($cols[$col] == 'string') {
-			run_sql("update ttbl$filenmpart set $val=(select srcstring from ttblStr$tbl where offset=cast($val as signed))");
+			run_sql("update `ttbl$filenmpart` set $val=(select srcstring from ttblStr$tbl where offset=cast($val as signed))");
 			printprogresspercent($x++/$stringcount*100);
 		}
 
@@ -317,7 +317,7 @@ EOF;
 	run_sql("drop temporary table ttblStr$tbl");
 
 	$tables[] = $filenmpart;
-	$row = get_single_row('select count(*) n from ttbl'.$filenmpart);
+	$row = get_single_row('select count(*) n from `ttbl'.$filenmpart.'`');
 	echo(' '.$row['n'].' rows');
 	
 }

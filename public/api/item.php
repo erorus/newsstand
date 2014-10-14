@@ -40,7 +40,7 @@ function ItemStats($house, $item)
     $sql = <<<EOF
 select i.id, i.name, i.icon, i.class as classid, i.subclass, i.quality, i.level, i.stacksize, i.binds, i.buyfromvendor, i.selltovendor, i.auctionable,
 s.price, s.quantity, s.lastseen
-from tblItem i
+from tblDBCItem i
 left join tblItemSummary s on s.house = ? and s.item = i.id
 where i.id = ?
 EOF;

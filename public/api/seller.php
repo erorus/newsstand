@@ -102,7 +102,7 @@ function SellerAuctions($house, $seller)
     $sql = <<<EOF
 SELECT a.item, i.name, i.quality, i.class, i.subclass, i.icon, i.stacksize, a.quantity, a.bid, a.buy, a.`rand`, a.seed
 FROM `tblAuction` a
-left join tblItem i on a.item=i.id
+left join tblDBCItem i on a.item=i.id
 WHERE a.house in (?,?) and a.seller=?
 EOF;
 
