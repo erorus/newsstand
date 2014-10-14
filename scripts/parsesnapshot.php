@@ -137,25 +137,20 @@ function ParseAuctionData($house, $snapshot, &$json)
     $lowMax = -1;
     $highMax = -1;
     $hasRollOver = false;
-    foreach ($json as $faction => &$factionData)
-        if (isset($factionData['auctions']))
+    if (isset($json['auctions']['auctions'])) {
+        $auctionCount = count($json['auctions']['auctions']);
+
+        for ($x = 0; $x < $auctionCount; $x++)
         {
-            if ($faction == 'neutral')
-                continue;
+            $auctionId = $json['auctions']['auctions'][$x]['auc'];
 
-            $auctionCount = count($factionData['auctions']);
-
-            for ($x = 0; $x < $auctionCount; $x++)
-            {
-                $auctionId = $factionData['auctions'][$x]['auc'];
-
-                $naiveMax = max($naiveMax, $auctionId);
-                if ($auctionId < 0x20000000)
-                    $lowMax = max($lowMax, $auctionId);
-                if ($auctionId > 0x60000000)
-                    $highMax = max($highMax, $auctionId);
-            }
+            $naiveMax = max($naiveMax, $auctionId);
+            if ($auctionId < 0x20000000)
+                $lowMax = max($lowMax, $auctionId);
+            if ($auctionId > 0x60000000)
+                $highMax = max($highMax, $auctionId);
         }
+    }
 
     if (($lowMax != -1) && ($highMax != -1))
     {
@@ -190,115 +185,113 @@ function ParseAuctionData($house, $snapshot, &$json)
     $petInfo = array();
     $sellerInfo = array();
 
-    foreach ($json as $faction => &$factionData)
-        if (isset($factionData['auctions'])) {
-            DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." parsing ".count($factionData['auctions'])." $faction auctions");
-            $ourDb->begin_transaction();
+    if (isset($json['auctions']['auctions'])) {
+        $auctionCount = count($json['auctions']['auctions']);
+        DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." parsing $auctionCount auctions");
+        $ourDb->begin_transaction();
 
-            $auctionCount = count($factionData['auctions']);
-            for ($x = 0; $x < $auctionCount; $x++)
+        for ($x = 0; $x < $auctionCount; $x++) {
+            $auction =& $json['auctions']['auctions'][$x];
+            if ($auction['owner'] == '???')
+                continue;
+            if (!isset($sellerInfo[$auction['ownerRealm']]))
+                $sellerInfo[$auction['ownerRealm']] = array();
+            if (!isset($sellerInfo[$auction['ownerRealm']][$auction['owner']]))
+                $sellerInfo[$auction['ownerRealm']][$auction['owner']] = array(
+                    'new' => 0,
+                    'total' => 0,
+                    'id' => 0,
+                );
+            $sellerInfo[$auction['ownerRealm']][$auction['owner']]['total']++;
+            if ((!$hasRollOver || $auction['auc'] < 0x20000000) && ($auction['auc'] > $lastMax))
+                $sellerInfo[$auction['ownerRealm']][$auction['owner']]['new']++;
+        }
+
+        GetSellerIds($region, $sellerInfo, $snapshot);
+
+        $sql = $sqlPet = '';
+
+        for ($x = 0; $x < $auctionCount; $x++)
+        {
+            $auction =& $json['auctions']['auctions'][$x];
+
+            $totalAuctions++;
+            if ($auction['buyout'] != 0)
             {
-                $auction =& $factionData['auctions'][$x];
-                if ($auction['owner'] == '???')
-                    continue;
-                if (!isset($sellerInfo[$auction['ownerRealm']]))
-                    $sellerInfo[$auction['ownerRealm']] = array();
-                if (!isset($sellerInfo[$auction['ownerRealm']][$auction['owner']]))
-                    $sellerInfo[$auction['ownerRealm']][$auction['owner']] = array(
-                        'new' => 0,
-                        'total' => 0,
-                        'id' => 0,
-                    );
-                $sellerInfo[$auction['ownerRealm']][$auction['owner']]['total']++;
-                if ((!$hasRollOver || $auction['auc'] < 0x20000000) && ($auction['auc'] > $lastMax))
-                    $sellerInfo[$auction['ownerRealm']][$auction['owner']]['new']++;
-            }
-
-            GetSellerIds($region, $sellerInfo, $snapshot);
-
-            $sql = $sqlPet = '';
-
-            for ($x = 0; $x < $auctionCount; $x++)
-            {
-                $auction =& $factionData['auctions'][$x];
-
-                $totalAuctions++;
-                if ($auction['buyout'] != 0)
-                {
-                    if (isset($auction['petSpeciesId']))
-                    {
-                        if ($auction['petBreedId'] > 12) $auction['petBreedId'] -= 10; // squash gender
-
-                        if (!isset($petInfo[$auction['petSpeciesId']][$auction['petBreedId']]))
-                            $petInfo[$auction['petSpeciesId']][$auction['petBreedId']] = array('a' => array(), 'tq' => 0);
-
-                        $petInfo[$auction['petSpeciesId']][$auction['petBreedId']]['a'][] = array('q' => $auction['quantity'], 'p' => $auction['buyout']);
-                        $petInfo[$auction['petSpeciesId']][$auction['petBreedId']]['tq'] += $auction['quantity'];
-                    }
-                    else
-                    {
-                        if (!isset($itemInfo[$auction['item']]))
-                            $itemInfo[$auction['item']] = array('a' => array(), 'tq' => 0);
-
-                        $itemInfo[$auction['item']]['a'][] = array('q' => $auction['quantity'], 'p' => $auction['buyout']);
-                        $itemInfo[$auction['item']]['tq'] += $auction['quantity'];
-                    }
-                }
-
-                if (isset($existingIds[$auction['auc']]))
-                {
-                    $needUpdate = ($auction['bid'] != $existingIds[$auction['auc']]['bid']);
-                    unset($existingIds[$auction['auc']]);
-                    unset($existingPetIds[$auction['auc']]);
-                    if (!$needUpdate)
-                        continue;
-                }
-
-                $thisSql = sprintf('(%u, %u, %u, %u, %u, %u, %u, %d, %d)',
-                    $house,
-                    $auction['auc'],
-                    $auction['item'],
-                    $auction['quantity'],
-                    $auction['bid'],
-                    $auction['buyout'],
-                    $auction['owner'] == '???' ? 0 : $sellerInfo[$auction['ownerRealm']][$auction['owner']]['id'],
-                    $auction['rand'],
-                    $auction['seed']);
-                if (strlen($sql) + 5 + strlen($thisSql) > $maxPacketSize)
-                {
-                    DBQueryWithError($ourDb, $sql);
-                    $sql = '';
-                }
-                $sql .= ($sql == '' ? $sqlStart : ',') . $thisSql;
-
                 if (isset($auction['petSpeciesId']))
                 {
-                    $thisSql = sprintf('(%u, %u, %u, %u, %u, %u)',
-                        $house,
-                        $auction['auc'],
-                        $auction['petSpeciesId'],
-                        $auction['petBreedId'],
-                        $auction['petLevel'],
-                        $auction['petQualityId']);
+                    if ($auction['petBreedId'] > 12) $auction['petBreedId'] -= 10; // squash gender
 
-                    if (strlen($sqlPet) + 5 + strlen($thisSql) > $maxPacketSize)
-                    {
-                        DBQueryWithError($ourDb, $sqlPet);
-                        $sqlPet = '';
-                    }
-                    $sqlPet .= ($sqlPet == '' ? $sqlStartPet : ',') . $thisSql;
+                    if (!isset($petInfo[$auction['petSpeciesId']][$auction['petBreedId']]))
+                        $petInfo[$auction['petSpeciesId']][$auction['petBreedId']] = array('a' => array(), 'tq' => 0);
+
+                    $petInfo[$auction['petSpeciesId']][$auction['petBreedId']]['a'][] = array('q' => $auction['quantity'], 'p' => $auction['buyout']);
+                    $petInfo[$auction['petSpeciesId']][$auction['petBreedId']]['tq'] += $auction['quantity'];
+                }
+                else
+                {
+                    if (!isset($itemInfo[$auction['item']]))
+                        $itemInfo[$auction['item']] = array('a' => array(), 'tq' => 0);
+
+                    $itemInfo[$auction['item']]['a'][] = array('q' => $auction['quantity'], 'p' => $auction['buyout']);
+                    $itemInfo[$auction['item']]['tq'] += $auction['quantity'];
                 }
             }
 
-            if ($sql != '')
-                DBQueryWithError($ourDb,$sql);
+            if (isset($existingIds[$auction['auc']]))
+            {
+                $needUpdate = ($auction['bid'] != $existingIds[$auction['auc']]['bid']);
+                unset($existingIds[$auction['auc']]);
+                unset($existingPetIds[$auction['auc']]);
+                if (!$needUpdate)
+                    continue;
+            }
 
-            if ($sqlPet != '')
-                DBQueryWithError($ourDb, $sqlPet);
+            $thisSql = sprintf('(%u, %u, %u, %u, %u, %u, %u, %d, %d)',
+                $house,
+                $auction['auc'],
+                $auction['item'],
+                $auction['quantity'],
+                $auction['bid'],
+                $auction['buyout'],
+                $auction['owner'] == '???' ? 0 : $sellerInfo[$auction['ownerRealm']][$auction['owner']]['id'],
+                $auction['rand'],
+                $auction['seed']);
+            if (strlen($sql) + 5 + strlen($thisSql) > $maxPacketSize)
+            {
+                DBQueryWithError($ourDb, $sql);
+                $sql = '';
+            }
+            $sql .= ($sql == '' ? $sqlStart : ',') . $thisSql;
 
-            $ourDb->commit();
+            if (isset($auction['petSpeciesId']))
+            {
+                $thisSql = sprintf('(%u, %u, %u, %u, %u, %u)',
+                    $house,
+                    $auction['auc'],
+                    $auction['petSpeciesId'],
+                    $auction['petBreedId'],
+                    $auction['petLevel'],
+                    $auction['petQualityId']);
 
-            $sql = <<<EOF
+                if (strlen($sqlPet) + 5 + strlen($thisSql) > $maxPacketSize)
+                {
+                    DBQueryWithError($ourDb, $sqlPet);
+                    $sqlPet = '';
+                }
+                $sqlPet .= ($sqlPet == '' ? $sqlStartPet : ',') . $thisSql;
+            }
+        }
+
+        if ($sql != '')
+            DBQueryWithError($ourDb,$sql);
+
+        if ($sqlPet != '')
+            DBQueryWithError($ourDb, $sqlPet);
+
+        $ourDb->commit();
+
+        $sql = <<<EOF
 insert ignore into tblAuctionRare (house, id, prevseen) (
 select a.house, a.id, tis.lastseen
 from tblAuction a
@@ -309,10 +302,9 @@ and a.item not in (82800)
 %s
 and ifnull(tis.lastseen, '2000-01-01') < timestampadd(day,-14,'%s'))
 EOF;
-            $sql = sprintf($sql, $house, $lastMax, $hasRollOver ? ' and a.id < 0x20000000 ' : '', $snapshotString);
-            DBQueryWithError($ourDb,$sql);
-        }
-    unset($factionData);
+        $sql = sprintf($sql, $house, $lastMax, $hasRollOver ? ' and a.id < 0x20000000 ' : '', $snapshotString);
+        DBQueryWithError($ourDb,$sql);
+    }
 
     $preDeleted = count($itemInfo);
     foreach ($existingIds as &$oldRow)
