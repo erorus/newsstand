@@ -334,6 +334,7 @@ var TUJ = function()
 {
     var validPages = ['','search','item','seller','battlepet','contact','donate','category'];
     var pagesNeedRealm = [true, true, true, true, true, false, false, true];
+    var houseInfo = {};
     this.region = undefined;
     this.realms = undefined;
     this.params = {
@@ -418,9 +419,12 @@ var TUJ = function()
 
                 if (ls = libtuj.Storage.Get('defaultRealm'))
                 {
-                    inMain = false;
-                    tuj.SetParams(ls);
-                    return;
+                    var url = location.protocol + '//' + location.hostname + '/';
+                    if (!(document.referrer && document.referrer.substr(0, url.length) == url)) {
+                        inMain = false;
+                        tuj.SetParams(ls);
+                        return;
+                    }
                 }
             }
 
@@ -600,7 +604,75 @@ var TUJ = function()
                 return false;
             }).append(i);
 
-            $('#topcorner .region-realm').after(form);
+            var d = libtuj.ce('div');
+            d.id = 'realm-updated';
+
+            $('#topcorner .region-realm').after(d).after(form);
+        }
+
+        if (self.params.realm) {
+            var house = self.realms[self.params.realm].house;
+            var needUpdate = false;
+            if (!houseInfo.hasOwnProperty(house)) {
+                houseInfo[house] = {};
+                needUpdate = true;
+            } else if (houseInfo.hasOwnProperty('timestamps')) {
+                needUpdate = (houseInfo[house].timestamps.delayednext || houseInfo[house].timestamps.scheduled) * 1000 < Date.now();
+            }
+            
+            if (needUpdate) {
+                $.ajax({
+                    data: {'house': house},
+                    success: function(d) {
+                        SetHouseInfo(house, d);
+                    },
+                    url: 'api/house.php'
+                });
+            } else {
+                SetHouseInfo(house);
+            }
+        } else {
+            $('#realm-updated').empty();
+        }
+    }
+
+    function SetHouseInfo(house, dta)
+    {
+        var ru = document.getElementById('realm-updated');
+
+        if (dta) {
+            houseInfo[house] = dta;
+        }
+
+        if (!self.params.realm) {
+            $(ru).empty();
+            return;
+        }
+
+        if (!house) {
+            house = self.realms[self.params.realm].house;
+        }
+
+        if (!houseInfo.hasOwnProperty(house)) {
+            $(ru).empty();
+            return;
+        }
+
+        $(ru).empty();
+
+        if (!houseInfo[house].hasOwnProperty('timestamps')) {
+            return;
+        }
+
+        if (houseInfo[house].timestamps.lastupdate) {
+            var d = libtuj.ce();
+            d.appendChild(document.createTextNode('Updated ' +libtuj.FormatDate(houseInfo[house].timestamps.lastupdate, true)));
+            ru.appendChild(d);
+        }
+        if (houseInfo[house].timestamps.scheduled && houseInfo[house].timestamps.scheduled * 1000 > Date.now()) {
+            var d = libtuj.ce();
+            d.appendChild(document.createTextNode('Next update ' +libtuj.FormatDate(houseInfo[house].timestamps.scheduled, true)));
+            ru.appendChild(d);
         }
     }
 

@@ -38,8 +38,11 @@ h2 sub { display: block; font-weight: normal; font-size: 66%; margin-left: 2em }
 #topcorner form {margin: 0}
 #topcorner input {text-size: 150%; margin-top: 1em; padding: 0.5em; width: 100%; width: calc(100% - 1.5em); border: 0.25em solid #444; box-shadow: 0.3em 0.3em #999 }
 
+#topcorner #realm-updated { margin-top: 1em; font-size: 75% }
+
 body.realm #topcorner .region-realm { display: none }
 body.realm #topcorner form { display: none }
+body.realm #topcorner #realm-updated { display: none }
 
 .ad { width: 728px; height: 90px; margin: 1em auto }
 .ad.box { width: 336px; height: 280px; display: inline-block; margin: 1em 0 }
