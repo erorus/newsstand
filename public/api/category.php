@@ -99,7 +99,6 @@ where iba.sdprice < iba.avgprice/2
 and iba.bidper / iba.avgprice < 0.2
 order by iba.bidper / iba.avgprice asc
 limit 20) lowbids on i.id=lowbids.item
-left join tblItemGlobal g on g.item=i.id
 EOF;
 
     $tr['results'][] = ['name' => 'ItemList', 'data' => [
