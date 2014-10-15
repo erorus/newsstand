@@ -23,6 +23,16 @@ dtecho(dbcdecode('Item-sparse', array(
     15=>'requiredlevel',
     16=>'requiredskill',
     24=>'stacksize',
+    26=>'stat1',
+    27=>'stat2',
+    28=>'stat3',
+    29=>'stat4',
+    30=>'stat5',
+    31=>'stat6',
+    32=>'stat7',
+    33=>'stat8',
+    34=>'stat9',
+    35=>'stat10',
     70=>'binds',
     71=>'name')));
 
@@ -30,11 +40,22 @@ dtecho('Running items..');
 dtecho(run_sql('truncate table tblDBCItem'));
 $sql = <<<EOF
 insert into tblDBCItem (id, name, quality, level, class, subclass, icon, stacksize, binds,
-buyfromvendor, selltovendor, auctionable, type, requiredlevel, requiredskill)
+buyfromvendor, selltovendor, auctionable, type, requiredlevel, requiredskill, pvp)
 (select i.id, s.name, s.quality, s.level, i.classid, i.subclassid,
 if(right(lower(fd.name), 4) = '.blp', lower(substr(fd.name, 1, length(fd.name) - 4)), lower(fd.name)),
 s.stacksize, s.binds, s.buyprice, s.sellprice, case s.binds when 0 then 1 when 2 then 1 when 3 then 1 else 0 end,
-s.type, s.requiredlevel, s.requiredskill
+s.type, s.requiredlevel, s.requiredskill,
+if(stat1 <= 0 and stat2 <= 0 and stat3 <= 0 and stat4 <= 0 and stat5 <= 0 and stat6 <= 0 and stat7 <= 0 and stat8 <= 0 and stat9 <= 0 and stat10 <= 0, null, if (
+ stat1 in (35,57) or
+ stat2 in (35,57) or
+ stat3 in (35,57) or
+ stat4 in (35,57) or
+ stat5 in (35,57) or
+ stat6 in (35,57) or
+ stat7 in (35,57) or
+ stat8 in (35,57) or
+ stat9 in (35,57) or
+ stat10 in (35,57), 1, 0))
 from ttblItem i
 join `ttblItem-sparse` s on s.id = i.id
 left join ttblFileData fd on fd.id = i.iconfiledataid)

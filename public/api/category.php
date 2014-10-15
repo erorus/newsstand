@@ -265,15 +265,14 @@ function CategoryResult_leatherworking($house)
     $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Epic Leather', 'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.requiredlevel = '.$expansionLevels[count($expansionLevels)-1].' and x.quality=4 and x.class=4 and x.subclass=2 and xs.skillline=165) xyz on xyz.id = i.id'])]];
     $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Epic Mail',    'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.requiredlevel = '.$expansionLevels[count($expansionLevels)-1].' and x.quality=4 and x.class=4 and x.subclass=3 and xs.skillline=165) xyz on xyz.id = i.id'])]];
 
-    $pvpLevels = [];
-    if (false) //(($pvpLevels = MCGet('category_leatherworking_pvplevels_'.$expansionLevels[count($expansionLevels)-1])) === false)
+    if (($pvpLevels = MCGet('category_leatherworking_pvplevels_'.$expansionLevels[count($expansionLevels)-1])) === false)
     {
         DBConnect();
         $sql = <<<EOF
 SELECT distinct i.level
 FROM tblDBCItem i
 JOIN tblDBCSpell s on s.crafteditem=i.id
-WHERE i.quality=3 and i.class=4 and s.skillline=165 and i.requiredlevel=? and i.json like '%pvp%'
+WHERE i.quality=3 and i.class=4 and s.skillline=165 and i.requiredlevel=? and i.pvp > 0
 order by 1 desc
 EOF;
 
@@ -289,8 +288,8 @@ EOF;
 
     foreach ($pvpLevels as $itemLevel)
     {
-        $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'PVP Rare '.$itemLevel.' Leather', 'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.requiredlevel = '.$expansionLevels[count($expansionLevels)-1].' and x.level='.$itemLevel.' and x.quality=3 and x.class=4 and x.subclass=2 and xs.skillline=165 and x.json like \'%pvp%\') xyz on xyz.id = i.id'])]];
-        $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'PVP Rare '.$itemLevel.' Mail',    'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.requiredlevel = '.$expansionLevels[count($expansionLevels)-1].' and x.level='.$itemLevel.' and x.quality=3 and x.class=4 and x.subclass=3 and xs.skillline=165 and x.json like \'%pvp%\') xyz on xyz.id = i.id'])]];
+        $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'PVP Rare '.$itemLevel.' Leather', 'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.requiredlevel = '.$expansionLevels[count($expansionLevels)-1].' and x.level='.$itemLevel.' and x.quality=3 and x.class=4 and x.subclass=2 and xs.skillline=165 and x.pvp > 0) xyz on xyz.id = i.id'])]];
+        $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'PVP Rare '.$itemLevel.' Mail',    'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.requiredlevel = '.$expansionLevels[count($expansionLevels)-1].' and x.level='.$itemLevel.' and x.quality=3 and x.class=4 and x.subclass=3 and xs.skillline=165 and x.pvp > 0) xyz on xyz.id = i.id'])]];
     }
 
     return $tr;
@@ -310,14 +309,13 @@ function CategoryResult_blacksmithing($house)
         $tr['results'][] = ['name' => 'ItemList', 'sort' => ['main' => $sortIndex++], 'data' => ['name' => $nm.' Consumables', 'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion'.($x == 3 ? '<=' : '=').$idx.' and x.level>40 and x.class=0 and xs.skillline=164) xyz on xyz.id = i.id'])]];
     }
 
-    $armorLevels = [];
     $key = 'category_blacksmithing_levels_'.(count($expansionLevels)-1);
-    if (false) //(($armorLevels = MCGet($key)) === false)
+    if (($armorLevels = MCGet($key)) === false)
     {
         DBConnect();
 
         $sql = <<<EOF
-SELECT x.class, x.level, x.quality, sum( if( x.json LIKE '%pvp%', 1, 0 ) ) haspvp, sum( if( x.json NOT LIKE '%pvp%', 1, 0 ) ) haspve
+SELECT x.class, x.level, x.quality, sum( if(x.pvp, 1, 0) ) haspvp, sum( if(x.pvp, 0, 1) ) haspve
 FROM tblDBCItem x, tblDBCSpell s
 WHERE x.quality BETWEEN 2 AND 4
 AND s.expansion = ?
@@ -363,7 +361,7 @@ EOF;
         $classId = ($armorName == 'Weapon')?2:4;
         foreach ($armorQualities as $q => $levels) {
             foreach ($levels as $level) {
-                $tr['results'][] = ['name' => 'ItemList', 'sort' => ['main' => $sortIndex, 'level' => $level, 'quality' => $q, 'name' => $armorName], 'data' => ['name' => $qualities[$q].' '.$level.' '.$armorName, 'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCItemReagents xir where xir.item=x.id and x.json '.(($armorName == 'PvP Armor')?'':'not').' like \'%pvp%\' and x.level='.$level.' and x.class='.$classId.' and xir.skillline=164 and x.quality='.$q.') xyz on xyz.id = i.id'])]];
+                $tr['results'][] = ['name' => 'ItemList', 'sort' => ['main' => $sortIndex, 'level' => $level, 'quality' => $q, 'name' => $armorName], 'data' => ['name' => $qualities[$q].' '.$level.' '.$armorName, 'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCItemReagents xir where xir.item=x.id and ifnull(x.pvp,0) '.(($armorName == 'PvP Armor')?'>':'=').'0 and x.level='.$level.' and x.class='.$classId.' and xir.skillline=164 and x.quality='.$q.') xyz on xyz.id = i.id'])]];
             }
         }
     }
@@ -443,15 +441,14 @@ function CategoryResult_tailoring($house)
     $x--; $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => $expansions[$x].' Spellthread', 'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion='.$x.' and x.class=0 and x.subclass=6 and xs.skillline=197) xyz on xyz.id = i.id'])]];
     $x--; $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Other Spellthread',            'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion<='.$x.' and x.class=0 and x.subclass=6 and xs.skillline=197) xyz on xyz.id = i.id'])]];
 
-    $pvpLevels = [];
-    if (false) //(($pvpLevels = MCGet('category_tailoring_pvplevels_'.$expansionLevels[count($expansionLevels)-1])) === false)
+    if (($pvpLevels = MCGet('category_tailoring_pvplevels_'.$expansionLevels[count($expansionLevels)-1])) === false)
     {
         DBConnect();
         $sql = <<<EOF
 SELECT distinct i.level
 FROM tblDBCItem i
 JOIN tblDBCSpell s on s.crafteditem=i.id
-WHERE i.quality=3 and i.class=4 and s.skillline=197 and i.requiredlevel=? and i.json like '%pvp%'
+WHERE i.quality=3 and i.class=4 and s.skillline=197 and i.requiredlevel=? and i.pvp > 0
 order by 1 desc
 EOF;
 
@@ -468,7 +465,7 @@ EOF;
     $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Epic Armor', 'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.requiredlevel = '.$expansionLevels[count($expansionLevels)-1].' and x.quality=4 and x.class=4 and xs.skillline=197) xyz on xyz.id = i.id'])]];
 
     foreach ($pvpLevels as $pvpLevel)
-        $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'PVP '.$pvpLevel.' Rare Armor',  'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.requiredlevel = '.$expansionLevels[count($expansionLevels)-1].' and x.level = '.$pvpLevel.' and x.quality=3 and x.class=4 and xs.skillline=197 and x.json like \'%pvp%\') xyz on xyz.id = i.id'])]];
+        $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'PVP '.$pvpLevel.' Rare Armor',  'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.requiredlevel = '.$expansionLevels[count($expansionLevels)-1].' and x.level = '.$pvpLevel.' and x.quality=3 and x.class=4 and xs.skillline=197 and x.pvp > 0) xyz on xyz.id = i.id'])]];
 
     return $tr;
 }
