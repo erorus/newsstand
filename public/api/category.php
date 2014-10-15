@@ -565,7 +565,7 @@ and xs.expansion=$cexp
 and x.id not in ($fish,$farmed,$ironpaw)
 EOF;
 
-    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Raw Meat and Miscellaneous', 'items' => CategoryGenericItemList($house, "i.id in ($sql)")]];
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Raw Meat and Miscellaneous', 'items' => CategoryGenericItemList($house, ['joins' => "join ($sql) xyz on xyz.id = i.id"])]];
     $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Ironpaw Token Ingredients', 'items' => CategoryGenericItemList($house, "i.id in ($ironpaw)")]];
 
     $ways = MCGet('category_cooking_ways');
@@ -582,10 +582,10 @@ EOF;
     }
 
     foreach ($ways as $row) {
-        $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => $row['name'].' Food', 'items' => CategoryGenericItemList($house, "i.id in (select x.crafteditem from tblDBCSpell x where x.skillline=".$row['id'].")")]];
+        $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => $row['name'].' Food', 'items' => CategoryGenericItemList($house, ['joins' => "join (select x.crafteditem from tblDBCSpell x where x.skillline=".$row['id'].") xyz on xyz.crafteditem=i.id"])]];
     }
 
-    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Other Cooked Food', 'items' => CategoryGenericItemList($house, "i.id in (select x.crafteditem from tblDBCSpell x where x.skillline=185 and expansion=$cexp)")]];
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Other Cooked Food', 'items' => CategoryGenericItemList($house, ['joins' => "join (select x.crafteditem from tblDBCSpell x where x.skillline=185 and expansion=$cexp) xyz on xyz.crafteditem=i.id"])]];
 
     return $tr;
 }
