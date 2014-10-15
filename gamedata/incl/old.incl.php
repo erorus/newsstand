@@ -21,7 +21,10 @@ function run_sql($sql) {
         DebugMessage("\nCould not parse SQL:\n$sql\n", E_USER_ERROR);
     }
 
-    $stmt->execute();
+    if (!$stmt->execute()) {
+        echo "\n";
+        DebugMessage("\nStatement failed:\n$sql\n".$db->error, E_USER_ERROR);
+    }
     $stmt->close();
 }
 

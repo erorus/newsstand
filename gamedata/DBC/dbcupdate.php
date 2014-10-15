@@ -13,8 +13,18 @@ dtecho(run_sql('set session max_heap_table_size='.(1024*1024*1024)));
 dtecho(dbcdecode('FileData', array(1=>'id', 2=>'name')));
 dtecho(dbcdecode('Item', array(1=>'id', 2=>'classid', 3=>'subclassid', 8=>'iconfiledataid')));
 dtecho(dbcdecode('Item-sparse', array(
-    1=>'id', 2=>'quality', 8=>'buycount', 9=>'buyprice', 10=>'sellprice', 11=>'type', 14=>'level',
-    15=>'requiredlevel', 16=>'requiredskill', 24=>'stacksize', 70=>'binds', 71=>'name')));
+    1=>'id',
+    2=>'quality',
+    8=>'buycount',
+    9=>'buyprice',
+    10=>'sellprice',
+    11=>'type',
+    14=>'level',
+    15=>'requiredlevel',
+    16=>'requiredskill',
+    24=>'stacksize',
+    70=>'binds',
+    71=>'name')));
 
 dtecho('Running items..');
 dtecho(run_sql('truncate table tblDBCItem'));
@@ -31,6 +41,9 @@ left join ttblFileData fd on fd.id = i.iconfiledataid)
 EOF;
 dtecho(run_sql($sql));
 
+dtecho(dbcdecode('ItemEffect', array(2=>'itemid', 4=>'spellid')));
+dtecho(run_sql('truncate table tblDBCItemSpell'));
+dtecho(run_sql('insert ignore into tblDBCItemSpell (select * from ttblItemEffect where itemid > 0 and spellid > 0)'));
 
 dtecho(dbcdecode('ItemSubClass', array(2=>'classid',3=>'subclassid',12=>'subclassname',13=>'subclassfullname')));
 dtecho(run_sql('truncate table tblDBCItemSubClass'));
@@ -138,6 +151,13 @@ $sql .= ' from ttblSpell s left join ttblSpellMisc sm on s.miscid=sm.miscid left
 $sql .= ' tblDBCItemReagents ir, ttblSpellEffect se, ttblSkillLineAbility sla  ';
 $sql .= ' where s.spellid=se.spellid and s.spellid=sla.spellid and se.effecttypeid in (24,53,157) and s.spellid=ir.spell)';
 dtecho(run_sql($sql));
+
+$sql = 'insert ignore into tblDBCSpell (id,name,icon,description) ';
+$sql .= ' (select distinct s.spellid, s.spellname, si.iconpath, s.longdescription ';
+$sql .= ' from ttblSpell s left join ttblSpellMisc sm on s.miscid=sm.miscid left join ttblSpellIcon si on si.iconid=sm.iconid ';
+$sql .= ' join tblDBCItemSpell dis on dis.spell=s.spellid) ';
+dtecho(run_sql($sql));
+
 
 $sql = <<<EOF
 replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip)
