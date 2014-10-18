@@ -694,6 +694,7 @@ var TUJ = function()
         if (!self.params.page) {
             $('#front-page-sellers').empty();
             $('#front-page-most-available').empty();
+            $('#front-page-deals').empty();
 
             if (houseInfo.hasOwnProperty(tuj.realms[self.params.realm].house)) {
                 var info = houseInfo[tuj.realms[self.params.realm].house];
@@ -720,6 +721,20 @@ var TUJ = function()
                         a.href = tuj.BuildHash({page: 'item', id: info.mostAvailable[x].id});
                         a.rel = 'item=' + info.mostAvailable[x].id;
                         a.appendChild(document.createTextNode('[' + info.mostAvailable[x].name + ']'));
+                        d.appendChild(a);
+                        d.appendChild(libtuj.ce('br'));
+                    }
+                }
+                if (info.hasOwnProperty('deals') && info.deals.length) {
+                    var d = document.getElementById('front-page-deals');
+                    var h = libtuj.ce('h3');
+                    d.appendChild(h);
+                    $(h).text('Potential Deals');
+                    for (var x = 0; x < info.deals.length; x++) {
+                        var a = libtuj.ce('a');
+                        a.href = tuj.BuildHash({page: 'item', id: info.deals[x].id});
+                        a.rel = 'item=' + info.deals[x].id;
+                        a.appendChild(document.createTextNode('[' + info.deals[x].name + ']'));
                         d.appendChild(a);
                         d.appendChild(libtuj.ce('br'));
                     }

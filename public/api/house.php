@@ -15,6 +15,7 @@ $json = array(
     'timestamps' => HouseTimestamps($house),
     'sellers' => HouseTopSellers($house),
     'mostAvailable' => HouseMostAvailable($house),
+    'deals' => HouseDeals($house),
 );
 
 $json = json_encode($json, JSON_NUMERIC_CHECK);
@@ -127,3 +128,38 @@ EOF;
 
     return $tr;
 }
+
+function HouseDeals($house)
+{
+    global $db;
+
+    if (($tr = MCGetHouse($house, 'house_deals')) !== false)
+        return $tr;
+
+    DBConnect();
+
+    $sql = <<<EOF
+SELECT i.id, i.name
+FROM `tblItemSummary` tis
+join tblDBCItem i on tis.item = i.id
+join tblItemGlobal g on g.item = tis.item
+WHERE house = ?
+and tis.quantity > 0
+and i.quality > 0
+and g.median > 1000000
+order by tis.price / g.median asc
+limit 10
+EOF;
+
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('i', $house);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $tr = DBMapArray($result, null);
+    $stmt->close();
+
+    MCSetHouse($house, 'house_deals', $tr);
+
+    return $tr;
+}
+

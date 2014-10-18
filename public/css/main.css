@@ -74,9 +74,10 @@ abbr:hover.full-date { border-bottom: 1px dotted }
 .realms-column a {display: block; margin: 0.2em 0}
 
 #front-page, #contact-page, #progress-page, #donate-page { display: none }
+
+#front-page {position: relative; padding-right: 16em}
 #front-page a {text-decoration: underline}
 #front-page .news, #donate-page .news { max-width: 55em; margin: 2em 0 }
-
 #front-page .top-list { float: left; margin: 2em 2em 2em 0; line-height: 1.4em }
 #front-page .top-list h3 { margin: 0 0 1em }
 
@@ -165,7 +166,7 @@ img.captcha-button.selected { border-color: #006600 }
 #donate-page form { margin: 2em }
 #donate-thanks { display: none; margin: 2em; font-size: 125%; border-bottom: 1px solid black; padding: 0 2em 2em }
 
-#category-sidebar { float: right; margin-left: 2em; width: 14em; line-height: 1.4em }
+#category-sidebar { position: absolute; width: 14em; line-height: 1.4em; right: 0; top: 0 }
 #category-sidebar a { display: block; text-decoration: none }
 #category-sidebar a[href] { text-decoration: underline }
 #category-sidebar a small { font-style: italic }
