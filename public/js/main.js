@@ -690,6 +690,27 @@ var TUJ = function()
             d.appendChild(document.createTextNode('Next update ' +libtuj.FormatDate(houseInfo[house].timestamps.scheduled, true)));
             ru.appendChild(d);
         }
+
+        if (!self.params.page) {
+            $('#front-page-sellers').empty();
+
+            if (houseInfo.hasOwnProperty(tuj.realms[self.params.realm].house)) {
+                var info = houseInfo[tuj.realms[self.params.realm].house];
+                if (info.hasOwnProperty('sellers') && info.sellers.length) {
+                    var d = document.getElementById('front-page-sellers');
+                    var h = libtuj.ce('h3');
+                    d.appendChild(h);
+                    $(h).text('Top Sellers');
+                    for (var x = 0; x < info.sellers.length; x++) {
+                        var a = libtuj.ce('a');
+                        a.href = tuj.BuildHash({page: 'seller', realm: info.sellers[x].realm, id: info.sellers[x].name});
+                        a.appendChild(document.createTextNode(info.sellers[x].name + (info.sellers[x].realm == self.params.realm ? '' : (' - ' + tuj.realms[info.sellers[x].realm].name))));
+                        d.appendChild(a);
+                        d.appendChild(libtuj.ce('br'));
+                    }
+                }
+            }
+        }
     }
 
     this.SetTitle = function(titlePart)
