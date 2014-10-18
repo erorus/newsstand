@@ -26,6 +26,7 @@ $json = array(
     'stats'     => $sellerRow,
     'history'   => SellerHistory($house, $sellerRow['id']),
     'auctions'  => SellerAuctions($house, $sellerRow['id']),
+    'petAuctions' => SellerPetAuctions($house, $sellerRow['id']),
 );
 
 json_return($json);
@@ -104,6 +105,7 @@ SELECT a.item, i.name, i.quality, i.class, i.subclass, i.icon, i.stacksize, a.qu
 FROM `tblAuction` a
 left join tblDBCItem i on a.item=i.id
 WHERE a.house = ? and a.seller = ?
+and a.item != 82800
 EOF;
 
     $stmt = $db->prepare($sql);
@@ -114,6 +116,35 @@ EOF;
     $stmt->close();
 
     MCSetHouse($house, 'seller_auctions_'.$seller, $tr);
+
+    return $tr;
+}
+
+function SellerPetAuctions($house, $seller)
+{
+    global $db;
+
+    if (($tr = MCGetHouse($house, 'seller_petauctions_'.$seller)) !== false)
+        return $tr;
+
+    DBConnect();
+
+    $sql = <<<EOF
+SELECT ap.species, ap.breed, quantity, bid, buy, ap.level, ap.quality, p.name, p.icon, p.type, p.npc
+FROM `tblAuction` a
+JOIN `tblAuctionPet` ap on a.house = ap.house and a.id = ap.id
+JOIN `tblPet` `p` on `p`.`id` = `ap`.`species`
+WHERE a.house = ? and a.seller = ? and a.item = 82800
+EOF;
+
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('ii', $house, $seller);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $tr = DBMapArray($result, null);
+    $stmt->close();
+
+    MCSetHouse($house, 'seller_petauctions_'.$seller, $tr);
 
     return $tr;
 }
