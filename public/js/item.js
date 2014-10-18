@@ -1438,7 +1438,8 @@ var TUJ_Item = function()
                     id: x,
                     marker: {
                         symbol: 'diamond'
-                    }
+                    },
+                    color: tujConstants.siteColors[tuj.colorTheme].redQuantity
                 } : {
                     x: libtuj.GetHousePopulation(data.globalnow[x].house),
                     y: data.globalnow[x].price,
