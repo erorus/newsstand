@@ -1427,12 +1427,11 @@ var TUJ_Item = function()
         var hcdata = {price: [], quantity: {}, lastseen: {}, houses: {}};
         var allPrices = [];
 
-        var isThisHouse = false;
+        var o;
         for (var x = 0; x < data.globalnow.length; x++)
         {
-            isThisHouse = data.globalnow[x].house == tuj.realms[params.realm].house;
-
-            hcdata.price.push(isThisHouse ? {
+            if (data.globalnow[x].house == tuj.realms[params.realm].house) {
+                o = {
                     x: libtuj.GetHousePopulation(data.globalnow[x].house),
                     y: data.globalnow[x].price,
                     id: x,
@@ -1440,11 +1439,19 @@ var TUJ_Item = function()
                         symbol: 'diamond'
                     },
                     color: tujConstants.siteColors[tuj.colorTheme].redQuantity
-                } : {
+                };
+            } else {
+                o = {
                     x: libtuj.GetHousePopulation(data.globalnow[x].house),
                     y: data.globalnow[x].price,
                     id: x
-                });
+                };
+                if (data.globalnow[x].quantity == 0) {
+                    o.color = tujConstants.siteColors[tuj.colorTheme].bluePriceFill;
+                }
+            }
+
+            hcdata.price.push(o);
             hcdata.houses[x] = data.globalnow[x].house;
             hcdata.quantity[x] = data.globalnow[x].quantity;
             hcdata.lastseen[x] = data.globalnow[x].lastseen;

@@ -1133,24 +1133,31 @@ var TUJ_BattlePet = function()
         var hcdata = {price: [], quantity: {}, lastseen: {}, houses: {}};
         var allPrices = [];
 
-        var isThisHouse = false;
+        var o;
         for (var x = 0; x < data.globalnow.length; x++)
         {
-            isThisHouse = data.globalnow[x].house == tuj.realms[params.realm].house;
+            if (data.globalnow[x].house == tuj.realms[params.realm].house) {
+                o = {
+                    x: libtuj.GetHousePopulation(data.globalnow[x].house),
+                    y: data.globalnow[x].price,
+                    id: x,
+                    marker: {
+                        symbol: 'diamond'
+                    },
+                    color: tujConstants.siteColors[tuj.colorTheme].redQuantity
+                };
+            } else {
+                o = {
+                    x: libtuj.GetHousePopulation(data.globalnow[x].house),
+                    y: data.globalnow[x].price,
+                    id: x
+                };
+                if (data.globalnow[x].quantity == 0) {
+                    o.color = tujConstants.siteColors[tuj.colorTheme].bluePriceFill;
+                }
+            }
 
-            hcdata.price.push(isThisHouse ? {
-                x: libtuj.GetHousePopulation(data.globalnow[x].house),
-                y: data.globalnow[x].price,
-                id: x,
-                marker: {
-                    symbol: 'diamond'
-                },
-                color: tujConstants.siteColors[tuj.colorTheme].redQuantity
-            } : {
-                x: libtuj.GetHousePopulation(data.globalnow[x].house),
-                y: data.globalnow[x].price,
-                id: x
-            });
+            hcdata.price.push(o);
             hcdata.houses[x] = data.globalnow[x].house;
             hcdata.quantity[x] = data.globalnow[x].quantity;
             hcdata.lastseen[x] = data.globalnow[x].lastseen;
