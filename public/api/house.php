@@ -14,6 +14,7 @@ HouseETag($house);
 $json = array(
     'timestamps' => HouseTimestamps($house),
     'sellers' => HouseTopSellers($house),
+    'mostAvailable' => HouseMostAvailable($house),
 );
 
 $json = json_encode($json, JSON_NUMERIC_CHECK);
@@ -93,6 +94,36 @@ EOF;
     $stmt->close();
 
     MCSetHouse($house, 'house_topsellers', $tr);
+
+    return $tr;
+}
+
+function HouseMostAvailable($house)
+{
+    global $db;
+
+    if (($tr = MCGetHouse($house, 'house_mostavailable')) !== false)
+        return $tr;
+
+    DBConnect();
+
+    $sql = <<<EOF
+SELECT i.id, i.name
+FROM `tblItemSummary` tis
+join tblDBCItem i on tis.item = i.id
+WHERE house = ?
+order by tis.quantity desc
+limit 10
+EOF;
+
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('i', $house);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $tr = DBMapArray($result, null);
+    $stmt->close();
+
+    MCSetHouse($house, 'house_mostavailable', $tr);
 
     return $tr;
 }

@@ -693,6 +693,7 @@ var TUJ = function()
 
         if (!self.params.page) {
             $('#front-page-sellers').empty();
+            $('#front-page-most-available').empty();
 
             if (houseInfo.hasOwnProperty(tuj.realms[self.params.realm].house)) {
                 var info = houseInfo[tuj.realms[self.params.realm].house];
@@ -705,6 +706,20 @@ var TUJ = function()
                         var a = libtuj.ce('a');
                         a.href = tuj.BuildHash({page: 'seller', realm: info.sellers[x].realm, id: info.sellers[x].name});
                         a.appendChild(document.createTextNode(info.sellers[x].name + (info.sellers[x].realm == self.params.realm ? '' : (' - ' + tuj.realms[info.sellers[x].realm].name))));
+                        d.appendChild(a);
+                        d.appendChild(libtuj.ce('br'));
+                    }
+                }
+                if (info.hasOwnProperty('mostAvailable') && info.mostAvailable.length) {
+                    var d = document.getElementById('front-page-most-available');
+                    var h = libtuj.ce('h3');
+                    d.appendChild(h);
+                    $(h).text('Most Available');
+                    for (var x = 0; x < info.mostAvailable.length; x++) {
+                        var a = libtuj.ce('a');
+                        a.href = tuj.BuildHash({page: 'item', id: info.mostAvailable[x].id});
+                        a.rel = 'item=' + info.mostAvailable[x].id;
+                        a.appendChild(document.createTextNode('[' + info.mostAvailable[x].name + ']'));
                         d.appendChild(a);
                         d.appendChild(libtuj.ce('br'));
                     }
