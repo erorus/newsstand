@@ -64,6 +64,10 @@ foreach ($regions as $region)
     if ($caughtKill)
         break;
 
+    GetRealmPopulation($region);
+    if ($caughtKill)
+        break;
+
     $stmt = $db->prepare('select slug, house, name, ifnull(ownerrealm, replace(name, \' \', \'\')) as ownerrealm from tblRealm where region = ?');
     $stmt->bind_param('s', $region);
     $stmt->execute();
@@ -319,6 +323,48 @@ function GetRussianOwnerRealms($region)
         if (!$db->real_query($sql))
             DebugMessage(sprintf("%s: %s", $sql, $db->error), E_USER_WARNING);
     }
+}
+
+function GetRealmPopulation($region)
+{
+    global $db, $caughtKill;
+
+    $json = FetchHTTP('https://realmpop.com/'.strtolower($region).'.json');
+    if ($json == '') {
+        DebugMessage('Could not get realmpop json for '.$region, E_USER_WARNING);
+        return;
+    }
+
+    if ($caughtKill)
+        return;
+
+    $stats = json_decode($json, true);
+    if (json_last_error() != JSON_ERROR_NONE) {
+        DebugMessage('json decode error for realmpop json for '.$region, E_USER_WARNING);
+        return;
+    }
+
+    $stats = $stats['realms'];
+
+    $stmt = $db->prepare('select slug, id from tblRealm where region=?');
+    $stmt->bind_param('s', $region);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $bySlug = DBMapArray($result);
+    $stmt->close();
+
+    if ($caughtKill)
+        return;
+
+    $sqlPattern = 'update tblRealm set population = %d where id = %d';
+    foreach ($stats as $slug => $o) {
+        if (isset($bySlug[$slug])) {
+            $sql = sprintf($sqlPattern, ($o['counts']['Alliance'] + $o['counts']['Horde']), $bySlug[$slug]['id']);
+            if (!$db->real_query($sql))
+                DebugMessage(sprintf("%s: %s", $sql, $db->error), E_USER_WARNING);
+        }
+    }
+
 }
 
 function CleanOldHouses()
