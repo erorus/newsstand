@@ -1496,7 +1496,10 @@ var TUJ_Item = function()
                     }
                 },
                 labels: {
-                    enabled: true
+                    enabled: true,
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
                 },
                 min: 0
             },
