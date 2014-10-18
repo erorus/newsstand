@@ -235,7 +235,7 @@ EOF;
     $tr = DBMapArray($result, null);
     $stmt->close();
 
-    MCSet($key, $tr);
+    MCSet($key, $tr, 60*60);
 
     return $tr;
 }
