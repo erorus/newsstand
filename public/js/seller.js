@@ -395,6 +395,11 @@ var TUJ_Seller = function()
         td.className = 'price';
         $(td).text('Buyout Each');
 
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.className = 'quantity';
+        $(td).text('Cheaper');
+
         data.auctions.sort(function(a,b){
             return tujConstants.itemClassOrder[a['class']] - tujConstants.itemClassOrder[b['class']] ||
                 a.name.localeCompare(b.name) ||
@@ -463,6 +468,13 @@ var TUJ_Seller = function()
                 a = s;
             if (a)
                 td.appendChild(a);
+
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.className = 'quantity';
+            if (auc.cheaper) {
+                td.appendChild(libtuj.FormatQuantity(auc.cheaper));
+            }
         }
 
         dest.appendChild(t);
@@ -508,6 +520,11 @@ var TUJ_Seller = function()
         td.className = 'price';
         $(td).text('Buyout Each');
 
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.className = 'quantity';
+        $(td).text('Cheaper');
+
         data.petAuctions.sort(function(a,b){
             return a.name.localeCompare(b.name) ||
                 tujConstants.breeds[a.breed].localeCompare(tujConstants.breeds[b.breed]) ||
@@ -516,11 +533,9 @@ var TUJ_Seller = function()
                 a.bid - b.bid;
         });
 
-        var s, a, stackable, i;
+        var s, a, i;
         for (var x = 0, auc; auc = data.petAuctions[x]; x++)
         {
-            stackable = auc.stacksize > 1;
-
             tr = libtuj.ce('tr');
             t.appendChild(tr);
 
@@ -572,6 +587,13 @@ var TUJ_Seller = function()
                 a = s;
             if (a)
                 td.appendChild(a);
+
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.className = 'quantity';
+            if (auc.cheaper) {
+                td.appendChild(libtuj.FormatQuantity(auc.cheaper));
+            }
         }
 
         dest.appendChild(t);
