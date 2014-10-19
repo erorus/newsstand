@@ -682,12 +682,12 @@ function GetAverageAge(&$info)
         return 0;
 
     $s = 0;
-    $c = count($info['a']) - 1;
+    $c = count($info['a']);
     for ($x = 0; $x < $c; $x++) {
         $s += $info['a'][$x]['age'];
     }
 
-    return floor($s / ($c + 1));
+    return floor($s / $c);
 }
 
 function GetMarketPrice(&$info)
