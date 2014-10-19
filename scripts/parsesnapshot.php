@@ -406,11 +406,11 @@ function GetAuctionAge($id, $now, &$snapshotList)
 
     if ($imin == 0) {
         // id is older than oldest snapshot, assume just as old
-        $seconds = $now - $snapshotList[$imin]['snapshot'];
+        $seconds = $now - $snapshotList[$imin]['updated'];
     } else {
         $seconds = floor($now - (
-                $snapshotList[$imin-1]['snapshot'] +
-                ($snapshotList[$imin]['snapshot'] - $snapshotList[$imin-1]['snapshot']) *
+                $snapshotList[$imin-1]['updated'] +
+                ($snapshotList[$imin]['updated'] - $snapshotList[$imin-1]['updated']) *
                 (($id - $snapshotList[$imin-1]['maxid']) / ($snapshotList[$imin]['maxid'] - $snapshotList[$imin-1]['maxid']))
             ));
     }
