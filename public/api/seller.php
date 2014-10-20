@@ -26,6 +26,7 @@ $json = array(
     'stats'     => $sellerRow,
     'history'   => SellerHistory($house, $sellerRow['id']),
     'auctions'  => SellerAuctions($house, $sellerRow['id']),
+    'petAuctions' => SellerPetAuctions($house, $sellerRow['id']),
 );
 
 json_return($json);
@@ -100,10 +101,13 @@ function SellerAuctions($house, $seller)
     DBConnect();
 
     $sql = <<<EOF
-SELECT a.item, i.name, i.quality, i.class, i.subclass, i.icon, i.stacksize, a.quantity, a.bid, a.buy, a.`rand`, a.seed
+SELECT a.item, i.name, i.quality, i.class, i.subclass, i.icon, i.stacksize, a.quantity, a.bid, a.buy, a.`rand`, a.seed,
+(SELECT ifnull(sum(quantity),0) from tblAuction a2 where a2.house=a.house and a2.item=a.item and a2.seller!=a.seller and
+((a.buy > 0 and a2.buy > 0 and (a2.buy / a2.quantity < a.buy / a.quantity)) or (a.buy = 0 and (a2.bid / a2.quantity < a.bid / a.quantity)))) cheaper
 FROM `tblAuction` a
 left join tblDBCItem i on a.item=i.id
 WHERE a.house = ? and a.seller = ?
+and a.item != 82800
 EOF;
 
     $stmt = $db->prepare($sql);
@@ -114,6 +118,40 @@ EOF;
     $stmt->close();
 
     MCSetHouse($house, 'seller_auctions_'.$seller, $tr);
+
+    return $tr;
+}
+
+function SellerPetAuctions($house, $seller)
+{
+    global $db;
+
+    if (($tr = MCGetHouse($house, 'seller_petauctions_'.$seller)) !== false)
+        return $tr;
+
+    DBConnect();
+
+    $sql = <<<EOF
+SELECT ap.species, ap.breed, quantity, bid, buy, ap.level, ap.quality, p.name, p.icon, p.type, p.npc,
+(SELECT ifnull(sum(quantity),0)
+from tblAuction a2
+join tblAuctionPet ap2 on a2.house = ap2.house and a2.id = ap2.id
+where a2.house=a.house and a2.item=a.item and ap2.species = ap.species and ap2.level >= ap.level and a2.seller!=a.seller and
+((a.buy > 0 and a2.buy > 0 and (a2.buy / a2.quantity < a.buy / a.quantity)) or (a.buy = 0 and (a2.bid / a2.quantity < a.bid / a.quantity)))) cheaper
+FROM `tblAuction` a
+JOIN `tblAuctionPet` ap on a.house = ap.house and a.id = ap.id
+JOIN `tblPet` `p` on `p`.`id` = `ap`.`species`
+WHERE a.house = ? and a.seller = ? and a.item = 82800
+EOF;
+
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('ii', $house, $seller);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $tr = DBMapArray($result, null);
+    $stmt->close();
+
+    MCSetHouse($house, 'seller_petauctions_'.$seller, $tr);
 
     return $tr;
 }

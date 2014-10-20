@@ -122,6 +122,20 @@ var TUJ_Seller = function()
             SellerAuctions(dta, cht);
         }
 
+        if (dta.petAuctions.length)
+        {
+            d = libtuj.ce();
+            d.className = 'chart-section';
+            h = libtuj.ce('h2');
+            d.appendChild(h);
+            $(h).text('Current Pet Auctions');
+            cht = libtuj.ce();
+            cht.className = 'auctionlist';
+            d.appendChild(cht);
+            sellerPage.append(d);
+            SellerPetAuctions(dta, cht);
+        }
+
         libtuj.Ads.Show();
     }
 
@@ -381,6 +395,11 @@ var TUJ_Seller = function()
         td.className = 'price';
         $(td).text('Buyout Each');
 
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.className = 'quantity';
+        $(td).text('Cheaper');
+
         data.auctions.sort(function(a,b){
             return tujConstants.itemClassOrder[a['class']] - tujConstants.itemClassOrder[b['class']] ||
                 a.name.localeCompare(b.name) ||
@@ -449,10 +468,137 @@ var TUJ_Seller = function()
                 a = s;
             if (a)
                 td.appendChild(a);
+
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.className = 'quantity';
+            if (auc.cheaper) {
+                td.appendChild(libtuj.FormatQuantity(auc.cheaper));
+            }
         }
 
         dest.appendChild(t);
     }
+
+    function SellerPetAuctions(data, dest)
+    {
+        var t,tr,td;
+        t = libtuj.ce('table');
+        t.className = 'auctionlist';
+
+        tr = libtuj.ce('tr');
+        t.appendChild(tr);
+
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.className = 'name';
+        td.colSpan = 2;
+        $(td).text('Species');
+
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.className = 'breed';
+        $(td).text('Breed');
+
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.className = 'quality';
+        $(td).text('Quality');
+
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.className = 'level';
+        $(td).text('Level');
+
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.className = 'price';
+        $(td).text('Bid Each');
+
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.className = 'price';
+        $(td).text('Buyout Each');
+
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.className = 'quantity';
+        $(td).text('Cheaper');
+
+        data.petAuctions.sort(function(a,b){
+            return a.name.localeCompare(b.name) ||
+                tujConstants.breeds[a.breed].localeCompare(tujConstants.breeds[b.breed]) ||
+                a.quality - b.quality ||
+                a.buy - b.buy ||
+                a.bid - b.bid;
+        });
+
+        var s, a, i;
+        for (var x = 0, auc; auc = data.petAuctions[x]; x++)
+        {
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+
+            td = libtuj.ce('td');
+            td.className = 'icon';
+            tr.appendChild(td);
+            i = libtuj.ce('img');
+            td.appendChild(i);
+            i.className = 'icon';
+            i.src = 'icon/medium/' + auc.icon + '.jpg';
+
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.className = 'name';
+            a = libtuj.ce('a');
+            a.rel = 'npc=' + auc.npc;
+            a.href = tuj.BuildHash({page: 'battlepet', id: auc.species});
+            td.appendChild(a);
+            $(a).text('[' + auc.name + ']');
+
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.className = 'breed';
+            td.appendChild(document.createTextNode(tujConstants.breeds[auc.breed]));
+
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.className = 'quality';
+            td.appendChild(document.createTextNode(tujConstants.qualities[auc.quality]));
+
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.className = 'level';
+            td.appendChild(document.createTextNode(auc.level));
+
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.className = 'price';
+            s = libtuj.FormatFullPrice(auc.bid / auc.quantity);
+            td.appendChild(s);
+
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.className = 'price';
+            s = libtuj.FormatFullPrice(auc.buy / auc.quantity);
+            if (!auc.buy)
+                a = libtuj.ce('span');
+            else
+                a = s;
+            if (a)
+                td.appendChild(a);
+
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.className = 'quantity';
+            if (auc.cheaper) {
+                td.appendChild(libtuj.FormatQuantity(auc.cheaper));
+            }
+        }
+
+        dest.appendChild(t);
+    }
+
     this.load(tuj.params);
 }
 

@@ -121,17 +121,19 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     $region = $houseRegionCache[$house]['region'];
 
-    $stmt = $ourDb->prepare('select id, bid, item, house from tblAuction where house = ?');
+    $stmt = $ourDb->prepare('select id, bid, item from tblAuction where house = ?');
     $stmt->bind_param('i',$house);
     $stmt->execute();
     $result = $stmt->get_result();
     $existingIds = DBMapArray($result);
+    $stmt->close();
 
-    $stmt = $ourDb->prepare('select id, species, breed, house from tblAuctionPet where house = ?');
+    $stmt = $ourDb->prepare('select id, species, breed from tblAuctionPet where house = ?');
     $stmt->bind_param('i',$house);
     $stmt->execute();
     $result = $stmt->get_result();
     $existingPetIds = DBMapArray($result);
+    $stmt->close();
 
     $naiveMax = 0;
     $lowMax = -1;
@@ -175,10 +177,15 @@ function ParseAuctionData($house, $snapshot, &$json)
         $lastMax = 0;
     $stmt->close();
 
+    $stmt = $ourDb->prepare('select unix_timestamp(updated) updated, maxid from tblSnapshot where house = ? and updated between timestampadd(hour, -49, ?) and ? order by updated asc');
+    $stmt->bind_param('iss', $house, $snapshotString, $snapshotString);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $snapshotList = DBMapArray($result, null);
+    $stmt->close();
+
     $sqlStart = 'replace into tblAuction (house, id, item, quantity, bid, buy, seller, rand, seed) values ';
     $sqlStartPet = 'replace into tblAuctionPet (house, id, species, breed, `level`, quality) values ';
-    $sql = '';
-    $sqlPet = '';
 
     $totalAuctions = 0;
     $itemInfo = array();
@@ -233,7 +240,7 @@ function ParseAuctionData($house, $snapshot, &$json)
                     if (!isset($itemInfo[$auction['item']]))
                         $itemInfo[$auction['item']] = array('a' => array(), 'tq' => 0);
 
-                    $itemInfo[$auction['item']]['a'][] = array('q' => $auction['quantity'], 'p' => $auction['buyout']);
+                    $itemInfo[$auction['item']]['a'][] = array('q' => $auction['quantity'], 'p' => $auction['buyout'], 'age' => GetAuctionAge($auction['auc'], $snapshot, $snapshotList));
                     $itemInfo[$auction['item']]['tq'] += $auction['quantity'];
                 }
             }
@@ -358,6 +365,57 @@ EOF;
     MCSetHouse($house, 'ts', $snapshot);
 
     DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." finished with $totalAuctions auctions in ".round(microtime(true) - $startTimer,2)." sec");
+}
+
+function GetAuctionAge($id, $now, &$snapshotList)
+{
+    $imin = 0;
+    $imax = count($snapshotList) - 1;
+
+    if ($imax <= 0)
+        return 0;
+
+    if ($snapshotList[$imin]['maxid'] > $snapshotList[$imax]['maxid']) {
+        // have rollover, fix it
+        for ($x = 0; $x < $imax; $x++) {
+            if ($snapshotList[$x]['maxid'] > 0x40000000) {
+                $snapshotList[$x]['maxid'] -= 0x80000000;
+            }
+        }
+    }
+
+    if (($snapshotList[0]['maxid'] < 0) && ($id > 0x40000000)) {
+        // have rollover, fix order
+        $id -= 0x80000000;
+    }
+
+    if ($snapshotList[$imax]['maxid'] < $id)
+        return 0;
+
+    while ($imin < $imax) {
+        $imid = floor(($imin + $imax) / 2);
+        if ($imid >= $imax) {
+            break;
+        }
+        if ($snapshotList[$imid]['maxid'] < $id) {
+            $imin = $imid + 1;
+        } else {
+            $imax = $imid;
+        }
+    }
+
+    if ($imin == 0) {
+        // id is older than oldest snapshot, assume just as old
+        $seconds = $now - $snapshotList[$imin]['updated'];
+    } else {
+        $seconds = floor($now - (
+                $snapshotList[$imin-1]['updated'] +
+                ($snapshotList[$imin]['updated'] - $snapshotList[$imin-1]['updated']) *
+                (($id - $snapshotList[$imin-1]['maxid']) / ($snapshotList[$imin]['maxid'] - $snapshotList[$imin-1]['maxid']))
+            ));
+    }
+
+    return min(255, max(0, floor($seconds / (48 * 60 * 60) * 255)));
 }
 
 function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
@@ -521,11 +579,11 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot)
     $day = Date('d', $snapshot);
 
     $snapshotString = Date('Y-m-d H:i:s', $snapshot);
-    $sqlStart = 'insert into tblItemSummary (house, item, price, quantity, lastseen) values ';
-    $sqlEnd = ' on duplicate key update quantity=values(quantity), price=if(quantity=0,price,values(price)), lastseen=if(quantity=0,lastseen,values(lastseen))';
+    $sqlStart = 'insert into tblItemSummary (house, item, price, quantity, lastseen, age) values ';
+    $sqlEnd = ' on duplicate key update quantity=values(quantity), price=if(quantity=0,price,values(price)), lastseen=if(quantity=0,lastseen,values(lastseen)), age=values(age)';
     $sql = '';
 
-    $sqlHistoryStart = 'replace into tblItemHistory (house, item, price, quantity, snapshot) values ';
+    $sqlHistoryStart = 'replace into tblItemHistory (house, item, price, quantity, snapshot, age) values ';
     $sqlHistory = '';
 
     $sqlDeepStart = sprintf('insert into tblItemHistoryMonthly (house, item, mktslvr%1$s, qty%1$s, `month`) values ', $day);
@@ -535,7 +593,9 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot)
     foreach ($itemInfo as $item => &$info)
     {
         $price = GetMarketPrice($info);
-        $sqlBit = sprintf('(%d,%u,%u,%u,\'%s\')', $house, $item, $price, $info['tq'], $snapshotString);
+        $age = GetAverageAge($info);
+
+        $sqlBit = sprintf('(%d,%u,%u,%u,\'%s\',%u)', $house, $item, $price, $info['tq'], $snapshotString, $age);
         if (strlen($sql) + strlen($sqlBit) + strlen($sqlEnd) + 5 > $maxPacketSize)
         {
             DBQueryWithError($db, $sql.$sqlEnd);
@@ -614,6 +674,20 @@ function UpdatePetInfo($house, &$petInfo, $snapshot)
         DBQueryWithError($db, $sql.$sqlEnd);
     if ($sqlHistory != '')
         DBQueryWithError($db, $sqlHistory);
+}
+
+function GetAverageAge(&$info)
+{
+    if ($info['tq'] == 0)
+        return 0;
+
+    $s = 0;
+    $c = count($info['a']);
+    for ($x = 0; $x < $c; $x++) {
+        $s += $info['a'][$x]['age'];
+    }
+
+    return floor($s / $c);
 }
 
 function GetMarketPrice(&$info)

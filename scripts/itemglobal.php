@@ -13,6 +13,12 @@ CatchKill();
 if (!DBConnect())
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
 
+if (isset($argv[1]) && ($argv[1] == 'jsononly')) {
+    UpdateGlobalDataJson();
+    DebugMessage('Done! Started '.TimeDiff($startTime));
+    exit;
+}
+
 DebugMessage('Starting..');
 
 $stmt = $db->prepare('select distinct item from tblItemSummary');
@@ -94,4 +100,28 @@ if (!$caughtKill) {
     $db->query('replace into tblItemGlobal (select `item`, avg(`median`), avg(`mean`), avg(`stddev`) from tblItemGlobalWorking group by `item`)');
 }
 
+UpdateGlobalDataJson();
+
 DebugMessage('Done! Started '.TimeDiff($startTime));
+
+function UpdateGlobalDataJson() {
+    global $caughtKill, $db;
+    if ($caughtKill) {
+        return;
+    }
+
+    heartbeat();
+    DebugMessage("Updating global data json");
+
+    $stmt = $db->prepare('select item, median from tblItemGlobal');
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $prices = DBMapArray($result, null);
+    $stmt->close();
+
+    $json = [];
+    foreach ($prices as $priceRow) {
+        $json[$priceRow['item']] = $priceRow['median'];
+    }
+    file_put_contents(__DIR__.'/../public/globalprices.json', json_encode($json, JSON_NUMERIC_CHECK | JSON_FORCE_OBJECT), LOCK_EX);
+}

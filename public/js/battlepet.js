@@ -146,7 +146,7 @@ var TUJ_BattlePet = function()
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text('Snapshots');
-            d.appendChild(document.createTextNode('Here is the available quantity and market price of the battle pet for every auction house snapshot seen recently.'))
+            d.appendChild(document.createTextNode('Here is the available quantity and market price of the battle pet for every ' + tuj.region + ' ' + tuj.realms[params.realm].name + ' auction house snapshot seen recently.'));
             cht = libtuj.ce();
             cht.className = 'chart history';
             d.appendChild(cht);
@@ -161,6 +161,7 @@ var TUJ_BattlePet = function()
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text('Pricing Heat Map');
+            d.appendChild(document.createTextNode('This heat map helps to identify if prices have a pattern based on the time of day.'));
             cht = libtuj.ce();
             cht.className = 'chart heatmap';
             d.appendChild(cht);
@@ -172,6 +173,7 @@ var TUJ_BattlePet = function()
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text('Quantity Heat Map');
+            d.appendChild(document.createTextNode('This heat map shows you the average available quantity at different times of the day.'));
             cht = libtuj.ce();
             cht.className = 'chart heatmap';
             d.appendChild(cht);
@@ -186,11 +188,31 @@ var TUJ_BattlePet = function()
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text('Current Regional Prices');
+            d.appendChild(document.createTextNode('The Regional Prices chart is sorted by price, and shows the price and quantity available of this battle pet on all realms in the '+tuj.region+'.'));
             cht = libtuj.ce();
             cht.className = 'chart columns';
             d.appendChild(cht);
             battlePetPage.append(d);
             BattlePetGlobalNowColumns(dta, cht);
+
+            d = libtuj.ce();
+            d.className = 'chart-section';
+            h = libtuj.ce('h2');
+            d.appendChild(h);
+            $(h).text('Price/Population Scatter Plot');
+            d.appendChild(document.createTextNode('This scatter plot has the same data as above, but shows the price relative to the realm population, provided by '));
+            var a = libtuj.ce('a');
+            d.appendChild(a);
+            d.appendChild(document.createTextNode('.'));
+            a.href = 'https://realmpop.com/'+tuj.region.toLowerCase()+'.html';
+            a.style.textDecoration = 'underline';
+            a.appendChild(document.createTextNode('Realm Pop'));
+
+            cht = libtuj.ce();
+            cht.className = 'chart scatter';
+            d.appendChild(cht);
+            battlePetPage.append(d);
+            BattlePetGlobalNowScatter(dta, cht);
         }
 
         if (dta.auctions.length)
@@ -200,6 +222,9 @@ var TUJ_BattlePet = function()
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text('Current Auctions');
+            d.appendChild(document.createTextNode('Here is the full list of auctions for this battle pet from the latest snapshot. Click a seller name for details on that seller.'));
+            d.appendChild(libtuj.ce('br'));
+            d.appendChild(libtuj.ce('br'));
             cht = libtuj.ce();
             cht.className = 'auctionlist';
             d.appendChild(cht);
@@ -1099,6 +1124,151 @@ var TUJ_BattlePet = function()
                 events: {
                     click: PriceClick.bind(null, hcdata.houses)
                 }
+            }]
+        });
+    }
+
+    function BattlePetGlobalNowScatter(data, dest)
+    {
+        var hcdata = {price: [], quantity: {}, lastseen: {}, houses: {}};
+        var allPrices = [];
+
+        var o;
+        for (var x = 0; x < data.globalnow.length; x++)
+        {
+            if (data.globalnow[x].house == tuj.realms[params.realm].house) {
+                o = {
+                    x: libtuj.GetHousePopulation(data.globalnow[x].house),
+                    y: data.globalnow[x].price,
+                    id: x,
+                    marker: {
+                        symbol: 'diamond'
+                    },
+                    color: tujConstants.siteColors[tuj.colorTheme].redQuantity
+                };
+            } else {
+                o = {
+                    x: libtuj.GetHousePopulation(data.globalnow[x].house),
+                    y: data.globalnow[x].price,
+                    id: x
+                };
+                if (data.globalnow[x].quantity == 0) {
+                    o.color = tujConstants.siteColors[tuj.colorTheme].bluePriceFill;
+                }
+            }
+
+            hcdata.price.push(o);
+            hcdata.houses[x] = data.globalnow[x].house;
+            hcdata.quantity[x] = data.globalnow[x].quantity;
+            hcdata.lastseen[x] = data.globalnow[x].lastseen;
+
+            allPrices.push(data.globalnow[x].price);
+        }
+
+        allPrices.sort(function(a,b){ return a - b; });
+        var q1 = allPrices[Math.floor(allPrices.length * 0.25)];
+        var q3 = allPrices[Math.floor(allPrices.length * 0.75)];
+        var iqr = q3 - q1;
+        hcdata.priceMaxVal = Math.min(allPrices.pop(), q3 + (2.5 * iqr));
+
+        var PriceClick = function(houses, evt){
+            var realm;
+            for (var x in tuj.realms)
+                if (tuj.realms.hasOwnProperty(x) && tuj.realms[x].house == houses[evt.point.id])
+                {
+                    realm = tuj.realms[x].id;
+                    break;
+                }
+            if (realm)
+                tuj.SetParams({realm: realm});
+        };
+
+        Highcharts.setOptions({
+            global: {
+                useUTC: false
+            }
+        });
+
+        $(dest).highcharts({
+            chart: {
+                type: 'scatter',
+                zoomType: 'xy',
+                backgroundColor: tujConstants.siteColors[tuj.colorTheme].background
+            },
+            title: {
+                text: null
+            },
+            subtitle: {
+                text: null,
+            },
+            xAxis: {
+                title: {
+                    text: 'Population',
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].greenPriceDim
+                    }
+                },
+                labels: {
+                    enabled: true,
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
+                },
+                min: 0
+            },
+            yAxis: {
+                title: {
+                    text: 'Market Price',
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].bluePrice
+                    }
+                },
+                min: 0,
+                max: hcdata.priceMaxVal,
+                labels: {
+                    enabled: true,
+                    formatter: function() { return ''+libtuj.FormatPrice(this.value, true); },
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
+                }
+            },
+            legend: {
+                enabled: false
+            },
+            tooltip: {
+                shared: true,
+                formatter: function() {
+                    var realmNames = libtuj.GetRealmsForHouse(hcdata.houses[this.point.id], 40);
+                    var tr = '<b>'+realmNames+'</b>';
+                    tr += '<br><span style="color: #000099">Market Price: '+libtuj.FormatPrice(this.point.y, true)+'</span>';
+                    tr += '<br><span style="color: #990000">Quantity: '+libtuj.FormatQuantity(hcdata.quantity[this.point.id], true)+'</span>';
+                    tr += '<br><span style="color: #990000">Last seen: '+libtuj.FormatDate(hcdata.lastseen[this.point.id], true)+'</span>';
+                    return tr;
+                },
+                useHTML: true
+            },
+            plotOptions: {
+                scatter: {
+                    marker: {
+                        radius: 5,
+                        states: {
+                            hover: {
+                                enabled: true
+                            }
+                        }
+                    },
+                    events: {
+                        click: PriceClick.bind(null, hcdata.houses)
+                    }
+                }
+            },
+            series: [{
+                name: 'Market Price',
+                color: tujConstants.siteColors[tuj.colorTheme].bluePrice,
+                data: hcdata.price,
+                yAxis: 0,
+                zIndex: 2
             }]
         });
     }

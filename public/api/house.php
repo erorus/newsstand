@@ -11,29 +11,25 @@ $house = intval($_GET['house'], 10);
 
 HouseETag($house);
 
-if ($json = MCGetHouse($house, 'houseinfo2'))
-    json_return($json);
-
-DBConnect();
-
 $json = array(
     'timestamps' => HouseTimestamps($house),
+    'sellers' => HouseTopSellers($house),
+    'mostAvailable' => HouseMostAvailable($house),
+    'deals' => HouseDeals($house),
 );
 
-$ak = array_keys($json);
-foreach ($ak as $k)
-    if (count($json[$k]) == 0)
-        unset($json[$k]);
-
 $json = json_encode($json, JSON_NUMERIC_CHECK);
-
-MCSetHouse($house, 'houseinfo2', $json);
 
 json_return($json);
 
 function HouseTimestamps($house)
 {
     global $db;
+
+    if (($tr = MCGetHouse($house, 'house_timestamps')) !== false)
+        return $tr;
+
+    DBConnect();
 
     $tr = [
         'delayednext' => 0,
@@ -64,5 +60,106 @@ EOF;
     $stmt->fetch();
     $stmt->close();
 
+    MCSetHouse($house, 'house_timestamps', $tr);
+
     return $tr;
 }
+
+function HouseTopSellers($house)
+{
+    global $db;
+
+    if (($tr = MCGetHouse($house, 'house_topsellers')) !== false)
+        return $tr;
+
+    DBConnect();
+
+    $sql = <<<EOF
+SELECT r.id realm, s.name
+FROM tblAuction a
+join tblSeller s on a.seller=s.id
+join tblRealm r on s.realm = r.id
+join tblItemGlobal g on a.item=g.item
+where a.item != 86400
+and a.house = ?
+group by a.seller
+order by sum(g.median * a.quantity) desc
+limit 10
+EOF;
+
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('i', $house);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $tr = DBMapArray($result, null);
+    $stmt->close();
+
+    MCSetHouse($house, 'house_topsellers', $tr);
+
+    return $tr;
+}
+
+function HouseMostAvailable($house)
+{
+    global $db;
+
+    if (($tr = MCGetHouse($house, 'house_mostavailable')) !== false)
+        return $tr;
+
+    DBConnect();
+
+    $sql = <<<EOF
+SELECT i.id, i.name
+FROM `tblItemSummary` tis
+join tblDBCItem i on tis.item = i.id
+WHERE house = ?
+order by tis.quantity desc
+limit 10
+EOF;
+
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('i', $house);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $tr = DBMapArray($result, null);
+    $stmt->close();
+
+    MCSetHouse($house, 'house_mostavailable', $tr);
+
+    return $tr;
+}
+
+function HouseDeals($house)
+{
+    global $db;
+
+    if (($tr = MCGetHouse($house, 'house_deals')) !== false)
+        return $tr;
+
+    DBConnect();
+
+    $sql = <<<EOF
+SELECT i.id, i.name
+FROM `tblItemSummary` tis
+join tblDBCItem i on tis.item = i.id
+join tblItemGlobal g on g.item = tis.item
+WHERE house = ?
+and tis.quantity > 0
+and i.quality > 0
+and g.median > 1000000
+order by tis.price / g.median asc
+limit 10
+EOF;
+
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('i', $house);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $tr = DBMapArray($result, null);
+    $stmt->close();
+
+    MCSetHouse($house, 'house_deals', $tr);
+
+    return $tr;
+}
+

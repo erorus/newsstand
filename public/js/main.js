@@ -160,11 +160,27 @@ var libtuj = {
             }
 
         if (realmNames == '')
-            realmNames = '(House '+hcdata.houses[this.x]+')';
+            realmNames = '(House '+house+')';
         else
             realmNames = realmNames.substr(0, realmNames.length - 2);
 
         return realmNames;
+    },
+    GetHousePopulation: function(house)
+    {
+        var pop = 0;
+
+        for (var r in tuj.realms) {
+            if (!tuj.realms.hasOwnProperty(r)) {
+                continue;
+            }
+
+            if ((tuj.realms[r].house == house) && tuj.realms[r].hasOwnProperty('population') && tuj.realms[r].population){
+                pop += tuj.realms[r].population;
+            }
+        }
+
+        return pop;
     },
     Ads: {
         addCount: 0,
@@ -673,6 +689,57 @@ var TUJ = function()
             var d = libtuj.ce();
             d.appendChild(document.createTextNode('Next update ' +libtuj.FormatDate(houseInfo[house].timestamps.scheduled, true)));
             ru.appendChild(d);
+        }
+
+        if (!self.params.page) {
+            $('#front-page-sellers').empty();
+            $('#front-page-most-available').empty();
+            $('#front-page-deals').empty();
+
+            if (houseInfo.hasOwnProperty(tuj.realms[self.params.realm].house)) {
+                var info = houseInfo[tuj.realms[self.params.realm].house];
+                if (info.hasOwnProperty('sellers') && info.sellers.length) {
+                    var d = document.getElementById('front-page-sellers');
+                    var h = libtuj.ce('h3');
+                    d.appendChild(h);
+                    $(h).text('Top Sellers');
+                    for (var x = 0; x < info.sellers.length; x++) {
+                        var a = libtuj.ce('a');
+                        a.href = tuj.BuildHash({page: 'seller', realm: info.sellers[x].realm, id: info.sellers[x].name});
+                        a.appendChild(document.createTextNode(info.sellers[x].name + (info.sellers[x].realm == self.params.realm ? '' : (' - ' + tuj.realms[info.sellers[x].realm].name))));
+                        d.appendChild(a);
+                        d.appendChild(libtuj.ce('br'));
+                    }
+                }
+                if (info.hasOwnProperty('mostAvailable') && info.mostAvailable.length) {
+                    var d = document.getElementById('front-page-most-available');
+                    var h = libtuj.ce('h3');
+                    d.appendChild(h);
+                    $(h).text('Most Available');
+                    for (var x = 0; x < info.mostAvailable.length; x++) {
+                        var a = libtuj.ce('a');
+                        a.href = tuj.BuildHash({page: 'item', id: info.mostAvailable[x].id});
+                        a.rel = 'item=' + info.mostAvailable[x].id;
+                        a.appendChild(document.createTextNode('[' + info.mostAvailable[x].name + ']'));
+                        d.appendChild(a);
+                        d.appendChild(libtuj.ce('br'));
+                    }
+                }
+                if (info.hasOwnProperty('deals') && info.deals.length) {
+                    var d = document.getElementById('front-page-deals');
+                    var h = libtuj.ce('h3');
+                    d.appendChild(h);
+                    $(h).text('Potential Deals');
+                    for (var x = 0; x < info.deals.length; x++) {
+                        var a = libtuj.ce('a');
+                        a.href = tuj.BuildHash({page: 'item', id: info.deals[x].id});
+                        a.rel = 'item=' + info.deals[x].id;
+                        a.appendChild(document.createTextNode('[' + info.deals[x].name + ']'));
+                        d.appendChild(a);
+                        d.appendChild(libtuj.ce('br'));
+                    }
+                }
+            }
         }
     }
 
