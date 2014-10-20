@@ -13,6 +13,9 @@ define('LOG_BASE', 10);
 
 $priceLogFactor = log(MOST_COPPER/10000, LOG_BASE) / (pow(strlen(PRICE_ENCODING),2) - 1);
 
+echo EncodePrice(intval($argv[1]))."\n";
+exit;
+
 RunMeNTimes(1);
 CatchKill();
 
@@ -24,7 +27,7 @@ DebugMessage('Done! Started '.TimeDiff($startTime));
 
 function BuildAddonData($region)
 {
-    global $db, $caughtKill;
+    global $db, $caughtKill, $priceLogFactor;
 
     if ($caughtKill)
         return;
@@ -85,7 +88,7 @@ EOF;
         if (strlen($prices) < $properLength) {
             $prices .= str_repeat(' ', $properLength - strlen($prices));
         }
-        $priceLua[] = "addonTable.marketData[$item] = ParsePrice(\"$prices\")\n";
+        $priceLua[] = "addonTable.marketData[$item] = ParsePriceString(\"$prices\")\n";
     }
 
     $houseLookup = array_flip($houses);
@@ -100,7 +103,7 @@ EOF;
     $realmLua = '';
     foreach ($realms as $realmRow) {
         if (isset($houseLookup[$realmRow['house']])) {
-            $realmLua .= 'if realmName = "' . mb_strtoupper($realmRow['name']) . '" then realmIndex = ' . $houseLookup[$realmRow['house']] . " end\n";
+            $realmLua .= 'if realmName == "' . mb_strtoupper($realmRow['name']) . '" then realmIndex = ' . $houseLookup[$realmRow['house']] . " end\n";
         }
     }
 
@@ -112,12 +115,13 @@ local addonName, addonTable = ...
 local realmName = addonTable.realmName or string.upper(GetRealmName())
 
 local encodingString = "$encoding"
-local mostCopper = "$mostCopper"
-local priceLogFactor = log10(mostCopper/10000) / (string.len(encodingString)^2) - 1)
+local mostCopper = $mostCopper
+local priceLogFactor = $priceLogFactor
 local realmIndex = nil
+
 $realmLua
 
-if addonTable.region != "$region" then
+if addonTable.region ~= "US" then
     realmIndex = nil
 end
 
@@ -125,12 +129,64 @@ if realmIndex then
     addonTable.marketData = {}
 end
 
+function ParsePriceBytes(b)
+    local value = 0
+
+    if b == string.rep(' ', string.len(b)) then
+        return nil
+    end
+
+    if (b == string.rep(string.sub(encodingString, -1), string.len(b))) then
+        return nil
+    end
+
+    for x=1,string.len(b),1 do
+        value = value * string.len(encodingString) + (string.find(encodingString, string.sub(b,x,x), 1, true) - 1)
+    end
+
+    value = (10^(value * priceLogFactor) - 1) * 10000
+
+    return value
+end
+
+local function ParseDateByte(b)
+    return nil
+end
+
 local function ParsePriceString(s)
     local market, regionmarket, lastseen;
 
-    if (string.sub(s,1,2) != '  ') then regionmarket = ParsePriceBytes(string.sub(s,1,2)) end
-    if (string.sub(s,realmIndex*3+2+1,2) != '  ') then market = ParsePriceBytes(string.sub(s,realmIndex*3+2+1,2)) end
-    if (string.sub(s,realmIndex*3+2+1+2,1) != ' ') then lastseen = ParseDateByte(string.sub(s,realmIndex*3+2+1+2,1)) end
+	local function round(num, idp)
+		local mult = 10^(idp or 0)
+		local tr = math.floor(math.floor(num * mult + 0.5) / mult)
+		if (tr ~= num) and (tr % 10 == 9) then
+			tr = tr + 1
+		end
+		return tr
+	end
+
+    if (string.sub(s,1,2) ~= '  ') then regionmarket = ParsePriceBytes(string.sub(s,1,2)) end
+    if (string.sub(s,realmIndex*3+2+1,realmIndex*3+2+2) ~= '  ') then market = ParsePriceBytes(string.sub(s,realmIndex*3+2+1,realmIndex*3+2+2)) end
+    if (string.sub(s,realmIndex*3+2+1+2,realmIndex*3+2+1+2) ~= ' ') then lastseen = ParseDateByte(string.sub(s,realmIndex*3+2+1+2,realmIndex*3+2+1+2)) end
+
+	if market and market > 0 then
+		if market > 10000000 then
+			market = round(market, 2 - math.floor(math.log10(market)))
+		elseif market >= 1000000 then
+			market = round(market, 3 - math.floor(math.log10(market)))
+		elseif market > 100000 then
+			market = round(market, 4 - math.floor(math.log10(market)))
+		end
+	else
+		market = nil
+	end
+
+	if regionmarket and regionmarket > 0 then
+		regionmarket = regionmarket * 100; -- different scale
+		regionmarket = round(regionmarket, 2 - math.floor(math.log10(regionmarket)))
+	else
+		regionmarket = nil
+	end
 
     if market or regionmarket or lastseen then
         return {
@@ -140,30 +196,6 @@ local function ParsePriceString(s)
         }
     end
 
-    return nil
-end
-
-local function ParsePriceBytes(b)
-    local value = 0
-
-    if (b == string.rep(' ', string.len(b)) then
-        return nil
-    end
-
-    if (b == string.rep(string.sub(encodingString, -1), string.len(b))) then
-        return nil
-    end
-
-    for x=1,string.len(b),1 do
-        value = value * string.len(encodingString) + (string.find(encodingString, string.sub(b,x,1), 1, true) - 1)
-    end
-
-    value = (10^(value * priceLogFactor) - 1) * 10000
-
-    return value
-end
-
-local function ParseDateByte(b)
     return nil
 end
 
@@ -193,7 +225,9 @@ function EncodePrice($price) {
         return substr(PRICE_ENCODING,-1).substr(PRICE_ENCODING,-1);
     }
 
-    $value = floor(log($price/10000 + 1, LOG_BASE)/$priceLogFactor);
+    $value = round(log($price/10000 + 1, LOG_BASE)/$priceLogFactor);
+
+    echo "Value: $value\n";
 
     return substr(PRICE_ENCODING, floor($value / strlen(PRICE_ENCODING)), 1) . substr(PRICE_ENCODING, $value % strlen(PRICE_ENCODING), 1);
 }
