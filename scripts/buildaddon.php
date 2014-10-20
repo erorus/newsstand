@@ -13,9 +13,6 @@ define('LOG_BASE', 10);
 
 $priceLogFactor = log(MOST_COPPER/10000, LOG_BASE) / (pow(strlen(PRICE_ENCODING),2) - 1);
 
-echo EncodePrice(intval($argv[1]))."\n";
-exit;
-
 RunMeNTimes(1);
 CatchKill();
 
@@ -44,7 +41,7 @@ function BuildAddonData($region)
 
     for ($hx = 0; $hx < count($houses); $hx++) {
         $sql = <<<EOF
-SELECT tis.item, ifnull(ihd.priceavg, tis.price) prc, datediff(now(), tis.lastseen) since
+SELECT tis.item, ifnull(ihd.priceavg*100, tis.price) prc, datediff(now(), tis.lastseen) since
 FROM tblItemSummary tis
 left join tblItemHistoryDaily ihd on ihd.house=tis.house and ihd.item=tis.item and ihd.`when` = date(timestampadd(day,-1,now()))
 WHERE tis.house = ?
@@ -108,15 +105,11 @@ EOF;
     }
 
     $encoding = PRICE_ENCODING;
-    $mostCopper = MOST_COPPER;
 
     $lua = <<<EOF
 local addonName, addonTable = ...
 local realmName = addonTable.realmName or string.upper(GetRealmName())
 
-local encodingString = "$encoding"
-local mostCopper = $mostCopper
-local priceLogFactor = $priceLogFactor
 local realmIndex = nil
 
 $realmLua
@@ -129,32 +122,11 @@ if realmIndex then
     addonTable.marketData = {}
 end
 
-function ParsePriceBytes(b)
-    local value = 0
-
-    if b == string.rep(' ', string.len(b)) then
-        return nil
-    end
-
-    if (b == string.rep(string.sub(encodingString, -1), string.len(b))) then
-        return nil
-    end
-
-    for x=1,string.len(b),1 do
-        value = value * string.len(encodingString) + (string.find(encodingString, string.sub(b,x,x), 1, true) - 1)
-    end
-
-    value = (10^(value * priceLogFactor) - 1) * 10000
-
-    return value
-end
-
-local function ParseDateByte(b)
-    return nil
-end
-
 local function ParsePriceString(s)
     local market, regionmarket, lastseen;
+
+    local encodingString = "$encoding"
+    local priceLogFactor = $priceLogFactor
 
 	local function round(num, idp)
 		local mult = 10^(idp or 0)
@@ -164,6 +136,30 @@ local function ParsePriceString(s)
 		end
 		return tr
 	end
+
+    local function ParsePriceBytes(b)
+        local value = 0
+
+        if b == string.rep(' ', string.len(b)) then
+            return nil
+        end
+
+        if (b == string.rep(string.sub(encodingString, -1), string.len(b))) then
+            return nil
+        end
+
+        for x=1,string.len(b),1 do
+            value = value * string.len(encodingString) + (string.find(encodingString, string.sub(b,x,x), 1, true) - 1)
+        end
+
+        value = (10^(value * priceLogFactor) - 1) * 10000
+
+        return value
+    end
+
+    local function ParseDateByte(b)
+        return nil
+    end
 
     if (string.sub(s,1,2) ~= '  ') then regionmarket = ParsePriceBytes(string.sub(s,1,2)) end
     if (string.sub(s,realmIndex*3+2+1,realmIndex*3+2+2) ~= '  ') then market = ParsePriceBytes(string.sub(s,realmIndex*3+2+1,realmIndex*3+2+2)) end
@@ -226,8 +222,6 @@ function EncodePrice($price) {
     }
 
     $value = round(log($price/10000 + 1, LOG_BASE)/$priceLogFactor);
-
-    echo "Value: $value\n";
 
     return substr(PRICE_ENCODING, floor($value / strlen(PRICE_ENCODING)), 1) . substr(PRICE_ENCODING, $value % strlen(PRICE_ENCODING), 1);
 }
