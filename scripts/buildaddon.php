@@ -6,12 +6,7 @@ $startTime = time();
 
 require_once('../incl/incl.php');
 require_once('../incl/heartbeat.incl.php');
-
-define('PRICE_ENCODING', 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_!@#$%^&*()+=[]{}:;,.<>/?`~'); // space is null
-define('MOST_COPPER', 500000000); // 50k gold
-define('LOG_BASE', 10);
-
-$priceLogFactor = log(MOST_COPPER/10000, LOG_BASE) / (pow(strlen(PRICE_ENCODING),2) - 1);
+require_once('../incl/base85.incl.php');
 
 RunMeNTimes(1);
 CatchKill();
@@ -24,10 +19,12 @@ DebugMessage('Done! Started '.TimeDiff($startTime));
 
 function BuildAddonData($region)
 {
-    global $db, $caughtKill, $priceLogFactor;
+    global $db, $caughtKill;
 
     if ($caughtKill)
         return;
+
+    $base85Translate = ['"' => '{', "'" => '}', "\\" => '|'];
 
     $stmt = $db->prepare('select distinct house from tblRealm where region = ? and canonical is not null');
     $stmt->bind_param('s', $region);
@@ -37,7 +34,6 @@ function BuildAddonData($region)
     $stmt->close();
 
     $items = [];
-    $globalBytes = 2;
 
     for ($hx = 0; $hx < count($houses); $hx++) {
         $sql = <<<EOF
@@ -54,13 +50,7 @@ EOF;
         $stmt->close();
 
         foreach ($prices as $item => $priceRow) {
-            if (!isset($items[$item])) {
-                $items[$item] = str_repeat(' ', $globalBytes);
-            }
-            if (strlen($items[$item]) < ($hx * 3 + $globalBytes)) {
-                $items[$item] .= str_repeat(' ', $hx * 3 + $globalBytes - strlen($items[$item]));
-            }
-            $items[$item] .= EncodePrice($priceRow['prc']) . EncodeDays($priceRow['since']);;
+            $items[$item][$hx+1] = round($priceRow['prc']/100);
         }
     }
 
@@ -71,21 +61,38 @@ EOF;
     $stmt->close();
 
     foreach ($globalPrices as $item => $priceRow) {
-        if (!isset($items[$item])) {
-            $items[$item] = str_repeat(' ', $globalBytes);
-        }
-        $items[$item] = EncodePrice($priceRow['median']/100) . substr($items[$item], $globalBytes);
+        $items[$item][0] = round($priceRow['median'],100);
     }
 
     ksort($items);
 
     $priceLua = [];
-    $properLength = $hx*3+2;
     foreach ($items as $item => $prices) {
-        if (strlen($prices) < $properLength) {
-            $prices .= str_repeat(' ', $properLength - strlen($prices));
+        $priceBytes = 0;
+        for ($x = 0; $x < count($houses); $x++) {
+            if (!isset($prices[$x])) {
+                $prices[$x] = 0;
+                continue;
+            }
+            for ($y = 5; $y > $priceBytes; $y--) {
+                if ($prices[$x] >= 2^(8*$y)) {
+                    $priceBytes = $y;
+                }
+            }
         }
-        $priceLua[] = "addonTable.marketData[$item] = ParsePriceString(\"$prices\")\n";
+        if ($priceBytes == 0) {
+            continue;
+        }
+        $priceString = chr($priceBytes);
+        for ($x = 0; $x < count($prices); $x++) {
+            $priceBin = '';
+            for ($y = 0; $y < $priceBytes; $y++) {
+                $priceBin = chr($prices[$x] % 256) . $priceBin;
+                $prices[$x] = $prices[$x] >> 8;
+            }
+            $priceString .= $priceBin;
+        }
+        $priceLua[] = 'addonTable.marketData['.$item.'] = \''.strtr(base85::encode($priceString), $base85Translate)."'\n";
     }
 
     $houseLookup = array_flip($houses);
@@ -104,8 +111,6 @@ EOF;
         }
     }
 
-    $encoding = PRICE_ENCODING;
-
     $lua = <<<EOF
 local addonName, addonTable = ...
 local realmName = addonTable.realmName or string.upper(GetRealmName())
@@ -122,79 +127,6 @@ if realmIndex then
     addonTable.marketData = {}
 end
 
-local function ParsePriceString(s)
-    local market, regionmarket, lastseen;
-
-    local encodingString = "$encoding"
-    local priceLogFactor = $priceLogFactor
-
-	local function round(num, idp)
-		local mult = 10^(idp or 0)
-		local tr = math.floor(math.floor(num * mult + 0.5) / mult)
-		if (tr ~= num) and (tr % 10 == 9) then
-			tr = tr + 1
-		end
-		return tr
-	end
-
-    local function ParsePriceBytes(b)
-        local value = 0
-
-        if b == string.rep(' ', string.len(b)) then
-            return nil
-        end
-
-        if (b == string.rep(string.sub(encodingString, -1), string.len(b))) then
-            return nil
-        end
-
-        for x=1,string.len(b),1 do
-            value = value * string.len(encodingString) + (string.find(encodingString, string.sub(b,x,x), 1, true) - 1)
-        end
-
-        value = (10^(value * priceLogFactor) - 1) * 10000
-
-        return value
-    end
-
-    local function ParseDateByte(b)
-        return nil
-    end
-
-    if (string.sub(s,1,2) ~= '  ') then regionmarket = ParsePriceBytes(string.sub(s,1,2)) end
-    if (string.sub(s,realmIndex*3+2+1,realmIndex*3+2+2) ~= '  ') then market = ParsePriceBytes(string.sub(s,realmIndex*3+2+1,realmIndex*3+2+2)) end
-    if (string.sub(s,realmIndex*3+2+1+2,realmIndex*3+2+1+2) ~= ' ') then lastseen = ParseDateByte(string.sub(s,realmIndex*3+2+1+2,realmIndex*3+2+1+2)) end
-
-	if market and market > 0 then
-		if market > 10000000 then
-			market = round(market, 2 - math.floor(math.log10(market)))
-		elseif market >= 1000000 then
-			market = round(market, 3 - math.floor(math.log10(market)))
-		elseif market > 100000 then
-			market = round(market, 4 - math.floor(math.log10(market)))
-		end
-	else
-		market = nil
-	end
-
-	if regionmarket and regionmarket > 0 then
-		regionmarket = regionmarket * 100; -- different scale
-		regionmarket = round(regionmarket, 2 - math.floor(math.log10(regionmarket)))
-	else
-		regionmarket = nil
-	end
-
-    if market or regionmarket or lastseen then
-        return {
-            ['market'] = market,
-            ['regionmarket'] = regionmarket,
-            ['lastseen'] = lastseen
-        }
-    end
-
-    return nil
-end
-
 EOF;
 
     $priceLuas = array_chunk($priceLua, 250);
@@ -206,29 +138,4 @@ EOF;
 
     return $lua;
 
-}
-
-function EncodePrice($price) {
-    global $priceLogFactor;
-
-    if (is_null($price)) {
-        return '  ';
-    }
-    if ($price < 50) {
-        return substr(PRICE_ENCODING,0,1).substr(PRICE_ENCODING,0,1);
-    }
-    if ($price > MOST_COPPER) {
-        return substr(PRICE_ENCODING,-1).substr(PRICE_ENCODING,-1);
-    }
-
-    $value = round(log($price/10000 + 1, LOG_BASE)/$priceLogFactor);
-
-    return substr(PRICE_ENCODING, floor($value / strlen(PRICE_ENCODING)), 1) . substr(PRICE_ENCODING, $value % strlen(PRICE_ENCODING), 1);
-}
-
-function EncodeDays($days) {
-    if ($days > (strlen(PRICE_ENCODING) - 2)) {
-        return substr(PRICE_ENCODING,strlen(PRICE_ENCODING) - 1,1);
-    }
-    return substr(PRICE_ENCODING, $days, 1);
 }

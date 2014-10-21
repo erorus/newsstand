@@ -30,7 +30,7 @@ See http://tuj.me/TUJTooltip for more information/examples.
 ]]
 
 local addonName, addonTable = ...
-addonTable.region = string.upper(string.sub(GetCVar("realmList"),1,2))
+addonTable.region = 'US' --string.upper(string.sub(GetCVar("realmList"),1,2))
 if addonTable.region ~= 'EU' then
 	addonTable.region = 'US'
 end
@@ -140,7 +140,8 @@ local function GetCallback()
 		local iid
 		local spellName, spellRank, spellID = GameTooltip:GetSpell()
 		if spellID then
-			iid = addonTable.spelltoitem[spellID]
+			return
+			--iid = addonTable.spelltoitem[spellID]
 		else
 			local name, item = tooltip:GetItem()
 			if (not name) or (not item) then return end
@@ -149,9 +150,12 @@ local function GetCallback()
 
 		if iid and addonTable.marketData[iid] then
 			local r,g,b = .9,.8,.5
-			local dta = addonTable.marketData[iid]
+			local dta = addonTable.ascii85.decode(addonTable.marketData[iid])
 
-			tooltip:AddLine(" ")
+            local market, regionmarket
+
+
+            tooltip:AddLine(" ")
 
 			--[[
 			if addonTable.updatetime then
@@ -162,10 +166,10 @@ local function GetCallback()
 			end
 			]]
 
-			if dta['market'] then
+			if market then
 				tooltip:AddDoubleLine("Realm Price",coins(dta['market'],false),r,g,b)
 			end
-			if dta['regionmarket'] then
+			if regionmarket then
 				tooltip:AddDoubleLine("Region Price",coins(dta['regionmarket'],false),r,g,b)
 			end
 
@@ -251,9 +255,11 @@ local function onEvent(self,event,arg)
 	end
 	if event == "PLAYER_ENTERING_WORLD" then
 		eventframe:UnregisterEvent("PLAYER_ENTERING_WORLD")
+		--[[
 		if addonTable.region ~= string.upper(string.sub(GetCVar("realmList"),1,2)) then
 			print("The Undermine Journal - Warning: Unknown region from realmlist.wtf: '"..string.upper(string.sub(GetCVar("realmList"),1,2)).."', assuming '"..addonTable.region.."'")
 		end
+		]]
         for _,frame in pairs{GameTooltip, ItemRefTooltip, ShoppingTooltip1, ShoppingTooltip2} do
             frame:HookScript("OnTooltipSetItem", GetCallback())
             frame:HookScript("OnTooltipSetSpell", GetCallback())

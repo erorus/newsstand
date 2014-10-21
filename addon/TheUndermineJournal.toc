@@ -1,0 +1,8 @@
+## Interface: 60002
+## Title: The Undermine Journal
+## Notes: Thu, June 12|nUSA-Medivh
+## Version: 3
+Ascii85.lua
+TheUndermineJournal.lua
+MarketData.lua
+
