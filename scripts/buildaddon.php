@@ -14,7 +14,8 @@ CatchKill();
 if (!DBConnect())
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
 
-echo BuildAddonData('US');
+file_put_contents('../addon/MarketData.lua', BuildAddonData('US'));
+
 DebugMessage('Done! Started '.TimeDiff($startTime));
 
 function BuildAddonData($region)
@@ -125,6 +126,7 @@ end
 
 if realmIndex then
     addonTable.marketData = {}
+    addonTable.realmIndex = realmIndex
 end
 
 EOF;

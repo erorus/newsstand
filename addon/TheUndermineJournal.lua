@@ -150,10 +150,22 @@ local function GetCallback()
 
 		if iid and addonTable.marketData[iid] then
 			local r,g,b = .9,.8,.5
-			local dta = addonTable.ascii85.decode(addonTable.marketData[iid])
+			local dta = addonTable.marketData[iid]
+            dta = string.gsub(dta, '{', '"')
+            dta = string.gsub(dta, '}', "'")
+            dta = string.gsub(dta, '|', '\\')
+            dta = addonTable.ascii85.decode(dta)
 
-            local market, regionmarket
+            local priceSize = string.byte(dta, 1);
+            print('priceSize = '..priceSize)
 
+            local market, regionmarket, offset
+            offset = 1+1
+            regionmarket = addonTable.ascii85.bin2dec(string.sub(dta, offset, offset+priceSize));
+            print('regionMarket = '..regionmarket)
+
+            offset = offset + priceSize + priceSize * addonTable.realmIndex;
+            market = addonTable.ascii85.bin2dec(string.sub(dta, offset, offset+priceSize))
 
             tooltip:AddLine(" ")
 
@@ -167,10 +179,10 @@ local function GetCallback()
 			]]
 
 			if market then
-				tooltip:AddDoubleLine("Realm Price",coins(dta['market'],false),r,g,b)
+				tooltip:AddDoubleLine("Realm Price",coins(market,false),r,g,b)
 			end
 			if regionmarket then
-				tooltip:AddDoubleLine("Region Price",coins(dta['regionmarket'],false),r,g,b)
+				tooltip:AddDoubleLine("Region Price",coins(regionmarket,false),r,g,b)
 			end
 
 			--[[
@@ -265,6 +277,10 @@ local function onEvent(self,event,arg)
             frame:HookScript("OnTooltipSetSpell", GetCallback())
             frame:HookScript("OnTooltipCleared", ClearLastTip)
         end
+
+        local thestring = [==[6=FqH3&MgmF!,FBATW$>+Cf>.C]]==]
+        print(thestring)
+        print(addonTable.ascii85.decode(thestring))
 	end
 end
 

@@ -16,9 +16,16 @@
 local addonName, addonTable = ...
 
 local floor = math.floor
-local tostring = tostring
 local table_insert = table.insert
 
+local function tostring(num)
+    local tr = ''
+    for x=1,4,1 do
+        tr = string.char(num % 256)
+        num = num / 256
+    end
+    return tr
+end
 
 local function decimalToBase85(num)
     local base = 85
@@ -35,8 +42,6 @@ local function decimalToBase85(num)
 
     return final
 end
-
-
 
 local function base85ToDecimal(b85)
     local base = 85
@@ -84,7 +89,7 @@ local function binaryToDecimal(bin)
     local final = 0
 
     for i=l,1,-1 do
-        local digit = bin:sub(i,i)
+        local digit = string.byte(bin,i)
         local val = digit * base^(l-i)
         final = final + val
     end
@@ -93,33 +98,6 @@ end
 
 
 
-
-local function encode(substr)
-
-    local l = substr:len()
-    local combine = ""
-    for i=1,l do
-        local char = substr:sub(i,i)
-        local byte = char:byte()
-        local bin = decimalToBinary(byte)
-        combine = combine..bin
-    end
-
-    local num = binaryToDecimal(combine)
-    local b85 = decimalToBase85(num)
-
-    local final = ""
-    for i=1,#b85 do
-        local char = tostring(b85[i]+33)
-        final = final .. char:char()
-    end
-
-    if final == "!!!!!" then
-        final = "z"
-    end
-
-    return final
-end
 
 
 
@@ -148,7 +126,7 @@ local function decode(substr)
     for i=1,l,split do
         local sub = bin:sub(i,i+split-1)
         local byte = binaryToDecimal(sub)
-        local char = tostring(byte):char()
+        local char = tostring(byte)
         final = final..char
     end
 
@@ -186,7 +164,7 @@ local function ascii_decode(str)
 
     local final = ""
 
-    str = str:sub(3,-3)
+    --str = str:sub(3,-3)
     str = str:gsub("z","!!!!!")
 
     local c = 5
@@ -200,6 +178,7 @@ local function ascii_decode(str)
     local l = str:len()
     for i=1,l,c do
         local sub = str:sub(i,i+c-1)
+        print("decode "..sub)
         final = final .. decode(sub)
     end
 
@@ -211,4 +190,4 @@ local function ascii_decode(str)
 
 end
 
-addonTable.ascii85 = {encode = ascii_encode,decode = ascii_decode}
+addonTable.ascii85 = {encode = ascii_encode,decode = ascii_decode,bin2dec = binaryToDecimal}
