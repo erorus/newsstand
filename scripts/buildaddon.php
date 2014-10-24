@@ -72,6 +72,8 @@ EOF;
     if ($caughtKill)
         return;
 
+    DebugMessage('Finding global prices');
+
     $stmt = $db->prepare('SELECT item, median, mean, stddev FROM tblItemGlobal');
     $stmt->execute();
     $result = $stmt->get_result();
@@ -85,6 +87,8 @@ EOF;
     }
 
     ksort($items);
+
+    DebugMessage('Making lua strings');
 
     $priceLua = [];
     foreach ($items as $item => $prices) {
@@ -120,6 +124,12 @@ EOF;
     }
     unset($items);
 
+    heartbeat();
+    if ($caughtKill)
+        return;
+
+    DebugMessage('Setting realm indexes');
+
     $houseLookup = array_flip($houses);
 
     $stmt = $db->prepare('select name, house from tblRealm where region = ?');
@@ -139,6 +149,8 @@ EOF;
     heartbeat();
     if ($caughtKill)
         return;
+
+    DebugMessage('Building final lua');
 
     $lua = <<<EOF
 local addonName, addonTable = ...
@@ -160,11 +172,14 @@ end
 EOF;
 
     $priceLuas = array_chunk($priceLua, 250);
+    unset($priceLua);
+
     for ($x = 0; $x < count($priceLuas); $x++) {
         $lua .= "if realmIndex then\n";
         $lua .= implode('', $priceLuas[$x]);
         $lua .= "end\n";
     }
+    unset($priceLuas);
 
     return $lua;
 }
