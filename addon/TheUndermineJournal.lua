@@ -29,14 +29,6 @@ See http://tuj.me/TUJTooltip for more information/examples.
 
 ]]
 
-local addonName, addonTable = ...
-addonTable.region = 'US' --string.upper(string.sub(GetCVar("realmList"),1,2))
-if addonTable.region ~= 'EU' then
-	addonTable.region = 'US'
-end
-addonTable.realmName = string.upper(GetRealmName())
-addonTable.tooltipsEnabled = true
-
 --[[
 	This chunk from:
 
@@ -72,21 +64,20 @@ addonTable.tooltipsEnabled = true
 ]]
 
 
-	local GOLD="ffd100"
-	local SILVER="e6e6e6"
-	local COPPER="c8602c"
-
-	local GSC_3 = "|cff%s%d|cff000000.|cff%s%02d|cff000000.|cff%s%02d|r"
-	local GSC_2 = "|cff%s%d|cff000000.|cff%s%02d|r"
-	local GSC_1 = "|cff%s%d|r"
-
-	local iconpath = "Interface\\MoneyFrame\\UI-"
-	local goldicon = "%d|T"..iconpath.."GoldIcon:0|t"
-	local silvericon = "%s|T"..iconpath.."SilverIcon:0|t"
-	local coppericon = "%s|T"..iconpath.."CopperIcon:0|t"
-
-
 	local function coins(money, graphic)
+        local GOLD="ffd100"
+        local SILVER="e6e6e6"
+        local COPPER="c8602c"
+
+        local GSC_3 = "|cff%s%d|cff000000.|cff%s%02d|cff000000.|cff%s%02d|r"
+        local GSC_2 = "|cff%s%d|cff000000.|cff%s%02d|r"
+        local GSC_1 = "|cff%s%d|r"
+
+        local iconpath = "Interface\\MoneyFrame\\UI-"
+        local goldicon = "%d|T"..iconpath.."GoldIcon:0|t"
+        local silvericon = "%s|T"..iconpath.."SilverIcon:0|t"
+        local coppericon = "%s|T"..iconpath.."CopperIcon:0|t"
+
 		money = math.floor(tonumber(money) or 0)
 		local g = math.floor(money / 10000)
 		local s = math.floor(money % 10000 / 100)
@@ -94,17 +85,33 @@ addonTable.tooltipsEnabled = true
 
 		if not graphic then
 			if g > 0 then
-				return GSC_3:format(GOLD, g, SILVER, s, COPPER, c)
+                if (c > 0) then
+				    return GSC_3:format(GOLD, g, SILVER, s, COPPER, c)
+                else
+                    return GSC_2:format(GOLD, g, SILVER, s)
+                end
 			elseif s > 0 then
-				return GSC_2:format(SILVER, s, COPPER, c)
+                if (c > 0) then
+				    return GSC_2:format(SILVER, s, COPPER, c)
+                else
+                    return GSC_1:format(SILVER, s)
+                end
 			else
 				return GSC_1:format(COPPER, c)
 			end
 		else
 			if g > 0 then
-				return goldicon:format(g)..silvericon:format("%02d"):format(s)..coppericon:format("%02d"):format(c)
+                if (c > 0) then
+    				return goldicon:format(g)..silvericon:format("%02d"):format(s)..coppericon:format("%02d"):format(c)
+                else
+                    return goldicon:format(g)..silvericon:format("%02d"):format(s)
+                end
 			elseif s > 0  then
-				return silvericon:format("%d"):format(s)..coppericon:format("%02d"):format(c)
+                if (c > 0) then
+    				return silvericon:format("%d"):format(s)..coppericon:format("%02d"):format(c)
+                else
+                    return silvericon:format("%d"):format(s)
+                end
 			else
 				return coppericon:format("%d"):format(c)
 			end
@@ -117,6 +124,40 @@ addonTable.tooltipsEnabled = true
 	Norganna's Tooltip Helper class
 	Version: 1.0
 ]]
+
+-- Lua 5.1+ base64 v3.0 (c) 2009 by Alex Kloss <alexthkloss@web.de>
+-- licensed under the terms of the LGPL2
+function base64dec(data)
+    local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+    data = string.gsub(data, '[^'..b..'=]', '')
+    return (data:gsub('.', function(x)
+        if (x == '=') then return '' end
+        local r,f='',(b:find(x)-1)
+        for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end
+        return r;
+    end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
+        if (#x ~= 8) then return '' end
+        local c=0
+        for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end
+        return string.char(c)
+    end))
+end
+
+local function char2dec(s)
+    local n, l = 0, string.len(s)
+    for i=1,l,1 do
+        n = n * 256 + string.byte(s,i)
+    end
+    return n
+end
+
+local addonName, addonTable = ...
+addonTable.region = 'US' --string.upper(string.sub(GetCVar("realmList"),1,2))
+if addonTable.region ~= 'EU' then
+    addonTable.region = 'US'
+end
+addonTable.realmName = string.upper(GetRealmName())
+addonTable.tooltipsEnabled = true
 
 local function GetIDFromLink(SpellLink)
 	local _, l = GetItemInfo(SpellLink)
@@ -151,21 +192,23 @@ local function GetCallback()
 		if iid and addonTable.marketData[iid] then
 			local r,g,b = .9,.8,.5
 			local dta = addonTable.marketData[iid]
-            dta = string.gsub(dta, '{', '"')
-            dta = string.gsub(dta, '}', "'")
-            dta = string.gsub(dta, '|', '\\')
-            dta = addonTable.ascii85.decode(dta)
+            dta = base64dec(dta)
 
-            local priceSize = string.byte(dta, 1);
-            print('priceSize = '..priceSize)
+            local offset, priceSize = 2, string.byte(dta, 1);
 
-            local market, regionmarket, offset
-            offset = 1+1
-            regionmarket = addonTable.ascii85.bin2dec(string.sub(dta, offset, offset+priceSize));
-            print('regionMarket = '..regionmarket)
+            local market, regionMedian, regionAverage, regionStdDev
 
-            offset = offset + priceSize + priceSize * addonTable.realmIndex;
-            market = addonTable.ascii85.bin2dec(string.sub(dta, offset, offset+priceSize))
+            regionMedian = char2dec(string.sub(dta, offset, offset+priceSize-1))*100;
+            offset = offset + priceSize
+
+            regionAverage = char2dec(string.sub(dta, offset, offset+priceSize-1))*100;
+            offset = offset + priceSize
+
+            regionStdDev = char2dec(string.sub(dta, offset, offset+priceSize-1))*100;
+            offset = offset + priceSize
+
+            offset = offset + priceSize * addonTable.realmIndex;
+            market = char2dec(string.sub(dta, offset, offset+priceSize-1))*100
 
             tooltip:AddLine(" ")
 
@@ -181,9 +224,15 @@ local function GetCallback()
 			if market then
 				tooltip:AddDoubleLine("Realm Price",coins(market,false),r,g,b)
 			end
-			if regionmarket then
-				tooltip:AddDoubleLine("Region Price",coins(regionmarket,false),r,g,b)
-			end
+            if regionMedian then
+                tooltip:AddDoubleLine("Global Median",coins(regionMedian,false),r,g,b)
+            end
+            if regionAverage then
+                tooltip:AddDoubleLine("Global Mean",coins(regionAverage,false),r,g,b)
+            end
+            if regionStdDev then
+                tooltip:AddDoubleLine("Global Std Dev",coins(regionStdDev,false),r,g,b)
+            end
 
 			--[[
 			if addonTable.updatetime and dta['lastseen'] then
@@ -277,10 +326,6 @@ local function onEvent(self,event,arg)
             frame:HookScript("OnTooltipSetSpell", GetCallback())
             frame:HookScript("OnTooltipCleared", ClearLastTip)
         end
-
-        local thestring = [==[6=FqH3&MgmF!,FBATW$>+Cf>.C]]==]
-        print(thestring)
-        print(addonTable.ascii85.decode(thestring))
 	end
 end
 

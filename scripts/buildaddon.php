@@ -6,7 +6,6 @@ $startTime = time();
 
 require_once('../incl/incl.php');
 require_once('../incl/heartbeat.incl.php');
-require_once('../incl/base85.incl.php');
 
 RunMeNTimes(1);
 CatchKill();
@@ -25,8 +24,6 @@ function BuildAddonData($region)
     if ($caughtKill)
         return;
 
-    $base85Translate = ['"' => '{', "'" => '}', "\\" => '|'];
-
     $stmt = $db->prepare('select distinct house from tblRealm where region = ? and canonical is not null');
     $stmt->bind_param('s', $region);
     $stmt->execute();
@@ -35,12 +32,19 @@ function BuildAddonData($region)
     $stmt->close();
 
     $items = [];
+    $ihmCols = '';
+    for ($x = 1; $x <= 31; $x++) {
+        $ihmCols .= " when $x then ihm.mktslvr".($x < 10 ? '0' : '')."$x";
+    }
 
     for ($hx = 0; $hx < count($houses); $hx++) {
+        DebugMessage('Finding prices in house '.$houses[$hx].' ('.round($hx/count($houses)*100).'%)');
         $sql = <<<EOF
-SELECT tis.item, ifnull(ihd.priceavg*100, tis.price) prc, datediff(now(), tis.lastseen) since
+SELECT tis.item, round(ifnull(ihd.priceavg, ifnull(case day(hc.lastdaily) $ihmCols end, tis.price/100)))*100 prc, datediff(now(), tis.lastseen) since
 FROM tblItemSummary tis
-left join tblItemHistoryDaily ihd on ihd.house=tis.house and ihd.item=tis.item and ihd.`when` = date(timestampadd(day,-1,now()))
+join tblHouseCheck hc on hc.house = tis.house
+left join tblItemHistoryDaily ihd on ihd.house=tis.house and ihd.item=tis.item and ihd.`when` = hc.lastdaily
+left join tblItemHistoryMonthly ihm on ihm.house=tis.house and ihm.item=tis.item and ihm.month=((year(hc.lastdaily) - 2014) * 12 + month(hc.lastdaily))
 WHERE tis.house = ?
 EOF;
         $stmt = $db->prepare($sql);
@@ -51,18 +55,20 @@ EOF;
         $stmt->close();
 
         foreach ($prices as $item => $priceRow) {
-            $items[$item][$hx+1] = round($priceRow['prc']/100);
+            $items[$item][$hx+3] = round($priceRow['prc']/100);
         }
     }
 
-    $stmt = $db->prepare('SELECT item, median FROM tblItemGlobal');
+    $stmt = $db->prepare('SELECT item, median, mean, stddev FROM tblItemGlobal');
     $stmt->execute();
     $result = $stmt->get_result();
     $globalPrices = DBMapArray($result);
     $stmt->close();
 
     foreach ($globalPrices as $item => $priceRow) {
-        $items[$item][0] = round($priceRow['median'],100);
+        $items[$item][0] = round($priceRow['median']/100);
+        $items[$item][1] = round($priceRow['mean']/100);
+        $items[$item][2] = round($priceRow['stddev']/100);
     }
 
     ksort($items);
@@ -70,14 +76,14 @@ EOF;
     $priceLua = [];
     foreach ($items as $item => $prices) {
         $priceBytes = 0;
-        for ($x = 0; $x < count($houses); $x++) {
+        for ($x = 0; $x < count($houses)+3; $x++) {
             if (!isset($prices[$x])) {
                 $prices[$x] = 0;
                 continue;
             }
-            for ($y = 5; $y > $priceBytes; $y--) {
-                if ($prices[$x] >= 2^(8*$y)) {
-                    $priceBytes = $y;
+            for ($y = 5; $y >= $priceBytes; $y--) {
+                if ($prices[$x] >= pow(2,8*$y)) {
+                    $priceBytes = $y+1;
                 }
             }
         }
@@ -93,8 +99,9 @@ EOF;
             }
             $priceString .= $priceBin;
         }
-        $priceLua[] = 'addonTable.marketData['.$item.'] = \''.strtr(base85::encode($priceString), $base85Translate)."'\n";
+        $priceLua[] = 'addonTable.marketData['.$item.'] = \''.base64_encode($priceString)."'\n";
     }
+    unset($items);
 
     $houseLookup = array_flip($houses);
 
