@@ -10,9 +10,12 @@ require_once('../incl/heartbeat.incl.php');
 RunMeNTimes(1);
 CatchKill();
 
+ini_set('memory_limit','256M');
+
 if (!DBConnect())
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
 
+heartbeat();
 file_put_contents('../addon/MarketData.lua', BuildAddonData('US'));
 
 DebugMessage('Done! Started '.TimeDiff($startTime));
@@ -21,6 +24,7 @@ function BuildAddonData($region)
 {
     global $db, $caughtKill;
 
+    heartbeat();
     if ($caughtKill)
         return;
 
@@ -38,9 +42,14 @@ function BuildAddonData($region)
     }
 
     for ($hx = 0; $hx < count($houses); $hx++) {
+        heartbeat();
+        if ($caughtKill)
+            return;
+
         DebugMessage('Finding prices in house '.$houses[$hx].' ('.round($hx/count($houses)*100).'%)');
+
         $sql = <<<EOF
-SELECT tis.item, round(ifnull(ihd.priceavg, ifnull(case day(hc.lastdaily) $ihmCols end, tis.price/100)))*100 prc, datediff(now(), tis.lastseen) since
+SELECT tis.item, round(ifnull(ihd.priceavg, ifnull(case day(hc.lastdaily) $ihmCols end, tis.price/100))) prc, datediff(now(), tis.lastseen) since
 FROM tblItemSummary tis
 join tblHouseCheck hc on hc.house = tis.house
 left join tblItemHistoryDaily ihd on ihd.house=tis.house and ihd.item=tis.item and ihd.`when` = hc.lastdaily
@@ -55,9 +64,13 @@ EOF;
         $stmt->close();
 
         foreach ($prices as $item => $priceRow) {
-            $items[$item][$hx+3] = round($priceRow['prc']/100);
+            $items[$item][$hx+3] = round($priceRow['prc']);
         }
     }
+
+    heartbeat();
+    if ($caughtKill)
+        return;
 
     $stmt = $db->prepare('SELECT item, median, mean, stddev FROM tblItemGlobal');
     $stmt->execute();
@@ -75,6 +88,10 @@ EOF;
 
     $priceLua = [];
     foreach ($items as $item => $prices) {
+        heartbeat();
+        if ($caughtKill)
+            return;
+
         $priceBytes = 0;
         for ($x = 0; $x < count($houses)+3; $x++) {
             if (!isset($prices[$x])) {
@@ -119,6 +136,10 @@ EOF;
         }
     }
 
+    heartbeat();
+    if ($caughtKill)
+        return;
+
     $lua = <<<EOF
 local addonName, addonTable = ...
 local realmName = addonTable.realmName or string.upper(GetRealmName())
@@ -146,5 +167,4 @@ EOF;
     }
 
     return $lua;
-
 }
