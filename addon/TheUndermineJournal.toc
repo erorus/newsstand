@@ -1,8 +1,7 @@
 ## Interface: 60000
-## Title: The Undermine Journal
-## Notes: Thu, June 12|nUSA-Medivh
-## Version: 3
-Base64.lua
+## Title: The Undermine Journal %s
+## Notes: %s
+## Version: 3.0a
 TheUndermineJournal.lua
 MarketData.lua
 
