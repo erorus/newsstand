@@ -5,23 +5,36 @@ https://theunderminejournal.com/
 
 You should be able to query this DB from other addons:
 
-o={}
-TUJMarketInfo(52719,o)
-print(o['market'])
+    o={}
+    TUJMarketInfo(52719,o)
+    print(o['market'])
 
 Prints the market price of Greater Celestial Essence.
 
-o['age'] = num of days since import
-o['market'] = most recent market price on this realm
-o['regionmarket'] = median market price over all realms
-o['lastseen'] = date that the item was last seen in a scan
+Prices are returned in copper, but accurate to the last *silver* (with coppers always 0).
 
-You can query and set whether the additional tooltip lines appear from this addon.
+    o['itemid']         -> the ID of the item you just passed in
+    o['age']            -> number of seconds since data was compiled
+
+    o['days']           -> number of days since item was last seen on the auction house, when data was compiled. valid values 0 - 250.
+     o['days'] = 251 means item was seen on this AH, but over 250 days ago
+     o['days'] = 255 means item was never seen on this AH (since 6.0 patch)
+
+    o['globalMedian']   -> median market price across all US and EU realms
+    o['globalMean']     -> mean market price across all US and EU realms
+    o['globalStdDev']   -> standard deviation of the market price across all US and EU realms
+
+    o['market']         -> average "best" market price of the item on this AH over the past 3 days.
+    o['minMarket']      -> minimum market price of the item on this AH over the past 3 days. only returned for stackable items.
+    o['maxMarket']      -> maximum market price of the item on this AH over the past 3 days. only returned for stackable items.
+
+
+You can also query and set whether the additional tooltip lines appear from this addon.
 This is useful for other addons (Auctioneer, TSM, etc) that have their own fancy tooltips to disable TUJ tooltips and use TUJ simply as a data source.
 
-TUJTooltip() returns a boolean whether TUJ tooltips are enabled
-TUJTooltip(true) enables TUJ tooltips
-TUJTooltip(false) disables TUJ tooltips
+    TUJTooltip()        -> returns a boolean whether TUJ tooltips are enabled
+    TUJTooltip(true)    -> enables TUJ tooltips
+    TUJTooltip(false)   -> disables TUJ tooltips
 
 You may need to re-disable tooltips upon reloadui, or any other event that resets runtime variables.
 Tooltips are enabled by default and there is no savedvariable that remembers to shut them back off.
@@ -30,104 +43,103 @@ See http://tuj.me/TUJTooltip for more information/examples.
 ]]
 
 --[[
-	This chunk from:
+    This chunk from:
 
-	Norganna's Tooltip Helper class
-	Version: 1.0
+    Norganna's Tooltip Helper class
+    Version: 1.0
 
-	License:
-		This program is free software; you can redistribute it and/or
-		modify it under the terms of the GNU General Public License
-		as published by the Free Software Foundation; either version 2
-		of the License, or (at your option) any later version.
+    License:
+        This program is free software; you can redistribute it and/or
+        modify it under the terms of the GNU General Public License
+        as published by the Free Software Foundation; either version 2
+        of the License, or (at your option) any later version.
 
-		This program is distributed in the hope that it will be useful,
-		but WITHOUT ANY WARRANTY; without even the implied warranty of
-		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-		GNU General Public License for more details.
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU General Public License for more details.
 
-		You should have received a copy of the GNU General Public License
-		along with this program(see GPL.txt); if not, write to the Free Software
-		Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+        You should have received a copy of the GNU General Public License
+        along with this program(see GPL.txt); if not, write to the Free Software
+        Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-	Note:
-		This source code is specifically designed to work with World of Warcraft's
-		interpreted AddOn system.
-		You have an implicit licence to use this code with these facilities
-		since that is its designated purpose as per:
-		http://www.fsf.org/licensing/licenses/gpl-faq.html#InterpreterIncompat
+    Note:
+        This source code is specifically designed to work with World of Warcraft's
+        interpreted AddOn system.
+        You have an implicit licence to use this code with these facilities
+        since that is its designated purpose as per:
+        http://www.fsf.org/licensing/licenses/gpl-faq.html#InterpreterIncompat
 
-		If you copy this code, please rename it to your own tastes, as this file is
-		liable to change without notice and could possibly destroy any code that relies
-		on it staying the same.
-		We will attempt to avoid this happening where possible (of course).
+        If you copy this code, please rename it to your own tastes, as this file is
+        liable to change without notice and could possibly destroy any code that relies
+        on it staying the same.
+        We will attempt to avoid this happening where possible (of course).
 ]]
 
+local function coins(money, graphic)
+    local GOLD="ffd100"
+    local SILVER="e6e6e6"
+    local COPPER="c8602c"
 
-	local function coins(money, graphic)
-        local GOLD="ffd100"
-        local SILVER="e6e6e6"
-        local COPPER="c8602c"
+    local GSC_3 = "|cff%s%d|cff000000.|cff%s%02d|cff000000.|cff%s%02d|r"
+    local GSC_2 = "|cff%s%d|cff000000.|cff%s%02d|r"
+    local GSC_1 = "|cff%s%d|r"
 
-        local GSC_3 = "|cff%s%d|cff000000.|cff%s%02d|cff000000.|cff%s%02d|r"
-        local GSC_2 = "|cff%s%d|cff000000.|cff%s%02d|r"
-        local GSC_1 = "|cff%s%d|r"
+    local iconpath = "Interface\\MoneyFrame\\UI-"
+    local goldicon = "%d|T"..iconpath.."GoldIcon:0|t"
+    local silvericon = "%s|T"..iconpath.."SilverIcon:0|t"
+    local coppericon = "%s|T"..iconpath.."CopperIcon:0|t"
 
-        local iconpath = "Interface\\MoneyFrame\\UI-"
-        local goldicon = "%d|T"..iconpath.."GoldIcon:0|t"
-        local silvericon = "%s|T"..iconpath.."SilverIcon:0|t"
-        local coppericon = "%s|T"..iconpath.."CopperIcon:0|t"
+    money = math.floor(tonumber(money) or 0)
+    local g = math.floor(money / 10000)
+    local s = math.floor(money % 10000 / 100)
+    local c = money % 100
 
-		money = math.floor(tonumber(money) or 0)
-		local g = math.floor(money / 10000)
-		local s = math.floor(money % 10000 / 100)
-		local c = money % 100
-
-		if not graphic then
-			if g > 0 then
-                if (c > 0) then
-				    return GSC_3:format(GOLD, g, SILVER, s, COPPER, c)
-                else
-                    return GSC_2:format(GOLD, g, SILVER, s)
-                end
-			elseif s > 0 then
-                if (c > 0) then
-				    return GSC_2:format(SILVER, s, COPPER, c)
-                else
-                    return GSC_1:format(SILVER, s)
-                end
-			else
-				return GSC_1:format(COPPER, c)
-			end
-		else
-			if g > 0 then
-                if (c > 0) then
-    				return goldicon:format(g)..silvericon:format("%02d"):format(s)..coppericon:format("%02d"):format(c)
-                else
-                    return goldicon:format(g)..silvericon:format("%02d"):format(s)
-                end
-			elseif s > 0  then
-                if (c > 0) then
-    				return silvericon:format("%d"):format(s)..coppericon:format("%02d"):format(c)
-                else
-                    return silvericon:format("%d"):format(s)
-                end
-			else
-				return coppericon:format("%d"):format(c)
-			end
-		end
-	end
+    if not graphic then
+        if g > 0 then
+            if (c > 0) then
+                return GSC_3:format(GOLD, g, SILVER, s, COPPER, c)
+            else
+                return GSC_2:format(GOLD, g, SILVER, s)
+            end
+        elseif s > 0 then
+            if (c > 0) then
+                return GSC_2:format(SILVER, s, COPPER, c)
+            else
+                return GSC_1:format(SILVER, s)
+            end
+        else
+            return GSC_1:format(COPPER, c)
+        end
+    else
+        if g > 0 then
+            if (c > 0) then
+                return goldicon:format(g)..silvericon:format("%02d"):format(s)..coppericon:format("%02d"):format(c)
+            else
+                return goldicon:format(g)..silvericon:format("%02d"):format(s)
+            end
+        elseif s > 0  then
+            if (c > 0) then
+                return silvericon:format("%d"):format(s)..coppericon:format("%02d"):format(c)
+            else
+                return silvericon:format("%d"):format(s)
+            end
+        else
+            return coppericon:format("%d"):format(c)
+        end
+    end
+end
 
 --[[
-	End of chunk from 
-	
-	Norganna's Tooltip Helper class
-	Version: 1.0
+    End of chunk from 
+    
+    Norganna's Tooltip Helper class
+    Version: 1.0
 ]]
 
 -- Lua 5.1+ base64 v3.0 (c) 2009 by Alex Kloss <alexthkloss@web.de>
 -- licensed under the terms of the LGPL2
-function base64dec(data)
+local function base64dec(data)
     local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
     data = string.gsub(data, '[^'..b..'=]', '')
     return (data:gsub('.', function(x)
@@ -164,209 +176,203 @@ end
 addonTable.realmName = string.upper(GetRealmName())
 addonTable.tooltipsEnabled = true
 
+--[[
+    pass a table as the second argument to wipe and reuse that table
+    otherwise a new table will be created and returned
+]]
+function TUJMarketInfo(iid,...)
+    if iid == 0 then
+        if addonTable.marketData then
+            return true
+        else
+            return false
+        end
+    end
+
+    local numargs = select('#', ...)
+    local tr
+
+    if (numargs > 0) and (type(select(1,...)) == 'table') then
+        tr = select(1,...)
+        wipe(tr)
+    end
+
+    if not iid then return tr end
+    if not addonTable.marketData then return tr end
+    if not addonTable.marketData[iid] then return tr end
+
+    if not tr then tr = {} end
+
+    tr['itemid'] = iid
+
+    if addonTable.dataAge then
+        tr['age'] = time() - addonTable.dataAge
+    end
+
+    local dta = addonTable.marketData[iid]
+    dta = base64dec(dta)
+
+    local priceSize = string.byte(dta, 1);
+    local hasMinMax = priceSize >= 128
+    if hasMinMax then
+        priceSize = priceSize - 128
+    end
+
+    local offset = 2
+    local market, minMarket, maxMarket = 0, 0, 0
+
+    tr['globalMedian'] = char2dec(string.sub(dta, offset, offset+priceSize-1))*100;
+    offset = offset + priceSize
+
+    tr['globalMean'] = char2dec(string.sub(dta, offset, offset+priceSize-1))*100;
+    offset = offset + priceSize
+
+    tr['globalStdDev'] = char2dec(string.sub(dta, offset, offset+priceSize-1))*100;
+    offset = offset + priceSize
+
+    if hasMinMax then
+        offset = offset + (priceSize+3) * addonTable.realmIndex;
+    else
+        offset = offset + (priceSize+1) * addonTable.realmIndex;
+    end
+
+    tr['days'] = string.byte(dta, offset, offset)
+    offset = offset + 1
+
+    market = char2dec(string.sub(dta, offset, offset+priceSize-1))
+    if hasMinMax then
+        minMarket = round(string.byte(dta, offset+priceSize, offset+priceSize) / 255 * market) * 100
+        maxMarket = string.byte(dta, offset+priceSize+1, offset+priceSize+1)
+        if maxMarket > 0 then
+            maxMarket = round(market / (maxMarket / 255)) * 100
+        end
+    end
+    market = market * 100
+
+    tr['market'] = market
+    if minMarket > 0 then
+        tr['minMarket'] = minMarket
+    end
+    if maxMarket > 0 then
+        tr['maxMarket'] = maxMarket
+    end
+
+    return tr
+end
+
+--[[
+    enable/disable/query whether the TUJ tooltip additions are enabled
+]]
+function TUJTooltip(...)
+    if select('#', ...) >= 1 then
+        addonTable.tooltipsEnabled = not not select(1,...) --coerce into boolean
+    end
+    return addonTable.tooltipsEnabled
+end
+
 local function GetIDFromLink(SpellLink)
-	local _, l = GetItemInfo(SpellLink)
-	if not l then return end
-	return tonumber(string.match(l, "^|c%x%x%x%x%x%x%x%x|H%w+:(%d+)"))
+    local _, l = GetItemInfo(SpellLink)
+    if not l then return end
+    return tonumber(string.match(l, "^|c%x%x%x%x%x%x%x%x|H%w+:(%d+)"))
 end
 
 local _tooltipcallback, lasttooltip
+local dataResults = {}
 
 local function ClearLastTip(...)
-	lasttooltip = nil
+    lasttooltip = nil
 end
 
 local function GetCallback()
-	_tooltipcallback = _tooltipcallback or function(tooltip,...)
-		if not addonTable.marketData then return end
-		if not addonTable.tooltipsEnabled then return end
-		if lasttooltip == tooltip then return end
-		lasttooltip = tooltip
+    _tooltipcallback = _tooltipcallback or function(tooltip,...)
+        if not addonTable.marketData then return end
+        if not addonTable.tooltipsEnabled then return end
+        if lasttooltip == tooltip then return end
+        lasttooltip = tooltip
 
-		local iid
-		local spellName, spellRank, spellID = GameTooltip:GetSpell()
-		if spellID then
-			return
-			--iid = addonTable.spelltoitem[spellID]
-		else
-			local name, item = tooltip:GetItem()
-			if (not name) or (not item) then return end
-			iid = GetIDFromLink(item)
-		end
+        local iid
+        local spellName, spellRank, spellID = GameTooltip:GetSpell()
+        if spellID then
+            return
+            --iid = addonTable.spelltoitem[spellID]
+        else
+            local name, item = tooltip:GetItem()
+            if (not name) or (not item) then return end
+            iid = GetIDFromLink(item)
+        end
 
-		if iid and addonTable.marketData[iid] then
-			local r,g,b = .9,.8,.5
-			local dta = addonTable.marketData[iid]
-            dta = base64dec(dta)
+        if iid and addonTable.marketData[iid] then
+            local r,g,b = .9,.8,.5
 
-            local priceSize = string.byte(dta, 1);
-            local hasMinMax = priceSize >= 128
-            if hasMinMax then
-                priceSize = priceSize - 128
-            end
-
-            local offset = 2
-            local market, regionMedian, regionAverage, regionStdDev
-            local minMarket, maxMarket = 0, 0
-
-            regionMedian = char2dec(string.sub(dta, offset, offset+priceSize-1))*100;
-            offset = offset + priceSize
-
-            regionAverage = char2dec(string.sub(dta, offset, offset+priceSize-1))*100;
-            offset = offset + priceSize
-
-            regionStdDev = char2dec(string.sub(dta, offset, offset+priceSize-1))*100;
-            offset = offset + priceSize
-
-            if hasMinMax then
-                offset = offset + (priceSize+2) * addonTable.realmIndex;
-            else
-                offset = offset + priceSize * addonTable.realmIndex;
-            end
-
-            market = char2dec(string.sub(dta, offset, offset+priceSize-1))
-            if hasMinMax then
-                minMarket = round(string.byte(dta, offset+priceSize, offset+priceSize) / 255 * market) * 100
-                maxMarket = string.byte(dta, offset+priceSize+1, offset+priceSize+1)
-                if maxMarket > 0 then
-                    maxMarket = round(market / (maxMarket / 255)) * 100
-                end
-            end
-
-            market = market * 100
+            TUJMarketInfo(iid, dataResults)
 
             tooltip:AddLine(" ")
 
-			--[[
-			if addonTable.updatetime then
-				age = time() - (addonTable.updatetime+timeoffset)
-				if (age > 0) then
-					tooltip:AddLine("As of "..SecondsToTime(age,age>60).." Ago:",r,g,b)
-				end
-			end
-			]]
-
-			if market then
-				tooltip:AddDoubleLine("Realm Price",coins(market,false),r,g,b)
+            if (dataResults['age'] > 3*24*60*60) then
+                tooltip:AddLine("As of "..SecondsToTime(dataResults['age'],dataResults['age']>60).." ago:",r,g,b)
             end
-            if minMarket > 0 and maxMarket > 0 then
-                tooltip:AddDoubleLine("Realm Range",coins(minMarket,false)..' |cffe6cd80-|r '..coins(maxMarket,false),r,g,b)
+
+            if dataResults['market'] then
+                tooltip:AddDoubleLine("Realm Price",coins(dataResults['market'],false),r,g,b)
+            end
+            if not dataResults['minMarket'] then
+                dataResults['minMarket'] = 0
+            end
+            if not dataResults['maxMarket'] then
+                dataResults['maxMarket'] = 0
+            end
+
+            if dataResults['minMarket'] > 0 and dataResults['maxMarket'] > 0 then
+                tooltip:AddDoubleLine("Realm Range",coins(dataResults['minMarket'],false)..' |cffe6cd80-|r '..coins(dataResults['maxMarket'],false),r,g,b)
             else
-                if minMarket > 0 then
-                    tooltip:AddDoubleLine("Realm Min",coins(minMarket,false),r,g,b)
+                if dataResults['minMarket'] > 0 then
+                    tooltip:AddDoubleLine("Realm Min",coins(dataResults['minMarket'],false),r,g,b)
                 end
-                if maxMarket > 0 then
-                    tooltip:AddDoubleLine("Realm Max",coins(maxMarket,false),r,g,b)
+                if dataResults['maxMarket'] > 0 then
+                    tooltip:AddDoubleLine("Realm Max",coins(dataResults['maxMarket'],false),r,g,b)
                 end
             end
-            if regionMedian then
-                tooltip:AddDoubleLine("Global Median",coins(regionMedian,false),r,g,b)
+            if dataResults['globalMedian'] then
+                tooltip:AddDoubleLine("Global Median",coins(dataResults['globalMedian'],false),r,g,b)
             end
-            if regionAverage then
-                tooltip:AddDoubleLine("Global Mean",coins(regionAverage,false),r,g,b)
+            if dataResults['globalMean'] then
+                tooltip:AddDoubleLine("Global Mean",coins(dataResults['globalMean'],false),r,g,b)
             end
-            if regionStdDev then
-                tooltip:AddDoubleLine("Global Std Dev",coins(regionStdDev,false),r,g,b)
+            if dataResults['globalStdDev'] then
+                tooltip:AddDoubleLine("Global Std Dev",coins(dataResults['globalStdDev'],false),r,g,b)
             end
 
-			--[[
-			if addonTable.updatetime and dta['lastseen'] then
-				local ts = dta['lastseen']
-				local y,m,d = strsplit('-',strsub(ts,1,10))
-				local h,mi,s = strsplit(':',strsub(ts,12,19))
-				local lastseen = time({['year']=y,['month']=m,['day']=d,['hour']=h,['min']=mi,['sec']=s,['isdst']=nil})
-				if ((addonTable.updatetime - lastseen) > 129600) then
-					lastseen = time() - (lastseen + timeoffset)
-					tooltip:AddLine("Last seen "..SecondsToTime(lastseen,lastseen>60).." ago!",r,g,b)
-				end
-			end
-			]]
-		end
-	end
-	return _tooltipcallback
-end
+            if dataResults['days'] == 255 then
+                tooltip:AddLine("Never seen since WoD",r,g,b)
+            elseif dataResults['days'] > 250 then
+                tooltip:AddLine("Last seen over 250 days ago",r,g,b)
+            elseif dataResults['days'] > 1 then
+                tooltip:AddLine("Last seen "..SecondsToTime(dataResults['days']*24*60*60).." ago",r,g,b)
+            end
 
-if not addonTable.skiploading then
-	--[[
-		pass a table as the second argument to wipe and reuse that table
-		otherwise a new table will be created and returned
-	]]
-	function TUJMarketInfo(iid,...)
-		if iid == 0 then
-			if addonTable.marketData then
-				return true
-			else
-				return false
-			end
-		end
-
-		local numargs = select('#', ...)
-		local tr
-		
-		if (numargs > 0) and (type(select(1,...)) == 'table') then
-			tr = select(1,...)
-			wipe(tr)
-		end
-		
-		if not iid then return tr end
-		if not addonTable.marketData then return tr end
-		if not addonTable.marketData[iid] then return tr end
-		
-		if not tr then tr = {} end
-		
-		tr['itemid'] = iid
-		--[[
-		if addonTable.updatetime then
-			tr['age'] = time() - (addonTable.updatetime+timeoffset)
-		end
-		]]
-		
-		for k,v in pairs(addonTable.marketData[iid]) do
-			tr[k] = v
-		end
-
-		return tr
-	end
-	
-	--[[
-		enable/disable/query whether the TUJ tooltip additions are enabled
-	]]
-	function TUJTooltip(...)
-		if select('#', ...) >= 1 then
-			addonTable.tooltipsEnabled = not not select(1,...) --coerce into boolean
-		end
-		return addonTable.tooltipsEnabled
-	end
-	
+        end
+    end
+    return _tooltipcallback
 end
 
 local eventframe = CreateFrame("FRAME",addonName.."Events");
 
 local function onEvent(self,event,arg)
-	if event == "PLAYER_LOGIN" then
-		local _,mon,day,yr = CalendarGetDate()
-		local hr,min = GetGameTime()
-		local servertime = time({['year']=yr,['month']=mon,['day']=day,['hour']=hr,['min']=min,['sec']=time()%60,['isdst']=nil})
-		--timeoffset = time()-servertime;
-	end
-	if event == "PLAYER_ENTERING_WORLD" then
-		eventframe:UnregisterEvent("PLAYER_ENTERING_WORLD")
-		--[[
-		if addonTable.region ~= string.upper(string.sub(GetCVar("realmList"),1,2)) then
-			print("The Undermine Journal - Warning: Unknown region from realmlist.wtf: '"..string.upper(string.sub(GetCVar("realmList"),1,2)).."', assuming '"..addonTable.region.."'")
-		end
-		]]
+    if event == "PLAYER_ENTERING_WORLD" then
+        eventframe:UnregisterEvent("PLAYER_ENTERING_WORLD")
+        --[[
+        if addonTable.region ~= string.upper(string.sub(GetCVar("realmList"),1,2)) then
+            print("The Undermine Journal - Warning: Unknown region from realmlist.wtf: '"..string.upper(string.sub(GetCVar("realmList"),1,2)).."', assuming '"..addonTable.region.."'")
+        end
+        ]]
         for _,frame in pairs{GameTooltip, ItemRefTooltip, ShoppingTooltip1, ShoppingTooltip2} do
             frame:HookScript("OnTooltipSetItem", GetCallback())
-            frame:HookScript("OnTooltipSetSpell", GetCallback())
+            --frame:HookScript("OnTooltipSetSpell", GetCallback())
             frame:HookScript("OnTooltipCleared", ClearLastTip)
         end
-	end
+    end
 end
 
-if not addonTable.skiploading then
-	eventframe:RegisterEvent("PLAYER_LOGIN")
-	eventframe:RegisterEvent("PLAYER_ENTERING_WORLD")
-	eventframe:SetScript("OnEvent", onEvent)
-end
+eventframe:RegisterEvent("PLAYER_ENTERING_WORLD")
+eventframe:SetScript("OnEvent", onEvent)
 

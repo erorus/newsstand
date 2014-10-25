@@ -28,6 +28,8 @@ function BuildAddonData($region)
     if ($caughtKill)
         return;
 
+    $globalSpots = 3; // number of global prices in front of every string
+
     $stmt = $db->prepare('select distinct house from tblRealm where region = ? and canonical is not null');
     $stmt->bind_param('s', $region);
     $stmt->execute();
@@ -80,21 +82,19 @@ EOF;
         $stmt->close();
 
         foreach ($prices as $item => $priceRow) {
-            if ($priceRow['stacksize'] <= 1) {
-                $items[$item][$hx+3] = priceAvg($priceRow['lastprice'], [$priceRow['priced1'], $priceRow['priced2'], $priceRow['priced3']]);
-            } else {
-                $avg = priceAvg($priceRow['lastprice'], [$priceRow['priced1'], $priceRow['priced2'], $priceRow['priced3']]);
+            $items[$item][$hx+$globalSpots] = [
+                'avg' => priceAvg($priceRow['lastprice'], [$priceRow['priced1'], $priceRow['priced2'], $priceRow['priced3']]),
+                'days' => min(251, $priceRow['since']),
+            ];
+            if ($priceRow['stacksize'] > 1) {
                 if ($priceRow['pricemin'] == 0) {
-                    $priceRow['pricemin'] = $avg;
+                    $priceRow['pricemin'] = $items[$item][$hx+$globalSpots]['avg'];
                 }
                 if ($priceRow['pricemax'] == 0) {
-                    $priceRow['pricemax'] = $avg;
+                    $priceRow['pricemax'] = $items[$item][$hx+$globalSpots]['avg'];
                 }
-                $items[$item][$hx+3] = [
-                    'avg' => $avg,
-                    'min' => $priceRow['pricemin'],
-                    'max' => $priceRow['pricemax'],
-                    ];
+                $items[$item][$hx+$globalSpots]['min'] = $priceRow['pricemin'];
+                $items[$item][$hx+$globalSpots]['max'] = $priceRow['pricemax'];
             }
         }
     }
@@ -112,9 +112,9 @@ EOF;
     $stmt->close();
 
     foreach ($globalPrices as $item => $priceRow) {
-        $items[$item][0] = round($priceRow['median']/100);
-        $items[$item][1] = round($priceRow['mean']/100);
-        $items[$item][2] = round($priceRow['stddev']/100);
+        $items[$item][0] = ['avg' => round($priceRow['median']/100)];
+        $items[$item][1] = ['avg' => round($priceRow['mean']/100)];
+        $items[$item][2] = ['avg' => round($priceRow['stddev']/100)];
     }
 
     ksort($items);
@@ -130,14 +130,14 @@ EOF;
         $priceBytes = 0;
         $hasMinMax = false;
 
-        for ($x = 0; $x < count($houses)+3; $x++) {
+        for ($x = 0; $x < count($houses)+$globalSpots; $x++) {
             if (!isset($prices[$x])) {
-                $prices[$x] = 0;
+                $prices[$x] = ['avg' => 0, 'days' => 255];
                 continue;
             }
             for ($y = 5; $y >= $priceBytes; $y--) {
-                $hasMinMax |= is_array($prices[$x]);
-                if ((is_array($prices[$x]) ? $prices[$x]['avg'] : $prices[$x]) >= pow(2,8*$y)) {
+                $hasMinMax |= isset($prices[$x]['min']);
+                if ($prices[$x]['avg'] >= pow(2,8*$y)) {
                     $priceBytes = $y+1;
                 }
             }
@@ -147,15 +147,18 @@ EOF;
         }
         $priceString = chr($priceBytes + ($hasMinMax ? 128 : 0));
         for ($x = 0; $x < count($prices); $x++) {
+            if ($x >= $globalSpots) {
+                $priceString .= chr($prices[$x]['days']);
+            }
             $priceBin = '';
-            $price = is_array($prices[$x]) ? $prices[$x]['avg'] : $prices[$x];
+            $price = $prices[$x]['avg'];
             for ($y = 0; $y < $priceBytes; $y++) {
                 $priceBin = chr($price % 256) . $priceBin;
                 $price = $price >> 8;
             }
             $priceString .= $priceBin;
-            if ($hasMinMax && ($x >= 3)) {
-                if (!is_array($prices[$x])) {
+            if ($hasMinMax && ($x >= $globalSpots)) {
+                if (!isset($prices[$x]['min'])) {
                     $priceString .= chr(0).chr(0);
                 } else {
                     $priceString .= ($prices[$x]['avg'] == 0) ? 0 : chr(round($prices[$x]['min'] / $prices[$x]['avg'] * 255));
@@ -194,16 +197,18 @@ EOF;
         return;
 
     DebugMessage('Building final lua');
+    $dataAge = time();
 
     $lua = <<<EOF
 local addonName, addonTable = ...
 local realmName = addonTable.realmName or string.upper(GetRealmName())
 
-local realmIndex = nil
+addonTable.dataAge = $dataAge
 
+local realmIndex = nil
 $realmLua
 
-if addonTable.region ~= "US" then
+if addonTable.region ~= "$region" then
     realmIndex = nil
 end
 
