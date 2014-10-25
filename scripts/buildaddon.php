@@ -161,8 +161,8 @@ EOF;
                 if (!isset($prices[$x]['min'])) {
                     $priceString .= chr(0).chr(0);
                 } else {
-                    $priceString .= ($prices[$x]['avg'] == 0) ? 0 : chr(round($prices[$x]['min'] / $prices[$x]['avg'] * 255));
-                    $priceString .= ($prices[$x]['max'] == 0) ? 0 : chr(round($prices[$x]['avg'] / $prices[$x]['max'] * 255));
+                    $priceString .= ($prices[$x]['avg'] == 0) ? chr(0) : chr(round($prices[$x]['min'] / $prices[$x]['avg'] * 255));
+                    $priceString .= ($prices[$x]['max'] == 0) ? chr(0) : chr(round($prices[$x]['avg'] / $prices[$x]['max'] * 255));
                 }
             }
         }
