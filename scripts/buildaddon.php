@@ -36,10 +36,13 @@ function BuildAddonData($region)
     $stmt->close();
 
     $items = [];
-    $ihmCols = '';
+    $ihmColsTemplate = '';
     for ($x = 1; $x <= 31; $x++) {
-        $ihmCols .= " when $x then ihm.mktslvr".($x < 10 ? '0' : '')."$x";
+        $ihmColsTemplate .= " when $x then ihm%1\$s.mktslvr".($x < 10 ? '0' : '')."$x";
     }
+    $ihmCols = sprintf($ihmColsTemplate, '');
+    $ihm2Cols = sprintf($ihmColsTemplate, '2');
+    $ihm3Cols = sprintf($ihmColsTemplate, '3');
 
     for ($hx = 0; $hx < count($houses); $hx++) {
         heartbeat();
@@ -49,11 +52,20 @@ function BuildAddonData($region)
         DebugMessage('Finding prices in house '.$houses[$hx].' ('.round($hx/count($houses)*100).'%)');
 
         $sql = <<<EOF
-SELECT tis.item, round(ifnull(ihd.priceavg, ifnull(case day(hc.lastdaily) $ihmCols end, tis.price/100))) prc, datediff(now(), tis.lastseen) since
+SELECT tis.item,
+datediff(now(), tis.lastseen) since,
+round(tis.price/100) lastprice,
+ifnull(ihd.priceavg, case day(hc.lastdaily) $ihmCols end) priced1,
+ifnull(ihd2.priceavg, case day(timestampadd(day, -1, hc.lastdaily)) $ihm2Cols end) priced2,
+ifnull(ihd3.priceavg, case day(timestampadd(day, -2, hc.lastdaily)) $ihm3Cols end) priced3
 FROM tblItemSummary tis
 join tblHouseCheck hc on hc.house = tis.house
 left join tblItemHistoryDaily ihd on ihd.house=tis.house and ihd.item=tis.item and ihd.`when` = hc.lastdaily
+left join tblItemHistoryDaily ihd2 on ihd2.house=tis.house and ihd2.item=tis.item and ihd2.`when` = timestampadd(day, -1, hc.lastdaily)
+left join tblItemHistoryDaily ihd3 on ihd3.house=tis.house and ihd3.item=tis.item and ihd3.`when` = timestampadd(day, -2, hc.lastdaily)
 left join tblItemHistoryMonthly ihm on ihm.house=tis.house and ihm.item=tis.item and ihm.month=((year(hc.lastdaily) - 2014) * 12 + month(hc.lastdaily))
+left join tblItemHistoryMonthly ihm2 on ihm2.house=tis.house and ihm2.item=tis.item and ihm2.month=((year(timestampadd(day, -1, hc.lastdaily)) - 2014) * 12 + month(timestampadd(day, -1, hc.lastdaily)))
+left join tblItemHistoryMonthly ihm3 on ihm3.house=tis.house and ihm3.item=tis.item and ihm3.month=((year(timestampadd(day, -2, hc.lastdaily)) - 2014) * 12 + month(timestampadd(day, -2, hc.lastdaily)))
 WHERE tis.house = ?
 EOF;
         $stmt = $db->prepare($sql);
@@ -64,7 +76,7 @@ EOF;
         $stmt->close();
 
         foreach ($prices as $item => $priceRow) {
-            $items[$item][$hx+3] = round($priceRow['prc']);
+            $items[$item][$hx+3] = priceAvg($priceRow['lastprice'], [$priceRow['priced1'], $priceRow['priced2'], $priceRow['priced3']]);;
         }
     }
 
@@ -120,7 +132,7 @@ EOF;
             }
             $priceString .= $priceBin;
         }
-        $priceLua[] = 'addonTable.marketData['.$item.'] = \''.base64_encode($priceString)."'\n";
+        $priceLua[] = sprintf("addonTable.marketData[%d]='%s'\n", $item, base64_encode($priceString));
     }
     unset($items);
 
@@ -142,7 +154,7 @@ EOF;
     $realmLua = '';
     foreach ($realms as $realmRow) {
         if (isset($houseLookup[$realmRow['house']])) {
-            $realmLua .= 'if realmName == "' . mb_strtoupper($realmRow['name']) . '" then realmIndex = ' . $houseLookup[$realmRow['house']] . " end\n";
+            $realmLua .= sprintf('if realmName == "%s" then realmIndex = %d end'."\n", mb_strtoupper($realmRow['name']), $houseLookup[$realmRow['house']]);
         }
     }
 
@@ -182,4 +194,17 @@ EOF;
     unset($priceLuas);
 
     return $lua;
+}
+
+
+function priceAvg($lastPrice, $dailyPrices) {
+    for ($x = 0; $x < count($dailyPrices); $x++) {
+        if (is_null($dailyPrices[$x])) {
+            array_splice($dailyPrices, $x--, 1);
+        }
+    }
+    if (count($dailyPrices) == 0) {
+        return $lastPrice;
+    }
+    return round(array_sum($dailyPrices)/count($dailyPrices));
 }
