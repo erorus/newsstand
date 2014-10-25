@@ -151,6 +151,11 @@ local function char2dec(s)
     return n
 end
 
+local function round(num, idp)
+    local mult = 10^(idp or 0)
+    return math.floor(num * mult + 0.5) / mult
+end
+
 local addonName, addonTable = ...
 addonTable.region = 'US' --string.upper(string.sub(GetCVar("realmList"),1,2))
 if addonTable.region ~= 'EU' then
@@ -194,9 +199,15 @@ local function GetCallback()
 			local dta = addonTable.marketData[iid]
             dta = base64dec(dta)
 
-            local offset, priceSize = 2, string.byte(dta, 1);
+            local priceSize = string.byte(dta, 1);
+            local hasMinMax = priceSize >= 128
+            if hasMinMax then
+                priceSize = priceSize - 128
+            end
 
+            local offset = 2
             local market, regionMedian, regionAverage, regionStdDev
+            local minMarket, maxMarket = 0, 0
 
             regionMedian = char2dec(string.sub(dta, offset, offset+priceSize-1))*100;
             offset = offset + priceSize
@@ -207,8 +218,22 @@ local function GetCallback()
             regionStdDev = char2dec(string.sub(dta, offset, offset+priceSize-1))*100;
             offset = offset + priceSize
 
-            offset = offset + priceSize * addonTable.realmIndex;
-            market = char2dec(string.sub(dta, offset, offset+priceSize-1))*100
+            if hasMinMax then
+                offset = offset + (priceSize+2) * addonTable.realmIndex;
+            else
+                offset = offset + priceSize * addonTable.realmIndex;
+            end
+
+            market = char2dec(string.sub(dta, offset, offset+priceSize-1))
+            if hasMinMax then
+                minMarket = round(string.byte(dta, offset+priceSize, offset+priceSize) / 255 * market) * 100
+                maxMarket = string.byte(dta, offset+priceSize+1, offset+priceSize+1)
+                if maxMarket > 0 then
+                    maxMarket = round(market / (maxMarket / 255)) * 100
+                end
+            end
+
+            market = market * 100
 
             tooltip:AddLine(" ")
 
@@ -223,7 +248,17 @@ local function GetCallback()
 
 			if market then
 				tooltip:AddDoubleLine("Realm Price",coins(market,false),r,g,b)
-			end
+            end
+            if minMarket > 0 and maxMarket > 0 then
+                tooltip:AddDoubleLine("Realm Range",coins(minMarket,false)..' |cffe6cd80-|r '..coins(maxMarket,false),r,g,b)
+            else
+                if minMarket > 0 then
+                    tooltip:AddDoubleLine("Realm Min",coins(minMarket,false),r,g,b)
+                end
+                if maxMarket > 0 then
+                    tooltip:AddDoubleLine("Realm Max",coins(maxMarket,false),r,g,b)
+                end
+            end
             if regionMedian then
                 tooltip:AddDoubleLine("Global Median",coins(regionMedian,false),r,g,b)
             end

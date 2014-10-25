@@ -53,13 +53,17 @@ function BuildAddonData($region)
 
         $sql = <<<EOF
 SELECT tis.item,
+ifnull(i.stacksize,0) stacksize,
 datediff(now(), tis.lastseen) since,
 round(tis.price/100) lastprice,
 ifnull(ihd.priceavg, case day(hc.lastdaily) $ihmCols end) priced1,
 ifnull(ihd2.priceavg, case day(timestampadd(day, -1, hc.lastdaily)) $ihm2Cols end) priced2,
-ifnull(ihd3.priceavg, case day(timestampadd(day, -2, hc.lastdaily)) $ihm3Cols end) priced3
+ifnull(ihd3.priceavg, case day(timestampadd(day, -2, hc.lastdaily)) $ihm3Cols end) priced3,
+least(ihd.pricemin, ihd2.pricemin, ihd3.pricemin) pricemin,
+greatest(ihd.pricemax, ihd2.pricemax, ihd3.pricemax) pricemax
 FROM tblItemSummary tis
 join tblHouseCheck hc on hc.house = tis.house
+join tblDBCItem i on tis.item=i.id
 left join tblItemHistoryDaily ihd on ihd.house=tis.house and ihd.item=tis.item and ihd.`when` = hc.lastdaily
 left join tblItemHistoryDaily ihd2 on ihd2.house=tis.house and ihd2.item=tis.item and ihd2.`when` = timestampadd(day, -1, hc.lastdaily)
 left join tblItemHistoryDaily ihd3 on ihd3.house=tis.house and ihd3.item=tis.item and ihd3.`when` = timestampadd(day, -2, hc.lastdaily)
@@ -76,7 +80,22 @@ EOF;
         $stmt->close();
 
         foreach ($prices as $item => $priceRow) {
-            $items[$item][$hx+3] = priceAvg($priceRow['lastprice'], [$priceRow['priced1'], $priceRow['priced2'], $priceRow['priced3']]);;
+            if ($priceRow['stacksize'] <= 1) {
+                $items[$item][$hx+3] = priceAvg($priceRow['lastprice'], [$priceRow['priced1'], $priceRow['priced2'], $priceRow['priced3']]);
+            } else {
+                $avg = priceAvg($priceRow['lastprice'], [$priceRow['priced1'], $priceRow['priced2'], $priceRow['priced3']]);
+                if ($priceRow['pricemin'] == 0) {
+                    $priceRow['pricemin'] = $avg;
+                }
+                if ($priceRow['pricemax'] == 0) {
+                    $priceRow['pricemax'] = $avg;
+                }
+                $items[$item][$hx+3] = [
+                    'avg' => $avg,
+                    'min' => $priceRow['pricemin'],
+                    'max' => $priceRow['pricemax'],
+                    ];
+            }
         }
     }
 
@@ -109,13 +128,16 @@ EOF;
             return;
 
         $priceBytes = 0;
+        $hasMinMax = false;
+
         for ($x = 0; $x < count($houses)+3; $x++) {
             if (!isset($prices[$x])) {
                 $prices[$x] = 0;
                 continue;
             }
             for ($y = 5; $y >= $priceBytes; $y--) {
-                if ($prices[$x] >= pow(2,8*$y)) {
+                $hasMinMax |= is_array($prices[$x]);
+                if ((is_array($prices[$x]) ? $prices[$x]['avg'] : $prices[$x]) >= pow(2,8*$y)) {
                     $priceBytes = $y+1;
                 }
             }
@@ -123,14 +145,23 @@ EOF;
         if ($priceBytes == 0) {
             continue;
         }
-        $priceString = chr($priceBytes);
+        $priceString = chr($priceBytes + ($hasMinMax ? 128 : 0));
         for ($x = 0; $x < count($prices); $x++) {
             $priceBin = '';
+            $price = is_array($prices[$x]) ? $prices[$x]['avg'] : $prices[$x];
             for ($y = 0; $y < $priceBytes; $y++) {
-                $priceBin = chr($prices[$x] % 256) . $priceBin;
-                $prices[$x] = $prices[$x] >> 8;
+                $priceBin = chr($price % 256) . $priceBin;
+                $price = $price >> 8;
             }
             $priceString .= $priceBin;
+            if ($hasMinMax && ($x >= 3)) {
+                if (!is_array($prices[$x])) {
+                    $priceString .= chr(0).chr(0);
+                } else {
+                    $priceString .= ($prices[$x]['avg'] == 0) ? 0 : chr(round($prices[$x]['min'] / $prices[$x]['avg'] * 255));
+                    $priceString .= ($prices[$x]['max'] == 0) ? 0 : chr(round($prices[$x]['avg'] / $prices[$x]['max'] * 255));
+                }
+            }
         }
         $priceLua[] = sprintf("addonTable.marketData[%d]='%s'\n", $item, base64_encode($priceString));
     }
