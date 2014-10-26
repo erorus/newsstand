@@ -82,15 +82,15 @@ EOF;
         if ($caughtKill)
             return;
 
-        DebugMessage('Finding prices in house '.$houses[$hx].' ('.round($hx/count($houses)*100).'%) '.memory_get_usage().' '.count($items));
+        DebugMessage('Finding prices in house '.$houses[$hx].' ('.round($hx/count($houses)*100).'%) '.round(memory_get_usage()/1048576));
 
         $stmt = $db->prepare($sql);
         $stmt->bind_param('i', $houses[$hx]);
         $stmt->execute();
         $result = $stmt->get_result();
         while ($priceRow = $result->fetch_assoc()) {
-            $item = $priceRow['item'];
-            $avg = $priceRow['lastprice'];
+            $item = intval($priceRow['item'],10);
+            $avg = intval($priceRow['lastprice'],0);
 
             $dailyPrices = [$priceRow['priced1'], $priceRow['priced2'], $priceRow['priced3']];
             for ($x = 0; $x < count($dailyPrices); $x++) {
@@ -104,7 +104,7 @@ EOF;
 
             $items[$item][$hx+$globalSpots] = [
                 ITEM_COL_AVG => $avg,
-                ITEM_COL_DAYS => min(251, $priceRow['since']),
+                ITEM_COL_DAYS => min(251, intval($priceRow['since'],10)),
             ];
             if ($priceRow['stacksize'] > 1) {
                 if ($priceRow['pricemin'] == 0) {
@@ -113,8 +113,8 @@ EOF;
                 if ($priceRow['pricemax'] == 0) {
                     $priceRow['pricemax'] = $items[$item][$hx+$globalSpots][ITEM_COL_AVG];
                 }
-                $items[$item][$hx+$globalSpots][ITEM_COL_MIN] = $priceRow['pricemin'];
-                $items[$item][$hx+$globalSpots][ITEM_COL_MAX] = $priceRow['pricemax'];
+                $items[$item][$hx+$globalSpots][ITEM_COL_MIN] = intval($priceRow['pricemin'],0);
+                $items[$item][$hx+$globalSpots][ITEM_COL_MAX] = intval($priceRow['pricemax'],0);
             }
         }
         $result->close();
