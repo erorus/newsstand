@@ -15,6 +15,11 @@ ini_set('memory_limit','256M');
 if (!DBConnect())
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
 
+define('ITEM_COL_AVG', 0);
+define('ITEM_COL_DAYS', 1);
+define('ITEM_COL_MIN', 2);
+define('ITEM_COL_MAX', 3);
+
 heartbeat();
 file_put_contents('../addon/MarketData-US.lua', BuildAddonData('US'));
 file_put_contents('../addon/MarketData-EU.lua', BuildAddonData('EU'));
@@ -85,18 +90,18 @@ EOF;
         while ($priceRow = $result->fetch_assoc()) {
             $item = $priceRow['item'];
             $items[$item][$hx+$globalSpots] = [
-                'avg' => priceAvg($priceRow['lastprice'], [$priceRow['priced1'], $priceRow['priced2'], $priceRow['priced3']]),
-                'days' => min(251, $priceRow['since']),
+                ITEM_COL_AVG => priceAvg($priceRow['lastprice'], [$priceRow['priced1'], $priceRow['priced2'], $priceRow['priced3']]),
+                ITEM_COL_DAYS => min(251, $priceRow['since']),
             ];
             if ($priceRow['stacksize'] > 1) {
                 if ($priceRow['pricemin'] == 0) {
-                    $priceRow['pricemin'] = $items[$item][$hx+$globalSpots]['avg'];
+                    $priceRow['pricemin'] = $items[$item][$hx+$globalSpots][ITEM_COL_AVG];
                 }
                 if ($priceRow['pricemax'] == 0) {
-                    $priceRow['pricemax'] = $items[$item][$hx+$globalSpots]['avg'];
+                    $priceRow['pricemax'] = $items[$item][$hx+$globalSpots][ITEM_COL_AVG];
                 }
-                $items[$item][$hx+$globalSpots]['min'] = $priceRow['pricemin'];
-                $items[$item][$hx+$globalSpots]['max'] = $priceRow['pricemax'];
+                $items[$item][$hx+$globalSpots][ITEM_COL_MIN] = $priceRow['pricemin'];
+                $items[$item][$hx+$globalSpots][ITEM_COL_MAX] = $priceRow['pricemax'];
             }
         }
         $result->close();
@@ -116,9 +121,9 @@ EOF;
     $stmt->close();
 
     foreach ($globalPrices as $item => $priceRow) {
-        $items[$item][0] = ['avg' => round($priceRow['median']/100)];
-        $items[$item][1] = ['avg' => round($priceRow['mean']/100)];
-        $items[$item][2] = ['avg' => round($priceRow['stddev']/100)];
+        $items[$item][0] = [ITEM_COL_AVG => round($priceRow['median']/100)];
+        $items[$item][1] = [ITEM_COL_AVG => round($priceRow['mean']/100)];
+        $items[$item][2] = [ITEM_COL_AVG => round($priceRow['stddev']/100)];
     }
 
     ksort($items);
@@ -136,12 +141,12 @@ EOF;
 
         for ($x = 0; $x < count($houses)+$globalSpots; $x++) {
             if (!isset($prices[$x])) {
-                $prices[$x] = ['avg' => 0, 'days' => 255];
+                $prices[$x] = [ITEM_COL_AVG => 0, ITEM_COL_DAYS => 255];
                 continue;
             }
             for ($y = 5; $y >= $priceBytes; $y--) {
-                $hasMinMax |= isset($prices[$x]['min']);
-                if ($prices[$x]['avg'] >= pow(2,8*$y)) {
+                $hasMinMax |= isset($prices[$x][ITEM_COL_MIN]);
+                if ($prices[$x][ITEM_COL_AVG] >= pow(2,8*$y)) {
                     $priceBytes = $y+1;
                 }
             }
@@ -152,7 +157,7 @@ EOF;
         $priceString = chr($priceBytes + ($hasMinMax ? 128 : 0));
         for ($x = 0; $x < $globalSpots; $x++) {
             $priceBin = '';
-            $price = $prices[$x]['avg'];
+            $price = $prices[$x][ITEM_COL_AVG];
             for ($y = 0; $y < $priceBytes; $y++) {
                 $priceBin = chr($price % 256) . $priceBin;
                 $price = $price >> 8;
@@ -164,24 +169,24 @@ EOF;
             $priceString .= str_repeat(chr(0),$padding);
         }
         for ($x = $globalSpots; $x < count($prices); $x++) {
-            $thisPriceString = chr($prices[$x]['days']);
+            $thisPriceString = chr($prices[$x][ITEM_COL_DAYS]);
             $priceBin = '';
-            $price = $prices[$x]['avg'];
+            $price = $prices[$x][ITEM_COL_AVG];
             for ($y = 0; $y < $priceBytes; $y++) {
                 $priceBin = chr($price % 256) . $priceBin;
                 $price = $price >> 8;
             }
             $thisPriceString .= $priceBin;
             if ($hasMinMax) {
-                if (!isset($prices[$x]['min'])) {
+                if (!isset($prices[$x][ITEM_COL_MIN])) {
                     $thisPriceString .= chr(0);
                 } else {
-                    $thisPriceString .= ($prices[$x]['avg'] == 0) ? chr(0) : chr(round($prices[$x]['min'] / $prices[$x]['avg'] * 255));
+                    $thisPriceString .= ($prices[$x][ITEM_COL_AVG] == 0) ? chr(0) : chr(round($prices[$x][ITEM_COL_MIN] / $prices[$x][ITEM_COL_AVG] * 255));
                 }
-                if (!isset($prices[$x]['max'])) {
+                if (!isset($prices[$x][ITEM_COL_MAX])) {
                     $thisPriceString .= chr(0);
                 } else {
-                    $thisPriceString .= ($prices[$x]['max'] == 0) ? chr(0) : chr(round($prices[$x]['avg'] / $prices[$x]['max'] * 255));
+                    $thisPriceString .= ($prices[$x][ITEM_COL_MAX] == 0) ? chr(0) : chr(round($prices[$x][ITEM_COL_AVG] / $prices[$x][ITEM_COL_MAX] * 255));
                 }
             }
             $priceString .= $thisPriceString;
