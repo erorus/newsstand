@@ -46,7 +46,26 @@ function BuildAddonData($region)
     $houses = DBMapArray($result, null);
     $stmt->close();
 
-    $items = [];
+    $item_avg = [];
+    $item_days = [];
+    $item_min = [];
+    $item_max = [];
+
+    DebugMessage('Finding global prices');
+
+    $stmt = $db->prepare('SELECT item, median, mean, stddev FROM tblItemGlobal');
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $globalPrices = DBMapArray($result);
+    $stmt->close();
+
+    foreach ($globalPrices as $item => $priceRow) {
+        $item_avg[$item][0] = round($priceRow['median']/100);
+        $item_avg[$item][1] = round($priceRow['mean']/100);
+        $item_avg[$item][2] = round($priceRow['stddev']/100);
+    }
+
+
     $ihmColsTemplate = '';
     for ($x = 1; $x <= 31; $x++) {
         $ihmColsTemplate .= " when $x then ihm%1\$s.mktslvr".($x < 10 ? '0' : '')."$x";
@@ -77,11 +96,6 @@ left join tblItemHistoryMonthly ihm3 on ihm3.house=tis.house and ihm3.item=tis.i
 WHERE tis.house = ?
 EOF;
 
-    $item_avg = [];
-    $item_days = [];
-    $item_min = [];
-    $item_max = [];
-
     for ($hx = 0; $hx < count($houses); $hx++) {
         heartbeat();
         if ($caughtKill)
@@ -110,11 +124,11 @@ EOF;
             }
 
             $item_avg[$item][$hx+$globalSpots] = $avg;
-            $item_days[$item][$hx+$globalSpots] = min(251, intval($priceRow['since'],10));
+            $item_days[$item][$hx] = min(251, intval($priceRow['since'],10));
 
             if ($priceRow['stacksize'] > 1) {
-                $item_min[$item][$hx+$globalSpots] = $priceRow['pricemin'] ? intval($priceRow['pricemin'],0) : $avg;
-                $item_max[$item][$hx+$globalSpots] = $priceRow['pricemax'] ? intval($priceRow['pricemax'],0) : $avg;
+                $item_min[$item][$hx] = $priceRow['pricemin'] ? intval($priceRow['pricemin'],0) : $avg;
+                $item_max[$item][$hx] = $priceRow['pricemax'] ? intval($priceRow['pricemax'],0) : $avg;
             }
         }
         $result->close();
@@ -125,20 +139,6 @@ EOF;
     heartbeat();
     if ($caughtKill)
         return;
-
-    DebugMessage('Finding global prices');
-
-    $stmt = $db->prepare('SELECT item, median, mean, stddev FROM tblItemGlobal');
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $globalPrices = DBMapArray($result);
-    $stmt->close();
-
-    foreach ($globalPrices as $item => $priceRow) {
-        $items[$item][0] = [ITEM_COL_AVG => round($priceRow['median']/100)];
-        $items[$item][1] = [ITEM_COL_AVG => round($priceRow['mean']/100)];
-        $items[$item][2] = [ITEM_COL_AVG => round($priceRow['stddev']/100)];
-    }
 
     ksort($items);
 
