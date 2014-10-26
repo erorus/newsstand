@@ -1,7 +1,8 @@
 ## Interface: 60000
-## Title: The Undermine Journal %s
+## Title: The Undermine Journal
 ## Notes: %s
 ## Version: 3.0a
+MarketData-US.lua
+MarketData-EU.lua
 TheUndermineJournal.lua
-MarketData.lua
 

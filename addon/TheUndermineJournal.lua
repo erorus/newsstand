@@ -76,6 +76,8 @@ See http://tuj.me/TUJTooltip for more information/examples.
         We will attempt to avoid this happening where possible (of course).
 ]]
 
+collectgarbage("collect") -- lots of strings made and trunc'ed in MarketData
+
 local function coins(money, graphic)
     local GOLD="ffd100"
     local SILVER="e6e6e6"
@@ -169,12 +171,6 @@ local function round(num, idp)
 end
 
 local addonName, addonTable = ...
-addonTable.region = 'US' --string.upper(string.sub(GetCVar("realmList"),1,2))
-if addonTable.region ~= 'EU' then
-    addonTable.region = 'US'
-end
-addonTable.realmName = string.upper(GetRealmName())
-addonTable.tooltipsEnabled = true
 
 --[[
     pass a table as the second argument to wipe and reuse that table
@@ -265,11 +261,12 @@ end
 --[[
     enable/disable/query whether the TUJ tooltip additions are enabled
 ]]
+local tooltipsEnabled = true
 function TUJTooltip(...)
     if select('#', ...) >= 1 then
-        addonTable.tooltipsEnabled = not not select(1,...) --coerce into boolean
+        tooltipsEnabled = not not select(1,...) --coerce into boolean
     end
-    return addonTable.tooltipsEnabled
+    return tooltipsEnabled
 end
 
 local function GetIDFromLink(SpellLink)
@@ -288,7 +285,7 @@ end
 local function GetCallback()
     _tooltipcallback = _tooltipcallback or function(tooltip,...)
         if not addonTable.marketData then return end
-        if not addonTable.tooltipsEnabled then return end
+        if not tooltipsEnabled then return end
         if lasttooltip == tooltip then return end
         lasttooltip = tooltip
 
@@ -362,15 +359,14 @@ local eventframe = CreateFrame("FRAME",addonName.."Events");
 local function onEvent(self,event,arg)
     if event == "PLAYER_ENTERING_WORLD" then
         eventframe:UnregisterEvent("PLAYER_ENTERING_WORLD")
-        --[[
-        if addonTable.region ~= string.upper(string.sub(GetCVar("realmList"),1,2)) then
-            print("The Undermine Journal - Warning: Unknown region from realmlist.wtf: '"..string.upper(string.sub(GetCVar("realmList"),1,2)).."', assuming '"..addonTable.region.."'")
-        end
-        ]]
-        for _,frame in pairs{GameTooltip, ItemRefTooltip, ShoppingTooltip1, ShoppingTooltip2} do
-            frame:HookScript("OnTooltipSetItem", GetCallback())
-            --frame:HookScript("OnTooltipSetSpell", GetCallback())
-            frame:HookScript("OnTooltipCleared", ClearLastTip)
+        if not addonTable.marketData then
+            print("The Undermine Journal - Warning: Unknown region: "..GetCVar("portal")..", no data loaded!")
+        else
+            for _,frame in pairs{GameTooltip, ItemRefTooltip, ShoppingTooltip1, ShoppingTooltip2} do
+                frame:HookScript("OnTooltipSetItem", GetCallback())
+                --frame:HookScript("OnTooltipSetSpell", GetCallback())
+                frame:HookScript("OnTooltipCleared", ClearLastTip)
+            end
         end
     end
 end

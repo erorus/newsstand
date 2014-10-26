@@ -16,7 +16,9 @@ if (!DBConnect())
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
 
 heartbeat();
-file_put_contents('../addon/MarketData.lua', BuildAddonData('US'));
+file_put_contents('../addon/MarketData-US.lua', BuildAddonData('US'));
+file_put_contents('../addon/MarketData-EU.lua', BuildAddonData('EU'));
+MakeZip();
 
 DebugMessage('Done! Started '.TimeDiff($startTime));
 
@@ -27,6 +29,8 @@ function BuildAddonData($region)
     heartbeat();
     if ($caughtKill)
         return;
+
+    DebugMessage("Starting region $region");;
 
     $globalSpots = 3; // number of global prices in front of every string
 
@@ -121,7 +125,7 @@ EOF;
 
     DebugMessage('Making lua strings');
 
-    $priceLua = [];
+    $priceLua = '';
     foreach ($items as $item => $prices) {
         heartbeat();
         if ($caughtKill)
@@ -182,7 +186,7 @@ EOF;
             }
             $priceString .= $thisPriceString;
         }
-        $priceLua[] = sprintf("addonTable.marketData[%d]=crop(%d,%s,'%s')\n", $item, $priceBytes, $hasMinMax ? 'true' : 'false', base64_encode($priceString));
+        $priceLua .= sprintf("addonTable.marketData[%d]=crop(%d,%s,'%s')\n", $item, $priceBytes, $hasMinMax ? 'true' : 'false', base64_encode($priceString));
     }
     unset($items);
 
@@ -194,7 +198,7 @@ EOF;
 
     $houseLookup = array_flip($houses);
 
-    $stmt = $db->prepare('select name, house from tblRealm where region = ?');
+    $stmt = $db->prepare('select name, house, ownerrealm from tblRealm where region = ?');
     $stmt->bind_param('s', $region);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -202,9 +206,13 @@ EOF;
     $stmt->close();
 
     $realmLua = '';
+    $realmPattern = 'if realmName == "%s" then realmIndex = %d end'."\n";
     foreach ($realms as $realmRow) {
         if (isset($houseLookup[$realmRow['house']])) {
-            $realmLua .= sprintf('if realmName == "%s" then realmIndex = %d end'."\n", mb_strtoupper($realmRow['name']), $houseLookup[$realmRow['house']]);
+            $realmLua .= sprintf($realmPattern, mb_ereg_replace('[^\w]', '', mb_strtoupper($realmRow['name'])), $houseLookup[$realmRow['house']]);
+            if (!is_null($realmRow['ownerrealm'])) {
+                $realmLua .= sprintf($realmPattern, mb_ereg_replace('[^\w]', '', mb_strtoupper($realmRow['ownerrealm'])), $houseLookup[$realmRow['house']]);
+            }
         }
     }
 
@@ -217,21 +225,24 @@ EOF;
 
     $lua = <<<EOF
 local addonName, addonTable = ...
-local realmName = addonTable.realmName or string.upper(GetRealmName())
+
+if not string.upper(GetCVar("portal")) == "$region" then
+    return
+end
+
+local realmName = string.gsub(string.upper(GetRealmName()), '[^%w]', '')
 
 addonTable.dataAge = $dataAge
 
 local realmIndex = nil
 $realmLua
 
-if addonTable.region ~= "$region" then
-    realmIndex = nil
+if not realmIndex then
+    return
 end
 
-if realmIndex then
-    addonTable.marketData = {}
-    addonTable.realmIndex = realmIndex
-end
+addonTable.marketData = {}
+addonTable.realmIndex = realmIndex
 
 local function crop(priceSize8, hasMinMax, b)
     local headerSize6 = math.ceil((priceSize8 * 3 + 1) / 3) * 4
@@ -248,22 +259,10 @@ local function crop(priceSize8, hasMinMax, b)
     return string.sub(b, 1, headerSize6)..string.sub(b, offset6, offset6 + length6 - 1)
 end
 
-
 EOF;
 
-    $priceLuas = array_chunk($priceLua, 250);
-    unset($priceLua);
-
-    for ($x = 0; $x < count($priceLuas); $x++) {
-        $lua .= "if realmIndex then\n";
-        $lua .= implode('', $priceLuas[$x]);
-        $lua .= "end\n";
-    }
-    unset($priceLuas);
-
-    return $lua;
+    return pack('CCC', 239, 187, 191).$lua.$priceLua;
 }
-
 
 function priceAvg($lastPrice, $dailyPrices) {
     for ($x = 0; $x < count($dailyPrices); $x++) {
@@ -275,4 +274,27 @@ function priceAvg($lastPrice, $dailyPrices) {
         return $lastPrice;
     }
     return round(array_sum($dailyPrices)/count($dailyPrices));
+}
+
+function MakeZip()
+{
+    $zipFilename = tempnam('/tmp','addonzip');
+    $zip = new ZipArchive;
+    if (!$zip->open($zipFilename, ZipArchive::CREATE)) {
+        @unlink($zipFilename);
+        DebugMessage('Could not create zip file', E_USER_ERROR);;
+    }
+
+    $tocFile = file_get_contents('../addon/TheUndermineJournal.toc');
+    $tocFile = sprintf($tocFile, Date('D, F j'));
+
+    $zip->addEmptyDir('TheUndermineJournal');
+    $zip->addFromString("TheUndermineJournal/TheUndermineJournal.toc",$tocFile);
+    $zip->addFile('../addon/TheUndermineJournal.lua',"TheUndermineJournal/TheUndermineJournal.lua");
+    $zip->addFile('../addon/MarketData-US.lua',"TheUndermineJournal/MarketData-US.lua");
+    $zip->addFile('../addon/MarketData-EU.lua',"TheUndermineJournal/MarketData-EU.lua");
+    //$zip->addFromString("TheUndermineJournal/SpellToItem.lua",getspelltoitemlua());
+    $zip->close();
+
+    rename($zipFilename, '../addon/TheUndermineJournal.zip');
 }
