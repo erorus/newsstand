@@ -304,6 +304,8 @@ EOF;
 
 function MakeZip()
 {
+    DebugMessage('Making zip file..');
+
     $zipFilename = tempnam('/tmp','addonzip');
     $zip = new ZipArchive;
     if (!$zip->open($zipFilename, ZipArchive::CREATE)) {
