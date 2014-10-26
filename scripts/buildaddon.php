@@ -82,7 +82,7 @@ EOF;
         if ($caughtKill)
             return;
 
-        DebugMessage('Finding prices in house '.$houses[$hx].' ('.round($hx/count($houses)*100).'%)');
+        DebugMessage('Finding prices in house '.$houses[$hx].' ('.round($hx/count($houses)*100).'%) '.memory_get_usage());
 
         $stmt = $db->prepare($sql);
         $stmt->bind_param('i', $houses[$hx]);
