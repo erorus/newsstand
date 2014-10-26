@@ -359,8 +359,10 @@ local eventframe = CreateFrame("FRAME",addonName.."Events");
 local function onEvent(self,event,arg)
     if event == "PLAYER_ENTERING_WORLD" then
         eventframe:UnregisterEvent("PLAYER_ENTERING_WORLD")
-        if not addonTable.marketData then
-            print("The Undermine Journal - Warning: Unknown region: "..GetCVar("portal")..", no data loaded!")
+        if not addonTable.dataAge then
+            print("The Undermine Journal - Warning: could not find data for region "..GetCVar("portal")..", no data loaded!")
+        elseif not addonTable.marketData then
+            print("The Undermine Journal - Warning: no data loaded!")
         else
             for _,frame in pairs{GameTooltip, ItemRefTooltip, ShoppingTooltip1, ShoppingTooltip2} do
                 frame:HookScript("OnTooltipSetItem", GetCallback())

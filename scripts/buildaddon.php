@@ -15,11 +15,6 @@ ini_set('memory_limit','256M');
 if (!DBConnect())
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
 
-define('ITEM_COL_AVG', 0);
-define('ITEM_COL_DAYS', 1);
-define('ITEM_COL_MIN', 2);
-define('ITEM_COL_MAX', 3);
-
 heartbeat();
 file_put_contents('../addon/MarketData-US.lua', BuildAddonData('US'));
 file_put_contents('../addon/MarketData-EU.lua', BuildAddonData('EU'));
@@ -211,17 +206,18 @@ EOF;
             $thisPriceString .= $priceBin;
 
             if ($hasMinMax) {
-                if (!isset($mins[$x])) {
+                if (!isset($mins[$x2])) {
                     $thisPriceString .= chr(0);
                 } else {
-                    $thisPriceString .= ($prices[$x] == 0) ? chr(0) : chr(round($mins[$x] / $prices[$x] * 255));
+                    $thisPriceString .= ($prices[$x] == 0) ? chr(0) : chr(round($mins[$x2] / $prices[$x] * 255));
                 }
-                if (!isset($maxs[$x])) {
+                if (!isset($maxs[$x2])) {
                     $thisPriceString .= chr(0);
                 } else {
-                    $thisPriceString .= ($maxs[$x] == 0) ? chr(0) : chr(round($prices[$x] / $maxs[$x] * 255));
+                    $thisPriceString .= ($maxs[$x2] == 0) ? chr(0) : chr(round($prices[$x] / $maxs[$x2] * 255));
                 }
             }
+
             $priceString .= $thisPriceString;
         }
         $priceLua .= sprintf("addonTable.marketData[%d]=crop(%d,%s,'%s')\n", $item, $priceBytes, $hasMinMax ? 'true' : 'false', base64_encode($priceString));
@@ -264,7 +260,7 @@ EOF;
     $lua = <<<EOF
 local addonName, addonTable = ...
 
-if not string.upper(GetCVar("portal")) == "$region" then
+if string.upper(GetCVar("portal")) ~= "$region" then
     return
 end
 
@@ -276,6 +272,7 @@ local realmIndex = nil
 $realmLua
 
 if not realmIndex then
+    print("The Undermine Journal - Warning: detected region $region but could not find data for realm "..GetRealmName())
     return
 end
 
