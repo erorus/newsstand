@@ -30,7 +30,7 @@ function BuildAddonData($region)
 
     $globalSpots = 3; // number of global prices in front of every string
 
-    $stmt = $db->prepare('select distinct house from tblRealm where region = ? and canonical is not null');
+    $stmt = $db->prepare('select distinct house from tblRealm where region = ? and canonical is not null order by 1');
     $stmt->bind_param('s', $region);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -146,10 +146,7 @@ EOF;
             continue;
         }
         $priceString = chr($priceBytes + ($hasMinMax ? 128 : 0));
-        for ($x = 0; $x < count($prices); $x++) {
-            if ($x >= $globalSpots) {
-                $priceString .= chr($prices[$x]['days']);
-            }
+        for ($x = 0; $x < $globalSpots; $x++) {
             $priceBin = '';
             $price = $prices[$x]['avg'];
             for ($y = 0; $y < $priceBytes; $y++) {
@@ -157,16 +154,35 @@ EOF;
                 $price = $price >> 8;
             }
             $priceString .= $priceBin;
-            if ($hasMinMax && ($x >= $globalSpots)) {
+        }
+        $padding = 3 * ceil(($priceBytes * $globalSpots + 1)/3) - strlen($priceString);
+        if ($padding) {
+            $priceString .= str_repeat(chr(0),$padding);
+        }
+        for ($x = $globalSpots; $x < count($prices); $x++) {
+            $thisPriceString = chr($prices[$x]['days']);
+            $priceBin = '';
+            $price = $prices[$x]['avg'];
+            for ($y = 0; $y < $priceBytes; $y++) {
+                $priceBin = chr($price % 256) . $priceBin;
+                $price = $price >> 8;
+            }
+            $thisPriceString .= $priceBin;
+            if ($hasMinMax) {
                 if (!isset($prices[$x]['min'])) {
-                    $priceString .= chr(0).chr(0);
+                    $thisPriceString .= chr(0);
                 } else {
-                    $priceString .= ($prices[$x]['avg'] == 0) ? chr(0) : chr(round($prices[$x]['min'] / $prices[$x]['avg'] * 255));
-                    $priceString .= ($prices[$x]['max'] == 0) ? chr(0) : chr(round($prices[$x]['avg'] / $prices[$x]['max'] * 255));
+                    $thisPriceString .= ($prices[$x]['avg'] == 0) ? chr(0) : chr(round($prices[$x]['min'] / $prices[$x]['avg'] * 255));
+                }
+                if (!isset($prices[$x]['max'])) {
+                    $thisPriceString .= chr(0);
+                } else {
+                    $thisPriceString .= ($prices[$x]['max'] == 0) ? chr(0) : chr(round($prices[$x]['avg'] / $prices[$x]['max'] * 255));
                 }
             }
+            $priceString .= $thisPriceString;
         }
-        $priceLua[] = sprintf("addonTable.marketData[%d]='%s'\n", $item, base64_encode($priceString));
+        $priceLua[] = sprintf("addonTable.marketData[%d]=crop(%d,%s,'%s')\n", $item, $priceBytes, $hasMinMax ? 'true' : 'false', base64_encode($priceString));
     }
     unset($items);
 
@@ -216,6 +232,22 @@ if realmIndex then
     addonTable.marketData = {}
     addonTable.realmIndex = realmIndex
 end
+
+local function crop(priceSize8, hasMinMax, b)
+    local headerSize6 = math.ceil((priceSize8 * 3 + 1) / 3) * 4
+
+    local recordSize8 = priceSize8 + 1
+    if hasMinMax then
+        recordSize8 = recordSize8 + 2
+    end
+    local recordSize6 = math.ceil(recordSize8 / 3) * 4
+
+    local offset6 = 1 + headerSize6 + math.floor(recordSize8 * realmIndex / 3) * 4
+    local length6 = recordSize6 + 4
+
+    return string.sub(b, 1, headerSize6)..string.sub(b, offset6, offset6 + length6 - 1)
+end
+
 
 EOF;
 

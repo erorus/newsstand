@@ -209,8 +209,7 @@ function TUJMarketInfo(iid,...)
         tr['age'] = time() - addonTable.dataAge
     end
 
-    local dta = addonTable.marketData[iid]
-    dta = base64dec(dta)
+    local dta = base64dec(addonTable.marketData[iid])
 
     local priceSize = string.byte(dta, 1);
     local hasMinMax = priceSize >= 128
@@ -230,11 +229,14 @@ function TUJMarketInfo(iid,...)
     tr['globalStdDev'] = char2dec(string.sub(dta, offset, offset+priceSize-1))*100;
     offset = offset + priceSize
 
+    offset = offset + (offset % 3) -- header padding
+
+    local recordSize = priceSize + 1 -- days byte
     if hasMinMax then
-        offset = offset + (priceSize+3) * addonTable.realmIndex;
-    else
-        offset = offset + (priceSize+1) * addonTable.realmIndex;
+        recordSize = recordSize + 2 -- minmax
     end
+    local skip = (recordSize * addonTable.realmIndex) % 3
+    offset = offset + skip
 
     tr['days'] = string.byte(dta, offset, offset)
     offset = offset + 1
