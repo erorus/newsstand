@@ -90,16 +90,18 @@ EOF;
         $result = $stmt->get_result();
         while ($priceRow = $result->fetch_assoc()) {
             $item = intval($priceRow['item'],10);
-            $avg = intval($priceRow['lastprice'],0);
 
-            $dailyPrices = [$priceRow['priced1'], $priceRow['priced2'], $priceRow['priced3']];
-            for ($x = 0; $x < count($dailyPrices); $x++) {
-                if (is_null($dailyPrices[$x])) {
-                    array_splice($dailyPrices, $x--, 1);
+            $c = 0; $s = 0;
+            for ($x = 1; $x <=3 ; $x++) {
+                if (!is_null($priceRow["priced$x"])) {
+                    $s += intval($priceRow["priced$x"], 0);
+                    $c++;
                 }
             }
-            if (count($dailyPrices) > 0) {
-                $avg = round(array_sum($dailyPrices)/count($dailyPrices));
+            if ($c > 0) {
+                $avg = round($s / $c);
+            } else {
+                $avg = intval($priceRow['lastprice'],0);
             }
 
             $items[$item][$hx+$globalSpots] = [
