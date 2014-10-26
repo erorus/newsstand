@@ -77,6 +77,11 @@ left join tblItemHistoryMonthly ihm3 on ihm3.house=tis.house and ihm3.item=tis.i
 WHERE tis.house = ?
 EOF;
 
+    $item_avg = [];
+    $item_days = [];
+    $item_min = [];
+    $item_max = [];
+
     for ($hx = 0; $hx < count($houses); $hx++) {
         heartbeat();
         if ($caughtKill)
@@ -104,24 +109,18 @@ EOF;
                 $avg = intval($priceRow['lastprice'],0);
             }
 
-            $items[$item][$hx+$globalSpots] = [
-                ITEM_COL_AVG => $avg,
-                ITEM_COL_DAYS => min(251, intval($priceRow['since'],10)),
-            ];
+            $item_avg[$item][$hx+$globalSpots] = $avg;
+            $item_days[$item][$hx+$globalSpots] = min(251, intval($priceRow['since'],10));
+
             if ($priceRow['stacksize'] > 1) {
-                if ($priceRow['pricemin'] == 0) {
-                    $priceRow['pricemin'] = $items[$item][$hx+$globalSpots][ITEM_COL_AVG];
-                }
-                if ($priceRow['pricemax'] == 0) {
-                    $priceRow['pricemax'] = $items[$item][$hx+$globalSpots][ITEM_COL_AVG];
-                }
-                $items[$item][$hx+$globalSpots][ITEM_COL_MIN] = intval($priceRow['pricemin'],0);
-                $items[$item][$hx+$globalSpots][ITEM_COL_MAX] = intval($priceRow['pricemax'],0);
+                $item_min[$item][$hx+$globalSpots] = $priceRow['pricemin'] ? intval($priceRow['pricemin'],0) : $avg;
+                $item_max[$item][$hx+$globalSpots] = $priceRow['pricemax'] ? intval($priceRow['pricemax'],0) : $avg;
             }
         }
         $result->close();
         $stmt->close();
     }
+    exit;
 
     heartbeat();
     if ($caughtKill)
