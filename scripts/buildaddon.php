@@ -55,14 +55,7 @@ function BuildAddonData($region)
     $ihm2Cols = sprintf($ihmColsTemplate, '2');
     $ihm3Cols = sprintf($ihmColsTemplate, '3');
 
-    for ($hx = 0; $hx < count($houses); $hx++) {
-        heartbeat();
-        if ($caughtKill)
-            return;
-
-        DebugMessage('Finding prices in house '.$houses[$hx].' ('.round($hx/count($houses)*100).'%)');
-
-        $sql = <<<EOF
+    $sql = <<<EOF
 SELECT tis.item,
 ifnull(i.stacksize,0) stacksize,
 datediff(now(), tis.lastseen) since,
@@ -83,14 +76,34 @@ left join tblItemHistoryMonthly ihm2 on ihm2.house=tis.house and ihm2.item=tis.i
 left join tblItemHistoryMonthly ihm3 on ihm3.house=tis.house and ihm3.item=tis.item and ihm3.month=((year(timestampadd(day, -2, hc.lastdaily)) - 2014) * 12 + month(timestampadd(day, -2, hc.lastdaily)))
 WHERE tis.house = ?
 EOF;
+
+    for ($hx = 0; $hx < count($houses); $hx++) {
+        heartbeat();
+        if ($caughtKill)
+            return;
+
+        DebugMessage('Finding prices in house '.$houses[$hx].' ('.round($hx/count($houses)*100).'%)');
+
         $stmt = $db->prepare($sql);
         $stmt->bind_param('i', $houses[$hx]);
         $stmt->execute();
         $result = $stmt->get_result();
         while ($priceRow = $result->fetch_assoc()) {
             $item = $priceRow['item'];
+            $avg = $priceRow['lastprice'];
+
+            $dailyPrices = [$priceRow['priced1'], $priceRow['priced2'], $priceRow['priced3']];
+            for ($x = 0; $x < count($dailyPrices); $x++) {
+                if (is_null($dailyPrices[$x])) {
+                    array_splice($dailyPrices, $x--, 1);
+                }
+            }
+            if (count($dailyPrices) > 0) {
+                $avg = round(array_sum($dailyPrices)/count($dailyPrices));
+            }
+
             $items[$item][$hx+$globalSpots] = [
-                ITEM_COL_AVG => priceAvg($priceRow['lastprice'], [$priceRow['priced1'], $priceRow['priced2'], $priceRow['priced3']]),
+                ITEM_COL_AVG => $avg,
                 ITEM_COL_DAYS => min(251, $priceRow['since']),
             ];
             if ($priceRow['stacksize'] > 1) {
@@ -267,18 +280,6 @@ end
 EOF;
 
     return pack('CCC', 239, 187, 191).$lua.$priceLua;
-}
-
-function priceAvg($lastPrice, $dailyPrices) {
-    for ($x = 0; $x < count($dailyPrices); $x++) {
-        if (is_null($dailyPrices[$x])) {
-            array_splice($dailyPrices, $x--, 1);
-        }
-    }
-    if (count($dailyPrices) == 0) {
-        return $lastPrice;
-    }
-    return round(array_sum($dailyPrices)/count($dailyPrices));
 }
 
 function MakeZip()
