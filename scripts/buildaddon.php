@@ -82,10 +82,8 @@ EOF;
         $stmt->bind_param('i', $houses[$hx]);
         $stmt->execute();
         $result = $stmt->get_result();
-        $prices = DBMapArray($result);
-        $stmt->close();
-
-        foreach ($prices as $item => $priceRow) {
+        while ($priceRow = $result->fetch_assoc()) {
+            $item = $priceRow['item'];
             $items[$item][$hx+$globalSpots] = [
                 'avg' => priceAvg($priceRow['lastprice'], [$priceRow['priced1'], $priceRow['priced2'], $priceRow['priced3']]),
                 'days' => min(251, $priceRow['since']),
@@ -101,6 +99,8 @@ EOF;
                 $items[$item][$hx+$globalSpots]['max'] = $priceRow['pricemax'];
             }
         }
+        $result->close();
+        $stmt->close();
     }
 
     heartbeat();
