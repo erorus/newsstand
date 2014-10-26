@@ -60,9 +60,7 @@ function BuildAddonData($region)
     $stmt->close();
 
     foreach ($globalPrices as $item => $priceRow) {
-        $item_avg[$item][0] = round($priceRow['median']/100);
-        $item_avg[$item][1] = round($priceRow['mean']/100);
-        $item_avg[$item][2] = round($priceRow['stddev']/100);
+        $item_avg[$item] = pack('LLL', round($priceRow['median']/100), round($priceRow['mean']/100), round($priceRow['stddev']/100));
     }
 
 
@@ -123,12 +121,12 @@ EOF;
                 $avg = intval($priceRow['lastprice'],0);
             }
 
-            $item_avg[$item][$hx+$globalSpots] = $avg;
-            $item_days[$item][$hx] = min(251, intval($priceRow['since'],10));
+            $item_avg[$item] = (isset($item_avg[$item]) ? $item_avg[$item] : '') . pack('L', $avg);
+            $item_days[$item] = (isset($item_days[$item]) ? $item_days[$item] : '') . chr(min(251, intval($priceRow['since'],10)));
 
             if ($priceRow['stacksize'] > 1) {
-                $item_min[$item][$hx] = $priceRow['pricemin'] ? intval($priceRow['pricemin'],0) : $avg;
-                $item_max[$item][$hx] = $priceRow['pricemax'] ? intval($priceRow['pricemax'],0) : $avg;
+                $item_min[$item] = (isset($item_min[$item]) ? $item_min[$item] : '') . pack('L', $priceRow['pricemin'] ? intval($priceRow['pricemin'],0) : $avg);
+                $item_max[$item] = (isset($item_max[$item]) ? $item_max[$item] : '') . pack('L', $priceRow['pricemax'] ? intval($priceRow['pricemax'],0) : $avg);
             }
         }
         $result->close();
