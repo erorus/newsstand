@@ -41,7 +41,7 @@ order by sn.house, sn.updated) deltas
 group by deltas.house) t
 join tblRealm r on r.house = t.house
 group by r.house
-order by 3 asc, region asc, nms asc
+order by 3 asc, 4 asc, region asc, nms asc
 EOF;
 
     $stmt = $db->prepare($sql);
