@@ -3,14 +3,17 @@
 require_once('../incl/incl.php');
 require_once('../incl/memcache.incl.php');
 
+$now = Date('r');
+
 echo <<<EOF
+<!DOCTYPE html>
 <html><head>
 <title>Battle.net Auction House API Data Intervals</title>
 </head>
 <body>
 <h1>Battle.net Auction House API Data Intervals</h1>
 
-Delays observed between AH API snapshots over the past 72 hours.
+Delays observed between AH API snapshots over the past 72 hours, as of $now
 <p>
 
 EOF;
