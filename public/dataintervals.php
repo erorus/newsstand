@@ -29,8 +29,8 @@ function DataIntervalsData()
     DBConnect();
 
     $sql = <<<EOF
-select t.*, r.region, group_concat(r.name order by 1 separator ', ') nms from (
-select deltas.house, max(deltas.updated) lastupdate, min(delta) mindelta, round(avg(delta)) avgdelta, max(delta) maxdelta
+select t.house, t.lastupdate, t.mindelta * 60 mindelta, t.avgdelta * 60 avgdelta, t.maxdelta * 60 maxdelta, r.region, group_concat(r.name order by 1 separator ', ') nms from (
+select deltas.house, max(deltas.updated) lastupdate, round(min(delta)/60) mindelta, round(avg(delta)/60) avgdelta, round(max(delta)/60) maxdelta
 from (
 select sn.updated,
 if(@prevhouse = sn.house and sn.updated > timestampadd(hour, -72, now()), unix_timestamp(sn.updated) - @prevdate, null) delta,
@@ -41,7 +41,7 @@ order by sn.house, sn.updated) deltas
 group by deltas.house) t
 join tblRealm r on r.house = t.house
 group by r.house
-order by mindelta asc, region asc, nms asc
+order by 3 asc, region asc, nms asc
 EOF;
 
     $stmt = $db->prepare($sql);
@@ -62,10 +62,10 @@ function BuildDataIntervalsTable(&$rows)
 <tr>
     <th>Region</th>
     <th>Realms</th>
-    <th>Last Update</th>
     <th>Minimum Delay</th>
     <th>Average Delay</th>
     <th>Maximum Delay</th>
+    <th>Last Update</th>
 </tr>
 EOF;
     $opt = [
@@ -76,10 +76,10 @@ EOF;
         $tr .= '<tr>';
         $tr .= '<td>'.$row['region'].'</td>';
         $tr .= '<td>'.$row['nms'].'</td>';
-        $tr .= '<td align="right">'.TimeDiff(strtotime($row['lastupdate'])).'</td>';
         $tr .= '<td align="right">'.TimeDiff(time() - $row['mindelta'], $opt).'</td>';
         $tr .= '<td align="right">'.TimeDiff(time() - $row['avgdelta'], $opt).'</td>';
         $tr .= '<td align="right">'.TimeDiff(time() - $row['maxdelta'], $opt).'</td>';
+        $tr .= '<td align="right">'.TimeDiff(strtotime($row['lastupdate'])).'</td>';
         $tr .= '</tr>';
     }
 
