@@ -58,34 +58,17 @@ function BuildAddonData($region)
         $item_avg[$item] = pack('LLL', round($priceRow['median']/100), round($priceRow['mean']/100), round($priceRow['stddev']/100));
     }
 
-    $ihmColsTemplate = '';
-    for ($x = 1; $x <= 31; $x++) {
-        $ihmColsTemplate .= " when $x then ihm%1\$s.mktslvr".($x < 10 ? '0' : '')."$x";
-    }
-    $ihmCols = sprintf($ihmColsTemplate, '');
-    $ihm2Cols = sprintf($ihmColsTemplate, '2');
-    $ihm3Cols = sprintf($ihmColsTemplate, '3');
-
     $sql = <<<EOF
 SELECT tis.item,
-ifnull(i.stacksize,0) stacksize,
 datediff(now(), tis.lastseen) since,
-round(tis.price/100) lastprice,
-ifnull(ihd.priceavg, case day(hc.lastdaily) $ihmCols end) priced1,
-ifnull(ihd2.priceavg, case day(timestampadd(day, -1, hc.lastdaily)) $ihm2Cols end) priced2,
-ifnull(ihd3.priceavg, case day(timestampadd(day, -2, hc.lastdaily)) $ihm3Cols end) priced3,
-least(ihd.pricemin, ihd2.pricemin, ihd3.pricemin) pricemin,
-greatest(ihd.pricemax, ihd2.pricemax, ihd3.pricemax) pricemax
+round(ifnull(ih.price, tis.price)/100) price,
+round(min(ih.price)/100) pricemin,
+round(max(ih.price)/100) pricemax
 FROM tblItemSummary tis
 join tblHouseCheck hc on hc.house = tis.house
-join tblDBCItem i on tis.item=i.id
-left join tblItemHistoryDaily ihd on ihd.house=tis.house and ihd.item=tis.item and ihd.`when` = hc.lastdaily
-left join tblItemHistoryDaily ihd2 on ihd2.house=tis.house and ihd2.item=tis.item and ihd2.`when` = timestampadd(day, -1, hc.lastdaily)
-left join tblItemHistoryDaily ihd3 on ihd3.house=tis.house and ihd3.item=tis.item and ihd3.`when` = timestampadd(day, -2, hc.lastdaily)
-left join tblItemHistoryMonthly ihm on ihm.house=tis.house and ihm.item=tis.item and ihm.month=((year(hc.lastdaily) - 2014) * 12 + month(hc.lastdaily))
-left join tblItemHistoryMonthly ihm2 on ihm2.house=tis.house and ihm2.item=tis.item and ihm2.month=((year(timestampadd(day, -1, hc.lastdaily)) - 2014) * 12 + month(timestampadd(day, -1, hc.lastdaily)))
-left join tblItemHistoryMonthly ihm3 on ihm3.house=tis.house and ihm3.item=tis.item and ihm3.month=((year(timestampadd(day, -2, hc.lastdaily)) - 2014) * 12 + month(timestampadd(day, -2, hc.lastdaily)))
+left join tblItemHistory ih on ih.item=tis.item and ih.house = tis.house
 WHERE tis.house = ?
+group by tis.item
 EOF;
 
     for ($hx = 0; $hx < count($houses); $hx++) {
@@ -102,38 +85,25 @@ EOF;
         while ($priceRow = $result->fetch_assoc()) {
             $item = intval($priceRow['item'],10);
 
-            $c = 0; $s = 0;
-            for ($x = 1; $x <=3 ; $x++) {
-                if (!is_null($priceRow["priced$x"])) {
-                    $s += intval($priceRow["priced$x"], 0);
-                    $c++;
-                }
-            }
-            if ($c > 0) {
-                $avg = round($s / $c);
-            } else {
-                $avg = intval($priceRow['lastprice'],0);
-            }
-
             if (!isset($item_avg[$item])) {
                 $item_avg[$item] = '';
             }
             if (!isset($item_days[$item])) {
                 $item_days[$item] = '';
             }
-            $item_avg[$item] .= str_repeat(chr(0), 4 * ($hx + $globalSpots) - strlen($item_avg[$item])) . pack('L', $avg);
-            $item_days[$item] .= str_repeat(chr(255), $hx - strlen($item_days[$item])) . chr(min(251, intval($priceRow['since'],10)));
-
-            if ($priceRow['stacksize'] > 1) {
-                if (!isset($item_min[$item])) {
-                    $item_min[$item] = '';
-                }
-                if (!isset($item_max[$item])) {
-                    $item_max[$item] = '';
-                }
-                $item_min[$item] .= str_repeat(chr(0), 4 * $hx - strlen($item_min[$item])) . pack('L', $priceRow['pricemin'] ? intval($priceRow['pricemin'],0) : $avg);
-                $item_max[$item] .= str_repeat(chr(0), 4 * $hx - strlen($item_max[$item])) . pack('L', $priceRow['pricemax'] ? intval($priceRow['pricemax'],0) : $avg);
+            if (!isset($item_min[$item])) {
+                $item_min[$item] = '';
             }
+            if (!isset($item_max[$item])) {
+                $item_max[$item] = '';
+            }
+
+            $prc = intval($priceRow['price'], 10);
+
+            $item_avg[$item] .= str_repeat(chr(0), 4 * ($hx + $globalSpots) - strlen($item_avg[$item])) . pack('L', $prc);
+            $item_days[$item] .= str_repeat(chr(255), $hx - strlen($item_days[$item])) . chr(min(251, intval($priceRow['since'],10)));
+            $item_min[$item] .= str_repeat(chr(0), 4 * $hx - strlen($item_min[$item])) . pack('L', $priceRow['pricemin'] ? intval($priceRow['pricemin'],10) : $prc);
+            $item_max[$item] .= str_repeat(chr(0), 4 * $hx - strlen($item_max[$item])) . pack('L', $priceRow['pricemax'] ? intval($priceRow['pricemax'],10) : $prc);
         }
         $result->close();
         $stmt->close();
@@ -151,13 +121,9 @@ EOF;
         if ($caughtKill)
             return;
 
-        $hasMinMax = isset($item_min[$item]) && isset($item_max[$item]);
-
         $prices = array_values(unpack('L*',$priceList));
-        if ($hasMinMax) {
-            $mins = array_values(unpack('L*',$item_min[$item]));
-            $maxs = array_values(unpack('L*',$item_max[$item]));
-        }
+        $mins = isset($item_min[$item]) ? array_values(unpack('L*',$item_min[$item])) : [];
+        $maxs = isset($item_max[$item]) ? array_values(unpack('L*',$item_max[$item])) : [];
 
         $priceBytes = 0;
         for ($x = 0; $x < count($houses)+$globalSpots; $x++) {
@@ -175,7 +141,7 @@ EOF;
             continue;
         }
 
-        $priceString = chr($priceBytes + ($hasMinMax ? 128 : 0));
+        $priceString = chr($priceBytes);
 
         for ($x = 0; $x < $globalSpots; $x++) {
             $priceBin = '';
@@ -205,22 +171,20 @@ EOF;
             }
             $thisPriceString .= $priceBin;
 
-            if ($hasMinMax) {
-                if (!isset($mins[$x2])) {
-                    $thisPriceString .= chr(0);
-                } else {
-                    $thisPriceString .= ($prices[$x] == 0) ? chr(0) : chr(round($mins[$x2] / $prices[$x] * 255));
-                }
-                if (!isset($maxs[$x2])) {
-                    $thisPriceString .= chr(0);
-                } else {
-                    $thisPriceString .= ($maxs[$x2] == 0) ? chr(0) : chr(round($prices[$x] / $maxs[$x2] * 255));
-                }
+            if (!isset($mins[$x2])) {
+                $thisPriceString .= chr(0);
+            } else {
+                $thisPriceString .= ($prices[$x] == 0) ? chr(0) : chr(round($mins[$x2] / $prices[$x] * 255));
+            }
+            if (!isset($maxs[$x2])) {
+                $thisPriceString .= chr(0);
+            } else {
+                $thisPriceString .= ($maxs[$x2] == 0) ? chr(0) : chr(round($prices[$x] / $maxs[$x2] * 255));
             }
 
             $priceString .= $thisPriceString;
         }
-        $priceLua .= sprintf("addonTable.marketData[%d]=crop(%d,%s,'%s')\n", $item, $priceBytes, $hasMinMax ? 'true' : 'false', base64_encode($priceString));
+        $priceLua .= sprintf("addonTable.marketData[%d]=crop(%d,'%s')\n", $item, $priceBytes, base64_encode($priceString));
     }
     unset($items);
 
@@ -279,13 +243,10 @@ end
 addonTable.marketData = {}
 addonTable.realmIndex = realmIndex
 
-local function crop(priceSize8, hasMinMax, b)
+local function crop(priceSize8, b)
     local headerSize6 = math.ceil((priceSize8 * 3 + 1) / 3) * 4
 
-    local recordSize8 = priceSize8 + 1
-    if hasMinMax then
-        recordSize8 = recordSize8 + 2
-    end
+    local recordSize8 = priceSize8 + 1 + 2
     local recordSize6 = math.ceil(recordSize8 / 3) * 4
 
     local offset6 = 1 + headerSize6 + math.floor(recordSize8 * realmIndex / 3) * 4

@@ -25,8 +25,8 @@ Prices are returned in copper, but accurate to the last *silver* (with coppers a
     o['globalStdDev']   -> standard deviation of the market price across all US and EU realms
 
     o['market']         -> average "best" market price of the item on this AH over the past 3 days.
-    o['minMarket']      -> minimum market price of the item on this AH over the past 3 days. only returned for stackable items.
-    o['maxMarket']      -> maximum market price of the item on this AH over the past 3 days. only returned for stackable items.
+    o['minMarket']      -> minimum market price of the item on this AH over the past 3 days.
+    o['maxMarket']      -> maximum market price of the item on this AH over the past 3 days.
 
 
 You can also query and set whether the additional tooltip lines appear from this addon.
@@ -208,10 +208,6 @@ function TUJMarketInfo(iid,...)
     local dta = base64dec(addonTable.marketData[iid])
 
     local priceSize = string.byte(dta, 1);
-    local hasMinMax = priceSize >= 128
-    if hasMinMax then
-        priceSize = priceSize - 128
-    end
 
     local offset = 2
     local market, minMarket, maxMarket = 0, 0, 0
@@ -227,10 +223,7 @@ function TUJMarketInfo(iid,...)
 
     offset = offset + (offset % 3) -- header padding
 
-    local recordSize = priceSize + 1 -- days byte
-    if hasMinMax then
-        recordSize = recordSize + 2 -- minmax
-    end
+    local recordSize = priceSize + 1 + 2 -- days byte, minmax bytes
     local skip = (recordSize * addonTable.realmIndex) % 3
     offset = offset + skip
 
@@ -238,12 +231,10 @@ function TUJMarketInfo(iid,...)
     offset = offset + 1
 
     market = char2dec(string.sub(dta, offset, offset+priceSize-1))
-    if hasMinMax then
-        minMarket = round(string.byte(dta, offset+priceSize, offset+priceSize) / 255 * market) * 100
-        maxMarket = string.byte(dta, offset+priceSize+1, offset+priceSize+1)
-        if maxMarket > 0 then
-            maxMarket = round(market / (maxMarket / 255)) * 100
-        end
+    minMarket = round(string.byte(dta, offset+priceSize, offset+priceSize) / 255 * market) * 100
+    maxMarket = string.byte(dta, offset+priceSize+1, offset+priceSize+1)
+    if maxMarket > 0 then
+        maxMarket = round(market / (maxMarket / 255)) * 100
     end
     market = market * 100
 
