@@ -512,6 +512,7 @@ var TUJ = function()
         var h = location.hash.toLowerCase();
         if (h.charAt(0) == '#')
             h = h.substr(1);
+        h = decodeURIComponent(h);
         h = h.split('/');
 
         var y;

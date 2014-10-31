@@ -35,6 +35,9 @@ function SellerStats($house, $realm, $seller)
 {
     global $db;
 
+    $seller = mb_ereg_replace(' ', '', $seller);
+    $seller = mb_strtoupper(mb_substr($seller, 0, 1)).mb_strtolower(mb_substr($seller, 1));
+
     $key = 'seller_stats_'.$realm.'_'.$seller;
 
     if (($tr = MCGetHouse($house, $key)) !== false)

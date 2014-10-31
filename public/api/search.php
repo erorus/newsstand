@@ -96,13 +96,13 @@ function SearchSellers($house, $search)
 {
     global $db;
 
-    $terms = preg_replace('/\s+/', '%', " $search ");
+    $terms = mb_ereg_replace('\s+', '%', " $search ");
 
     $sql = <<<EOF
 select s.id, r.id realm, s.name, unix_timestamp(s.firstseen) firstseen, unix_timestamp(s.lastseen) lastseen
 from tblSeller s
 join tblRealm r on s.realm=r.id and r.house=?
-where s.name like ?
+where convert(s.name using utf8) collate utf8_unicode_ci like ?
 limit 50
 EOF;
 
