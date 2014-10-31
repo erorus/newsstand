@@ -1,10 +1,9 @@
 <?php
-require_once('../incl/incl.php');
+require_once(__DIR__.'/../incl/incl.php');
 
 DBConnect();
 
 GetDataTables();
-
 
 function GetDataTables() {
     global $db;
