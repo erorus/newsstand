@@ -17,13 +17,19 @@ function GetDataTables() {
     $stmt->fetch();
     $stmt->close();
 
-
     $sql = 'SELECT id from tblRealm where house = ?';
     $stmt = $db->prepare($sql);
     $stmt->bind_param('i', $house);
     $stmt->execute();
     $result = $stmt->get_result();
     $realms = DBMapArray($result, null);
+    $stmt->close();
+
+    $sql = sprintf('SELECT id from tblSeller where realm in (%s) order by lastseen desc limit 10', implode(',', $realms));
+    $stmt = $db->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $sellers = DBMapArray($result, null);
     $stmt->close();
 
     $tables = [
@@ -40,7 +46,7 @@ function GetDataTables() {
         'tblPetSummary' => 'house='.$house,
         'tblRealm' => '1=1',
         'tblSeller' => 'realm in ('.implode(',',$realms).')',
-        'tblSellerHistory' => 'seller in (select id from tblSeller where realm in ('.implode(',',$realms).'))',
+        'tblSellerHistory' => 'seller in ('.implode(',',$sellers).')',
         'tblSnapshot' => 'house='.$house,
     ];
 
