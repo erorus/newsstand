@@ -15,6 +15,12 @@ ini_set('memory_limit','256M');
 if (!DBConnect())
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
 
+$luaQuoteChange = [
+    "\r" => '\\r',
+    "\n" => '\\n',
+    chr(26) => '\\026'
+];
+
 heartbeat();
 file_put_contents('../addon/MarketData-US.lua', BuildAddonData('US'));
 file_put_contents('../addon/MarketData-EU.lua', BuildAddonData('EU'));
@@ -285,14 +291,57 @@ function MakeZip()
 }
 
 function luaQuote($s) {
+    global $luaQuoteChange;
+
+    static $regex = '';
+
+    if ($regex == '') {
+        $regex = '/([';
+        foreach (array_keys($luaQuoteChange) as $c) {
+            $regex .= '\\x'.str_pad(dechex(ord($c)), 2, '0', STR_PAD_LEFT);
+        }
+        $regex .= ']+)/';
+    }
+
+    $parts = preg_split($regex, $s, -1, PREG_SPLIT_DELIM_CAPTURE);
+    $result = '';
+    for ($x = 0; $x < count($parts); $x++) {
+        $c = 0;
+        $p = preg_replace_callback($regex, 'luaPreg', $parts[$x], -1, $c);
+        if ($c == 0) {
+            $p = luaBracket($p);
+        }
+        $result .= ($result == '' ? '' : '..') . $p;
+    }
+
+    return $result;
+}
+
+function luaPreg($m) {
+    global $luaQuoteChange;
+    $s = $m[0];
+    foreach ($luaQuoteChange as $from => $to) {
+        $s = str_replace($from, $to, $s);
+    }
+    return "'$s'";
+}
+
+function luaBracket($s) {
     $e = -1;
     while (++$e < 10) {
         $eq = str_repeat('=', $e);
         $pre = '['.$eq.'[';
         $suf = "]$eq]";
-        if ((strpos($s, $pre) === false) && (strpos($s, $suf) === false)) {
-            return $pre.$s.$suf;
+        if (strpos($s, $pre) !== false) {
+            continue;
         }
+        if (strpos($s, $suf) !== false) {
+            continue;
+        }
+        if (substr($s, -1*($e+1)) == substr($suf, 0, -1)) {
+            continue;
+        }
+        return $pre.$s.$suf;
     }
     return "''";
 }
