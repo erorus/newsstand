@@ -117,6 +117,7 @@ EOF;
     DebugMessage('Making lua strings');
 
     $priceLua = '';
+    $luaLineCount = 0;
     foreach ($item_global as $item => $globalPriceList) {
         heartbeat();
         if ($caughtKill)
@@ -193,6 +194,9 @@ EOF;
             $priceString .= $thisPriceString;
         }
         $priceLua .= sprintf("addonTable.marketData[%d]=crop(%d,%s)\n", $item, $priceBytes, luaQuote($priceString));
+        if (++$luaLineCount % 100 == 0) {
+            $priceLua .= "collectgarbage('collect')\n";
+        }
     }
     unset($items);
 
