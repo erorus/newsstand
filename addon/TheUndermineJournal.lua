@@ -16,17 +16,16 @@ Prices are returned in copper, but accurate to the last *silver* (with coppers a
     o['itemid']         -> the ID of the item you just passed in
     o['age']            -> number of seconds since data was compiled
 
-    o['days']           -> number of days since item was last seen on the auction house, when data was compiled. valid values 0 - 250.
-     o['days'] = 251 means item was seen on this AH, but over 250 days ago
-     o['days'] = 255 means item was never seen on this AH (since 6.0 patch)
-
     o['globalMedian']   -> median market price across all US and EU realms
     o['globalMean']     -> mean market price across all US and EU realms
     o['globalStdDev']   -> standard deviation of the market price across all US and EU realms
 
-    o['market']         -> average "best" market price of the item on this AH over the past 3 days.
-    o['minMarket']      -> minimum market price of the item on this AH over the past 3 days.
-    o['maxMarket']      -> maximum market price of the item on this AH over the past 3 days.
+    o['market']         -> average market price of the item on this AH over the past 14 days.
+    o['stddev']         -> standard deviation of market price of the item on this AH over the past 14 days.
+
+    o['days']           -> number of days since item was last seen on the auction house, when data was compiled. valid values 0 - 250.
+     o['days'] = 251 means item was seen on this AH, but over 250 days ago
+     o['days'] = 255 means item was never seen on this AH (since 6.0 patch)
 
 
 You can also query and set whether the additional tooltip lines appear from this addon.
@@ -210,7 +209,6 @@ function TUJMarketInfo(iid,...)
     local priceSize = string.byte(dta, 1);
 
     local offset = 2
-    local market, minMarket, maxMarket = 0, 0, 0
 
     tr['globalMedian'] = char2dec(string.sub(dta, offset, offset+priceSize-1))*100;
     offset = offset + priceSize
@@ -223,28 +221,18 @@ function TUJMarketInfo(iid,...)
 
     offset = offset + (offset % 3) -- header padding
 
-    local recordSize = priceSize + 1 + 2 -- days byte, minmax bytes
+    local recordSize = priceSize + 1 + priceSize -- price, days byte, stddev bytes
     local skip = (recordSize * addonTable.realmIndex) % 3
     offset = offset + skip
 
     tr['days'] = string.byte(dta, offset, offset)
     offset = offset + 1
 
-    market = char2dec(string.sub(dta, offset, offset+priceSize-1))
-    minMarket = round(string.byte(dta, offset+priceSize, offset+priceSize) / 255 * market) * 100
-    maxMarket = string.byte(dta, offset+priceSize+1, offset+priceSize+1)
-    if maxMarket > 0 then
-        maxMarket = round(market / (maxMarket / 255)) * 100
-    end
-    market = market * 100
+    tr['market'] = char2dec(string.sub(dta, offset, offset+priceSize-1)) * 100
+    offset = offset + priceSize
 
-    tr['market'] = market
-    if minMarket > 0 then
-        tr['minMarket'] = minMarket
-    end
-    if maxMarket > 0 then
-        tr['maxMarket'] = maxMarket
-    end
+    tr['stddev'] = char2dec(string.sub(dta, offset, offset+priceSize-1)) * 100
+    --offset = offset + priceSize
 
     return tr
 end
@@ -305,22 +293,8 @@ local function GetCallback()
             if dataResults['market'] then
                 tooltip:AddDoubleLine("Realm Price",coins(dataResults['market'],false),r,g,b)
             end
-            if not dataResults['minMarket'] then
-                dataResults['minMarket'] = 0
-            end
-            if not dataResults['maxMarket'] then
-                dataResults['maxMarket'] = 0
-            end
-
-            if dataResults['minMarket'] > 0 and dataResults['maxMarket'] > 0 then
-                tooltip:AddDoubleLine("Realm Range",coins(dataResults['minMarket'],false)..' |cffe6cd80-|r '..coins(dataResults['maxMarket'],false),r,g,b)
-            else
-                if dataResults['minMarket'] > 0 then
-                    tooltip:AddDoubleLine("Realm Min",coins(dataResults['minMarket'],false),r,g,b)
-                end
-                if dataResults['maxMarket'] > 0 then
-                    tooltip:AddDoubleLine("Realm Max",coins(dataResults['maxMarket'],false),r,g,b)
-                end
+            if dataResults['market'] then
+                tooltip:AddDoubleLine("Realm Std Dev",coins(dataResults['stddev'],false),r,g,b)
             end
             if dataResults['globalMedian'] then
                 tooltip:AddDoubleLine("Global Median",coins(dataResults['globalMedian'],false),r,g,b)
