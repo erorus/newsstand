@@ -97,7 +97,7 @@ EOF;
             $prc = intval($priceRow['price'], 10);
 
             $item_avg[$item] .= str_repeat(chr(0), 4 * $hx  - strlen($item_avg[$item])) . pack('L', $prc);
-            $item_stddev[$item] .= str_repeat(chr(0), 4 * $hx - strlen($item_stddev[$item])) . pack('L', $priceRow['pricestddev'] ? intval($priceRow['pricestddev'],10) : $prc);
+            $item_stddev[$item] .= str_repeat(chr(0), 4 * $hx - strlen($item_stddev[$item])) . pack('L', $priceRow['pricestddev'] ? intval($priceRow['pricestddev'],10) : 0);
             $item_days[$item] .= str_repeat(chr(255), $hx - strlen($item_days[$item])) . chr(min(251, intval($priceRow['since'],10)));
         }
         $result->close();
@@ -133,12 +133,17 @@ EOF;
             }
         }
         for ($x = 0; $x < count($houses); $x++) {
+            if (!isset($stddevs[$x])) {
+                $stddevs[$x] = 0;
+            }
             if (!isset($prices[$x])) {
                 $prices[$x] = 0;
                 continue;
             }
             for ($y = 4; $y >= $priceBytes; $y--) {
                 if ($prices[$x] >= pow(2,8*$y)) {
+                    $priceBytes = $y+1;
+                } elseif ($stddevs[$x] >= pow(2,8*$y)) {
                     $priceBytes = $y+1;
                 }
             }
@@ -158,10 +163,6 @@ EOF;
             }
             $priceString .= $priceBin;
         }
-        $padding = 3 * ceil(($priceBytes * $globalSpots + 1)/3) - strlen($priceString);
-        if ($padding) {
-            $priceString .= str_repeat(chr(0),$padding);
-        }
 
         for ($x = 0; $x < count($prices); $x++) {
             if ((!isset($item_days[$item])) || (($thisPriceString = substr($item_days[$item], $x, 1)) === false)) {
@@ -175,10 +176,6 @@ EOF;
             }
             $thisPriceString .= $priceBin;
 
-            if (!isset($stddevs[$x])) {
-                $stddevs[$x] = 0;
-            }
-
             $priceBin = '';
             $price = $stddevs[$x];
             for ($y = 0; $y < $priceBytes; $y++) {
@@ -189,7 +186,7 @@ EOF;
 
             $priceString .= $thisPriceString;
         }
-        $priceLua .= sprintf("addonTable.marketData[%d]=crop(%d,'%s')\n", $item, $priceBytes, base64_encode($priceString));
+        $priceLua .= sprintf("addonTable.marketData[%d]=crop(%d,%s)\n", $item, $priceBytes, luaQuote($priceString));
     }
     unset($items);
 
@@ -248,16 +245,13 @@ end
 addonTable.marketData = {}
 addonTable.realmIndex = realmIndex
 
-local function crop(priceSize8, b)
-    local headerSize6 = math.ceil((priceSize8 * 3 + 1) / 3) * 4
+local function crop(priceSize, b)
+    local headerSize = 1 + priceSize * 3
+    local recordSize = 1 + priceSize * 2
 
-    local recordSize8 = priceSize8 + 1 + priceSize8
-    local recordSize6 = math.ceil(recordSize8 / 3) * 4
+    local offset = 1 + headerSize + recordSize * realmIndex
 
-    local offset6 = 1 + headerSize6 + math.floor(recordSize8 * realmIndex / 3) * 4
-    local length6 = recordSize6 + 4
-
-    return string.sub(b, 1, headerSize6)..string.sub(b, offset6, offset6 + length6 - 1)
+    return string.sub(b, 1, headerSize)..string.sub(b, offset, offset + recordSize - 1)
 end
 
 EOF;
@@ -288,4 +282,17 @@ function MakeZip()
     $zip->close();
 
     rename($zipFilename, '../addon/TheUndermineJournal.zip');
+}
+
+function luaQuote($s) {
+    $e = -1;
+    while (++$e < 10) {
+        $eq = str_repeat('=', $e);
+        $pre = '['.$eq.'[';
+        $suf = "]$eq]";
+        if ((strpos($s, $pre) === false) && (strpos($s, $suf) === false)) {
+            return $pre.$s.$suf;
+        }
+    }
+    return "''";
 }
