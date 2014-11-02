@@ -106,13 +106,13 @@ function PetAuctions($house, $species)
 {
     global $db;
 
-    if (($tr = MCGetHouse($house, 'battlepet_auctions2_'.$species)) !== false)
+    if (($tr = MCGetHouse($house, 'battlepet_auctions_'.$species)) !== false)
         return $tr;
 
     DBConnect();
 
     $sql = <<<EOF
-SELECT ap.breed, quantity, bid, buy, ap.level, ap.quality, s.realm sellerrealm, s.name sellername
+SELECT ap.breed, quantity, bid, buy, ap.level, ap.quality, s.realm sellerrealm, ifnull(s.name, '???') sellername
 FROM `tblAuction` a
 JOIN `tblAuctionPet` ap on a.house = ap.house and a.id = ap.id
 left join tblSeller s on a.seller=s.id
@@ -126,7 +126,7 @@ EOF;
     $tr = DBMapArray($result, array('breed', null));
     $stmt->close();
 
-    MCSetHouse($house, 'battlepet_auctions2_'.$species, $tr);
+    MCSetHouse($house, 'battlepet_auctions_'.$species, $tr);
 
     return $tr;
 }

@@ -109,7 +109,7 @@ var TUJ_Item = function()
             ItemHistoryChart(dta, cht);
         }
 
-        if (dta.monthly.length >= 7)
+        if (dta.monthly.length >= 14)
         {
             d = libtuj.ce();
             d.className = 'chart-section';
@@ -124,7 +124,7 @@ var TUJ_Item = function()
             ItemMonthlyChart(dta, cht);
         }
 
-        if (dta.daily.length >= 7)
+        if (dta.daily.length >= 14)
         {
             d = libtuj.ce();
             d.className = 'chart-section';
@@ -167,6 +167,21 @@ var TUJ_Item = function()
         }
 
         itemPage.append(libtuj.Ads.Add('3753400314'));
+
+        if (dta.globalmonthly.length >= 28)
+        {
+            d = libtuj.ce();
+            d.className = 'chart-section';
+            h = libtuj.ce('h2');
+            d.appendChild(h);
+            $(h).text('Regional Daily Summary');
+            d.appendChild(document.createTextNode('Here is the total available quantity, and the average market price, for the item each day across all realms in the '+tuj.region+'.'));
+            cht = libtuj.ce();
+            cht.className = 'chart monthly';
+            d.appendChild(cht);
+            itemPage.append(d);
+            ItemGlobalMonthlyChart(dta, cht);
+        }
 
         if (dta.globalnow.length > 0)
         {
@@ -784,6 +799,151 @@ var TUJ_Item = function()
                 fillColor: tujConstants.siteColors[tuj.colorTheme].greenPriceFill,
                 data: hcdata.globalprice
             },{
+                type: 'area',
+                name: 'Market Price',
+                color: tujConstants.siteColors[tuj.colorTheme].bluePrice,
+                lineColor: tujConstants.siteColors[tuj.colorTheme].bluePrice,
+                fillColor: tujConstants.siteColors[tuj.colorTheme].bluePriceFillAlpha,
+                data: hcdata.price
+            },{
+                type: 'line',
+                name: 'Quantity Available',
+                yAxis: 1,
+                color: tujConstants.siteColors[tuj.colorTheme].redQuantity,
+                data: hcdata.quantity
+            }]
+        });
+    }
+
+    function ItemGlobalMonthlyChart(data, dest)
+    {
+        var hcdata = {price: [], priceMaxVal: 0, quantity: [], quantityMaxVal: 0};
+
+        var allPrices = [], dt, dtParts;
+        var offset = (new Date()).getTimezoneOffset() * 60 * 1000;
+        var earliestDate = Date.now();
+        for (var x = 0; x < data.globalmonthly.length; x++)
+        {
+            dtParts = data.monthly[x].date.split('-');
+            dt = Date.UTC(dtParts[0], parseInt(dtParts[1],10)-1, dtParts[2]) + offset;
+            if (dt < earliestDate)
+                earliestDate = dt;
+            hcdata.price.push([dt, data.monthly[x].silver * 100]);
+            hcdata.quantity.push([dt, data.monthly[x].quantity]);
+            if (data.monthly[x].quantity > hcdata.quantityMaxVal)
+                hcdata.quantityMaxVal = data.monthly[x].quantity;
+            allPrices.push(data.monthly[x].silver * 100);
+        }
+
+        allPrices.sort(function(a,b){ return a - b; });
+        var q1 = allPrices[Math.floor(allPrices.length * 0.25)];
+        var q3 = allPrices[Math.floor(allPrices.length * 0.75)];
+        var iqr = q3 - q1;
+        hcdata.priceMaxVal = q3 + (1.5 * iqr);
+
+        Highcharts.setOptions({
+            global: {
+                useUTC: false
+            }
+        });
+
+        $(dest).highcharts({
+            chart: {
+                zoomType: 'x',
+                backgroundColor: tujConstants.siteColors[tuj.colorTheme].background
+            },
+            title: {
+                text: null
+            },
+            subtitle: {
+                text: document.ontouchstart === undefined ?
+                    'Click and drag in the plot area to zoom in' :
+                    'Pinch the chart to zoom in',
+                style: {
+                    color: tujConstants.siteColors[tuj.colorTheme].text
+                }
+            },
+            xAxis: {
+                type: 'datetime',
+                maxZoom: 4 * 24 * 3600000, // four days
+                title: {
+                    text: null
+                },
+                labels: {
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
+                }
+            },
+            yAxis: [{
+                title: {
+                    text: 'Market Price',
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].bluePrice
+                    }
+                },
+                labels: {
+                    enabled: true,
+                    formatter: function() { return ''+libtuj.FormatPrice(this.value, true); },
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
+                },
+                min: 0,
+                max: hcdata.priceMaxVal
+            }, {
+                title: {
+                    text: 'Quantity Available',
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].redQuantity
+                    }
+                },
+                labels: {
+                    enabled: true,
+                    formatter: function() { return ''+libtuj.FormatQuantity(this.value, true); },
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
+                },
+                opposite: true,
+                min: 0,
+                max: hcdata.quantityMaxVal
+            }],
+            legend: {
+                enabled: false
+            },
+            tooltip: {
+                shared: true,
+                formatter: function() {
+                    var tr = '<b>'+Highcharts.dateFormat('%a %b %d', this.x)+'</b>';
+                    if (this.points[0])
+                        tr += '<br><span style="color: #000099">Region Price: '+libtuj.FormatPrice(this.points[0].y, true)+'</span>';
+                    if (this.points[1])
+                        tr += '<br><span style="color: #990000">Quantity: '+libtuj.FormatQuantity(this.points[1].y, true)+'</span>';
+                    return tr;
+                    // &lt;br/&gt;&lt;span style="color: #990000"&gt;Quantity: '+this.points[1].y+'&lt;/span&gt;<xsl:if test="itemgraphs/d[@matsprice != '']">&lt;br/&gt;&lt;span style="color: #999900"&gt;Materials Price: '+this.points[2].y.toFixed(2)+'g&lt;/span&gt;</xsl:if>';
+                }
+            },
+            plotOptions: {
+                series: {
+                    lineWidth: 2,
+                    marker: {
+                        enabled: false,
+                        radius: 1,
+                        states: {
+                            hover: {
+                                enabled: true
+                            }
+                        }
+                    },
+                    states: {
+                        hover: {
+                            lineWidth: 2
+                        }
+                    }
+                }
+            },
+            series: [{
                 type: 'area',
                 name: 'Market Price',
                 color: tujConstants.siteColors[tuj.colorTheme].bluePrice,

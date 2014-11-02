@@ -15,3 +15,7 @@ a {color: white}
 
 .dark-only { display: inline }
 .light-only { display: none }
+
+.money-gold::after { color: #DDB100 }
+.money-silver::after { color: #E6E6E6 }
+.money-copper::after { color: #C8602C }
