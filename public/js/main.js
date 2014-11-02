@@ -148,8 +148,9 @@ var libtuj = {
         var v = '', n, a;
 
         var diff = Math.round(diffByte * 48 * 60 * 60 / 255);
-
-        v = '' + (n = Math.round(diff/(60*60)*10)/10) + ' hour' + (n != 1 ? 's' : '');
+        if (!isNaN(diff)) {
+            v = '' + (n = Math.round(diff/(60*60)*10)/10) + ' hr' + (n != 1 ? 's' : '');
+        }
 
         if (justValue)
             return v;
@@ -157,10 +158,8 @@ var libtuj = {
         var s = libtuj.ce('span');
         if (v)
         {
-            a = libtuj.ce('abbr');
-            a.className = 'age';
-            a.appendChild(document.createTextNode(v));
-            s.appendChild(a);
+            s.className = 'age';
+            s.appendChild(document.createTextNode(v));
         }
         return s;
     },

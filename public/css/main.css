@@ -62,7 +62,7 @@ body.realm #topcorner #realm-updated { display: none }
 .wowhead-tooltip-powered { visibility: hidden }
 .wowhead-tooltip > table { background-color: black; border-radius: 5px }
 
-span.price.full, span.nowrap { white-space: nowrap }
+span.price.full, span.age, span.nowrap { white-space: nowrap }
 abbr.full-date { border-bottom: 0 }
 abbr:hover.full-date { border-bottom: 1px dotted }
 

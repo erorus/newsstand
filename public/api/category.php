@@ -604,7 +604,7 @@ function CategoryGenericItemList($house, $params)
 {
     global $db, $canCache;
 
-    $key = 'category_gi_' . md5(json_encode($params));
+    $key = 'category_gi2_' . md5(json_encode($params));
 
     if ($canCache && (($tr = MCGetHouse($house, $key)) !== false))
         return $tr;
@@ -623,7 +623,7 @@ function CategoryGenericItemList($house, $params)
     }
 
     $sql = <<<EOF
-select i.id, i.name, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice $cols
+select i.id, i.name, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice, s.age, round(avg(h.age)) avgage $cols
 from tblDBCItem i
 join tblItemGlobal g on g.item=i.id+0
 left join tblItemSummary s on s.house=? and s.item=i.id
