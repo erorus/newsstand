@@ -1317,7 +1317,7 @@ var TUJ_BattlePet = function()
                 Math.floor(a.bid / a.quantity) - Math.floor(b.bid / b.quantity) ||
                 a.quantity - b.quantity ||
                 (tuj.realms[a.sellerrealm] ? tuj.realms[a.sellerrealm].name : '').localeCompare(tuj.realms[b.sellerrealm] ? tuj.realms[b.sellerrealm].name : '') ||
-                a.sellername.localeCompare(b.sellername);
+                (a.sellername && b.sellername ? a.sellername.localeCompare(b.sellername) : 0);
         });
 
         var s, a;
@@ -1358,9 +1358,14 @@ var TUJ_BattlePet = function()
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.className = 'seller';
-            a = libtuj.ce('a');
+            if (auc.sellerrealm)
+            {
+                a = libtuj.ce('a');
+                a.href = tuj.BuildHash({realm: auc.sellerrealm, page: 'seller', id: auc.sellername});
+            }
+            else
+                a = libtuj.ce('span');
             td.appendChild(a);
-            a.href = tuj.BuildHash({realm: auc.sellerrealm, page: 'seller', id: auc.sellername});
             $(a).text(auc.sellername + (auc.sellerrealm != params.realm ? (' - ' + tuj.realms[auc.sellerrealm].name) : ''));
         }
 
