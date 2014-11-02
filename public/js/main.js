@@ -147,9 +147,9 @@ var libtuj = {
     {
         var v = '', n, a;
 
-        var diff = Math.round(diffByte * 48 * 60 * 60 / 255);
+        var diff = diffByte * 48 / 255;
         if (!isNaN(diff)) {
-            v = '' + (n = Math.round(diff/(60*60)*10)/10) + ' hr' + (n != 1 ? 's' : '');
+            v = '' + (n = diff.toFixed(1)) + ' hr' + (n != '1.0' ? 's' : '');
         }
 
         if (justValue)
