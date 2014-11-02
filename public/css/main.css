@@ -174,3 +174,7 @@ img.captcha-button.selected { border-color: #006600 }
 .dark-only { display: none }
 
 .category-battlepets .price { font-size: 75%; width: 4em }
+
+.money-gold::after { content: "g "; color: #7F6900 }
+.money-silver::after { content: "s "; color: #666666 }
+.money-copper::after { content: "c"; color: #C8602C }

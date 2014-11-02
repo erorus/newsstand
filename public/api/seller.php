@@ -64,7 +64,9 @@ function SellerHistory($house, $seller)
 {
     global $db;
 
-    if (($tr = MCGetHouse($house, 'seller_history_'.$seller)) !== false)
+    $key = 'seller_history2_'.$seller;
+
+    if (($tr = MCGetHouse($house, $key)) !== false)
         return $tr;
 
     DBConnect();
@@ -72,8 +74,8 @@ function SellerHistory($house, $seller)
     $historyDays = HISTORY_DAYS;
 
     $sql = <<<EOF
-select unix_timestamp(s.updated) snapshot, if(total is null, @total, @total := total) `total`, ifnull(h.`new`,0) as `new`
-from (select @total := null) totalSetup, tblSnapshot s
+select unix_timestamp(s.updated) snapshot, ifnull(h.`total`, 0) `total`, ifnull(h.`new`,0) as `new`
+from tblSnapshot s
 left join tblSellerHistory h on s.updated = h.snapshot and h.seller=?
 where s.house = ? and s.updated >= timestampadd(day,-$historyDays,now())
 order by s.updated asc
@@ -89,7 +91,7 @@ EOF;
     while(count($tr) > 0 && is_null($tr[0]['total']))
         array_shift($tr);
 
-    MCSetHouse($house, 'seller_history_'.$seller, $tr);
+    MCSetHouse($house, $key, $tr);
 
     return $tr;
 }
