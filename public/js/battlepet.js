@@ -1366,7 +1366,7 @@ var TUJ_BattlePet = function()
             else
                 a = libtuj.ce('span');
             td.appendChild(a);
-            $(a).text(auc.sellername + (auc.sellerrealm != params.realm ? (' - ' + tuj.realms[auc.sellerrealm].name) : ''));
+            $(a).text(auc.sellername + (auc.sellerrealm && auc.sellerrealm != params.realm ? (' - ' + tuj.realms[auc.sellerrealm].name) : ''));
         }
 
         dest.appendChild(t);
