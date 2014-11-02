@@ -51,21 +51,31 @@ var libtuj = {
     },
     FormatPrice: function(amt,justValue)
     {
-        var v = '';
+        var v = '', g, c;
         if (typeof amt == 'number') {
             amt = Math.round(amt);
-            if (amt >= 100) // 1s
-                v = '' + (amt/10000).toFixed(2) + 'g';
-            else
-                v = ''+amt+'c';
+            if (amt >= 100) {// 1s
+                g = (amt/10000).toFixed(2);
+                v = '' + g + 'g';
+            } else {
+                c = amt;
+                v = '' + c + 'c';
+            }
         }
         if (justValue)
             return v;
 
         var s = libtuj.ce('span');
         s.class = 'price';
-        if (v)
-            s.appendChild(document.createTextNode(v));
+        if (v) {
+            if (g) {
+                s.appendChild(document.createTextNode(g));
+                s.className = 'money-gold';
+            } else {
+                s.appendChild(document.createTextNode(c));
+                s.className = 'money-copper';
+            }
+        }
         return s;
     },
     FormatFullPrice: function(amt,justValue)
@@ -86,11 +96,28 @@ var libtuj = {
         if (justValue)
             return v;
 
-        var s = libtuj.ce('span');
-        s.class = 'price full';
-        if (v)
-            s.appendChild(document.createTextNode(v));
-        return s;
+        var sp = libtuj.ce('span');
+        sp.class = 'price full';
+        if (v) {
+            var s2 = libtuj.ce('span');
+            if (g) {
+                s2 = libtuj.ce('span');
+                s2.className = 'money-gold';
+                s2.appendChild(document.createTextNode(g));
+                sp.appendChild(s2);
+            }
+            if (g || s) {
+                s2 = libtuj.ce('span');
+                s2.className = 'money-silver';
+                s2.appendChild(document.createTextNode(s));
+                sp.appendChild(s2);
+            }
+            s2 = libtuj.ce('span');
+            s2.className = 'money-copper';
+            s2.appendChild(document.createTextNode(c));
+            sp.appendChild(s2);
+        }
+        return sp;
     },
     FormatQuantity: function(amt,justValue)
     {
