@@ -143,6 +143,27 @@ var libtuj = {
         }
         return s;
     },
+    FormatAge: function(diffByte, justValue)
+    {
+        var v = '', n, a;
+
+        var diff = Math.round(diffByte * 48 * 60 * 60 / 255);
+
+        v = '' + (n = Math.round(diff/(60*60)*10)/10) + ' hour' + (n != 1 ? 's' : '');
+
+        if (justValue)
+            return v;
+
+        var s = libtuj.ce('span');
+        if (v)
+        {
+            a = libtuj.ce('abbr');
+            a.className = 'age';
+            a.appendChild(document.createTextNode(v));
+            s.appendChild(a);
+        }
+        return s;
+    },
     GetRealmsForHouse: function(house, maxLineLength)
     {
         var lineLength = 0;

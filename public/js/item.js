@@ -164,6 +164,18 @@ var TUJ_Item = function()
             d.appendChild(cht);
             itemPage.append(d);
             ItemQuantityHeatMap(dta, cht);
+
+            d = libtuj.ce();
+            d.className = 'chart-section';
+            h = libtuj.ce('h2');
+            d.appendChild(h);
+            $(h).text('Age Heat Map');
+            d.appendChild(document.createTextNode('This heat map shows you the average age of auctions at or below the market price, at different times of the day. Younger age means more posting activity by sellers.'));
+            cht = libtuj.ce();
+            cht.className = 'chart heatmap';
+            d.appendChild(cht);
+            itemPage.append(d);
+            ItemAgeHeatMap(dta, cht);
         }
 
         itemPage.append(libtuj.Ads.Add('3753400314'));
@@ -310,11 +322,13 @@ var TUJ_Item = function()
             td.appendChild(libtuj.FormatPrice(data.stats.price*stack));
         }
 
-        var prices = [], x;
+        var prices = [], ages = [], x;
 
         if (data.history.length > 8)
-            for (x = 0; x < data.history.length; x++)
+            for (x = 0; x < data.history.length; x++) {
                 prices.push(data.history[x].price);
+                ages.push(data.history[x].age);
+            }
 
         if (prices.length)
         {
@@ -377,6 +391,37 @@ var TUJ_Item = function()
                 tr.appendChild(td);
                 td.appendChild(libtuj.FormatPrice(std*stack));
             }
+
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+            tr.className = 'spacer';
+            td = libtuj.ce('td');
+            td.colSpan = spacerColSpan;
+            tr.appendChild(td);
+
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+            tr.className = 'mean-age';
+            td = libtuj.ce('th');
+            tr.appendChild(td);
+            td.appendChild(document.createTextNode('Typical Auction Age'));
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.colSpan = stack ? 2 : 1;
+            td.appendChild(libtuj.FormatAge(libtuj.Mean(ages)));
+
+            ages.sort(function(a,b) { return a - b; });
+
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+            tr.className = 'max-age';
+            td = libtuj.ce('th');
+            tr.appendChild(td);
+            td.appendChild(document.createTextNode('Max Auction Age'));
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.colSpan = stack ? 2 : 1;
+            td.appendChild(libtuj.FormatAge(ages[ages.length-1]));
         }
 
         if (data.globalnow.length)
@@ -503,14 +548,13 @@ var TUJ_Item = function()
 
     function ItemHistoryChart(data, dest)
     {
-        var hcdata = {price: [], priceMaxVal: 0, quantity: [], quantityMaxVal: 0, age: []};
+        var hcdata = {price: [], priceMaxVal: 0, quantity: [], quantityMaxVal: 0};
 
         var allPrices = [];
         for (var x = 0; x < data.history.length; x++)
         {
             hcdata.price.push([data.history[x].snapshot*1000, data.history[x].price]);
             hcdata.quantity.push([data.history[x].snapshot*1000, data.history[x].quantity]);
-            hcdata.age.push([data.history[x].snapshot*1000, data.history[x].age]);
             if (data.history[x].quantity > hcdata.quantityMaxVal)
                 hcdata.quantityMaxVal = data.history[x].quantity;
             allPrices.push(data.history[x].price);
@@ -589,23 +633,6 @@ var TUJ_Item = function()
                 opposite: true,
                 min: 0,
                 max: hcdata.quantityMaxVal
-            }, {
-                title: {
-                    text: 'Average Age',
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].greenPrice
-                    }
-                },
-                labels: {
-                    enabled: true,
-                    formatter: function() { return ''+libtuj.FormatQuantity(this.value, true); },
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].text
-                    }
-                },
-                opposite: true,
-                min: 0,
-                max: 250
             }],
             legend: {
                 enabled: false
@@ -616,7 +643,6 @@ var TUJ_Item = function()
                     var tr = '<b>'+Highcharts.dateFormat('%a %b %d, %I:%M%P', this.x)+'</b>';
                     tr += '<br><span style="color: #000099">Market Price: '+libtuj.FormatPrice(this.points[0].y, true)+'</span>';
                     tr += '<br><span style="color: #990000">Quantity: '+libtuj.FormatQuantity(this.points[1].y, true)+'</span>';
-                    tr += '<br><span style="color: #009900">Age: '+libtuj.FormatQuantity(this.points[2].y, true)+'</span>';
                     return tr;
                     // &lt;br/&gt;&lt;span style="color: #990000"&gt;Quantity: '+this.points[1].y+'&lt;/span&gt;<xsl:if test="itemgraphs/d[@matsprice != '']">&lt;br/&gt;&lt;span style="color: #999900"&gt;Materials Price: '+this.points[2].y.toFixed(2)+'g&lt;/span&gt;</xsl:if>';
                 }
@@ -653,12 +679,6 @@ var TUJ_Item = function()
                 yAxis: 1,
                 color: tujConstants.siteColors[tuj.colorTheme].redQuantity,
                 data: hcdata.quantity
-            },{
-                type: 'line',
-                name: 'Average Age',
-                yAxis: 2,
-                color: tujConstants.siteColors[tuj.colorTheme].greenPrice,
-                data: hcdata.age
             }]
         });
     }
@@ -1118,12 +1138,7 @@ var TUJ_Item = function()
             },
 
             legend: {
-                align: 'right',
-                layout: 'vertical',
-                margin: 0,
-                verticalAlign: 'top',
-                y: 25,
-                symbolHeight: 320
+                enabled: false
             },
 
             tooltip: {
@@ -1238,12 +1253,7 @@ var TUJ_Item = function()
             },
 
             legend: {
-                align: 'right',
-                layout: 'vertical',
-                margin: 0,
-                verticalAlign: 'top',
-                y: 25,
-                symbolHeight: 320
+                enabled: false
             },
 
             tooltip: {
@@ -1263,6 +1273,121 @@ var TUJ_Item = function()
                         HcTextStroke: null
                     },
                     formatter: function() { return ''+libtuj.FormatQuantity(this.point.value, true); }
+                }
+            }]
+
+        });
+    }
+
+    function ItemAgeHeatMap(data, dest)
+    {
+        var hcdata = {minVal: undefined, maxVal: 0, days: {}, heat: [], categories: {
+            x: ['Midnight - 3am','3am - 6am','6am - 9am','9am - Noon','Noon - 3pm','3pm - 6pm','6pm - 9pm','9pm - Midnight'],
+            y: ['Saturday','Friday','Thursday','Wednesday','Tuesday','Monday','Sunday']
+        }};
+
+        var CalcAvg = function(a)
+        {
+            if (a.length == 0)
+                return null;
+            var s = 0;
+            for (var x = 0; x < a.length; x++)
+                s += a[x];
+            return s/a.length;
+        }
+
+        var d, wkdy, hr, lastqty;
+        for (wkdy = 0; wkdy <= 6; wkdy++)
+        {
+            hcdata.days[wkdy] = {};
+            for (hr = 0; hr <= 7; hr++)
+                hcdata.days[wkdy][hr] = [];
+        }
+
+        for (var x = 0; x < data.history.length; x++)
+        {
+            if (typeof lastqty == 'undefined')
+                lastqty = data.history[x].quantity;
+
+            var d = new Date(data.history[x].snapshot*1000);
+            wkdy = 6-d.getDay();
+            hr = Math.floor(d.getHours()/3);
+            hcdata.days[wkdy][hr].push(data.history[x].age);
+        }
+
+        var p;
+        for (wkdy = 0; wkdy <= 6; wkdy++)
+            for (hr = 0; hr <= 7; hr++)
+            {
+                if (hcdata.days[wkdy][hr].length == 0)
+                    p = lastqty;
+                else
+                    p = Math.round(CalcAvg(hcdata.days[wkdy][hr]));
+
+                lastqty = p;
+                hcdata.heat.push([hr, wkdy, p]);
+                hcdata.minVal = (typeof hcdata.minVal == 'undefined' || hcdata.minVal > p) ? p : hcdata.minVal;
+                hcdata.maxVal = hcdata.maxVal < p ? p : hcdata.maxVal;
+            }
+
+        $(dest).highcharts({
+
+            chart: {
+                type: 'heatmap',
+                backgroundColor: tujConstants.siteColors[tuj.colorTheme].background
+            },
+
+            title: {
+                text: null
+            },
+
+            xAxis: {
+                categories: hcdata.categories.x,
+                labels: {
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
+                }
+            },
+
+            yAxis: {
+                categories: hcdata.categories.y,
+                title: null,
+                labels: {
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
+                }
+            },
+
+            colorAxis: {
+                min: hcdata.minVal,
+                max: hcdata.maxVal,
+                minColor: tujConstants.siteColors[tuj.colorTheme].background,
+                maxColor: tujConstants.siteColors[tuj.colorTheme].greenPriceBackground
+            },
+
+            legend: {
+                enabled: false
+            },
+
+            tooltip: {
+                enabled: false
+            },
+
+            series: [{
+                name: 'Age',
+                borderWidth: 1,
+                borderColor: tujConstants.siteColors[tuj.colorTheme].background,
+                data: hcdata.heat,
+                dataLabels: {
+                    enabled: true,
+                    color: tujConstants.siteColors[tuj.colorTheme].data,
+                    style: {
+                        textShadow: 'none',
+                        HcTextStroke: null
+                    },
+                    formatter: function() { return ''+libtuj.FormatAge(this.point.value, true); }
                 }
             }]
 
