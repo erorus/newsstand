@@ -503,13 +503,14 @@ var TUJ_Item = function()
 
     function ItemHistoryChart(data, dest)
     {
-        var hcdata = {price: [], priceMaxVal: 0, quantity: [], quantityMaxVal: 0};
+        var hcdata = {price: [], priceMaxVal: 0, quantity: [], quantityMaxVal: 0, age: []};
 
         var allPrices = [];
         for (var x = 0; x < data.history.length; x++)
         {
             hcdata.price.push([data.history[x].snapshot*1000, data.history[x].price]);
             hcdata.quantity.push([data.history[x].snapshot*1000, data.history[x].quantity]);
+            hcdata.age.push([data.history[x].snapshot*1000, data.history[x].age]);
             if (data.history[x].quantity > hcdata.quantityMaxVal)
                 hcdata.quantityMaxVal = data.history[x].quantity;
             allPrices.push(data.history[x].price);
@@ -588,6 +589,23 @@ var TUJ_Item = function()
                 opposite: true,
                 min: 0,
                 max: hcdata.quantityMaxVal
+            }, {
+                title: {
+                    text: 'Average Age',
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].greenPrice
+                    }
+                },
+                labels: {
+                    enabled: true,
+                    formatter: function() { return ''+libtuj.FormatQuantity(this.value, true); },
+                    style: {
+                        color: tujConstants.siteColors[tuj.colorTheme].text
+                    }
+                },
+                opposite: true,
+                min: 0,
+                max: 250
             }],
             legend: {
                 enabled: false
@@ -598,6 +616,7 @@ var TUJ_Item = function()
                     var tr = '<b>'+Highcharts.dateFormat('%a %b %d, %I:%M%P', this.x)+'</b>';
                     tr += '<br><span style="color: #000099">Market Price: '+libtuj.FormatPrice(this.points[0].y, true)+'</span>';
                     tr += '<br><span style="color: #990000">Quantity: '+libtuj.FormatQuantity(this.points[1].y, true)+'</span>';
+                    tr += '<br><span style="color: #009900">Age: '+libtuj.FormatQuantity(this.points[2].y, true)+'</span>';
                     return tr;
                     // &lt;br/&gt;&lt;span style="color: #990000"&gt;Quantity: '+this.points[1].y+'&lt;/span&gt;<xsl:if test="itemgraphs/d[@matsprice != '']">&lt;br/&gt;&lt;span style="color: #999900"&gt;Materials Price: '+this.points[2].y.toFixed(2)+'g&lt;/span&gt;</xsl:if>';
                 }
@@ -634,6 +653,12 @@ var TUJ_Item = function()
                 yAxis: 1,
                 color: tujConstants.siteColors[tuj.colorTheme].redQuantity,
                 data: hcdata.quantity
+            },{
+                type: 'line',
+                name: 'Average Age',
+                yAxis: 2,
+                color: tujConstants.siteColors[tuj.colorTheme].greenPrice,
+                data: hcdata.age
             }]
         });
     }

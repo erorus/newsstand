@@ -63,7 +63,9 @@ function ItemHistory($house, $item)
 {
     global $db;
 
-    if (($tr = MCGetHouse($house, 'item_history_'.$item)) !== false)
+    $key = 'item_history2_'.$item;
+
+    if (($tr = MCGetHouse($house, $key)) !== false)
         return $tr;
 
     DBConnect();
@@ -71,8 +73,8 @@ function ItemHistory($house, $item)
     $historyDays = HISTORY_DAYS;
 
     $sql = <<<EOF
-select unix_timestamp(s.updated) snapshot, cast(if(quantity is null, @price, @price := price) as decimal(11,0)) `price`, ifnull(quantity,0) as quantity
-from (select @price := null) priceSetup, tblSnapshot s
+select unix_timestamp(s.updated) snapshot, cast(if(quantity is null, @price, @price := price) as decimal(11,0)) `price`, ifnull(quantity,0) as quantity, if(age is null, @age, @age := age) as age
+from (select @price := null, @age := null) priceSetup, tblSnapshot s
 left join tblItemHistory ih on s.updated = ih.snapshot and ih.house=? and ih.item=?
 where s.house = ? and s.updated >= timestampadd(day,-$historyDays,now())
 order by s.updated asc
@@ -89,7 +91,7 @@ EOF;
     while(count($tr) > 0 && is_null($tr[0]['price']))
         array_shift($tr);
 
-    MCSetHouse($house, 'item_history_'.$item, $tr);
+    MCSetHouse($house, $key, $tr);
 
     return $tr;
 }
