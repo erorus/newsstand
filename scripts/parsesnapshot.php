@@ -593,7 +593,7 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot)
     foreach ($itemInfo as $item => &$info)
     {
         $price = GetMarketPrice($info);
-        $age = GetAverageAge($info);
+        $age = GetAverageAge($info, $price);
 
         $sqlBit = sprintf('(%d,%u,%u,%u,\'%s\',%u)', $house, $item, $price, $info['tq'], $snapshotString, $age);
         if (strlen($sql) + strlen($sqlBit) + strlen($sqlEnd) + 5 > $maxPacketSize)
@@ -676,15 +676,21 @@ function UpdatePetInfo($house, &$petInfo, $snapshot)
         DBQueryWithError($db, $sqlHistory);
 }
 
-function GetAverageAge(&$info)
+function GetAverageAge(&$info, $price)
 {
     if ($info['tq'] == 0)
         return 0;
 
-    $s = 0;
-    $c = count($info['a']);
-    for ($x = 0; $x < $c; $x++) {
-        $s += $info['a'][$x]['age'];
+    $c = $s = 0;
+    $tc = count($info['a']);
+    for ($x = 0; $x < $tc; $x++) {
+        $p = floor($info['a'][$x]['p'] / $info['a'][$x]['q']);
+        if ($p <= $price) {
+            $s += $info['a'][$x]['age'];
+            $c++;
+        } elseif ($c > 0) {
+            break; // already sorted by market price
+        }
     }
 
     return floor($s / $c);
