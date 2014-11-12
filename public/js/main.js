@@ -130,9 +130,13 @@ var libtuj = {
             s.appendChild(document.createTextNode(v));
         return s;
     },
-    FormatDate: function(unix,justValue)
+    FormatDate: function(unix,justValue,stopAt)
     {
         var v = '', n, a;
+        if (stopAt) {
+            stopAt = stopAt.toLowerCase().replace(/s$/,'');
+        }
+
         if (unix)
         {
             var dt, now = new Date();
@@ -145,13 +149,13 @@ var libtuj = {
             var suffix = diff < 0 ? ' from now' : ' ago';
             diff = Math.abs(diff);
 
-            if (diff < 60)
+            if ((diff < 60) || (stopAt == 'second'))
                 v = '' + (n = diff) + ' second' + (n != 1 ? 's' : '') + suffix;
-            else if (diff < 60*60)
+            else if ((diff < 60*60) || (stopAt == 'minute'))
                 v = '' + (n = Math.round(diff/60)) + ' minute' + (n != 1 ? 's' : '') + suffix;
-            else if (diff < 24*60*60)
+            else if ((diff < 24*60*60) || (stopAt == 'hour'))
                 v = '' + (n = Math.round(diff/(60*60))) + ' hour' + (n != 1 ? 's' : '') + suffix;
-            else if (diff < 10*24*60*60)
+            else if ((diff < 10*24*60*60) || (stopAt == 'day'))
                 v = '' + (n = Math.round(diff/(24*60*60))) + ' day' + (n != 1 ? 's' : '') + suffix;
             else
                 v = dt.toLocaleDateString();
@@ -710,12 +714,12 @@ var TUJ = function()
 
         if (houseInfo[house].timestamps.lastupdate) {
             var d = libtuj.ce();
-            d.appendChild(document.createTextNode('Updated ' +libtuj.FormatDate(houseInfo[house].timestamps.lastupdate, true)));
+            d.appendChild(document.createTextNode('Updated ' +libtuj.FormatDate(houseInfo[house].timestamps.lastupdate, true, 'minute')));
             ru.appendChild(d);
         }
         if (houseInfo[house].timestamps.scheduled && houseInfo[house].timestamps.scheduled * 1000 > Date.now()) {
             var d = libtuj.ce();
-            d.appendChild(document.createTextNode('Next update ' +libtuj.FormatDate(houseInfo[house].timestamps.scheduled, true)));
+            d.appendChild(document.createTextNode('Next update ' +libtuj.FormatDate(houseInfo[house].timestamps.scheduled, true, 'minute')));
             ru.appendChild(d);
         }
 
