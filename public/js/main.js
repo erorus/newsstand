@@ -900,14 +900,23 @@ var TUJ = function()
 
         var a;
         var c = 0;
-        for (var x in self.realms)
-        {
+        var allRealms = [];
+
+        for (var x in self.realms) {
             if (!self.realms.hasOwnProperty(x))
                 continue;
 
+            allRealms.push(x);
+        }
+
+        allRealms.sort(function(a,b) {
+            return self.realms[a].name.localeCompare(self.realms[b].name);
+        });
+
+        for (x = 0; x < allRealms.length; x++) {
             a = libtuj.ce('a');
-            a.rel = x;
-            $(a).text(self.realms[x].name);
+            a.rel = allRealms[x];
+            $(a).text(self.realms[allRealms[x]].name);
 
             $(cols[Math.min(cols.length-1, Math.floor(c++ / cnt * numCols))]).append(a);
         }
