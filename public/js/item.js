@@ -81,7 +81,7 @@ var TUJ_Item = function()
         ta.className = 'item'
         var timg = libtuj.ce('img');
         ta.appendChild(timg);
-        timg.src = 'icon/large/' + dta.stats.icon + '.jpg';
+        timg.src = 'https://cdn.theunderminejournal.com/icon/large/' + dta.stats.icon + '.jpg';
         ta.appendChild(document.createTextNode('[' + dta.stats.name + ']'));
 
         $('#page-title').empty().append(ta);
