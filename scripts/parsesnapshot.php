@@ -184,7 +184,7 @@ function ParseAuctionData($house, $snapshot, &$json)
     }
 
     $stmt = $ourDb->prepare('update tblSnapshot set maxid = ?, flags = flags | ? where house = ? and updated = ?');
-    $stmt->bind_param('iis', $max, $flags, $house, $snapshotString);
+    $stmt->bind_param('iiis', $max, $flags, $house, $snapshotString);
     $stmt->execute();
     $stmt->close();
 
