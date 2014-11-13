@@ -74,7 +74,7 @@ function ItemHistory($house, $item)
 select unix_timestamp(s.updated) snapshot, cast(if(quantity is null, @price, @price := price) as decimal(11,0)) `price`, ifnull(quantity,0) as quantity
 from (select @price := null) priceSetup, tblSnapshot s
 left join tblItemHistory ih on s.updated = ih.snapshot and ih.house=? and ih.item=?
-where s.house = ? and s.updated >= timestampadd(day,-$historyDays,now())
+where s.house = ? and s.updated >= timestampadd(day,-$historyDays,now()) and s.flags & 1 = 0
 order by s.updated asc
 EOF;
 

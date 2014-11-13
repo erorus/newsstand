@@ -89,11 +89,11 @@ join (select item, bidper as bid from
 from tblAuction a
 join tblDBCItem i on i.id=a.item
 left join tblDBCItemVendorCost ivc on ivc.item=i.id
-where a.house=%d
+where a.house=%1\$d
 and i.quality > 0
 and ivc.copper is null
 group by i.id) ib
-join tblItemHistory ih on ih.item=ib.item and ih.house=58
+join tblItemHistory ih on ih.item=ib.item and ih.house=%1\$d
 group by ib.item) iba
 where iba.sdprice < iba.avgprice/2
 and iba.bidper / iba.avgprice < 0.2

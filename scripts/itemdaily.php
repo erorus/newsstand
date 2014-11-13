@@ -29,7 +29,7 @@ from (
     select house
     from tblHouseCheck hc
     where ifnull(lastdaily,'2000-01-01') < date(timestampadd(day,-1,now()))
-    and exists (select 1 from tblSnapshot s where updated >= date(now()) and s.house=hc.house)) aa
+    and exists (select 1 from tblSnapshot s where updated >= date(now()) and s.house=hc.house and s.flags & 1 = 0)) aa
 join tblSnapshot s2 on s2.house = aa.house
 where s2.updated < date(now())
 group by s2.house
@@ -62,6 +62,7 @@ replace into tblItemHistoryDaily
     left join tblItemHistory ih on ih.house=%1\$d and sn.updated=ih.snapshot and ih.item=i.id
     where sn.house=%4\$d
     and sn.updated between '%2\$s' and '%3\$s'
+    and sn.flags & 1 = 0
     and i.stacksize > 1
     group by i.id
     order by i.id, sn.updated) aa
