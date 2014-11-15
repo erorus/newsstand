@@ -164,17 +164,28 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     unset($naiveMax, $lowMax, $highMax);
 
-    $stmt = $ourDb->prepare('update tblSnapshot set maxid = ? where house = ? and updated = ?');
-    $stmt->bind_param('iis', $max, $house, $snapshotString);
-    $stmt->execute();
-    $stmt->close();
-
-    $stmt = $ourDb->prepare('select ifnull(maxid,0) from tblSnapshot s where house = ? and updated = (select max(s2.updated) from tblSnapshot s2 where s2.house = s.house and s2.updated < ?)');
+    // note: $lastMax is the max auction ID the last time we stored snapshot history
+    $stmt = $ourDb->prepare('select ifnull(maxid,0), unix_timestamp(updated) from tblSnapshot s where house = ? and updated = (select max(s2.updated) from tblSnapshot s2 where s2.house = s.house and s2.updated < ? and s2.flags & 1 = 0)');
     $stmt->bind_param('is', $house, $snapshotString);
     $stmt->execute();
-    $stmt->bind_result($lastMax);
-    if ($stmt->fetch() !== true)
+    $stmt->bind_result($lastMax, $lastMaxUpdated);
+    if ($stmt->fetch() !== true) {
         $lastMax = 0;
+        $lastMaxUpdated = 0;
+    }
+    $stmt->close();
+
+    $noHistory = false;
+    $flags = 0;
+    if (($snapshot > $lastMaxUpdated) && (($snapshot - $lastMaxUpdated) < (50 * 60))) { // snapshots stored no more often than every 50 mins
+        $noHistory = true;
+        $flags = 1;
+        DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." skipping snapshot history (".($snapshot - $lastMaxUpdated)." seconds since last history)");
+    }
+
+    $stmt = $ourDb->prepare('update tblSnapshot set maxid = ?, flags = flags | ? where house = ? and updated = ?');
+    $stmt->bind_param('iiis', $max, $flags, $house, $snapshotString);
+    $stmt->execute();
     $stmt->close();
 
     $stmt = $ourDb->prepare('select unix_timestamp(updated) updated, maxid from tblSnapshot where house = ? and updated between timestampadd(hour, -49, ?) and ? order by updated asc');
@@ -319,7 +330,7 @@ EOF;
             $itemInfo[$oldRow['item']] = array('tq' => 0, 'a' => array());
     unset($oldRow);
     DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." updating ".count($itemInfo)." item info (including ".(count($itemInfo) - $preDeleted)." no longer available)");
-    UpdateItemInfo($house, $itemInfo, $snapshot);
+    UpdateItemInfo($house, $itemInfo, $snapshot, $noHistory);
 
     $preDeleted = count($petInfo);
     foreach ($existingPetIds as &$oldRow)
@@ -327,10 +338,10 @@ EOF;
             $petInfo[$oldRow['species']][$oldRow['breed']] = array('tq' => 0, 'a' => array());
     unset($oldRow);
     DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." updating ".count($petInfo)." pet info (including ".(count($petInfo) - $preDeleted)." no longer available)");
-    UpdatePetInfo($house, $petInfo, $snapshot);
+    UpdatePetInfo($house, $petInfo, $snapshot, $noHistory);
 
     DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." updating seller history");
-    UpdateSellerInfo($sellerInfo, $snapshot);
+    UpdateSellerInfo($sellerInfo, $snapshot, $noHistory);
 
     if (count($existingIds) > 0)
     {
@@ -539,8 +550,11 @@ function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
 
 }
 
-function UpdateSellerInfo(&$sellerInfo, $snapshot)
+function UpdateSellerInfo(&$sellerInfo, $snapshot, $noHistory)
 {
+    if ($noHistory)
+        return;
+
     global $db, $maxPacketSize;
 
     $snapshotString = Date('Y-m-d H:i:s', $snapshot);
@@ -571,7 +585,7 @@ function UpdateSellerInfo(&$sellerInfo, $snapshot)
         DBQueryWithError($db, $sql);
 }
 
-function UpdateItemInfo($house, &$itemInfo, $snapshot)
+function UpdateItemInfo($house, &$itemInfo, $snapshot, $noHistory)
 {
     global $db, $maxPacketSize;
 
@@ -590,31 +604,28 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot)
     $sqlDeepEnd = sprintf(' on duplicate key update mktslvr%1$s=if(values(qty%1$s) > ifnull(qty%1$s,0), values(mktslvr%1$s), mktslvr%1$s), qty%1$s=if(values(qty%1$s) > ifnull(qty%1$s,0), values(qty%1$s), qty%1$s)', $day);
     $sqlDeep = '';
 
-    foreach ($itemInfo as $item => &$info)
-    {
+    foreach ($itemInfo as $item => &$info) {
         $price = GetMarketPrice($info);
         $age = GetAverageAge($info, $price);
 
         $sqlBit = sprintf('(%d,%u,%u,%u,\'%s\',%u)', $house, $item, $price, $info['tq'], $snapshotString, $age);
-        if (strlen($sql) + strlen($sqlBit) + strlen($sqlEnd) + 5 > $maxPacketSize)
-        {
+        if (strlen($sql) + strlen($sqlBit) + strlen($sqlEnd) + 5 > $maxPacketSize) {
             DBQueryWithError($db, $sql.$sqlEnd);
             $sql = '';
         }
         $sql .= ($sql == '' ? $sqlStart : ',') . $sqlBit;
 
-        if ($info['tq'] > 0)
-        {
-            if (strlen($sqlHistory) + strlen($sqlBit) + 5 > $maxPacketSize)
-            {
-                DBQueryWithError($db, $sqlHistory);
-                $sqlHistory = '';
+        if ($info['tq'] > 0) {
+            if (!$noHistory) {
+                if (strlen($sqlHistory) + strlen($sqlBit) + 5 > $maxPacketSize) {
+                    DBQueryWithError($db, $sqlHistory);
+                    $sqlHistory = '';
+                }
+                $sqlHistory .= ($sqlHistory == '' ? $sqlHistoryStart : ',') . $sqlBit;
             }
-            $sqlHistory .= ($sqlHistory == '' ? $sqlHistoryStart : ',') . $sqlBit;
 
             $sqlDeepBit = sprintf('(%d,%u,%u,%u,%u)', $house, $item, round($price/100), $info['tq'], $month);
-            if (strlen($sqlDeep) + strlen($sqlDeepBit) + strlen($sqlDeepEnd) + 5 > $maxPacketSize)
-            {
+            if (strlen($sqlDeep) + strlen($sqlDeepBit) + strlen($sqlDeepEnd) + 5 > $maxPacketSize) {
                 DBQueryWithError($db, $sqlDeep.$sqlDeepEnd);
                 $sqlDeep = '';
             }
@@ -631,7 +642,7 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot)
         DBQueryWithError($db, $sqlDeep.$sqlDeepEnd);
 }
 
-function UpdatePetInfo($house, &$petInfo, $snapshot)
+function UpdatePetInfo($house, &$petInfo, $snapshot, $noHistory)
 {
     global $db, $maxPacketSize;
 
@@ -656,8 +667,7 @@ function UpdatePetInfo($house, &$petInfo, $snapshot)
             }
             $sql .= ($sql == '' ? $sqlStart : ',') . $sqlBit;
 
-            if ($info['tq'] > 0)
-            {
+            if ((!$noHistory) && ($info['tq'] > 0)) {
                 if (strlen($sqlHistory) + strlen($sqlBit) + 5 > $maxPacketSize)
                 {
                     DBQueryWithError($db, $sqlHistory);

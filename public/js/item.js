@@ -81,7 +81,7 @@ var TUJ_Item = function()
         ta.className = 'item'
         var timg = libtuj.ce('img');
         ta.appendChild(timg);
-        timg.src = 'icon/large/' + dta.stats.icon + '.jpg';
+        timg.src = 'https://cdn.theunderminejournal.com/icon/large/' + dta.stats.icon + '.jpg';
         ta.appendChild(document.createTextNode('[' + dta.stats.name + ']'));
 
         $('#page-title').empty().append(ta);
@@ -824,15 +824,15 @@ var TUJ_Item = function()
         var earliestDate = Date.now();
         for (var x = 0; x < data.globalmonthly.length; x++)
         {
-            dtParts = data.monthly[x].date.split('-');
+            dtParts = data.globalmonthly[x].date.split('-');
             dt = Date.UTC(dtParts[0], parseInt(dtParts[1],10)-1, dtParts[2]) + offset;
             if (dt < earliestDate)
                 earliestDate = dt;
-            hcdata.price.push([dt, data.monthly[x].silver * 100]);
-            hcdata.quantity.push([dt, data.monthly[x].quantity]);
-            if (data.monthly[x].quantity > hcdata.quantityMaxVal)
-                hcdata.quantityMaxVal = data.monthly[x].quantity;
-            allPrices.push(data.monthly[x].silver * 100);
+            hcdata.price.push([dt, data.globalmonthly[x].silver * 100]);
+            hcdata.quantity.push([dt, data.globalmonthly[x].quantity]);
+            if (data.globalmonthly[x].quantity > hcdata.quantityMaxVal)
+                hcdata.quantityMaxVal = data.globalmonthly[x].quantity;
+            allPrices.push(data.globalmonthly[x].silver * 100);
         }
 
         allPrices.sort(function(a,b){ return a - b; });

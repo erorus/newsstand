@@ -77,7 +77,7 @@ function SellerHistory($house, $seller)
 select unix_timestamp(s.updated) snapshot, ifnull(h.`total`, 0) `total`, ifnull(h.`new`,0) as `new`
 from tblSnapshot s
 left join tblSellerHistory h on s.updated = h.snapshot and h.seller=?
-where s.house = ? and s.updated >= timestampadd(day,-$historyDays,now())
+where s.house = ? and s.updated >= timestampadd(day,-$historyDays,now()) and s.flags & 1 = 0
 order by s.updated asc
 EOF;
 
