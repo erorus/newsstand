@@ -240,7 +240,7 @@ if string.upper(GetCVar("portal")) ~= "$region" then
     return
 end
 
-local realmName = string.gsub(string.upper(GetRealmName()), '[^%w]', '')
+local realmName = string.gsub(string.upper(GetRealmName()), '[- ()\']', '')
 
 addonTable.dataAge = $dataAge
 
