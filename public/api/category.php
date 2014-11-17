@@ -139,6 +139,7 @@ function CategoryResult_mining($house)
     return [
         'name' => 'Mining',
         'results' => [
+            ['name' => 'ItemList', 'data' => ['name' => 'Draenor Ore', 'items' => CategoryGenericItemList($house, 'i.id in (109119,109118)')]],
             ['name' => 'ItemList', 'data' => ['name' => 'Pandarian Ore', 'items' => CategoryGenericItemList($house, 'i.id in (72092,72093,72103,72094)')]],
             ['name' => 'ItemList', 'data' => ['name' => 'Pandarian Bar', 'items' => CategoryGenericItemList($house, 'i.id in (72096,72095)')]],
             ['name' => 'ItemList', 'data' => ['name' => 'Cataclysm Ore', 'items' => CategoryGenericItemList($house, 'i.id in (52183,52185,53038)')]],
@@ -181,14 +182,19 @@ function CategoryResult_herbalism($house)
     for ($x = count($expansions); $x--; $x >= 0) {
         $lsql = (($x > 0)?(' i.level >'.(($x == 1)?'=':'').' '.$expansionLevels[$x-1].' and '):'').' i.level <'.(($x > 0)?'=':'').' '.$expansionLevels[$x];
         $lsql2 = '';
+        $lsql3 = '';
         if ($x == 0) $lsql .= ' or i.id=13468';
         if ($x == 1) $lsql .= ' and i.id != 13468';
         if ($x == 3) $lsql .= ' and i.id < 70000';
         if ($x == 4) {
             $lsql .= ' or i.id in (72234,72237)';
             $lsql2 = ' or i.id in (89639)';
+            $lsql3 = ' and i.id < 109624';
         }
-        $lsql = '((i.class=7 and i.subclass=9 and i.quality in (1,2) and ('.$lsql.'))'.$lsql2.')';
+        if ($x == 5) {
+            $lsql2 = ' or i.id in (109130)';
+        }
+        $lsql = '((i.class=7 and i.subclass=9 and i.quality in (1,2) and ('.$lsql.'))'.$lsql2.')'.$lsql3;
         $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => $expansions[$x].' Herbs', 'items' => CategoryGenericItemList($house, $lsql)]];
     }
 
