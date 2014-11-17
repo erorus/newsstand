@@ -429,7 +429,7 @@ function CategoryResult_tailoring($house)
     $tr = ['name' => 'Tailoring', 'results' => []];
 
 
-    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Common Cloth', 'items' => CategoryGenericItemList($house, 'i.id in (2589,2592,4306,4338,14047,21877,33470,53010,72988)')]];
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Common Cloth', 'items' => CategoryGenericItemList($house, 'i.id in (2589,2592,4306,4338,14047,21877,33470,53010,72988,111557)')]];
 
     $x = count($expansions);
     $x--; $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => $expansions[$x].' Bags', 'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.level between '.$expansionLevels[$x-1].'+1 and '.$expansionLevels[$x].' and x.class=1 and x.subclass=0 and xs.skillline=197) xyz on xyz.id = i.id'])]];
