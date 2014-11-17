@@ -18,13 +18,8 @@ $canCache = true;
 BotCheck();
 HouseETag($house);
 
-$expansionLevels = array(60,70,80,85,90);
-$expansions = array('Classic', 'Burning Crusade', 'Wrath of the Lich King', 'Cataclysm', 'Mists of Pandaria');
-
-if (time() > 1415836800) {
-    $expansionLevels[] = 100;
-    $expansions[] = 'Warlords of Draenor';
-}
+$expansionLevels = array(60,70,80,85,90,100);
+$expansions = array('Classic', 'Burning Crusade', 'Wrath of the Lich King', 'Cataclysm', 'Mists of Pandaria', 'Warlords of Draenor');
 $qualities = array('Poor', 'Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Artifact', 'Heirloom');
 
 json_return($resultFunc($house));
@@ -182,17 +177,17 @@ function CategoryResult_herbalism($house)
     for ($x = count($expansions); $x--; $x >= 0) {
         $lsql = (($x > 0)?(' i.level >'.(($x == 1)?'=':'').' '.$expansionLevels[$x-1].' and '):'').' i.level <'.(($x > 0)?'=':'').' '.$expansionLevels[$x];
         $lsql2 = '';
-        $lsql3 = '';
+        $lsql3 = ' and i.id < 108318';
         if ($x == 0) $lsql .= ' or i.id=13468';
         if ($x == 1) $lsql .= ' and i.id != 13468';
         if ($x == 3) $lsql .= ' and i.id < 70000';
         if ($x == 4) {
             $lsql .= ' or i.id in (72234,72237)';
             $lsql2 = ' or i.id in (89639)';
-            $lsql3 = ' and i.id < 109624';
         }
         if ($x == 5) {
             $lsql2 = ' or i.id in (109130)';
+            $lsql3 = ' and i.id not in (109629, 109628, 109627, 109626, 109625, 109624)';
         }
         $lsql = '((i.class=7 and i.subclass=9 and i.quality in (1,2) and ('.$lsql.'))'.$lsql2.')'.$lsql3;
         $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => $expansions[$x].' Herbs', 'items' => CategoryGenericItemList($house, $lsql)]];
