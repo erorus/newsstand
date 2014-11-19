@@ -1,11 +1,11 @@
 body {background-color: #333; color: #CCC}
-#title > div > a img { background-image: url("../images/underminetitle.2000.dark.png"); }
+#title > div > a img { background-image: url("https://cdn.theunderminejournal.com/images/underminetitle.2000.dark.png"); }
 
 a {color: white}
 
 #topcorner input {border: 0; box-shadow: 0.3em 0.3em #222 }
 
-#progress-page div { background-image: url("../images/progress.dark.gif"); }
+#progress-page div { background-image: url("https://cdn.theunderminejournal.com/images/progress.dark.gif"); }
 
 #search-page table, table.auctionlist, table.category-items { border-color: #666 }
 #search-page table td, table.auctionlist td, table.category-items td { border-color: #444}
