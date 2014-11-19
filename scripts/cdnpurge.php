@@ -16,7 +16,7 @@ $baseDirs = ['css','images','js'];
 $purged = 0;
 $prevDates = GetPrevDates();
 
-foreach ($baseDir as $d) {
+foreach ($baseDirs as $d) {
     CheckToPurge($d);
 
     if ($caughtKill)
@@ -71,8 +71,6 @@ function CheckToPurge($bDir) {
         $fullPath = "$path/$fileName";
         $localPath = "$bDir/$fileName";
 
-        DebugMessage("Check $fullPath");
-
         if (is_dir($fullPath)) {
             CheckToPurge($localPath, false);
         } else {
@@ -93,10 +91,41 @@ function CheckToPurge($bDir) {
 function PurgePath($localPath) {
     global $purged;
 
-    DebugMessage("Purged $localPath");
-    $purged++;
+    $data = [
+        'a'     => 'zone_file_purge',
+        'tkn'   => 'ce2d32655610115c1866795590af0c3e27483',
+        'email' => 'cloudflare@everynothing.net',
+        'z'     => 'theunderminejournal.com',
+        'url'   => 'https://cdn.theunderminejournal.com/' . $localPath
+    ];
 
-    return true;
+    $opt = [
+        'timeout' => 15,
+        'connecttimeout' => 6,
+        'redirect' => 0
+    ];
+
+    $info = http_parse_message(http_post_fields('https://www.cloudflare.com/api_json.html', $data, [], $opt));
+
+    $responseJson = json_decode($info->body, true);
+    if (json_last_error() != JSON_ERROR_NONE) {
+        $responseJson = false;
+    }
+
+    if (($info->responseCode == 200) && ($responseJson['result'] == 'success')) {
+        DebugMessage("Purged {$data['url']}");
+        $purged++;
+
+        return true;
+    }
+
+    if ($responseJson) {
+        DebugMessage("Error ".$info->responseCode." purging $localPath\n".print_r($responseJson, true), E_USER_WARNING);
+    } else {
+        DebugMessage("Error ".$info->responseCode." purging $localPath\n".$info->body, E_USER_WARNING);
+    }
+
+    return false;
 }
 
 
