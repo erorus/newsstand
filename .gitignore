@@ -8,6 +8,7 @@ private/
 
 incl/*.credentials.php
 scripts/realms2houses_cache/*
+scripts/cdnpurge.dates.json
 compress/*
 
 public/globalprices.json
