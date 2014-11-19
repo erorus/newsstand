@@ -1,5 +1,6 @@
 <?php
 
+chdir(__DIR__);
 $startTime = time();
 
 require_once('../incl/incl.php');
@@ -8,7 +9,6 @@ require_once('../incl/heartbeat.incl.php');
 RunMeNTimes(1);
 CatchKill();
 
-chdir(__DIR__);
 define('DATEFILE', 'cdnpurge.dates.json');
 define('BASEPATH', '../public/');
 
