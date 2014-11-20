@@ -7,6 +7,7 @@ lighttpd.conf/
 private/
 
 incl/*.credentials.php
+public/index.scripts.inc
 scripts/realms2houses_cache/*
 scripts/cdnpurge.dates.json
 compress/*

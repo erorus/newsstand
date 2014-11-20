@@ -514,7 +514,7 @@ var TUJ = function()
         document.body.className = validPages[self.params.page];
 
         if (typeof tuj['page_'+validPages[self.params.page]] == 'undefined')
-            libtuj.AddScript('js/'+validPages[self.params.page]+'.js');
+            libtuj.AddScript((tujEnvironment == 'live' ? 'https://cdn.theunderminejournal.com/' : '') + 'js/'+validPages[self.params.page]+'.js');
         else
             tuj['page_'+validPages[self.params.page]].load(self.params);
 

@@ -19,7 +19,7 @@ h2 sub { display: block; font-weight: normal; font-size: 66%; margin-left: 2em }
 #topbar { position: relative; width: 100%; }
 #topcorner { position: absolute; top: 0; right: 0; width: 22em; height: 100% }
 #title { margin-right: 22em; min-height: 11.5em }
-#title > div > a img { background-image: url("https://cdn.theunderminejournal.com/images/underminetitle.2000.png"); background-size: contain; background-repeat: no-repeat; max-width: 100%; max-height: 4em }
+#title > div > a img { background-image: url("../images/underminetitle.2000.png"); background-size: contain; background-repeat: no-repeat; max-width: 100%; max-height: 4em }
 
 #page-title { font-size: 2em; padding-left: 1em }
 #page-title a.item img { vertical-align: middle; height: 1.2em; width: 1.2em; border-radius: 5px; border: 1px solid #333 }
@@ -82,7 +82,7 @@ abbr:hover.full-date { border-bottom: 1px dotted }
 #front-page .top-list h3 { margin: 0 0 1em }
 
 #progress-page { padding: 3em; text-align: center; }
-#progress-page div { background-image: url("https://cdn.theunderminejournal.com/images/progress.gif"); background-repeat: no-repeat; background-position: center; height: 20px; }
+#progress-page div { background-image: url("../images/progress.gif"); background-repeat: no-repeat; background-position: center; height: 20px; }
 
 #search-page table, table.auctionlist, table.category { width: 54em; margin: 0 auto 2em; border: 1px solid black; border-spacing: 0 }
 #search-page table th, table.auctionlist th, table.category th {padding: 0.4em 0.2em 0}

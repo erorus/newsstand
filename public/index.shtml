@@ -5,15 +5,7 @@
         <meta name="viewport" content="width=868px">
         <meta name="msapplication-config" content="none"/>
         <title>The Undermine Journal</title>
-        <link rel="stylesheet" href="https://cdn.theunderminejournal.com/css/main.css">
-        <link rel="shortcut icon" href="favicon.ico">
-        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-        <script type="text/javascript" src="https://cdn.theunderminejournal.com/js/highcharts-custom.js"></script>
-        <script type="text/javascript" src="js/main.js"></script>
-        <script type="text/javascript" src="https://cdn.theunderminejournal.com/js/data.randenchants.js"></script>
-        <script type="text/javascript" src="https://wowjs.zamimg.com/widgets/power.js"></script>
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-    </head>
+<!--#include virtual="index.scripts.inc" -->    </head>
     <body>
         <div id="page">
             <div id="topbar">
