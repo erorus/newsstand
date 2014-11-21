@@ -1,10 +1,17 @@
 .idea
 logs/
 snapshots/
+
 public/icon/
 lighttpd.conf/
 private/
+
 incl/*.credentials.php
+public/index.scripts.inc
 scripts/realms2houses_cache/*
+scripts/cdnpurge.dates.json
 compress/*
+
 public/globalprices.json
+addon/MarketData*.lua
+addon/*.zip

@@ -8,6 +8,7 @@ if (php_sapi_name() == 'cli')
     error_reporting(E_ALL);
 
 date_default_timezone_set('UTC');
+mb_internal_encoding("UTF-8");
 
 define('HISTORY_DAYS', 14);
 

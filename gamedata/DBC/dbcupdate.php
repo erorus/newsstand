@@ -62,6 +62,24 @@ left join ttblFileData fd on fd.id = i.iconfiledataid)
 EOF;
 dtecho(run_sql($sql));
 
+dtecho(dbcdecode('ItemModifiedAppearance', array(2=>'itemid', 4=>'appearanceid', 6=>'idx')));
+dtecho(dbcdecode('ItemAppearance', array(1=>'appearanceid', 3=>'iconfiledataid')));
+
+$sql = <<<EOF
+update tblDBCItem i
+set icon =
+(select if(right(lower(fd.name), 4) = '.blp', lower(substr(fd.name, 1, length(fd.name) - 4)), lower(fd.name))
+from ttblFileData fd
+join ttblItemAppearance ia on ia.iconfiledataid=fd.id
+join ttblItemModifiedAppearance ima on ima.appearanceid=ia.appearanceid
+where ima.itemid = i.id
+order by ima.idx asc
+limit 1)
+where ifnull(icon,'') = ''
+EOF;
+
+dtecho(run_sql($sql));
+
 dtecho(dbcdecode('ItemEffect', array(2=>'itemid', 4=>'spellid')));
 dtecho(run_sql('truncate table tblDBCItemSpell'));
 dtecho(run_sql('insert ignore into tblDBCItemSpell (select * from ttblItemEffect where itemid > 0 and spellid > 0)'));

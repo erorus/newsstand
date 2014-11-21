@@ -76,7 +76,7 @@ function ItemHistory($house, $item)
 select unix_timestamp(s.updated) snapshot, cast(if(quantity is null, @price, @price := price) as decimal(11,0)) `price`, ifnull(quantity,0) as quantity, if(age is null, @age, @age := age) as age
 from (select @price := null, @age := null) priceSetup, tblSnapshot s
 left join tblItemHistory ih on s.updated = ih.snapshot and ih.house=? and ih.item=?
-where s.house = ? and s.updated >= timestampadd(day,-$historyDays,now())
+where s.house = ? and s.updated >= timestampadd(day,-$historyDays,now()) and s.flags & 1 = 0
 order by s.updated asc
 EOF;
 
@@ -247,7 +247,7 @@ function ItemGlobalMonthly($region, $item)
 {
     global $db;
 
-    $key = 'item_globalmonthly_'.$region.'_'.$item;
+    $key = 'item_globalmonthly2_'.$region.'_'.$item;
     if (($tr = MCGet($key)) !== false)
         return $tr;
 
@@ -257,7 +257,7 @@ function ItemGlobalMonthly($region, $item)
     for ($x = 1; $x <= 31; $x++)
     {
         $padded = str_pad($x, 2, '0', STR_PAD_LEFT);
-        $sqlCols .= ", round(avg(mktslvr$padded)*100) mkt$padded";
+        $sqlCols .= ", round(avg(mktslvr$padded)*100) mkt$padded, ifnull(sum(qty$padded),0) qty$padded";
     }
 
 
@@ -288,7 +288,7 @@ EOF;
             $day = ($dayNum < 10 ? '0' : '') . $dayNum;
             if (!is_null($rows[$x]['mkt'.$day]))
             {
-                $tr[] = array('date' => "$year-$month-$day", 'silver' => round($rows[$x]['mkt'.$day]/100,2));
+                $tr[] = array('date' => "$year-$month-$day", 'silver' => round($rows[$x]['mkt'.$day]/100,2), 'quantity' => $rows[$x]['qty'.$day]);
                 $prevPrice = round($rows[$x]['mkt'.$day]/100,2);
             }
             else
@@ -298,7 +298,7 @@ EOF;
                 if (strtotime("$year-$month-$day") > time())
                     break;
                 if ($prevPrice)
-                    $tr[] = array('date' => "$year-$month-$day", 'silver' => $prevPrice);
+                    $tr[] = array('date' => "$year-$month-$day", 'silver' => $prevPrice, 'quantity' => 0);
             }
         }
     }

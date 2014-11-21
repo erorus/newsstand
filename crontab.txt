@@ -6,13 +6,16 @@
 * * * * * php /var/newsstand/scripts/fetchsnapshot.php US >> /var/newsstand/logs/fetchsnapshot.US.log 2>&1
 0 0 * * * mv /var/newsstand/logs/fetchsnapshot.US.log /var/newsstand/logs/fetchsnapshot.US.yesterday.log
 
+* * * * * php /var/newsstand/scripts/fetchsnapshot.php EU >> /var/newsstand/logs/fetchsnapshot.EU.log 2>&1
+0 0 * * * mv /var/newsstand/logs/fetchsnapshot.EU.log /var/newsstand/logs/fetchsnapshot.EU.yesterday.log
+
 * * * * * php /var/newsstand/scripts/parsesnapshot.php >> /var/newsstand/logs/parsesnapshot.log 2>&1
 0 0 * * * mv /var/newsstand/logs/parsesnapshot.log /var/newsstand/logs/parsesnapshot.yesterday.log
 
 23 4 * * * php /var/newsstand/scripts/realms2houses.php >> /var/newsstand/logs/realms2houses.log 2>&1
 0 0 * * 0 mv /var/newsstand/logs/realms2houses.log /var/newsstand/logs/realms2houses.lastweek.log
 
-10 2 * * * php /var/newsstand/scripts/itemglobal.php >> /var/newsstand/logs/itemglobal.log 2>&1
+10 */3 * * * php /var/newsstand/scripts/itemglobal.php >> /var/newsstand/logs/itemglobal.log 2>&1
 0 0 * * 0 mv /var/newsstand/logs/itemglobal.log /var/newsstand/logs/itemglobal.lastweek.log
 
 30 */2 * * * php /var/newsstand/scripts/historyprune.php >> /var/newsstand/logs/historyprune.log 2>&1
@@ -20,4 +23,8 @@
 
 30 */2 * * * php /var/newsstand/scripts/itemdaily.php >> /var/newsstand/logs/itemdaily.log 2>&1
 0 0 * * * mv /var/newsstand/logs/itemdaily.log /var/newsstand/logs/itemdaily.yesterday.log
+
+0 * * * * /var/newsstand/private/awstats/wwwroot/cgi-bin/awstats.pl -config=newsstand >/dev/null 2>&1
+
+10 7 * * 2,6 /var/newsstand/scripts/buildaddon.sh > /var/newsstand/logs/buildaddon.log 2>&1
 

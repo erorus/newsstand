@@ -18,13 +18,8 @@ $canCache = true;
 BotCheck();
 HouseETag($house);
 
-$expansionLevels = array(60,70,80,85,90);
-$expansions = array('Classic', 'Burning Crusade', 'Wrath of the Lich King', 'Cataclysm', 'Mists of Pandaria');
-
-if (time() > 1415836800) {
-    $expansionLevels[] = 100;
-    $expansions[] = 'Warlords of Draenor';
-}
+$expansionLevels = array(60,70,80,85,90,100);
+$expansions = array('Classic', 'Burning Crusade', 'Wrath of the Lich King', 'Cataclysm', 'Mists of Pandaria', 'Warlords of Draenor');
 $qualities = array('Poor', 'Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Artifact', 'Heirloom');
 
 json_return($resultFunc($house));
@@ -89,11 +84,11 @@ join (select item, bidper as bid from
 from tblAuction a
 join tblDBCItem i on i.id=a.item
 left join tblDBCItemVendorCost ivc on ivc.item=i.id
-where a.house=%d
+where a.house=%1\$d
 and i.quality > 0
 and ivc.copper is null
 group by i.id) ib
-join tblItemHistory ih on ih.item=ib.item and ih.house=58
+join tblItemHistory ih on ih.item=ib.item and ih.house=%1\$d
 group by ib.item) iba
 where iba.sdprice < iba.avgprice/2
 and iba.bidper / iba.avgprice < 0.2
@@ -139,6 +134,7 @@ function CategoryResult_mining($house)
     return [
         'name' => 'Mining',
         'results' => [
+            ['name' => 'ItemList', 'data' => ['name' => 'Draenor Ore', 'items' => CategoryGenericItemList($house, 'i.id in (109119,109118)')]],
             ['name' => 'ItemList', 'data' => ['name' => 'Pandarian Ore', 'items' => CategoryGenericItemList($house, 'i.id in (72092,72093,72103,72094)')]],
             ['name' => 'ItemList', 'data' => ['name' => 'Pandarian Bar', 'items' => CategoryGenericItemList($house, 'i.id in (72096,72095)')]],
             ['name' => 'ItemList', 'data' => ['name' => 'Cataclysm Ore', 'items' => CategoryGenericItemList($house, 'i.id in (52183,52185,53038)')]],
@@ -181,6 +177,7 @@ function CategoryResult_herbalism($house)
     for ($x = count($expansions); $x--; $x >= 0) {
         $lsql = (($x > 0)?(' i.level >'.(($x == 1)?'=':'').' '.$expansionLevels[$x-1].' and '):'').' i.level <'.(($x > 0)?'=':'').' '.$expansionLevels[$x];
         $lsql2 = '';
+        $lsql3 = ' and i.id < 108318';
         if ($x == 0) $lsql .= ' or i.id=13468';
         if ($x == 1) $lsql .= ' and i.id != 13468';
         if ($x == 3) $lsql .= ' and i.id < 70000';
@@ -188,7 +185,11 @@ function CategoryResult_herbalism($house)
             $lsql .= ' or i.id in (72234,72237)';
             $lsql2 = ' or i.id in (89639)';
         }
-        $lsql = '((i.class=7 and i.subclass=9 and i.quality in (1,2) and ('.$lsql.'))'.$lsql2.')';
+        if ($x == 5) {
+            $lsql2 = ' or i.id in (109130)';
+            $lsql3 = ' and i.id not in (109629, 109628, 109627, 109626, 109625, 109624)';
+        }
+        $lsql = '((i.class=7 and i.subclass=9 and i.quality in (1,2) and ('.$lsql.'))'.$lsql2.')'.$lsql3;
         $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => $expansions[$x].' Herbs', 'items' => CategoryGenericItemList($house, $lsql)]];
     }
 
@@ -428,7 +429,7 @@ function CategoryResult_tailoring($house)
     $tr = ['name' => 'Tailoring', 'results' => []];
 
 
-    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Common Cloth', 'items' => CategoryGenericItemList($house, 'i.id in (2589,2592,4306,4338,14047,21877,33470,53010,72988)')]];
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Common Cloth', 'items' => CategoryGenericItemList($house, 'i.id in (2589,2592,4306,4338,14047,21877,33470,53010,72988,111557)')]];
 
     $x = count($expansions);
     $x--; $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => $expansions[$x].' Bags', 'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.level between '.$expansionLevels[$x-1].'+1 and '.$expansionLevels[$x].' and x.class=1 and x.subclass=0 and xs.skillline=197) xyz on xyz.id = i.id'])]];

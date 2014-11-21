@@ -78,7 +78,7 @@ from (
     from tblSnapshot s
     join tblPetSummary ps on ps.house = ?
     left join tblPetHistory ph on s.updated = ph.snapshot and ph.house = ps.house and ph.species = ps.species and ph.breed = ps.breed
-    where s.house = ? and ps.species = ? and s.updated >= timestampadd(day,-$historyDays,now())
+    where s.house = ? and ps.species = ? and s.updated >= timestampadd(day,-$historyDays,now()) and s.flags & 1 = 0
     order by ps.breed, s.updated asc
     ) ordered
 ) withoutresets
