@@ -281,7 +281,7 @@ function MakeZip()
     }
 
     $tocFile = file_get_contents('../addon/TheUndermineJournal.toc');
-    $tocFile = sprintf($tocFile, Date('D, F j'));
+    $tocFile = sprintf($tocFile, Date('D, F j'), Date('Ymd'));
 
     $zip->addEmptyDir('TheUndermineJournal');
     $zip->addFromString("TheUndermineJournal/TheUndermineJournal.toc",$tocFile);
