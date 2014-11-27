@@ -194,9 +194,6 @@ EOF;
             $priceString .= $thisPriceString;
         }
         $priceLua .= sprintf("addonTable.marketData[%d]=crop(%d,%s)\n", $item, $priceBytes, luaQuote($priceString));
-        if (++$luaLineCount % 100 == 0) {
-            $priceLua .= "collectgarbage('collect')\n";
-        }
     }
     unset($items);
 
