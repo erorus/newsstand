@@ -20,7 +20,7 @@ if [ -s "/tmp/curseupdater.$$/TheUndermineJournal.zip" ]; then
 	vers=`unzip -p /tmp/curseupdater.$$/TheUndermineJournal.zip TheUndermineJournal/TheUndermineJournal.toc | grep Version:`
 	idx=`expr index "$vers" :`
 	vers=${vers:($idx + 1)}
-	java -classpath /var/newsstand/scripts/addonupdater/WoWIUploader/ WoWIUploader -u TheUndermineJournal -p xkVaCvUqanRT3K67TS -ver "$vers" -fid 19662 -ftitle "The Undermine Journal" -zip /tmp/curseupdater.$$/TheUndermineJournal.zip -skip
+	php /var/newsstand/scripts/addonupdater/wowiupdater.php /var/newsstand/addon/TheUndermineJournal.zip "$vers"
 else
 	echo Could not get new zip file.
 fi

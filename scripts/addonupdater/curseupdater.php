@@ -76,7 +76,7 @@ $m[] = array('data' => $fil, 'headers' => array('Content-Disposition' => 'form-d
 $m[] = array('data' => 'The Undermine Journal', 'headers' => array('Content-Disposition' => 'form-data; name="name"', 'Content-Type' => 'text/plain;charset=UTF-8'));
 $m[] = array('data' => $gameversion, 'headers' => array('Content-Disposition' => 'form-data; name="game_versions"', 'Content-Type' => 'text/plain;charset=UTF-8'));
 $m[] = array('data' => 'r', 'headers' => array('Content-Disposition' => 'form-data; name="file_type"', 'Content-Type' => 'text/plain;charset=UTF-8'));
-$m[] = array('data' => 'Automated update for '.Date('F jS, Y'), 'headers' => array('Content-Disposition' => 'form-data; name="change_log"', 'Content-Type' => 'text/plain;charset=UTF-8'));
+$m[] = array('data' => 'Automatic data update for '.Date('l, F j, Y'), 'headers' => array('Content-Disposition' => 'form-data; name="change_log"', 'Content-Type' => 'text/plain;charset=UTF-8'));
 $m[] = array('data' => 'plain', 'headers' => array('Content-Disposition' => 'form-data; name="change_markup_type"', 'Content-Type' => 'text/plain;charset=UTF-8'));
 
 $m[] = array('data' => '', 'headers' => array('Content-Disposition' => 'form-data; name="known_caveats"', 'Content-Type' => 'text/plain;charset=UTF-8'));
