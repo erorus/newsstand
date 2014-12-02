@@ -131,7 +131,7 @@ function ItemHistoryMonthly($house, $item)
 {
     global $db;
 
-    if (($tr = MCGet('item_historymonthly_'.$house.'_'.$item)) !== false)
+    if (($tr = MCGet('item_historymonthly2_'.$house.'_'.$item)) !== false)
         return $tr;
 
     DBConnect();
@@ -156,6 +156,9 @@ EOF;
     {
         $year = 2014 + floor(($rows[$x]['month']-1) / 12);
         $monthNum = $rows[$x]['month'] % 12;
+        if ($monthNum == 0) {
+            $monthNum = 12;
+        }
         $month = ($monthNum < 10 ? '0' : '') . $monthNum;
         for ($dayNum = 1; $dayNum <= 31; $dayNum++)
         {
