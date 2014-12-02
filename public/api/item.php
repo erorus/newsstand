@@ -247,7 +247,7 @@ function ItemGlobalMonthly($region, $item)
 {
     global $db;
 
-    $key = 'item_globalmonthly2_'.$region.'_'.$item;
+    $key = 'item_globalmonthly_'.$region.'_'.$item;
     if (($tr = MCGet($key)) !== false)
         return $tr;
 
@@ -282,6 +282,9 @@ EOF;
     {
         $year = 2014 + floor(($rows[$x]['month']-1) / 12);
         $monthNum = $rows[$x]['month'] % 12;
+        if ($monthNum == 0) {
+            $monthNum = 12;
+        }
         $month = ($monthNum < 10 ? '0' : '') . $monthNum;
         for ($dayNum = 1; $dayNum <= 31; $dayNum++)
         {
