@@ -317,3 +317,33 @@ end
 eventframe:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventframe:SetScript("OnEvent", onEvent)
 
+local origGetAuctionBuyout = GetAuctionBuyout
+local getAuctionBuyoutTable = {}
+
+function GetAuctionBuyout(item) -- Tekkub's API
+    local iid
+    if (type(item) == "string") then
+        iid = GetIDFromLink(item)
+    else
+        iid = item
+    end
+
+    if (iid) then
+        local result = TUJMarketInfo(iid, getAuctionBuyoutTable)
+        if (result and result['itemid'] == iid) then
+            if (result['market']) then
+                return result['market']
+            else
+                return result['globalMedian']
+            end
+        end
+    end
+
+    if (origGetAuctionBuyout) then
+        return origGetAuctionBuyout(item)
+    end
+
+    return nil
+end
+
+
