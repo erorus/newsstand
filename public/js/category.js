@@ -97,9 +97,7 @@ var TUJ_Category = function()
                 d = libtuj.ce();
                 d.className = 'category-'+ f.name.toLowerCase();
                 categoryPage.append(d);
-                resultCount += resultFunctions[f.name](f.data, d) ? 1 : 0;
-
-                if (resultCount == 5) {
+                if (resultFunctions[f.name](f.data, d) && (++resultCount == 5)) {
                     categoryPage.append(libtuj.Ads.Add('2276667118'));
                 }
             }

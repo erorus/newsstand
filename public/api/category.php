@@ -497,6 +497,13 @@ function CategoryResult_inscription($house)
 
     $tr = ['name' => 'Inscription', 'results' => []];
 
+    $x = count($expansions)-1;
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => $expansions[$x].' Decks', 'items' => CategoryGenericItemList($house, ['where' => 'i.id between 112303 and 112306'])]];
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => $expansions[$x].' Iron Deck Cards', 'items' => CategoryGenericItemList($house, ['where' => 'i.id between 112271 and 112278'])]];
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => $expansions[$x].' Moon Deck Cards', 'items' => CategoryGenericItemList($house, ['where' => 'i.id between 112295 and 112302'])]];
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => $expansions[$x].' Visions Deck Cards', 'items' => CategoryGenericItemList($house, ['where' => 'i.id between 112279 and 112286'])]];
+    $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => $expansions[$x].' War Deck Cards', 'items' => CategoryGenericItemList($house, ['where' => 'i.id between 112287 and 112294'])]];
+
     $tr['results'][] = ['name' => 'ItemList', 'data' => ['name' => 'Shoulder Inscription', 'items' => CategoryGenericItemList($house, [
         'joins' => 'join tblDBCSpell xs on xs.crafteditem = i.id',
         'where' => 'xs.skillline = 773 and xs.expansion='.(count($expansions)-1).' and i.class = 0 and i.quality > 1'
