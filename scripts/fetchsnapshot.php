@@ -111,7 +111,7 @@ ENDSQL;
 
     DebugMessage("$region $slug updated ".TimeDiff($modified).", fetching auction data file");
     $dlStart = microtime(true);
-    $data = FetchHTTP($fileInfo['url'], array(), $outHeaders);
+    $data = FetchHTTP(preg_replace('/^http:/', 'https:', $fileInfo['url']), array(), $outHeaders);
     $dlDuration = microtime(true) - $dlStart;
     if (!$data)
     {
