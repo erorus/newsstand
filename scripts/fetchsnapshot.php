@@ -135,6 +135,11 @@ ENDSQL;
     if ($xferBytes >= strlen($data) && strlen($data) > 65536)
         DebugMessage('No compression? '.print_r($outHeaders,true));
 
+    if ($xferBytes/1000/$dlDuration < 200) {
+        DebugMessage("Speed under 200KBps, closing persistent connections");
+        http_persistent_handles_clean();
+    }
+
     $stmt = $db->prepare('insert into tblHouseCheck (house, nextcheck) values (?, null) on duplicate key update nextcheck=values(nextcheck)');
     $stmt->bind_param('i', $house);
     $stmt->execute();
