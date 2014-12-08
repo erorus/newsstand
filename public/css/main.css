@@ -180,3 +180,6 @@ img.captcha-button.selected { border-color: #006600 }
 .money-gold::after { content: "g "; color: #7F6900 }
 .money-silver::after { content: "s "; color: #666666 }
 .money-copper::after { content: "c"; color: #C8602C }
+
+table.category-fish tr.subheading th {text-align: center}
+table.category-fish .price {border-left: 1px solid #CCC}

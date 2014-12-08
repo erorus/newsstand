@@ -7,9 +7,9 @@ a {color: white}
 
 #progress-page div { background-image: url("../images/progress.dark.gif"); }
 
-#search-page table, table.auctionlist, table.category-items { border-color: #666 }
-#search-page table td, table.auctionlist td, table.category-items td { border-color: #444}
-#search-page tr:hover td, table.auctionlist tr:hover td, table.category-items tr:hover td {background-color: #444}
+#search-page table, table.auctionlist, table.category { border-color: #666 }
+#search-page table td, table.auctionlist td, table.category td { border-color: #444}
+#search-page tr:hover td, table.auctionlist tr:hover td, table.category tr:hover td {background-color: #444}
 
 .battlepet-breeds a { color: white; background-color: #444; box-shadow: 0.2em 0.2em #222 }
 
@@ -19,3 +19,5 @@ a {color: white}
 .money-gold::after { color: #DDB100 }
 .money-silver::after { color: #E6E6E6 }
 .money-copper::after { color: #C8602C }
+
+table.category-fish .price {border-left-color: #444}

@@ -1060,7 +1060,7 @@ var TUJ = function()
             } else {
                 darkSheet = libtuj.ce('link');
                 darkSheet.rel = 'stylesheet';
-                darkSheet.href = 'https://cdn.theunderminejournal.com/css/night.css';
+                darkSheet.href = (tujEnvironment == 'live' ? 'https://cdn.theunderminejournal.com/' : '') + 'css/night.css';
                 darkSheet.id = 'dark-sheet';
                 document.getElementsByTagName('head')[0].appendChild(darkSheet);
             }
