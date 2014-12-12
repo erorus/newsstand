@@ -570,6 +570,133 @@ var TUJ_Category = function()
 
     }
 
+    resultFunctions.FishTable = function(data, dest)
+    {
+        var f, item, x, y, t, td, th, tr, a;
+
+        var fishTypeCount = 4;
+
+        if (!data.fish.length)
+            return false;
+
+        t = libtuj.ce('table');
+        t.className = 'category category-fish';
+        dest.appendChild(t);
+
+        tr = libtuj.ce('tr');
+        t.appendChild(tr);
+
+        td = libtuj.ce('th');
+        td.className = 'title';
+        td.colSpan = 2+(fishTypeCount * 2);
+        tr.appendChild(td);
+        $(td).text(data.name);
+
+        tr = libtuj.ce('tr');
+        tr.className = 'subheading';
+        t.appendChild(tr);
+
+        td = libtuj.ce('th');
+        td.className = 'name';
+        td.colSpan = 2;
+        tr.appendChild(td);
+        $(td).text('Name');
+
+        td = libtuj.ce('th');
+        td.colSpan = 2;
+        td.className = 'price';
+        tr.appendChild(td);
+        $(td).text('Flesh');
+
+        td = libtuj.ce('th');
+        td.colSpan = 2;
+        td.className = 'price';
+        tr.appendChild(td);
+        $(td).text('Small');
+
+        td = libtuj.ce('th');
+        td.colSpan = 2;
+        td.className = 'price';
+        tr.appendChild(td);
+        $(td).text('Regular');
+
+        td = libtuj.ce('th');
+        td.colSpan = 2;
+        td.className = 'price';
+        tr.appendChild(td);
+        $(td).text('Enormous');
+
+        tr = libtuj.ce('tr');
+        tr.className = 'subheading';
+        t.appendChild(tr);
+
+        td = libtuj.ce('th');
+        td.className = 'name';
+        tr.appendChild(td);
+        td.colSpan=2;
+
+        for (x = 1; x <= fishTypeCount; x++) {
+            td = libtuj.ce('th');
+            td.className = 'price';
+            tr.appendChild(td);
+            $(td).text('Price');
+
+            td = libtuj.ce('th');
+            td.className = 'quantity';
+            tr.appendChild(td);
+            $(td).text('Avail');
+        }
+
+        data.fish.sort(function(a,b) {
+            return data.prices[b[0]].price - data.prices[a[0]].price;
+        });
+
+        for (x = 0; f = data.fish[x]; x++) {
+            item = data.prices[f[2]];
+
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+
+            td = libtuj.ce('td');
+            td.className = 'icon';
+            tr.appendChild(td);
+            i = libtuj.ce('img');
+            td.appendChild(i);
+            i.className = 'icon';
+            i.src = 'https://cdn.theunderminejournal.com/icon/medium/' + item.icon + '.jpg';
+
+            td = libtuj.ce('td');
+            td.className = 'name';
+            tr.appendChild(td);
+            a = libtuj.ce('a');
+            $(td).text(item.name);
+
+            for (y = 0; y < fishTypeCount && y < f.length; y++) {
+                td = libtuj.ce('td');
+                td.className = 'price';
+                tr.appendChild(td);
+                a = libtuj.ce('a');
+                td.appendChild(a);
+                a.href = tuj.BuildHash({page: 'item', id: f[y]});
+                a.rel = 'item=' + f[y];
+                a.appendChild(libtuj.FormatPrice(data.prices[f[y]].price));
+
+                td = libtuj.ce('td');
+                td.className = 'quantity';
+                tr.appendChild(td);
+                a = libtuj.ce('a');
+                td.appendChild(a);
+                a.href = tuj.BuildHash({page: 'item', id: f[y]});
+                a.rel = 'item=' + f[y];
+                a.appendChild(libtuj.FormatQuantity(data.prices[f[y]].quantity));
+            }
+
+        }
+
+        return true;
+    }
+
+
     this.load(tuj.params);
 }
 
