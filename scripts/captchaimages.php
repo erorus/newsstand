@@ -82,94 +82,88 @@ EOF;
 }
 
 heartbeat();
-$factions = array('alliance', 'horde');
+if ($caughtKill)
+    exit;
 
-foreach ($factions as $faction)
+$hits = 0;
+$seenToons = array();
+$seenGuilds = array();
+$tries = 0;
+for ($x = 0; $x < count($auctionJson['auctions']['auctions']); $x++)
 {
+    if ($tries > 30)
+        break;
+    if ($hits > 50)
+        break;
+
     heartbeat();
     if ($caughtKill)
         exit;
 
-    $hits = 0;
-    $seenToons = array();
-    $seenGuilds = array();
-    $tries = 0;
-    for ($x = 0; $x < count($auctionJson[$faction]['auctions']); $x++)
-    {
-        if ($tries > 30)
-            break;
-        if ($hits > 50)
-            break;
+    $auc = $auctionJson['auctions']['auctions'][$x];
+    if ($auc['ownerRealm'] != $realm)
+        continue;
+    if (isset($seenToons[$auc['owner']]))
+        continue;
+    $seenToons[$auc['owner']] = true;
 
+    $toon = $auc['owner'];
+
+    $tries++;
+    DebugMessage("Fetching $region $slug $toon");
+    $url = GetBattleNetURL($region, "wow/character/$slug/$toon?fields=guild");
+    $json = json_decode(FetchHTTP($url), true);
+
+    if (!isset($json['guild']))
+        continue;
+
+    $guild = $json['guild']['name'];
+
+    $tries++;
+    DebugMessage("Fetching $region $slug <$guild>");
+    $url = GetBattleNetURL($region, "wow/guild/$slug/$guild?fields=members");
+    $json = json_decode(FetchHTTP($url), true);
+
+    if (!isset($json['members']))
+        continue;
+
+    for ($y = 0; $y < count($json['members']); $y++)
+    {
         heartbeat();
         if ($caughtKill)
             exit;
 
-        $auc = $auctionJson[$faction]['auctions'][$x];
-        if ($auc['ownerRealm'] != $realm)
+        $c = $json['members'][$y]['character'];
+        if ($c['level'] < 20)
             continue;
-        if (isset($seenToons[$auc['owner']]))
-            continue;
-        $seenToons[$auc['owner']] = true;
+        $toon = $c['name'];
 
-        $toon = $auc['owner'];
+        DebugMessage("Fetching $region $slug $toon of <$guild>");
+        $url = GetBattleNetURL($region, "wow/character/$slug/$toon?fields=appearance");
+        $cjson = json_decode(FetchHTTP($url), true);
 
-        $tries++;
-        DebugMessage("Fetching $region $slug $toon");
-        $url = GetBattleNetURL($region, "wow/character/$slug/$toon?fields=guild");
-        $json = json_decode(FetchHTTP($url), true);
-
-        if (!isset($json['guild']))
+        if (!isset($cjson['appearance']))
             continue;
 
-        $guild = $json['guild']['name'];
+        $imgUrl = "http://$region.battle.net/static-render/$region/" . preg_replace('/-avatar\.jpg$/', '-inset.jpg', $cjson['thumbnail']);
+        DebugMessage("Fetching $imgUrl");
+        $img = FetchHTTP($imgUrl);
 
-        $tries++;
-        DebugMessage("Fetching $region $slug <$guild>");
-        $url = GetBattleNetURL($region, "wow/guild/$slug/$guild?fields=members");
-        $json = json_decode(FetchHTTP($url), true);
-
-        if (!isset($json['members']))
-            continue;
-
-        for ($y = 0; $y < count($json['members']); $y++)
+        if ($img != '')
         {
-            heartbeat();
-            if ($caughtKill)
-                exit;
+            $hits++;
 
-            $c = $json['members'][$y]['character'];
-            if ($c['level'] < 20)
-                continue;
-            $toon = $c['name'];
+            $id = MakeID();
+            $helm = $cjson['appearance']['showHelm'] ? 1 : 0;
+            DebugMessage("Saving $id as {$c['race']} {$c['gender']} $helm");
 
-            DebugMessage("Fetching $region $slug $toon of <$guild>");
-            $url = GetBattleNetURL($region, "wow/character/$slug/$toon?fields=appearance");
-            $cjson = json_decode(FetchHTTP($url), true);
+            file_put_contents(CAPTCHA_DIR.'/'.$id.'.jpg', $img);
 
-            if (!isset($cjson['appearance']))
-                continue;
-
-            $imgUrl = "http://$region.battle.net/static-render/$region/" . preg_replace('/-avatar\.jpg$/', '-inset.jpg', $cjson['thumbnail']);
-            DebugMessage("Fetching $imgUrl");
-            $img = FetchHTTP($imgUrl);
-
-            if ($img != '')
-            {
-                $hits++;
-
-                $id = MakeID();
-                $helm = $cjson['appearance']['showHelm'] ? 1 : 0;
-                DebugMessage("Saving $id as {$c['race']} {$c['gender']} $helm");
-
-                file_put_contents(CAPTCHA_DIR.'/'.$id.'.jpg', $img);
-
-                $sql = 'insert into tblCaptcha (id, race, gender, helm) values (?, ?, ?, ?)';
-                $stmt = $db->prepare($sql);
-                $stmt->bind_param('iiii', $id, $c['race'], $c['gender'], $helm);
-                $stmt->execute();
-                $stmt->close();
-            }
+            $sql = 'insert into tblCaptcha (id, race, gender, helm) values (?, ?, ?, ?)';
+            $stmt = $db->prepare($sql);
+            $stmt->bind_param('iiii', $id, $c['race'], $c['gender'], $helm);
+            $stmt->execute();
+            $stmt->close();
         }
     }
 }
