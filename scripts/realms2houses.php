@@ -262,7 +262,7 @@ function GetDataRealms($region, $hash)
         return $result;
     }
 
-    $xferBytes = isset($outHeaders['X-Original-Content-Length']) ? $outHeaders['X-Original-Content-Length'] : strlen($data);
+    $xferBytes = isset($outHeaders['X-Original-Content-Length']) ? $outHeaders['X-Original-Content-Length'] : strlen($json);
     DebugMessage("$region $hash data file ".strlen($json)." bytes".($xferBytes != strlen($json) ? (' (transfer length '.$xferBytes.', '.round($xferBytes/strlen($json)*100,1).'%)') : ''));
 
     if (preg_match('/"slug":"([^"?]+)"/', $json, $m))

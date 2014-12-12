@@ -1,4 +1,4 @@
 <div class="news">
-    <b>Saturday, November 15, 2014</b><br>
-    Our Addon is back and out of beta! It offers realm-specific pricing, in-game, for all US and EU realms. <a href="http://stormspire.net/official-forum-undermine-journal/15527-addon-beta-testing.html">Check out this forum thread for details.</a><p>It will be updated every Tuesday and Saturday morning <a href="https://addon.theunderminejournal.com/TheUndermineJournal.zip">at this download location</a>.
+    <b>Friday, December 12, 2014</b><br>
+    We had a sudden and complete failure of our database drive last night. We had a replacement drive installed, and soon auction history will be built back up. Unfortunately, data from before the failure was lost. <a href="http://stormspire.net/official-forum-undermine-journal/16131-tuj-down-temporarily.html">Visit this thread for more information.</a>
 </div>
