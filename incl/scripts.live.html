@@ -1,11 +1,26 @@
-        <link rel="stylesheet" href="https://cdn.theunderminejournal.com/css/main.css">
-        <link rel="shortcut icon" href="https://cdn.theunderminejournal.com/favicon.ico">
-        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-        <script type="text/javascript" src="https://cdn.theunderminejournal.com/js/highcharts-custom.js"></script>
         <script type="text/javascript">
             var tujEnvironment = 'live';
+            function cdnFail(ele) {
+                tujEnvironment = 'live-noCDN';
+                var url = (ele.tagName == 'link') ? ele.href : ele.src;
+                var e;
+                if (url.substr(-4) == '.css') {
+                    e = document.createElement('link');
+                    e.rel = 'stylesheet';
+                    e.href = url.substr(url.indexOf('/', url.indexOf('//') + 2));
+                } else if (url.substr(-3) == '.js') {
+                    e = document.createElement('script');
+                    e.type = 'text/javascript';
+                    e.src = url.substr(url.indexOf('/', url.indexOf('//') + 2));
+                }
+                document.getElementsByTagName('head')[0].appendChild(e);
+            }
         </script>
-        <script type="text/javascript" src="https://cdn.theunderminejournal.com/js/main.js"></script>
-        <script type="text/javascript" src="https://cdn.theunderminejournal.com/js/data.randenchants.js"></script>
+        <link rel="stylesheet" href="https://cdn.theunderminejournal.com/css/main.css" onerror="cdnFail(this)">
+        <link rel="shortcut icon" href="https://cdn.theunderminejournal.com/favicon.ico">
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+        <script type="text/javascript" src="https://cdn.theunderminejournal.com/js/highcharts-custom.js" onerror="cdnFail(this)"></script>
+        <script type="text/javascript" src="https://cdn.theunderminejournal.com/js/main.js" onerror="cdnFail(this)"></script>
+        <script type="text/javascript" src="https://cdn.theunderminejournal.com/js/data.randenchants.js" onerror="cdnFail(this)"></script>
         <script type="text/javascript" src="https://wowjs.zamimg.com/widgets/power.js"></script>
         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
