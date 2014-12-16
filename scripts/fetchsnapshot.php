@@ -44,7 +44,7 @@ function FetchSnapshot()
     select r.house, min(r.canonical), count(*) c, ifnull(hc.nextcheck, s.nextcheck) upd, s.lastupdate
     from tblRealm r
     left join (
-        select deltas.house, timestampadd(second, least(ifnull(min(delta)+15-120, 45*60), 150*60), max(deltas.updated)) nextcheck, max(deltas.updated) lastupdate
+        select deltas.house, timestampadd(second, least(ifnull(min(delta)+15-110, 45*60), 150*60), max(deltas.updated)) nextcheck, max(deltas.updated) lastupdate
         from (
             select sn.updated,
             if(@prevhouse = sn.house and sn.updated > timestampadd(hour, -72, now()), unix_timestamp(sn.updated) - @prevdate, null) delta,
