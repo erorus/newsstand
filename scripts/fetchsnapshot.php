@@ -158,9 +158,9 @@ ENDSQL;
 function GetCheckDelay($modified)
 {
     $delayMinutes = 2;
-    if ($modified < strtotime('75 minutes ago'))
-        $delayMinutes = 5;
     if ($modified < strtotime('3 hours ago'))
+        $delayMinutes = 5;
+    if ($modified < strtotime('6 hours ago'))
         $delayMinutes = 15;
 
     return $delayMinutes * 60;
