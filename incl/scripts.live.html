@@ -2,7 +2,7 @@
             var tujEnvironment = 'live';
             function cdnFail(ele) {
                 tujEnvironment = 'live-noCDN';
-                var url = (ele.tagName == 'link') ? ele.href : ele.src;
+                var url = ele.href || ele.src;
                 var e;
                 if (url.substr(-4) == '.css') {
                     e = document.createElement('link');
