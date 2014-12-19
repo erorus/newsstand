@@ -427,7 +427,7 @@ var TUJ_Seller = function()
             i = libtuj.ce('img');
             td.appendChild(i);
             i.className = 'icon';
-            i.src = 'https://cdn.theunderminejournal.com/icon/medium/' + auc.icon + '.jpg';
+            i.src = tujCDNPrefix + 'icon/medium/' + auc.icon + '.jpg';
 
             td = libtuj.ce('td');
             tr.appendChild(td);
@@ -545,7 +545,7 @@ var TUJ_Seller = function()
             i = libtuj.ce('img');
             td.appendChild(i);
             i.className = 'icon';
-            i.src = 'https://cdn.theunderminejournal.com/icon/medium/' + auc.icon + '.jpg';
+            i.src = tujCDNPrefix + 'icon/medium/' + auc.icon + '.jpg';
 
             td = libtuj.ce('td');
             tr.appendChild(td);

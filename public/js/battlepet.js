@@ -101,7 +101,7 @@ var TUJ_BattlePet = function()
         ta.className = 'battlepet'
         var timg = libtuj.ce('img');
         ta.appendChild(timg);
-        timg.src = 'https://cdn.theunderminejournal.com/icon/large/' + dta.stats.icon + '.jpg';
+        timg.src = tujCDNPrefix + 'icon/large/' + dta.stats.icon + '.jpg';
         var ttl = '[' + dta.stats.name + ']' + (breedId && breeds.length > 1 ? ' ' + tujConstants.breeds[breedId] : '');
         ta.appendChild(document.createTextNode(ttl));
 

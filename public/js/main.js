@@ -534,7 +534,7 @@ var TUJ = function()
         document.body.className = validPages[self.params.page];
 
         if (typeof tuj['page_'+validPages[self.params.page]] == 'undefined')
-            libtuj.AddScript((tujEnvironment == 'live' ? 'https://cdn.theunderminejournal.com/' : '') + 'js/'+validPages[self.params.page]+'.js');
+            libtuj.AddScript(tujCDNPrefix + 'js/'+validPages[self.params.page]+'.js');
         else
             tuj['page_'+validPages[self.params.page]].load(self.params);
 
@@ -1060,7 +1060,7 @@ var TUJ = function()
             } else {
                 darkSheet = libtuj.ce('link');
                 darkSheet.rel = 'stylesheet';
-                darkSheet.href = (tujEnvironment == 'live' ? 'https://cdn.theunderminejournal.com/' : '') + 'css/night.css';
+                darkSheet.href = tujCDNPrefix + 'css/night.css';
                 darkSheet.id = 'dark-sheet';
                 document.getElementsByTagName('head')[0].appendChild(darkSheet);
             }
