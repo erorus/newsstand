@@ -402,6 +402,8 @@ var TUJ_Seller = function()
 
         data.auctions.sort(function(a,b){
             return tujConstants.itemClassOrder[a['class']] - tujConstants.itemClassOrder[b['class']] ||
+                (a.name ? 0 : -1) ||
+                (b.name ? 0 : 1) ||
                 a.name.localeCompare(b.name) ||
                 Math.floor(a.buy / a.quantity) - Math.floor(b.buy / b.quantity) ||
                 Math.floor(a.bid / a.quantity) - Math.floor(b.bid / b.quantity) ||
