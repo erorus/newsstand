@@ -4,6 +4,8 @@ require_once('memcache.incl.php');
 
 define('THROTTLE_PERIOD', 3600); // seconds
 define('THROTTLE_MAXHITS', 200);
+define('BANLIST_CACHEKEY', 'banlist_cidrs');
+define('BANLIST_FILENAME', __DIR__.'/banlist.txt');
 
 function json_return($json)
 {
@@ -98,6 +100,10 @@ function GetHouse($realm)
 
 function BotCheck()
 {
+    if (IPIsBanned()) {
+        header('HTTP/1.1 403 Forbidden');
+        exit;
+    }
     $c = UserThrottleCount();
     if ($c > THROTTLE_MAXHITS * 2)
         BanIP();
@@ -107,11 +113,77 @@ function BotCheck()
     }
 }
 
-function BanIP()
+function BanIP($ip = false)
 {
-    // TODO
+    if ($ip === false) {
+        $ip = $_SERVER['REMOTE_ADDR'];
+    }
+    if (!$ip) {
+        return false;
+    }
+    $ip = trim(strtoupper($ip));
+
+    if (!IPIsBanned($ip)) {
+        file_put_contents(BANLIST_FILENAME, "\n$ip # ".Date('Y-m-d H:i:s'), FILE_APPEND & LOCK_EX);
+        MCDelete(BANLIST_CACHEKEY);
+    }
+
     header('HTTP/1.1 429 Too Many Requests');
     exit;
+}
+
+function IPIsBanned($ip = false)
+{
+    if ($ip === false) {
+        $ip = $_SERVER['REMOTE_ADDR'];
+    }
+    if (!$ip) {
+        return false;
+    }
+    $ip = trim(strtoupper($ip));
+
+    $banList = MCGet(BANLIST_CACHEKEY);
+    if ($banList === false) {
+        $banList = [];
+        if (file_exists(BANLIST_FILENAME)) {
+            $fh = fopen(BANLIST_FILENAME, 'r');
+            if ($fh) {
+                while (($line = fgets($fh, 4096)) !== false) {
+                    if (preg_match('/^\s*([\d\.:\/]+)/', $line, $res) > 0) {
+                        $banList[] = strtoupper($res[0]);
+                    }
+                }
+            }
+            fclose($fh);
+        }
+        MCSet(BANLIST_CACHEKEY, $banList, 86400);
+    }
+
+    $ipv4 = (strpos($ip, ':') === false);
+    if ($ipv4) {
+        $longIp = ip2long($ip);
+    }
+    for ($x = 0; $x < count($banList); $x++) {
+        if (strpos($banList[$x], '/') !== false) {
+            // mask
+            if ($ipv4 && (strpos($banList[$x], ':') === false)) {
+                // ipv4
+                list($subnet, $mask) = explode('/', $banList[$x]);
+                if (($longIp & ~((1 << (32 - $mask)) - 1)) == ip2long($subnet)) {
+                    return true;
+                }
+            } elseif (!$ipv4 && (strpos($banList[$x], ':') !== false)) {
+                // TODO ipv6 masks
+            }
+        } else {
+            // single IP
+            if ($ip == $banList[$x]) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 function CaptchaDetails()
