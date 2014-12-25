@@ -105,9 +105,9 @@ function BotCheck()
         exit;
     }
     $c = UserThrottleCount();
-    if ($c > THROTTLE_MAXHITS * 2)
+    if ($c > THROTTLE_MAXHITS * 2) {
         BanIP();
-    if ($c > THROTTLE_MAXHITS) {
+    } else if ($c > THROTTLE_MAXHITS) {
         header('Expires: 0');
         json_return(array('captcha' => CaptchaDetails()));
     }
@@ -126,6 +126,7 @@ function BanIP($ip = false)
     if (!IPIsBanned($ip)) {
         file_put_contents(BANLIST_FILENAME, "\n$ip # ".Date('Y-m-d H:i:s'), FILE_APPEND & LOCK_EX);
         MCDelete(BANLIST_CACHEKEY);
+        MCDelete(BANLIST_CACHEKEY.'_'.$ip);
     }
 
     header('HTTP/1.1 429 Too Many Requests');
@@ -141,6 +142,12 @@ function IPIsBanned($ip = false)
         return false;
     }
     $ip = trim(strtoupper($ip));
+
+    $cacheKey = BANLIST_CACHEKEY.'_'.$ip;
+    $result = MCGet($cacheKey);
+    if ($result !== false) {
+        return $result == 'yes';
+    }
 
     $banList = MCGet(BANLIST_CACHEKEY);
     if ($banList === false) {
@@ -170,7 +177,8 @@ function IPIsBanned($ip = false)
                 // ipv4
                 list($subnet, $mask) = explode('/', $banList[$x]);
                 if (($longIp & ~((1 << (32 - $mask)) - 1)) == ip2long($subnet)) {
-                    return true;
+                    $result = true;
+                    break;
                 }
             } elseif (!$ipv4 && (strpos($banList[$x], ':') !== false)) {
                 // TODO ipv6 masks
@@ -178,12 +186,15 @@ function IPIsBanned($ip = false)
         } else {
             // single IP
             if ($ip == $banList[$x]) {
-                return true;
+                $result = true;
+                break;
             }
         }
     }
 
-    return false;
+    MCSet($cacheKey, $result ? 'yes' : 'no');
+
+    return $result;
 }
 
 function CaptchaDetails()
