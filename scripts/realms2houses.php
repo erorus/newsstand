@@ -60,6 +60,27 @@ foreach ($regions as $region)
     }
     $stmt->close();
 
+    $challengeRealmsHtml = FetchHTTP(sprintf('http://%s.battle.net/wow/en/challenge/', $region));
+    if (preg_match('/<select [^>]*\bid="realm-select"[^>]*>([\w\W]+?)<\/select>/', $challengeRealmsHtml, $res2)) {
+        if (($c = preg_match_all('/<option [^>]*\bvalue="([^"]+)"[^>]*>([^<]+)<\/option>/', $res2[1], $res)) > 0) {
+            $stmt = $db->prepare('insert ignore into tblRealm (id, region, slug, name) values (?, ?, ?, ?)');
+            for ($x = 0; $x < $c; $x++) {
+                if ($res[1][$x] == 'all') {
+                    continue;
+                }
+                $stmt->bind_param('isss', $nextId, $region, $res[1][$x], $res[2][$x]);
+                $stmt->execute();
+                if ($db->affected_rows > 0) {
+                    DebugMessage("New $region realm from challenge mode page: ".$res[2][$x]." (".$res[1][$x].')');
+                    $nextId++;
+                }
+                $stmt->reset();
+            }
+            $stmt->close();
+        }
+    }
+    unset($challengeRealmsHtml, $res, $res2, $c, $x);
+
     GetRussianOwnerRealms($region);
     if ($caughtKill)
         break;

@@ -34,19 +34,21 @@ function GetRealms($region)
 {
     global $db;
 
-    if ($realms = MCGet('realms_'.$region))
+    $cacheKey = 'realms2_'.$region;
+
+    if ($realms = MCGet($cacheKey))
         return $realms;
 
     DBConnect();
 
-    $stmt = $db->prepare('select * from tblRealm where region = ?');
+    $stmt = $db->prepare('select r.* from tblRealm r where region = ? and (locale is not null or (locale is null and exists (select 1 from tblSnapshot s where s.house=r.house) and (select count(*) from tblRealm r2 where r2.house=r.house and r2.id != r.id and r2.locale is not null) = 0))');
     $stmt->bind_param('s', $region);
     $stmt->execute();
     $result = $stmt->get_result();
     $realms = DBMapArray($result);
     $stmt->close();
 
-    MCSet('realms_'.$region, $realms);
+    MCSet($cacheKey, $realms);
 
     return $realms;
 }
