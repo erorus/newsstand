@@ -41,7 +41,7 @@ function GetRealms($region)
 
     DBConnect();
 
-    $stmt = $db->prepare('select r.* from tblRealm r where region = ? and (locale is not null or (locale is null and exists (select 1 from tblSnapshot s where s.house=r.house) and (select count(*) from tblRealm r2 where r2.house=r.house and r2.id != r.id) = 0))');
+    $stmt = $db->prepare('select r.* from tblRealm r where region = ? and (locale is not null or (locale is null and exists (select 1 from tblSnapshot s where s.house=r.house) and (select count(*) from tblRealm r2 where r2.house=r.house and r2.id != r.id and r2.locale is not null) = 0))');
     $stmt->bind_param('s', $region);
     $stmt->execute();
     $result = $stmt->get_result();
