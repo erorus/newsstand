@@ -1,15 +1,16 @@
-
-var TUJ_Seller = function()
+var TUJ_Seller = function ()
 {
     var params;
     var lastResults = [];
 
-    this.load = function(inParams)
+    this.load = function (inParams)
     {
         params = {};
-        for (var p in inParams)
-            if (inParams.hasOwnProperty(p))
+        for (var p in inParams) {
+            if (inParams.hasOwnProperty(p)) {
                 params[p] = inParams[p];
+            }
+        }
 
         var qs = {
             realm: params.realm,
@@ -17,16 +18,15 @@ var TUJ_Seller = function()
         };
         var hash = JSON.stringify(qs);
 
-        for (var x = 0; x < lastResults.length; x++)
-            if (lastResults[x].hash == hash)
-            {
+        for (var x = 0; x < lastResults.length; x++) {
+            if (lastResults[x].hash == hash) {
                 SellerResult(false, lastResults[x].data);
                 return;
             }
+        }
 
         var sellerPage = $('#seller-page')[0];
-        if (!sellerPage)
-        {
+        if (!sellerPage) {
             sellerPage = libtuj.ce();
             sellerPage.id = 'seller-page';
             sellerPage.className = 'page';
@@ -37,13 +37,17 @@ var TUJ_Seller = function()
 
         $.ajax({
             data: qs,
-            success: function(d) {
-                if (d.captcha)
+            success: function (d)
+            {
+                if (d.captcha) {
                     tuj.AskCaptcha(d.captcha);
-                else
+                }
+                else {
                     SellerResult(hash, d);
+                }
             },
-            complete: function() {
+            complete: function ()
+            {
                 $('#progress-page').hide();
             },
             url: 'api/seller.php'
@@ -52,25 +56,24 @@ var TUJ_Seller = function()
 
     function SellerResult(hash, dta)
     {
-        if (hash)
-        {
+        if (hash) {
             lastResults.push({hash: hash, data: dta});
-            while (lastResults.length > 10)
+            while (lastResults.length > 10) {
                 lastResults.shift();
+            }
         }
 
         var sellerPage = $('#seller-page');
         sellerPage.empty();
         sellerPage.show();
 
-        if (!dta.stats)
-        {
+        if (!dta.stats) {
             $('#page-title').empty().append(document.createTextNode('Seller: ' + params.id));
             tuj.SetTitle('Seller: ' + params.id);
 
             var h2 = libtuj.ce('h2');
             sellerPage.append(h2);
-            h2.appendChild(document.createTextNode('Seller '+ params.id + ' not found.'));
+            h2.appendChild(document.createTextNode('Seller ' + params.id + ' not found.'));
 
             return;
         }
@@ -94,8 +97,7 @@ var TUJ_Seller = function()
         sellerPage.append(d);
         SellerHistoryChart(dta, cht);
 
-        if (dta.history.length >= 14)
-        {
+        if (dta.history.length >= 14) {
             d = libtuj.ce();
             d.className = 'chart-section';
             h = libtuj.ce('h2');
@@ -108,8 +110,7 @@ var TUJ_Seller = function()
             SellerPostingHeatMap(dta, cht);
         }
 
-        if (dta.auctions.length)
-        {
+        if (dta.auctions.length) {
             d = libtuj.ce();
             d.className = 'chart-section';
             h = libtuj.ce('h2');
@@ -122,8 +123,7 @@ var TUJ_Seller = function()
             SellerAuctions(dta, cht);
         }
 
-        if (dta.petAuctions.length)
-        {
+        if (dta.petAuctions.length) {
             d = libtuj.ce();
             d.className = 'chart-section';
             h = libtuj.ce('h2');
@@ -143,12 +143,12 @@ var TUJ_Seller = function()
     {
         var hcdata = {total: [], newAuc: [], max: 0};
 
-        for (var x = 0; x < data.history.length; x++)
-        {
-            hcdata.total.push([data.history[x].snapshot*1000, data.history[x].total]);
-            hcdata.newAuc.push([data.history[x].snapshot*1000, data.history[x]['new']]);
-            if (data.history[x].total > hcdata.max)
+        for (var x = 0; x < data.history.length; x++) {
+            hcdata.total.push([data.history[x].snapshot * 1000, data.history[x].total]);
+            hcdata.newAuc.push([data.history[x].snapshot * 1000, data.history[x]['new']]);
+            if (data.history[x].total > hcdata.max) {
                 hcdata.max = data.history[x].total;
+            }
         }
 
         Highcharts.setOptions({
@@ -185,32 +185,38 @@ var TUJ_Seller = function()
                     }
                 }
             },
-            yAxis: [{
-                title: {
-                    text: 'Number of Auctions',
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].bluePrice
-                    }
-                },
-                labels: {
-                    enabled: true,
-                    formatter: function() { return ''+libtuj.FormatQuantity(this.value, true); },
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].text
-                    }
-                },
-                min: 0,
-                max: hcdata.max
-            }],
+            yAxis: [
+                {
+                    title: {
+                        text: 'Number of Auctions',
+                        style: {
+                            color: tujConstants.siteColors[tuj.colorTheme].bluePrice
+                        }
+                    },
+                    labels: {
+                        enabled: true,
+                        formatter: function ()
+                        {
+                            return '' + libtuj.FormatQuantity(this.value, true);
+                        },
+                        style: {
+                            color: tujConstants.siteColors[tuj.colorTheme].text
+                        }
+                    },
+                    min: 0,
+                    max: hcdata.max
+                }
+            ],
             legend: {
                 enabled: false
             },
             tooltip: {
                 shared: true,
-                formatter: function() {
-                    var tr = '<b>'+Highcharts.dateFormat('%a %b %d, %I:%M%P', this.x)+'</b>';
-                    tr += '<br><span style="color: #000099">Total: '+libtuj.FormatQuantity(this.points[0].y, true)+'</span>';
-                    tr += '<br><span style="color: #990000">New: '+libtuj.FormatQuantity(this.points[1].y, true)+'</span>';
+                formatter: function ()
+                {
+                    var tr = '<b>' + Highcharts.dateFormat('%a %b %d, %I:%M%P', this.x) + '</b>';
+                    tr += '<br><span style="color: #000099">Total: ' + libtuj.FormatQuantity(this.points[0].y, true) + '</span>';
+                    tr += '<br><span style="color: #990000">New: ' + libtuj.FormatQuantity(this.points[1].y, true) + '</span>';
                     return tr;
                 }
             },
@@ -233,68 +239,77 @@ var TUJ_Seller = function()
                     }
                 }
             },
-            series: [{
-                type: 'area',
-                name: 'Total',
-                color: tujConstants.siteColors[tuj.colorTheme].bluePrice,
-                lineColor: tujConstants.siteColors[tuj.colorTheme].bluePrice,
-                fillColor: tujConstants.siteColors[tuj.colorTheme].bluePriceFill,
-                data: hcdata.total
-            },{
-                type: 'line',
-                name: 'New',
-                color: tujConstants.siteColors[tuj.colorTheme].redQuantity,
-                data: hcdata.newAuc
-            }]
+            series: [
+                {
+                    type: 'area',
+                    name: 'Total',
+                    color: tujConstants.siteColors[tuj.colorTheme].bluePrice,
+                    lineColor: tujConstants.siteColors[tuj.colorTheme].bluePrice,
+                    fillColor: tujConstants.siteColors[tuj.colorTheme].bluePriceFill,
+                    data: hcdata.total
+                },
+                {
+                    type: 'line',
+                    name: 'New',
+                    color: tujConstants.siteColors[tuj.colorTheme].redQuantity,
+                    data: hcdata.newAuc
+                }
+            ]
         });
     }
 
     function SellerPostingHeatMap(data, dest)
     {
         var hcdata = {minVal: undefined, maxVal: 0, days: {}, heat: [], categories: {
-            x: ['Midnight - 3am','3am - 6am','6am - 9am','9am - Noon','Noon - 3pm','3pm - 6pm','6pm - 9pm','9pm - Midnight'],
-            y: ['Saturday','Friday','Thursday','Wednesday','Tuesday','Monday','Sunday']
+            x: [
+                'Midnight - 3am', '3am - 6am', '6am - 9am', '9am - Noon', 'Noon - 3pm', '3pm - 6pm', '6pm - 9pm',
+                '9pm - Midnight'
+            ],
+            y: ['Saturday', 'Friday', 'Thursday', 'Wednesday', 'Tuesday', 'Monday', 'Sunday']
         }};
 
-        var CalcAvg = function(a)
+        var CalcAvg = function (a)
         {
-            if (a.length == 0)
+            if (a.length == 0) {
                 return null;
+            }
             var s = 0;
-            for (var x = 0; x < a.length; x++)
+            for (var x = 0; x < a.length; x++) {
                 s += a[x];
-            return s/a.length;
+            }
+            return s / a.length;
         }
 
         var d, wkdy, hr;
-        for (wkdy = 0; wkdy <= 6; wkdy++)
-        {
+        for (wkdy = 0; wkdy <= 6; wkdy++) {
             hcdata.days[wkdy] = {};
-            for (hr = 0; hr <= 7; hr++)
+            for (hr = 0; hr <= 7; hr++) {
                 hcdata.days[wkdy][hr] = [];
+            }
         }
 
-        for (var x = 0; x < data.history.length; x++)
-        {
-            var d = new Date(data.history[x].snapshot*1000);
-            wkdy = 6-d.getDay();
-            hr = Math.floor(d.getHours()/3);
+        for (var x = 0; x < data.history.length; x++) {
+            var d = new Date(data.history[x].snapshot * 1000);
+            wkdy = 6 - d.getDay();
+            hr = Math.floor(d.getHours() / 3);
             hcdata.days[wkdy][hr].push(data.history[x]['new']);
         }
 
         var p;
-        for (wkdy = 0; wkdy <= 6; wkdy++)
-            for (hr = 0; hr <= 7; hr++)
-            {
-                if (hcdata.days[wkdy][hr].length == 0)
+        for (wkdy = 0; wkdy <= 6; wkdy++) {
+            for (hr = 0; hr <= 7; hr++) {
+                if (hcdata.days[wkdy][hr].length == 0) {
                     p = 0;
-                else
+                }
+                else {
                     p = Math.round(CalcAvg(hcdata.days[wkdy][hr]));
+                }
 
                 hcdata.heat.push([hr, wkdy, p]);
                 hcdata.minVal = (typeof hcdata.minVal == 'undefined' || hcdata.minVal > p) ? p : hcdata.minVal;
                 hcdata.maxVal = hcdata.maxVal < p ? p : hcdata.maxVal;
             }
+        }
 
         $(dest).highcharts({
 
@@ -346,28 +361,33 @@ var TUJ_Seller = function()
                 enabled: false
             },
 
-            series: [{
-                name: 'New Auctions',
-                borderWidth: 1,
-                borderColor: tujConstants.siteColors[tuj.colorTheme].background,
-                data: hcdata.heat,
-                dataLabels: {
-                    enabled: true,
-                    color: tujConstants.siteColors[tuj.colorTheme].data,
-                    style: {
-                        textShadow: 'none',
-                        HcTextStroke: null
-                    },
-                    formatter: function() { return ''+libtuj.FormatQuantity(this.point.value, true); }
+            series: [
+                {
+                    name: 'New Auctions',
+                    borderWidth: 1,
+                    borderColor: tujConstants.siteColors[tuj.colorTheme].background,
+                    data: hcdata.heat,
+                    dataLabels: {
+                        enabled: true,
+                        color: tujConstants.siteColors[tuj.colorTheme].data,
+                        style: {
+                            textShadow: 'none',
+                            HcTextStroke: null
+                        },
+                        formatter: function ()
+                        {
+                            return '' + libtuj.FormatQuantity(this.point.value, true);
+                        }
+                    }
                 }
-            }]
+            ]
 
         });
     }
 
     function SellerAuctions(data, dest)
     {
-        var t,tr,td;
+        var t, tr, td;
         t = libtuj.ce('table');
         t.className = 'auctionlist';
 
@@ -400,7 +420,8 @@ var TUJ_Seller = function()
         td.className = 'quantity';
         $(td).text('Cheaper');
 
-        data.auctions.sort(function(a,b){
+        data.auctions.sort(function (a, b)
+        {
             return tujConstants.itemClassOrder[a['class']] - tujConstants.itemClassOrder[b['class']] ||
                 (a.name ? 0 : -1) ||
                 (b.name ? 0 : 1) ||
@@ -411,8 +432,7 @@ var TUJ_Seller = function()
         });
 
         var s, a, stackable, i;
-        for (var x = 0, auc; auc = data.auctions[x]; x++)
-        {
+        for (var x = 0, auc; auc = data.auctions[x]; x++) {
             stackable = auc.stacksize > 1;
 
             tr = libtuj.ce('tr');
@@ -444,32 +464,36 @@ var TUJ_Seller = function()
             tr.appendChild(td);
             td.className = 'price';
             s = libtuj.FormatFullPrice(auc.bid / auc.quantity);
-            if (stackable && auc.quantity > 1)
-            {
+            if (stackable && auc.quantity > 1) {
                 a = libtuj.ce('abbr');
                 a.title = libtuj.FormatFullPrice(auc.bid, true) + ' total';
                 a.appendChild(s);
             }
-            else
+            else {
                 a = s;
+            }
             td.appendChild(a);
 
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.className = 'price';
             s = libtuj.FormatFullPrice(auc.buy / auc.quantity);
-            if (stackable && auc.quantity > 1 && auc.buy)
-            {
+            if (stackable && auc.quantity > 1 && auc.buy) {
                 a = libtuj.ce('abbr');
                 a.title = libtuj.FormatFullPrice(auc.buy, true) + ' total';
                 a.appendChild(s);
             }
-            else if (!auc.buy)
-                a = libtuj.ce('span');
-            else
-                a = s;
-            if (a)
+            else {
+                if (!auc.buy) {
+                    a = libtuj.ce('span');
+                }
+                else {
+                    a = s;
+                }
+            }
+            if (a) {
                 td.appendChild(a);
+            }
 
             td = libtuj.ce('td');
             tr.appendChild(td);
@@ -484,7 +508,7 @@ var TUJ_Seller = function()
 
     function SellerPetAuctions(data, dest)
     {
-        var t,tr,td;
+        var t, tr, td;
         t = libtuj.ce('table');
         t.className = 'auctionlist';
 
@@ -527,7 +551,8 @@ var TUJ_Seller = function()
         td.className = 'quantity';
         $(td).text('Cheaper');
 
-        data.petAuctions.sort(function(a,b){
+        data.petAuctions.sort(function (a, b)
+        {
             return a.name.localeCompare(b.name) ||
                 tujConstants.breeds[a.breed].localeCompare(tujConstants.breeds[b.breed]) ||
                 a.quality - b.quality ||
@@ -536,8 +561,7 @@ var TUJ_Seller = function()
         });
 
         var s, a, i;
-        for (var x = 0, auc; auc = data.petAuctions[x]; x++)
-        {
+        for (var x = 0, auc; auc = data.petAuctions[x]; x++) {
             tr = libtuj.ce('tr');
             t.appendChild(tr);
 
@@ -583,12 +607,15 @@ var TUJ_Seller = function()
             tr.appendChild(td);
             td.className = 'price';
             s = libtuj.FormatFullPrice(auc.buy / auc.quantity);
-            if (!auc.buy)
+            if (!auc.buy) {
                 a = libtuj.ce('span');
-            else
+            }
+            else {
                 a = s;
-            if (a)
+            }
+            if (a) {
                 td.appendChild(a);
+            }
 
             td = libtuj.ce('td');
             tr.appendChild(td);

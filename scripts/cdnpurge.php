@@ -12,15 +12,16 @@ CatchKill();
 define('DATEFILE', 'cdnpurge.dates.json');
 define('BASEPATH', '../public/');
 
-$baseDirs = ['css','images','js'];
+$baseDirs = ['css', 'images', 'js'];
 $purged = 0;
 $prevDates = GetPrevDates();
 
 foreach ($baseDirs as $d) {
     CheckToPurge($d);
 
-    if ($caughtKill)
+    if ($caughtKill) {
         break;
+    }
 }
 
 if (!$caughtKill) {
@@ -28,10 +29,11 @@ if (!$caughtKill) {
 }
 
 if ($purged > 0) {
-    DebugMessage('Done! Purged '.$purged.' and started '.TimeDiff($startTime));
+    DebugMessage('Done! Purged ' . $purged . ' and started ' . TimeDiff($startTime));
 }
 
-function GetPrevDates() {
+function GetPrevDates()
+{
     $tr = [];
 
     if (file_exists(DATEFILE)) {
@@ -43,26 +45,30 @@ function GetPrevDates() {
     return $tr;
 }
 
-function SavePrevDates($prevDates) {
+function SavePrevDates($prevDates)
+{
     if (count($prevDates)) {
         file_put_contents(DATEFILE, json_encode($prevDates, JSON_NUMERIC_CHECK | JSON_PRETTY_PRINT));
     }
 }
 
-function CheckToPurge($bDir) {
+function CheckToPurge($bDir)
+{
     global $prevDates;
     global $caughtKill;
 
     heartbeat();
-    if ($caughtKill)
+    if ($caughtKill) {
         return;
+    }
 
     $path = BASEPATH . $bDir;
     $files = scandir($path);
     foreach ($files as $fileName) {
         heartbeat();
-        if ($caughtKill)
+        if ($caughtKill) {
             return;
+        }
 
         if (substr($fileName, 0, 1) == '.') {
             continue;
@@ -88,7 +94,8 @@ function CheckToPurge($bDir) {
     }
 }
 
-function PurgePath($localPath) {
+function PurgePath($localPath)
+{
     global $purged;
 
     $data = [
@@ -100,9 +107,9 @@ function PurgePath($localPath) {
     ];
 
     $opt = [
-        'timeout' => 15,
+        'timeout'        => 15,
         'connecttimeout' => 6,
-        'redirect' => 0
+        'redirect'       => 0
     ];
 
     $info = http_parse_message(http_post_fields('https://www.cloudflare.com/api_json.html', $data, [], $opt));
@@ -120,9 +127,9 @@ function PurgePath($localPath) {
     }
 
     if ($responseJson) {
-        DebugMessage("Error ".$info->responseCode." purging $localPath\n".print_r($responseJson, true), E_USER_WARNING);
+        DebugMessage("Error " . $info->responseCode . " purging $localPath\n" . print_r($responseJson, true), E_USER_WARNING);
     } else {
-        DebugMessage("Error ".$info->responseCode." purging $localPath\n".$info->body, E_USER_WARNING);
+        DebugMessage("Error " . $info->responseCode . " purging $localPath\n" . $info->body, E_USER_WARNING);
     }
 
     return false;

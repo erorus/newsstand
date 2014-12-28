@@ -1,69 +1,90 @@
 var libtuj = {
-    ce: function(tag) { if (!tag) tag = 'div'; return document.createElement(tag); },
-    AddScript: function(url) {
+    ce: function (tag)
+    {
+        if (!tag) {
+            tag = 'div';
+        }
+        return document.createElement(tag);
+    },
+    AddScript: function (url)
+    {
         var s = libtuj.ce('script');
         s.type = 'text/javascript';
         s.src = url;
         document.getElementsByTagName('head')[0].appendChild(s);
     },
-    Mean: function(a)
+    Mean: function (a)
     {
-        if (a.length < 1)
+        if (a.length < 1) {
             return null;
+        }
         var s = 0;
-        for (var x = 0; x < a.length; x++)
+        for (var x = 0; x < a.length; x++) {
             s += a[x];
+        }
         return s / a.length;
     },
-    Median: function(a)
+    Median: function (a)
     {
-        if (a.length < 1)
+        if (a.length < 1) {
             return null;
-        if (a.length == 1)
+        }
+        if (a.length == 1) {
             return a[0];
+        }
 
-        a.sort(function(x,y) { return y-x; });
-        if (a.length % 2 == 1)
+        a.sort(function (x, y)
+        {
+            return y - x;
+        });
+        if (a.length % 2 == 1) {
             return a[Math.floor(a.length / 2)];
-        else
+        }
+        else {
             return (a[a.length / 2 - 1] + a[a.length / 2]) / 2;
+        }
     },
-    StdDev: function(a,mn)
+    StdDev: function (a, mn)
     {
-        if (typeof mn == 'undefined')
+        if (typeof mn == 'undefined') {
             mn = libtuj.Mean(a);
+        }
         var s = 0;
-        for (var x = 0; x < a.length; x++)
+        for (var x = 0; x < a.length; x++) {
             s += Math.pow(a[x] - mn, 2);
-        return Math.sqrt(s/ a.length);
+        }
+        return Math.sqrt(s / a.length);
     },
-    Least: function(a)
+    Least: function (a)
     {
-        if (a.length == 0)
+        if (a.length == 0) {
             return undefined;
+        }
 
         var tr = a[0];
         for (var x = 1; x < a.length; x++) {
-            if (a[x] < tr)
+            if (a[x] < tr) {
                 tr = a[x];
+            }
         }
         return tr;
     },
-    FormatPrice: function(amt,justValue)
+    FormatPrice: function (amt, justValue)
     {
         var v = '', g, c;
         if (typeof amt == 'number') {
             amt = Math.round(amt);
             if (amt >= 100) {// 1s
-                g = (amt/10000).toFixed(2);
+                g = (amt / 10000).toFixed(2);
                 v = '' + g + 'g';
             } else {
                 c = amt;
                 v = '' + c + 'c';
             }
         }
-        if (justValue)
+        if (justValue) {
             return v;
+        }
 
         var s = libtuj.ce('span');
         s.class = 'price';
@@ -78,23 +99,26 @@ var libtuj = {
         }
         return s;
     },
-    FormatFullPrice: function(amt,justValue)
+    FormatFullPrice: function (amt, justValue)
     {
         var v = '';
         if (typeof amt == 'number') {
             amt = Math.round(amt);
-            var g = Math.floor(amt/10000);
+            var g = Math.floor(amt / 10000);
             var s = Math.floor((amt % 10000) / 100);
             var c = Math.floor(amt % 100);
 
-            if (g)
+            if (g) {
                 v += '' + g + 'g ';
-            if (g || s)
+            }
+            if (g || s) {
                 v += '' + s + 's ';
+            }
             v += '' + c + 'c';
         }
-        if (justValue)
+        if (justValue) {
             return v;
+        }
 
         var sp = libtuj.ce('span');
         sp.class = 'price full';
@@ -119,53 +143,67 @@ var libtuj = {
         }
         return sp;
     },
-    FormatQuantity: function(amt,justValue)
+    FormatQuantity: function (amt, justValue)
     {
         var v = Number(Math.round(amt)).toLocaleString();
-        if (justValue)
+        if (justValue) {
             return v;
+        }
 
         var s = libtuj.ce('span');
-        if (v)
+        if (v) {
             s.appendChild(document.createTextNode(v));
+        }
         return s;
     },
-    FormatDate: function(unix,justValue,stopAt)
+    FormatDate: function (unix, justValue, stopAt)
     {
         var v = '', n, a;
         if (stopAt) {
-            stopAt = stopAt.toLowerCase().replace(/s$/,'');
+            stopAt = stopAt.toLowerCase().replace(/s$/, '');
         }
 
-        if (unix)
-        {
+        if (unix) {
             var dt, now = new Date();
-            if (typeof unix == 'string')
+            if (typeof unix == 'string') {
                 dt = new Date(unix.replace(/^(\d{4}-\d\d-\d\d) (\d\d:\d\d:\d\d)$/, '$1T$2.000Z'));
-            else
-                dt = new Date(unix*1000);
+            }
+            else {
+                dt = new Date(unix * 1000);
+            }
 
             var diff = Math.floor((now.getTime() - dt.getTime()) / 1000);
             var suffix = diff < 0 ? ' from now' : ' ago';
             diff = Math.abs(diff);
 
-            if ((diff < 60) || (stopAt == 'second'))
+            if ((diff < 60) || (stopAt == 'second')) {
                 v = '' + (n = diff) + ' second' + (n != 1 ? 's' : '') + suffix;
-            else if ((diff < 60*60) || (stopAt == 'minute'))
-                v = '' + (n = Math.round(diff/60)) + ' minute' + (n != 1 ? 's' : '') + suffix;
-            else if ((diff < 24*60*60) || (stopAt == 'hour'))
-                v = '' + (n = Math.round(diff/(60*60))) + ' hour' + (n != 1 ? 's' : '') + suffix;
-            else if ((diff < 10*24*60*60) || (stopAt == 'day'))
-                v = '' + (n = Math.round(diff/(24*60*60))) + ' day' + (n != 1 ? 's' : '') + suffix;
-            else
-                v = dt.toLocaleDateString();
+            }
+            else {
+                if ((diff < 60 * 60) || (stopAt == 'minute')) {
+                    v = '' + (n = Math.round(diff / 60)) + ' minute' + (n != 1 ? 's' : '') + suffix;
+                }
+                else {
+                    if ((diff < 24 * 60 * 60) || (stopAt == 'hour')) {
+                        v = '' + (n = Math.round(diff / (60 * 60))) + ' hour' + (n != 1 ? 's' : '') + suffix;
+                    }
+                    else {
+                        if ((diff < 10 * 24 * 60 * 60) || (stopAt == 'day')) {
+                            v = '' + (n = Math.round(diff / (24 * 60 * 60))) + ' day' + (n != 1 ? 's' : '') + suffix;
+                        }
+                        else {
+                            v = dt.toLocaleDateString();
+                        }
+                    }
+                }
+            }
         }
-        if (justValue)
+        if (justValue) {
             return v;
+        }
 
         var s = libtuj.ce('span');
-        if (v)
-        {
+        if (v) {
             a = libtuj.ce('abbr');
             a.className = 'full-date';
             a.title = dt.toLocaleString();
@@ -174,7 +212,7 @@ var libtuj = {
         }
         return s;
     },
-    FormatAge: function(diffByte, justValue)
+    FormatAge: function (diffByte, justValue)
     {
         var v = '', n, a;
 
@@ -183,41 +221,42 @@ var libtuj = {
             v = '' + (n = diff.toFixed(1)) + ' hr' + (n != '1.0' ? 's' : '');
         }
 
-        if (justValue)
+        if (justValue) {
             return v;
+        }
 
         var s = libtuj.ce('span');
-        if (v)
-        {
+        if (v) {
             s.className = 'age';
             s.appendChild(document.createTextNode(v));
         }
         return s;
     },
-    GetRealmsForHouse: function(house, maxLineLength)
+    GetRealmsForHouse: function (house, maxLineLength)
     {
         var lineLength = 0;
         var realmNames = '';
-        for (var x in tuj.realms)
-            if (tuj.realms.hasOwnProperty(x) && tuj.realms[x].house == house)
-            {
-                if (maxLineLength && lineLength > 0 && lineLength + tuj.realms[x].name.length > maxLineLength)
-                {
+        for (var x in tuj.realms) {
+            if (tuj.realms.hasOwnProperty(x) && tuj.realms[x].house == house) {
+                if (maxLineLength && lineLength > 0 && lineLength + tuj.realms[x].name.length > maxLineLength) {
                     realmNames += '<br>';
                     lineLength = 0;
                 }
                 lineLength += 2 + tuj.realms[x].name.length;
                 realmNames += tuj.realms[x].name + ', ';
             }
+        }
 
-        if (realmNames == '')
-            realmNames = '(House '+house+')';
-        else
+        if (realmNames == '') {
+            realmNames = '(House ' + house + ')';
+        }
+        else {
             realmNames = realmNames.substr(0, realmNames.length - 2);
+        }
 
         return realmNames;
     },
-    GetHousePopulation: function(house)
+    GetHousePopulation: function (house)
     {
         var pop = 0;
 
@@ -226,7 +265,7 @@ var libtuj = {
                 continue;
             }
 
-            if ((tuj.realms[r].house == house) && tuj.realms[r].hasOwnProperty('population') && tuj.realms[r].population){
+            if ((tuj.realms[r].house == house) && tuj.realms[r].hasOwnProperty('population') && tuj.realms[r].population) {
                 pop += tuj.realms[r].population;
             }
         }
@@ -235,7 +274,8 @@ var libtuj = {
     },
     Ads: {
         addCount: 0,
-        Add: function(slot, cssClass) {
+        Add: function (slot, cssClass)
+        {
             var ad = libtuj.ce();
             ad.className = 'ad';
             if (cssClass) {
@@ -252,7 +292,8 @@ var libtuj = {
 
             return ad;
         },
-        Show: function() {
+        Show: function ()
+        {
             while (libtuj.Ads.addCount > 0) {
                 (window.adsbygoogle = window.adsbygoogle || []).push({});
                 libtuj.Ads.addCount--;
@@ -260,21 +301,25 @@ var libtuj = {
         }
     },
     Storage: {
-        Get: function(key)
+        Get: function (key)
         {
-            if (!window.localStorage)
+            if (!window.localStorage) {
                 return false;
+            }
 
             var v = window.localStorage.getItem(key);
-            if (v != null)
+            if (v != null) {
                 return JSON.parse(v);
-            else
+            }
+            else {
                 return false;
+            }
         },
-        Set: function(key, val)
+        Set: function (key, val)
         {
-            if (!window.localStorage)
+            if (!window.localStorage) {
                 return false;
+            }
 
             window.localStorage.setItem(key, JSON.stringify(val));
         }
@@ -332,19 +377,19 @@ var tujConstants = {
         14: 'Permanent',
         15: 'Miscellaneous'
     },
-    itemClassOrder: [2,9,6,4,7,3,14,1,15,8,16,10,12,13,17,18,5,11],
+    itemClassOrder: [2, 9, 6, 4, 7, 3, 14, 1, 15, 8, 16, 10, 12, 13, 17, 18, 5, 11],
     races: {
         10: 'Blood Elves',
         11: 'Draenei',
-         3: 'Dwarves',
-         7: 'Gnomes',
-         9: 'Goblins',
-         1: 'Humans',
-         4: 'Night Elves',
-         2: 'Orcs',
-         6: 'Tauren',
-         8: 'Trolls',
-         5: 'Undead'
+        3: 'Dwarves',
+        7: 'Gnomes',
+        9: 'Goblins',
+        1: 'Humans',
+        4: 'Night Elves',
+        2: 'Orcs',
+        6: 'Tauren',
+        8: 'Trolls',
+        5: 'Undead'
     },
     petTypes: {
         8: 'Aquatic',
@@ -360,46 +405,46 @@ var tujConstants = {
     },
     siteColors: {
         light: {
-            background:             '#FFFFFF',
-            text:                   '#666666',
-            data:                   '#000000',
-            bluePrice:              '#0000FF',
-            bluePriceFill:          '#CCCCFF',
-            bluePriceFillAlpha:     'rgba(153,153,255,0.66)',
-            bluePriceBackground:    '#6666FF',
-            greenPrice:             '#00FF00',
-            greenPriceDim:          '#009900',
-            greenPriceFill:         'rgba(204,255,204,0.5)',
-            greenPriceBackground:   '#66CC66',
-            redQuantity:            '#FF3333',
-            redQuantityFill:        '#FF9999',
-            redQuantityFillLight:   '#FFCCCC',
-            redQuantityBackground:  '#FF6666',
+            background: '#FFFFFF',
+            text: '#666666',
+            data: '#000000',
+            bluePrice: '#0000FF',
+            bluePriceFill: '#CCCCFF',
+            bluePriceFillAlpha: 'rgba(153,153,255,0.66)',
+            bluePriceBackground: '#6666FF',
+            greenPrice: '#00FF00',
+            greenPriceDim: '#009900',
+            greenPriceFill: 'rgba(204,255,204,0.5)',
+            greenPriceBackground: '#66CC66',
+            redQuantity: '#FF3333',
+            redQuantityFill: '#FF9999',
+            redQuantityFillLight: '#FFCCCC',
+            redQuantityBackground: '#FF6666',
         },
         dark: {
-            background:             '#333333',
-            text:                   '#CCCCCC',
-            data:                   '#FFFFFF',
-            bluePrice:              '#9999FF',
-            bluePriceFill:          '#6666CC',
-            bluePriceFillAlpha:     'rgba(51,51,204,0.66)',
-            bluePriceBackground:    '#6666CC',
-            greenPrice:             '#99FF99',
-            greenPriceDim:          '#99CC99',
-            greenPriceFill:         'rgba(102,204,102,0.5)',
-            greenPriceBackground:   '#66CC66',
-            redQuantity:            '#DD3333',
-            redQuantityFill:        '#996666',
-            redQuantityFillLight:   '#996666',
-            redQuantityBackground:  '#CC6666',
+            background: '#333333',
+            text: '#CCCCCC',
+            data: '#FFFFFF',
+            bluePrice: '#9999FF',
+            bluePriceFill: '#6666CC',
+            bluePriceFillAlpha: 'rgba(51,51,204,0.66)',
+            bluePriceBackground: '#6666CC',
+            greenPrice: '#99FF99',
+            greenPriceDim: '#99CC99',
+            greenPriceFill: 'rgba(102,204,102,0.5)',
+            greenPriceBackground: '#66CC66',
+            redQuantity: '#DD3333',
+            redQuantityFill: '#996666',
+            redQuantityFillLight: '#996666',
+            redQuantityBackground: '#CC6666',
         }
     },
     randEnchants: {}
 }
 
-var TUJ = function()
+var TUJ = function ()
 {
-    var validPages = ['','search','item','seller','battlepet','contact','donate','category'];
+    var validPages = ['', 'search', 'item', 'seller', 'battlepet', 'contact', 'donate', 'category'];
     var pagesNeedRealm = [true, true, true, true, true, false, false, true];
     var houseInfo = {};
     this.region = undefined;
@@ -421,8 +466,9 @@ var TUJ = function()
 
     function Main()
     {
-        if (inMain)
+        if (inMain) {
             return;
+        }
         inMain = true;
 
         document.body.className = '';
@@ -434,30 +480,29 @@ var TUJ = function()
             SetDarkTheme(libtuj.Storage.Get('colorTheme') == 'dark');
         }
 
-        if (typeof self.realms == 'undefined')
-        {
+        if (typeof self.realms == 'undefined') {
             inMain = false;
 
             $('#progress-page').show();
 
             $.ajax({
-                success: function(dta)
+                success: function (dta)
                 {
                     self.region = dta.region;
                     self.realms = dta.realms;
-                    if (typeof self.realms == 'undefined')
-                    {
+                    if (typeof self.realms == 'undefined') {
                         alert('Error getting realms');
                         self.realms = [];
                     }
                     Main();
                 },
-                error: function(xhr, stat, er)
+                error: function (xhr, stat, er)
                 {
-                    alert('Error getting realms: '+stat + ' ' + er);
+                    alert('Error getting realms: ' + stat + ' ' + er);
                     self.realms = [];
                 },
-                complete: function() {
+                complete: function ()
+                {
                     $('#progress-page').hide();
                 },
                 url: 'api/realms.php'
@@ -467,25 +512,23 @@ var TUJ = function()
 
         var ls, firstRun = !hash.watching;
         ReadParams();
-        if (firstRun)
-        {
-            if (!self.params.realm)
-            {
+        if (firstRun) {
+            if (!self.params.realm) {
                 var searchRealm;
-                if (searchRealm = /^\?realm=([AH])-([^&]+)/i.exec(decodeURIComponent(location.search)))
-                {
+                if (searchRealm = /^\?realm=([AH])-([^&]+)/i.exec(decodeURIComponent(location.search))) {
                     ls = {};
-                    for (var x in tuj.realms)
-                        if (tuj.realms[x].name.toLowerCase() == searchRealm[2].toLowerCase())
+                    for (var x in tuj.realms) {
+                        if (tuj.realms[x].name.toLowerCase() == searchRealm[2].toLowerCase()) {
                             ls.realm = tuj.realms[x].id;
+                        }
+                    }
 
                     inMain = false;
                     tuj.SetParams(ls);
                     return;
                 }
 
-                if (ls = libtuj.Storage.Get('defaultRealm'))
-                {
+                if (ls = libtuj.Storage.Get('defaultRealm')) {
                     var url = location.protocol + '//' + location.hostname + '/';
                     if (!(document.referrer && document.referrer.substr(0, url.length) == url)) {
                         inMain = false;
@@ -495,14 +538,14 @@ var TUJ = function()
                 }
             }
 
-            if (location.search)
+            if (location.search) {
                 location.href = location.pathname + location.hash;
+            }
         }
 
         UpdateSidebar();
 
-        if ($('#realm-list').length == 0)
-        {
+        if ($('#realm-list').length == 0) {
             inMain = false;
             DrawRealms();
             return;
@@ -510,19 +553,20 @@ var TUJ = function()
 
         $('#main .page').hide();
         $('#realm-list').removeClass('show');
-        if (!self.params.realm && (!self.params.page || pagesNeedRealm[self.params.page]))
-        {
+        if (!self.params.realm && (!self.params.page || pagesNeedRealm[self.params.page])) {
             inMain = false;
-            $('#realm-list .realms-column a').each(function() { this.href = self.BuildHash({realm: this.rel}); });
+            $('#realm-list .realms-column a').each(function ()
+            {
+                this.href = self.BuildHash({realm: this.rel});
+            });
             $('#realm-list').addClass('show');
             document.body.className = 'realm';
             return;
         }
 
-        window.scrollTo(0,0);
+        window.scrollTo(0, 0);
 
-        if (!self.params.page)
-        {
+        if (!self.params.page) {
             inMain = false;
             document.body.className = 'front';
             ShowRealmFrontPage();
@@ -533,26 +577,29 @@ var TUJ = function()
 
         document.body.className = validPages[self.params.page];
 
-        if (typeof tuj['page_'+validPages[self.params.page]] == 'undefined')
-            libtuj.AddScript(tujCDNPrefix + 'js/'+validPages[self.params.page]+'.js');
-        else
-            tuj['page_'+validPages[self.params.page]].load(self.params);
+        if (typeof tuj['page_' + validPages[self.params.page]] == 'undefined') {
+            libtuj.AddScript(tujCDNPrefix + 'js/' + validPages[self.params.page] + '.js');
+        }
+        else {
+            tuj['page_' + validPages[self.params.page]].load(self.params);
+        }
 
     }
 
     function ReadParams()
     {
-        if (!hash.watching)
+        if (!hash.watching) {
             hash.watching = $(window).on('hashchange', ReadParams);
+        }
 
-        if (hash.sets > hash.changes)
-        {
+        if (hash.sets > hash.changes) {
             hash.changes++;
             return false;
         }
 
-        if (hash.sets != hash.changes)
+        if (hash.sets != hash.changes) {
             return false;
+        }
 
         var p = {
             realm: undefined,
@@ -561,8 +608,9 @@ var TUJ = function()
         }
 
         var h = location.hash.toLowerCase();
-        if (h.charAt(0) == '#')
+        if (h.charAt(0) == '#') {
             h = h.substr(1);
+        }
         h = decodeURIComponent(h);
         h = h.split('/');
 
@@ -570,63 +618,72 @@ var TUJ = function()
         var gotFaction = false;
 
         nextParam:
-        for (var x = 0; x < h.length; x++)
-        {
-            if (!p.page)
-                for (y = 0; y < validPages.length; y++)
-                    if (h[x] == validPages[y])
-                    {
-                        p.page = y;
-                        continue nextParam;
+            for (var x = 0; x < h.length; x++) {
+                if (!p.page) {
+                    for (y = 0; y < validPages.length; y++) {
+                        if (h[x] == validPages[y]) {
+                            p.page = y;
+                            continue nextParam;
+                        }
                     }
-            if (!gotFaction)
-                for (y in self.validFactions)
-                    if (h[x] == 'alliance' || h[x] == 'horde')
-                    {
-                        gotFaction = true;
-                        continue nextParam;
+                }
+                if (!gotFaction) {
+                    for (y in self.validFactions) {
+                        if (h[x] == 'alliance' || h[x] == 'horde') {
+                            gotFaction = true;
+                            continue nextParam;
+                        }
                     }
-            if (!p.realm)
-                for (y in self.realms)
-                    if (self.realms.hasOwnProperty(y) && h[x] == self.realms[y].slug)
-                    {
-                        p.realm = y;
-                        continue nextParam;
+                }
+                if (!p.realm) {
+                    for (y in self.realms) {
+                        if (self.realms.hasOwnProperty(y) && h[x] == self.realms[y].slug) {
+                            p.realm = y;
+                            continue nextParam;
+                        }
                     }
-            p.id = h[x];
-        }
+                }
+                p.id = h[x];
+            }
 
-        if (!self.SetParams(p))
+        if (!self.SetParams(p)) {
             Main();
+        }
     }
 
-    this.SetParams = function(p)
+    this.SetParams = function (p)
     {
-        if (p)
-            for (var x in p)
-                if (p.hasOwnProperty(x) && self.params.hasOwnProperty(x))
+        if (p) {
+            for (var x in p) {
+                if (p.hasOwnProperty(x) && self.params.hasOwnProperty(x)) {
                     self.params[x] = p[x];
-
-        if (typeof self.params.page == 'string')
-        {
-            for (var x = 0; x < validPages.length; x++)
-                if (validPages[x] == self.params.page)
-                    self.params.page = x;
-
-            if (typeof self.params.page == 'string')
-                self.params.page = undefined;
+                }
+            }
         }
 
-        if (self.params.realm && !self.params.page)
+        if (typeof self.params.page == 'string') {
+            for (var x = 0; x < validPages.length; x++) {
+                if (validPages[x] == self.params.page) {
+                    self.params.page = x;
+                }
+            }
+
+            if (typeof self.params.page == 'string') {
+                self.params.page = undefined;
+            }
+        }
+
+        if (self.params.realm && !self.params.page) {
             libtuj.Storage.Set('defaultRealm', {realm: self.params.realm});
+        }
 
         var h = self.BuildHash(self.params);
 
-        if (h != location.hash)
-        {
+        if (h != location.hash) {
             hash.sets++;
-            if (location.search)
+            if (location.search) {
                 location.href = location.pathname + h;
+            }
             location.hash = h;
             Main();
             return true;
@@ -638,8 +695,9 @@ var TUJ = function()
     function UpdateSidebar()
     {
         $('#topcorner .region-pick').hide();
-        if (!self.params.realm)
+        if (!self.params.realm) {
             $('#topcorner #region-pick-' + self.region).show();
+        }
 
         var regionLink = $('#topcorner a.region');
         regionLink[0].href = self.region == 'US' ? '//eu.theunderminejournal.com' : '//theunderminejournal.com';
@@ -659,16 +717,16 @@ var TUJ = function()
         $('#page-title').empty();
         self.SetTitle();
 
-        if ($('#topcorner form').length == 0)
-        {
+        if ($('#topcorner form').length == 0) {
             var form = libtuj.ce('form');
             var i = libtuj.ce('input');
             i.name = 'search';
             i.type = 'text';
             i.placeholder = 'Search';
 
-            $(form).on('submit', function() {
-                location.href = self.BuildHash({page: 'search', id: this.search.value.replace('/','')});
+            $(form).on('submit',function ()
+            {
+                location.href = self.BuildHash({page: 'search', id: this.search.value.replace('/', '')});
                 return false;
             }).append(i);
 
@@ -684,14 +742,17 @@ var TUJ = function()
             if (!houseInfo.hasOwnProperty(house)) {
                 houseInfo[house] = {};
                 needUpdate = true;
-            } else if (houseInfo.hasOwnProperty('timestamps')) {
-                needUpdate = (houseInfo[house].timestamps.delayednext || houseInfo[house].timestamps.scheduled) * 1000 < Date.now();
+            } else {
+                if (houseInfo.hasOwnProperty('timestamps')) {
+                    needUpdate = (houseInfo[house].timestamps.delayednext || houseInfo[house].timestamps.scheduled) * 1000 < Date.now();
+                }
             }
-            
+
             if (needUpdate) {
                 $.ajax({
                     data: {'house': house},
-                    success: function(d) {
+                    success: function (d)
+                    {
                         SetHouseInfo(house, d);
                     },
                     url: 'api/house.php'
@@ -734,12 +795,12 @@ var TUJ = function()
 
         if (houseInfo[house].timestamps.lastupdate) {
             var d = libtuj.ce();
-            d.appendChild(document.createTextNode('Updated ' +libtuj.FormatDate(houseInfo[house].timestamps.lastupdate, true, 'minute')));
+            d.appendChild(document.createTextNode('Updated ' + libtuj.FormatDate(houseInfo[house].timestamps.lastupdate, true, 'minute')));
             ru.appendChild(d);
         }
         if (houseInfo[house].timestamps.scheduled && houseInfo[house].timestamps.scheduled * 1000 > Date.now()) {
             var d = libtuj.ce();
-            d.appendChild(document.createTextNode('Next update ' +libtuj.FormatDate(houseInfo[house].timestamps.scheduled, true, 'minute')));
+            d.appendChild(document.createTextNode('Next update ' + libtuj.FormatDate(houseInfo[house].timestamps.scheduled, true, 'minute')));
             ru.appendChild(d);
         }
 
@@ -795,59 +856,71 @@ var TUJ = function()
         }
     }
 
-    this.SetTitle = function(titlePart)
+    this.SetTitle = function (titlePart)
     {
         var title = '';
 
-        if (titlePart)
+        if (titlePart) {
             title += titlePart + ' - '
-        else if (self.params.page)
-        {
-            title += validPages[self.params.page].substr(0,1).toUpperCase() + validPages[self.params.page].substr(1);
-            if (self.params.id)
-                title += ': ' + self.params.id;
-            title += ' - ';
+        }
+        else {
+            if (self.params.page) {
+                title += validPages[self.params.page].substr(0, 1).toUpperCase() + validPages[self.params.page].substr(1);
+                if (self.params.id) {
+                    title += ': ' + self.params.id;
+                }
+                title += ' - ';
+            }
         }
 
-        if (self.params.realm)
+        if (self.params.realm) {
             title += self.region + ' ' + self.realms[self.params.realm].name + ' - ';
+        }
 
         document.title = title + 'The Undermine Journal';
     }
 
-    this.BuildHash = function(p)
+    this.BuildHash = function (p)
     {
         var tParams = {};
-        for (var x in self.params)
-        {
-            if (self.params.hasOwnProperty(x))
+        for (var x in self.params) {
+            if (self.params.hasOwnProperty(x)) {
                 tParams[x] = self.params[x];
-            if (p.hasOwnProperty(x))
+            }
+            if (p.hasOwnProperty(x)) {
                 tParams[x] = p[x];
+            }
         }
 
-        if (typeof tParams.page == 'string')
-        {
-            for (var x = 0; x < validPages.length; x++)
-                if (validPages[x] == tParams.page)
+        if (typeof tParams.page == 'string') {
+            for (var x = 0; x < validPages.length; x++) {
+                if (validPages[x] == tParams.page) {
                     tParams.page = x;
+                }
+            }
 
-            if (typeof tParams.page == 'string')
+            if (typeof tParams.page == 'string') {
                 tParams.page = undefined;
+            }
         }
 
-        if (!tParams.page)
+        if (!tParams.page) {
             tParams.id = undefined;
+        }
 
         var h = '';
-        if (tParams.realm)
+        if (tParams.realm) {
             h += '/' + self.realms[tParams.realm].slug;
-        if (tParams.page)
+        }
+        if (tParams.page) {
             h += '/' + validPages[tParams.page];
-        if (tParams.id)
+        }
+        if (tParams.id) {
             h += '/' + tParams.id;
-        if (h != '')
+        }
+        if (h != '') {
             h = '#' + h.substr(1).toLowerCase();
+        }
 
         return h;
     }
@@ -857,8 +930,7 @@ var TUJ = function()
         var addResize = false;
         var realmList = $('#realm-list')[0];
 
-        if (!realmList)
-        {
+        if (!realmList) {
             realmList = libtuj.ce();
             realmList.id = 'realm-list';
             $('#main').prepend(realmList);
@@ -877,32 +949,32 @@ var TUJ = function()
 
         var cols = [];
         var colWidth = 0;
-        if (oldColCount == 0)
-        {
+        if (oldColCount == 0) {
             cols.push(libtuj.ce());
             cols[0].className = 'realms-column';
             $(realmList).append(cols[0]);
 
             colWidth = cols[0].offsetWidth;
         }
-        else
-        {
+        else {
             colWidth = realmList.getElementsByClassName('realms-column')[0].offsetWidth;
         }
         $(realmList).removeClass('width-test');
 
         var numCols = Math.floor(maxWidth / colWidth);
-        if (numCols == 0)
+        if (numCols == 0) {
             numCols = 1;
+        }
 
-        if (numCols == oldColCount)
+        if (numCols == oldColCount) {
             return;
+        }
 
-        if (oldColCount > 0)
+        if (oldColCount > 0) {
             $(realmList).children('.realms-column').remove();
+        }
 
-        for (var x = cols.length; x < numCols; x++)
-        {
+        for (var x = cols.length; x < numCols; x++) {
             cols[x] = libtuj.ce();
             cols[x].className = 'realms-column';
             $(realmList).append(cols[x]);
@@ -910,10 +982,10 @@ var TUJ = function()
 
         var cnt = 0;
 
-        for (var x in self.realms)
-        {
-            if (!self.realms.hasOwnProperty(x))
+        for (var x in self.realms) {
+            if (!self.realms.hasOwnProperty(x)) {
                 continue;
+            }
 
             cnt++;
         }
@@ -923,13 +995,15 @@ var TUJ = function()
         var allRealms = [];
 
         for (var x in self.realms) {
-            if (!self.realms.hasOwnProperty(x))
+            if (!self.realms.hasOwnProperty(x)) {
                 continue;
+            }
 
             allRealms.push(x);
         }
 
-        allRealms.sort(function(a,b) {
+        allRealms.sort(function (a, b)
+        {
             return self.realms[a].name.localeCompare(self.realms[b].name);
         });
 
@@ -938,59 +1012,66 @@ var TUJ = function()
             a.rel = allRealms[x];
             $(a).text(self.realms[allRealms[x]].name);
 
-            $(cols[Math.min(cols.length-1, Math.floor(c++ / cnt * numCols))]).append(a);
+            $(cols[Math.min(cols.length - 1, Math.floor(c++ / cnt * numCols))]).append(a);
         }
 
-        if (addResize)
+        if (addResize) {
             optimizedResize.add(DrawRealms);
+        }
 
         Main();
     }
 
-    var CaptchaClick = function()
+    var CaptchaClick = function ()
     {
         var i = $(this);
-        if (i.hasClass('selected'))
+        if (i.hasClass('selected')) {
             i.removeClass('selected');
-        else
+        }
+        else {
             i.addClass('selected');
+        }
     };
 
-    var CaptchaSubmit = function()
+    var CaptchaSubmit = function ()
     {
         var answer = '';
         var imgs = this.parentNode.getElementsByTagName('img');
-        for (var x = 0; x < imgs.length; x++)
-        {
-            if ($(imgs[x]).hasClass('selected'))
+        for (var x = 0; x < imgs.length; x++) {
+            if ($(imgs[x]).hasClass('selected')) {
                 answer += imgs[x].id.substr(8);
+            }
         }
 
-        if (answer == '')
+        if (answer == '') {
             return;
+        }
 
         $('#progress-page').show();
 
         $.ajax({
             data: {answer: answer},
-            success: function(d) {
-                if (d.captcha)
+            success: function (d)
+            {
+                if (d.captcha) {
                     tuj.AskCaptcha(d.captcha);
-                else
+                }
+                else {
                     Main();
+                }
             },
-            complete: function() {
+            complete: function ()
+            {
                 $('#progress-page').hide();
             },
             url: 'api/captcha.php'
         });
     };
 
-    this.AskCaptcha = function(c)
+    this.AskCaptcha = function (c)
     {
         var captchaPage = $('#captcha-page')[0];
-        if (!captchaPage)
-        {
+        if (!captchaPage) {
             captchaPage = libtuj.ce();
             captchaPage.id = 'captcha-page';
             captchaPage.className = 'page';
@@ -1002,18 +1083,17 @@ var TUJ = function()
 
         $(captchaPage).empty();
 
-        captchaPage.appendChild(document.createTextNode("You viewed a lot of pages recently. To make sure you're not a script, please select all the "+tujConstants.races[c.lookfor]+" without helms."));
+        captchaPage.appendChild(document.createTextNode("You viewed a lot of pages recently. To make sure you're not a script, please select all the " + tujConstants.races[c.lookfor] + " without helms."));
 
         d = libtuj.ce();
         d.className = 'captcha';
         captchaPage.appendChild(d);
 
-        for (var x = 0; x < c.ids.length; x++)
-        {
+        for (var x = 0; x < c.ids.length; x++) {
             var img = libtuj.ce('img');
             img.className = 'captcha-button';
-            img.src = 'captcha/'+ c.ids[x]+'.jpg';
-            img.id = 'captcha-'+(x+1);
+            img.src = 'captcha/' + c.ids[x] + '.jpg';
+            img.id = 'captcha-' + (x + 1);
             $(img).click(CaptchaClick);
             d.appendChild(img);
         }
@@ -1036,14 +1116,16 @@ var TUJ = function()
         var frontPage = $('#front-page')[0];
         $(frontPage).show();
 
-        $('#category-sidebar a').each(function() {
+        $('#category-sidebar a').each(function ()
+        {
             if (this.rel) {
                 this.href = tuj.BuildHash({page: 'category', id: this.rel});
             }
         });
     }
 
-    function SetDarkTheme(dark) {
+    function SetDarkTheme(dark)
+    {
         var darkSheet = document.getElementById('dark-sheet');
 
         var duringStartup = self.colorTheme == '';
@@ -1077,17 +1159,20 @@ var TUJ = function()
 };
 
 var tuj;
-$(document).ready(function() {
+$(document).ready(function ()
+{
     tuj = new TUJ();
 });
 
-var optimizedResize = (function() {
+var optimizedResize = (function ()
+{
 
     var callbacks = [],
         running = false;
 
     // fired on resize event
-    function resize() {
+    function resize()
+    {
 
         if (!running) {
             running = true;
@@ -1102,16 +1187,19 @@ var optimizedResize = (function() {
     }
 
     // run the actual callbacks
-    function runCallbacks() {
+    function runCallbacks()
+    {
 
-        for (var x = 0; x < callbacks.length; x++)
+        for (var x = 0; x < callbacks.length; x++) {
             callbacks[x]();
+        }
 
         running = false;
     }
 
     // adds callback to loop
-    function addCallback(callback) {
+    function addCallback(callback)
+    {
 
         if (callback) {
             callbacks.push(callback);
@@ -1120,9 +1208,11 @@ var optimizedResize = (function() {
     }
 
     return {
-        add: function(callback) {
-            if (callbacks.length == 0)
+        add: function (callback)
+        {
+            if (callbacks.length == 0) {
                 window.addEventListener('resize', resize);
+            }
             addCallback(callback);
         }
     }

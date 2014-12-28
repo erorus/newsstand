@@ -12,29 +12,32 @@ CatchKill();
 
 define('SNAPSHOT_PATH', '/var/newsstand/snapshots/');
 
-$regions = array('US','EU');
+$regions = array('US', 'EU');
 
-if (!isset($argv[1]) || !in_array($argv[1], $regions))
+if (!isset($argv[1]) || !in_array($argv[1], $regions)) {
     DebugMessage('Need region US or EU', E_USER_ERROR);
+}
 
-if (!DBConnect())
+if (!DBConnect()) {
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
+}
 
 $region = $argv[1];
 
 $loopStart = time();
 $toSleep = 0;
-while ((!$caughtKill) && (time() < ($loopStart + 60 * 30)))
-{
+while ((!$caughtKill) && (time() < ($loopStart + 60 * 30))) {
     heartbeat();
     sleep(min($toSleep, 30));
-    if ($caughtKill)
+    if ($caughtKill) {
         break;
+    }
     $toSleep = FetchSnapshot();
-    if ($toSleep === false)
+    if ($toSleep === false) {
         break;
+    }
 }
-DebugMessage('Done! Started '.TimeDiff($startTime));
+DebugMessage('Done! Started ' . TimeDiff($startTime));
 
 function FetchSnapshot()
 {
@@ -70,28 +73,25 @@ ENDSQL;
     $gotRealm = $stmt->fetch() === true;
     $stmt->close();
 
-    if (!$gotRealm)
-    {
+    if (!$gotRealm) {
         DebugMessage("No $region realms to fetch!");
         return 30;
     }
 
-    if (strtotime($nextDate) > time() && (strtotime($nextDate) < (time() + 3.5*60*60)))
-    {
-        DebugMessage("No $region realms ready yet, waiting ".TimeDiff(strtotime($nextDate)));
+    if (strtotime($nextDate) > time() && (strtotime($nextDate) < (time() + 3.5 * 60 * 60))) {
+        DebugMessage("No $region realms ready yet, waiting " . TimeDiff(strtotime($nextDate)));
         return strtotime($nextDate) - time();
     }
 
-    DebugMessage("$region $slug fetch for house $house to update $realmCount realms, due since ".(is_null($nextDate) ? 'unknown' : TimeDiff(strtotime($nextDate), array('precision' => 'second'))));
+    DebugMessage("$region $slug fetch for house $house to update $realmCount realms, due since " . (is_null($nextDate) ? 'unknown' : TimeDiff(strtotime($nextDate), array('precision' => 'second'))));
 
     $url = GetBattleNetURL($region, "wow/auction/data/$slug");
 
     $json = FetchHTTP($url);
     $dta = json_decode($json, true);
-    if (!isset($dta['files']))
-    {
+    if (!isset($dta['files'])) {
         $delay = GetCheckDelay(strtotime($lastDate));
-        DebugMessage("$region $slug returned no files. Waiting ".floor($delay/60)." minutes.", E_USER_WARNING);
+        DebugMessage("$region $slug returned no files. Waiting " . floor($delay / 60) . " minutes.", E_USER_WARNING);
         SetHouseNextCheck($house, time() + $delay);
         return 0;
     }
@@ -99,30 +99,27 @@ ENDSQL;
     usort($dta['files'], 'AuctionFileSort');
     $fileInfo = array_pop($dta['files']);
 
-    $modified = intval($fileInfo['lastModified'], 10)/1000;
-    if ($modified <= strtotime($lastDate))
-    {
+    $modified = intval($fileInfo['lastModified'], 10) / 1000;
+    if ($modified <= strtotime($lastDate)) {
         $delay = GetCheckDelay($modified);
-        DebugMessage("$region $slug still not updated. Waiting ".floor($delay/60)." minutes.");
+        DebugMessage("$region $slug still not updated. Waiting " . floor($delay / 60) . " minutes.");
         SetHouseNextCheck($house, time() + $delay);
 
         return 0;
     }
 
-    DebugMessage("$region $slug updated ".TimeDiff($modified).", fetching auction data file");
+    DebugMessage("$region $slug updated " . TimeDiff($modified) . ", fetching auction data file");
     $dlStart = microtime(true);
     $data = FetchHTTP(preg_replace('/^http:/', 'https:', $fileInfo['url']), array(), $outHeaders);
     $dlDuration = microtime(true) - $dlStart;
-    if (!$data)
-    {
+    if (!$data) {
         DebugMessage("$region $slug data file empty. Waiting 5 seconds and trying again.");
         sleep(5);
         $dlStart = microtime(true);
-        $data = FetchHTTP($fileInfo['url'].(parse_url($fileInfo['url'], PHP_URL_QUERY) ? '&' : '?').'please', array(), $outHeaders);
+        $data = FetchHTTP($fileInfo['url'] . (parse_url($fileInfo['url'], PHP_URL_QUERY) ? '&' : '?') . 'please', array(), $outHeaders);
         $dlDuration = microtime(true) - $dlStart;
     }
-    if (!$data)
-    {
+    if (!$data) {
         DebugMessage("$region $slug data file empty. Will try again in 30 seconds.");
         SetHouseNextCheck($house, time() + 30);
         http_persistent_handles_clean();
@@ -131,26 +128,27 @@ ENDSQL;
     }
 
     $xferBytes = isset($outHeaders['X-Original-Content-Length']) ? $outHeaders['X-Original-Content-Length'] : strlen($data);
-    DebugMessage("$region $slug data file ".strlen($data)." bytes".($xferBytes != strlen($data) ? (' (transfer length '.$xferBytes.', '.round($xferBytes/strlen($data)*100,1).'%)') : '').", ".round($dlDuration,2)."sec, ".round($xferBytes/1000/$dlDuration)."KBps");
-    if ($xferBytes >= strlen($data) && strlen($data) > 65536)
-        DebugMessage('No compression? '.print_r($outHeaders,true));
+    DebugMessage("$region $slug data file " . strlen($data) . " bytes" . ($xferBytes != strlen($data) ? (' (transfer length ' . $xferBytes . ', ' . round($xferBytes / strlen($data) * 100, 1) . '%)') : '') . ", " . round($dlDuration, 2) . "sec, " . round($xferBytes / 1000 / $dlDuration) . "KBps");
+    if ($xferBytes >= strlen($data) && strlen($data) > 65536) {
+        DebugMessage('No compression? ' . print_r($outHeaders, true));
+    }
 
-    if ($xferBytes/1000/$dlDuration < 200) {
+    if ($xferBytes / 1000 / $dlDuration < 200) {
         DebugMessage("Speed under 200KBps, closing persistent connections");
         http_persistent_handles_clean();
     }
 
-    $stmt = $db->prepare('insert into tblHouseCheck (house, nextcheck) values (?, null) on duplicate key update nextcheck=values(nextcheck)');
+    $stmt = $db->prepare('INSERT INTO tblHouseCheck (house, nextcheck) VALUES (?, NULL) ON DUPLICATE KEY UPDATE nextcheck=values(nextcheck)');
     $stmt->bind_param('i', $house);
     $stmt->execute();
     $stmt->close();
 
-    $stmt = $db->prepare('insert into tblSnapshot (house, updated) values (?, from_unixtime(?))');
+    $stmt = $db->prepare('INSERT INTO tblSnapshot (house, updated) VALUES (?, from_unixtime(?))');
     $stmt->bind_param('ii', $house, $modified);
     $stmt->execute();
     $stmt->close();
 
-    file_put_contents(SNAPSHOT_PATH."$modified-".str_pad($house,5,'0',STR_PAD_LEFT).".json", $data, LOCK_EX);
+    file_put_contents(SNAPSHOT_PATH . "$modified-" . str_pad($house, 5, '0', STR_PAD_LEFT) . ".json", $data, LOCK_EX);
 
     return 0;
 }
@@ -158,10 +156,12 @@ ENDSQL;
 function GetCheckDelay($modified)
 {
     $delayMinutes = 2;
-    if ($modified < strtotime('3 hours ago'))
+    if ($modified < strtotime('3 hours ago')) {
         $delayMinutes = 5;
-    if ($modified < strtotime('6 hours ago'))
+    }
+    if ($modified < strtotime('6 hours ago')) {
         $delayMinutes = 15;
+    }
 
     return $delayMinutes * 60;
 }
@@ -170,7 +170,7 @@ function SetHouseNextCheck($house, $nextCheck)
 {
     global $db;
 
-    $stmt = $db->prepare('insert into tblHouseCheck (house, nextcheck) values (?, from_unixtime(?)) on duplicate key update nextcheck=values(nextcheck)');
+    $stmt = $db->prepare('INSERT INTO tblHouseCheck (house, nextcheck) VALUES (?, from_unixtime(?)) ON DUPLICATE KEY UPDATE nextcheck=values(nextcheck)');
     $stmt->bind_param('ii', $house, $nextCheck);
     $stmt->execute();
     $stmt->close();

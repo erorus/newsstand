@@ -1,15 +1,16 @@
-
-var TUJ_Search = function()
+var TUJ_Search = function ()
 {
     var params;
     var lastResults = [];
 
-    this.load = function(inParams)
+    this.load = function (inParams)
     {
         params = {};
-        for (var p in inParams)
-            if (inParams.hasOwnProperty(p))
+        for (var p in inParams) {
+            if (inParams.hasOwnProperty(p)) {
                 params[p] = inParams[p];
+            }
+        }
 
         var qs = {
             house: tuj.realms[params.realm].house,
@@ -17,16 +18,15 @@ var TUJ_Search = function()
         };
         var hash = JSON.stringify(qs);
 
-        for (var x = 0; x < lastResults.length; x++)
-            if (lastResults[x].hash == hash)
-            {
+        for (var x = 0; x < lastResults.length; x++) {
+            if (lastResults[x].hash == hash) {
                 SearchResult(false, lastResults[x].data);
                 return;
             }
+        }
 
         var searchPage = $('#search-page')[0];
-        if (!searchPage)
-        {
+        if (!searchPage) {
             searchPage = libtuj.ce();
             searchPage.id = 'search-page';
             searchPage.className = 'page';
@@ -37,13 +37,17 @@ var TUJ_Search = function()
 
         $.ajax({
             data: qs,
-            success: function(d) {
-                if (d.captcha)
+            success: function (d)
+            {
+                if (d.captcha) {
                     tuj.AskCaptcha(d.captcha);
-                else
+                }
+                else {
                     SearchResult(hash, d);
+                }
             },
-            complete: function() {
+            complete: function ()
+            {
                 $('#progress-page').hide();
             },
             url: 'api/search.php'
@@ -52,25 +56,25 @@ var TUJ_Search = function()
 
     function SearchResult(hash, dta)
     {
-        if (hash)
-        {
+        if (hash) {
             lastResults.push({hash: hash, data: dta});
-            while (lastResults.length > 10)
+            while (lastResults.length > 10) {
                 lastResults.shift();
+            }
         }
 
         var searchPage = $('#search-page');
         searchPage.empty();
 
-        $('#page-title').text('Search: '+params.id);
+        $('#page-title').text('Search: ' + params.id);
 
         var results = 0;
         var lastResult;
         var t, tr, td, i, a, x;
 
-        if (dta.items)
-        {
-            dta.items.sort(function(a,b){
+        if (dta.items) {
+            dta.items.sort(function (a, b)
+            {
                 return tujConstants.itemClassOrder[a.classid] - tujConstants.itemClassOrder[b.classid] ||
                     a.name.localeCompare(b.name);
             });
@@ -79,13 +83,11 @@ var TUJ_Search = function()
             var item;
             var tableHeader, classResults;
 
-            for (x = 0; item = dta.items[x]; x++)
-            {
+            for (x = 0; item = dta.items[x]; x++) {
                 lastResult = {page: 'item', id: item.id};
                 results++;
 
-                if (lastClass != item.classid)
-                {
+                if (lastClass != item.classid) {
                     lastClass = item.classid;
                     classResults = 1;
 
@@ -99,7 +101,7 @@ var TUJ_Search = function()
                     td = libtuj.ce('th');
                     td.className = 'title';
                     tr.appendChild(td);
-                    td.colSpan=6;
+                    td.colSpan = 6;
                     $(td).text(tujConstants.itemClasses.hasOwnProperty(item.classid) ? tujConstants.itemClasses[item.classid] : ('Class ' + item.classid));
 
                     tr = libtuj.ce('tr');
@@ -109,7 +111,7 @@ var TUJ_Search = function()
                     td = libtuj.ce('th');
                     td.className = 'name';
                     tr.appendChild(td);
-                    td.colSpan=2;
+                    td.colSpan = 2;
                     $(td).text('Name');
 
                     td = libtuj.ce('th');
@@ -132,8 +134,11 @@ var TUJ_Search = function()
                     tr.appendChild(td);
                     $(td).text('Last Seen');
                 }
-                else if (++classResults % 30 == 0)
-                    t.appendChild(tableHeader.cloneNode(true));
+                else {
+                    if (++classResults % 30 == 0) {
+                        t.appendChild(tableHeader.cloneNode(true));
+                    }
+                }
 
                 tr = libtuj.ce('tr');
                 t.appendChild(tr);
@@ -177,9 +182,9 @@ var TUJ_Search = function()
             }
         }
 
-        if (dta.sellers)
-        {
-            dta.sellers.sort(function(a,b){
+        if (dta.sellers) {
+            dta.sellers.sort(function (a, b)
+            {
                 return a.name.localeCompare(b.name) || tuj.realms[a.realm].name.localeCompare(tuj.realms[b.realm].name);
             });
 
@@ -195,7 +200,7 @@ var TUJ_Search = function()
             td = libtuj.ce('th');
             td.className = 'title';
             tr.appendChild(td);
-            td.colSpan=5;
+            td.colSpan = 5;
             $(td).text('Sellers');
 
             tr = libtuj.ce('tr');
@@ -211,8 +216,7 @@ var TUJ_Search = function()
             tr.appendChild(td);
             $(td).text('Last Seen');
 
-            for (x = 0; seller = dta.sellers[x]; x++)
-            {
+            for (x = 0; seller = dta.sellers[x]; x++) {
                 results++;
                 lastResult = {page: 'seller', id: seller.name, realm: seller.realm};
 
@@ -234,22 +238,20 @@ var TUJ_Search = function()
             }
         }
 
-        if (dta.battlepets)
-        {
-            dta.battlepets.sort(function(a,b){
+        if (dta.battlepets) {
+            dta.battlepets.sort(function (a, b)
+            {
                 return a.name.localeCompare(b.name);
             });
 
             var pet;
             var tableHeader, petResults = 0;
 
-            for (x = 0; pet = dta.battlepets[x]; x++)
-            {
+            for (x = 0; pet = dta.battlepets[x]; x++) {
                 lastResult = {page: 'battlepet', id: pet.id};
                 results++;
 
-                if (petResults++ == 0)
-                {
+                if (petResults++ == 0) {
                     t = libtuj.ce('table');
                     t.className = 'search-pets';
                     searchPage.append(t);
@@ -260,7 +262,7 @@ var TUJ_Search = function()
                     td = libtuj.ce('th');
                     td.className = 'title';
                     tr.appendChild(td);
-                    td.colSpan=6;
+                    td.colSpan = 6;
                     $(td).text('Battle Pets');
 
                     tr = libtuj.ce('tr');
@@ -270,7 +272,7 @@ var TUJ_Search = function()
                     td = libtuj.ce('th');
                     td.className = 'name';
                     tr.appendChild(td);
-                    td.colSpan=2;
+                    td.colSpan = 2;
                     $(td).text('Name');
 
                     td = libtuj.ce('th');
@@ -293,8 +295,11 @@ var TUJ_Search = function()
                     tr.appendChild(td);
                     $(td).text('Last Seen');
                 }
-                else if (petResults % 30 == 0)
-                    t.appendChild(tableHeader.cloneNode(true));
+                else {
+                    if (petResults % 30 == 0) {
+                        t.appendChild(tableHeader.cloneNode(true));
+                    }
+                }
 
                 tr = libtuj.ce('tr');
                 t.appendChild(tr);
@@ -313,8 +318,9 @@ var TUJ_Search = function()
                 a = libtuj.ce('a');
                 td.appendChild(a);
                 a.href = tuj.BuildHash({page: 'battlepet', id: pet.id});
-                if (pet.npc)
+                if (pet.npc) {
                     a.rel = 'npc=' + pet.npc;
+                }
                 $(a).text('[' + pet.name + ']');
 
                 td = libtuj.ce('td');
@@ -339,12 +345,11 @@ var TUJ_Search = function()
             }
         }
 
-        if (results == 1)
+        if (results == 1) {
             tuj.SetParams(lastResult);
-        else
-        {
-            if (results == 0)
-            {
+        }
+        else {
+            if (results == 0) {
                 var h2 = libtuj.ce('h2');
                 h2.appendChild(document.createTextNode('No results found.'));
                 searchPage.append(h2);

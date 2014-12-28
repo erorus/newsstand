@@ -1,11 +1,12 @@
 <?php
 
-require_once(__DIR__.'/database.credentials.php');
+require_once(__DIR__ . '/database.credentials.php');
 
 $db = false;
 
-if (php_sapi_name() == 'cli')
+if (php_sapi_name() == 'cli') {
     error_reporting(E_ALL);
+}
 
 date_default_timezone_set('UTC');
 mb_internal_encoding("UTF-8");
@@ -18,28 +19,29 @@ function DebugMessage($message, $debugLevel = E_USER_NOTICE)
 
     if ($debugLevel != E_USER_NOTICE) {
         $bt = debug_backtrace();
-        $bt = isset($bt[1]) ? (' ' . $bt[1]['file'] . (isset($bt[1]['function']) ? (' ' . $bt[1]['function']) : '') . ' Line '. $bt[1]['line']) : '';
+        $bt = isset($bt[1]) ? (' ' . $bt[1]['file'] . (isset($bt[1]['function']) ? (' ' . $bt[1]['function']) : '') . ' Line ' . $bt[1]['line']) : '';
 
-        $pth = realpath(__DIR__.'/../logs/scripterrors.log');
+        $pth = realpath(__DIR__ . '/../logs/scripterrors.log');
         if ($pth) {
             $me = (php_sapi_name() == 'cli') ? ('CLI:' . realpath($argv[0])) : ('Web:' . $_SERVER['REQUEST_URI']);
-            file_put_contents($pth, Date('Y-m-d H:i:s')." $me$bt $message\n", FILE_APPEND | LOCK_EX);
+            file_put_contents($pth, Date('Y-m-d H:i:s') . " $me$bt $message\n", FILE_APPEND | LOCK_EX);
         }
     }
 
     static $myPid = false;
-    if (!$myPid)
-        $myPid = str_pad(getmypid(),5," ",STR_PAD_LEFT);
-
-    if (php_sapi_name() == 'cli')
-    {
-        if ($debugLevel == E_USER_NOTICE)
-            echo Date('Y-m-d H:i:s')." $myPid $message\n";
-        else
-            trigger_error("\n".Date('Y-m-d H:i:s')." $myPid $message\n", $debugLevel);
+    if (!$myPid) {
+        $myPid = str_pad(getmypid(), 5, " ", STR_PAD_LEFT);
     }
-    elseif ($debugLevel != E_USER_NOTICE)
+
+    if (php_sapi_name() == 'cli') {
+        if ($debugLevel == E_USER_NOTICE) {
+            echo Date('Y-m-d H:i:s') . " $myPid $message\n";
+        } else {
+            trigger_error("\n" . Date('Y-m-d H:i:s') . " $myPid $message\n", $debugLevel);
+        }
+    } elseif ($debugLevel != E_USER_NOTICE) {
         trigger_error($message, $debugLevel);
+    }
 }
 
 function DBConnect($alternate = false)
@@ -48,8 +50,9 @@ function DBConnect($alternate = false)
 
     static $connected = false;
 
-    if ($connected && !$alternate)
+    if ($connected && !$alternate) {
         return $db;
+    }
 
     $isCLI = (php_sapi_name() == 'cli');
 
@@ -59,16 +62,14 @@ function DBConnect($alternate = false)
     $database = DATABASE_SCHEMA;
 
     $thisDb = new mysqli($host, $user, $pass, $database);
-    if ($thisDb->connect_error)
+    if ($thisDb->connect_error) {
         $thisDb = false;
-    else
-    {
+    } else {
         $thisDb->set_charset("utf8");
         $thisDb->query('SET time_zone=\'+0:00\'');
     }
 
-    if (!$alternate)
-    {
+    if (!$alternate) {
         $db = $thisDb;
         $connected = !!$db;
     }
@@ -87,49 +88,48 @@ function DBMapArray(&$result, $key = false, $autoClose = true)
     $tr = array();
     $singleCol = null;
 
-    while ($row = $result->fetch_assoc())
-    {
-        if (is_null($singleCol))
-        {
+    while ($row = $result->fetch_assoc()) {
+        if (is_null($singleCol)) {
             $singleCol = false;
-            if (count(array_keys($row)) == 1)
-            {
+            if (count(array_keys($row)) == 1) {
                 $singleCol = array_keys($row);
                 $singleCol = array_shift($singleCol);
             }
         }
-        if ($key === false)
-        {
+        if ($key === false) {
             $key = array_keys($row);
             $key = array_shift($key);
         }
-        if (is_array($key))
-            switch (count($key))
-            {
+        if (is_array($key)) {
+            switch (count($key)) {
                 case 1:
                     $tr[$row[$key[0]]] = $singleCol ? $row[$singleCol] : $row;
                     break;
                 case 2:
-                    if($key[1])
+                    if ($key[1]) {
                         $tr[$row[$key[0]]][$row[$key[1]]] = $singleCol ? $row[$singleCol] : $row;
-                    else
+                    } else {
                         $tr[$row[$key[0]]][] = $singleCol ? $row[$singleCol] : $row;
+                    }
                     break;
                 case 3:
-                    if($key[2])
+                    if ($key[2]) {
                         $tr[$row[$key[0]]][$row[$key[1]]][$row[$key[2]]] = $row;
-                    else
+                    } else {
                         $tr[$row[$key[0]]][$row[$key[1]]][] = $singleCol ? $row[$singleCol] : $row;
+                    }
                     break;
             }
-        elseif (is_null($key))
+        } elseif (is_null($key)) {
             $tr[] = $singleCol ? $row[$singleCol] : $row;
-        else
+        } else {
             $tr[$row[$key]] = $singleCol ? $row[$singleCol] : $row;
+        }
     }
 
-    if ($autoClose)
+    if ($autoClose) {
         $result->close();
+    }
 
     return $tr;
 }
@@ -145,13 +145,15 @@ function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
     $debuggingBattleNetCalls = false;
 
     $fetchHTTPErrorCaught = false;
-    if (!isset($inHeaders['Connection'])) $inHeaders['Connection']='Keep-Alive';
+    if (!isset($inHeaders['Connection'])) {
+        $inHeaders['Connection'] = 'Keep-Alive';
+    }
     $http_opt = array(
-        'timeout' => 60,
+        'timeout'        => 60,
         'connecttimeout' => 6,
-        'headers' => $inHeaders,
-        'compress' => true,
-        'redirect' => (preg_match('/^https?:\/\/(?:[a-z]+\.)*\bbattle\.net\//',$url) > 0)?0:3
+        'headers'        => $inHeaders,
+        'compress'       => true,
+        'redirect'       => (preg_match('/^https?:\/\/(?:[a-z]+\.)*\bbattle\.net\//', $url) > 0) ? 0 : 3
     );
     //if ($eTag) $http_opt['etag'] = $eTag;
 
@@ -163,7 +165,7 @@ function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
             $mcTries = 0;
             $mcKey = 'FetchHTTP_bnetapi';
             while ($mcTries++ < 10) {
-                if (MCAdd($mcKey.'_critical', 1, 5) === false) {
+                if (MCAdd($mcKey . '_critical', 1, 5) === false) {
                     usleep(50000);
                     continue;
                 }
@@ -178,7 +180,7 @@ function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
                 }
                 MCSet($mcKey, $apiHits, 10);
 
-                MCDelete($mcKey.'_critical');
+                MCDelete($mcKey . '_critical');
                 break;
             }
         }
@@ -186,9 +188,9 @@ function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
 
     $http_info = array();
     $fetchHTTPErrorCaught = false;
-    $oldErrorReporting = error_reporting(error_reporting()|E_WARNING);
-    set_error_handler('FetchHTTPError',E_WARNING);
-    $data = http_parse_message(http_get($url,$http_opt,$http_info));
+    $oldErrorReporting = error_reporting(error_reporting() | E_WARNING);
+    set_error_handler('FetchHTTPError', E_WARNING);
+    $data = http_parse_message(http_get($url, $http_opt, $http_info));
     restore_error_handler();
     error_reporting($oldErrorReporting);
     unset($oldErrorReporting);
@@ -198,49 +200,57 @@ function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
         return false;
     }
 
-    $outHeaders = array_merge(array(
-        'httpVersion' => $data->httpVersion,
-        'responseCode' => $data->responseCode,
-        'responseStatus' => $data->responseStatus,
-    ), $data->headers);
+    $outHeaders = array_merge(
+        array(
+            'httpVersion'    => $data->httpVersion,
+            'responseCode'   => $data->responseCode,
+            'responseStatus' => $data->responseStatus,
+        ), $data->headers
+    );
 
     //if (isset($data->headers['Etag']))
     //    $eTag = $data->headers['Etag'];
 
-    if ($fetchHTTPErrorCaught) return false;
-    if (preg_match('/^2\d\d$/',$http_info['response_code']) > 0)
+    if ($fetchHTTPErrorCaught) {
+        return false;
+    }
+    if (preg_match('/^2\d\d$/', $http_info['response_code']) > 0) {
         return $data->body;
-    elseif (!$wasRetry && isset($data->headers['Retry-After']))
-    {
-        $delay = intval($data->headers['Retry-After'],10);
+    } elseif (!$wasRetry && isset($data->headers['Retry-After'])) {
+        $delay = intval($data->headers['Retry-After'], 10);
         DebugMessage("Asked to wait $delay seconds for $url", E_USER_NOTICE);
         if ($debuggingBattleNetCalls && $usesBattleNetKey && count($apiHits)) {
-            file_put_contents(__DIR__.'/../logs/battlenetwaits.log', print_r($apiHits, true), FILE_APPEND | LOCK_EX);
+            file_put_contents(__DIR__ . '/../logs/battlenetwaits.log', print_r($apiHits, true), FILE_APPEND | LOCK_EX);
         }
-        if ($delay > 0 && $delay <= 10)
+        if ($delay > 0 && $delay <= 10) {
             sleep($delay);
+        }
         $isRetry = true;
         return FetchHTTP($url, $inHeaders, $outHeaders);
-    }
-    else
+    } else {
         return false;
+    }
 }
 
-function FetchHTTPError($errno, $errstr, $errfile,  $errline,  $errcontext) {
+function FetchHTTPError($errno, $errstr, $errfile, $errline, $errcontext)
+{
     global $fetchHTTPErrorCaught;
     $fetchHTTPErrorCaught = true;
     return true;
 }
 
-function TimeDiff($time, $opt = array()) {
-    if (is_null($time)) return '';
+function TimeDiff($time, $opt = array())
+{
+    if (is_null($time)) {
+        return '';
+    }
 
     // The default values
     $defOptions = array(
-        'to' => 0,
-        'parts' => 2,
+        'to'        => 0,
+        'parts'     => 2,
         'precision' => 'minute',
-        'distance' => TRUE,
+        'distance'  => true,
         'separator' => ', '
     );
     $opt = array_merge($defOptions, $opt);
@@ -249,33 +259,36 @@ function TimeDiff($time, $opt = array()) {
     // Init an empty string
     $str = '';
     // To or From computation
-    $diff = ($opt['to'] > $time) ? $opt['to']-$time : $time-$opt['to'];
+    $diff = ($opt['to'] > $time) ? $opt['to'] - $time : $time - $opt['to'];
     // An array of label => periods of seconds;
     $periods = array(
         'decade' => 315569260,
-        'year' => 31556926,
-        'month' => 2629744,
-        'week' => 604800,
-        'day' => 86400,
-        'hour' => 3600,
+        'year'   => 31556926,
+        'month'  => 2629744,
+        'week'   => 604800,
+        'day'    => 86400,
+        'hour'   => 3600,
         'minute' => 60,
         'second' => 1
     );
     // Round to precision
-    if ($opt['precision'] != 'second')
-        $diff = round(($diff/$periods[$opt['precision']])) * $periods[$opt['precision']];
+    if ($opt['precision'] != 'second') {
+        $diff = round(($diff / $periods[$opt['precision']])) * $periods[$opt['precision']];
+    }
     // Report the value is 'less than 1 ' precision period away
-    (0 == $diff) && ($str = 'less than 1 '.$opt['precision']);
+    (0 == $diff) && ($str = 'less than 1 ' . $opt['precision']);
     // Loop over each period
     foreach ($periods as $label => $value) {
         // Stitch together the time difference string
-        (($x=floor($diff/$value))&&$opt['parts']--) && $str.=($str?$opt['separator']:'').($x.' '.$label.($x>1?'s':''));
+        (($x = floor($diff / $value)) && $opt['parts']--) && $str .= ($str ? $opt['separator'] : '') . ($x . ' ' . $label . ($x > 1 ? 's' : ''));
         // Stop processing if no more parts are going to be reported.
-        if ($opt['parts'] == 0 || $label == $opt['precision']) break;
+        if ($opt['parts'] == 0 || $label == $opt['precision']) {
+            break;
+        }
         // Get ready for the next pass
-        $diff -= $x*$value;
+        $diff -= $x * $value;
     }
-    $opt['distance'] && $str.=($str&&$opt['to']>=$time)?' ago':' away';
+    $opt['distance'] && $str .= ($str && $opt['to'] >= $time) ? ' ago' : ' away';
     return $str;
 }
 
@@ -283,12 +296,12 @@ $caughtKill = false;
 function CatchKill()
 {
     static $setCatch = false;
-    if ($setCatch)
+    if ($setCatch) {
         return;
+    }
     $setCatch = true;
 
-    if (php_sapi_name() != 'cli')
-    {
+    if (php_sapi_name() != 'cli') {
         DebugMessage('Cannot catch kill if not CLI', E_USER_WARNING);
         return;
     }
@@ -300,8 +313,7 @@ function CatchKill()
 function KillSigHandler($sig)
 {
     global $caughtKill;
-    if ($sig == SIGTERM)
-    {
+    if ($sig == SIGTERM) {
         $caughtKill = true;
         DebugMessage('Caught kill message, exiting soon..');
     }
@@ -311,11 +323,12 @@ function RunMeNTimes($howMany = 1)
 {
     global $argv;
 
-    if (php_sapi_name() != 'cli')
-    {
+    if (php_sapi_name() != 'cli') {
         DebugMessage('Cannot run once if not CLI', E_USER_WARNING);
         return;
     }
 
-    if (intval(shell_exec('ps -o args -C php | grep '.escapeshellarg(implode(' ',$argv)).' | wc -l')) > $howMany) die();
+    if (intval(shell_exec('ps -o args -C php | grep ' . escapeshellarg(implode(' ', $argv)) . ' | wc -l')) > $howMany) {
+        die();
+    }
 }

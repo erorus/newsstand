@@ -1,15 +1,16 @@
-
-var TUJ_Item = function()
+var TUJ_Item = function ()
 {
     var params;
     var lastResults = [];
 
-    this.load = function(inParams)
+    this.load = function (inParams)
     {
         params = {};
-        for (var p in inParams)
-            if (inParams.hasOwnProperty(p))
+        for (var p in inParams) {
+            if (inParams.hasOwnProperty(p)) {
                 params[p] = inParams[p];
+            }
+        }
 
         var qs = {
             house: tuj.realms[params.realm].house,
@@ -17,16 +18,15 @@ var TUJ_Item = function()
         };
         var hash = JSON.stringify(qs);
 
-        for (var x = 0; x < lastResults.length; x++)
-            if (lastResults[x].hash == hash)
-            {
+        for (var x = 0; x < lastResults.length; x++) {
+            if (lastResults[x].hash == hash) {
                 ItemResult(false, lastResults[x].data);
                 return;
             }
+        }
 
         var itemPage = $('#item-page')[0];
-        if (!itemPage)
-        {
+        if (!itemPage) {
             itemPage = libtuj.ce();
             itemPage.id = 'item-page';
             itemPage.className = 'page';
@@ -37,13 +37,17 @@ var TUJ_Item = function()
 
         $.ajax({
             data: qs,
-            success: function(d) {
-                if (d.captcha)
+            success: function (d)
+            {
+                if (d.captcha) {
                     tuj.AskCaptcha(d.captcha);
-                else
+                }
+                else {
                     ItemResult(hash, d);
+                }
             },
-            complete: function() {
+            complete: function ()
+            {
                 $('#progress-page').hide();
             },
             url: 'api/item.php'
@@ -52,25 +56,24 @@ var TUJ_Item = function()
 
     function ItemResult(hash, dta)
     {
-        if (hash)
-        {
+        if (hash) {
             lastResults.push({hash: hash, data: dta});
-            while (lastResults.length > 10)
+            while (lastResults.length > 10) {
                 lastResults.shift();
+            }
         }
 
         var itemPage = $('#item-page');
         itemPage.empty();
         itemPage.show();
 
-        if (!dta.stats || !dta.stats.name)
-        {
+        if (!dta.stats || !dta.stats.name) {
             $('#page-title').empty().append(document.createTextNode('Item: ' + params.id));
             tuj.SetTitle('Item: ' + params.id);
 
             var h2 = libtuj.ce('h2');
             itemPage.append(h2);
-            h2.appendChild(document.createTextNode('Item '+ params.id + ' not found.'));
+            h2.appendChild(document.createTextNode('Item ' + params.id + ' not found.'));
 
             return;
         }
@@ -94,8 +97,7 @@ var TUJ_Item = function()
         itemPage.append(d);
         ItemStats(dta, d);
 
-        if (dta.history.length >= 4)
-        {
+        if (dta.history.length >= 4) {
             d = libtuj.ce();
             d.className = 'chart-section';
             h = libtuj.ce('h2');
@@ -109,8 +111,7 @@ var TUJ_Item = function()
             ItemHistoryChart(dta, cht);
         }
 
-        if (dta.monthly.length >= 14)
-        {
+        if (dta.monthly.length >= 14) {
             d = libtuj.ce();
             d.className = 'chart-section';
             h = libtuj.ce('h2');
@@ -124,8 +125,7 @@ var TUJ_Item = function()
             ItemMonthlyChart(dta, cht);
         }
 
-        if (dta.daily.length >= 14)
-        {
+        if (dta.daily.length >= 14) {
             d = libtuj.ce();
             d.className = 'chart-section';
             h = libtuj.ce('h2');
@@ -139,8 +139,7 @@ var TUJ_Item = function()
             ItemDailyChart(dta, cht);
         }
 
-        if (dta.history.length >= 14)
-        {
+        if (dta.history.length >= 14) {
             d = libtuj.ce();
             d.className = 'chart-section';
             h = libtuj.ce('h2');
@@ -180,14 +179,13 @@ var TUJ_Item = function()
 
         itemPage.append(libtuj.Ads.Add('3753400314'));
 
-        if (dta.globalmonthly.length >= 28)
-        {
+        if (dta.globalmonthly.length >= 28) {
             d = libtuj.ce();
             d.className = 'chart-section';
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text('Regional Daily Summary');
-            d.appendChild(document.createTextNode('Here is the total available quantity, and the average market price, for the item each day across all realms in the '+tuj.region+'.'));
+            d.appendChild(document.createTextNode('Here is the total available quantity, and the average market price, for the item each day across all realms in the ' + tuj.region + '.'));
             cht = libtuj.ce();
             cht.className = 'chart monthly';
             d.appendChild(cht);
@@ -195,14 +193,13 @@ var TUJ_Item = function()
             ItemGlobalMonthlyChart(dta, cht);
         }
 
-        if (dta.globalnow.length > 0)
-        {
+        if (dta.globalnow.length > 0) {
             d = libtuj.ce();
             d.className = 'chart-section';
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text('Current Regional Prices');
-            d.appendChild(document.createTextNode('The Regional Prices chart is sorted by price, and shows the price and quantity available of this item on all realms in the '+tuj.region+'.'));
+            d.appendChild(document.createTextNode('The Regional Prices chart is sorted by price, and shows the price and quantity available of this item on all realms in the ' + tuj.region + '.'));
             cht = libtuj.ce();
             cht.className = 'chart columns';
             d.appendChild(cht);
@@ -218,7 +215,7 @@ var TUJ_Item = function()
             var a = libtuj.ce('a');
             d.appendChild(a);
             d.appendChild(document.createTextNode('.'));
-            a.href = 'https://realmpop.com/'+tuj.region.toLowerCase()+'.html';
+            a.href = 'https://realmpop.com/' + tuj.region.toLowerCase() + '.html';
             a.style.textDecoration = 'underline';
             a.appendChild(document.createTextNode('Realm Pop'));
 
@@ -230,8 +227,7 @@ var TUJ_Item = function()
 
         }
 
-        if (dta.auctions.length)
-        {
+        if (dta.auctions.length) {
             d = libtuj.ce();
             d.className = 'chart-section';
             h = libtuj.ce('h2');
@@ -267,8 +263,7 @@ var TUJ_Item = function()
         t = libtuj.ce('table');
         dest.appendChild(t);
 
-        if (stack)
-        {
+        if (stack) {
             t.className = 'with-stack';
             tr = libtuj.ce('tr');
             t.appendChild(tr);
@@ -281,7 +276,7 @@ var TUJ_Item = function()
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.style.whiteSpace = 'nowrap';
-            td.appendChild(document.createTextNode('Stack of '+stack));
+            td.appendChild(document.createTextNode('Stack of ' + stack));
         }
 
         tr = libtuj.ce('tr');
@@ -293,15 +288,13 @@ var TUJ_Item = function()
         td = libtuj.ce('td');
         tr.appendChild(td);
         td.appendChild(libtuj.FormatQuantity(data.stats.quantity));
-        if (stack)
-        {
+        if (stack) {
             td = libtuj.ce('td');
             tr.appendChild(td);
-            td.appendChild(libtuj.FormatQuantity(Math.floor(data.stats.quantity/stack)));
+            td.appendChild(libtuj.FormatQuantity(Math.floor(data.stats.quantity / stack)));
         }
 
-        if (data.stats.quantity == 0)
-        {
+        if (data.stats.quantity == 0) {
             tr = libtuj.ce('tr');
             t.appendChild(tr);
             tr.className = 'last-seen';
@@ -330,23 +323,22 @@ var TUJ_Item = function()
         td = libtuj.ce('td');
         tr.appendChild(td);
         td.appendChild(libtuj.FormatPrice(data.stats.price));
-        if (stack)
-        {
+        if (stack) {
             td = libtuj.ce('td');
             tr.appendChild(td);
-            td.appendChild(libtuj.FormatPrice(data.stats.price*stack));
+            td.appendChild(libtuj.FormatPrice(data.stats.price * stack));
         }
 
         var prices = [], ages = [], x;
 
-        if (data.history.length > 8)
+        if (data.history.length > 8) {
             for (x = 0; x < data.history.length; x++) {
                 prices.push(data.history[x].price);
                 ages.push(data.history[x].age);
             }
+        }
 
-        if (prices.length)
-        {
+        if (prices.length) {
             var median;
             tr = libtuj.ce('tr');
             t.appendChild(tr);
@@ -357,11 +349,10 @@ var TUJ_Item = function()
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.appendChild(libtuj.FormatPrice(median = libtuj.Median(prices)));
-            if (stack)
-            {
+            if (stack) {
                 td = libtuj.ce('td');
                 tr.appendChild(td);
-                td.appendChild(libtuj.FormatPrice(median*stack));
+                td.appendChild(libtuj.FormatPrice(median * stack));
             }
 
             var mn = libtuj.Mean(prices);
@@ -375,11 +366,10 @@ var TUJ_Item = function()
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.appendChild(libtuj.FormatPrice(mn));
-            if (stack)
-            {
+            if (stack) {
                 td = libtuj.ce('td');
                 tr.appendChild(td);
-                td.appendChild(libtuj.FormatPrice(mn*stack));
+                td.appendChild(libtuj.FormatPrice(mn * stack));
             }
 
             tr = libtuj.ce('tr');
@@ -390,8 +380,7 @@ var TUJ_Item = function()
             td.appendChild(document.createTextNode('Standard Deviation'));
             td = libtuj.ce('td');
             tr.appendChild(td);
-            if (std / mn > 0.33)
-            {
+            if (std / mn > 0.33) {
                 abbr = libtuj.ce('abbr');
                 abbr.title = 'Market price is highly volatile!';
                 abbr.style.fontSize = '80%';
@@ -400,11 +389,10 @@ var TUJ_Item = function()
                 td.appendChild(document.createTextNode(' '));
             }
             td.appendChild(libtuj.FormatPrice(std));
-            if (stack)
-            {
+            if (stack) {
                 td = libtuj.ce('td');
                 tr.appendChild(td);
-                td.appendChild(libtuj.FormatPrice(std*stack));
+                td.appendChild(libtuj.FormatPrice(std * stack));
             }
 
             tr = libtuj.ce('tr');
@@ -425,7 +413,10 @@ var TUJ_Item = function()
             td.colSpan = stack ? 2 : 1;
             td.appendChild(libtuj.FormatAge(libtuj.Mean(ages)));
 
-            ages.sort(function(a,b) { return a - b; });
+            ages.sort(function (a, b)
+            {
+                return a - b;
+            });
 
             tr = libtuj.ce('tr');
             t.appendChild(tr);
@@ -436,11 +427,10 @@ var TUJ_Item = function()
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.colSpan = stack ? 2 : 1;
-            td.appendChild(libtuj.FormatAge(ages[ages.length-1]));
+            td.appendChild(libtuj.FormatAge(ages[ages.length - 1]));
         }
 
-        if (data.globalnow.length)
-        {
+        if (data.globalnow.length) {
             var globalStats = {
                 quantity: 0,
                 prices: [],
@@ -449,8 +439,7 @@ var TUJ_Item = function()
 
             var headerPrefix = tuj.region + ' ';
             var row;
-            for (x = 0; row = data.globalnow[x]; x++)
-            {
+            for (x = 0; row = data.globalnow[x]; x++) {
                 globalStats.quantity += row.quantity;
                 globalStats.prices.push(row.price);
                 globalStats.lastseen = (globalStats.lastseen < row.lastseen) ? row.lastseen : globalStats.lastseen;
@@ -472,11 +461,10 @@ var TUJ_Item = function()
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.appendChild(libtuj.FormatQuantity(globalStats.quantity));
-            if (stack)
-            {
+            if (stack) {
                 td = libtuj.ce('td');
                 tr.appendChild(td);
-                td.appendChild(libtuj.FormatQuantity(Math.floor(globalStats.quantity/stack)));
+                td.appendChild(libtuj.FormatQuantity(Math.floor(globalStats.quantity / stack)));
             }
 
             var median;
@@ -489,11 +477,10 @@ var TUJ_Item = function()
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.appendChild(libtuj.FormatPrice(median = libtuj.Median(globalStats.prices)));
-            if (stack)
-            {
+            if (stack) {
                 td = libtuj.ce('td');
                 tr.appendChild(td);
-                td.appendChild(libtuj.FormatPrice(median*stack));
+                td.appendChild(libtuj.FormatPrice(median * stack));
             }
 
             var mn = libtuj.Mean(globalStats.prices);
@@ -506,11 +493,10 @@ var TUJ_Item = function()
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.appendChild(libtuj.FormatPrice(mn));
-            if (stack)
-            {
+            if (stack) {
                 td = libtuj.ce('td');
                 tr.appendChild(td);
-                td.appendChild(libtuj.FormatPrice(mn*stack));
+                td.appendChild(libtuj.FormatPrice(mn * stack));
             }
         }
 
@@ -530,16 +516,15 @@ var TUJ_Item = function()
         td = libtuj.ce('td');
         tr.appendChild(td);
         td.appendChild(data.stats.selltovendor ? libtuj.FormatPrice(data.stats.selltovendor) : document.createTextNode('Cannot'));
-        if (stack)
-        {
-            if (data.stats.selltovendor)
-            {
+        if (stack) {
+            if (data.stats.selltovendor) {
                 td = libtuj.ce('td');
                 tr.appendChild(td);
-                td.appendChild(libtuj.FormatPrice(data.stats.selltovendor*stack));
+                td.appendChild(libtuj.FormatPrice(data.stats.selltovendor * stack));
             }
-            else
+            else {
                 td.colSpan = 2;
+            }
         }
 
         tr = libtuj.ce('tr');
@@ -551,8 +536,7 @@ var TUJ_Item = function()
         td = libtuj.ce('td');
         tr.appendChild(td);
         td.appendChild(libtuj.FormatPrice(Math.max(100, data.stats.selltovendor ? data.stats.selltovendor * 0.6 : 0)));
-        if (stack)
-        {
+        if (stack) {
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.appendChild(libtuj.FormatPrice(Math.max(100, data.stats.selltovendor ? data.stats.selltovendor * 0.6 * stack : 0)));
@@ -566,16 +550,19 @@ var TUJ_Item = function()
         var hcdata = {price: [], priceMaxVal: 0, quantity: [], quantityMaxVal: 0};
 
         var allPrices = [];
-        for (var x = 0; x < data.history.length; x++)
-        {
-            hcdata.price.push([data.history[x].snapshot*1000, data.history[x].price]);
-            hcdata.quantity.push([data.history[x].snapshot*1000, data.history[x].quantity]);
-            if (data.history[x].quantity > hcdata.quantityMaxVal)
+        for (var x = 0; x < data.history.length; x++) {
+            hcdata.price.push([data.history[x].snapshot * 1000, data.history[x].price]);
+            hcdata.quantity.push([data.history[x].snapshot * 1000, data.history[x].quantity]);
+            if (data.history[x].quantity > hcdata.quantityMaxVal) {
                 hcdata.quantityMaxVal = data.history[x].quantity;
+            }
             allPrices.push(data.history[x].price);
         }
 
-        allPrices.sort(function(a,b){ return a - b; });
+        allPrices.sort(function (a, b)
+        {
+            return a - b;
+        });
         var q1 = allPrices[Math.floor(allPrices.length * 0.25)];
         var q3 = allPrices[Math.floor(allPrices.length * 0.75)];
         var iqr = q3 - q1;
@@ -615,49 +602,59 @@ var TUJ_Item = function()
                     }
                 }
             },
-            yAxis: [{
-                title: {
-                    text: 'Market Price',
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].bluePrice
-                    }
+            yAxis: [
+                {
+                    title: {
+                        text: 'Market Price',
+                        style: {
+                            color: tujConstants.siteColors[tuj.colorTheme].bluePrice
+                        }
+                    },
+                    labels: {
+                        enabled: true,
+                        formatter: function ()
+                        {
+                            return '' + libtuj.FormatPrice(this.value, true);
+                        },
+                        style: {
+                            color: tujConstants.siteColors[tuj.colorTheme].text
+                        }
+                    },
+                    min: 0,
+                    max: hcdata.priceMaxVal
                 },
-                labels: {
-                    enabled: true,
-                    formatter: function() { return ''+libtuj.FormatPrice(this.value, true); },
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].text
-                    }
-                },
-                min: 0,
-                max: hcdata.priceMaxVal
-            }, {
-                title: {
-                    text: 'Quantity Available',
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].redQuantity
-                    }
-                },
-                labels: {
-                    enabled: true,
-                    formatter: function() { return ''+libtuj.FormatQuantity(this.value, true); },
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].text
-                    }
-                },
-                opposite: true,
-                min: 0,
-                max: hcdata.quantityMaxVal
-            }],
+                {
+                    title: {
+                        text: 'Quantity Available',
+                        style: {
+                            color: tujConstants.siteColors[tuj.colorTheme].redQuantity
+                        }
+                    },
+                    labels: {
+                        enabled: true,
+                        formatter: function ()
+                        {
+                            return '' + libtuj.FormatQuantity(this.value, true);
+                        },
+                        style: {
+                            color: tujConstants.siteColors[tuj.colorTheme].text
+                        }
+                    },
+                    opposite: true,
+                    min: 0,
+                    max: hcdata.quantityMaxVal
+                }
+            ],
             legend: {
                 enabled: false
             },
             tooltip: {
                 shared: true,
-                formatter: function() {
-                    var tr = '<b>'+Highcharts.dateFormat('%a %b %d, %I:%M%P', this.x)+'</b>';
-                    tr += '<br><span style="color: #000099">Market Price: '+libtuj.FormatPrice(this.points[0].y, true)+'</span>';
-                    tr += '<br><span style="color: #990000">Quantity: '+libtuj.FormatQuantity(this.points[1].y, true)+'</span>';
+                formatter: function ()
+                {
+                    var tr = '<b>' + Highcharts.dateFormat('%a %b %d, %I:%M%P', this.x) + '</b>';
+                    tr += '<br><span style="color: #000099">Market Price: ' + libtuj.FormatPrice(this.points[0].y, true) + '</span>';
+                    tr += '<br><span style="color: #990000">Quantity: ' + libtuj.FormatQuantity(this.points[1].y, true) + '</span>';
                     return tr;
                     // &lt;br/&gt;&lt;span style="color: #990000"&gt;Quantity: '+this.points[1].y+'&lt;/span&gt;<xsl:if test="itemgraphs/d[@matsprice != '']">&lt;br/&gt;&lt;span style="color: #999900"&gt;Materials Price: '+this.points[2].y.toFixed(2)+'g&lt;/span&gt;</xsl:if>';
                 }
@@ -681,20 +678,23 @@ var TUJ_Item = function()
                     }
                 }
             },
-            series: [{
-                type: 'area',
-                name: 'Market Price',
-                color: tujConstants.siteColors[tuj.colorTheme].bluePrice,
-                lineColor: tujConstants.siteColors[tuj.colorTheme].bluePrice,
-                fillColor: tujConstants.siteColors[tuj.colorTheme].bluePriceFill,
-                data: hcdata.price
-            },{
-                type: 'line',
-                name: 'Quantity Available',
-                yAxis: 1,
-                color: tujConstants.siteColors[tuj.colorTheme].redQuantity,
-                data: hcdata.quantity
-            }]
+            series: [
+                {
+                    type: 'area',
+                    name: 'Market Price',
+                    color: tujConstants.siteColors[tuj.colorTheme].bluePrice,
+                    lineColor: tujConstants.siteColors[tuj.colorTheme].bluePrice,
+                    fillColor: tujConstants.siteColors[tuj.colorTheme].bluePriceFill,
+                    data: hcdata.price
+                },
+                {
+                    type: 'line',
+                    name: 'Quantity Available',
+                    yAxis: 1,
+                    color: tujConstants.siteColors[tuj.colorTheme].redQuantity,
+                    data: hcdata.quantity
+                }
+            ]
         });
     }
 
@@ -705,28 +705,32 @@ var TUJ_Item = function()
         var allPrices = [], dt, dtParts;
         var offset = (new Date()).getTimezoneOffset() * 60 * 1000;
         var earliestDate = Date.now();
-        for (var x = 0; x < data.monthly.length; x++)
-        {
+        for (var x = 0; x < data.monthly.length; x++) {
             dtParts = data.monthly[x].date.split('-');
-            dt = Date.UTC(dtParts[0], parseInt(dtParts[1],10)-1, dtParts[2]) + offset;
-            if (dt < earliestDate)
+            dt = Date.UTC(dtParts[0], parseInt(dtParts[1], 10) - 1, dtParts[2]) + offset;
+            if (dt < earliestDate) {
                 earliestDate = dt;
+            }
             hcdata.price.push([dt, data.monthly[x].silver * 100]);
             hcdata.quantity.push([dt, data.monthly[x].quantity]);
-            if (data.monthly[x].quantity > hcdata.quantityMaxVal)
+            if (data.monthly[x].quantity > hcdata.quantityMaxVal) {
                 hcdata.quantityMaxVal = data.monthly[x].quantity;
+            }
             allPrices.push(data.monthly[x].silver * 100);
         }
-        for (var x = 0; x < data.globalmonthly.length; x++)
-        {
+        for (var x = 0; x < data.globalmonthly.length; x++) {
             dtParts = data.globalmonthly[x].date.split('-');
-            dt = Date.UTC(dtParts[0], parseInt(dtParts[1],10)-1, dtParts[2]) + offset;
-            if (dt < earliestDate)
+            dt = Date.UTC(dtParts[0], parseInt(dtParts[1], 10) - 1, dtParts[2]) + offset;
+            if (dt < earliestDate) {
                 continue;
+            }
             hcdata.globalprice.push([dt, data.globalmonthly[x].silver * 100]);
         }
 
-        allPrices.sort(function(a,b){ return a - b; });
+        allPrices.sort(function (a, b)
+        {
+            return a - b;
+        });
         var q1 = allPrices[Math.floor(allPrices.length * 0.25)];
         var q3 = allPrices[Math.floor(allPrices.length * 0.75)];
         var iqr = q3 - q1;
@@ -766,53 +770,66 @@ var TUJ_Item = function()
                     }
                 }
             },
-            yAxis: [{
-                title: {
-                    text: 'Market Price',
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].bluePrice
-                    }
+            yAxis: [
+                {
+                    title: {
+                        text: 'Market Price',
+                        style: {
+                            color: tujConstants.siteColors[tuj.colorTheme].bluePrice
+                        }
+                    },
+                    labels: {
+                        enabled: true,
+                        formatter: function ()
+                        {
+                            return '' + libtuj.FormatPrice(this.value, true);
+                        },
+                        style: {
+                            color: tujConstants.siteColors[tuj.colorTheme].text
+                        }
+                    },
+                    min: 0,
+                    max: hcdata.priceMaxVal
                 },
-                labels: {
-                    enabled: true,
-                    formatter: function() { return ''+libtuj.FormatPrice(this.value, true); },
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].text
-                    }
-                },
-                min: 0,
-                max: hcdata.priceMaxVal
-            }, {
-                title: {
-                    text: 'Quantity Available',
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].redQuantity
-                    }
-                },
-                labels: {
-                    enabled: true,
-                    formatter: function() { return ''+libtuj.FormatQuantity(this.value, true); },
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].text
-                    }
-                },
-                opposite: true,
-                min: 0,
-                max: hcdata.quantityMaxVal
-            }],
+                {
+                    title: {
+                        text: 'Quantity Available',
+                        style: {
+                            color: tujConstants.siteColors[tuj.colorTheme].redQuantity
+                        }
+                    },
+                    labels: {
+                        enabled: true,
+                        formatter: function ()
+                        {
+                            return '' + libtuj.FormatQuantity(this.value, true);
+                        },
+                        style: {
+                            color: tujConstants.siteColors[tuj.colorTheme].text
+                        }
+                    },
+                    opposite: true,
+                    min: 0,
+                    max: hcdata.quantityMaxVal
+                }
+            ],
             legend: {
                 enabled: false
             },
             tooltip: {
                 shared: true,
-                formatter: function() {
-                    var tr = '<b>'+Highcharts.dateFormat('%a %b %d', this.x)+'</b>';
-                    if (this.points[1])
-                        tr += '<br><span style="color: #000099">Market Price: '+libtuj.FormatPrice(this.points[1].y, true)+'</span>';
-                    if (this.points[0])
-                        tr += '<br><span style="color: #009900">Region Price: '+libtuj.FormatPrice(this.points[0].y, true)+'</span>';
-                    if (this.points[2])
-                        tr += '<br><span style="color: #990000">Quantity: '+libtuj.FormatQuantity(this.points[2].y, true)+'</span>';
+                formatter: function ()
+                {
+                    var tr = '<b>' + Highcharts.dateFormat('%a %b %d', this.x) + '</b>';
+                    if (this.points[1]) {
+                        tr += '<br><span style="color: #000099">Market Price: ' + libtuj.FormatPrice(this.points[1].y, true) + '</span>';
+                    }
+                    if (this.points[0]) {
+                        tr += '<br><span style="color: #009900">Region Price: ' + libtuj.FormatPrice(this.points[0].y, true) + '</span>';
+                    }
+                    if (this.points[2]) {
+                        tr += '<br><span style="color: #990000">Quantity: ' + libtuj.FormatQuantity(this.points[2].y, true) + '</span>';
+                    }
                     return tr;
                     // &lt;br/&gt;&lt;span style="color: #990000"&gt;Quantity: '+this.points[1].y+'&lt;/span&gt;<xsl:if test="itemgraphs/d[@matsprice != '']">&lt;br/&gt;&lt;span style="color: #999900"&gt;Materials Price: '+this.points[2].y.toFixed(2)+'g&lt;/span&gt;</xsl:if>';
                 }
@@ -836,27 +853,31 @@ var TUJ_Item = function()
                     }
                 }
             },
-            series: [{
-                type: 'area',
-                name: 'Market Price',
-                color: tujConstants.siteColors[tuj.colorTheme].greenPrice,
-                lineColor: tujConstants.siteColors[tuj.colorTheme].greenPrice,
-                fillColor: tujConstants.siteColors[tuj.colorTheme].greenPriceFill,
-                data: hcdata.globalprice
-            },{
-                type: 'area',
-                name: 'Market Price',
-                color: tujConstants.siteColors[tuj.colorTheme].bluePrice,
-                lineColor: tujConstants.siteColors[tuj.colorTheme].bluePrice,
-                fillColor: tujConstants.siteColors[tuj.colorTheme].bluePriceFillAlpha,
-                data: hcdata.price
-            },{
-                type: 'line',
-                name: 'Quantity Available',
-                yAxis: 1,
-                color: tujConstants.siteColors[tuj.colorTheme].redQuantity,
-                data: hcdata.quantity
-            }]
+            series: [
+                {
+                    type: 'area',
+                    name: 'Market Price',
+                    color: tujConstants.siteColors[tuj.colorTheme].greenPrice,
+                    lineColor: tujConstants.siteColors[tuj.colorTheme].greenPrice,
+                    fillColor: tujConstants.siteColors[tuj.colorTheme].greenPriceFill,
+                    data: hcdata.globalprice
+                },
+                {
+                    type: 'area',
+                    name: 'Market Price',
+                    color: tujConstants.siteColors[tuj.colorTheme].bluePrice,
+                    lineColor: tujConstants.siteColors[tuj.colorTheme].bluePrice,
+                    fillColor: tujConstants.siteColors[tuj.colorTheme].bluePriceFillAlpha,
+                    data: hcdata.price
+                },
+                {
+                    type: 'line',
+                    name: 'Quantity Available',
+                    yAxis: 1,
+                    color: tujConstants.siteColors[tuj.colorTheme].redQuantity,
+                    data: hcdata.quantity
+                }
+            ]
         });
     }
 
@@ -867,20 +888,24 @@ var TUJ_Item = function()
         var allPrices = [], dt, dtParts;
         var offset = (new Date()).getTimezoneOffset() * 60 * 1000;
         var earliestDate = Date.now();
-        for (var x = 0; x < data.globalmonthly.length; x++)
-        {
+        for (var x = 0; x < data.globalmonthly.length; x++) {
             dtParts = data.globalmonthly[x].date.split('-');
-            dt = Date.UTC(dtParts[0], parseInt(dtParts[1],10)-1, dtParts[2]) + offset;
-            if (dt < earliestDate)
+            dt = Date.UTC(dtParts[0], parseInt(dtParts[1], 10) - 1, dtParts[2]) + offset;
+            if (dt < earliestDate) {
                 earliestDate = dt;
+            }
             hcdata.price.push([dt, data.globalmonthly[x].silver * 100]);
             hcdata.quantity.push([dt, data.globalmonthly[x].quantity]);
-            if (data.globalmonthly[x].quantity > hcdata.quantityMaxVal)
+            if (data.globalmonthly[x].quantity > hcdata.quantityMaxVal) {
                 hcdata.quantityMaxVal = data.globalmonthly[x].quantity;
+            }
             allPrices.push(data.globalmonthly[x].silver * 100);
         }
 
-        allPrices.sort(function(a,b){ return a - b; });
+        allPrices.sort(function (a, b)
+        {
+            return a - b;
+        });
         var q1 = allPrices[Math.floor(allPrices.length * 0.25)];
         var q3 = allPrices[Math.floor(allPrices.length * 0.75)];
         var iqr = q3 - q1;
@@ -920,51 +945,63 @@ var TUJ_Item = function()
                     }
                 }
             },
-            yAxis: [{
-                title: {
-                    text: 'Market Price',
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].bluePrice
-                    }
+            yAxis: [
+                {
+                    title: {
+                        text: 'Market Price',
+                        style: {
+                            color: tujConstants.siteColors[tuj.colorTheme].bluePrice
+                        }
+                    },
+                    labels: {
+                        enabled: true,
+                        formatter: function ()
+                        {
+                            return '' + libtuj.FormatPrice(this.value, true);
+                        },
+                        style: {
+                            color: tujConstants.siteColors[tuj.colorTheme].text
+                        }
+                    },
+                    min: 0,
+                    max: hcdata.priceMaxVal
                 },
-                labels: {
-                    enabled: true,
-                    formatter: function() { return ''+libtuj.FormatPrice(this.value, true); },
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].text
-                    }
-                },
-                min: 0,
-                max: hcdata.priceMaxVal
-            }, {
-                title: {
-                    text: 'Quantity Available',
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].redQuantity
-                    }
-                },
-                labels: {
-                    enabled: true,
-                    formatter: function() { return ''+libtuj.FormatQuantity(this.value, true); },
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].text
-                    }
-                },
-                opposite: true,
-                min: 0,
-                max: hcdata.quantityMaxVal
-            }],
+                {
+                    title: {
+                        text: 'Quantity Available',
+                        style: {
+                            color: tujConstants.siteColors[tuj.colorTheme].redQuantity
+                        }
+                    },
+                    labels: {
+                        enabled: true,
+                        formatter: function ()
+                        {
+                            return '' + libtuj.FormatQuantity(this.value, true);
+                        },
+                        style: {
+                            color: tujConstants.siteColors[tuj.colorTheme].text
+                        }
+                    },
+                    opposite: true,
+                    min: 0,
+                    max: hcdata.quantityMaxVal
+                }
+            ],
             legend: {
                 enabled: false
             },
             tooltip: {
                 shared: true,
-                formatter: function() {
-                    var tr = '<b>'+Highcharts.dateFormat('%a %b %d', this.x)+'</b>';
-                    if (this.points[0])
-                        tr += '<br><span style="color: #000099">Region Price: '+libtuj.FormatPrice(this.points[0].y, true)+'</span>';
-                    if (this.points[1])
-                        tr += '<br><span style="color: #990000">Quantity: '+libtuj.FormatQuantity(this.points[1].y, true)+'</span>';
+                formatter: function ()
+                {
+                    var tr = '<b>' + Highcharts.dateFormat('%a %b %d', this.x) + '</b>';
+                    if (this.points[0]) {
+                        tr += '<br><span style="color: #000099">Region Price: ' + libtuj.FormatPrice(this.points[0].y, true) + '</span>';
+                    }
+                    if (this.points[1]) {
+                        tr += '<br><span style="color: #990000">Quantity: ' + libtuj.FormatQuantity(this.points[1].y, true) + '</span>';
+                    }
                     return tr;
                     // &lt;br/&gt;&lt;span style="color: #990000"&gt;Quantity: '+this.points[1].y+'&lt;/span&gt;<xsl:if test="itemgraphs/d[@matsprice != '']">&lt;br/&gt;&lt;span style="color: #999900"&gt;Materials Price: '+this.points[2].y.toFixed(2)+'g&lt;/span&gt;</xsl:if>';
                 }
@@ -988,20 +1025,23 @@ var TUJ_Item = function()
                     }
                 }
             },
-            series: [{
-                type: 'area',
-                name: 'Market Price',
-                color: tujConstants.siteColors[tuj.colorTheme].bluePrice,
-                lineColor: tujConstants.siteColors[tuj.colorTheme].bluePrice,
-                fillColor: tujConstants.siteColors[tuj.colorTheme].bluePriceFillAlpha,
-                data: hcdata.price
-            },{
-                type: 'line',
-                name: 'Quantity Available',
-                yAxis: 1,
-                color: tujConstants.siteColors[tuj.colorTheme].redQuantity,
-                data: hcdata.quantity
-            }]
+            series: [
+                {
+                    type: 'area',
+                    name: 'Market Price',
+                    color: tujConstants.siteColors[tuj.colorTheme].bluePrice,
+                    lineColor: tujConstants.siteColors[tuj.colorTheme].bluePrice,
+                    fillColor: tujConstants.siteColors[tuj.colorTheme].bluePriceFillAlpha,
+                    data: hcdata.price
+                },
+                {
+                    type: 'line',
+                    name: 'Quantity Available',
+                    yAxis: 1,
+                    color: tujConstants.siteColors[tuj.colorTheme].redQuantity,
+                    data: hcdata.quantity
+                }
+            ]
         });
     }
 
@@ -1018,12 +1058,12 @@ var TUJ_Item = function()
 
         var allPrices = [], dt, dtParts;
         var offset = (new Date()).getTimezoneOffset() * 60 * 1000;
-        for (var x = 0; x < data.daily.length; x++)
-        {
+        for (var x = 0; x < data.daily.length; x++) {
             dtParts = data.daily[x].date.split('-');
-            dt = Date.UTC(dtParts[0], parseInt(dtParts[1],10)-1, dtParts[2]) + offset;
+            dt = Date.UTC(dtParts[0], parseInt(dtParts[1], 10) - 1, dtParts[2]) + offset;
 
-            hcdata.ohlc.push([dt,
+            hcdata.ohlc.push([
+                dt,
                 data.daily[x].silverstart * 100,
                 data.daily[x].silvermax * 100,
                 data.daily[x].silvermin * 100,
@@ -1035,11 +1075,15 @@ var TUJ_Item = function()
 
             hcdata.quantity.push([dt, data.daily[x].quantityavg]);
             hcdata.quantityRange.push([dt, data.daily[x].quantitymin, data.daily[x].quantitymax]);
-            if (data.daily[x].quantityavg > hcdata.quantityMaxVal)
+            if (data.daily[x].quantityavg > hcdata.quantityMaxVal) {
                 hcdata.quantityMaxVal = data.daily[x].quantityavg;
+            }
         }
 
-        allPrices.sort(function(a,b){ return a - b; });
+        allPrices.sort(function (a, b)
+        {
+            return a - b;
+        });
         var q1 = allPrices[Math.floor(allPrices.length * 0.25)];
         var q3 = allPrices[Math.floor(allPrices.length * 0.75)];
         var iqr = q3 - q1;
@@ -1089,75 +1133,88 @@ var TUJ_Item = function()
                     }
                 }
             },
-            yAxis: [{
-                title: {
-                    text: 'Market Price',
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].bluePrice
-                    }
+            yAxis: [
+                {
+                    title: {
+                        text: 'Market Price',
+                        style: {
+                            color: tujConstants.siteColors[tuj.colorTheme].bluePrice
+                        }
+                    },
+                    labels: {
+                        enabled: true,
+                        formatter: function ()
+                        {
+                            return '' + libtuj.FormatPrice(this.value, true);
+                        },
+                        style: {
+                            color: tujConstants.siteColors[tuj.colorTheme].text
+                        }
+                    },
+                    height: '60%',
+                    min: 0,
+                    max: hcdata.ohlcMaxVal
                 },
-                labels: {
-                    enabled: true,
-                    formatter: function() { return ''+libtuj.FormatPrice(this.value, true); },
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].text
-                    }
-                },
-                height: '60%',
-                min: 0,
-                max: hcdata.ohlcMaxVal
-            }, {
-                title: {
-                    text: 'Quantity Available',
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].redQuantity
-                    }
-                },
-                labels: {
-                    enabled: true,
-                    formatter: function() { return ''+libtuj.FormatQuantity(this.value, true); },
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].text
-                    }
-                },
-                top: '65%',
-                height: '35%',
-                min: 0,
-                max: hcdata.quantityMaxVal,
-                offset: -25
-            }],
+                {
+                    title: {
+                        text: 'Quantity Available',
+                        style: {
+                            color: tujConstants.siteColors[tuj.colorTheme].redQuantity
+                        }
+                    },
+                    labels: {
+                        enabled: true,
+                        formatter: function ()
+                        {
+                            return '' + libtuj.FormatQuantity(this.value, true);
+                        },
+                        style: {
+                            color: tujConstants.siteColors[tuj.colorTheme].text
+                        }
+                    },
+                    top: '65%',
+                    height: '35%',
+                    min: 0,
+                    max: hcdata.quantityMaxVal,
+                    offset: -25
+                }
+            ],
             legend: {
                 enabled: false
             },
             tooltip: {
                 shared: true,
-                formatter: function() {
-                    var tr = '<b>'+Highcharts.dateFormat('%a %b %d', this.x)+'</b>';
+                formatter: function ()
+                {
+                    var tr = '<b>' + Highcharts.dateFormat('%a %b %d', this.x) + '</b>';
                     tr += '<br><table class="highcharts-tuj-tooltip" style="color: #000099;" cellspacing="0" cellpadding="0">';
-                    tr += '<tr><td>Open:</td><td align="right">'+libtuj.FormatPrice(this.points[0].point.open, true)+'</td></tr>';
-                    tr += '<tr><td>High:</td><td align="right">'+libtuj.FormatPrice(this.points[0].point.high, true)+'</td></tr>';
-                    tr += '<tr style="color: #009900"><td>Avg:</td><td align="right">'+libtuj.FormatPrice(this.points[3].y, true)+'</td></tr>';
-                    tr += '<tr><td>Low:</td><td align="right">'+libtuj.FormatPrice(this.points[0].point.low, true)+'</td></tr>';
-                    tr += '<tr><td>Close:</td><td align="right">'+libtuj.FormatPrice(this.points[0].point.close, true)+'</td></tr>';
+                    tr += '<tr><td>Open:</td><td align="right">' + libtuj.FormatPrice(this.points[0].point.open, true) + '</td></tr>';
+                    tr += '<tr><td>High:</td><td align="right">' + libtuj.FormatPrice(this.points[0].point.high, true) + '</td></tr>';
+                    tr += '<tr style="color: #009900"><td>Avg:</td><td align="right">' + libtuj.FormatPrice(this.points[3].y, true) + '</td></tr>';
+                    tr += '<tr><td>Low:</td><td align="right">' + libtuj.FormatPrice(this.points[0].point.low, true) + '</td></tr>';
+                    tr += '<tr><td>Close:</td><td align="right">' + libtuj.FormatPrice(this.points[0].point.close, true) + '</td></tr>';
                     tr += '</table>';
                     tr += '<br><table class="highcharts-tuj-tooltip" style="color: #FF3333;" cellspacing="0" cellpadding="0">';
-                    tr += '<tr><td>Min&nbsp;Qty:</td><td align="right">'+libtuj.FormatQuantity(this.points[2].point.low, true)+'</td></tr>';
-                    tr += '<tr><td>Avg&nbsp;Qty:</td><td align="right">'+libtuj.FormatQuantity(this.points[1].y, true)+'</td></tr>';
-                    tr += '<tr><td>Max&nbsp;Qty:</td><td align="right">'+libtuj.FormatQuantity(this.points[2].point.high, true)+'</td></tr>';
+                    tr += '<tr><td>Min&nbsp;Qty:</td><td align="right">' + libtuj.FormatQuantity(this.points[2].point.low, true) + '</td></tr>';
+                    tr += '<tr><td>Avg&nbsp;Qty:</td><td align="right">' + libtuj.FormatQuantity(this.points[1].y, true) + '</td></tr>';
+                    tr += '<tr><td>Max&nbsp;Qty:</td><td align="right">' + libtuj.FormatQuantity(this.points[2].point.high, true) + '</td></tr>';
                     tr += '</table>';
                     return tr;
                     // &lt;br/&gt;&lt;span style="color: #990000"&gt;Quantity: '+this.points[1].y+'&lt;/span&gt;<xsl:if test="itemgraphs/d[@matsprice != '']">&lt;br/&gt;&lt;span style="color: #999900"&gt;Materials Price: '+this.points[2].y.toFixed(2)+'g&lt;/span&gt;</xsl:if>';
                 },
                 useHTML: true,
-                positioner: function(w,h,p)
+                positioner: function (w, h, p)
                 {
                     var x = p.plotX, y = p.plotY;
-                    if (y < 0)
+                    if (y < 0) {
                         y = 0;
-                    if (x < (this.chart.plotWidth/2))
-                        x += w/2;
-                    else
-                        x -= w*1.25;
+                    }
+                    if (x < (this.chart.plotWidth / 2)) {
+                        x += w / 2;
+                    }
+                    else {
+                        x -= w * 1.25;
+                    }
                     return {x: x, y: y};
                 }
             },
@@ -1180,85 +1237,97 @@ var TUJ_Item = function()
                     }
                 }
             },
-            series: [{
-                type: 'candlestick',
-                name: 'Market Price',
-                upColor: tujConstants.siteColors[tuj.colorTheme].background,
-                color: tujConstants.siteColors[tuj.colorTheme].bluePriceFill,
-                lineColor: tujConstants.siteColors[tuj.colorTheme].bluePrice,
-                data: hcdata.ohlc
-            },{
-                type: 'line',
-                name: 'Quantity',
-                yAxis: 1,
-                color: tujConstants.siteColors[tuj.colorTheme].redQuantity,
-                data: hcdata.quantity,
-                lineWidth: 2
-            },{
-                type: 'arearange',
-                name: 'Quantity Range',
-                yAxis: 1,
-                color: tujConstants.siteColors[tuj.colorTheme].redQuantityFillLight,
-                data: hcdata.quantityRange
-            },{
-                type: 'line',
-                name: 'Market Price',
-                color: tujConstants.siteColors[tuj.colorTheme].greenPriceDim,
-                data: hcdata.price
-            }]
+            series: [
+                {
+                    type: 'candlestick',
+                    name: 'Market Price',
+                    upColor: tujConstants.siteColors[tuj.colorTheme].background,
+                    color: tujConstants.siteColors[tuj.colorTheme].bluePriceFill,
+                    lineColor: tujConstants.siteColors[tuj.colorTheme].bluePrice,
+                    data: hcdata.ohlc
+                },
+                {
+                    type: 'line',
+                    name: 'Quantity',
+                    yAxis: 1,
+                    color: tujConstants.siteColors[tuj.colorTheme].redQuantity,
+                    data: hcdata.quantity,
+                    lineWidth: 2
+                },
+                {
+                    type: 'arearange',
+                    name: 'Quantity Range',
+                    yAxis: 1,
+                    color: tujConstants.siteColors[tuj.colorTheme].redQuantityFillLight,
+                    data: hcdata.quantityRange
+                },
+                {
+                    type: 'line',
+                    name: 'Market Price',
+                    color: tujConstants.siteColors[tuj.colorTheme].greenPriceDim,
+                    data: hcdata.price
+                }
+            ]
         });
     }
 
     function ItemPriceHeatMap(data, dest)
     {
         var hcdata = {minVal: undefined, maxVal: 0, days: {}, heat: [], categories: {
-            x: ['Midnight - 3am','3am - 6am','6am - 9am','9am - Noon','Noon - 3pm','3pm - 6pm','6pm - 9pm','9pm - Midnight'],
-            y: ['Saturday','Friday','Thursday','Wednesday','Tuesday','Monday','Sunday']
+            x: [
+                'Midnight - 3am', '3am - 6am', '6am - 9am', '9am - Noon', 'Noon - 3pm', '3pm - 6pm', '6pm - 9pm',
+                '9pm - Midnight'
+            ],
+            y: ['Saturday', 'Friday', 'Thursday', 'Wednesday', 'Tuesday', 'Monday', 'Sunday']
         }};
 
-        var CalcAvg = function(a)
+        var CalcAvg = function (a)
         {
-            if (a.length == 0)
+            if (a.length == 0) {
                 return null;
+            }
             var s = 0;
-            for (var x = 0; x < a.length; x++)
+            for (var x = 0; x < a.length; x++) {
                 s += a[x];
-            return s/a.length;
+            }
+            return s / a.length;
         }
 
         var d, wkdy, hr, lastprice;
-        for (wkdy = 0; wkdy <= 6; wkdy++)
-        {
+        for (wkdy = 0; wkdy <= 6; wkdy++) {
             hcdata.days[wkdy] = {};
-            for (hr = 0; hr <= 7; hr++)
+            for (hr = 0; hr <= 7; hr++) {
                 hcdata.days[wkdy][hr] = [];
+            }
         }
 
-        for (var x = 0; x < data.history.length; x++)
-        {
-            if (typeof lastprice == 'undefined')
+        for (var x = 0; x < data.history.length; x++) {
+            if (typeof lastprice == 'undefined') {
                 lastprice = data.history[x].price;
+            }
 
-            var d = new Date(data.history[x].snapshot*1000);
-            wkdy = 6-d.getDay();
-            hr = Math.floor(d.getHours()/3);
+            var d = new Date(data.history[x].snapshot * 1000);
+            wkdy = 6 - d.getDay();
+            hr = Math.floor(d.getHours() / 3);
             hcdata.days[wkdy][hr].push(data.history[x].price);
         }
 
         var p;
-        for (wkdy = 0; wkdy <= 6; wkdy++)
-            for (hr = 0; hr <= 7; hr++)
-            {
-                if (hcdata.days[wkdy][hr].length == 0)
+        for (wkdy = 0; wkdy <= 6; wkdy++) {
+            for (hr = 0; hr <= 7; hr++) {
+                if (hcdata.days[wkdy][hr].length == 0) {
                     p = lastprice;
-                else
+                }
+                else {
                     p = Math.round(CalcAvg(hcdata.days[wkdy][hr]));
+                }
 
                 lastprice = p;
-                hcdata.heat.push([hr, wkdy, p/10000]);
-                hcdata.minVal = (typeof hcdata.minVal == 'undefined' || hcdata.minVal > p/10000) ? p/10000 : hcdata.minVal;
-                hcdata.maxVal = hcdata.maxVal < p/10000 ? p/10000 : hcdata.maxVal;
+                hcdata.heat.push([hr, wkdy, p / 10000]);
+                hcdata.minVal = (typeof hcdata.minVal == 'undefined' || hcdata.minVal > p / 10000) ? p / 10000 : hcdata.minVal;
+                hcdata.maxVal = hcdata.maxVal < p / 10000 ? p / 10000 : hcdata.maxVal;
             }
+        }
 
         $(dest).highcharts({
 
@@ -1305,21 +1374,26 @@ var TUJ_Item = function()
                 enabled: false
             },
 
-            series: [{
-                name: 'Market Price',
-                borderWidth: 1,
-                borderColor: tujConstants.siteColors[tuj.colorTheme].background,
-                data: hcdata.heat,
-                dataLabels: {
-                    enabled: true,
-                    color: tujConstants.siteColors[tuj.colorTheme].data,
-                    style: {
-                        textShadow: 'none',
-                        HcTextStroke: null
-                    },
-                    formatter: function() { return ''+libtuj.FormatPrice(this.point.value*10000, true); }
+            series: [
+                {
+                    name: 'Market Price',
+                    borderWidth: 1,
+                    borderColor: tujConstants.siteColors[tuj.colorTheme].background,
+                    data: hcdata.heat,
+                    dataLabels: {
+                        enabled: true,
+                        color: tujConstants.siteColors[tuj.colorTheme].data,
+                        style: {
+                            textShadow: 'none',
+                            HcTextStroke: null
+                        },
+                        formatter: function ()
+                        {
+                            return '' + libtuj.FormatPrice(this.point.value * 10000, true);
+                        }
+                    }
                 }
-            }]
+            ]
 
         });
     }
@@ -1327,53 +1401,60 @@ var TUJ_Item = function()
     function ItemQuantityHeatMap(data, dest)
     {
         var hcdata = {minVal: undefined, maxVal: 0, days: {}, heat: [], categories: {
-            x: ['Midnight - 3am','3am - 6am','6am - 9am','9am - Noon','Noon - 3pm','3pm - 6pm','6pm - 9pm','9pm - Midnight'],
-            y: ['Saturday','Friday','Thursday','Wednesday','Tuesday','Monday','Sunday']
+            x: [
+                'Midnight - 3am', '3am - 6am', '6am - 9am', '9am - Noon', 'Noon - 3pm', '3pm - 6pm', '6pm - 9pm',
+                '9pm - Midnight'
+            ],
+            y: ['Saturday', 'Friday', 'Thursday', 'Wednesday', 'Tuesday', 'Monday', 'Sunday']
         }};
 
-        var CalcAvg = function(a)
+        var CalcAvg = function (a)
         {
-            if (a.length == 0)
+            if (a.length == 0) {
                 return null;
+            }
             var s = 0;
-            for (var x = 0; x < a.length; x++)
+            for (var x = 0; x < a.length; x++) {
                 s += a[x];
-            return s/a.length;
+            }
+            return s / a.length;
         }
 
         var d, wkdy, hr, lastqty;
-        for (wkdy = 0; wkdy <= 6; wkdy++)
-        {
+        for (wkdy = 0; wkdy <= 6; wkdy++) {
             hcdata.days[wkdy] = {};
-            for (hr = 0; hr <= 7; hr++)
+            for (hr = 0; hr <= 7; hr++) {
                 hcdata.days[wkdy][hr] = [];
+            }
         }
 
-        for (var x = 0; x < data.history.length; x++)
-        {
-            if (typeof lastqty == 'undefined')
+        for (var x = 0; x < data.history.length; x++) {
+            if (typeof lastqty == 'undefined') {
                 lastqty = data.history[x].quantity;
+            }
 
-            var d = new Date(data.history[x].snapshot*1000);
-            wkdy = 6-d.getDay();
-            hr = Math.floor(d.getHours()/3);
+            var d = new Date(data.history[x].snapshot * 1000);
+            wkdy = 6 - d.getDay();
+            hr = Math.floor(d.getHours() / 3);
             hcdata.days[wkdy][hr].push(data.history[x].quantity);
         }
 
         var p;
-        for (wkdy = 0; wkdy <= 6; wkdy++)
-            for (hr = 0; hr <= 7; hr++)
-            {
-                if (hcdata.days[wkdy][hr].length == 0)
+        for (wkdy = 0; wkdy <= 6; wkdy++) {
+            for (hr = 0; hr <= 7; hr++) {
+                if (hcdata.days[wkdy][hr].length == 0) {
                     p = lastqty;
-                else
+                }
+                else {
                     p = Math.round(CalcAvg(hcdata.days[wkdy][hr]));
+                }
 
                 lastqty = p;
                 hcdata.heat.push([hr, wkdy, p]);
                 hcdata.minVal = (typeof hcdata.minVal == 'undefined' || hcdata.minVal > p) ? p : hcdata.minVal;
                 hcdata.maxVal = hcdata.maxVal < p ? p : hcdata.maxVal;
             }
+        }
 
         $(dest).highcharts({
 
@@ -1420,21 +1501,26 @@ var TUJ_Item = function()
                 enabled: false
             },
 
-            series: [{
-                name: 'Quantity',
-                borderWidth: 1,
-                borderColor: tujConstants.siteColors[tuj.colorTheme].background,
-                data: hcdata.heat,
-                dataLabels: {
-                    enabled: true,
-                    color: tujConstants.siteColors[tuj.colorTheme].data,
-                    style: {
-                        textShadow: 'none',
-                        HcTextStroke: null
-                    },
-                    formatter: function() { return ''+libtuj.FormatQuantity(this.point.value, true); }
+            series: [
+                {
+                    name: 'Quantity',
+                    borderWidth: 1,
+                    borderColor: tujConstants.siteColors[tuj.colorTheme].background,
+                    data: hcdata.heat,
+                    dataLabels: {
+                        enabled: true,
+                        color: tujConstants.siteColors[tuj.colorTheme].data,
+                        style: {
+                            textShadow: 'none',
+                            HcTextStroke: null
+                        },
+                        formatter: function ()
+                        {
+                            return '' + libtuj.FormatQuantity(this.point.value, true);
+                        }
+                    }
                 }
-            }]
+            ]
 
         });
     }
@@ -1442,53 +1528,60 @@ var TUJ_Item = function()
     function ItemAgeHeatMap(data, dest)
     {
         var hcdata = {minVal: undefined, maxVal: 0, days: {}, heat: [], categories: {
-            x: ['Midnight - 3am','3am - 6am','6am - 9am','9am - Noon','Noon - 3pm','3pm - 6pm','6pm - 9pm','9pm - Midnight'],
-            y: ['Saturday','Friday','Thursday','Wednesday','Tuesday','Monday','Sunday']
+            x: [
+                'Midnight - 3am', '3am - 6am', '6am - 9am', '9am - Noon', 'Noon - 3pm', '3pm - 6pm', '6pm - 9pm',
+                '9pm - Midnight'
+            ],
+            y: ['Saturday', 'Friday', 'Thursday', 'Wednesday', 'Tuesday', 'Monday', 'Sunday']
         }};
 
-        var CalcAvg = function(a)
+        var CalcAvg = function (a)
         {
-            if (a.length == 0)
+            if (a.length == 0) {
                 return null;
+            }
             var s = 0;
-            for (var x = 0; x < a.length; x++)
+            for (var x = 0; x < a.length; x++) {
                 s += a[x];
-            return s/a.length;
+            }
+            return s / a.length;
         }
 
         var d, wkdy, hr, lastqty;
-        for (wkdy = 0; wkdy <= 6; wkdy++)
-        {
+        for (wkdy = 0; wkdy <= 6; wkdy++) {
             hcdata.days[wkdy] = {};
-            for (hr = 0; hr <= 7; hr++)
+            for (hr = 0; hr <= 7; hr++) {
                 hcdata.days[wkdy][hr] = [];
+            }
         }
 
-        for (var x = 0; x < data.history.length; x++)
-        {
-            if (typeof lastqty == 'undefined')
+        for (var x = 0; x < data.history.length; x++) {
+            if (typeof lastqty == 'undefined') {
                 lastqty = data.history[x].quantity;
+            }
 
-            var d = new Date(data.history[x].snapshot*1000);
-            wkdy = 6-d.getDay();
-            hr = Math.floor(d.getHours()/3);
+            var d = new Date(data.history[x].snapshot * 1000);
+            wkdy = 6 - d.getDay();
+            hr = Math.floor(d.getHours() / 3);
             hcdata.days[wkdy][hr].push(data.history[x].age);
         }
 
         var p;
-        for (wkdy = 0; wkdy <= 6; wkdy++)
-            for (hr = 0; hr <= 7; hr++)
-            {
-                if (hcdata.days[wkdy][hr].length == 0)
+        for (wkdy = 0; wkdy <= 6; wkdy++) {
+            for (hr = 0; hr <= 7; hr++) {
+                if (hcdata.days[wkdy][hr].length == 0) {
                     p = lastqty;
-                else
+                }
+                else {
                     p = Math.round(CalcAvg(hcdata.days[wkdy][hr]));
+                }
 
                 lastqty = p;
                 hcdata.heat.push([hr, wkdy, p]);
                 hcdata.minVal = (typeof hcdata.minVal == 'undefined' || hcdata.minVal > p) ? p : hcdata.minVal;
                 hcdata.maxVal = hcdata.maxVal < p ? p : hcdata.maxVal;
             }
+        }
 
         $(dest).highcharts({
 
@@ -1535,21 +1628,26 @@ var TUJ_Item = function()
                 enabled: false
             },
 
-            series: [{
-                name: 'Age',
-                borderWidth: 1,
-                borderColor: tujConstants.siteColors[tuj.colorTheme].background,
-                data: hcdata.heat,
-                dataLabels: {
-                    enabled: true,
-                    color: tujConstants.siteColors[tuj.colorTheme].data,
-                    style: {
-                        textShadow: 'none',
-                        HcTextStroke: null
-                    },
-                    formatter: function() { return ''+libtuj.FormatAge(this.point.value, true); }
+            series: [
+                {
+                    name: 'Age',
+                    borderWidth: 1,
+                    borderColor: tujConstants.siteColors[tuj.colorTheme].background,
+                    data: hcdata.heat,
+                    dataLabels: {
+                        enabled: true,
+                        color: tujConstants.siteColors[tuj.colorTheme].data,
+                        style: {
+                            textShadow: 'none',
+                            HcTextStroke: null
+                        },
+                        formatter: function ()
+                        {
+                            return '' + libtuj.FormatAge(this.point.value, true);
+                        }
+                    }
                 }
-            }]
+            ]
 
         });
     }
@@ -1559,11 +1657,13 @@ var TUJ_Item = function()
         var hcdata = {categories: [], price: [], quantity: [], lastseen: [], houses: []};
         var allPrices = [];
         var allQuantities = [];
-        data.globalnow.sort(function(a,b){ return (b.price - a.price) || (b.quantity - a.quantity); });
+        data.globalnow.sort(function (a, b)
+        {
+            return (b.price - a.price) || (b.quantity - a.quantity);
+        });
 
         var isThisHouse = false;
-        for (var x = 0; x < data.globalnow.length; x++)
-        {
+        for (var x = 0; x < data.globalnow.length; x++) {
             isThisHouse = data.globalnow[x].house == tuj.realms[params.realm].house;
 
             hcdata.categories.push(data.globalnow[x].house);
@@ -1572,7 +1672,8 @@ var TUJ_Item = function()
                 y: data.globalnow[x].price,
                 dataLabels: {
                     enabled: true,
-                    formatter: function() {
+                    formatter: function ()
+                    {
                         return '<b>' + tuj.realms[params.realm].name + '</b>';
                     },
                     backgroundColor: '#FFFFFF',
@@ -1587,28 +1688,36 @@ var TUJ_Item = function()
             allPrices.push(data.globalnow[x].price);
         }
 
-        allPrices.sort(function(a,b){ return a - b; });
+        allPrices.sort(function (a, b)
+        {
+            return a - b;
+        });
         var q1 = allPrices[Math.floor(allPrices.length * 0.25)];
         var q3 = allPrices[Math.floor(allPrices.length * 0.75)];
         var iqr = q3 - q1;
         hcdata.priceMaxVal = Math.min(allPrices.pop(), q3 + (2.5 * iqr));
 
-        allQuantities.sort(function(a,b){ return a - b; });
+        allQuantities.sort(function (a, b)
+        {
+            return a - b;
+        });
         var q1 = allQuantities[Math.floor(allQuantities.length * 0.25)];
         var q3 = allQuantities[Math.floor(allQuantities.length * 0.75)];
         var iqr = q3 - q1;
         hcdata.quantityMaxVal = q3 + (1.5 * iqr);
 
-        var PriceClick = function(houses, evt){
+        var PriceClick = function (houses, evt)
+        {
             var realm;
-            for (var x in tuj.realms)
-                if (tuj.realms.hasOwnProperty(x) && tuj.realms[x].house == houses[evt.point.x])
-                {
+            for (var x in tuj.realms) {
+                if (tuj.realms.hasOwnProperty(x) && tuj.realms[x].house == houses[evt.point.x]) {
                     realm = tuj.realms[x].id;
                     break;
                 }
-            if (realm)
+            }
+            if (realm) {
                 tuj.SetParams({realm: realm});
+            }
         };
 
         Highcharts.setOptions({
@@ -1638,51 +1747,61 @@ var TUJ_Item = function()
                     enabled: false
                 }
             },
-            yAxis: [{
-                title: {
-                    text: 'Market Price',
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].bluePrice
+            yAxis: [
+                {
+                    title: {
+                        text: 'Market Price',
+                        style: {
+                            color: tujConstants.siteColors[tuj.colorTheme].bluePrice
+                        }
+                    },
+                    min: 0,
+                    max: hcdata.priceMaxVal,
+                    labels: {
+                        enabled: true,
+                        formatter: function ()
+                        {
+                            return '' + libtuj.FormatPrice(this.value, true);
+                        },
+                        style: {
+                            color: tujConstants.siteColors[tuj.colorTheme].text
+                        }
                     }
                 },
-                min: 0,
-                max: hcdata.priceMaxVal,
-                labels: {
-                    enabled: true,
-                    formatter: function() { return ''+libtuj.FormatPrice(this.value, true); },
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].text
-                    }
+                {
+                    title: {
+                        text: 'Quantity',
+                        style: {
+                            color: tujConstants.siteColors[tuj.colorTheme].redQuantity
+                        }
+                    },
+                    min: 0,
+                    max: hcdata.quantityMaxVal,
+                    labels: {
+                        enabled: true,
+                        formatter: function ()
+                        {
+                            return '' + libtuj.FormatQuantity(this.value, true);
+                        },
+                        style: {
+                            color: tujConstants.siteColors[tuj.colorTheme].text
+                        }
+                    },
+                    opposite: true
                 }
-            },{
-                title: {
-                    text: 'Quantity',
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].redQuantity
-                    }
-                },
-                min: 0,
-                max: hcdata.quantityMaxVal,
-                labels: {
-                    enabled: true,
-                    formatter: function() { return ''+libtuj.FormatQuantity(this.value, true); },
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].text
-                    }
-                },
-                opposite: true
-            }],
+            ],
             legend: {
                 enabled: false
             },
             tooltip: {
                 shared: true,
-                formatter: function() {
+                formatter: function ()
+                {
                     var realmNames = libtuj.GetRealmsForHouse(hcdata.houses[this.x], 40);
-                    var tr = '<b>'+realmNames+'</b>';
-                    tr += '<br><span style="color: #000099">Market Price: '+libtuj.FormatPrice(this.points[0].y, true)+'</span>';
-                    tr += '<br><span style="color: #990000">Quantity: '+libtuj.FormatQuantity(this.points[1].y, true)+'</span>';
-                    tr += '<br><span style="color: #990000">Last seen: '+libtuj.FormatDate(hcdata.lastseen[this.x], true)+'</span>';
+                    var tr = '<b>' + realmNames + '</b>';
+                    tr += '<br><span style="color: #000099">Market Price: ' + libtuj.FormatPrice(this.points[0].y, true) + '</span>';
+                    tr += '<br><span style="color: #990000">Quantity: ' + libtuj.FormatQuantity(this.points[1].y, true) + '</span>';
+                    tr += '<br><span style="color: #990000">Last seen: ' + libtuj.FormatDate(hcdata.lastseen[this.x], true) + '</span>';
                     return tr;
                 },
                 useHTML: true
@@ -1706,29 +1825,32 @@ var TUJ_Item = function()
                     }
                 }
             },
-            series: [{
-                type: 'line',
-                name: 'Market Price',
-                color: tujConstants.siteColors[tuj.colorTheme].bluePriceFill,
-                lineColor: tujConstants.siteColors[tuj.colorTheme].bluePrice,
-                data: hcdata.price,
-                yAxis: 0,
-                zIndex: 2,
-                events: {
-                    click: PriceClick.bind(null, hcdata.houses)
+            series: [
+                {
+                    type: 'line',
+                    name: 'Market Price',
+                    color: tujConstants.siteColors[tuj.colorTheme].bluePriceFill,
+                    lineColor: tujConstants.siteColors[tuj.colorTheme].bluePrice,
+                    data: hcdata.price,
+                    yAxis: 0,
+                    zIndex: 2,
+                    events: {
+                        click: PriceClick.bind(null, hcdata.houses)
+                    }
+                },
+                {
+                    type: 'column',
+                    name: 'Quantity',
+                    color: tujConstants.siteColors[tuj.colorTheme].redQuantityFill,
+                    borderColor: tujConstants.siteColors[tuj.colorTheme].background,
+                    data: hcdata.quantity,
+                    zIndex: 1,
+                    yAxis: 1,
+                    events: {
+                        click: PriceClick.bind(null, hcdata.houses)
+                    }
                 }
-            },{
-                type: 'column',
-                name: 'Quantity',
-                color: tujConstants.siteColors[tuj.colorTheme].redQuantityFill,
-                borderColor: tujConstants.siteColors[tuj.colorTheme].background,
-                data: hcdata.quantity,
-                zIndex: 1,
-                yAxis: 1,
-                events: {
-                    click: PriceClick.bind(null, hcdata.houses)
-                }
-            }]
+            ]
         });
     }
 
@@ -1738,8 +1860,7 @@ var TUJ_Item = function()
         var allPrices = [];
 
         var o;
-        for (var x = 0; x < data.globalnow.length; x++)
-        {
+        for (var x = 0; x < data.globalnow.length; x++) {
             if (data.globalnow[x].house == tuj.realms[params.realm].house) {
                 o = {
                     x: libtuj.GetHousePopulation(data.globalnow[x].house),
@@ -1769,22 +1890,27 @@ var TUJ_Item = function()
             allPrices.push(data.globalnow[x].price);
         }
 
-        allPrices.sort(function(a,b){ return a - b; });
+        allPrices.sort(function (a, b)
+        {
+            return a - b;
+        });
         var q1 = allPrices[Math.floor(allPrices.length * 0.25)];
         var q3 = allPrices[Math.floor(allPrices.length * 0.75)];
         var iqr = q3 - q1;
         hcdata.priceMaxVal = Math.min(allPrices.pop(), q3 + (2.5 * iqr));
 
-        var PriceClick = function(houses, evt){
+        var PriceClick = function (houses, evt)
+        {
             var realm;
-            for (var x in tuj.realms)
-                if (tuj.realms.hasOwnProperty(x) && tuj.realms[x].house == houses[evt.point.id])
-                {
+            for (var x in tuj.realms) {
+                if (tuj.realms.hasOwnProperty(x) && tuj.realms[x].house == houses[evt.point.id]) {
                     realm = tuj.realms[x].id;
                     break;
                 }
-            if (realm)
+            }
+            if (realm) {
                 tuj.SetParams({realm: realm});
+            }
         };
 
         Highcharts.setOptions({
@@ -1831,7 +1957,10 @@ var TUJ_Item = function()
                 max: hcdata.priceMaxVal,
                 labels: {
                     enabled: true,
-                    formatter: function() { return ''+libtuj.FormatPrice(this.value, true); },
+                    formatter: function ()
+                    {
+                        return '' + libtuj.FormatPrice(this.value, true);
+                    },
                     style: {
                         color: tujConstants.siteColors[tuj.colorTheme].text
                     }
@@ -1842,12 +1971,13 @@ var TUJ_Item = function()
             },
             tooltip: {
                 shared: true,
-                formatter: function() {
+                formatter: function ()
+                {
                     var realmNames = libtuj.GetRealmsForHouse(hcdata.houses[this.point.id], 40);
-                    var tr = '<b>'+realmNames+'</b>';
-                    tr += '<br><span style="color: #000099">Market Price: '+libtuj.FormatPrice(this.point.y, true)+'</span>';
-                    tr += '<br><span style="color: #990000">Quantity: '+libtuj.FormatQuantity(hcdata.quantity[this.point.id], true)+'</span>';
-                    tr += '<br><span style="color: #990000">Last seen: '+libtuj.FormatDate(hcdata.lastseen[this.point.id], true)+'</span>';
+                    var tr = '<b>' + realmNames + '</b>';
+                    tr += '<br><span style="color: #000099">Market Price: ' + libtuj.FormatPrice(this.point.y, true) + '</span>';
+                    tr += '<br><span style="color: #990000">Quantity: ' + libtuj.FormatQuantity(hcdata.quantity[this.point.id], true) + '</span>';
+                    tr += '<br><span style="color: #990000">Last seen: ' + libtuj.FormatDate(hcdata.lastseen[this.point.id], true) + '</span>';
                     return tr;
                 },
                 useHTML: true
@@ -1867,13 +1997,15 @@ var TUJ_Item = function()
                     }
                 }
             },
-            series: [{
-                name: 'Market Price',
-                color: tujConstants.siteColors[tuj.colorTheme].bluePrice,
-                data: hcdata.price,
-                yAxis: 0,
-                zIndex: 2
-            }]
+            series: [
+                {
+                    name: 'Market Price',
+                    color: tujConstants.siteColors[tuj.colorTheme].bluePrice,
+                    data: hcdata.price,
+                    yAxis: 0,
+                    zIndex: 2
+                }
+            ]
         });
     }
 
@@ -1884,7 +2016,7 @@ var TUJ_Item = function()
             hasRand |= !!auc.rand;
         }
 
-        var t,tr,td;
+        var t, tr, td;
         t = libtuj.ce('table');
         t.className = 'auctionlist';
 
@@ -1920,7 +2052,8 @@ var TUJ_Item = function()
         td.className = 'seller';
         $(td).text('Seller');
 
-        data.auctions.sort(function(a,b){
+        data.auctions.sort(function (a, b)
+        {
             return Math.floor(a.buy / a.quantity) - Math.floor(b.buy / b.quantity) ||
                 Math.floor(a.bid / a.quantity) - Math.floor(b.bid / b.quantity) ||
                 a.quantity - b.quantity ||
@@ -1929,8 +2062,7 @@ var TUJ_Item = function()
         });
 
         var s, a, stackable = data.stats.stacksize > 1;
-        for (x = 0; auc = data.auctions[x]; x++)
-        {
+        for (x = 0; auc = data.auctions[x]; x++) {
             tr = libtuj.ce('tr');
             t.appendChild(tr);
 
@@ -1956,49 +2088,54 @@ var TUJ_Item = function()
             tr.appendChild(td);
             td.className = 'price';
             s = libtuj.FormatFullPrice(auc.bid / auc.quantity);
-            if (stackable && auc.quantity > 1)
-            {
+            if (stackable && auc.quantity > 1) {
                 a = libtuj.ce('abbr');
                 a.title = libtuj.FormatFullPrice(auc.bid, true) + ' total';
                 a.appendChild(s);
             }
-            else
+            else {
                 a = s;
+            }
             td.appendChild(a);
 
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.className = 'price';
             s = libtuj.FormatFullPrice(auc.buy / auc.quantity);
-            if (stackable && auc.quantity > 1 && auc.buy)
-            {
+            if (stackable && auc.quantity > 1 && auc.buy) {
                 a = libtuj.ce('abbr');
                 a.title = libtuj.FormatFullPrice(auc.buy, true) + ' total';
                 a.appendChild(s);
             }
-            else if (!auc.buy)
-                a = libtuj.ce('span');
-            else
-                a = s;
-            if (a)
+            else {
+                if (!auc.buy) {
+                    a = libtuj.ce('span');
+                }
+                else {
+                    a = s;
+                }
+            }
+            if (a) {
                 td.appendChild(a);
+            }
 
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.className = 'seller';
-            if (auc.sellerrealm)
-            {
+            if (auc.sellerrealm) {
                 a = libtuj.ce('a');
                 a.href = tuj.BuildHash({realm: auc.sellerrealm, page: 'seller', id: auc.sellername});
             }
-            else
+            else {
                 a = libtuj.ce('span');
+            }
             td.appendChild(a);
             $(a).text(auc.sellername + (auc.sellerrealm && auc.sellerrealm != params.realm ? (' - ' + tuj.realms[auc.sellerrealm].name) : ''));
         }
 
         dest.appendChild(t);
     }
+
     this.load(tuj.params);
 }
 

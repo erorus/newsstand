@@ -4,25 +4,27 @@ require_once('../../incl/incl.php');
 require_once('../../incl/memcache.incl.php');
 require_once('../../incl/api.incl.php');
 
-if (!isset($_GET['house']) || !isset($_GET['item']))
+if (!isset($_GET['house']) || !isset($_GET['item'])) {
     json_return(array());
+}
 
 $house = intval($_GET['house'], 10);
 $item = intval($_GET['item'], 10);
 
-if (!$item)
+if (!$item) {
     json_return(array());
+}
 
 BotCheck();
 HouseETag($house);
 
 $json = array(
-    'stats'     => ItemStats($house, $item),
-    'history'   => ItemHistory($house, $item),
-    'daily'     => ItemHistoryDaily($house, $item),
-    'monthly'   => ItemHistoryMonthly($house, $item),
-    'auctions'  => ItemAuctions($house, $item),
-    'globalnow' => ItemGlobalNow(GetRegion($house), $item),
+    'stats'         => ItemStats($house, $item),
+    'history'       => ItemHistory($house, $item),
+    'daily'         => ItemHistoryDaily($house, $item),
+    'monthly'       => ItemHistoryMonthly($house, $item),
+    'auctions'      => ItemAuctions($house, $item),
+    'globalnow'     => ItemGlobalNow(GetRegion($house), $item),
     'globalmonthly' => ItemGlobalMonthly(GetRegion($house), $item),
 );
 
@@ -32,8 +34,9 @@ function ItemStats($house, $item)
 {
     global $db;
 
-    if (($tr = MCGetHouse($house, 'item_stats_'.$item)) !== false)
+    if (($tr = MCGetHouse($house, 'item_stats_' . $item)) !== false) {
         return $tr;
+    }
 
     DBConnect();
 
@@ -50,11 +53,12 @@ EOF;
     $stmt->execute();
     $result = $stmt->get_result();
     $tr = DBMapArray($result, null);
-    if (count($tr))
+    if (count($tr)) {
         $tr = $tr[0];
+    }
     $stmt->close();
 
-    MCSetHouse($house, 'item_stats_'.$item, $tr);
+    MCSetHouse($house, 'item_stats_' . $item, $tr);
 
     return $tr;
 }
@@ -63,10 +67,11 @@ function ItemHistory($house, $item)
 {
     global $db;
 
-    $key = 'item_history2_'.$item;
+    $key = 'item_history2_' . $item;
 
-    if (($tr = MCGetHouse($house, $key)) !== false)
+    if (($tr = MCGetHouse($house, $key)) !== false) {
         return $tr;
+    }
 
     DBConnect();
 
@@ -88,8 +93,9 @@ EOF;
     $tr = DBMapArray($result, null);
     $stmt->close();
 
-    while(count($tr) > 0 && is_null($tr[0]['price']))
+    while (count($tr) > 0 && is_null($tr[0]['price'])) {
         array_shift($tr);
+    }
 
     MCSetHouse($house, $key, $tr);
 
@@ -100,8 +106,9 @@ function ItemHistoryDaily($house, $item)
 {
     global $db;
 
-    if (($tr = MCGet('item_historydaily_'.$house.'_'.$item)) !== false)
+    if (($tr = MCGet('item_historydaily_' . $house . '_' . $item)) !== false) {
         return $tr;
+    }
 
     DBConnect();
 
@@ -122,7 +129,7 @@ EOF;
     $tr = DBMapArray($result, null);
     $stmt->close();
 
-    MCSet('item_historydaily_'.$house.'_'.$item, $tr, 60*60*8);
+    MCSet('item_historydaily_' . $house . '_' . $item, $tr, 60 * 60 * 8);
 
     return $tr;
 }
@@ -131,8 +138,9 @@ function ItemHistoryMonthly($house, $item)
 {
     global $db;
 
-    if (($tr = MCGet('item_historymonthly2_'.$house.'_'.$item)) !== false)
+    if (($tr = MCGet('item_historymonthly2_' . $house . '_' . $item)) !== false) {
         return $tr;
+    }
 
     DBConnect();
 
@@ -152,35 +160,36 @@ EOF;
 
     $tr = array();
     $prevPrice = 0;
-    for($x = 0; $x < count($rows); $x++)
-    {
-        $year = 2014 + floor(($rows[$x]['month']-1) / 12);
+    for ($x = 0; $x < count($rows); $x++) {
+        $year = 2014 + floor(($rows[$x]['month'] - 1) / 12);
         $monthNum = $rows[$x]['month'] % 12;
         if ($monthNum == 0) {
             $monthNum = 12;
         }
         $month = ($monthNum < 10 ? '0' : '') . $monthNum;
-        for ($dayNum = 1; $dayNum <= 31; $dayNum++)
-        {
+        for ($dayNum = 1; $dayNum <= 31; $dayNum++) {
             $day = ($dayNum < 10 ? '0' : '') . $dayNum;
-            if (!is_null($rows[$x]['mktslvr'.$day]))
-            {
-                $tr[] = array('date' => "$year-$month-$day", 'silver' => $rows[$x]['mktslvr'.$day], 'quantity' => $rows[$x]['qty'.$day]);
-                $prevPrice = $rows[$x]['mktslvr'.$day];
-            }
-            else
-            {
-                if (!checkdate($monthNum, $dayNum, $year))
+            if (!is_null($rows[$x]['mktslvr' . $day])) {
+                $tr[] = array('date'     => "$year-$month-$day",
+                              'silver'   => $rows[$x]['mktslvr' . $day],
+                              'quantity' => $rows[$x]['qty' . $day]
+                );
+                $prevPrice = $rows[$x]['mktslvr' . $day];
+            } else {
+                if (!checkdate($monthNum, $dayNum, $year)) {
                     break;
-                if (strtotime("$year-$month-$day") > time())
+                }
+                if (strtotime("$year-$month-$day") > time()) {
                     break;
-                if ($prevPrice)
+                }
+                if ($prevPrice) {
                     $tr[] = array('date' => "$year-$month-$day", 'silver' => $prevPrice, 'quantity' => 0);
+                }
             }
         }
     }
 
-    MCSet('item_historymonthly_'.$house.'_'.$item, $tr, 60*60*8);
+    MCSet('item_historymonthly_' . $house . '_' . $item, $tr, 60 * 60 * 8);
 
     return $tr;
 }
@@ -189,8 +198,9 @@ function ItemAuctions($house, $item)
 {
     global $db;
 
-    if (($tr = MCGetHouse($house, 'item_auctions_'.$item)) !== false)
+    if (($tr = MCGetHouse($house, 'item_auctions_' . $item)) !== false) {
         return $tr;
+    }
 
     DBConnect();
 
@@ -210,7 +220,7 @@ EOF;
     $tr = DBMapArray($result, null);
     $stmt->close();
 
-    MCSetHouse($house, 'item_auctions_'.$item, $tr);
+    MCSetHouse($house, 'item_auctions_' . $item, $tr);
 
     return $tr;
 }
@@ -219,9 +229,10 @@ function ItemGlobalNow($region, $item)
 {
     global $db;
 
-    $key = 'item_globalnow_'.$region.'_'.$item;
-    if (($tr = MCGet($key)) !== false)
+    $key = 'item_globalnow_' . $region . '_' . $item;
+    if (($tr = MCGet($key)) !== false) {
         return $tr;
+    }
 
     DBConnect();
 
@@ -240,7 +251,7 @@ EOF;
     $tr = DBMapArray($result, null);
     $stmt->close();
 
-    MCSet($key, $tr, 60*60);
+    MCSet($key, $tr, 60 * 60);
 
     return $tr;
 }
@@ -250,15 +261,15 @@ function ItemGlobalMonthly($region, $item)
 {
     global $db;
 
-    $key = 'item_globalmonthly_'.$region.'_'.$item;
-    if (($tr = MCGet($key)) !== false)
+    $key = 'item_globalmonthly_' . $region . '_' . $item;
+    if (($tr = MCGet($key)) !== false) {
         return $tr;
+    }
 
     DBConnect();
 
     $sqlCols = '';
-    for ($x = 1; $x <= 31; $x++)
-    {
+    for ($x = 1; $x <= 31; $x++) {
         $padded = str_pad($x, 2, '0', STR_PAD_LEFT);
         $sqlCols .= ", round(avg(mktslvr$padded)*100) mkt$padded, ifnull(sum(qty$padded),0) qty$padded";
     }
@@ -281,30 +292,31 @@ EOF;
 
     $tr = array();
     $prevPrice = 0;
-    for($x = 0; $x < count($rows); $x++)
-    {
-        $year = 2014 + floor(($rows[$x]['month']-1) / 12);
+    for ($x = 0; $x < count($rows); $x++) {
+        $year = 2014 + floor(($rows[$x]['month'] - 1) / 12);
         $monthNum = $rows[$x]['month'] % 12;
         if ($monthNum == 0) {
             $monthNum = 12;
         }
         $month = ($monthNum < 10 ? '0' : '') . $monthNum;
-        for ($dayNum = 1; $dayNum <= 31; $dayNum++)
-        {
+        for ($dayNum = 1; $dayNum <= 31; $dayNum++) {
             $day = ($dayNum < 10 ? '0' : '') . $dayNum;
-            if (!is_null($rows[$x]['mkt'.$day]))
-            {
-                $tr[] = array('date' => "$year-$month-$day", 'silver' => round($rows[$x]['mkt'.$day]/100,2), 'quantity' => $rows[$x]['qty'.$day]);
-                $prevPrice = round($rows[$x]['mkt'.$day]/100,2);
-            }
-            else
-            {
-                if (!checkdate($monthNum, $dayNum, $year))
+            if (!is_null($rows[$x]['mkt' . $day])) {
+                $tr[] = array('date'     => "$year-$month-$day",
+                              'silver'   => round($rows[$x]['mkt' . $day] / 100, 2),
+                              'quantity' => $rows[$x]['qty' . $day]
+                );
+                $prevPrice = round($rows[$x]['mkt' . $day] / 100, 2);
+            } else {
+                if (!checkdate($monthNum, $dayNum, $year)) {
                     break;
-                if (strtotime("$year-$month-$day") > time())
+                }
+                if (strtotime("$year-$month-$day") > time()) {
                     break;
-                if ($prevPrice)
+                }
+                if ($prevPrice) {
                     $tr[] = array('date' => "$year-$month-$day", 'silver' => $prevPrice, 'quantity' => 0);
+                }
             }
         }
     }

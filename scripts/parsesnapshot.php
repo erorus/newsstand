@@ -13,21 +13,22 @@ CatchKill();
 
 define('SNAPSHOT_PATH', '/var/newsstand/snapshots/');
 
-ini_set('memory_limit','512M');
+ini_set('memory_limit', '512M');
 
-if (!DBConnect())
+if (!DBConnect()) {
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
+}
 
-$stmt = $db->prepare('select house, region from tblRealm group by house');
+$stmt = $db->prepare('SELECT house, region FROM tblRealm GROUP BY house');
 $stmt->execute();
 $result = $stmt->get_result();
 $houseRegionCache = DBMapArray($result);
 $stmt->close();
 
-$stmt = $db->prepare('select id, region, name, ifnull(ownerrealm, replace(name, \' \', \'\')) as ownerrealm from tblRealm');
+$stmt = $db->prepare('SELECT id, region, name, ifnull(ownerrealm, replace(name, \' \', \'\')) AS ownerrealm FROM tblRealm');
 $stmt->execute();
 $result = $stmt->get_result();
-$ownerRealmCache = DBMapArray($result, array('region','ownerrealm'));
+$ownerRealmCache = DBMapArray($result, array('region', 'ownerrealm'));
 $stmt->close();
 
 $maxPacketSize = 0;
@@ -40,43 +41,41 @@ unset($nonsense);
 
 $loopStart = time();
 $toSleep = 0;
-while ((!$caughtKill) && (time() < ($loopStart + 60 * 30)))
-{
+while ((!$caughtKill) && (time() < ($loopStart + 60 * 30))) {
     heartbeat();
-    sleep(min($toSleep,10));
-    if ($caughtKill)
+    sleep(min($toSleep, 10));
+    if ($caughtKill) {
         break;
+    }
     ob_start();
     $toSleep = NextDataFile();
     ob_end_flush();
-    if ($toSleep === false)
+    if ($toSleep === false) {
         break;
+    }
 }
-DebugMessage('Done! Started '.TimeDiff($startTime));
+DebugMessage('Done! Started ' . TimeDiff($startTime));
 
 function NextDataFile()
 {
     $dir = scandir(substr(SNAPSHOT_PATH, 0, -1), SCANDIR_SORT_ASCENDING);
     $lockFail = false;
     $gotFile = false;
-    foreach ($dir as $fileName)
-    {
-        if (preg_match('/^(\d+)-(\d+)\.json$/', $fileName, $res))
-        {
-            if (($handle = fopen(SNAPSHOT_PATH.$fileName, 'rb')) === false)
+    foreach ($dir as $fileName) {
+        if (preg_match('/^(\d+)-(\d+)\.json$/', $fileName, $res)) {
+            if (($handle = fopen(SNAPSHOT_PATH . $fileName, 'rb')) === false) {
                 continue;
+            }
 
-            if (!flock($handle, LOCK_EX | LOCK_NB))
-            {
+            if (!flock($handle, LOCK_EX | LOCK_NB)) {
                 $lockFail = true;
                 fclose($handle);
                 continue;
             }
 
-            if (feof($handle))
-            {
+            if (feof($handle)) {
                 fclose($handle);
-                unlink(SNAPSHOT_PATH.$fileName);
+                unlink(SNAPSHOT_PATH . $fileName);
                 continue;
             }
 
@@ -86,22 +85,29 @@ function NextDataFile()
     }
     unset($dir);
 
-    if (!$gotFile)
+    if (!$gotFile) {
         return $lockFail ? 3 : 10;
+    }
 
-    $snapshot = intval($res[1],10);
-    $house = intval($res[2],10);
+    $snapshot = intval($res[1], 10);
+    $house = intval($res[2], 10);
 
-    DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." data file from ".TimeDiff($snapshot, array('parts' => 2, 'precision' => 'second')));
-    $json = json_decode(fread($handle, filesize(SNAPSHOT_PATH.$fileName)), true);
+    DebugMessage(
+        "House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " data file from " . TimeDiff(
+            $snapshot, array(
+                'parts'     => 2,
+                'precision' => 'second'
+            )
+        )
+    );
+    $json = json_decode(fread($handle, filesize(SNAPSHOT_PATH . $fileName)), true);
 
     ftruncate($handle, 0);
     fclose($handle);
-    unlink(SNAPSHOT_PATH.$fileName);
+    unlink(SNAPSHOT_PATH . $fileName);
 
-    if (json_last_error() != JSON_ERROR_NONE)
-    {
-        DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." $snapshot data file corrupted! ".json_last_error_msg(), E_USER_WARNING);
+    if (json_last_error() != JSON_ERROR_NONE) {
+        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " $snapshot data file corrupted! " . json_last_error_msg(), E_USER_WARNING);
         return 0;
     }
 
@@ -121,15 +127,15 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     $region = $houseRegionCache[$house]['region'];
 
-    $stmt = $ourDb->prepare('select id, bid, item from tblAuction where house = ?');
-    $stmt->bind_param('i',$house);
+    $stmt = $ourDb->prepare('SELECT id, bid, item FROM tblAuction WHERE house = ?');
+    $stmt->bind_param('i', $house);
     $stmt->execute();
     $result = $stmt->get_result();
     $existingIds = DBMapArray($result);
     $stmt->close();
 
-    $stmt = $ourDb->prepare('select id, species, breed from tblAuctionPet where house = ?');
-    $stmt->bind_param('i',$house);
+    $stmt = $ourDb->prepare('SELECT id, species, breed FROM tblAuctionPet WHERE house = ?');
+    $stmt->bind_param('i', $house);
     $stmt->execute();
     $result = $stmt->get_result();
     $existingPetIds = DBMapArray($result);
@@ -142,30 +148,30 @@ function ParseAuctionData($house, $snapshot, &$json)
     if (isset($json['auctions']['auctions'])) {
         $auctionCount = count($json['auctions']['auctions']);
 
-        for ($x = 0; $x < $auctionCount; $x++)
-        {
+        for ($x = 0; $x < $auctionCount; $x++) {
             $auctionId = $json['auctions']['auctions'][$x]['auc'];
 
             $naiveMax = max($naiveMax, $auctionId);
-            if ($auctionId < 0x20000000)
+            if ($auctionId < 0x20000000) {
                 $lowMax = max($lowMax, $auctionId);
-            if ($auctionId > 0x60000000)
+            }
+            if ($auctionId > 0x60000000) {
                 $highMax = max($highMax, $auctionId);
+            }
         }
     }
 
-    if (($lowMax != -1) && ($highMax != -1))
-    {
+    if (($lowMax != -1) && ($highMax != -1)) {
         $hasRollOver = true;
         $max = $lowMax; // rolled over
-    }
-    else
+    } else {
         $max = $naiveMax;
+    }
 
     unset($naiveMax, $lowMax, $highMax);
 
     // note: $lastMax is the max auction ID the last time we stored snapshot history
-    $stmt = $ourDb->prepare('select ifnull(maxid,0), unix_timestamp(updated) from tblSnapshot s where house = ? and updated = (select max(s2.updated) from tblSnapshot s2 where s2.house = s.house and s2.updated < ? and s2.flags & 1 = 0)');
+    $stmt = $ourDb->prepare('SELECT ifnull(maxid,0), unix_timestamp(updated) FROM tblSnapshot s WHERE house = ? AND updated = (SELECT max(s2.updated) FROM tblSnapshot s2 WHERE s2.house = s.house AND s2.updated < ? AND s2.flags & 1 = 0)');
     $stmt->bind_param('is', $house, $snapshotString);
     $stmt->execute();
     $stmt->bind_result($lastMax, $lastMaxUpdated);
@@ -180,23 +186,23 @@ function ParseAuctionData($house, $snapshot, &$json)
     if (($snapshot > $lastMaxUpdated) && (($snapshot - $lastMaxUpdated) < (50 * 60))) { // snapshots stored no more often than every 50 mins
         $noHistory = true;
         $flags = 1;
-        DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." skipping snapshot history (".($snapshot - $lastMaxUpdated)." seconds since last history)");
+        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " skipping snapshot history (" . ($snapshot - $lastMaxUpdated) . " seconds since last history)");
     }
 
-    $stmt = $ourDb->prepare('update tblSnapshot set maxid = ?, flags = flags | ? where house = ? and updated = ?');
+    $stmt = $ourDb->prepare('UPDATE tblSnapshot SET maxid = ?, flags = flags | ? WHERE house = ? AND updated = ?');
     $stmt->bind_param('iiis', $max, $flags, $house, $snapshotString);
     $stmt->execute();
     $stmt->close();
 
-    $stmt = $ourDb->prepare('select unix_timestamp(updated) updated, maxid from tblSnapshot where house = ? and updated between timestampadd(hour, -49, ?) and ? order by updated asc');
+    $stmt = $ourDb->prepare('SELECT unix_timestamp(updated) updated, maxid FROM tblSnapshot WHERE house = ? AND updated BETWEEN timestampadd(HOUR, -49, ?) AND ? ORDER BY updated ASC');
     $stmt->bind_param('iss', $house, $snapshotString, $snapshotString);
     $stmt->execute();
     $result = $stmt->get_result();
     $snapshotList = DBMapArray($result, null);
     $stmt->close();
 
-    $sqlStart = 'replace into tblAuction (house, id, item, quantity, bid, buy, seller, rand, seed) values ';
-    $sqlStartPet = 'replace into tblAuctionPet (house, id, species, breed, `level`, quality) values ';
+    $sqlStart = 'REPLACE INTO tblAuction (house, id, item, quantity, bid, buy, seller, rand, seed) VALUES ';
+    $sqlStartPet = 'REPLACE INTO tblAuctionPet (house, id, species, breed, `level`, quality) VALUES ';
 
     $totalAuctions = 0;
     $itemInfo = array();
@@ -205,24 +211,28 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     if (isset($json['auctions']['auctions'])) {
         $auctionCount = count($json['auctions']['auctions']);
-        DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." parsing $auctionCount auctions");
+        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " parsing $auctionCount auctions");
         $ourDb->begin_transaction();
 
         for ($x = 0; $x < $auctionCount; $x++) {
             $auction =& $json['auctions']['auctions'][$x];
-            if ($auction['owner'] == '???')
+            if ($auction['owner'] == '???') {
                 continue;
-            if (!isset($sellerInfo[$auction['ownerRealm']]))
+            }
+            if (!isset($sellerInfo[$auction['ownerRealm']])) {
                 $sellerInfo[$auction['ownerRealm']] = array();
-            if (!isset($sellerInfo[$auction['ownerRealm']][$auction['owner']]))
+            }
+            if (!isset($sellerInfo[$auction['ownerRealm']][$auction['owner']])) {
                 $sellerInfo[$auction['ownerRealm']][$auction['owner']] = array(
-                    'new' => 0,
+                    'new'   => 0,
                     'total' => 0,
-                    'id' => 0,
+                    'id'    => 0,
                 );
+            }
             $sellerInfo[$auction['ownerRealm']][$auction['owner']]['total']++;
-            if ((!$hasRollOver || $auction['auc'] < 0x20000000) && ($auction['auc'] > $lastMax))
+            if ((!$hasRollOver || $auction['auc'] < 0x20000000) && ($auction['auc'] > $lastMax)) {
                 $sellerInfo[$auction['ownerRealm']][$auction['owner']]['new']++;
+            }
         }
 
         GetSellerIds($region, $sellerInfo, $snapshot);
@@ -230,43 +240,50 @@ function ParseAuctionData($house, $snapshot, &$json)
         $sql = $sqlPet = '';
         $delayedAuctionSql = [];
 
-        for ($x = 0; $x < $auctionCount; $x++)
-        {
+        for ($x = 0; $x < $auctionCount; $x++) {
             $auction =& $json['auctions']['auctions'][$x];
 
             $totalAuctions++;
-            if ($auction['buyout'] != 0)
-            {
-                if (isset($auction['petSpeciesId']))
-                {
-                    if ($auction['petBreedId'] > 12) $auction['petBreedId'] -= 10; // squash gender
+            if ($auction['buyout'] != 0) {
+                if (isset($auction['petSpeciesId'])) {
+                    if ($auction['petBreedId'] > 12) {
+                        $auction['petBreedId'] -= 10;
+                    } // squash gender
 
-                    if (!isset($petInfo[$auction['petSpeciesId']][$auction['petBreedId']]))
+                    if (!isset($petInfo[$auction['petSpeciesId']][$auction['petBreedId']])) {
                         $petInfo[$auction['petSpeciesId']][$auction['petBreedId']] = array('a' => array(), 'tq' => 0);
+                    }
 
-                    $petInfo[$auction['petSpeciesId']][$auction['petBreedId']]['a'][] = array('q' => $auction['quantity'], 'p' => $auction['buyout']);
+                    $petInfo[$auction['petSpeciesId']][$auction['petBreedId']]['a'][] = array(
+                        'q' => $auction['quantity'],
+                        'p' => $auction['buyout']
+                    );
                     $petInfo[$auction['petSpeciesId']][$auction['petBreedId']]['tq'] += $auction['quantity'];
-                }
-                else
-                {
-                    if (!isset($itemInfo[$auction['item']]))
+                } else {
+                    if (!isset($itemInfo[$auction['item']])) {
                         $itemInfo[$auction['item']] = array('a' => array(), 'tq' => 0);
+                    }
 
-                    $itemInfo[$auction['item']]['a'][] = array('q' => $auction['quantity'], 'p' => $auction['buyout'], 'age' => GetAuctionAge($auction['auc'], $snapshot, $snapshotList));
+                    $itemInfo[$auction['item']]['a'][] = array(
+                        'q'   => $auction['quantity'],
+                        'p'   => $auction['buyout'],
+                        'age' => GetAuctionAge($auction['auc'], $snapshot, $snapshotList)
+                    );
                     $itemInfo[$auction['item']]['tq'] += $auction['quantity'];
                 }
             }
 
-            if (isset($existingIds[$auction['auc']]))
-            {
+            if (isset($existingIds[$auction['auc']])) {
                 $needUpdate = ($auction['bid'] != $existingIds[$auction['auc']]['bid']);
                 unset($existingIds[$auction['auc']]);
                 unset($existingPetIds[$auction['auc']]);
-                if (!$needUpdate)
+                if (!$needUpdate) {
                     continue;
+                }
             }
 
-            $thisSql = sprintf('(%u, %u, %u, %u, %u, %u, %u, %d, %d)',
+            $thisSql = sprintf(
+                '(%u, %u, %u, %u, %u, %u, %u, %d, %d)',
                 $house,
                 $auction['auc'],
                 $auction['item'],
@@ -275,23 +292,24 @@ function ParseAuctionData($house, $snapshot, &$json)
                 $auction['buyout'],
                 $auction['owner'] == '???' ? 0 : $sellerInfo[$auction['ownerRealm']][$auction['owner']]['id'],
                 $auction['rand'],
-                $auction['seed']);
-            if (strlen($sql) + 5 + strlen($thisSql) > $maxPacketSize)
-            {
+                $auction['seed']
+            );
+            if (strlen($sql) + 5 + strlen($thisSql) > $maxPacketSize) {
                 DBQueryWithError($ourDb, $sql);
                 $sql = '';
             }
             $sql .= ($sql == '' ? $sqlStart : ',') . $thisSql;
 
-            if (isset($auction['petSpeciesId']))
-            {
-                $thisSql = sprintf('(%u, %u, %u, %u, %u, %u)',
+            if (isset($auction['petSpeciesId'])) {
+                $thisSql = sprintf(
+                    '(%u, %u, %u, %u, %u, %u)',
                     $house,
                     $auction['auc'],
                     $auction['petSpeciesId'],
                     $auction['petBreedId'],
                     $auction['petLevel'],
-                    $auction['petQualityId']);
+                    $auction['petQualityId']
+                );
 
                 if (strlen($sqlPet) + 5 + strlen($thisSql) > $maxPacketSize) {
                     $delayedAuctionSql[] = $sqlPet; // delayed since tblAuction row must be inserted first for foreign key
@@ -301,11 +319,13 @@ function ParseAuctionData($house, $snapshot, &$json)
             }
         }
 
-        if ($sql != '')
-            DBQueryWithError($ourDb,$sql);
+        if ($sql != '') {
+            DBQueryWithError($ourDb, $sql);
+        }
 
-        if ($sqlPet != '')
+        if ($sqlPet != '') {
             $delayedAuctionSql[] = $sqlPet;
+        }
 
         for ($x = 0; $x < count($delayedAuctionSql); $x++) {
             DBQueryWithError($ourDb, $delayedAuctionSql[$x]);
@@ -326,37 +346,41 @@ and a.item not in (82800)
 and ifnull(tis.lastseen, '2000-01-01') < timestampadd(day,-14,'%s'))
 EOF;
         $sql = sprintf($sql, $house, $lastMax, $hasRollOver ? ' and a.id < 0x20000000 ' : '', $snapshotString);
-        DBQueryWithError($ourDb,$sql);
+        DBQueryWithError($ourDb, $sql);
     }
 
     $preDeleted = count($itemInfo);
-    foreach ($existingIds as &$oldRow)
-        if ((!isset($existingPetIds[$oldRow['id']])) && (!isset($itemInfo[$oldRow['item']])))
+    foreach ($existingIds as &$oldRow) {
+        if ((!isset($existingPetIds[$oldRow['id']])) && (!isset($itemInfo[$oldRow['item']]))) {
             $itemInfo[$oldRow['item']] = array('tq' => 0, 'a' => array());
+        }
+    }
     unset($oldRow);
-    DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." updating ".count($itemInfo)." item info (including ".(count($itemInfo) - $preDeleted)." no longer available)");
+    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating " . count($itemInfo) . " item info (including " . (count($itemInfo) - $preDeleted) . " no longer available)");
     UpdateItemInfo($house, $itemInfo, $snapshot, $noHistory);
 
     $preDeleted = count($petInfo);
-    foreach ($existingPetIds as &$oldRow)
-        if (!isset($petInfo[$oldRow['species']][$oldRow['breed']]))
+    foreach ($existingPetIds as &$oldRow) {
+        if (!isset($petInfo[$oldRow['species']][$oldRow['breed']])) {
             $petInfo[$oldRow['species']][$oldRow['breed']] = array('tq' => 0, 'a' => array());
+        }
+    }
     unset($oldRow);
-    DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." updating ".count($petInfo)." pet info (including ".(count($petInfo) - $preDeleted)." no longer available)");
+    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating " . count($petInfo) . " pet info (including " . (count($petInfo) - $preDeleted) . " no longer available)");
     UpdatePetInfo($house, $petInfo, $snapshot, $noHistory);
 
-    DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." updating seller history");
+    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating seller history");
     UpdateSellerInfo($sellerInfo, $snapshot, $noHistory);
 
     if (count($existingIds) > 0) {
-        DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." deleting ".count($existingIds)." auctions");
+        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " deleting " . count($existingIds) . " auctions");
 
-        $sqlStart = sprintf('delete from tblAuction where house = %d and id in (', $house);
+        $sqlStart = sprintf('DELETE FROM tblAuction WHERE house = %d AND id IN (', $house);
         $sql = '';
 
         foreach ($existingIds as $lostId => &$lostRow) {
             if (strlen($sql) + 10 + strlen($lostId) > $maxPacketSize) {
-                DBQueryWithError($ourDb, $sql.')');
+                DBQueryWithError($ourDb, $sql . ')');
                 $sql = '';
             }
             $sql .= ($sql == '' ? $sqlStart : ',') . $lostId;
@@ -364,7 +388,7 @@ EOF;
         unset($lostRow);
 
         if ($sql != '') {
-            DBQueryWithError($ourDb, $sql.')');
+            DBQueryWithError($ourDb, $sql . ')');
         }
     }
 
@@ -372,7 +396,7 @@ EOF;
 
     MCSetHouse($house, 'ts', $snapshot);
 
-    DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." finished with $totalAuctions auctions in ".round(microtime(true) - $startTimer,2)." sec");
+    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " finished with $totalAuctions auctions in " . round(microtime(true) - $startTimer, 2) . " sec");
 }
 
 function GetAuctionAge($id, $now, &$snapshotList)
@@ -380,8 +404,9 @@ function GetAuctionAge($id, $now, &$snapshotList)
     $imin = 0;
     $imax = count($snapshotList) - 1;
 
-    if ($imax <= 0)
+    if ($imax <= 0) {
         return 0;
+    }
 
     if ($snapshotList[$imin]['maxid'] > $snapshotList[$imax]['maxid']) {
         // have rollover, fix it
@@ -397,8 +422,9 @@ function GetAuctionAge($id, $now, &$snapshotList)
         $id -= 0x80000000;
     }
 
-    if ($snapshotList[$imax]['maxid'] < $id)
+    if ($snapshotList[$imax]['maxid'] < $id) {
         return 0;
+    }
 
     while ($imin < $imax) {
         $imid = floor(($imin + $imax) / 2);
@@ -416,11 +442,13 @@ function GetAuctionAge($id, $now, &$snapshotList)
         // id is older than oldest snapshot, assume just as old
         $seconds = $now - $snapshotList[$imin]['updated'];
     } else {
-        $seconds = floor($now - (
-                $snapshotList[$imin-1]['updated'] +
-                ($snapshotList[$imin]['updated'] - $snapshotList[$imin-1]['updated']) *
-                (($id - $snapshotList[$imin-1]['maxid']) / ($snapshotList[$imin]['maxid'] - $snapshotList[$imin-1]['maxid']))
-            ));
+        $seconds = floor(
+            $now - (
+                $snapshotList[$imin - 1]['updated'] +
+                ($snapshotList[$imin]['updated'] - $snapshotList[$imin - 1]['updated']) *
+                (($id - $snapshotList[$imin - 1]['maxid']) / ($snapshotList[$imin]['maxid'] - $snapshotList[$imin - 1]['maxid']))
+            )
+        );
     }
 
     return min(255, max(0, floor($seconds / (48 * 60 * 60) * 255)));
@@ -434,30 +462,29 @@ function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
     $workingRealms = array_keys($sellerInfo);
     $neededInserts = false;
 
-    for ($r = 0; $r < count($workingRealms); $r++)
-    {
-        if (!isset($ownerRealmCache[$region][$workingRealms[$r]]))
+    for ($r = 0; $r < count($workingRealms); $r++) {
+        if (!isset($ownerRealmCache[$region][$workingRealms[$r]])) {
             continue;
+        }
 
         $realmName = $workingRealms[$r];
 
         $realmId = $ownerRealmCache[$region][$realmName]['id'];
 
-        $sqlStart = "select name, id from tblSeller where realm = $realmId and name in (";
+        $sqlStart = "SELECT name, id FROM tblSeller WHERE realm = $realmId AND name IN (";
         $sql = $sqlStart;
         $namesInQuery = 0;
         $names = array_keys($sellerInfo[$realmName]);
         $nameCount = count($names);
         $needInserts = false;
 
-        for ($s = 0; $s < $nameCount; $s++)
-        {
-            if ($sellerInfo[$realmName][$names[$s]]['id'] != 0)
+        for ($s = 0; $s < $nameCount; $s++) {
+            if ($sellerInfo[$realmName][$names[$s]]['id'] != 0) {
                 continue;
+            }
 
-            $nameEscaped = '\''.$db->real_escape_string($names[$s]).'\'';
-            if (strlen($sql) + strlen($nameEscaped) + 5 > $maxPacketSize)
-            {
+            $nameEscaped = '\'' . $db->real_escape_string($names[$s]) . '\'';
+            if (strlen($sql) + strlen($nameEscaped) + 5 > $maxPacketSize) {
                 $sql .= ')';
 
                 $stmt = $db->prepare($sql);
@@ -467,17 +494,19 @@ function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
                 $foundNames = 0;
                 $lastSeenIds = array();
 
-                for ($n = 0; $n < count($someIds); $n++)
-                    if (isset($sellerInfo[$realmName][$someIds[$n]['name']]))
-                    {
+                for ($n = 0; $n < count($someIds); $n++) {
+                    if (isset($sellerInfo[$realmName][$someIds[$n]['name']])) {
                         $sellerInfo[$realmName][$someIds[$n]['name']]['id'] = $someIds[$n]['id'];
                         $foundNames++;
-                        if ($sellerInfo[$realmName][$someIds[$n]['name']]['new'] > 0)
+                        if ($sellerInfo[$realmName][$someIds[$n]['name']]['new'] > 0) {
                             $lastSeenIds[] = $someIds[$n]['id'];
+                        }
                     }
+                }
 
-                if (count($lastSeenIds) > 0 && !$afterInsert)
-                    DBQueryWithError($db, sprintf('update tblSeller set lastseen = \'%s\' where id in (%s)', $snapshotString, implode(',',$lastSeenIds)));
+                if (count($lastSeenIds) > 0 && !$afterInsert) {
+                    DBQueryWithError($db, sprintf('UPDATE tblSeller SET lastseen = \'%s\' WHERE id IN (%s)', $snapshotString, implode(',', $lastSeenIds)));
+                }
 
                 $needInserts |= ($foundNames < $namesInQuery);
 
@@ -487,8 +516,7 @@ function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
             $sql .= ($namesInQuery++ > 0 ? ',' : '') . $nameEscaped;
         }
 
-        if ($namesInQuery > 0)
-        {
+        if ($namesInQuery > 0) {
             $sql .= ')';
 
             $stmt = $db->prepare($sql);
@@ -498,38 +526,40 @@ function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
             $foundNames = 0;
             $lastSeenIds = array();
 
-            for ($n = 0; $n < count($someIds); $n++)
-                if (isset($sellerInfo[$realmName][$someIds[$n]['name']]))
-                {
+            for ($n = 0; $n < count($someIds); $n++) {
+                if (isset($sellerInfo[$realmName][$someIds[$n]['name']])) {
                     $sellerInfo[$realmName][$someIds[$n]['name']]['id'] = $someIds[$n]['id'];
                     $foundNames++;
-                    if ($sellerInfo[$realmName][$someIds[$n]['name']]['new'] > 0)
+                    if ($sellerInfo[$realmName][$someIds[$n]['name']]['new'] > 0) {
                         $lastSeenIds[] = $someIds[$n]['id'];
+                    }
                 }
+            }
 
-            if (count($lastSeenIds) > 0 && !$afterInsert)
-                DBQueryWithError($db, sprintf('update tblSeller set lastseen = \'%s\' where id in (%s)', $snapshotString, implode(',',$lastSeenIds)));
+            if (count($lastSeenIds) > 0 && !$afterInsert) {
+                DBQueryWithError($db, sprintf('UPDATE tblSeller SET lastseen = \'%s\' WHERE id IN (%s)', $snapshotString, implode(',', $lastSeenIds)));
+            }
 
             $needInserts |= ($foundNames < $namesInQuery);
         }
 
-        if ($afterInsert || !$needInserts)
+        if ($afterInsert || !$needInserts) {
             continue;
+        }
 
         $neededInserts = true;
 
-        $sqlStart = "insert ignore into tblSeller (realm, name, firstseen, lastseen) values ";
+        $sqlStart = "INSERT IGNORE INTO tblSeller (realm, name, firstseen, lastseen) VALUES ";
         $sql = $sqlStart;
         $namesInQuery = 0;
 
-        for ($s = 0; $s < $nameCount; $s++)
-        {
-            if ($sellerInfo[$realmName][$names[$s]]['id'] != 0)
+        for ($s = 0; $s < $nameCount; $s++) {
+            if ($sellerInfo[$realmName][$names[$s]]['id'] != 0) {
                 continue;
+            }
 
             $insertBit = sprintf('(%1$d,\'%2$s\',\'%3$s\',\'%3$s\')', $realmId, $db->real_escape_string($names[$s]), $snapshotString);
-            if (strlen($sql) + strlen($insertBit) + 5 > $maxPacketSize)
-            {
+            if (strlen($sql) + strlen($insertBit) + 5 > $maxPacketSize) {
                 DBQueryWithError($db, $sql);
 
                 $sql = $sqlStart;
@@ -538,38 +568,39 @@ function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
             $sql .= ($namesInQuery++ > 0 ? ',' : '') . $insertBit;
         }
 
-        if ($namesInQuery > 0)
+        if ($namesInQuery > 0) {
             DBQueryWithError($db, $sql);
+        }
     }
 
-    if ($neededInserts)
+    if ($neededInserts) {
         GetSellerIds($region, $sellerInfo, $snapshot, true);
+    }
 
 }
 
 function UpdateSellerInfo(&$sellerInfo, $snapshot, $noHistory)
 {
-    if ($noHistory)
+    if ($noHistory) {
         return;
+    }
 
     global $db, $maxPacketSize;
 
     $snapshotString = Date('Y-m-d H:i:s', $snapshot);
     $realms = array_keys($sellerInfo);
 
-    $sqlStart = 'insert ignore into tblSellerHistory (seller, snapshot, `new`, `total`) values ';
+    $sqlStart = 'INSERT IGNORE INTO tblSellerHistory (seller, snapshot, `new`, `total`) VALUES ';
     $sql = '';
 
-    for ($r = 0; $r < count($realms); $r++)
-    {
-        foreach ($sellerInfo[$realms[$r]] as &$info)
-        {
-            if ($info['id'] == 0)
+    for ($r = 0; $r < count($realms); $r++) {
+        foreach ($sellerInfo[$realms[$r]] as &$info) {
+            if ($info['id'] == 0) {
                 continue;
+            }
 
             $sqlBit = sprintf('(%d,\'%s\',%d,%d)', $info['id'], $snapshotString, $info['new'], $info['total']);
-            if (strlen($sql) + strlen($sqlBit) + 5 > $maxPacketSize)
-            {
+            if (strlen($sql) + strlen($sqlBit) + 5 > $maxPacketSize) {
                 DBQueryWithError($db, $sql);
                 $sql = '';
             }
@@ -578,26 +609,27 @@ function UpdateSellerInfo(&$sellerInfo, $snapshot, $noHistory)
         unset($info);
     }
 
-    if ($sql != '')
+    if ($sql != '') {
         DBQueryWithError($db, $sql);
+    }
 }
 
 function UpdateItemInfo($house, &$itemInfo, $snapshot, $noHistory)
 {
     global $db, $maxPacketSize;
 
-    $month = (2014 - intval(Date('Y', $snapshot),10)) * 12 + intval(Date('m', $snapshot),10);
+    $month = (2014 - intval(Date('Y', $snapshot), 10)) * 12 + intval(Date('m', $snapshot), 10);
     $day = Date('d', $snapshot);
 
     $snapshotString = Date('Y-m-d H:i:s', $snapshot);
-    $sqlStart = 'insert into tblItemSummary (house, item, price, quantity, lastseen, age) values ';
+    $sqlStart = 'INSERT INTO tblItemSummary (house, item, price, quantity, lastseen, age) VALUES ';
     $sqlEnd = ' on duplicate key update quantity=values(quantity), price=if(quantity=0,price,values(price)), lastseen=if(quantity=0,lastseen,values(lastseen)), age=values(age)';
     $sql = '';
 
-    $sqlHistoryStart = 'replace into tblItemHistory (house, item, price, quantity, snapshot, age) values ';
+    $sqlHistoryStart = 'REPLACE INTO tblItemHistory (house, item, price, quantity, snapshot, age) VALUES ';
     $sqlHistory = '';
 
-    $sqlDeepStart = sprintf('insert into tblItemHistoryMonthly (house, item, mktslvr%1$s, qty%1$s, `month`) values ', $day);
+    $sqlDeepStart = sprintf('INSERT INTO tblItemHistoryMonthly (house, item, mktslvr%1$s, qty%1$s, `month`) VALUES ', $day);
     $sqlDeepEnd = sprintf(' on duplicate key update mktslvr%1$s=if(values(qty%1$s) > ifnull(qty%1$s,0), values(mktslvr%1$s), mktslvr%1$s), qty%1$s=if(values(qty%1$s) > ifnull(qty%1$s,0), values(qty%1$s), qty%1$s)', $day);
     $sqlDeep = '';
 
@@ -607,7 +639,7 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $noHistory)
 
         $sqlBit = sprintf('(%d,%u,%u,%u,\'%s\',%u)', $house, $item, $price, $info['tq'], $snapshotString, $age);
         if (strlen($sql) + strlen($sqlBit) + strlen($sqlEnd) + 5 > $maxPacketSize) {
-            DBQueryWithError($db, $sql.$sqlEnd);
+            DBQueryWithError($db, $sql . $sqlEnd);
             $sql = '';
         }
         $sql .= ($sql == '' ? $sqlStart : ',') . $sqlBit;
@@ -621,9 +653,9 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $noHistory)
                 $sqlHistory .= ($sqlHistory == '' ? $sqlHistoryStart : ',') . $sqlBit;
             }
 
-            $sqlDeepBit = sprintf('(%d,%u,%u,%u,%u)', $house, $item, round($price/100), $info['tq'], $month);
+            $sqlDeepBit = sprintf('(%d,%u,%u,%u,%u)', $house, $item, round($price / 100), $info['tq'], $month);
             if (strlen($sqlDeep) + strlen($sqlDeepBit) + strlen($sqlDeepEnd) + 5 > $maxPacketSize) {
-                DBQueryWithError($db, $sqlDeep.$sqlDeepEnd);
+                DBQueryWithError($db, $sqlDeep . $sqlDeepEnd);
                 $sqlDeep = '';
             }
             $sqlDeep .= ($sqlDeep == '' ? $sqlDeepStart : ',') . $sqlDeepBit;
@@ -631,12 +663,15 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $noHistory)
     }
     unset($info);
 
-    if ($sql != '')
-        DBQueryWithError($db, $sql.$sqlEnd);
-    if ($sqlHistory != '')
+    if ($sql != '') {
+        DBQueryWithError($db, $sql . $sqlEnd);
+    }
+    if ($sqlHistory != '') {
         DBQueryWithError($db, $sqlHistory);
-    if ($sqlDeep != '')
-        DBQueryWithError($db, $sqlDeep.$sqlDeepEnd);
+    }
+    if ($sqlDeep != '') {
+        DBQueryWithError($db, $sqlDeep . $sqlDeepEnd);
+    }
 }
 
 function UpdatePetInfo($house, &$petInfo, $snapshot, $noHistory)
@@ -644,29 +679,25 @@ function UpdatePetInfo($house, &$petInfo, $snapshot, $noHistory)
     global $db, $maxPacketSize;
 
     $snapshotString = Date('Y-m-d H:i:s', $snapshot);
-    $sqlStart = 'insert into tblPetSummary (house, species, breed, price, quantity, lastseen) values ';
+    $sqlStart = 'INSERT INTO tblPetSummary (house, species, breed, price, quantity, lastseen) VALUES ';
     $sqlEnd = ' on duplicate key update quantity=values(quantity), price=if(quantity=0,price,values(price)), lastseen=if(quantity=0,lastseen,values(lastseen))';
     $sql = '';
 
-    $sqlHistoryStart = 'replace into tblPetHistory (house, species, breed, price, quantity, snapshot) values ';
+    $sqlHistoryStart = 'REPLACE INTO tblPetHistory (house, species, breed, price, quantity, snapshot) VALUES ';
     $sqlHistory = '';
 
-    foreach ($petInfo as $species => &$breeds)
-    {
-        foreach ($breeds as $breed => &$info)
-        {
+    foreach ($petInfo as $species => &$breeds) {
+        foreach ($breeds as $breed => &$info) {
             $price = GetMarketPrice($info);
             $sqlBit = sprintf('(%d,%u,%u,%u,%u,\'%s\')', $house, $species, $breed, $price, $info['tq'], $snapshotString);
-            if (strlen($sql) + strlen($sqlBit) + strlen($sqlEnd) + 5 > $maxPacketSize)
-            {
-                DBQueryWithError($db, $sql.$sqlEnd);
+            if (strlen($sql) + strlen($sqlBit) + strlen($sqlEnd) + 5 > $maxPacketSize) {
+                DBQueryWithError($db, $sql . $sqlEnd);
                 $sql = '';
             }
             $sql .= ($sql == '' ? $sqlStart : ',') . $sqlBit;
 
             if ((!$noHistory) && ($info['tq'] > 0)) {
-                if (strlen($sqlHistory) + strlen($sqlBit) + 5 > $maxPacketSize)
-                {
+                if (strlen($sqlHistory) + strlen($sqlBit) + 5 > $maxPacketSize) {
                     DBQueryWithError($db, $sqlHistory);
                     $sqlHistory = '';
                 }
@@ -677,16 +708,19 @@ function UpdatePetInfo($house, &$petInfo, $snapshot, $noHistory)
     }
     unset($breeds);
 
-    if ($sql != '')
-        DBQueryWithError($db, $sql.$sqlEnd);
-    if ($sqlHistory != '')
+    if ($sql != '') {
+        DBQueryWithError($db, $sql . $sqlEnd);
+    }
+    if ($sqlHistory != '') {
         DBQueryWithError($db, $sqlHistory);
+    }
 }
 
 function GetAverageAge(&$info, $price)
 {
-    if ($info['tq'] == 0)
+    if ($info['tq'] == 0) {
         return 0;
+    }
 
     $c = $s = 0;
     $tc = count($info['a']);
@@ -705,28 +739,29 @@ function GetAverageAge(&$info, $price)
 
 function GetMarketPrice(&$info)
 {
-    if ($info['tq'] == 0)
+    if ($info['tq'] == 0) {
         return 0;
+    }
 
     usort($info['a'], 'MarketPriceSort');
     $gq = 0;
     $gp = 0;
     $x = 0;
-    while ($gq < ceil($info['tq'] * 0.15))
-    {
+    while ($gq < ceil($info['tq'] * 0.15)) {
         $gq += $info['a'][$x]['q'];
         $gp += $info['a'][$x]['p'];
         $x++;
     }
-    return ceil($gp/$gq);
+    return ceil($gp / $gq);
 }
 
-function MarketPriceSort($a,$b)
+function MarketPriceSort($a, $b)
 {
-    $ap = ceil($a['p']/$a['q']);
-    $bp = ceil($b['p']/$b['q']);
-    if ($ap - $bp != 0)
+    $ap = ceil($a['p'] / $a['q']);
+    $bp = ceil($b['p'] / $b['q']);
+    if ($ap - $bp != 0) {
         return ($ap - $bp);
+    }
     return ($a['q'] - $b['q']);
 }
 
@@ -747,7 +782,7 @@ function DBQueryWithError(&$db, $sql)
     }
 
     if (!$queryOk) {
-        DebugMessage("SQL error: ".$db->errno.' '.$db->error." - ".substr(preg_replace('/[\r\n]/', ' ', $sql), 0, 500), E_USER_WARNING);
+        DebugMessage("SQL error: " . $db->errno . ' ' . $db->error . " - " . substr(preg_replace('/[\r\n]/', ' ', $sql), 0, 500), E_USER_WARNING);
     }
 
     return $queryOk;

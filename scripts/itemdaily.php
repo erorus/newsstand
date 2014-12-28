@@ -10,18 +10,20 @@ require_once('../incl/heartbeat.incl.php');
 RunMeNTimes(1);
 CatchKill();
 
-if (!DBConnect())
+if (!DBConnect()) {
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
+}
 
 AddDailyData();
-DebugMessage('Done! Started '.TimeDiff($startTime));
+DebugMessage('Done! Started ' . TimeDiff($startTime));
 
 function AddDailyData()
 {
     global $db, $caughtKill;
 
-    if ($caughtKill)
+    if ($caughtKill) {
         return;
+    }
 
     $sql = <<<EOF
 select s2.house, date(max(s2.updated)) `start`, max(s2.updated) `end`
@@ -41,7 +43,7 @@ EOF;
     $houses = DBMapArray($result);
     $stmt->close();
 
-    DebugMessage(count($houses)." houses need updates");
+    DebugMessage(count($houses) . " houses need updates");
 
     $sqlPattern = <<<EOF
 replace into tblItemHistoryDaily
@@ -69,11 +71,11 @@ replace into tblItemHistoryDaily
 where quantitymax > 0);
 EOF;
 
-    foreach ($houses as $house => $houseRow)
-    {
+    foreach ($houses as $house => $houseRow) {
         heartbeat();
-        if ($caughtKill)
+        if ($caughtKill) {
             return;
+        }
 
         $sql = sprintf($sqlPattern, $house, $houseRow['start'], $houseRow['end'], $house);
         $db->real_query($sql);
@@ -81,8 +83,8 @@ EOF;
 
         DebugMessage("$rowCount item daily rows updated for house $house for date {$houseRow['start']}");
 
-        $stmt = $db->prepare('insert into tblHouseCheck (house, lastdaily) values (?, ?) on duplicate key update lastdaily = values(lastdaily)');
-        $stmt->bind_param('is',$house,$houseRow['start']);
+        $stmt = $db->prepare('INSERT INTO tblHouseCheck (house, lastdaily) VALUES (?, ?) ON DUPLICATE KEY UPDATE lastdaily = values(lastdaily)');
+        $stmt->bind_param('is', $house, $houseRow['start']);
         $stmt->execute();
         $stmt->close();
     }

@@ -1,7 +1,7 @@
 <?php
 
-require_once(__DIR__.'/../incl/incl.php');
-require_once(__DIR__.'/../incl/battlenet.incl.php');
+require_once(__DIR__ . '/../incl/incl.php');
+require_once(__DIR__ . '/../incl/battlenet.incl.php');
 
 if (php_sapi_name() == 'cli') {
     DebugMessage('This script is meant to be run from the private/admin area as a web page.', E_USER_ERROR);
@@ -23,24 +23,26 @@ td.r { text-align: right }
 
 </style></head><body>
 EOF;
-echo '<h1>'.Date('Y-m-d H:i:s').'</h1>';
+echo '<h1>' . Date('Y-m-d H:i:s') . '</h1>';
 
-if (!DBConnect())
+if (!DBConnect()) {
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
+}
 
 ShowRealms();
 ShowLogs();
 
 echo '</body></html>';
 
-function BnetGet() {
+function BnetGet()
+{
     $parts = explode('-', $_GET['bnetget'], 2);
     if (count($parts) != 2) {
         echo 'Not enough parts.';
         exit;
     }
 
-    switch($parts[0]) {
+    switch ($parts[0]) {
         case 'US':
         case 'EU':
             break;
@@ -49,11 +51,12 @@ function BnetGet() {
             exit;
     }
 
-    $urlPart = 'wow/auction/data/'.$parts[1];
-    header('Location: '.GetBattleNetURL($parts[0], $urlPart));
+    $urlPart = 'wow/auction/data/' . $parts[1];
+    header('Location: ' . GetBattleNetURL($parts[0], $urlPart));
 }
 
-function ShowRealms() {
+function ShowRealms()
+{
     echo '<h1>Realms</h1>';
 
     global $db;
@@ -84,34 +87,34 @@ EOF;
 
     echo '<table cellspacing="0"><tr><th>House</th><th>Region</th><th>Canonical</th><th>Updated</th><th>Scheduled</th><th>Min</th><th>Avg</th><th>Max</th></tr>';
     foreach ($rows as &$row) {
-        echo '<tr><td class="r">'.$row['house'].'</td>';
-        echo '<td>'.$row['region'].'</td>';
-        echo '<td><a href="?bnetget='.$row['region'].'-'.$row['canonical'].'">'.$row['canonical'].'</a></td>';
+        echo '<tr><td class="r">' . $row['house'] . '</td>';
+        echo '<td>' . $row['region'] . '</td>';
+        echo '<td><a href="?bnetget=' . $row['region'] . '-' . $row['canonical'] . '">' . $row['canonical'] . '</a></td>';
 
         if (is_null($row['lastupdate'])) {
             echo '<td>&nbsp;</td>';
         } else {
-            $css='';
+            $css = '';
             $updateDelta = time() - strtotime($row['lastupdate']);
             if ($updateDelta > ($row['maxdelta'] + 180)) {
                 $css = 'color: red';
             } elseif ($updateDelta > $row['avgdelta'] + 60) {
                 $css = 'color: #999900';
             }
-            echo '<td style="'.$css.'" class="r">'.TimeDiff(strtotime($row['lastupdate'])).'</td>';
+            echo '<td style="' . $css . '" class="r">' . TimeDiff(strtotime($row['lastupdate'])) . '</td>';
         }
 
         if (is_null($row['scheduled'])) {
             echo '<td>&nbsp;</td>';
         } elseif (is_null($row['delayednext'])) {
-            echo '<td style="color: green" class="r">'.TimeDiff(strtotime($row['scheduled'])).'</td>';
+            echo '<td style="color: green" class="r">' . TimeDiff(strtotime($row['scheduled'])) . '</td>';
         } else {
-            echo '<td style="color: #999900" class="r">'.TimeDiff(strtotime($row['delayednext'])).'</td>';
+            echo '<td style="color: #999900" class="r">' . TimeDiff(strtotime($row['delayednext'])) . '</td>';
         }
 
-        echo '<td class="r">'.round(intval($row['mindelta'],10)/60).' min</td>';
-        echo '<td class="r">'.round(intval($row['avgdelta'],10)/60).' min</td>';
-        echo '<td class="r">'.round(intval($row['maxdelta'],10)/60).' min</td>';
+        echo '<td class="r">' . round(intval($row['mindelta'], 10) / 60) . ' min</td>';
+        echo '<td class="r">' . round(intval($row['avgdelta'], 10) / 60) . ' min</td>';
+        echo '<td class="r">' . round(intval($row['maxdelta'], 10) / 60) . ' min</td>';
 
         echo '</tr>';
     }
@@ -120,34 +123,40 @@ EOF;
     echo '</table>';
 }
 
-function ShowLogs() {
+function ShowLogs()
+{
     echo '<h1>Logs</h1>';
-    $dir = realpath(__DIR__.'/../logs');
-    $files = array_values(array_filter(glob($dir.'/*.log'), function($f) {
-            $parts = explode('.',basename($f));
-            if (count($parts) == 2)
-                return true;
-
-            for ($x = 1; $x < count($parts) - 1; $x++) {
-                switch ($parts[$x]) {
-                    case 'US':
-                    case 'EU':
-                        break;
-                    default:
-                        return false;
+    $dir = realpath(__DIR__ . '/../logs');
+    $files = array_values(
+        array_filter(
+            glob($dir . '/*.log'), function ($f) {
+                $parts = explode('.', basename($f));
+                if (count($parts) == 2) {
+                    return true;
                 }
+
+                for ($x = 1; $x < count($parts) - 1; $x++) {
+                    switch ($parts[$x]) {
+                        case 'US':
+                        case 'EU':
+                            break;
+                        default:
+                            return false;
+                    }
+                }
+                return true;
             }
-            return true;
-        }));
+        )
+    );
 
     sort($files);
 
     foreach ($files as $path) {
         ob_start();
-        passthru('tail -n 20 '.escapeshellarg($path));
+        passthru('tail -n 20 ' . escapeshellarg($path));
         $log = ob_get_clean();
 
-        echo '<h2>'.htmlentities($path).'</h2>';
-        echo '<pre>'.htmlentities($log).'</pre>';
+        echo '<h2>' . htmlentities($path) . '</h2>';
+        echo '<pre>' . htmlentities($log) . '</pre>';
     }
 }

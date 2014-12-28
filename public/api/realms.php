@@ -4,7 +4,7 @@ require_once('../../incl/incl.php');
 require_once('../../incl/memcache.incl.php');
 require_once('../../incl/api.incl.php');
 
-header('Expires: '.Date(DATE_RFC1123, strtotime('+3 hours')));
+header('Expires: ' . Date(DATE_RFC1123, strtotime('+3 hours')));
 
 $region = GetSiteRegion();
 

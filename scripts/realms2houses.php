@@ -9,53 +9,53 @@ require_once('../incl/heartbeat.incl.php');
 require_once('../incl/memcache.incl.php');
 require_once('../incl/battlenet.incl.php');
 
-ini_set('memory_limit','512M');
+ini_set('memory_limit', '512M');
 
 RunMeNTimes(1);
 CatchKill();
 
-if (!DBConnect())
+if (!DBConnect()) {
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
+}
 
-$regions = array('US','EU');
+$regions = array('US', 'EU');
 
-foreach ($regions as $region)
-{
+foreach ($regions as $region) {
     heartbeat();
-    if ($caughtKill)
+    if ($caughtKill) {
         break;
-    if (isset($argv[1]) && $argv[1] != $region)
+    }
+    if (isset($argv[1]) && $argv[1] != $region) {
         continue;
+    }
     $url = GetBattleNetURL($region, 'wow/realm/status');
 
     $json = FetchHTTP($url);
     $realms = json_decode($json, true, 512, JSON_BIGINT_AS_STRING);
-    if (json_last_error() != JSON_ERROR_NONE)
-    {
+    if (json_last_error() != JSON_ERROR_NONE) {
         DebugMessage("$url did not return valid JSON");
         continue;
     }
 
-    if (!isset($realms['realms']) || (count($realms['realms']) == 0))
-    {
+    if (!isset($realms['realms']) || (count($realms['realms']) == 0)) {
         DebugMessage("$url returned no realms");
         continue;
     }
 
-    $stmt = $db->prepare('select ifnull(max(id), 0) from tblRealm');
+    $stmt = $db->prepare('SELECT ifnull(max(id), 0) FROM tblRealm');
     $stmt->execute();
     $stmt->bind_result($nextId);
     $stmt->fetch();
     $stmt->close();
     $nextId++;
 
-    $stmt = $db->prepare('insert into tblRealm (id, region, slug, name, locale) values (?, ?, ?, ?, ?) on duplicate key update name=values(name), locale=values(locale)');
-    foreach ($realms['realms'] as $realm)
-    {
+    $stmt = $db->prepare('INSERT INTO tblRealm (id, region, slug, name, locale) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=values(name), locale=values(locale)');
+    foreach ($realms['realms'] as $realm) {
         $stmt->bind_param('issss', $nextId, $region, $realm['slug'], $realm['name'], $realm['locale']);
         $stmt->execute();
-        if ($db->affected_rows > 0)
+        if ($db->affected_rows > 0) {
             $nextId++;
+        }
         $stmt->reset();
     }
     $stmt->close();
@@ -63,7 +63,7 @@ foreach ($regions as $region)
     $challengeRealmsHtml = FetchHTTP(sprintf('http://%s.battle.net/wow/en/challenge/', $region));
     if (preg_match('/<select [^>]*\bid="realm-select"[^>]*>([\w\W]+?)<\/select>/', $challengeRealmsHtml, $res2)) {
         if (($c = preg_match_all('/<option [^>]*\bvalue="([^"]+)"[^>]*>([^<]+)<\/option>/', $res2[1], $res)) > 0) {
-            $stmt = $db->prepare('insert ignore into tblRealm (id, region, slug, name) values (?, ?, ?, ?)');
+            $stmt = $db->prepare('INSERT IGNORE INTO tblRealm (id, region, slug, name) VALUES (?, ?, ?, ?)');
             for ($x = 0; $x < $c; $x++) {
                 if ($res[1][$x] == 'all') {
                     continue;
@@ -71,7 +71,7 @@ foreach ($regions as $region)
                 $stmt->bind_param('isss', $nextId, $region, $res[1][$x], $res[2][$x]);
                 $stmt->execute();
                 if ($db->affected_rows > 0) {
-                    DebugMessage("New $region realm from challenge mode page: ".$res[2][$x]." (".$res[1][$x].')');
+                    DebugMessage("New $region realm from challenge mode page: " . $res[2][$x] . " (" . $res[1][$x] . ')');
                     $nextId++;
                 }
                 $stmt->reset();
@@ -82,14 +82,16 @@ foreach ($regions as $region)
     unset($challengeRealmsHtml, $res, $res2, $c, $x);
 
     GetRussianOwnerRealms($region);
-    if ($caughtKill)
+    if ($caughtKill) {
         break;
+    }
 
     GetRealmPopulation($region);
-    if ($caughtKill)
+    if ($caughtKill) {
         break;
+    }
 
-    $stmt = $db->prepare('select slug, house, name, ifnull(ownerrealm, replace(name, \' \', \'\')) as ownerrealm from tblRealm where region = ?');
+    $stmt = $db->prepare('SELECT slug, house, name, ifnull(ownerrealm, replace(name, \' \', \'\')) AS ownerrealm FROM tblRealm WHERE region = ?');
     $stmt->bind_param('s', $region);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -102,11 +104,11 @@ foreach ($regions as $region)
     $candidates = array();
     $winners = array();
 
-    foreach ($bySlug as $row)
-    {
+    foreach ($bySlug as $row) {
         heartbeat();
-        if ($caughtKill)
+        if ($caughtKill) {
             break 2;
+        }
 
         $slug = $row['slug'];
         $bySellerRealm[$row['ownerrealm']] = $row['slug'];
@@ -116,166 +118,160 @@ foreach ($regions as $region)
 
         $json = FetchHTTP($url);
         $dta = json_decode($json, true);
-        if (!isset($dta['files']))
-        {
+        if (!isset($dta['files'])) {
             DebugMessage("$region $slug returned no files.", E_USER_WARNING);
             continue;
         }
 
         $hash = preg_match('/\b[a-f0-9]{32}\b/', $dta['files'][0]['url'], $res) > 0 ? $res[0] : '';
-        if ($hash == '')
-        {
+        if ($hash == '') {
             DebugMessage("$region $slug had no hash in the URL: {$dta['files'][0]['url']}", E_USER_WARNING);
             continue;
         }
 
         $a = GetDataRealms($region, $hash);
-        if ($a['slug'])
-        {
+        if ($a['slug']) {
             $canonicals[$a['slug']][md5(json_encode($a))] = $a;
             $fallBack[$slug] = $a['slug'];
         }
     }
 
-    foreach ($canonicals as $canon => $results)
-    {
-        if (count($results) > 1)
-            DebugMessage("$region $canon has ".count($results)." results: ".print_r($results, true));
+    foreach ($canonicals as $canon => $results) {
+        if (count($results) > 1) {
+            DebugMessage("$region $canon has " . count($results) . " results: " . print_r($results, true));
+        }
 
-        foreach ($results as $result)
-            foreach ($result['realms'] as $sellerRealm)
-                if (isset($bySellerRealm[$sellerRealm]))
+        foreach ($results as $result) {
+            foreach ($result['realms'] as $sellerRealm) {
+                if (isset($bySellerRealm[$sellerRealm])) {
                     $candidates[$bySellerRealm[$sellerRealm]][$canon] = count($result['realms']) + (isset($candidates[$bySellerRealm[$sellerRealm]][$canon]) ? $candidates[$bySellerRealm[$sellerRealm]][$canon] : 0);
+                }
+            }
+        }
     }
 
     $byCanonical = array();
-    foreach ($bySlug as $row)
-    {
-        if (isset($candidates[$row['slug']]))
-        {
+    foreach ($bySlug as $row) {
+        if (isset($candidates[$row['slug']])) {
             arsort($candidates[$row['slug']]);
             $c2 = array();
             $c2cnt = 0;
-            foreach ($candidates[$row['slug']] as $canon => $cnt)
-            {
-                if ($c2cnt == 0)
-                {
+            foreach ($candidates[$row['slug']] as $canon => $cnt) {
+                if ($c2cnt == 0) {
                     $c2cnt = $cnt;
                     $c2[] = $canon;
+                } else {
+                    if ($c2cnt == $cnt) {
+                        $c2[] = $canon;
+                    }
                 }
-                else if ($c2cnt == $cnt)
-                    $c2[] = $canon;
             }
             sort($c2);
             $winners[$row['slug']] = $c2[0];
-        }
-        else
+        } else {
             $winners[$row['slug']] = isset($fallBack[$row['slug']]) ? $fallBack[$row['slug']] : $row['slug'];
+        }
 
         $byCanonical[$winners[$row['slug']]][] = $row['slug'];
     }
 
     heartbeat();
-    if ($caughtKill)
+    if ($caughtKill) {
         break;
+    }
 
-    $stmt = $db->prepare('select ifnull(max(house),0) from tblRealm');
+    $stmt = $db->prepare('SELECT ifnull(max(house),0) FROM tblRealm');
     $stmt->execute();
     $stmt->bind_result($maxHouse);
     $stmt->fetch();
     $stmt->close();
 
-    foreach ($byCanonical as $canon => $slugs)
-    {
+    foreach ($byCanonical as $canon => $slugs) {
         sort($slugs);
         $rep = $slugs[0];
         $candidates = array();
-        foreach ($slugs as $slug)
-        {
-            if ($slug == $canon)
+        foreach ($slugs as $slug) {
+            if ($slug == $canon) {
                 $rep = $slug;
-            if (!is_null($bySlug[$slug]['house']))
-            {
-                if (!isset($candidates[$bySlug[$slug]['house']]))
+            }
+            if (!is_null($bySlug[$slug]['house'])) {
+                if (!isset($candidates[$bySlug[$slug]['house']])) {
                     $candidates[$bySlug[$slug]['house']] = 0;
+                }
                 $candidates[$bySlug[$slug]['house']]++;
             }
         }
-        if (count($candidates) > 0)
-        {
+        if (count($candidates) > 0) {
             asort($candidates);
             $curHouse = array_keys($candidates);
             $curHouse = array_pop($curHouse);
-        }
-        else
+        } else {
             $curHouse = ++$maxHouse;
-        $houseKeys = array_keys($bySlug);
-        foreach ($houseKeys as $slug)
-        {
-            if (in_array($slug, $slugs))
-                continue;
-            if ($bySlug[$slug]['house'] == $curHouse)
-                $bySlug[$slug]['house'] = null;
         }
-        foreach ($slugs as $slug)
-        {
-            if ($bySlug[$slug]['house'] != $curHouse)
-            {
-                DebugMessage("$region $slug changing from ".(is_null($bySlug[$slug]['house']) ? 'null' : $bySlug[$slug]['house'])." to $curHouse");
-                $db->real_query(sprintf('update tblRealm set house = %d where region = \'%s\' and slug = \'%s\'', $curHouse, $db->escape_string($region), $db->escape_string($slug)));
+        $houseKeys = array_keys($bySlug);
+        foreach ($houseKeys as $slug) {
+            if (in_array($slug, $slugs)) {
+                continue;
+            }
+            if ($bySlug[$slug]['house'] == $curHouse) {
+                $bySlug[$slug]['house'] = null;
+            }
+        }
+        foreach ($slugs as $slug) {
+            if ($bySlug[$slug]['house'] != $curHouse) {
+                DebugMessage("$region $slug changing from " . (is_null($bySlug[$slug]['house']) ? 'null' : $bySlug[$slug]['house']) . " to $curHouse");
+                $db->real_query(sprintf('UPDATE tblRealm SET house = %d WHERE region = \'%s\' AND slug = \'%s\'', $curHouse, $db->escape_string($region), $db->escape_string($slug)));
                 $bySlug[$slug]['house'] = $curHouse;
             }
         }
-        $db->real_query(sprintf('update tblRealm set canonical = null where house = %d', $curHouse));
-        $db->real_query(sprintf('update tblRealm set canonical = \'%s\' where house = %d and region = \'%s\' and slug = \'%s\'', $db->escape_string($canon), $curHouse, $db->escape_string($region), $db->escape_string($rep)));
+        $db->real_query(sprintf('UPDATE tblRealm SET canonical = NULL WHERE house = %d', $curHouse));
+        $db->real_query(sprintf('UPDATE tblRealm SET canonical = \'%s\' WHERE house = %d AND region = \'%s\' AND slug = \'%s\'', $db->escape_string($canon), $curHouse, $db->escape_string($region), $db->escape_string($rep)));
     }
-    $memcache->delete('realms_'.$region);
+    $memcache->delete('realms_' . $region);
 }
 
 CleanOldHouses();
 //DebugMessage('Skipped cleaning old houses!');
 
-DebugMessage('Done! Started '.TimeDiff($startTime));
+DebugMessage('Done! Started ' . TimeDiff($startTime));
 
 function GetDataRealms($region, $hash)
 {
     heartbeat();
     $region = strtolower($region);
 
-    $pth = __DIR__.'/realms2houses_cache';
-    if (!is_dir($pth))
+    $pth = __DIR__ . '/realms2houses_cache';
+    if (!is_dir($pth)) {
         DebugMessage('Could not find realms2houses_cache!', E_USER_ERROR);
+    }
 
     $cachePath = "$pth/$region-$hash.json";
 
-    if (file_exists($cachePath) && (filemtime($cachePath) > (time() - 23*60*60)))
+    if (file_exists($cachePath) && (filemtime($cachePath) > (time() - 23 * 60 * 60))) {
         return json_decode(file_get_contents($cachePath), true);
+    }
 
     $result = array('slug' => false, 'realms' => array());
 
     $url = sprintf('http://%s.battle.net/auction-data/%s/auctions.json', $region, $hash);
     $outHeaders = array();
     $json = FetchHTTP($url, [], $outHeaders);
-    if (!$json)
-    {
+    if (!$json) {
         DebugMessage("No data from $url, waiting 5 secs");
         http_persistent_handles_clean();
         sleep(5);
         $json = FetchHTTP($url, [], $outHeaders);
     }
 
-    if (!$json)
-    {
+    if (!$json) {
         DebugMessage("No data from $url, waiting 15 secs");
         http_persistent_handles_clean();
         sleep(15);
         $json = FetchHTTP($url, [], $outHeaders);
     }
 
-    if (!$json)
-    {
-        if (file_exists($cachePath) && (filemtime($cachePath) > (time() - 3*24*60*60)))
-        {
+    if (!$json) {
+        if (file_exists($cachePath) && (filemtime($cachePath) > (time() - 3 * 24 * 60 * 60))) {
             DebugMessage("No data from $url, using cache");
             return json_decode(file_get_contents($cachePath), true);
         }
@@ -284,10 +280,11 @@ function GetDataRealms($region, $hash)
     }
 
     $xferBytes = isset($outHeaders['X-Original-Content-Length']) ? $outHeaders['X-Original-Content-Length'] : strlen($json);
-    DebugMessage("$region $hash data file ".strlen($json)." bytes".($xferBytes != strlen($json) ? (' (transfer length '.$xferBytes.', '.round($xferBytes/strlen($json)*100,1).'%)') : ''));
+    DebugMessage("$region $hash data file " . strlen($json) . " bytes" . ($xferBytes != strlen($json) ? (' (transfer length ' . $xferBytes . ', ' . round($xferBytes / strlen($json) * 100, 1) . '%)') : ''));
 
-    if (preg_match('/"slug":"([^"?]+)"/', $json, $m))
+    if (preg_match('/"slug":"([^"?]+)"/', $json, $m)) {
         $result['slug'] = $m[1];
+    }
 
     preg_match_all('/"ownerRealm":"([^"?]+)"/', $json, $m);
     $result['realms'] = array_values(array_unique($m[1]));
@@ -304,45 +301,45 @@ function GetRussianOwnerRealms($region)
     $ruID = 0;
     $ruSlug = '';
     $ruToRun = array();
-    $stmt = $db->prepare('select id, slug from tblRealm where region=? and locale=\'ru_RU\' and ownerrealm is null');
+    $stmt = $db->prepare('SELECT id, slug FROM tblRealm WHERE region=? AND locale=\'ru_RU\' AND ownerrealm IS NULL');
     $stmt->bind_param('s', $region);
     $stmt->execute();
     $stmt->bind_result($ruID, $ruSlug);
-    while ($stmt->fetch())
-    {
+    while ($stmt->fetch()) {
         heartbeat();
-        if ($caughtKill)
+        if ($caughtKill) {
             return;
+        }
 
         DebugMessage("Getting ownerrealm for russian slug $ruSlug");
-        $url = GetBattleNetURL($region, 'wow/realm/status?realms='.$ruSlug.'&locale=ru_RU');
+        $url = GetBattleNetURL($region, 'wow/realm/status?realms=' . $ruSlug . '&locale=ru_RU');
         $ruRealm = json_decode(FetchHTTP($url), true, 512, JSON_BIGINT_AS_STRING);
-        if (json_last_error() != JSON_ERROR_NONE)
-        {
+        if (json_last_error() != JSON_ERROR_NONE) {
             DebugMessage("$url did not return valid JSON");
             continue;
         }
 
-        if (!isset($ruRealm['realms']) || (count($ruRealm['realms']) == 0))
-        {
+        if (!isset($ruRealm['realms']) || (count($ruRealm['realms']) == 0)) {
             DebugMessage("$url returned no realms");
             continue;
         }
 
         $ruOwner = str_replace(' ', '', $ruRealm['realms'][0]['name']);
-        $ruToRun[] = sprintf('update tblRealm set ownerrealm = \'%s\' where id = %d', $db->escape_string($ruOwner), $ruID);
+        $ruToRun[] = sprintf('UPDATE tblRealm SET ownerrealm = \'%s\' WHERE id = %d', $db->escape_string($ruOwner), $ruID);
     }
     $stmt->close();
-    if ($caughtKill)
+    if ($caughtKill) {
         return;
+    }
 
-    foreach ($ruToRun as $sql)
-    {
+    foreach ($ruToRun as $sql) {
         heartbeat();
-        if ($caughtKill)
+        if ($caughtKill) {
             return;
-        if (!$db->real_query($sql))
+        }
+        if (!$db->real_query($sql)) {
             DebugMessage(sprintf("%s: %s", $sql, $db->error), E_USER_WARNING);
+        }
     }
 }
 
@@ -350,39 +347,42 @@ function GetRealmPopulation($region)
 {
     global $db, $caughtKill;
 
-    $json = FetchHTTP('https://realmpop.com/'.strtolower($region).'.json');
+    $json = FetchHTTP('https://realmpop.com/' . strtolower($region) . '.json');
     if ($json == '') {
-        DebugMessage('Could not get realmpop json for '.$region, E_USER_WARNING);
+        DebugMessage('Could not get realmpop json for ' . $region, E_USER_WARNING);
         return;
     }
 
-    if ($caughtKill)
+    if ($caughtKill) {
         return;
+    }
 
     $stats = json_decode($json, true);
     if (json_last_error() != JSON_ERROR_NONE) {
-        DebugMessage('json decode error for realmpop json for '.$region, E_USER_WARNING);
+        DebugMessage('json decode error for realmpop json for ' . $region, E_USER_WARNING);
         return;
     }
 
     $stats = $stats['realms'];
 
-    $stmt = $db->prepare('select slug, id from tblRealm where region=?');
+    $stmt = $db->prepare('SELECT slug, id FROM tblRealm WHERE region=?');
     $stmt->bind_param('s', $region);
     $stmt->execute();
     $result = $stmt->get_result();
     $bySlug = DBMapArray($result);
     $stmt->close();
 
-    if ($caughtKill)
+    if ($caughtKill) {
         return;
+    }
 
-    $sqlPattern = 'update tblRealm set population = %d where id = %d';
+    $sqlPattern = 'UPDATE tblRealm SET population = %d WHERE id = %d';
     foreach ($stats as $slug => $o) {
         if (isset($bySlug[$slug])) {
             $sql = sprintf($sqlPattern, ($o['counts']['Alliance'] + $o['counts']['Horde']), $bySlug[$slug]['id']);
-            if (!$db->real_query($sql))
+            if (!$db->real_query($sql)) {
                 DebugMessage(sprintf("%s: %s", $sql, $db->error), E_USER_WARNING);
+            }
         }
     }
 
@@ -392,177 +392,185 @@ function CleanOldHouses()
 {
     global $db, $caughtKill;
 
-    if ($caughtKill)
+    if ($caughtKill) {
         return;
+    }
 
-    $sql = 'select distinct house from tblAuction where house not in (select distinct house from tblRealm)';
+    $sql = 'SELECT DISTINCT house FROM tblAuction WHERE house NOT IN (SELECT DISTINCT house FROM tblRealm)';
     $stmt = $db->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();
     $oldIds = DBMapArray($result);
     $stmt->close();
 
-    $sql = 'delete from tblAuction where house = %d limit 2000';
-    foreach ($oldIds as $oldId)
-    {
-        if ($caughtKill)
+    $sql = 'DELETE FROM tblAuction WHERE house = %d LIMIT 2000';
+    foreach ($oldIds as $oldId) {
+        if ($caughtKill) {
             return;
+        }
 
-        DebugMessage('Clearing out auctions from old house '.$oldId);
+        DebugMessage('Clearing out auctions from old house ' . $oldId);
 
-        while (!$caughtKill)
-        {
+        while (!$caughtKill) {
             heartbeat();
             $ok = $db->real_query(sprintf($sql, $oldId));
-            if (!$ok || $db->affected_rows == 0)
+            if (!$ok || $db->affected_rows == 0) {
                 break;
+            }
         }
     }
 
-    if ($caughtKill)
+    if ($caughtKill) {
         return;
+    }
 
-    $sql = 'select distinct house from tblHouseCheck where house not in (select distinct house from tblRealm)';
+    $sql = 'SELECT DISTINCT house FROM tblHouseCheck WHERE house NOT IN (SELECT DISTINCT house FROM tblRealm)';
     $stmt = $db->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();
     $oldIds = DBMapArray($result);
     $stmt->close();
-    if (count($oldIds))
-        $db->real_query(sprintf('delete from tblHouseCheck where house in (%s)', implode(',',$oldIds)));
+    if (count($oldIds)) {
+        $db->real_query(sprintf('DELETE FROM tblHouseCheck WHERE house IN (%s)', implode(',', $oldIds)));
+    }
 
-    if ($caughtKill)
+    if ($caughtKill) {
         return;
+    }
 
-    $sql = 'select distinct house from tblItemHistory where house not in (select distinct house from tblRealm)';
+    $sql = 'SELECT DISTINCT house FROM tblItemHistory WHERE house NOT IN (SELECT DISTINCT house FROM tblRealm)';
     $stmt = $db->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();
     $oldIds = DBMapArray($result);
     $stmt->close();
 
-    $sql = 'delete from tblItemHistory where house = %d limit 2000';
-    foreach ($oldIds as $oldId)
-    {
-        if ($caughtKill)
+    $sql = 'DELETE FROM tblItemHistory WHERE house = %d LIMIT 2000';
+    foreach ($oldIds as $oldId) {
+        if ($caughtKill) {
             return;
+        }
 
-        DebugMessage('Clearing out item history from old house '.$oldId);
+        DebugMessage('Clearing out item history from old house ' . $oldId);
 
-        while (!$caughtKill)
-        {
+        while (!$caughtKill) {
             heartbeat();
             $ok = $db->real_query(sprintf($sql, $oldId));
-            if (!$ok || $db->affected_rows == 0)
+            if (!$ok || $db->affected_rows == 0) {
                 break;
+            }
         }
     }
 
-    if ($caughtKill)
+    if ($caughtKill) {
         return;
+    }
 
-    $sql = 'select distinct house from tblItemSummary where house not in (select distinct house from tblRealm)';
+    $sql = 'SELECT DISTINCT house FROM tblItemSummary WHERE house NOT IN (SELECT DISTINCT house FROM tblRealm)';
     $stmt = $db->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();
     $oldIds = DBMapArray($result);
     $stmt->close();
 
-    $sql = 'delete from tblItemSummary where house = %d limit 2000';
-    foreach ($oldIds as $oldId)
-    {
-        if ($caughtKill)
+    $sql = 'DELETE FROM tblItemSummary WHERE house = %d LIMIT 2000';
+    foreach ($oldIds as $oldId) {
+        if ($caughtKill) {
             return;
+        }
 
-        DebugMessage('Clearing out item summary from old house '.$oldId);
+        DebugMessage('Clearing out item summary from old house ' . $oldId);
 
-        while (!$caughtKill)
-        {
+        while (!$caughtKill) {
             heartbeat();
             $ok = $db->real_query(sprintf($sql, $oldId));
-            if (!$ok || $db->affected_rows == 0)
+            if (!$ok || $db->affected_rows == 0) {
                 break;
+            }
         }
     }
 
-    if ($caughtKill)
+    if ($caughtKill) {
         return;
+    }
 
-    $sql = 'select distinct house from tblPetHistory where house not in (select distinct house from tblRealm)';
+    $sql = 'SELECT DISTINCT house FROM tblPetHistory WHERE house NOT IN (SELECT DISTINCT house FROM tblRealm)';
     $stmt = $db->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();
     $oldIds = DBMapArray($result);
     $stmt->close();
 
-    $sql = 'delete from tblPetHistory where house = %d limit 2000';
-    foreach ($oldIds as $oldId)
-    {
-        if ($caughtKill)
+    $sql = 'DELETE FROM tblPetHistory WHERE house = %d LIMIT 2000';
+    foreach ($oldIds as $oldId) {
+        if ($caughtKill) {
             return;
+        }
 
-        DebugMessage('Clearing out pet history from old house '.$oldId);
+        DebugMessage('Clearing out pet history from old house ' . $oldId);
 
-        while (!$caughtKill)
-        {
+        while (!$caughtKill) {
             heartbeat();
             $ok = $db->real_query(sprintf($sql, $oldId));
-            if (!$ok || $db->affected_rows == 0)
+            if (!$ok || $db->affected_rows == 0) {
                 break;
+            }
         }
     }
 
-    if ($caughtKill)
+    if ($caughtKill) {
         return;
+    }
 
-    $sql = 'select distinct house from tblPetSummary where house not in (select distinct house from tblRealm)';
+    $sql = 'SELECT DISTINCT house FROM tblPetSummary WHERE house NOT IN (SELECT DISTINCT house FROM tblRealm)';
     $stmt = $db->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();
     $oldIds = DBMapArray($result);
     $stmt->close();
 
-    $sql = 'delete from tblPetSummary where house = %d limit 2000';
-    foreach ($oldIds as $oldId)
-    {
-        if ($caughtKill)
+    $sql = 'DELETE FROM tblPetSummary WHERE house = %d LIMIT 2000';
+    foreach ($oldIds as $oldId) {
+        if ($caughtKill) {
             return;
+        }
 
-        DebugMessage('Clearing out pet summary from old house '.$oldId);
+        DebugMessage('Clearing out pet summary from old house ' . $oldId);
 
-        while (!$caughtKill)
-        {
+        while (!$caughtKill) {
             heartbeat();
             $ok = $db->real_query(sprintf($sql, $oldId));
-            if (!$ok || $db->affected_rows == 0)
+            if (!$ok || $db->affected_rows == 0) {
                 break;
+            }
         }
     }
 
-    if ($caughtKill)
+    if ($caughtKill) {
         return;
+    }
 
-    $sql = 'select distinct house from tblSnapshot where house not in (select distinct house from tblRealm)';
+    $sql = 'SELECT DISTINCT house FROM tblSnapshot WHERE house NOT IN (SELECT DISTINCT house FROM tblRealm)';
     $stmt = $db->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();
     $oldIds = DBMapArray($result);
     $stmt->close();
 
-    $sql = 'delete from tblSnapshot where house = %d limit 2000';
-    foreach ($oldIds as $oldId)
-    {
-        if ($caughtKill)
+    $sql = 'DELETE FROM tblSnapshot WHERE house = %d LIMIT 2000';
+    foreach ($oldIds as $oldId) {
+        if ($caughtKill) {
             return;
+        }
 
-        DebugMessage('Clearing out snapshots from old house '.$oldId);
+        DebugMessage('Clearing out snapshots from old house ' . $oldId);
 
-        while (!$caughtKill)
-        {
+        while (!$caughtKill) {
             heartbeat();
             $ok = $db->real_query(sprintf($sql, $oldId));
-            if (!$ok || $db->affected_rows == 0)
+            if (!$ok || $db->affected_rows == 0) {
                 break;
+            }
         }
     }
 

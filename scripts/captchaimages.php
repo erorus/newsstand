@@ -8,24 +8,27 @@ require_once('../incl/incl.php');
 require_once('../incl/heartbeat.incl.php');
 require_once('../incl/battlenet.incl.php');
 
-ini_set('memory_limit','512M');
+ini_set('memory_limit', '512M');
 
 RunMeNTimes(1);
 CatchKill();
 
 $region = 'us';
 
-if (!DBConnect())
+if (!DBConnect()) {
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
+}
 
 $auctionJson = '';
 $retries = 0;
 while (!$auctionJson) {
     heartbeat();
-    if ($caughtKill)
+    if ($caughtKill) {
         exit;
-    if ($retries++ > 10)
+    }
+    if ($retries++ > 10) {
         DebugMessage("Quitting after $retries tries.", E_USER_ERROR);
+    }
 
     $sql = <<<EOF
 SELECT slug, name, canonical
@@ -46,16 +49,14 @@ EOF;
 
     $json = FetchHTTP($url);
     $dta = json_decode($json, true);
-    if (!isset($dta['files']))
-    {
+    if (!isset($dta['files'])) {
         DebugMessage("$region $slug returned no files.", E_USER_WARNING);
         continue;
     }
 
     $url = $dta['files'][0]['url'];
     $auctionJson = FetchHTTP($url, [], $outHeaders);
-    if (!$auctionJson)
-    {
+    if (!$auctionJson) {
         heartbeat();
         DebugMessage("No data from $url, waiting 5 secs");
         http_persistent_handles_clean();
@@ -63,8 +64,7 @@ EOF;
         $auctionJson = FetchHTTP($url, [], $outHeaders);
     }
 
-    if (!$auctionJson)
-    {
+    if (!$auctionJson) {
         heartbeat();
         DebugMessage("No data from $url, waiting 15 secs");
         http_persistent_handles_clean();
@@ -72,39 +72,44 @@ EOF;
         $auctionJson = FetchHTTP($url, [], $outHeaders);
     }
 
-    if ($auctionJson)
-    {
+    if ($auctionJson) {
         heartbeat();
         $auctionJson = json_decode($auctionJson, true);
-        if (json_last_error() != JSON_ERROR_NONE)
+        if (json_last_error() != JSON_ERROR_NONE) {
             $auctionJson = false;
+        }
     }
 }
 
 heartbeat();
-if ($caughtKill)
+if ($caughtKill) {
     exit;
+}
 
 $hits = 0;
 $seenToons = array();
 $seenGuilds = array();
 $tries = 0;
-for ($x = 0; $x < count($auctionJson['auctions']['auctions']); $x++)
-{
-    if ($tries > 30)
+for ($x = 0; $x < count($auctionJson['auctions']['auctions']); $x++) {
+    if ($tries > 30) {
         break;
-    if ($hits > 50)
+    }
+    if ($hits > 50) {
         break;
+    }
 
     heartbeat();
-    if ($caughtKill)
+    if ($caughtKill) {
         exit;
+    }
 
     $auc = $auctionJson['auctions']['auctions'][$x];
-    if ($auc['ownerRealm'] != $realm)
+    if ($auc['ownerRealm'] != $realm) {
         continue;
-    if (isset($seenToons[$auc['owner']]))
+    }
+    if (isset($seenToons[$auc['owner']])) {
         continue;
+    }
     $seenToons[$auc['owner']] = true;
 
     $toon = $auc['owner'];
@@ -114,8 +119,9 @@ for ($x = 0; $x < count($auctionJson['auctions']['auctions']); $x++)
     $url = GetBattleNetURL($region, "wow/character/$slug/$toon?fields=guild");
     $json = json_decode(FetchHTTP($url), true);
 
-    if (!isset($json['guild']))
+    if (!isset($json['guild'])) {
         continue;
+    }
 
     $guild = $json['guild']['name'];
 
@@ -124,42 +130,44 @@ for ($x = 0; $x < count($auctionJson['auctions']['auctions']); $x++)
     $url = GetBattleNetURL($region, "wow/guild/$slug/$guild?fields=members");
     $json = json_decode(FetchHTTP($url), true);
 
-    if (!isset($json['members']))
+    if (!isset($json['members'])) {
         continue;
+    }
 
-    for ($y = 0; $y < count($json['members']); $y++)
-    {
+    for ($y = 0; $y < count($json['members']); $y++) {
         heartbeat();
-        if ($caughtKill)
+        if ($caughtKill) {
             exit;
+        }
 
         $c = $json['members'][$y]['character'];
-        if ($c['level'] < 20)
+        if ($c['level'] < 20) {
             continue;
+        }
         $toon = $c['name'];
 
         DebugMessage("Fetching $region $slug $toon of <$guild>");
         $url = GetBattleNetURL($region, "wow/character/$slug/$toon?fields=appearance");
         $cjson = json_decode(FetchHTTP($url), true);
 
-        if (!isset($cjson['appearance']))
+        if (!isset($cjson['appearance'])) {
             continue;
+        }
 
         $imgUrl = "http://$region.battle.net/static-render/$region/" . preg_replace('/-avatar\.jpg$/', '-inset.jpg', $cjson['thumbnail']);
         DebugMessage("Fetching $imgUrl");
         $img = FetchHTTP($imgUrl);
 
-        if ($img != '')
-        {
+        if ($img != '') {
             $hits++;
 
             $id = MakeID();
             $helm = $cjson['appearance']['showHelm'] ? 1 : 0;
             DebugMessage("Saving $id as {$c['race']} {$c['gender']} $helm");
 
-            file_put_contents(CAPTCHA_DIR.'/'.$id.'.jpg', $img);
+            file_put_contents(CAPTCHA_DIR . '/' . $id . '.jpg', $img);
 
-            $sql = 'insert into tblCaptcha (id, race, gender, helm) values (?, ?, ?, ?)';
+            $sql = 'INSERT INTO tblCaptcha (id, race, gender, helm) VALUES (?, ?, ?, ?)';
             $stmt = $db->prepare($sql);
             $stmt->bind_param('iiii', $id, $c['race'], $c['gender'], $helm);
             $stmt->execute();
@@ -173,8 +181,7 @@ DebugMessage('Done!');
 function MakeID()
 {
     static $lastTime = 0, $lastIncrement = 0;
-    if ($lastTime != time())
-    {
+    if ($lastTime != time()) {
         $lastTime = time();
         $lastIncrement = 0;
     }

@@ -1,15 +1,16 @@
-
-var TUJ_Contact = function()
+var TUJ_Contact = function ()
 {
     var params;
     var lastResults = [];
 
-    this.load = function(inParams)
+    this.load = function (inParams)
     {
         params = {};
-        for (var p in inParams)
-            if (inParams.hasOwnProperty(p))
+        for (var p in inParams) {
+            if (inParams.hasOwnProperty(p)) {
                 params[p] = inParams[p];
+            }
+        }
 
         var contactPage = $('#contact-page');
         $('#contact-page .form').show();
@@ -22,13 +23,12 @@ var TUJ_Contact = function()
         tuj.SetTitle('Contact The Editor');
     }
 
-    this.submit = function(f)
+    this.submit = function (f)
     {
         $('#contact-page .form').hide();
         $('#contact-error-message').text(f.message.value);
 
-        if (f.subject.value != 'Subject')
-        {
+        if (f.subject.value != 'Subject') {
             $('#contact-page .error').show();
             return false;
         }
@@ -45,8 +45,14 @@ var TUJ_Contact = function()
         $.ajax({
             data: d,
             type: 'POST',
-            success: function() { $('#contact-page .done').show(); },
-            error: function() { $('#contact-page .error').show(); },
+            success: function ()
+            {
+                $('#contact-page .done').show();
+            },
+            error: function ()
+            {
+                $('#contact-page .error').show();
+            },
             url: 'api/contact.php'
         });
 

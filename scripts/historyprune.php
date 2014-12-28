@@ -10,38 +10,40 @@ require_once('../incl/heartbeat.incl.php');
 RunMeNTimes(1);
 CatchKill();
 
-if (!DBConnect())
+if (!DBConnect()) {
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
+}
 
 CleanOldData();
-DebugMessage('Done! Started '.TimeDiff($startTime));
+DebugMessage('Done! Started ' . TimeDiff($startTime));
 
 function CleanOldData()
 {
     global $db, $caughtKill;
 
-    if ($caughtKill)
+    if ($caughtKill) {
         return;
+    }
 
-    $stmt = $db->prepare('select distinct house from tblRealm');
+    $stmt = $db->prepare('SELECT DISTINCT house FROM tblRealm');
     $stmt->execute();
     $result = $stmt->get_result();
     $houses = array_values(DBMapArray($result));
     $stmt->close();
 
-    $sqlPattern = 'delete from tblItemHistory where house = %d and item between %d and %d and snapshot < \'%s\'';
+    $sqlPattern = 'DELETE FROM tblItemHistory WHERE house = %d AND item BETWEEN %d AND %d AND snapshot < \'%s\'';
 
-    for ($hx = 0; $hx < count($houses); $hx++)
-    {
+    for ($hx = 0; $hx < count($houses); $hx++) {
         heartbeat();
-        if ($caughtKill)
+        if ($caughtKill) {
             return;
+        }
 
         $house = $houses[$hx];
         $ssDate = '';
-        $cutoffDate = Date('Y-m-d H:i:s', strtotime(''.HISTORY_DAYS.' days ago'));
+        $cutoffDate = Date('Y-m-d H:i:s', strtotime('' . HISTORY_DAYS . ' days ago'));
 
-        $stmt = $db->prepare('select min(`updated`) from (select `updated` from tblSnapshot where house = ? order by updated desc limit ?) aa');
+        $stmt = $db->prepare('SELECT min(`updated`) FROM (SELECT `updated` FROM tblSnapshot WHERE house = ? ORDER BY updated DESC LIMIT ?) aa');
         $maxSnapshots = 24 * HISTORY_DAYS;
         $stmt->bind_param('ii', $house, $maxSnapshots);
         $stmt->execute();
@@ -49,21 +51,22 @@ function CleanOldData()
         $gotDate = $stmt->fetch() === true;
         $stmt->close();
 
-        if (!$gotDate || is_null($ssDate))
-        {
+        if (!$gotDate || is_null($ssDate)) {
             DebugMessage("$house has no snapshots, skipping!");
             continue;
         }
 
-        if (strtotime($ssDate) < strtotime($cutoffDate))
+        if (strtotime($ssDate) < strtotime($cutoffDate)) {
             $cutoffDate = $ssDate;
+        }
 
         heartbeat();
-        if ($caughtKill)
+        if ($caughtKill) {
             return;
+        }
 
-        $stmt = $db->prepare('select distinct item from tblItemSummary where house = ? and lastseen > timestampadd(day, -1, ?)');
-        $stmt->bind_param('is',$house,$cutoffDate);
+        $stmt = $db->prepare('SELECT DISTINCT item FROM tblItemSummary WHERE house = ? AND lastseen > timestampadd(DAY, -1, ?)');
+        $stmt->bind_param('is', $house, $cutoffDate);
         $stmt->execute();
         $result = $stmt->get_result();
         $items = array_values(DBMapArray($result));
@@ -71,8 +74,7 @@ function CleanOldData()
 
         $rowCount = 0;
 
-        if (count($items) > 0)
-        {
+        if (count($items) > 0) {
             $db->real_query(sprintf(str_replace('item between %d and %d', 'item < %d', $sqlPattern), $house, $items[0], $cutoffDate));
             $rowCount += $db->affected_rows;
             $db->real_query(sprintf(str_replace('item between %d and %d', 'item > %d', $sqlPattern), $house, $items[count($items) - 1], $cutoffDate));
@@ -80,8 +82,7 @@ function CleanOldData()
 
             $itemChunks = array_chunk($items, 100);
 
-            for($x = 0; $x < count($itemChunks); $x++)
-            {
+            for ($x = 0; $x < count($itemChunks); $x++) {
                 heartbeat();
                 $minItem = array_shift($itemChunks[$x]);
                 $maxItem = count($itemChunks[$x]) > 0 ? array_pop($itemChunks[$x]) : $minItem;
@@ -96,22 +97,23 @@ function CleanOldData()
         DebugMessage("$rowCount item history rows deleted from house $house since $cutoffDate");
     }
 
-    if ($caughtKill)
+    if ($caughtKill) {
         return;
+    }
 
-    $sqlPattern = 'delete from tblPetHistory where house = %d and species between %d and %d and snapshot < \'%s\'';
+    $sqlPattern = 'DELETE FROM tblPetHistory WHERE house = %d AND species BETWEEN %d AND %d AND snapshot < \'%s\'';
 
-    for ($hx = 0; $hx < count($houses); $hx++)
-    {
+    for ($hx = 0; $hx < count($houses); $hx++) {
         heartbeat();
-        if ($caughtKill)
+        if ($caughtKill) {
             return;
+        }
 
         $house = $houses[$hx];
         $ssDate = '';
-        $cutoffDate = Date('Y-m-d H:i:s', strtotime(''.HISTORY_DAYS.' days ago'));
+        $cutoffDate = Date('Y-m-d H:i:s', strtotime('' . HISTORY_DAYS . ' days ago'));
 
-        $stmt = $db->prepare('select min(`updated`) from (select `updated` from tblSnapshot where house = ? order by updated desc limit ?) aa');
+        $stmt = $db->prepare('SELECT min(`updated`) FROM (SELECT `updated` FROM tblSnapshot WHERE house = ? ORDER BY updated DESC LIMIT ?) aa');
         $maxSnapshots = 24 * HISTORY_DAYS;
         $stmt->bind_param('ii', $house, $maxSnapshots);
         $stmt->execute();
@@ -119,21 +121,22 @@ function CleanOldData()
         $gotDate = $stmt->fetch() === true;
         $stmt->close();
 
-        if (!$gotDate || is_null($ssDate))
-        {
+        if (!$gotDate || is_null($ssDate)) {
             DebugMessage("$house has no snapshots, skipping!");
             continue;
         }
 
-        if (strtotime($ssDate) < strtotime($cutoffDate))
+        if (strtotime($ssDate) < strtotime($cutoffDate)) {
             $cutoffDate = $ssDate;
+        }
 
         heartbeat();
-        if ($caughtKill)
+        if ($caughtKill) {
             return;
+        }
 
-        $stmt = $db->prepare('select distinct species from tblPetSummary where house = ? and lastseen > timestampadd(day, -1, ?)');
-        $stmt->bind_param('is',$house,$cutoffDate);
+        $stmt = $db->prepare('SELECT DISTINCT species FROM tblPetSummary WHERE house = ? AND lastseen > timestampadd(DAY, -1, ?)');
+        $stmt->bind_param('is', $house, $cutoffDate);
         $stmt->execute();
         $result = $stmt->get_result();
         $items = array_values(DBMapArray($result));
@@ -141,8 +144,7 @@ function CleanOldData()
 
         $rowCount = 0;
 
-        if (count($items) > 0)
-        {
+        if (count($items) > 0) {
             $db->real_query(sprintf(str_replace('species between %d and %d', 'species < %d', $sqlPattern), $house, $items[0], $cutoffDate));
             $rowCount += $db->affected_rows;
             $db->real_query(sprintf(str_replace('species between %d and %d', 'species > %d', $sqlPattern), $house, $items[count($items) - 1], $cutoffDate));
@@ -150,8 +152,7 @@ function CleanOldData()
 
             $itemChunks = array_chunk($items, 100);
 
-            for($x = 0; $x < count($itemChunks); $x++)
-            {
+            for ($x = 0; $x < count($itemChunks); $x++) {
                 heartbeat();
                 $minItem = array_shift($itemChunks[$x]);
                 $maxItem = count($itemChunks[$x]) > 0 ? array_pop($itemChunks[$x]) : $minItem;
@@ -166,32 +167,33 @@ function CleanOldData()
         DebugMessage("$rowCount pet history rows deleted from house $house since $cutoffDate");
     }
 
-    if ($caughtKill)
+    if ($caughtKill) {
         return;
+    }
 
     $rowCount = 0;
     DebugMessage('Clearing out old seller history');
-    $sql = 'delete from tblSellerHistory where snapshot < timestampadd(day, -'.HISTORY_DAYS.', now()) limit 5000';
-    while (!$caughtKill)
-    {
+    $sql = 'delete from tblSellerHistory where snapshot < timestampadd(day, -' . HISTORY_DAYS . ', now()) limit 5000';
+    while (!$caughtKill) {
         heartbeat();
         $ok = $db->real_query($sql);
-        if (!$ok || $db->affected_rows == 0)
+        if (!$ok || $db->affected_rows == 0) {
             break;
+        }
         $rowCount += $db->affected_rows;
     }
     DebugMessage("$rowCount seller history rows deleted in total");
 
-    for ($hx = 0; $hx < count($houses); $hx++)
-    {
+    for ($hx = 0; $hx < count($houses); $hx++) {
         heartbeat();
-        if ($caughtKill)
+        if ($caughtKill) {
             return;
+        }
 
         $house = $houses[$hx];
-        $cutoffDate = Date('Y-m-d H:i:s', strtotime(''.(HISTORY_DAYS + 3).' days ago'));
+        $cutoffDate = Date('Y-m-d H:i:s', strtotime('' . (HISTORY_DAYS + 3) . ' days ago'));
 
-        $sql = sprintf('delete from tblSnapshot where house = %d and updated < \'%s\'', $house, $cutoffDate);
+        $sql = sprintf('DELETE FROM tblSnapshot WHERE house = %d AND updated < \'%s\'', $house, $cutoffDate);
         $db->query($sql);
 
         DebugMessage(sprintf('%d snapshot rows removed from house %d since %s', $db->affected_rows, $house, $cutoffDate));

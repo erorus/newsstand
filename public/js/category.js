@@ -1,16 +1,17 @@
-
-var TUJ_Category = function()
+var TUJ_Category = function ()
 {
     var params;
     var lastResults = [];
     var resultFunctions = {};
 
-    this.load = function(inParams)
+    this.load = function (inParams)
     {
         params = {};
-        for (var p in inParams)
-            if (inParams.hasOwnProperty(p))
+        for (var p in inParams) {
+            if (inParams.hasOwnProperty(p)) {
                 params[p] = inParams[p];
+            }
+        }
 
         var qs = {
             house: tuj.realms[params.realm].house,
@@ -18,24 +19,22 @@ var TUJ_Category = function()
         };
         var hash = JSON.stringify(qs);
 
-        for (var x = 0; x < lastResults.length; x++)
-            if (lastResults[x].hash == hash)
-            {
+        for (var x = 0; x < lastResults.length; x++) {
+            if (lastResults[x].hash == hash) {
                 CategoryResult(false, lastResults[x].data);
                 return;
             }
+        }
 
         var categoryPage = $('#category-page')[0];
-        if (!categoryPage)
-        {
+        if (!categoryPage) {
             categoryPage = libtuj.ce();
             categoryPage.id = 'category-page';
             categoryPage.className = 'page';
             $('#main').append(categoryPage);
         }
 
-        if (!params.id)
-        {
+        if (!params.id) {
             CategoryFrontPage();
             return;
         }
@@ -44,13 +43,17 @@ var TUJ_Category = function()
 
         $.ajax({
             data: qs,
-            success: function(d) {
-                if (d.captcha)
+            success: function (d)
+            {
+                if (d.captcha) {
                     tuj.AskCaptcha(d.captcha);
-                else
+                }
+                else {
                     CategoryResult(hash, d);
+                }
             },
-            complete: function() {
+            complete: function ()
+            {
                 $('#progress-page').hide();
             },
             url: 'api/category.php'
@@ -59,25 +62,24 @@ var TUJ_Category = function()
 
     function CategoryResult(hash, dta)
     {
-        if (hash)
-        {
+        if (hash) {
             lastResults.push({hash: hash, data: dta});
-            while (lastResults.length > 10)
+            while (lastResults.length > 10) {
                 lastResults.shift();
+            }
         }
 
         var categoryPage = $('#category-page');
         categoryPage.empty();
         categoryPage.show();
 
-        if (!dta.hasOwnProperty('name'))
-        {
+        if (!dta.hasOwnProperty('name')) {
             $('#page-title').empty().append(document.createTextNode('Category: ' + params.id));
             tuj.SetTitle('Category: ' + params.id);
 
             var h2 = libtuj.ce('h2');
             categoryPage.append(h2);
-            h2.appendChild(document.createTextNode('Category '+ params.id + ' not found.'));
+            h2.appendChild(document.createTextNode('Category ' + params.id + ' not found.'));
 
             return;
         }
@@ -85,22 +87,23 @@ var TUJ_Category = function()
         $('#page-title').empty().append(document.createTextNode('Category: ' + dta.name));
         tuj.SetTitle('Category: ' + dta.name);
 
-        if (!dta.hasOwnProperty('results'))
+        if (!dta.hasOwnProperty('results')) {
             return;
+        }
 
         categoryPage.append(libtuj.Ads.Add('8323200718'));
 
         var f, resultCount = 0;
-        for (var x = 0; f = dta.results[x]; x++)
-            if (resultFunctions.hasOwnProperty(f.name))
-            {
+        for (var x = 0; f = dta.results[x]; x++) {
+            if (resultFunctions.hasOwnProperty(f.name)) {
                 d = libtuj.ce();
-                d.className = 'category-'+ f.name.toLowerCase();
+                d.className = 'category-' + f.name.toLowerCase();
                 categoryPage.append(d);
                 if (resultFunctions[f.name](f.data, d) && (++resultCount == 5)) {
                     categoryPage.append(libtuj.Ads.Add('2276667118'));
                 }
             }
+        }
 
         libtuj.Ads.Show();
     }
@@ -115,21 +118,25 @@ var TUJ_Category = function()
         tuj.SetTitle('Categories');
     }
 
-    resultFunctions.ItemList = function(data, dest)
+    resultFunctions.ItemList = function (data, dest)
     {
         var item, x, t, td, th, tr, a;
 
-        if (!data.items.length)
+        if (!data.items.length) {
             return false;
+        }
 
-        if (!data.hiddenCols)
+        if (!data.hiddenCols) {
             data.hiddenCols = {};
+        }
 
-        if (!data.visibleCols)
+        if (!data.visibleCols) {
             data.visibleCols = {};
+        }
 
-        if (!data['sort'])
+        if (!data['sort']) {
             data['sort'] = '';
+        }
 
         var titleColSpan = 4;
         var titleTd;
@@ -138,8 +145,7 @@ var TUJ_Category = function()
         t.className = 'category category-items';
         dest.appendChild(t);
 
-        if (data.hasOwnProperty('name'))
-        {
+        if (data.hasOwnProperty('name')) {
             tr = libtuj.ce('tr');
             t.appendChild(tr);
 
@@ -156,7 +162,7 @@ var TUJ_Category = function()
         td = libtuj.ce('th');
         td.className = 'name';
         tr.appendChild(td);
-        td.colSpan=2;
+        td.colSpan = 2;
         $(td).text('Name');
 
         td = libtuj.ce('th');
@@ -164,8 +170,7 @@ var TUJ_Category = function()
         tr.appendChild(td);
         $(td).text('Avail');
 
-        if (data.visibleCols.bid)
-        {
+        if (data.visibleCols.bid) {
             td = libtuj.ce('th');
             td.className = 'price';
             tr.appendChild(td);
@@ -173,8 +178,7 @@ var TUJ_Category = function()
             titleColSpan++;
         }
 
-        if (!data.hiddenCols.price)
-        {
+        if (!data.hiddenCols.price) {
             td = libtuj.ce('th');
             td.className = 'price';
             tr.appendChild(td);
@@ -182,8 +186,7 @@ var TUJ_Category = function()
             titleColSpan++;
         }
 
-        if (!data.hiddenCols.avgprice)
-        {
+        if (!data.hiddenCols.avgprice) {
             td = libtuj.ce('th');
             td.className = 'price';
             tr.appendChild(td);
@@ -191,8 +194,7 @@ var TUJ_Category = function()
             titleColSpan++;
         }
 
-        if (data.visibleCols.globalmedian)
-        {
+        if (data.visibleCols.globalmedian) {
             td = libtuj.ce('th');
             td.className = 'price';
             tr.appendChild(td);
@@ -200,8 +202,7 @@ var TUJ_Category = function()
             titleColSpan++;
         }
 
-        if (!data.hiddenCols.age)
-        {
+        if (!data.hiddenCols.age) {
             td = libtuj.ce('th');
             td.className = 'date';
             tr.appendChild(td);
@@ -209,8 +210,7 @@ var TUJ_Category = function()
             titleColSpan++;
         }
 
-        if (!data.hiddenCols.lastseen)
-        {
+        if (!data.hiddenCols.lastseen) {
             td = libtuj.ce('th');
             td.className = 'date';
             tr.appendChild(td);
@@ -225,15 +225,19 @@ var TUJ_Category = function()
                 break;
 
             case 'lowbids' :
-                data.items.sort(function(a,b){
-                    return ((a.bid / libtuj.Least([a.globalmedian, a.avgprice])) - (b.bid / libtuj.Least([b.globalmedian, b.avgprice]))) ||
+                data.items.sort(function (a, b)
+                {
+                    return ((a.bid / libtuj.Least([a.globalmedian, a.avgprice])) - (b.bid / libtuj.Least([
+                        b.globalmedian, b.avgprice
+                    ]))) ||
                         (a.bid - b.bid) ||
                         a.name.localeCompare(b.name);
                 });
                 break;
 
             case 'globalmedian diff':
-                data.items.sort(function(a,b){
+                data.items.sort(function (a, b)
+                {
                     return ((b.globalmedian - b.price) - (a.globalmedian - a.price)) ||
                         ((a.price ? 0 : 1) - (b.price ? 0 : 1)) ||
                         (a.price - b.price) ||
@@ -242,7 +246,8 @@ var TUJ_Category = function()
                 break;
 
             case 'lowprice':
-                data.items.sort(function(a,b){
+                data.items.sort(function (a, b)
+                {
                     return ((a.price ? 0 : 1) - (b.price ? 0 : 1)) ||
                         (a.price - b.price) ||
                         a.name.localeCompare(b.name);
@@ -250,15 +255,15 @@ var TUJ_Category = function()
                 break;
 
             default:
-                data.items.sort(function(a,b){
+                data.items.sort(function (a, b)
+                {
                     return ((a.price ? 0 : 1) - (b.price ? 0 : 1)) ||
                         (b.price - a.price) ||
                         a.name.localeCompare(b.name);
                 });
         }
 
-        for (x = 0; item = data.items[x]; x++)
-        {
+        for (x = 0; item = data.items[x]; x++) {
             tr = libtuj.ce('tr');
             t.appendChild(tr);
 
@@ -284,40 +289,35 @@ var TUJ_Category = function()
             tr.appendChild(td);
             td.appendChild(libtuj.FormatQuantity(item.quantity));
 
-            if (data.visibleCols.bid)
-            {
+            if (data.visibleCols.bid) {
                 td = libtuj.ce('td');
                 td.className = 'price';
                 tr.appendChild(td);
                 td.appendChild(libtuj.FormatPrice(item.bid));
             }
 
-            if (!data.hiddenCols.price)
-            {
+            if (!data.hiddenCols.price) {
                 td = libtuj.ce('td');
                 td.className = 'price';
                 tr.appendChild(td);
                 td.appendChild(libtuj.FormatPrice(item.price));
             }
 
-            if (!data.hiddenCols.avgprice)
-            {
+            if (!data.hiddenCols.avgprice) {
                 td = libtuj.ce('td');
                 td.className = 'price';
                 tr.appendChild(td);
                 td.appendChild(libtuj.FormatPrice(item.avgprice));
             }
 
-            if (data.visibleCols.globalmedian)
-            {
+            if (data.visibleCols.globalmedian) {
                 td = libtuj.ce('td');
                 td.className = 'price';
                 tr.appendChild(td);
                 td.appendChild(libtuj.FormatPrice(item.globalmedian));
             }
 
-            if (!data.hiddenCols.age)
-            {
+            if (!data.hiddenCols.age) {
                 td = libtuj.ce('td');
                 td.className = 'date';
                 tr.appendChild(td);
@@ -326,8 +326,7 @@ var TUJ_Category = function()
                 }
             }
 
-            if (!data.hiddenCols.lastseen)
-            {
+            if (!data.hiddenCols.lastseen) {
                 td = libtuj.ce('td');
                 td.className = 'date';
                 tr.appendChild(td);
@@ -338,12 +337,13 @@ var TUJ_Category = function()
         return true;
     }
 
-    function ShowBreedRows(species) {
-        $('.category-battlepets .breed.species'+species).show();
+    function ShowBreedRows(species)
+    {
+        $('.category-battlepets .breed.species' + species).show();
         this.style.cursor = 'default';
     }
 
-    resultFunctions.BattlePetList = function(data, dest)
+    resultFunctions.BattlePetList = function (data, dest)
     {
         var t, td, tr, firstBreed, breed, species, petType, allSpecies, o, x, b;
 
@@ -355,14 +355,16 @@ var TUJ_Category = function()
         d.appendChild(document.createTextNode('Click "(All)" in the Breeds column to expand the row for separate breeds.'));
         d.appendChild(libtuj.ce('br'));
         d.style.marginBottom = '2em';
-        d.style.textAlign='center';
+        d.style.textAlign = 'center';
 
         for (petType in tujConstants.petTypes) {
-            if (!tujConstants.petTypes.hasOwnProperty(petType))
+            if (!tujConstants.petTypes.hasOwnProperty(petType)) {
                 continue;
+            }
 
-            if (!data.hasOwnProperty(petType))
+            if (!data.hasOwnProperty(petType)) {
                 continue;
+            }
 
             t = libtuj.ce('table');
             dest.appendChild(t);
@@ -372,7 +374,7 @@ var TUJ_Category = function()
             t.appendChild(tr);
             td = libtuj.ce('th');
             tr.appendChild(td);
-            td.colSpan=12;
+            td.colSpan = 12;
             $(td).text(tujConstants.petTypes[petType]);
 
             tr = libtuj.ce('tr');
@@ -380,7 +382,7 @@ var TUJ_Category = function()
 
             td = libtuj.ce('th');
             tr.appendChild(td);
-            td.colSpan=2;
+            td.colSpan = 2;
             td.className = 'name';
             $(td).text('Name');
 
@@ -412,22 +414,24 @@ var TUJ_Category = function()
             allSpecies = [];
 
             for (species in data[petType]) {
-                if (!data[petType].hasOwnProperty(species))
+                if (!data[petType].hasOwnProperty(species)) {
                     continue;
+                }
 
                 o = {id: species, quantity: 0, breedCount: 0, breeds: {}};
 
                 firstBreed = false;
                 for (breed in data[petType][species]) {
-                    if (!data[petType][species].hasOwnProperty(breed))
+                    if (!data[petType][species].hasOwnProperty(breed)) {
                         continue;
+                    }
                     b = data[petType][species][breed];
 
                     if (!firstBreed) {
                         firstBreed = breed;
                         o.price = b.price;
                         o.avgprice = b.avgprice;
-                        o.lastseen = Date.parse(b.lastseen.replace(dateRegEx, dateRegExFmt))/1000;
+                        o.lastseen = Date.parse(b.lastseen.replace(dateRegEx, dateRegExFmt)) / 1000;
                     }
                     o.quantity += b.quantity;
                     o.breedCount++;
@@ -437,15 +441,16 @@ var TUJ_Category = function()
                     if (o.avgprice > b.avgprice) {
                         o.avgprice = b.avgprice;
                     }
-                    x = Date.parse(b.lastseen.replace(dateRegEx, dateRegExFmt))/1000;
+                    x = Date.parse(b.lastseen.replace(dateRegEx, dateRegExFmt)) / 1000;
                     if (o.lastseen < x) {
                         o.lastseen = x;
                     }
                     o.breeds[breed] = data[petType][species][breed];
                 }
 
-                if (!firstBreed)
+                if (!firstBreed) {
                     continue;
+                }
 
                 o.name = data[petType][species][firstBreed].name;
                 o.icon = data[petType][species][firstBreed].icon;
@@ -455,7 +460,8 @@ var TUJ_Category = function()
                 allSpecies.push(o);
             }
 
-            allSpecies.sort(function(a,b) {
+            allSpecies.sort(function (a, b)
+            {
                 return b.price - a.price ||
                     a.name.localeCompare(b.name);
             });
@@ -523,7 +529,7 @@ var TUJ_Category = function()
                         var b = allSpecies[x].breeds[breed];
 
                         tr = libtuj.ce('tr');
-                        tr.className = 'breed species'+allSpecies[x].id;
+                        tr.className = 'breed species' + allSpecies[x].id;
                         t.appendChild(tr);
 
                         td = libtuj.ce('td');
@@ -536,7 +542,7 @@ var TUJ_Category = function()
                         tr.appendChild(td);
                         a = libtuj.ce('a');
                         td.appendChild(a);
-                        a.href = tuj.BuildHash({page: 'battlepet', id: ''+allSpecies[x].id+'.'+breed});
+                        a.href = tuj.BuildHash({page: 'battlepet', id: '' + allSpecies[x].id + '.' + breed});
                         a.rel = 'npc=' + allSpecies[x].npc;
                         $(a).text(tujConstants.breeds[breed]);
 
@@ -567,17 +573,17 @@ var TUJ_Category = function()
         }
 
 
-
     }
 
-    resultFunctions.FishTable = function(data, dest)
+    resultFunctions.FishTable = function (data, dest)
     {
         var f, item, x, y, t, td, th, tr, a;
 
         var fishTypeCount = 4;
 
-        if (!data.fish.length)
+        if (!data.fish.length) {
             return false;
+        }
 
         t = libtuj.ce('table');
         t.className = 'category category-fish';
@@ -588,7 +594,7 @@ var TUJ_Category = function()
 
         td = libtuj.ce('th');
         td.className = 'title';
-        td.colSpan = 2+(fishTypeCount * 2);
+        td.colSpan = 2 + (fishTypeCount * 2);
         tr.appendChild(td);
         $(td).text(data.name);
 
@@ -633,7 +639,7 @@ var TUJ_Category = function()
         td = libtuj.ce('th');
         td.className = 'name';
         tr.appendChild(td);
-        td.colSpan=2;
+        td.colSpan = 2;
 
         for (x = 1; x <= fishTypeCount; x++) {
             td = libtuj.ce('th');
@@ -647,7 +653,8 @@ var TUJ_Category = function()
             $(td).text('Avail');
         }
 
-        data.fish.sort(function(a,b) {
+        data.fish.sort(function (a, b)
+        {
             return data.prices[b[0]].price - data.prices[a[0]].price;
         });
 

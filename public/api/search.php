@@ -4,37 +4,42 @@ require_once('../../incl/incl.php');
 require_once('../../incl/memcache.incl.php');
 require_once('../../incl/api.incl.php');
 
-if (!isset($_GET['house']) || !isset($_GET['search']))
+if (!isset($_GET['house']) || !isset($_GET['search'])) {
     json_return(array());
+}
 
 $house = intval($_GET['house'], 10);
 $search = strtolower(substr(trim($_GET['search']), 0, 50));
 
-if ($search == '')
+if ($search == '') {
     json_return(array());
+}
 
 BotCheck();
 HouseETag($house);
 
-if ($json = MCGetHouse($house, 'search_'.$search))
+if ($json = MCGetHouse($house, 'search_' . $search)) {
     json_return($json);
+}
 
 DBConnect();
 
 $json = array(
-    'items' => SearchItems($house, $search),
-    'sellers' => SearchSellers($house, $search),
+    'items'      => SearchItems($house, $search),
+    'sellers'    => SearchSellers($house, $search),
     'battlepets' => SearchBattlePets($house, $search),
 );
 
 $ak = array_keys($json);
-foreach ($ak as $k)
-    if (count($json[$k]) == 0)
+foreach ($ak as $k) {
+    if (count($json[$k]) == 0) {
         unset($json[$k]);
+    }
+}
 
 $json = json_encode($json, JSON_NUMERIC_CHECK);
 
-MCSetHouse($house, 'search_'.$search, $json);
+MCSetHouse($house, 'search_' . $search, $json);
 
 json_return($json);
 
@@ -44,7 +49,7 @@ function SearchItems($house, $search)
 
     $suffixes = MCGet('search_itemsuffixes');
     if ($suffixes === false) {
-        $stmt = $db->prepare('select lower(suffix) from tblDBCItemRandomSuffix');
+        $stmt = $db->prepare('SELECT lower(suffix) FROM tblDBCItemRandomSuffix');
         $stmt->execute();
         $result = $stmt->get_result();
         $suffixes = DBMapArray($result, null);
@@ -62,7 +67,7 @@ function SearchItems($house, $search)
 
     for ($x = 0; $x < count($suffixes); $x++) {
         if (substr($barewords, -1 * strlen($suffixes[$x])) == $suffixes[$x]) {
-            $terms2 = '%'.str_replace(' ', '%', substr($barewords, 0, -1 * strlen($suffixes[$x]) - 1)).'%';
+            $terms2 = '%' . str_replace(' ', '%', substr($barewords, 0, -1 * strlen($suffixes[$x]) - 1)) . '%';
             $nameSearch = '(i.name like ? or i.name like ?)';
         }
     }
@@ -77,7 +82,7 @@ and ifnull(i.auctionable,1) = 1
 group by i.id
 limit ?
 EOF;
-    $limit = 50 * strlen(preg_replace('/\s/','',$search));
+    $limit = 50 * strlen(preg_replace('/\s/', '', $search));
 
     $stmt = $db->prepare($sql);
     if ($terms2 == '') {
@@ -131,7 +136,7 @@ where i.name like ?
 group by i.id
 limit ?
 EOF;
-    $limit = 50 * strlen(preg_replace('/\s/','',$search));
+    $limit = 50 * strlen(preg_replace('/\s/', '', $search));
 
     $stmt = $db->prepare($sql);
     $stmt->bind_param('iisi', $house, $house, $terms, $limit);

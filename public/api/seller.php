@@ -6,26 +6,29 @@ require_once('../../incl/api.incl.php');
 
 mb_internal_encoding("UTF-8");
 
-if (!isset($_GET['realm']) || !isset($_GET['seller']))
+if (!isset($_GET['realm']) || !isset($_GET['seller'])) {
     json_return(array());
+}
 
 $realm = intval($_GET['realm'], 10);
 $seller = mb_convert_case(mb_substr($_GET['seller'], 0, 12), MB_CASE_LOWER);
 
-if (!$seller || !$realm || (!($house = GetHouse($realm))))
+if (!$seller || !$realm || (!($house = GetHouse($realm)))) {
     json_return(array());
+}
 
 BotCheck();
 HouseETag($house);
 
 $sellerRow = SellerStats($house, $realm, $seller);
-if (!$sellerRow)
+if (!$sellerRow) {
     json_return(array());
+}
 
 $json = array(
-    'stats'     => $sellerRow,
-    'history'   => SellerHistory($house, $sellerRow['id']),
-    'auctions'  => SellerAuctions($house, $sellerRow['id']),
+    'stats'       => $sellerRow,
+    'history'     => SellerHistory($house, $sellerRow['id']),
+    'auctions'    => SellerAuctions($house, $sellerRow['id']),
     'petAuctions' => SellerPetAuctions($house, $sellerRow['id']),
 );
 
@@ -36,23 +39,25 @@ function SellerStats($house, $realm, $seller)
     global $db;
 
     $seller = mb_ereg_replace(' ', '', $seller);
-    $seller = mb_strtoupper(mb_substr($seller, 0, 1)).mb_strtolower(mb_substr($seller, 1));
+    $seller = mb_strtoupper(mb_substr($seller, 0, 1)) . mb_strtolower(mb_substr($seller, 1));
 
-    $key = 'seller_stats_'.$realm.'_'.$seller;
+    $key = 'seller_stats_' . $realm . '_' . $seller;
 
-    if (($tr = MCGetHouse($house, $key)) !== false)
+    if (($tr = MCGetHouse($house, $key)) !== false) {
         return $tr;
+    }
 
     DBConnect();
 
-    $sql = 'select * from tblSeller s where realm = ? and name = ?';
+    $sql = 'SELECT * FROM tblSeller s WHERE realm = ? AND name = ?';
     $stmt = $db->prepare($sql);
     $stmt->bind_param('is', $realm, $seller);
     $stmt->execute();
     $result = $stmt->get_result();
     $tr = DBMapArray($result, null);
-    if (count($tr))
+    if (count($tr)) {
         $tr = $tr[0];
+    }
     $stmt->close();
 
     MCSetHouse($house, $key, $tr);
@@ -64,10 +69,11 @@ function SellerHistory($house, $seller)
 {
     global $db;
 
-    $key = 'seller_history2_'.$seller;
+    $key = 'seller_history2_' . $seller;
 
-    if (($tr = MCGetHouse($house, $key)) !== false)
+    if (($tr = MCGetHouse($house, $key)) !== false) {
         return $tr;
+    }
 
     DBConnect();
 
@@ -88,8 +94,9 @@ EOF;
     $tr = DBMapArray($result, null);
     $stmt->close();
 
-    while(count($tr) > 0 && is_null($tr[0]['total']))
+    while (count($tr) > 0 && is_null($tr[0]['total'])) {
         array_shift($tr);
+    }
 
     MCSetHouse($house, $key, $tr);
 
@@ -100,8 +107,9 @@ function SellerAuctions($house, $seller)
 {
     global $db;
 
-    if (($tr = MCGetHouse($house, 'seller_auctions_'.$seller)) !== false)
+    if (($tr = MCGetHouse($house, 'seller_auctions_' . $seller)) !== false) {
         return $tr;
+    }
 
     DBConnect();
 
@@ -122,7 +130,7 @@ EOF;
     $tr = DBMapArray($result, null);
     $stmt->close();
 
-    MCSetHouse($house, 'seller_auctions_'.$seller, $tr);
+    MCSetHouse($house, 'seller_auctions_' . $seller, $tr);
 
     return $tr;
 }
@@ -131,8 +139,9 @@ function SellerPetAuctions($house, $seller)
 {
     global $db;
 
-    if (($tr = MCGetHouse($house, 'seller_petauctions_'.$seller)) !== false)
+    if (($tr = MCGetHouse($house, 'seller_petauctions_' . $seller)) !== false) {
         return $tr;
+    }
 
     DBConnect();
 
@@ -156,7 +165,7 @@ EOF;
     $tr = DBMapArray($result, null);
     $stmt->close();
 
-    MCSetHouse($house, 'seller_petauctions_'.$seller, $tr);
+    MCSetHouse($house, 'seller_petauctions_' . $seller, $tr);
 
     return $tr;
 }

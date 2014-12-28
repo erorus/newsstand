@@ -1,7 +1,7 @@
 <?php
 
-require_once(__DIR__.'/memcache.incl.php');
-require_once(__DIR__.'/battlenet.credentials.php');
+require_once(__DIR__ . '/memcache.incl.php');
+require_once(__DIR__ . '/battlenet.credentials.php');
 
 define('BATTLE_NET_REQUEST_LIMIT', 8); // per period
 define('BATTLE_NET_REQUEST_PERIOD', 1); // seconds
@@ -15,9 +15,9 @@ function GetBattleNetURL($region, $path)
 
     $start = microtime(true);
     $finalUrl = '';
-    while (!$finalUrl && ($start+5 > microtime(true))) {
+    while (!$finalUrl && ($start + 5 > microtime(true))) {
         $cacheKey = 'BattleNetKeyUsage';
-        if (!MCAdd($cacheKey.'_critical', 1, 5*BATTLE_NET_REQUEST_PERIOD)) {
+        if (!MCAdd($cacheKey . '_critical', 1, 5 * BATTLE_NET_REQUEST_PERIOD)) {
             usleep(50000);
             continue;
         }
@@ -41,7 +41,7 @@ function GetBattleNetURL($region, $path)
         }
         MCSet($cacheKey, $apiHits, 10 * BATTLE_NET_REQUEST_PERIOD);
 
-        MCDelete($cacheKey.'_critical');
+        MCDelete($cacheKey . '_critical');
 
         $finalUrl = sprintf('https://%s.api.battle.net/%s%sapikey=%s', $region, $path, strpos($path, '?') !== false ? '&' : '?', BATTLE_NET_KEY);
     }

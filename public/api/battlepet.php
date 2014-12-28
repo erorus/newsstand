@@ -4,14 +4,16 @@ require_once('../../incl/incl.php');
 require_once('../../incl/memcache.incl.php');
 require_once('../../incl/api.incl.php');
 
-if (!isset($_GET['house']) || !isset($_GET['species']))
+if (!isset($_GET['house']) || !isset($_GET['species'])) {
     json_return(array());
+}
 
 $house = intval($_GET['house'], 10);
 $species = intval($_GET['species'], 10);
 
-if (!$species)
+if (!$species) {
     json_return(array());
+}
 
 BotCheck();
 HouseETag($house);
@@ -29,8 +31,9 @@ function PetStats($house, $species)
 {
     global $db;
 
-    if (($tr = MCGetHouse($house, 'battlepet_stats_'.$species)) !== false)
+    if (($tr = MCGetHouse($house, 'battlepet_stats_' . $species)) !== false) {
         return $tr;
+    }
 
     DBConnect();
 
@@ -47,12 +50,13 @@ EOF;
     $stmt->execute();
     $result = $stmt->get_result();
     $tr = DBMapArray($result, array('breed', null));
-    foreach ($tr as &$breedRow)
+    foreach ($tr as &$breedRow) {
         $breedRow = array_pop($breedRow);
+    }
     unset($breedRow);
     $stmt->close();
 
-    MCSetHouse($house, 'battlepet_stats_'.$species, $tr);
+    MCSetHouse($house, 'battlepet_stats_' . $species, $tr);
 
     return $tr;
 }
@@ -61,8 +65,9 @@ function PetHistory($house, $species)
 {
     global $db;
 
-    if (($tr = MCGetHouse($house, 'battlepet_history_'.$species)) !== false)
+    if (($tr = MCGetHouse($house, 'battlepet_history_' . $species)) !== false) {
         return $tr;
+    }
 
     DBConnect();
 
@@ -92,12 +97,14 @@ EOF;
     $tr = DBMapArray($result, array('breed', null));
     $stmt->close();
 
-    foreach ($tr as &$breedSet)
-        while(count($breedSet) > 0 && is_null($breedSet[0]['price']))
+    foreach ($tr as &$breedSet) {
+        while (count($breedSet) > 0 && is_null($breedSet[0]['price'])) {
             array_shift($breedSet);
+        }
+    }
     unset($breedSet);
 
-    MCSetHouse($house, 'battlepet_history_'.$species, $tr);
+    MCSetHouse($house, 'battlepet_history_' . $species, $tr);
 
     return $tr;
 }
@@ -106,8 +113,9 @@ function PetAuctions($house, $species)
 {
     global $db;
 
-    if (($tr = MCGetHouse($house, 'battlepet_auctions_'.$species)) !== false)
+    if (($tr = MCGetHouse($house, 'battlepet_auctions_' . $species)) !== false) {
         return $tr;
+    }
 
     DBConnect();
 
@@ -126,7 +134,7 @@ EOF;
     $tr = DBMapArray($result, array('breed', null));
     $stmt->close();
 
-    MCSetHouse($house, 'battlepet_auctions_'.$species, $tr);
+    MCSetHouse($house, 'battlepet_auctions_' . $species, $tr);
 
     return $tr;
 }
@@ -135,9 +143,10 @@ function PetGlobalNow($region, $species)
 {
     global $db;
 
-    $key = 'battlepet_globalnow_'.$region.'_'.$species;
-    if (($tr = MCGet($key)) !== false)
+    $key = 'battlepet_globalnow_' . $region . '_' . $species;
+    if (($tr = MCGet($key)) !== false) {
         return $tr;
+    }
 
     DBConnect();
 
