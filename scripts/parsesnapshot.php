@@ -228,6 +228,7 @@ function ParseAuctionData($house, $snapshot, &$json)
         GetSellerIds($region, $sellerInfo, $snapshot);
 
         $sql = $sqlPet = '';
+        $delayedAuctionSql = [];
 
         for ($x = 0; $x < $auctionCount; $x++)
         {
@@ -292,9 +293,8 @@ function ParseAuctionData($house, $snapshot, &$json)
                     $auction['petLevel'],
                     $auction['petQualityId']);
 
-                if (strlen($sqlPet) + 5 + strlen($thisSql) > $maxPacketSize)
-                {
-                    DBQueryWithError($ourDb, $sqlPet);
+                if (strlen($sqlPet) + 5 + strlen($thisSql) > $maxPacketSize) {
+                    $delayedAuctionSql[] = $sqlPet; // delayed since tblAuction row must be inserted first for foreign key
                     $sqlPet = '';
                 }
                 $sqlPet .= ($sqlPet == '' ? $sqlStartPet : ',') . $thisSql;
@@ -305,7 +305,12 @@ function ParseAuctionData($house, $snapshot, &$json)
             DBQueryWithError($ourDb,$sql);
 
         if ($sqlPet != '')
-            DBQueryWithError($ourDb, $sqlPet);
+            $delayedAuctionSql[] = $sqlPet;
+
+        for ($x = 0; $x < count($delayedAuctionSql); $x++) {
+            DBQueryWithError($ourDb, $delayedAuctionSql[$x]);
+        }
+        unset($delayedAuctionSql);
 
         $ourDb->commit();
 
@@ -343,31 +348,23 @@ EOF;
     DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." updating seller history");
     UpdateSellerInfo($sellerInfo, $snapshot, $noHistory);
 
-    if (count($existingIds) > 0)
-    {
+    if (count($existingIds) > 0) {
         DebugMessage("House ".str_pad($house, 5, ' ', STR_PAD_LEFT)." deleting ".count($existingIds)." auctions");
 
         $sqlStart = sprintf('delete from tblAuction where house = %d and id in (', $house);
         $sql = '';
 
-        foreach ($existingIds as $lostId => &$lostRow)
-        {
-            if (strlen($sql) + 10 + strlen($lostId) > $maxPacketSize)
-            {
+        foreach ($existingIds as $lostId => &$lostRow) {
+            if (strlen($sql) + 10 + strlen($lostId) > $maxPacketSize) {
                 DBQueryWithError($ourDb, $sql.')');
-                DBQueryWithError($ourDb, preg_replace('/\btblAuction\b/', 'tblAuctionPet', $sql, 1).')');
-                DBQueryWithError($ourDb, preg_replace('/\btblAuction\b/', 'tblAuctionRare', $sql, 1).')');
                 $sql = '';
             }
             $sql .= ($sql == '' ? $sqlStart : ',') . $lostId;
         }
         unset($lostRow);
 
-        if ($sql != '')
-        {
+        if ($sql != '') {
             DBQueryWithError($ourDb, $sql.')');
-            DBQueryWithError($ourDb, preg_replace('/\btblAuction\b/', 'tblAuctionPet', $sql, 1).')');
-            DBQueryWithError($ourDb, preg_replace('/\btblAuction\b/', 'tblAuctionRare', $sql, 1).')');
         }
     }
 

@@ -422,33 +422,6 @@ function CleanOldHouses()
     if ($caughtKill)
         return;
 
-    $sql = 'select distinct house from tblAuctionPet where house not in (select distinct house from tblRealm)';
-    $stmt = $db->prepare($sql);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $oldIds = DBMapArray($result);
-    $stmt->close();
-
-    $sql = 'delete from tblAuctionPet where house = %d limit 2000';
-    foreach ($oldIds as $oldId)
-    {
-        if ($caughtKill)
-            return;
-
-        DebugMessage('Clearing out pet auctions from old house '.$oldId);
-
-        while (!$caughtKill)
-        {
-            heartbeat();
-            $ok = $db->real_query(sprintf($sql, $oldId));
-            if (!$ok || $db->affected_rows == 0)
-                break;
-        }
-    }
-
-    if ($caughtKill)
-        return;
-
     $sql = 'select distinct house from tblHouseCheck where house not in (select distinct house from tblRealm)';
     $stmt = $db->prepare($sql);
     $stmt->execute();
