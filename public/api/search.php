@@ -47,15 +47,15 @@ function SearchItems($house, $search)
 {
     global $db;
 
-    $suffixes = MCGet('search_itemsuffixes');
+    $suffixes = MCGet('search_itemsuffixes2');
     if ($suffixes === false) {
-        $stmt = $db->prepare('SELECT lower(suffix) FROM tblDBCItemRandomSuffix');
+        $stmt = $db->prepare('SELECT lower(suffix) FROM tblDBCItemRandomSuffix union select lower(name) from tblDBCItemBonus where name is not null');
         $stmt->execute();
         $result = $stmt->get_result();
         $suffixes = DBMapArray($result, null);
         $stmt->close();
 
-        MCSet('search_itemsuffixes', $suffixes, 86400);
+        MCSet('search_itemsuffixes2', $suffixes, 86400);
     }
 
     $terms = preg_replace('/\s+/', '%', " $search ");

@@ -10,6 +10,77 @@ DBConnect();
 $tables = array();
 dtecho(run_sql('set session max_heap_table_size='.(1024*1024*1024)));
 
+dtecho(dbcdecode('ItemBonus', array(2=>'bonusid', 3=>'changetype', 4=>'param1', 5=>'param2', 6=>'prio')));;
+dtecho(dbcdecode('ItemNameDescription', array(1=>'id', 2=>'name')));
+
+$bonuses = [];
+$bonusNames = [];
+$rst = get_rst('select * from ttblItemNameDescription');
+while ($row = next_row($rst)) {
+    $bonusNames[$row['id']] = $row['name'];
+}
+$rst = get_rst('select * from ttblItemBonus order by bonusid, prio');
+while ($row = next_row($rst)) {
+    if (!isset($bonuses[$row['bonusid']])) {
+        $bonuses[$row['bonusid']] = [];
+    }
+    switch ($row['changetype']) {
+        case 1: // itemlevel
+            if (!isset($bonuses[$row['bonusid']]['itemlevel'])) {
+                $bonuses[$row['bonusid']]['itemlevel'] = 0;
+            }
+            $bonuses[$row['bonusid']]['itemlevel'] += $row['param1'];
+            break;
+        case 3: // quality
+            $bonuses[$row['bonusid']]['quality'] = $row['param1'];
+            break;
+        case 4: // nametag
+            if (!isset($bonuses[$row['bonusid']]['nametag'])) {
+                $bonuses[$row['bonusid']]['nametag'] = ['name' => '', 'prio' => -1];
+            }
+            if ($bonuses[$row['bonusid']]['nametag']['prio'] < $row['param2']) {
+                $bonuses[$row['bonusid']]['nametag'] = ['name' => isset($bonusNames[$row['param1']]) ? $bonusNames[$row['param1']] : $row['param1'], 'prio' => $row['param2']];
+            }
+            break;
+        case 5: // rand enchant name
+            if (!isset($bonuses[$row['bonusid']]['randname'])) {
+                $bonuses[$row['bonusid']]['randname'] = ['name' => '', 'prio' => -1];
+            }
+            if ($bonuses[$row['bonusid']]['randname']['prio'] < $row['param2']) {
+                $bonuses[$row['bonusid']]['randname'] = ['name' => isset($bonusNames[$row['param1']]) ? $bonusNames[$row['param1']] : $row['param1'], 'prio' => $row['param2']];
+            }
+            break;
+    }
+}
+
+dtecho(run_sql('truncate table tblDBCItemBonus'));
+foreach ($bonuses as $bonusId => $bonusData) {
+    $sql = "insert into tblDBCItemBonus (id, quality, `level`, tag, tagpriority, `name`, namepriority) values ($bonusId";
+    if (isset($bonusData['quality'])) {
+        $sql .= ', ' . $bonusData['quality'];
+    } else {
+        $sql .= ', null';
+    }
+    if (isset($bonusData['itemlevel']) && $bonusData['itemlevel']) {
+        $sql .= ', ' . $bonusData['itemlevel'];
+    } else {
+        $sql .= ', null';
+    }
+    if (isset($bonusData['nametag'])) {
+        $sql .= ', \'' . sql_esc($bonusData['nametag']['name']) . '\', ' . $bonusData['nametag']['prio'];
+    } else {
+        $sql .= ', null, null';
+    }
+    if (isset($bonusData['randname'])) {
+        $sql .= ', \'' . sql_esc($bonusData['randname']['name']) . '\', ' . $bonusData['randname']['prio'];
+    } else {
+        $sql .= ', null, null';
+    }
+    $sql .= ')';
+    dtecho(run_sql($sql));
+}
+unset($bonuses, $bonusNames, $bonusId, $bonusData);
+
 dtecho(dbcdecode('FileData', array(1=>'id', 2=>'name')));
 dtecho(dbcdecode('Item', array(1=>'id', 2=>'classid', 3=>'subclassid', 8=>'iconfiledataid')));
 dtecho(dbcdecode('Item-sparse', array(
