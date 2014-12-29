@@ -34,7 +34,7 @@ function ItemStats($house, $item)
 {
     global $db;
 
-    $cacheKey = 'item_stats4_' . $item;
+    $cacheKey = 'item_statsb2_' . $item;
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
@@ -45,15 +45,14 @@ function ItemStats($house, $item)
     $sql = <<<EOF
 select i.id, i.name, i.icon, i.class as classid, i.subclass, ifnull(max(ib.quality), i.quality) quality, i.level+sum(ifnull(ib.level,0)) level, i.stacksize, i.binds, i.buyfromvendor, i.selltovendor, i.auctionable,
 s.price, s.quantity, s.lastseen,
-s.bonusset, ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR '.'), '') bonusurl,
-ifnull(group_concat(ib.`tag` order by ib.tagpriority separator ' '), if(s.bonusset=0,'',concat('Level ', i.level+sum(ifnull(ib.level,0))))) bonustag
+ifnull(s.bonusset,0) bonusset, ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR '.'), '') bonusurl,
+ifnull(group_concat(ib.`tag` order by ib.tagpriority separator ' '), if(ifnull(s.bonusset,0)=0,'',concat('Level ', i.level+sum(ifnull(ib.level,0))))) bonustag
 from tblDBCItem i
 left join tblItemSummary s on s.house = ? and s.item = i.id
 left join tblBonusSet bs on s.bonusset = bs.`set`
 left join tblDBCItemBonus ib on bs.bonus = ib.id
 where i.id = ?
 group by s.bonusset
-order by level
 EOF;
 
     $stmt = $db->prepare($sql);
@@ -76,7 +75,7 @@ function ItemHistory($house, $item)
 {
     global $db;
 
-    $key = 'item_history_' . $item;
+    $key = 'item_historyb_' . $item;
 
     if (($tr = MCGetHouse($house, $key)) !== false) {
         return $tr;
@@ -97,7 +96,7 @@ from (select
     ifnull(quantity,0) as quantity,
     if(age is null, @age, @age := age) as age
     from (select @price := null, @age := null, @prevBonusSet := null) priceSetup,
-        (select ih.bonusset, s.updated, ih.quantity, ih.price, ih.age
+        (select ifnull(ih.bonusset,0) bonusset, s.updated, ih.quantity, ih.price, ih.age
         from tblSnapshot s
         left join tblItemHistory ih on s.updated = ih.snapshot and ih.house=? and ih.item=?
         where s.house = ? and s.updated >= timestampadd(day,-$historyDays,now()) and s.flags & 1 = 0

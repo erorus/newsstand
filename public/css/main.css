@@ -118,7 +118,7 @@ table.highcharts-tuj-tooltip td + td {padding-left: 0.4em}
 
 #item-page .item-stats .ad { margin-top: 0 }
 #item-page .item-stats { position: relative; text-align: right; font-size: 110%; display: inline-block; width: 100% }
-#item-page .item-stats table { width: 20em; float: left; margin: 0 0 1em; font-size: 100% }
+#item-page .item-stats table { max-width: 25em; float: left; margin: 0 0 1em; font-size: 100% }
 #item-page .item-stats table.with-stack { width: 25em }
 #item-page .item-stats tr.spacer td { height: 0.5em }
 #item-page .item-stats tr.stack-header td { padding-bottom: 0.5em; font-size: 80% }

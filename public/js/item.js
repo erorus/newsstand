@@ -107,6 +107,10 @@ var TUJ_Item = function ()
             bonusUrl = dta.stats[bonusSet].bonusurl;
         }
 
+        bonusSets.sort(function(a,b) {
+            return (dta.stats[a].level - dta.stats[b].level) || dta.stats[a].bonustag.localeCompare(dta.stats[b].bonustag) || a - b;
+        });
+
         var ta = libtuj.ce('a');
         ta.href = 'http://www.wowhead.com/item=' + itemId + (bonusUrl ? '&bonus=' + bonusUrl.replace('.', ':') : '');
         ta.target = '_blank';
@@ -142,7 +146,7 @@ var TUJ_Item = function ()
         itemPage.append(d);
         ItemStats(dta, d);
 
-        if (dta.history[bonusSet].length >= 4) {
+        if (dta.history.hasOwnProperty(bonusSet) && dta.history[bonusSet].length >= 4) {
             d = libtuj.ce();
             d.className = 'chart-section';
             h = libtuj.ce('h2');
@@ -156,7 +160,7 @@ var TUJ_Item = function ()
             ItemHistoryChart(dta, cht);
         }
 
-        if (dta.monthly[bonusSet].length >= 14) {
+        if (dta.monthly.hasOwnProperty(bonusSet) && dta.monthly[bonusSet].length >= 14) {
             d = libtuj.ce();
             d.className = 'chart-section';
             h = libtuj.ce('h2');
@@ -184,7 +188,7 @@ var TUJ_Item = function ()
             ItemDailyChart(dta, cht);
         }
 
-        if (dta.history[bonusSet].length >= 14) {
+        if (dta.history.hasOwnProperty(bonusSet) && dta.history[bonusSet].length >= 14) {
             d = libtuj.ce();
             d.className = 'chart-section';
             h = libtuj.ce('h2');
@@ -224,7 +228,7 @@ var TUJ_Item = function ()
 
         itemPage.append(libtuj.Ads.Add('3753400314'));
 
-        if (dta.globalmonthly[bonusSet].length >= 28) {
+        if (dta.globalmonthly.hasOwnProperty(bonusSet) && dta.globalmonthly[bonusSet].length >= 28) {
             d = libtuj.ce();
             d.className = 'chart-section';
             h = libtuj.ce('h2');
@@ -238,7 +242,7 @@ var TUJ_Item = function ()
             ItemGlobalMonthlyChart(dta, cht);
         }
 
-        if (dta.globalnow[bonusSet].length > 0) {
+        if (dta.globalnow.hasOwnProperty(bonusSet) && dta.globalnow[bonusSet].length > 0) {
             d = libtuj.ce();
             d.className = 'chart-section';
             h = libtuj.ce('h2');
@@ -272,7 +276,7 @@ var TUJ_Item = function ()
 
         }
 
-        if (dta.auctions[bonusSet].length) {
+        if (dta.auctions.hasOwnProperty(bonusSet) && dta.auctions[bonusSet].length) {
             d = libtuj.ce();
             d.className = 'chart-section';
             h = libtuj.ce('h2');
@@ -376,7 +380,7 @@ var TUJ_Item = function ()
 
         var prices = [], ages = [], x;
 
-        if (data.history[bonusSet].length > 8) {
+        if (data.history.hasOwnProperty(bonusSet) && data.history[bonusSet].length > 8) {
             for (x = 0; x < data.history[bonusSet].length; x++) {
                 prices.push(data.history[bonusSet][x].price);
                 ages.push(data.history[bonusSet][x].age);
@@ -475,7 +479,7 @@ var TUJ_Item = function ()
             td.appendChild(libtuj.FormatAge(ages[ages.length - 1]));
         }
 
-        if (data.globalnow[bonusSet].length) {
+        if (data.globalnow.hasOwnProperty(bonusSet) && data.globalnow[bonusSet].length) {
             var globalStats = {
                 quantity: 0,
                 prices: [],
