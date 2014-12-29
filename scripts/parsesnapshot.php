@@ -342,32 +342,34 @@ function ParseAuctionData($house, $snapshot, &$json)
                 $bonuses = [];
                 if (isset($auction['bonusLists'])) {
                     for ($y = 0; $y < count($auction['bonusLists']); $y++) {
-                        if (isset($auction['bonusLists'][$y]['bonusListId'])) {
+                        if (isset($auction['bonusLists'][$y]['bonusListId']) && $auction['bonusLists'][$y]['bonusListId']) {
                             $bonuses[] = intval($auction['bonusLists'][$y]['bonusListId'],10);
                         }
                     }
                 }
-                $bonuses = array_unique($bonuses, SORT_NUMERIC);
-                sort($bonuses, SORT_NUMERIC);
-                for ($y = count($bonuses); $y < MAX_BONUSES; $y++) {
-                    $bonuses[] = 'null';
-                }
-                $bonuses = implode(',',$bonuses);
-                $thisSql = sprintf('(%u, %u, %d, %d, %u, %u, %s)',
-                    $house,
-                    $auction['auc'],
-                    $auction['rand'],
-                    $auction['seed'],
-                    $auction['context'],
-                    $bonusSet,
-                    $bonuses
-                );
+                if (count($bonuses) || $auction['rand'] || $auction['context']) {
+                    $bonuses = array_unique($bonuses, SORT_NUMERIC);
+                    sort($bonuses, SORT_NUMERIC);
+                    for ($y = count($bonuses); $y < MAX_BONUSES; $y++) {
+                        $bonuses[] = 'null';
+                    }
+                    $bonuses = implode(',',$bonuses);
+                    $thisSql = sprintf('(%u, %u, %d, %d, %u, %u, %s)',
+                        $house,
+                        $auction['auc'],
+                        $auction['rand'],
+                        $auction['seed'],
+                        $auction['context'],
+                        $bonusSet,
+                        $bonuses
+                    );
 
-                if (strlen($sqlExtra) + 5 + strlen($thisSql) > $maxPacketSize) {
-                    $delayedAuctionSql[] = $sqlExtra; // delayed since tblAuction row must be inserted first for foreign key
-                    $sqlExtra = '';
+                    if (strlen($sqlExtra) + 5 + strlen($thisSql) > $maxPacketSize) {
+                        $delayedAuctionSql[] = $sqlExtra; // delayed since tblAuction row must be inserted first for foreign key
+                        $sqlExtra = '';
+                    }
+                    $sqlExtra .= ($sqlExtra == '' ? $sqlStartExtra : ',') . $thisSql;
                 }
-                $sqlExtra .= ($sqlExtra == '' ? $sqlStartExtra : ',') . $thisSql;
             }
         }
 
