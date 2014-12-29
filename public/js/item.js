@@ -2,6 +2,9 @@ var TUJ_Item = function ()
 {
     var params;
     var lastResults = [];
+    var itemId;
+    var bonusSet, bonusUrl;
+    var bonusSets;
 
     this.load = function (inParams)
     {
@@ -12,9 +15,18 @@ var TUJ_Item = function ()
             }
         }
 
+        itemId = '' + params.id;
+        bonusSet = 0;
+        bonusUrl = '';
+
+        if (itemId.indexOf('.') > 0) {
+            itemId = ('' + params.id).substr(0, ('' + params.id).indexOf('.'));
+            bonusUrl = ('' + params.id).substr(('' + params.id).indexOf('.') + 1);
+        }
+
         var qs = {
             house: tuj.realms[params.realm].house,
-            item: params.id
+            item: itemId
         };
         var hash = JSON.stringify(qs);
 
@@ -67,28 +79,45 @@ var TUJ_Item = function ()
         itemPage.empty();
         itemPage.show();
 
-        if (!dta.stats || !dta.stats.name) {
-            $('#page-title').empty().append(document.createTextNode('Item: ' + params.id));
+        console.log(dta);
+
+        if (!dta.stats) {
+            $('#page-title').empty().append(document.createTextNode('Item: ' + itemId));
             tuj.SetTitle('Item: ' + params.id);
 
             var h2 = libtuj.ce('h2');
             itemPage.append(h2);
-            h2.appendChild(document.createTextNode('Item ' + params.id + ' not found.'));
+            h2.appendChild(document.createTextNode('Item ' + itemId + ' not found.'));
 
             return;
         }
 
+        bonusSets = [];
+        for (var bset in dta.stats) {
+            bonusSets.push(bset);
+            if (bonusSets.length == 1) {
+                bonusSet = bset;
+            }
+            if (dta.stats[bset].bonusurl == bonusUrl) {
+                bonusSet = bset;
+            }
+        }
+        if (dta.stats[bonusSet].bonusurl != bonusUrl) {
+            tuj.SetParams({id: '' + itemId + (dta.stats[bonusSet].bonusurl ? ('.' + dta.stats[bonusSet].bonusurl) : '')});
+            bonusUrl = dta.stats[bonusSet].bonusurl;
+        }
+
         var ta = libtuj.ce('a');
-        ta.href = 'http://www.wowhead.com/item=' + dta.stats.id;
+        ta.href = 'http://www.wowhead.com/item=' + itemId + (bonusUrl ? '&bonus=' + bonusUrl.replace('.', ':') : '');
         ta.target = '_blank';
         ta.className = 'item'
         var timg = libtuj.ce('img');
         ta.appendChild(timg);
-        timg.src = tujCDNPrefix + 'icon/large/' + dta.stats.icon + '.jpg';
-        ta.appendChild(document.createTextNode('[' + dta.stats.name + ']'));
+        timg.src = tujCDNPrefix + 'icon/large/' + dta.stats[bonusSet].icon + '.jpg';
+        ta.appendChild(document.createTextNode('[' + dta.stats[bonusSet].name + ']' + (dta.stats[bonusSet].bonustag ? ' ' + dta.stats[bonusSet].bonustag : '')));
 
         $('#page-title').empty().append(ta);
-        tuj.SetTitle('[' + dta.stats.name + ']');
+        tuj.SetTitle('[' + dta.stats[bonusSet].name + ']' + (dta.stats[bonusSet].bonustag ? ' ' + dta.stats[bonusSet].bonustag : ''));
 
         var d, cht, h;
 
@@ -96,6 +125,8 @@ var TUJ_Item = function ()
         d.className = 'item-stats';
         itemPage.append(d);
         ItemStats(dta, d);
+
+        return;
 
         if (dta.history.length >= 4) {
             d = libtuj.ce();
@@ -255,7 +286,7 @@ var TUJ_Item = function ()
     {
         var t, tr, td, abbr;
 
-        var stack = data.stats.stacksize > 1 ? data.stats.stacksize : 0;
+        var stack = data.stats[bonusSet].stacksize > 1 ? data.stats[bonusSet].stacksize : 0;
         var spacerColSpan = stack ? 3 : 2;
 
         stack = 0; // disable stack size since they're an unusable "200"
@@ -287,14 +318,14 @@ var TUJ_Item = function ()
         td.appendChild(document.createTextNode('Available Quantity'));
         td = libtuj.ce('td');
         tr.appendChild(td);
-        td.appendChild(libtuj.FormatQuantity(data.stats.quantity));
+        td.appendChild(libtuj.FormatQuantity(data.stats[bonusSet].quantity));
         if (stack) {
             td = libtuj.ce('td');
             tr.appendChild(td);
-            td.appendChild(libtuj.FormatQuantity(Math.floor(data.stats.quantity / stack)));
+            td.appendChild(libtuj.FormatQuantity(Math.floor(data.stats[bonusSet].quantity / stack)));
         }
 
-        if (data.stats.quantity == 0) {
+        if (data.stats[bonusSet].quantity == 0) {
             tr = libtuj.ce('tr');
             t.appendChild(tr);
             tr.className = 'last-seen';
@@ -304,7 +335,7 @@ var TUJ_Item = function ()
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.colSpan = stack ? 2 : 1;
-            td.appendChild(libtuj.FormatDate(data.stats.lastseen));
+            td.appendChild(libtuj.FormatDate(data.stats[bonusSet].lastseen));
         }
 
         tr = libtuj.ce('tr');
@@ -322,11 +353,11 @@ var TUJ_Item = function ()
         td.appendChild(document.createTextNode('Current Price'));
         td = libtuj.ce('td');
         tr.appendChild(td);
-        td.appendChild(libtuj.FormatPrice(data.stats.price));
+        td.appendChild(libtuj.FormatPrice(data.stats[bonusSet].price));
         if (stack) {
             td = libtuj.ce('td');
             tr.appendChild(td);
-            td.appendChild(libtuj.FormatPrice(data.stats.price * stack));
+            td.appendChild(libtuj.FormatPrice(data.stats[bonusSet].price * stack));
         }
 
         var prices = [], ages = [], x;
@@ -515,12 +546,12 @@ var TUJ_Item = function ()
         td.appendChild(document.createTextNode('Sell to Vendor'));
         td = libtuj.ce('td');
         tr.appendChild(td);
-        td.appendChild(data.stats.selltovendor ? libtuj.FormatPrice(data.stats.selltovendor) : document.createTextNode('Cannot'));
+        td.appendChild(data.stats[bonusSet].selltovendor ? libtuj.FormatPrice(data.stats[bonusSet].selltovendor) : document.createTextNode('Cannot'));
         if (stack) {
-            if (data.stats.selltovendor) {
+            if (data.stats[bonusSet].selltovendor) {
                 td = libtuj.ce('td');
                 tr.appendChild(td);
-                td.appendChild(libtuj.FormatPrice(data.stats.selltovendor * stack));
+                td.appendChild(libtuj.FormatPrice(data.stats[bonusSet].selltovendor * stack));
             }
             else {
                 td.colSpan = 2;
@@ -535,11 +566,11 @@ var TUJ_Item = function ()
         td.appendChild(document.createTextNode('48hr Listing Fee'));
         td = libtuj.ce('td');
         tr.appendChild(td);
-        td.appendChild(libtuj.FormatPrice(Math.max(100, data.stats.selltovendor ? data.stats.selltovendor * 0.6 : 0)));
+        td.appendChild(libtuj.FormatPrice(Math.max(100, data.stats[bonusSet].selltovendor ? data.stats[bonusSet].selltovendor * 0.6 : 0)));
         if (stack) {
             td = libtuj.ce('td');
             tr.appendChild(td);
-            td.appendChild(libtuj.FormatPrice(Math.max(100, data.stats.selltovendor ? data.stats.selltovendor * 0.6 * stack : 0)));
+            td.appendChild(libtuj.FormatPrice(Math.max(100, data.stats[bonusSet].selltovendor ? data.stats[bonusSet].selltovendor * 0.6 * stack : 0)));
         }
 
         dest.appendChild(libtuj.Ads.Add('9943194718', 'box'));
@@ -2030,7 +2061,7 @@ var TUJ_Item = function ()
             $(td).text('Name');
         }
 
-        if (data.stats.stacksize > 1) {
+        if (data.stats[bonusSet].stacksize > 1) {
             td = libtuj.ce('th');
             tr.appendChild(td);
             td.className = 'quantity';
@@ -2061,7 +2092,7 @@ var TUJ_Item = function ()
                 a.sellername.localeCompare(b.sellername);
         });
 
-        var s, a, stackable = data.stats.stacksize > 1;
+        var s, a, stackable = data.stats[bonusSet].stacksize > 1;
         for (x = 0; auc = data.auctions[x]; x++) {
             tr = libtuj.ce('tr');
             t.appendChild(tr);
@@ -2071,13 +2102,13 @@ var TUJ_Item = function ()
                 tr.appendChild(td);
                 td.className = 'name';
                 a = libtuj.ce('a');
-                a.rel = 'item=' + data.stats.id + (auc.rand ? '&rand=' + auc.rand : '');
-                a.href = tuj.BuildHash({page: 'item', id: data.stats.id});
+                a.rel = 'item=' + data.stats[bonusSet].id + (auc.rand ? '&rand=' + auc.rand : '');
+                a.href = tuj.BuildHash({page: 'item', id: data.stats[bonusSet].id});
                 td.appendChild(a);
-                $(a).text('[' + data.stats.name + ((auc.rand && tujConstants.randEnchants.hasOwnProperty(auc.rand)) ? (' ' + tujConstants.randEnchants[auc.rand].name) : '') + ']');
+                $(a).text('[' + data.stats[bonusSet].name + ((auc.rand && tujConstants.randEnchants.hasOwnProperty(auc.rand)) ? (' ' + tujConstants.randEnchants[auc.rand].name) : '') + ']');
             }
 
-            if (data.stats.stacksize > 1) {
+            if (data.stats[bonusSet].stacksize > 1) {
                 td = libtuj.ce('td');
                 tr.appendChild(td);
                 td.className = 'quantity';
