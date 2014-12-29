@@ -114,11 +114,12 @@ function SellerAuctions($house, $seller)
     DBConnect();
 
     $sql = <<<EOF
-SELECT a.item, i.name, i.quality, i.class, i.subclass, i.icon, i.stacksize, a.quantity, a.bid, a.buy, a.`rand`, a.seed,
+SELECT a.item, i.name, i.quality, i.class, i.subclass, i.icon, i.stacksize, a.quantity, a.bid, a.buy, ifnull(ae.`rand`, 0) `rand`, ifnull(ae.seed,0) seed,
 (SELECT ifnull(sum(quantity),0) from tblAuction a2 where a2.house=a.house and a2.item=a.item and a2.seller!=a.seller and
 ((a.buy > 0 and a2.buy > 0 and (a2.buy / a2.quantity < a.buy / a.quantity)) or (a.buy = 0 and (a2.bid / a2.quantity < a.bid / a.quantity)))) cheaper
 FROM `tblAuction` a
 left join tblDBCItem i on a.item=i.id
+left join tblAuctionExtra ae on ae.house=a.house and ae.id=a.id
 WHERE a.house = ? and a.seller = ?
 and a.item != 82800
 EOF;

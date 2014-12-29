@@ -80,6 +80,7 @@ foreach ($bonuses as $bonusId => $bonusData) {
     dtecho(run_sql($sql));
 }
 unset($bonuses, $bonusNames, $bonusId, $bonusData);
+dtecho(run_sql('update tblDBCItemBonus set flags = flags | 1 where ifnull(level,0) != 0'));
 
 dtecho(dbcdecode('FileData', array(1=>'id', 2=>'name')));
 dtecho(dbcdecode('Item', array(1=>'id', 2=>'classid', 3=>'subclassid', 8=>'iconfiledataid')));

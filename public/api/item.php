@@ -205,9 +205,10 @@ function ItemAuctions($house, $item)
     DBConnect();
 
     $sql = <<<EOF
-SELECT quantity, bid, buy, `rand`, seed, s.realm sellerrealm, ifnull(s.name, '???') sellername
+SELECT a.quantity, a.bid, a.buy, ifnull(ae.`rand`,0) `rand`, ifnull(ae.seed,0) `seed`, s.realm sellerrealm, ifnull(s.name, '???') sellername
 FROM `tblAuction` a
 left join tblSeller s on a.seller=s.id
+left join tblAuctionExtra ae on ae.house=a.house and ae.id=a.id
 WHERE a.house=? and a.item=?
 EOF;
     // order by buy/quantity, bid/quantity, quantity, s.name, a.id

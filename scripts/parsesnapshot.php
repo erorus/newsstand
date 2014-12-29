@@ -12,6 +12,7 @@ RunMeNTimes(2);
 CatchKill();
 
 define('SNAPSHOT_PATH', '/var/newsstand/snapshots/');
+define('MAX_BONUSES', 6); // is a count, 1 through N
 
 ini_set('memory_limit', '512M');
 
@@ -29,6 +30,18 @@ $stmt = $db->prepare('SELECT id, region, name, ifnull(ownerrealm, replace(name, 
 $stmt->execute();
 $result = $stmt->get_result();
 $ownerRealmCache = DBMapArray($result, array('region', 'ownerrealm'));
+$stmt->close();
+
+$stmt = $db->prepare('SELECT id FROM tblDBCItem WHERE `class` in (2,4) AND `auctionable` = 1');
+$stmt->execute();
+$result = $stmt->get_result();
+$auctionExtraItemsCache = DBMapArray($result);
+$stmt->close();
+
+$stmt = $db->prepare('SELECT id FROM tblDBCItemBonus WHERE `flags` & 1');
+$stmt->execute();
+$result = $stmt->get_result();
+$bonusSetMemberCache = DBMapArray($result);
 $stmt->close();
 
 $maxPacketSize = 0;
@@ -119,6 +132,7 @@ function ParseAuctionData($house, $snapshot, &$json)
 {
     global $maxPacketSize;
     global $houseRegionCache;
+    global $auctionExtraItemsCache, $bonusSetMemberCache;
 
     $snapshotString = Date('Y-m-d H:i:s', $snapshot);
     $startTimer = microtime(true);
@@ -127,7 +141,7 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     $region = $houseRegionCache[$house]['region'];
 
-    $stmt = $ourDb->prepare('SELECT id, bid, item FROM tblAuction WHERE house = ?');
+    $stmt = $ourDb->prepare('SELECT a.id, a.bid, a.item, concat_ws(\'-\', a.item, ae.bonusset) infokey FROM tblAuction a LEFT JOIN tblAuctionExtra ae on a.house=ae.house and a.id=ae.id WHERE a.house = ?');
     $stmt->bind_param('i', $house);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -201,8 +215,13 @@ function ParseAuctionData($house, $snapshot, &$json)
     $snapshotList = DBMapArray($result, null);
     $stmt->close();
 
-    $sqlStart = 'REPLACE INTO tblAuction (house, id, item, quantity, bid, buy, seller, rand, seed) VALUES ';
+    $sqlStart = 'REPLACE INTO tblAuction (house, id, item, quantity, bid, buy, seller) VALUES ';
     $sqlStartPet = 'REPLACE INTO tblAuctionPet (house, id, species, breed, `level`, quality) VALUES ';
+    $sqlStartExtra = 'REPLACE INTO tblAuctionExtra (house, id, `rand`, `seed`, `context`, `bonusset`';
+    for ($x = 1; $x <= MAX_BONUSES; $x++) {
+        $sqlStartExtra .= ", bonus$x";
+    }
+    $sqlStartExtra .= ') VALUES ';
 
     $totalAuctions = 0;
     $itemInfo = array();
@@ -237,7 +256,7 @@ function ParseAuctionData($house, $snapshot, &$json)
 
         GetSellerIds($region, $sellerInfo, $snapshot);
 
-        $sql = $sqlPet = '';
+        $sql = $sqlPet = $sqlExtra = '';
         $delayedAuctionSql = [];
 
         for ($x = 0; $x < $auctionCount; $x++) {
@@ -260,16 +279,24 @@ function ParseAuctionData($house, $snapshot, &$json)
                     );
                     $petInfo[$auction['petSpeciesId']][$auction['petBreedId']]['tq'] += $auction['quantity'];
                 } else {
-                    if (!isset($itemInfo[$auction['item']])) {
-                        $itemInfo[$auction['item']] = array('a' => array(), 'tq' => 0);
+                    $itemInfoKey = $auction['item'];
+                    $bonusSet = 0;
+                    if (isset($auctionExtraItemsCache[$auction['item']]) && isset($auction['bonusLists'])) {
+                        $bonusSet = GetBonusSet($auction['item'], $auction['bonusLists']);
+                        if ($bonusSet) {
+                            $itemInfoKey .= "-$bonusSet";
+                        }
+                    }
+                    if (!isset($itemInfo[$itemInfoKey])) {
+                        $itemInfo[$itemInfoKey] = array('a' => array(), 'tq' => 0);
                     }
 
-                    $itemInfo[$auction['item']]['a'][] = array(
+                    $itemInfo[$itemInfoKey]['a'][] = array(
                         'q'   => $auction['quantity'],
                         'p'   => $auction['buyout'],
                         'age' => GetAuctionAge($auction['auc'], $snapshot, $snapshotList)
                     );
-                    $itemInfo[$auction['item']]['tq'] += $auction['quantity'];
+                    $itemInfo[$itemInfoKey]['tq'] += $auction['quantity'];
                 }
             }
 
@@ -283,16 +310,14 @@ function ParseAuctionData($house, $snapshot, &$json)
             }
 
             $thisSql = sprintf(
-                '(%u, %u, %u, %u, %u, %u, %u, %d, %d)',
+                '(%u, %u, %u, %u, %u, %u, %u)',
                 $house,
                 $auction['auc'],
                 $auction['item'],
                 $auction['quantity'],
                 $auction['bid'],
                 $auction['buyout'],
-                $auction['owner'] == '???' ? 0 : $sellerInfo[$auction['ownerRealm']][$auction['owner']]['id'],
-                $auction['rand'],
-                $auction['seed']
+                $auction['owner'] == '???' ? 0 : $sellerInfo[$auction['ownerRealm']][$auction['owner']]['id']
             );
             if (strlen($sql) + 5 + strlen($thisSql) > $maxPacketSize) {
                 DBQueryWithError($ourDb, $sql);
@@ -316,6 +341,36 @@ function ParseAuctionData($house, $snapshot, &$json)
                     $sqlPet = '';
                 }
                 $sqlPet .= ($sqlPet == '' ? $sqlStartPet : ',') . $thisSql;
+            } else if (isset($auctionExtraItemsCache[$auction['item']])) {
+                $bonuses = [];
+                if (isset($auction['bonusLists'])) {
+                    for ($y = 0; $y < count($auction['bonusLists']); $y++) {
+                        if (isset($auction['bonusLists'][$y]['bonusListId'])) {
+                            $bonuses[] = intval($auction['bonusLists'][$y]['bonusListId'],10);
+                        }
+                    }
+                }
+                $bonuses = array_unique($bonuses, SORT_NUMERIC);
+                sort($bonuses, SORT_NUMERIC);
+                for ($y = count($bonuses); $y < MAX_BONUSES; $y++) {
+                    $bonuses[] = 'null';
+                }
+                $bonuses = implode(',',$bonuses);
+                $thisSql = sprintf('(%u, %u, %d, %d, %u, %u, %s)',
+                    $house,
+                    $auction['auc'],
+                    $auction['rand'],
+                    $auction['seed'],
+                    $auction['context'],
+                    $bonusSet,
+                    $bonuses
+                );
+
+                if (strlen($sqlExtra) + 5 + strlen($thisSql) > $maxPacketSize) {
+                    $delayedAuctionSql[] = $sqlExtra; // delayed since tblAuction row must be inserted first for foreign key
+                    $sqlExtra = '';
+                }
+                $sqlExtra .= ($sqlExtra == '' ? $sqlStartExtra : ',') . $thisSql;
             }
         }
 
@@ -327,10 +382,13 @@ function ParseAuctionData($house, $snapshot, &$json)
             $delayedAuctionSql[] = $sqlPet;
         }
 
-        for ($x = 0; $x < count($delayedAuctionSql); $x++) {
-            DBQueryWithError($ourDb, $delayedAuctionSql[$x]);
+        if ($sqlExtra != '') {
+            $delayedAuctionSql[] = $sqlExtra;
         }
-        unset($delayedAuctionSql);
+
+        while (count($delayedAuctionSql)) {
+            DBQueryWithError($ourDb, array_pop($delayedAuctionSql));
+        }
 
         $ourDb->commit();
 
@@ -351,8 +409,8 @@ EOF;
 
     $preDeleted = count($itemInfo);
     foreach ($existingIds as &$oldRow) {
-        if ((!isset($existingPetIds[$oldRow['id']])) && (!isset($itemInfo[$oldRow['item']]))) {
-            $itemInfo[$oldRow['item']] = array('tq' => 0, 'a' => array());
+        if ((!isset($existingPetIds[$oldRow['id']])) && (!isset($itemInfo[$oldRow['infokey']]))) {
+            $itemInfo[$oldRow['infokey']] = array('tq' => 0, 'a' => array());
         }
     }
     unset($oldRow);
@@ -397,6 +455,12 @@ EOF;
     MCSetHouse($house, 'ts', $snapshot);
 
     DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " finished with $totalAuctions auctions in " . round(microtime(true) - $startTimer, 2) . " sec");
+}
+
+function GetBonusSet($item, $bonusList)
+{
+    // TODO
+    return 0;
 }
 
 function GetAuctionAge($id, $now, &$snapshotList)
