@@ -22,7 +22,7 @@ if (isset($argv[1]) && ($argv[1] == 'jsononly')) {
 
 DebugMessage('Starting..');
 
-$stmt = $db->prepare('SELECT DISTINCT item FROM tblItemSummary');
+$stmt = $db->prepare('SELECT DISTINCT item, bonusset FROM tblItemSummary');
 $stmt->execute();
 $result = $stmt->get_result();
 $items = DBMapArray($result, null);
@@ -37,6 +37,7 @@ $sql = <<<END
 SELECT price
 FROM tblItemSummary ih, tblRealm r
 WHERE item = ?
+and bonusset = ?
 and r.canonical is not null
 and ih.house = r.house
 END;
@@ -45,7 +46,8 @@ DebugMessage('Updating items..');
 $itemsCount = count($items);
 $now = Date('Y-m-d H:i:s');
 for ($z = 0; $z < $itemsCount; $z++) {
-    $item = $items[$z];
+    $item = $items[$z]['item'];
+    $bonusSet = $items[$z]['bonusset'];
 
     if ($caughtKill) {
         break;
@@ -56,7 +58,7 @@ for ($z = 0; $z < $itemsCount; $z++) {
     }
 
     $stmt = $db->prepare($sql);
-    $stmt->bind_param('i', $item);
+    $stmt->bind_param('ii', $item, $bonusSet);
     $stmt->execute();
     $result = $stmt->get_result();
     $prices = DBMapArray($result, null);
@@ -87,8 +89,8 @@ for ($z = 0; $z < $itemsCount; $z++) {
         $median = round(($prices[floor($cnt / 2) - 1] + $prices[floor($cnt / 2)]) / 2);
     }
 
-    $stmt = $db->prepare('INSERT INTO tblItemGlobalWorking (`when`, item, `median`, `mean`, `stddev`) VALUES (?, ?, ?, ?, ?)');
-    $stmt->bind_param('siiii', $now, $item, $median, $mean, $stdDev);
+    $stmt = $db->prepare('INSERT INTO tblItemGlobalWorking (`when`, item, `bonusset`, `median`, `mean`, `stddev`) VALUES (?, ?, ?, ?, ?, ?)');
+    $stmt->bind_param('siiiii', $now, $item, $bonusSet, $median, $mean, $stdDev);
     $stmt->execute();
     $stmt->close();
 }
@@ -102,7 +104,7 @@ if (!$caughtKill) {
 if (!$caughtKill) {
     heartbeat();
     DebugMessage("Updating tblItemGlobal rows");
-    $db->query('REPLACE INTO tblItemGlobal (SELECT `item`, avg(`median`), avg(`mean`), avg(`stddev`) FROM tblItemGlobalWorking GROUP BY `item`)');
+    $db->query('REPLACE INTO tblItemGlobal (SELECT `item`, `bonusset`, avg(`median`), avg(`mean`), avg(`stddev`) FROM tblItemGlobalWorking GROUP BY `item`, `bonusset`)');
 }
 
 UpdateGlobalDataJson();
@@ -119,7 +121,7 @@ function UpdateGlobalDataJson()
     heartbeat();
     DebugMessage("Updating global data json");
 
-    $stmt = $db->prepare('SELECT item, median FROM tblItemGlobal');
+    $stmt = $db->prepare('SELECT item, median FROM tblItemGlobal where bonusset=0');
     $stmt->execute();
     $result = $stmt->get_result();
     $prices = DBMapArray($result, null);

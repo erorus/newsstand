@@ -54,7 +54,7 @@ function BuildAddonData($region)
 
     DebugMessage('Finding global prices');
 
-    $stmt = $db->prepare('SELECT item, median, mean, stddev FROM tblItemGlobal');
+    $stmt = $db->prepare('SELECT item, median, mean, stddev FROM tblItemGlobal where bonusset=0');
     $stmt->execute();
     $result = $stmt->get_result();
     $globalPrices = DBMapArray($result);

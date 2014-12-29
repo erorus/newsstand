@@ -61,7 +61,7 @@ replace into tblItemHistoryDaily
     max(quantity) quantitymax
     from (select @previtem := 0, @lastprice := 0) itemsetup, tblSnapshot sn
     join tblDBCItem i
-    left join tblItemHistory ih on ih.house=%1\$d and sn.updated=ih.snapshot and ih.item=i.id
+    left join tblItemHistory ih on ih.house=%1\$d and sn.updated=ih.snapshot and ih.item=i.id and ih.bonusset=0
     where sn.house=%4\$d
     and sn.updated between '%2\$s' and '%3\$s'
     and sn.flags & 1 = 0

@@ -41,7 +41,7 @@ $stmt->close();
 $stmt = $db->prepare('SELECT id FROM tblDBCItemBonus WHERE `flags` & 1');
 $stmt->execute();
 $result = $stmt->get_result();
-$bonusSetMemberCache = DBMapArray($result);
+$bonusSetMemberCache = array_keys(DBMapArray($result));
 $stmt->close();
 
 $maxPacketSize = 0;
@@ -132,7 +132,7 @@ function ParseAuctionData($house, $snapshot, &$json)
 {
     global $maxPacketSize;
     global $houseRegionCache;
-    global $auctionExtraItemsCache, $bonusSetMemberCache;
+    global $auctionExtraItemsCache;
 
     $snapshotString = Date('Y-m-d H:i:s', $snapshot);
     $startTimer = microtime(true);
@@ -141,7 +141,7 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     $region = $houseRegionCache[$house]['region'];
 
-    $stmt = $ourDb->prepare('SELECT a.id, a.bid, a.item, concat_ws(\'-\', a.item, ae.bonusset) infokey FROM tblAuction a LEFT JOIN tblAuctionExtra ae on a.house=ae.house and a.id=ae.id WHERE a.house = ?');
+    $stmt = $ourDb->prepare('SELECT a.id, a.bid, a.item, concat_ws(\':\', a.item, ifnull(ae.bonusset,0)) infokey FROM tblAuction a LEFT JOIN tblAuctionExtra ae on a.house=ae.house and a.id=ae.id WHERE a.house = ?');
     $stmt->bind_param('i', $house);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -279,14 +279,11 @@ function ParseAuctionData($house, $snapshot, &$json)
                     );
                     $petInfo[$auction['petSpeciesId']][$auction['petBreedId']]['tq'] += $auction['quantity'];
                 } else {
-                    $itemInfoKey = $auction['item'];
                     $bonusSet = 0;
                     if (isset($auctionExtraItemsCache[$auction['item']]) && isset($auction['bonusLists'])) {
-                        $bonusSet = GetBonusSet($auction['item'], $auction['bonusLists']);
-                        if ($bonusSet) {
-                            $itemInfoKey .= "-$bonusSet";
-                        }
+                        $bonusSet = GetBonusSet($auction['bonusLists']);
                     }
+                    $itemInfoKey = $auction['item'] . ":$bonusSet";
                     if (!isset($itemInfo[$itemInfoKey])) {
                         $itemInfo[$itemInfoKey] = array('a' => array(), 'tq' => 0);
                     }
@@ -457,10 +454,73 @@ EOF;
     DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " finished with $totalAuctions auctions in " . round(microtime(true) - $startTimer, 2) . " sec");
 }
 
-function GetBonusSet($item, $bonusList)
+function GetBonusSet($bonusList)
 {
-    // TODO
-    return 0;
+    global $bonusSetMemberCache, $db;
+    static $bonusSetCache = [];
+
+    $bonuses = [];
+    for ($y = 0; $y < count($bonusList); $y++) {
+        if (isset($bonusList[$y]['bonusListId'])) {
+            $bonuses[] = intval($bonusList[$y]['bonusListId'],10);
+        }
+    }
+    $bonuses = array_intersect(array_unique($bonuses, SORT_NUMERIC), $bonusSetMemberCache);
+    sort($bonuses, SORT_NUMERIC);
+
+    if (count($bonuses) == 0) {
+        return 0;
+    }
+
+    // check local static cache
+    $bonusesKey = implode(':', $bonuses);
+    if (isset($bonusSetCache[$bonusesKey])) {
+        return $bonusSetCache[$bonusesKey];
+    }
+
+    // not in cache, check db
+    $stmt = $db->prepare('SELECT `set`, GROUP_CONCAT(`bonus` ORDER BY 1 SEPARATOR \':\') `bonus` from tblBonusSet GROUP BY `set`');
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($row = $result->fetch_assoc()) {
+        $bonusSetCache[$row['bonus']] = $row['set'];
+    }
+    $result->close();
+    $stmt->close();
+
+    // check updated local cache now that we're synced with db
+    if (isset($bonusSetCache[$bonusesKey])) {
+        return $bonusSetCache[$bonusesKey];
+    }
+
+    // still don't have it, make a new one
+    if (!DBQueryWithError($db, 'lock tables tblBonusSet write')) {
+        return 0;
+    };
+    $newSet = 0;
+
+    $stmt = $db->prepare('select ifnull(max(`set`),0)+1 from tblBonusSet');
+    $stmt->execute();
+    $stmt->bind_result($newSet);
+    $stmt->fetch();
+    $stmt->close();
+
+    if ($newSet) {
+        $sql = 'insert into tblBonusSet (`set`, `bonus`) VALUES ';
+        for ($x = 0; $x < count($bonuses); $x++) {
+            $sql .= ($x > 0 ? ',' : '') . "($newSet,{$bonuses[$x]})";
+        }
+        if (!DBQueryWithError($db, $sql)) {
+            $newSet = 0;
+        }
+    }
+    DBQueryWithError($db, 'unlock tables');
+
+    if ($newSet) {
+        $bonusSetCache[$bonusesKey] = $newSet;
+    }
+
+    return $newSet;
 }
 
 function GetAuctionAge($id, $now, &$snapshotList)
@@ -686,22 +746,23 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $noHistory)
     $day = Date('d', $snapshot);
 
     $snapshotString = Date('Y-m-d H:i:s', $snapshot);
-    $sqlStart = 'INSERT INTO tblItemSummary (house, item, price, quantity, lastseen, age) VALUES ';
+    $sqlStart = 'INSERT INTO tblItemSummary (house, item, bonusset, price, quantity, lastseen, age) VALUES ';
     $sqlEnd = ' on duplicate key update quantity=values(quantity), price=if(quantity=0,price,values(price)), lastseen=if(quantity=0,lastseen,values(lastseen)), age=values(age)';
     $sql = '';
 
-    $sqlHistoryStart = 'REPLACE INTO tblItemHistory (house, item, price, quantity, snapshot, age) VALUES ';
+    $sqlHistoryStart = 'REPLACE INTO tblItemHistory (house, item, bonusset, price, quantity, snapshot, age) VALUES ';
     $sqlHistory = '';
 
-    $sqlDeepStart = sprintf('INSERT INTO tblItemHistoryMonthly (house, item, mktslvr%1$s, qty%1$s, `month`) VALUES ', $day);
+    $sqlDeepStart = sprintf('INSERT INTO tblItemHistoryMonthly (house, item, bonusset, mktslvr%1$s, qty%1$s, `month`) VALUES ', $day);
     $sqlDeepEnd = sprintf(' on duplicate key update mktslvr%1$s=if(values(qty%1$s) > ifnull(qty%1$s,0), values(mktslvr%1$s), mktslvr%1$s), qty%1$s=if(values(qty%1$s) > ifnull(qty%1$s,0), values(qty%1$s), qty%1$s)', $day);
     $sqlDeep = '';
 
-    foreach ($itemInfo as $item => &$info) {
+    foreach ($itemInfo as $itemKey => &$info) {
+        list($item, $bonusSet) = explode(':', $itemKey, 2);
         $price = GetMarketPrice($info);
         $age = GetAverageAge($info, $price);
 
-        $sqlBit = sprintf('(%d,%u,%u,%u,\'%s\',%u)', $house, $item, $price, $info['tq'], $snapshotString, $age);
+        $sqlBit = sprintf('(%d,%u,%u,%u,%u,\'%s\',%u)', $house, $item, $bonusSet, $price, $info['tq'], $snapshotString, $age);
         if (strlen($sql) + strlen($sqlBit) + strlen($sqlEnd) + 5 > $maxPacketSize) {
             DBQueryWithError($db, $sql . $sqlEnd);
             $sql = '';
@@ -717,7 +778,7 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $noHistory)
                 $sqlHistory .= ($sqlHistory == '' ? $sqlHistoryStart : ',') . $sqlBit;
             }
 
-            $sqlDeepBit = sprintf('(%d,%u,%u,%u,%u)', $house, $item, round($price / 100), $info['tq'], $month);
+            $sqlDeepBit = sprintf('(%d,%u,%u,%u,%u,%u)', $house, $item, $bonusSet, round($price / 100), $info['tq'], $month);
             if (strlen($sqlDeep) + strlen($sqlDeepBit) + strlen($sqlDeepEnd) + 5 > $maxPacketSize) {
                 DBQueryWithError($db, $sqlDeep . $sqlDeepEnd);
                 $sqlDeep = '';
