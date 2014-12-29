@@ -46,7 +46,7 @@ function ItemStats($house, $item)
 select i.id, i.name, i.icon, i.class as classid, i.subclass, ifnull(max(ib.quality), i.quality) quality, i.level+sum(ifnull(ib.level,0)) level, i.stacksize, i.binds, i.buyfromvendor, i.selltovendor, i.auctionable,
 s.price, s.quantity, s.lastseen,
 s.bonusset, ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR '.'), '') bonusurl,
-ifnull(group_concat(ib.`tag` order by ib.tagpriority separator ' '), if(s.bonusset=0,'',concat('Level ', sum(ifnull(ib.level,0))))) bonustag
+ifnull(group_concat(ib.`tag` order by ib.tagpriority separator ' '), if(s.bonusset=0,'',concat('Level ', i.level+sum(ifnull(ib.level,0))))) bonustag
 from tblDBCItem i
 left join tblItemSummary s on s.house = ? and s.item = i.id
 left join tblBonusSet bs on s.bonusset = bs.`set`
