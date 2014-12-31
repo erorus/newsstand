@@ -1293,7 +1293,7 @@ function CategoryGenericItemList($house, $params)
 {
     global $db, $canCache;
 
-    $key = 'category_gi2_' . md5(json_encode($params));
+    $key = 'category_gib2_' . md5(json_encode($params));
 
     if ($canCache && (($tr = MCGetHouse($house, $key)) !== false)) {
         return $tr;
@@ -1312,15 +1312,24 @@ function CategoryGenericItemList($house, $params)
     }
 
     $sql = <<<EOF
-select i.id, i.name, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice, s.age, round(avg(h.age)) avgage $cols
-from tblDBCItem i
-join tblItemGlobal g on g.item=i.id+0
-left join tblItemSummary s on s.house=? and s.item=i.id
-left join tblItemHistory h on h.house=? and h.item=i.id
-$joins
-where ifnull(i.auctionable,1) = 1
-$where
-group by i.id
+select results.*,
+ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
+ifnull(group_concat(distinct ib.`tag` order by ib.tagpriority separator ' '), if(results.bonusset=0,'',concat('Level ', results.level+sum(ifnull(ib.level,0))))) bonustag
+from (
+    select i.id, i.name, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice, s.age, round(avg(h.age)) avgage,
+    ifnull(s.bonusset,0) bonusset, i.level `level` $cols
+    from tblDBCItem i
+    left join tblItemSummary s on s.house=? and s.item=i.id
+    left join tblItemHistory h on h.house=? and h.item=i.id and h.bonusset = s.bonusset
+    join tblItemGlobal g on g.item=i.id+0 and g.bonusset = ifnull(s.bonusset,0)
+    $joins
+    where ifnull(i.auctionable,1) = 1
+    $where
+    group by i.id, ifnull(s.bonusset,0)
+) results
+left join tblBonusSet bs on results.bonusset = bs.`set`
+left join tblDBCItemBonus ib on bs.bonus = ib.id
+group by results.id, results.bonusset
 EOF;
 
     $stmt = $db->prepare($sql);
@@ -1352,7 +1361,7 @@ function CategoryDealsItemList($house, $dealsSql, $allowCrafted = 0)
 
     global $db, $canCache;
 
-    $key = 'category_di_' . md5($dealsSql) . '_' . $allowCrafted;
+    $key = 'category_dib_' . md5($dealsSql) . '_' . $allowCrafted;
 
     if ($canCache && (($tr = MCGetHouse($house, $key)) !== false)) {
         if (count($tr) == 0) {
@@ -1379,13 +1388,13 @@ function CategoryDealsItemList($house, $dealsSql, $allowCrafted = 0)
     $region = GetRegion($house);
 
     $fullSql = <<<EOF
-select aa.item
+select aa.item, aa.bonusset
 from (
-    select ac.item, ac.c_total, ac.c_over, ac.price, gs.median
+    select ac.item, ac.bonusset, ac.c_total, ac.c_over, ac.price, gs.median
     from (
-        select ab.item, count(*) c_total, sum(if(tis2.price > ab.price,1,0)) c_over, ab.price
+        select ab.item, ab.bonusset, count(*) c_total, sum(if(tis2.price > ab.price,1,0)) c_over, ab.price
         from (
-            select tis.item, tis.price
+            select tis.item, tis.bonusset, tis.price
             from tblItemSummary tis
             join tblDBCItem i on tis.item=i.id
             where tis.house = ?
@@ -1404,12 +1413,12 @@ EOF;
     }
     $fullSql .= <<<EOF
         ) ab
-        join tblItemSummary tis2 on tis2.item = ab.item
+        join tblItemSummary tis2 on tis2.item = ab.item and tis2.bonusset = ab.bonusset
         join tblRealm r on r.house = tis2.house and r.canonical is not null
         where r.region = ?
-        group by ab.item
+        group by ab.item, ab.bonusset
     ) ac
-    join tblItemGlobal gs on gs.item = ac.item
+    join tblItemGlobal gs on gs.item = ac.item and gs.bonusset = ac.bonusset
     where ((c_over/c_total) > 2/3 or c_total < 15)
 ) aa
 where median > 1500000
@@ -1434,15 +1443,21 @@ EOF;
         return array();
     }
 
-    $sql = 'i.id in (' . implode(',', $iidList) . ')';
+    $sortBy = [];
+    $sql = '(';
+    foreach ($iidList as $row) {
+        $sql .= (strlen($sql) == 1 ? '' : ' or ') . '(i.id = ' . $row['item'] . ' and s.bonusset = ' . $row['bonusset'] . ')';
+        $sortBy[] = $row['item'].':'.$row['bonusset'];
+    }
+    $sql .= ')';
 
-    $iids = array_flip($iidList);
+    $sortBy = array_flip($sortBy);
 
     $tr = CategoryGenericItemList($house, array_merge($genArray, ['where' => $sql]));
 
     usort(
-        $tr, function ($a, $b) use ($iids) {
-            return $iids[$a['id']] - $iids[$b['id']];
+        $tr, function ($a, $b) use ($sortBy) {
+            return $sortBy[$a['id'].':'.$a['bonusset']] - $sortBy[$b['id'].':'.$b['bonusset']];
         }
     );
 
@@ -1468,7 +1483,7 @@ function CategoryUnusualItemList($house, $unusualSql, $allowCrafted = 0)
     }
 
     $params = [
-        'where' => $unusualSql . $craftedSql,
+        'where' => $unusualSql . $craftedSql . ' and s.bonusset=0',
         'joins' => 'join tblAuction a on a.house=s.house and a.item=i.id join tblAuctionRare ar on ar.house=a.house and ar.id=a.id',
         'cols'  => 'g.median globalmedian, min(ar.prevseen) `lastseen`, min(ifnull(a.buy/a.quantity, a.bid/a.quantity)) `price`',
     ];
