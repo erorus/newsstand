@@ -1305,14 +1305,16 @@ function CategoryGenericItemList($house, $params)
         $joins = isset($params['joins']) ? $params['joins'] : '';
         $where = isset($params['where']) ? (' and ' . $params['where']) : '';
         $cols = isset($params['cols']) ? (', ' . $params['cols']) : '';
+        $outside = isset($params['outside']) ? ($params['outside'].', ') : '';
     } else {
         $joins = '';
         $where = ($params == '') ? '' : (' and ' . $params);
         $cols = '';
+        $outside = '';
     }
 
     $sql = <<<EOF
-select results.*,
+select results.*, $outside
 ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
 ifnull(group_concat(distinct ib.`tag` order by ib.tagpriority separator ' '), if(results.bonusset=0,'',concat('Level ', results.level+sum(ifnull(ib.level,0))))) bonustag
 from (
@@ -1491,7 +1493,8 @@ function CategoryUnusualItemList($house, $unusualSql, $allowCrafted = 0)
     $params = [
         'where' => $unusualSql . $craftedSql . ' and s.bonusset=0',
         'joins' => 'join tblAuction a on a.house=s.house and a.item=i.id join tblAuctionRare ar on ar.house=a.house and ar.id=a.id',
-        'cols'  => 'g.median globalmedian, min(ar.prevseen) `lastseen`, min(ifnull(a.buy/a.quantity, a.bid/a.quantity)) `price`',
+        'cols'  => 'g.median globalmedian, min(ar.prevseen) `lastseenover`, min(ifnull(a.buy/a.quantity, a.bid/a.quantity)) `priceover`',
+        'outside' => 'lastseenover as lastseen, priceover as price',
     ];
 
     return CategoryGenericItemList($house, $params);
