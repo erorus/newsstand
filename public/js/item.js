@@ -79,8 +79,6 @@ var TUJ_Item = function ()
         itemPage.empty();
         itemPage.show();
 
-        console.log(dta);
-
         if (!dta.stats) {
             $('#page-title').empty().append(document.createTextNode('Item: ' + itemId));
             tuj.SetTitle('Item: ' + params.id);
@@ -93,13 +91,27 @@ var TUJ_Item = function ()
         }
 
         bonusSets = [];
+        bonusSet = -1;
+        var bonusUrlParts = bonusUrl.replace(/[^\d\.]/,'').split('.');
+        var matchingParts, testingParts;
         for (var bset in dta.stats) {
             bonusSets.push(bset);
             if (bonusSets.length == 1) {
                 bonusSet = bset;
-            }
-            if (dta.stats[bset].bonusurl == bonusUrl) {
-                bonusSet = bset;
+            } else {
+                matchingParts = 0;
+                testingParts = ('' + dta.stats[bset].bonusurl).split('.');
+                for (var x = 0; x < testingParts.length; x++) {
+                    for (var y = 0; y < bonusUrlParts.length; y++) {
+                        if (testingParts[x] == bonusUrlParts[y]) {
+                            matchingParts++;
+                            break;
+                        }
+                    }
+                }
+                if (matchingParts == testingParts.length) {
+                    bonusSet = bset;
+                }
             }
         }
         if (dta.stats[bonusSet].bonusurl != bonusUrl) {
