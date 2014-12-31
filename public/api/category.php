@@ -1368,15 +1368,21 @@ function CategoryDealsItemList($house, $dealsSql, $allowCrafted = 0)
             return [];
         }
 
-        $sql = 'i.id in (' . implode(',', $tr) . ')';
+        $sortBy = [];
+        $sql = '(';
+        foreach ($tr as $row) {
+            $sql .= (strlen($sql) == 1 ? '' : ' or ') . '(i.id = ' . $row['item'] . ' and s.bonusset = ' . $row['bonusset'] . ')';
+            $sortBy[] = $row['item'].':'.$row['bonusset'];
+        }
+        $sql .= ')';
 
-        $iids = array_flip($tr);
+        $sortBy = array_flip($sortBy);
 
         $tr = CategoryGenericItemList($house, array_merge($genArray, ['where' => $sql]));
 
         usort(
-            $tr, function ($a, $b) use ($iids) {
-                return $iids[$a['id']] - $iids[$b['id']];
+            $tr, function ($a, $b) use ($sortBy) {
+                return $sortBy[$a['id'].':'.$a['bonusset']] - $sortBy[$b['id'].':'.$b['bonusset']];
             }
         );
 
