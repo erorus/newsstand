@@ -75,7 +75,7 @@ function ItemHistory($house, $item)
 {
     global $db;
 
-    $key = 'item_historyb_' . $item;
+    $key = 'item_historyb2_' . $item;
 
     if (($tr = MCGetHouse($house, $key)) !== false) {
         return $tr;
@@ -100,7 +100,7 @@ from (select
         from tblSnapshot s
         left join tblItemHistory ih on s.updated = ih.snapshot and ih.house=? and ih.item=?
         where s.house = ? and s.updated >= timestampadd(day,-$historyDays,now()) and s.flags & 1 = 0
-        group by ih.bonusset
+        group by ih.bonusset, s.updated
         order by ih.bonusset, s.updated asc
         ) ordered
     ) withoutresets

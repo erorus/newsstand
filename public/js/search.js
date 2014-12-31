@@ -76,7 +76,8 @@ var TUJ_Search = function ()
             dta.items.sort(function (a, b)
             {
                 return tujConstants.itemClassOrder[a.classid] - tujConstants.itemClassOrder[b.classid] ||
-                    a.name.localeCompare(b.name);
+                    a.name.localeCompare(b.name) ||
+                    a.sortlevel - b.sortlevel;
             });
 
             var lastClass = -1;
@@ -156,9 +157,15 @@ var TUJ_Search = function ()
                 tr.appendChild(td);
                 a = libtuj.ce('a');
                 td.appendChild(a);
-                a.href = tuj.BuildHash({page: 'item', id: item.id});
-                a.rel = 'item=' + item.id;
-                $(a).text('[' + item.name + ']');
+                a.rel = 'item=' + item.id + (item.bonusurl ? '&bonus=' + item.bonusurl : '');
+                a.href = tuj.BuildHash({page: 'item', id: item.id + (item.bonusurl ? ('.'+item.bonusurl).replace(':','.') : '')});
+                $(a).text('[' + item.name + (item.bonusname ? ' ' + item.bonusname.substr(0, item.bonusname.indexOf('|') >= 0 ? item.bonusname.indexOf('|') : item.bonusname.length) : '') + ']' + (item.bonustag ? ' ' : ''));
+                if (item.bonustag) {
+                    var tagspan = libtuj.ce('span');
+                    tagspan.className = 'nowrap';
+                    $(tagspan).text(item.bonustag);
+                    a.appendChild(tagspan);
+                }
 
                 td = libtuj.ce('td');
                 td.className = 'quantity';

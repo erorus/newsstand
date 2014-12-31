@@ -107,7 +107,8 @@ function SellerAuctions($house, $seller)
 {
     global $db;
 
-    if (($tr = MCGetHouse($house, 'seller_auctionsb_' . $seller)) !== false) {
+    $cacheKey = 'seller_auctionsb_' . $seller;
+    if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
     }
 
@@ -144,7 +145,7 @@ EOF;
     $tr = DBMapArray($result, null);
     $stmt->close();
 
-    MCSetHouse($house, 'seller_auctions_' . $seller, $tr);
+    MCSetHouse($house, $cacheKey, $tr);
 
     return $tr;
 }

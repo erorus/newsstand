@@ -73,14 +73,24 @@ function SearchItems($house, $search)
     }
 
     $sql = <<<EOF
-select i.id, i.name, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice
-from tblDBCItem i
-left join tblItemSummary s on s.house=? and s.item=i.id
-left join tblItemHistory h on h.house=? and h.item=i.id
-where $nameSearch
-and ifnull(i.auctionable,1) = 1
-group by i.id
-limit ?
+select results.*,
+ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
+ifnull(group_concat(distinct ib.`tag` order by ib.tagpriority separator ' '), if(results.bonusset=0,'',concat('Level ', results.level+sum(ifnull(ib.level,0))))) bonustag,
+results.level+sum(ifnull(ib.level,0)) sortlevel
+from (
+    select i.id, i.name, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice,
+    ifnull(s.bonusset,0) bonusset, i.level
+    from tblDBCItem i
+    left join tblItemSummary s on s.house=? and s.item=i.id
+    left join tblItemHistory h on h.house=? and h.item=i.id and h.bonusset = s.bonusset
+    where $nameSearch
+    and ifnull(i.auctionable,1) = 1
+    group by i.id, ifnull(s.bonusset,0)
+    limit ?
+) results
+left join tblBonusSet bs on results.bonusset = bs.`set`
+left join tblDBCItemBonus ib on bs.bonus = ib.id
+group by results.id, results.bonusset
 EOF;
     $limit = 50 * strlen(preg_replace('/\s/', '', $search));
 

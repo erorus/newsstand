@@ -2138,7 +2138,13 @@ var TUJ_Item = function ()
                 //a.href = tuj.BuildHash({page: 'item', id: data.stats[bonusSet].id + (auc.bonusurl ? ('.'+auc.bonusurl).replace(':','.') : '')});
                 a.href = 'http://www.wowhead.com/item=' + data.stats[bonusSet].id + (auc.bonuses ? '&bonus=' + auc.bonuses : '');
                 td.appendChild(a);
-                $(a).text('[' + data.stats[bonusSet].name + (auc.bonusname ? ' ' + auc.bonusname.substr(0, auc.bonusname.indexOf('|') >= 0 ? auc.bonusname.indexOf('|') : auc.bonusname.length) : '') + (auc.randname ? ' ' + auc.randname : '') + ']' + (auc.bonustag ? ' ' + auc.bonustag : ''));
+                $(a).text('[' + data.stats[bonusSet].name + (auc.bonusname ? ' ' + auc.bonusname.substr(0, auc.bonusname.indexOf('|') >= 0 ? auc.bonusname.indexOf('|') : auc.bonusname.length) : '') + (auc.randname ? ' ' + auc.randname : '') + ']' + (auc.bonustag ? ' ' : ''));
+                if (auc.bonustag) {
+                    var tagspan = libtuj.ce('span');
+                    tagspan.className = 'nowrap';
+                    $(tagspan).text(auc.bonustag);
+                    a.appendChild(tagspan);
+                }
             }
 
             if (data.stats[bonusSet].stacksize > 1) {
