@@ -71,8 +71,8 @@ round(ifnull(avg(ih.price), tis.price)/100) price,
 round(stddev(ih.price)/100) pricestddev
 FROM tblItemSummary tis
 join tblHouseCheck hc on hc.house = tis.house
-left join tblItemHistory ih on ih.item=tis.item and ih.house = tis.house
-WHERE tis.house = ?
+left join tblItemHistory ih on ih.item=tis.item and ih.house = tis.house and ih.bonusset=tis.bonusset
+WHERE tis.house = ? and tis.bonusset=0
 group by tis.item
 EOF;
 
