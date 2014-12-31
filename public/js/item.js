@@ -81,7 +81,7 @@ var TUJ_Item = function ()
 
         if (!dta.stats) {
             $('#page-title').empty().append(document.createTextNode('Item: ' + itemId));
-            tuj.SetTitle('Item: ' + params.id);
+            tuj.SetTitle('Item: ' + itemId);
 
             var h2 = libtuj.ce('h2');
             itemPage.append(h2);
@@ -297,7 +297,7 @@ var TUJ_Item = function ()
 
             var a = libtuj.ce('a');
             h.appendChild(a);
-            a.href = 'https://' + tuj.region.toLowerCase() + '.battle.net/wow/en/vault/character/auction/browse?sort=unitBuyout&itemId=' + params.id + '&start=0&end=40';
+            a.href = 'https://' + tuj.region.toLowerCase() + '.battle.net/wow/en/vault/character/auction/browse?sort=unitBuyout&itemId=' + itemId + '&start=0&end=40';
             $(a).text('Current Auctions');
             d.appendChild(document.createTextNode('Here is the full list of auctions for this item from the latest snapshot. Click a seller name for details on that seller.'));
             d.appendChild(libtuj.ce('br'));
