@@ -438,8 +438,7 @@ var tujConstants = {
             redQuantityFillLight: '#996666',
             redQuantityBackground: '#CC6666',
         }
-    },
-    randEnchants: {}
+    }
 }
 
 var TUJ = function ()
@@ -651,7 +650,7 @@ var TUJ = function ()
         }
     }
 
-    this.SetParams = function (p)
+    this.SetParams = function (p, replaceHistory)
     {
         if (p) {
             for (var x in p) {
@@ -684,7 +683,11 @@ var TUJ = function ()
             if (location.search) {
                 location.href = location.pathname + h;
             }
-            location.hash = h;
+            if (replaceHistory && location.replace) {
+                location.replace(h);
+            } else {
+                location.hash = h;
+            }
             Main();
             return true;
         }

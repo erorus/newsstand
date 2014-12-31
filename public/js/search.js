@@ -346,7 +346,7 @@ var TUJ_Search = function ()
         }
 
         if (results == 1) {
-            tuj.SetParams(lastResult);
+            tuj.SetParams(lastResult, true);
         }
         else {
             if (results == 0) {

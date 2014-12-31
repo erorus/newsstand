@@ -455,10 +455,10 @@ var TUJ_Seller = function ()
             tr.appendChild(td);
             td.className = 'name';
             a = libtuj.ce('a');
-            a.rel = 'item=' + auc.item + (auc.rand ? '&rand=' + auc.rand : '');
-            a.href = tuj.BuildHash({page: 'item', id: auc.item});
+            a.rel = 'item=' + auc.item + (auc.rand ? '&rand=' + auc.rand : '') + (auc.bonuses ? '&bonus=' + auc.bonuses : '');
+            a.href = tuj.BuildHash({page: 'item', id: auc.item + (auc.bonusurl ? ('.'+auc.bonusurl).replace(':','.') : '')});
             td.appendChild(a);
-            $(a).text('[' + auc.name + ((auc.rand && tujConstants.randEnchants.hasOwnProperty(auc.rand)) ? (' ' + tujConstants.randEnchants[auc.rand].name) : '') + ']');
+            $(a).text('[' + auc.name + (auc.bonusname ? ' ' + auc.bonusname.substr(0, auc.bonusname.indexOf('|') >= 0 ? auc.bonusname.indexOf('|') : auc.bonusname.length) : '') + (auc.randname ? ' ' + auc.randname : '') + ']' + (auc.bonustag ? ' ' + auc.bonustag : ''));
 
             td = libtuj.ce('td');
             tr.appendChild(td);

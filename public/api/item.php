@@ -34,7 +34,7 @@ function ItemStats($house, $item)
 {
     global $db;
 
-    $cacheKey = 'item_statsb2_' . $item;
+    $cacheKey = 'item_statsb3_' . $item;
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
@@ -45,7 +45,7 @@ function ItemStats($house, $item)
     $sql = <<<EOF
 select i.id, i.name, i.icon, i.class as classid, i.subclass, ifnull(max(ib.quality), i.quality) quality, i.level+sum(ifnull(ib.level,0)) level, i.stacksize, i.binds, i.buyfromvendor, i.selltovendor, i.auctionable,
 s.price, s.quantity, s.lastseen,
-ifnull(s.bonusset,0) bonusset, ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR '.'), '') bonusurl,
+ifnull(s.bonusset,0) bonusset, ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
 ifnull(group_concat(ib.`tag` order by ib.tagpriority separator ' '), if(ifnull(s.bonusset,0)=0,'',concat('Level ', i.level+sum(ifnull(ib.level,0))))) bonustag
 from tblDBCItem i
 left join tblItemSummary s on s.house = ? and s.item = i.id
@@ -229,7 +229,7 @@ function ItemAuctions($house, $item)
 {
     global $db;
 
-    $cacheKey = 'item_auctions2_' . $item;
+    $cacheKey = 'item_auctionsb3_' . $item;
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
@@ -238,11 +238,21 @@ function ItemAuctions($house, $item)
     DBConnect();
 
     $sql = <<<EOF
-SELECT ifnull(ae.bonusset,0) bonusset, a.quantity, a.bid, a.buy, ifnull(ae.`rand`,0) `rand`, ifnull(ae.seed,0) `seed`, s.realm sellerrealm, ifnull(s.name, '???') sellername
+SELECT ifnull(ae.bonusset,0) bonusset, a.quantity, a.bid, a.buy, ifnull(ae.`rand`,0) `rand`, ifnull(ae.seed,0) `seed`, s.realm sellerrealm, ifnull(s.name, '???') sellername,
+concat_ws(':',ae.bonus1,ae.bonus2,ae.bonus3,ae.bonus4,ae.bonus5,ae.bonus6) bonuses,
+ifnull(GROUP_CONCAT(distinct bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
+ifnull(group_concat(distinct ib.name order by ib.namepriority desc separator '|'), '') bonusname,
+ifnull(group_concat(distinct ib.`tag` order by ib.tagpriority separator ' '), if(ifnull(bs.set,0)=0,'',concat('Level ', i.level+sum(ifnull(ib.level,0))))) bonustag,
+re.name randname
 FROM `tblAuction` a
+join tblDBCItem i on a.item=i.id
 left join tblSeller s on a.seller=s.id
 left join tblAuctionExtra ae on ae.house=a.house and ae.id=a.id
+left join tblBonusSet bs on ae.bonusset = bs.set
+left join tblDBCItemBonus ib on ib.id in (ae.bonus1, ae.bonus2, ae.bonus3, ae.bonus4, ae.bonus5, ae.bonus6)
+left join tblDBCRandEnchants re on re.id = ae.rand
 WHERE a.house=? and a.item=?
+group by a.id
 EOF;
     // order by buy/quantity, bid/quantity, quantity, s.name, a.id
 

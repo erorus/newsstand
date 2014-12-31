@@ -96,6 +96,7 @@ var TUJ_Item = function ()
         var matchingParts, testingParts;
         for (var bset in dta.stats) {
             bonusSets.push(bset);
+            dta.stats[bset].bonusurl = (''+dta.stats[bset].bonusurl).replace(':','.');
             if (bonusSets.length == 1) {
                 bonusSet = bset;
             } else {
@@ -144,7 +145,7 @@ var TUJ_Item = function ()
                 a = libtuj.ce('a');
                 d.appendChild(a);
                 a.href = tuj.BuildHash({page: 'item', id: '' + itemId + (dta.stats[bonusSets[x]].bonusurl ? ('.' + dta.stats[bonusSets[x]].bonusurl) : '')});
-                a.appendChild(document.createTextNode(bonusSets[x] == 0 ? 'Normal' : dta.stats[bonusSets[x]].bonustag));
+                a.appendChild(document.createTextNode(dta.stats[bonusSets[x]].bonustag || (bonusSets[x] == 0 ? 'Normal' : '')));
                 if (bonusSet == bonusSets[x]) {
                     a.className = 'selected';
                 }
@@ -2072,9 +2073,10 @@ var TUJ_Item = function ()
 
     function ItemAuctions(data, dest)
     {
-        var hasRand = false, x, auc;
+        var hasRand = bonusSets.length > 1, x, auc;
         for (x = 0; (!hasRand) && (auc = data.auctions[bonusSet][x]); x++) {
             hasRand |= !!auc.rand;
+            hasRand |= !!auc.bonuses;
         }
 
         var t, tr, td;
@@ -2132,10 +2134,11 @@ var TUJ_Item = function ()
                 tr.appendChild(td);
                 td.className = 'name';
                 a = libtuj.ce('a');
-                a.rel = 'item=' + data.stats[bonusSet].id + (auc.rand ? '&rand=' + auc.rand : '');
-                a.href = tuj.BuildHash({page: 'item', id: data.stats[bonusSet].id});
+                a.rel = 'item=' + data.stats[bonusSet].id + (auc.rand ? '&rand=' + auc.rand : '') + (auc.bonuses ? '&bonus=' + auc.bonuses : '');
+                //a.href = tuj.BuildHash({page: 'item', id: data.stats[bonusSet].id + (auc.bonusurl ? ('.'+auc.bonusurl).replace(':','.') : '')});
+                a.href = 'http://www.wowhead.com/item=' + data.stats[bonusSet].id + (auc.bonuses ? '&bonus=' + auc.bonuses : '');
                 td.appendChild(a);
-                $(a).text('[' + data.stats[bonusSet].name + ((auc.rand && tujConstants.randEnchants.hasOwnProperty(auc.rand)) ? (' ' + tujConstants.randEnchants[auc.rand].name) : '') + ']');
+                $(a).text('[' + data.stats[bonusSet].name + (auc.bonusname ? ' ' + auc.bonusname.substr(0, auc.bonusname.indexOf('|') >= 0 ? auc.bonusname.indexOf('|') : auc.bonusname.length) : '') + (auc.randname ? ' ' + auc.randname : '') + ']' + (auc.bonustag ? ' ' + auc.bonustag : ''));
             }
 
             if (data.stats[bonusSet].stacksize > 1) {

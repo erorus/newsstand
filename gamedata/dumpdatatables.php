@@ -3,7 +3,7 @@ require_once('../incl/incl.php');
 
 DBConnect();
 
-UpdateRandEnchants();
+//UpdateRandEnchants();
 UpdateDataTables();
 
 

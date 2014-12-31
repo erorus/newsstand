@@ -107,6 +107,8 @@ td.quantity, th.quantity,
 td.level, th.level,
 td.date, th.date { text-align: right; cursor: default }
 
+td.price > span, th.price > span { white-space: nowrap }
+
 table.highcharts-tuj-tooltip {font-size: 100%; min-width: 8em}
 table.highcharts-tuj-tooltip td {padding: 0}
 table.highcharts-tuj-tooltip td + td {padding-left: 0.4em}
