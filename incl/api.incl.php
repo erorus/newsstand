@@ -2,7 +2,7 @@
 
 require_once('memcache.incl.php');
 
-define('API_MAINTENANCE', true);
+define('API_MAINTENANCE', false);
 define('THROTTLE_PERIOD', 3600); // seconds
 define('THROTTLE_MAXHITS', 200);
 define('BANLIST_CACHEKEY', 'banlist_cidrs');
