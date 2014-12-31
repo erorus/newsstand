@@ -157,7 +157,7 @@ var TUJ_Search = function ()
                 tr.appendChild(td);
                 a = libtuj.ce('a');
                 td.appendChild(a);
-                a.rel = 'item=' + item.id + (item.bonusurl ? '&bonus=' + item.bonusurl : '');
+                a.rel = 'item=' + item.id + (item.bonusurl ? '&bonus=' + item.bonusurl : (item.basebonus ? '&bonus=' + item.basebonus : ''));
                 a.href = tuj.BuildHash({page: 'item', id: item.id + (item.bonusurl ? ('.'+item.bonusurl).replace(':','.') : '')});
                 $(a).text('[' + item.name + (item.bonusname ? ' ' + item.bonusname.substr(0, item.bonusname.indexOf('|') >= 0 ? item.bonusname.indexOf('|') : item.bonusname.length) : '') + ']' + (item.bonustag ? ' ' : ''));
                 if (item.bonustag) {

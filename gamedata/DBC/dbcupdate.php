@@ -152,6 +152,25 @@ EOF;
 
 dtecho(run_sql($sql));
 
+dtecho(dbcdecode('ItemXBonusTree', array(2=>'itemid', 3=>'nodeid')));
+dtecho(dbcdecode('ItemBonusTreeNode', array(2=>'nodeid', 5=>'bonusid')));
+
+$sql = <<<EOF
+update tblDBCItem i
+set basebonus = (
+    select ib.id
+    from tblDBCItemBonus ib
+    join ttblItemBonusTreeNode btn on btn.bonusid=ib.id
+    join ttblItemXBonusTree ibt on ibt.nodeid=btn.nodeid
+    where ibt.itemid = i.id
+    and ib.level is null
+    and ib.tag is not null
+    order by ib.tagpriority desc
+    limit 1
+);
+EOF;
+dtecho(run_sql($sql));
+
 dtecho(dbcdecode('ItemEffect', array(2=>'itemid', 4=>'spellid')));
 dtecho(run_sql('truncate table tblDBCItemSpell'));
 dtecho(run_sql('insert ignore into tblDBCItemSpell (select * from ttblItemEffect where itemid > 0 and spellid > 0)'));

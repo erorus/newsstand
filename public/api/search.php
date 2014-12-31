@@ -18,7 +18,7 @@ if ($search == '') {
 BotCheck();
 HouseETag($house);
 
-if ($json = MCGetHouse($house, 'search_' . $search)) {
+if ($json = MCGetHouse($house, 'searchb_' . $search)) {
     json_return($json);
 }
 
@@ -79,7 +79,7 @@ ifnull(group_concat(distinct ib.`tag` order by ib.tagpriority separator ' '), if
 results.level+sum(ifnull(ib.level,0)) sortlevel
 from (
     select i.id, i.name, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice,
-    ifnull(s.bonusset,0) bonusset, i.level
+    ifnull(s.bonusset,0) bonusset, i.level, i.basebonus
     from tblDBCItem i
     left join tblItemSummary s on s.house=? and s.item=i.id
     left join tblItemHistory h on h.house=? and h.item=i.id and h.bonusset = s.bonusset
@@ -89,7 +89,7 @@ from (
     limit ?
 ) results
 left join tblBonusSet bs on results.bonusset = bs.`set`
-left join tblDBCItemBonus ib on bs.bonus = ib.id
+left join tblDBCItemBonus ib on ifnull(bs.bonus, results.basebonus) = ib.id
 group by results.id, results.bonusset
 EOF;
     $limit = 50 * strlen(preg_replace('/\s/', '', $search));

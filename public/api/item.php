@@ -50,7 +50,7 @@ ifnull(group_concat(ib.`tag` order by ib.tagpriority separator ' '), if(ifnull(s
 from tblDBCItem i
 left join tblItemSummary s on s.house = ? and s.item = i.id
 left join tblBonusSet bs on s.bonusset = bs.`set`
-left join tblDBCItemBonus ib on bs.bonus = ib.id
+left join tblDBCItemBonus ib on ifnull(bs.bonus, i.basebonus) = ib.id
 where i.id = ?
 group by s.bonusset
 EOF;
