@@ -126,7 +126,7 @@ table.highcharts-tuj-tooltip td + td {padding-left: 0.4em}
 #item-page .item-stats tr.stack-header td { padding-bottom: 0.5em; font-size: 80% }
 #item-page .item-stats tr.current-price td { font-weight: bold }
 #item-page .item-stats td { text-align: right }
-#item-page .item-stats th { width: 66%; text-align: left }
+#item-page .item-stats th { text-align: left; padding-right: 3em }
 #item-page .item-stats table.with-stack th { width: 50% }
 #item-page .item-stats table.with-stack td { width: 25% }
 
