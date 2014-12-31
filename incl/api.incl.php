@@ -2,10 +2,18 @@
 
 require_once('memcache.incl.php');
 
+define('API_MAINTENANCE', true);
 define('THROTTLE_PERIOD', 3600); // seconds
 define('THROTTLE_MAXHITS', 200);
 define('BANLIST_CACHEKEY', 'banlist_cidrs');
 define('BANLIST_FILENAME', __DIR__ . '/banlist.txt');
+
+// maintenance mode
+if (API_MAINTENANCE && (php_sapi_name() != 'cli')) {
+    header('HTTP/1.1 503 Service Unavailable');
+    header('Cache-Control: no-cache');
+    exit;
+}
 
 function json_return($json)
 {
