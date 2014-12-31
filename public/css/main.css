@@ -141,9 +141,8 @@ table.highcharts-tuj-tooltip td + td {padding-left: 0.4em}
 #battlepet-page .battlepet-stats td { text-align: right }
 #battlepet-page .battlepet-stats th { width: 66%; text-align: left }
 
-.battlepet-breeds, .item-bonussets { margin-bottom: 2em; font-size: 120% }
-.battlepet-breeds a, .item-bonussets a { padding: 1em; margin: 0em 1em; background-color: #DDD; opacity: 0.5; text-decoration: none; box-shadow: 0.2em 0.2em #CCC }
-.battlepet-breeds a:first-child, .item-bonussets a:first-child { margin-left: 0 }
+.battlepet-breeds, .item-bonussets { margin-bottom: 1em; font-size: 120% }
+.battlepet-breeds a, .item-bonussets a { display: inline-block; padding: 1em; margin-right: 1em; margin-bottom: 1em; background-color: #DDD; opacity: 0.5; text-decoration: none; box-shadow: 0.2em 0.2em #CCC; white-space: nowrap }
 .battlepet-breeds a.selected, .item-bonussets a.selected { opacity: 1 }
 .battlepet-breeds a:hover, .item-bonussets a:hover { opacity: 1 }
 
