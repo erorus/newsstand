@@ -31,7 +31,7 @@ function CleanOldData()
     $houses = array_values(DBMapArray($result));
     $stmt->close();
 
-    $sqlPattern = 'DELETE FROM tblItemHistory WHERE house = %d AND item BETWEEN %d AND %d AND snapshot < \'%s\'';
+    $sqlPattern = 'delete from tblItemHistory where house = %d and item between %d and %d and snapshot < \'%s\'';
 
     for ($hx = 0; $hx < count($houses); $hx++) {
         heartbeat();
@@ -75,9 +75,9 @@ function CleanOldData()
         $rowCount = 0;
 
         if (count($items) > 0) {
-            $db->real_query(sprintf(str_replace('item between %d and %d', 'item < %d', $sqlPattern), $house, $items[0], $cutoffDate));
+            $db->real_query(sprintf(str_ireplace('item between %d and %d', 'item < %d', $sqlPattern), $house, $items[0], $cutoffDate));
             $rowCount += $db->affected_rows;
-            $db->real_query(sprintf(str_replace('item between %d and %d', 'item > %d', $sqlPattern), $house, $items[count($items) - 1], $cutoffDate));
+            $db->real_query(sprintf(str_ireplace('item between %d and %d', 'item > %d', $sqlPattern), $house, $items[count($items) - 1], $cutoffDate));
             $rowCount += $db->affected_rows;
 
             $itemChunks = array_chunk($items, 100);
@@ -90,7 +90,7 @@ function CleanOldData()
                 $rowCount += $db->affected_rows;
             }
 
-            $db->real_query(sprintf(str_replace(' and item between %d and %d', '', $sqlPattern), $house, $cutoffDate));
+            $db->real_query(sprintf(str_ireplace(' and item between %d and %d', '', $sqlPattern), $house, $cutoffDate));
             $rowCount += $db->affected_rows;
         }
 
@@ -101,7 +101,7 @@ function CleanOldData()
         return;
     }
 
-    $sqlPattern = 'DELETE FROM tblPetHistory WHERE house = %d AND species BETWEEN %d AND %d AND snapshot < \'%s\'';
+    $sqlPattern = 'delete from tblPetHistory where house = %d and species between %d and %d and snapshot < \'%s\'';
 
     for ($hx = 0; $hx < count($houses); $hx++) {
         heartbeat();
@@ -135,7 +135,7 @@ function CleanOldData()
             return;
         }
 
-        $stmt = $db->prepare('SELECT DISTINCT species FROM tblPetSummary WHERE house = ? AND lastseen > timestampadd(DAY, -1, ?)');
+        $stmt = $db->prepare('select distinct species from tblPetSummary where house = ? and lastseen > timestampadd(day, -1, ?)');
         $stmt->bind_param('is', $house, $cutoffDate);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -145,9 +145,9 @@ function CleanOldData()
         $rowCount = 0;
 
         if (count($items) > 0) {
-            $db->real_query(sprintf(str_replace('species between %d and %d', 'species < %d', $sqlPattern), $house, $items[0], $cutoffDate));
+            $db->real_query(sprintf(str_ireplace('species between %d and %d', 'species < %d', $sqlPattern), $house, $items[0], $cutoffDate));
             $rowCount += $db->affected_rows;
-            $db->real_query(sprintf(str_replace('species between %d and %d', 'species > %d', $sqlPattern), $house, $items[count($items) - 1], $cutoffDate));
+            $db->real_query(sprintf(str_ireplace('species between %d and %d', 'species > %d', $sqlPattern), $house, $items[count($items) - 1], $cutoffDate));
             $rowCount += $db->affected_rows;
 
             $itemChunks = array_chunk($items, 100);
@@ -160,7 +160,7 @@ function CleanOldData()
                 $rowCount += $db->affected_rows;
             }
 
-            $db->real_query(sprintf(str_replace(' and species between %d and %d', '', $sqlPattern), $house, $cutoffDate));
+            $db->real_query(sprintf(str_ireplace(' and species between %d and %d', '', $sqlPattern), $house, $cutoffDate));
             $rowCount += $db->affected_rows;
         }
 
