@@ -27,6 +27,7 @@ $tmpFile = tempnam('/tmp', 'backupdata');
 
 $cmd = 'mysqldump --verbose --quick --allow-keywords --skip-opt --create-options --add-drop-table --add-locks --extended-insert --single-transaction --result-file=%s --user='.escapeshellarg(DATABASE_USERNAME_CLI).' --password='.escapeshellarg(DATABASE_PASSWORD_CLI).' --where=%s '.escapeshellarg(DATABASE_SCHEMA)." %s\n";
 foreach ($tables as $table => $where) {
+    echo "Starting $table on ".Date("Y-m-d H:i:s")."\n";
     file_put_contents($tmpFile, '');
     $trash = [];
     $ret = 0;
