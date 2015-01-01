@@ -164,7 +164,7 @@ function ItemHistoryMonthly($house, $item)
 {
     global $db;
 
-    $cacheKey = 'item_historymonthly_' . $house . '_' . $item;
+    $cacheKey = 'item_historymonthly2_' . $house . '_' . $item;
 
     if (($tr = MCGet($cacheKey)) !== false) {
         return $tr;
@@ -305,7 +305,7 @@ function ItemGlobalMonthly($region, $item)
 {
     global $db;
 
-    $key = 'item_globalmonthly2_' . $region . '_' . $item;
+    $key = 'item_globalmonthly3_' . $region . '_' . $item;
     if (($tr = MCGet($key)) !== false) {
         return $tr;
     }
