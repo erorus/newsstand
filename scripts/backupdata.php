@@ -21,7 +21,7 @@ if (!(touch($sqlFile) && ($sqlFile = realpath($sqlFile)))) {
     echo "Could not create backupdata.sql.gz\n";
     exit(1);
 }
-$sqlResource = gzopen($sqlFile, 'w');
+file_put_contents($sqlFile, '');
 
 $tmpFile = tempnam('/tmp', 'backupdata');
 
@@ -35,8 +35,11 @@ foreach ($tables as $table => $where) {
         echo 'Error: '.implode("\n", $trash);
         break;
     }
-    gzwrite($sqlResource, file_get_contents($tmpFile));
+    exec(sprintf('gzip -c %s >> %s', escapeshellarg($tmpFile), escapeshellarg($sqlFile)), $trash, $ret);
+    if ($ret != 0) {
+        echo 'Error: '.implode("\n", $trash);
+        break;
+    }
 }
-gzclose($sqlResource);
 
 unlink($tmpFile);
