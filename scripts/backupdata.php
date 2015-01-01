@@ -1,5 +1,7 @@
 <?php
 
+$startTime = time();
+
 require_once(__DIR__.'/../incl/incl.php');
 
 $tables = [
@@ -18,29 +20,20 @@ $tables = [
 $sqlFile = __DIR__.'/../backup/backupdata.'.Date('Ymd').'.sql.gz';
 
 if (!(touch($sqlFile) && ($sqlFile = realpath($sqlFile)))) {
-    echo "Could not create backupdata.sql.gz\n";
+    DebugMessage("Could not create backupdata.sql.gz", E_USER_ERROR);
     exit(1);
 }
 file_put_contents($sqlFile, '');
 
-$tmpFile = tempnam('/tmp', 'backupdata');
-
-$cmd = 'mysqldump --verbose --quick --allow-keywords --skip-opt --create-options --add-drop-table --add-locks --extended-insert --single-transaction --result-file=%s --user='.escapeshellarg(DATABASE_USERNAME_CLI).' --password='.escapeshellarg(DATABASE_PASSWORD_CLI).' --where=%s '.escapeshellarg(DATABASE_SCHEMA)." %s\n";
+$cmd = 'mysqldump --verbose --quick --allow-keywords --skip-opt --create-options --add-drop-table --add-locks --extended-insert --single-transaction --user='.escapeshellarg(DATABASE_USERNAME_CLI).' --password='.escapeshellarg(DATABASE_PASSWORD_CLI).' --where=%s '.escapeshellarg(DATABASE_SCHEMA)." %s | gzip -c >> %s\n";
 foreach ($tables as $table => $where) {
-    echo "Starting $table on ".Date("Y-m-d H:i:s")."\n";
-    file_put_contents($tmpFile, '');
+    DebugMessage("Starting $table");
     $trash = [];
     $ret = 0;
-    exec(sprintf($cmd, escapeshellarg($tmpFile), escapeshellarg($where), escapeshellarg($table)), $trash, $ret);
-    if ($ret != 0) {
-        echo 'Error: '.implode("\n", $trash);
-        break;
-    }
-    exec(sprintf('gzip -c %s >> %s', escapeshellarg($tmpFile), escapeshellarg($sqlFile)), $trash, $ret);
+    exec(sprintf($cmd, escapeshellarg($where), escapeshellarg($table), escapeshellarg($sqlFile)), $trash, $ret);
     if ($ret != 0) {
         echo 'Error: '.implode("\n", $trash);
         break;
     }
 }
-
-unlink($tmpFile);
+DebugMessage('Done! Started ' . TimeDiff($startTime));
