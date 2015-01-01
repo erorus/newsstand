@@ -744,7 +744,7 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $noHistory)
 {
     global $db, $maxPacketSize;
 
-    $month = (2014 - intval(Date('Y', $snapshot), 10)) * 12 + intval(Date('m', $snapshot), 10);
+    $month = (intval(Date('Y', $snapshot), 10) - 2014) * 12 + intval(Date('m', $snapshot), 10);
     $day = Date('d', $snapshot);
 
     $snapshotString = Date('Y-m-d H:i:s', $snapshot);
