@@ -33,14 +33,17 @@ function GetDataTables() {
 
     $tables = [
         'tblAuction' => 'house='.$house,
+        'tblAuctionExtra' => 'house='.$house,
         'tblAuctionPet' => 'house='.$house,
         'tblAuctionRare' => 'house='.$house,
+        'tblBonusSet' => '1=1',
         'tblHouseCheck' => '1=1',
         'tblItemGlobal' => '1=1',
         'tblItemHistory' => 'house='.$house,
         'tblItemHistoryDaily' => 'item in (select id from tblDBCItem where auctionable=1) and house='.$house,
         'tblItemHistoryMonthly' => 'item in (select id from tblDBCItem where auctionable=1) and house='.$house,
         'tblItemSummary' => 'house='.$house,
+        'tblPet' => '1=1',
         'tblPetHistory' => 'house='.$house,
         'tblPetSummary' => 'house='.$house,
         'tblRealm' => '1=1',
