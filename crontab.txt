@@ -18,13 +18,14 @@
 10 */3 * * * php /var/newsstand/scripts/itemglobal.php >> /var/newsstand/logs/itemglobal.log 2>&1
 0 0 * * 0 mv /var/newsstand/logs/itemglobal.log /var/newsstand/logs/itemglobal.lastweek.log
 
-30 */2 * * * php /var/newsstand/scripts/historyprune.php >> /var/newsstand/logs/historyprune.log 2>&1
+30 */3 * * * php /var/newsstand/scripts/historyprune.php >> /var/newsstand/logs/historyprune.log 2>&1
 0 0 * * * mv /var/newsstand/logs/historyprune.log /var/newsstand/logs/historyprune.yesterday.log
 
-30 */2 * * * php /var/newsstand/scripts/itemdaily.php >> /var/newsstand/logs/itemdaily.log 2>&1
+15 */2 * * * php /var/newsstand/scripts/itemdaily.php >> /var/newsstand/logs/itemdaily.log 2>&1
 0 0 * * * mv /var/newsstand/logs/itemdaily.log /var/newsstand/logs/itemdaily.yesterday.log
 
 0 * * * * /var/newsstand/private/awstats/wwwroot/cgi-bin/awstats.pl -config=newsstand >/dev/null 2>&1
 
 10 7 * * 2,6 /var/newsstand/scripts/buildaddon.sh > /var/newsstand/logs/buildaddon.log 2>&1
 
+23 13 * * 2 /var/newsstand/scripts/backupdata.sh > /var/newsstand/logs/backupdata.log 2>&1

@@ -5,6 +5,7 @@ snapshots/
 public/icon/
 lighttpd.conf/
 private/
+backup/
 
 incl/*.credentials.php
 incl/banlist.txt
