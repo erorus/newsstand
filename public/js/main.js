@@ -448,6 +448,7 @@ var TUJ = function ()
     var houseInfo = {};
     this.region = undefined;
     this.realms = undefined;
+    this.apiVersion = 0;
     this.params = {
         realm: undefined,
         page: undefined,
@@ -489,6 +490,9 @@ var TUJ = function ()
                 {
                     self.region = dta.region;
                     self.realms = dta.realms;
+                    if (dta.version) {
+                        self.apiVersion = dta.version;
+                    }
                     if (typeof self.realms == 'undefined') {
                         alert('Error getting realms');
                         self.realms = [];
@@ -577,7 +581,7 @@ var TUJ = function ()
         document.body.className = validPages[self.params.page];
 
         if (typeof tuj['page_' + validPages[self.params.page]] == 'undefined') {
-            libtuj.AddScript(tujCDNPrefix + 'js/' + validPages[self.params.page] + '.js');
+            libtuj.AddScript(tujCDNPrefix + 'js/' + validPages[self.params.page] + '.js?' + self.apiVersion);
         }
         else {
             tuj['page_' + validPages[self.params.page]].load(self.params);

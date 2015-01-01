@@ -8,4 +8,4 @@ header('Expires: ' . Date(DATE_RFC1123, strtotime('+3 hours')));
 
 $region = GetSiteRegion();
 
-json_return(array('region' => $region, 'realms' => GetRealms($region)));
+json_return(array('version' => API_VERSION, 'region' => $region, 'realms' => GetRealms($region)));
