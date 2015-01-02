@@ -55,9 +55,29 @@ json_return($resultFunc($house));
 
 function TransmogResult_cloth($house)
 {
+    return TransmogArmor($house, 'i.class = 4 and i.subclass = 1');
+}
+
+function TransmogResult_leather($house)
+{
+    return TransmogArmor($house, 'i.class = 4 and i.subclass = 2');
+}
+
+function TransmogResult_mail($house)
+{
+    return TransmogArmor($house, 'i.class = 4 and i.subclass = 3');
+}
+
+function TransmogResult_plate($house)
+{
+    return TransmogArmor($house, 'i.class = 4 and i.subclass = 4');
+}
+
+function TransmogArmor($house, $where)
+{
     global $itemTypes;
     $tr = [];
-    $trId = TransmogGenericItemList($house, ['where' => 'i.class = 4 and i.subclass = 1', 'group' => ['type']]);
+    $trId = TransmogGenericItemList($house, ['where' => $where, 'group' => ['type']]);
     foreach ($trId as $typeId => &$items) {
         $k = isset($itemTypes[$typeId]) ? $itemTypes[$typeId] : $typeId;
         if (!isset($tr[$k])) {

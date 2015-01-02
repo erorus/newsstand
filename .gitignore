@@ -3,6 +3,7 @@ logs/
 snapshots/
 
 public/icon/
+public/models/
 lighttpd.conf/
 private/
 backup/

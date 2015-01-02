@@ -60,10 +60,54 @@ if ($reparse)
     $ids = NewPets(50);
     if (count($ids))
         SavePets(FetchPets($ids));
+
+    heartbeat();
+    CatchKill();
+    GetNewModels(50);
 }
 
 DebugMessage('Done! Started '.TimeDiff($startTime));
 
+function GetNewModels($limit = 20)
+{
+    global $db, $caughtKill;
+
+    $sql = <<<EOF
+    select distinct `display`
+    from tblDBCItem
+    where auctionable=1
+    and `class` in (2,4)
+EOF;
+
+    $stmt = $db->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $displays = DBMapArray($result, null);
+    $stmt->close();
+
+    $fetched = 0;
+
+    $cd = count($displays);
+    $started = time();
+    for ($x = 0; $x < $cd && $fetched < $limit; $x++) {
+        heartbeat();
+        if ($caughtKill) {
+            break;
+        }
+        if (($started + (5*60)) < time()) {
+            DebugMessage('Spent at least 5 minutes getting models, quitting early');
+            break;
+        }
+        $fileName = '../public/models/'.$displays[$x].'.png';
+        if (file_exists($fileName)) {
+            continue;
+        }
+
+        DebugMessage('Fetching model '.$displays[$x]);
+        file_put_contents($fileName, FetchHTTP('http://wow.zamimg.com/modelviewer/thumbs/item/'.$displays[$x].'.png'));
+        $fetched++;
+    }
+}
 
 function NewItems($limit = 20)
 {
