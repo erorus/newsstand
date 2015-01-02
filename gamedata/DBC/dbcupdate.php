@@ -134,8 +134,8 @@ left join ttblFileData fd on fd.id = i.iconfiledataid)
 EOF;
 dtecho(run_sql($sql));
 
-dtecho(dbcdecode('ItemModifiedAppearance', array(2=>'itemid', 4=>'appearanceid', 6=>'idx')));
-dtecho(dbcdecode('ItemAppearance', array(1=>'appearanceid', 3=>'iconfiledataid')));
+dtecho(dbcdecode('ItemModifiedAppearance', array(2=>'itemid', 3=>'bonustype', 4=>'appearanceid', 6=>'idx')));
+dtecho(dbcdecode('ItemAppearance', array(1=>'appearanceid', 2=>'display', 3=>'iconfiledataid')));
 
 $sql = <<<EOF
 update tblDBCItem i
@@ -145,9 +145,23 @@ from ttblFileData fd
 join ttblItemAppearance ia on ia.iconfiledataid=fd.id
 join ttblItemModifiedAppearance ima on ima.appearanceid=ia.appearanceid
 where ima.itemid = i.id
-order by ima.idx asc
+order by if(ima.bonustype=0,0,1), ima.idx asc
 limit 1)
 where ifnull(icon,'') = ''
+EOF;
+
+dtecho(run_sql($sql));
+
+$sql = <<<EOF
+update tblDBCItem i
+set display =
+(select ia.display
+from ttblItemAppearance ia
+join ttblItemModifiedAppearance ima on ima.appearanceid=ia.appearanceid
+where ima.itemid = i.id
+order by if(ima.bonustype=0,0,1), ima.idx asc
+limit 1)
+where display is null
 EOF;
 
 dtecho(run_sql($sql));

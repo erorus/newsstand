@@ -11,7 +11,7 @@ a {color: white}
 #search-page table td, table.auctionlist td, table.category td { border-color: #444}
 #search-page tr:hover td, table.auctionlist tr:hover td, table.category tr:hover td {background-color: #444}
 
-.battlepet-breeds a, .item-bonussets a { color: white; background-color: #444; box-shadow: 0.2em 0.2em #222 }
+.battlepet-breeds a, .item-bonussets a, .transmog-slots a { color: white; background-color: #444; box-shadow: 0.2em 0.2em #222 }
 
 .dark-only { display: inline }
 .light-only { display: none }
@@ -21,3 +21,5 @@ a {color: white}
 .money-copper::after { color: #C8602C }
 
 table.category-fish .price {border-left-color: #444}
+
+.transmog-results .transmog-box:hover { background-color: #444 }

@@ -35,7 +35,7 @@ var TUJ_Category = function ()
         }
 
         if (!params.id) {
-            CategoryFrontPage();
+            tuj.SetParams({id: 'deals'}, true);
             return;
         }
 
@@ -106,16 +106,6 @@ var TUJ_Category = function ()
         }
 
         libtuj.Ads.Show();
-    }
-
-    function CategoryFrontPage()
-    {
-        var categoryPage = $('#category-page');
-        categoryPage.empty();
-        categoryPage.show();
-
-        $('#page-title').empty().append(document.createTextNode('Categories'));
-        tuj.SetTitle('Categories');
     }
 
     resultFunctions.ItemList = function (data, dest)

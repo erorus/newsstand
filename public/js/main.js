@@ -443,8 +443,8 @@ var tujConstants = {
 
 var TUJ = function ()
 {
-    var validPages = ['', 'search', 'item', 'seller', 'battlepet', 'contact', 'donate', 'category'];
-    var pagesNeedRealm = [true, true, true, true, true, false, false, true];
+    var validPages = ['', 'search', 'item', 'seller', 'battlepet', 'contact', 'donate', 'category', 'transmog'];
+    var pagesNeedRealm = [true, true, true, true, true, false, false, true, true];
     var houseInfo = {};
     this.region = undefined;
     this.realms = undefined;
