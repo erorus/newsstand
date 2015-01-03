@@ -190,3 +190,4 @@ table.category-fish .price {border-left: 1px solid #CCC}
 .transmog-img { width: 200px; height: 200px; background-size: cover; display: inline-block; }
 #transmog-results span { display: block; }
 
+.item-stats .transmog-img { float: left }
