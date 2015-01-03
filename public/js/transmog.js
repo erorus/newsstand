@@ -106,7 +106,7 @@ var TUJ_Transmog = function ()
                 a = libtuj.ce('a');
                 d.appendChild(a);
                 a.id = 'transmog-slot-choice-' + x;
-                $(a).click(self.showType.bind(self, x));
+                $(a).click(self.showType.bind(self, x, dta));
                 a.appendChild(document.createTextNode(typeNames[x]));
                 if (x == 0) {
                     a.className = 'selected';
@@ -114,40 +114,11 @@ var TUJ_Transmog = function ()
             }
         }
 
-        var itemSort = function(a,b) {
-            return (a.buy - b.buy) || (a.id - b.id);
-        }
+        d = libtuj.ce();
+        d.id = 'transmog-results';
+        transmogPage.append(d);
 
-        for (var x = 0; x < typeNames.length; x++) {
-            d = libtuj.ce();
-            d.className = 'transmog-results';
-            d.id = 'transmog-slot-results-' + x;
-            transmogPage.append(d);
-            if (x > 0) {
-                $(d).hide();
-            }
-
-            var items = dta[typeNames[x]];
-            items.sort(itemSort);
-
-            for (var y = 0; y < items.length; y++) {
-                var box = libtuj.ce();
-                box.className = 'transmog-box';
-                d.appendChild(box);
-
-                var img = libtuj.ce('a');
-                img.className = 'transmog-img';
-                box.appendChild(img);
-                img.href = tuj.BuildHash({page: 'item', id: items[y].id});
-                img.style.backgroundImage = 'url(' + tujCDNPrefix + 'models/' + items[y].display + '.png)';
-
-                var prc = libtuj.ce('a');
-                box.appendChild(prc);
-                prc.href = img.href;
-                prc.rel = 'item=' + items[y].id;
-                prc.appendChild(libtuj.FormatPrice(items[y].buy));
-            }
-        }
+        self.showType(0, dta);
 
         var s = libtuj.ce();
         s.style.textAlign = 'center';
@@ -161,12 +132,36 @@ var TUJ_Transmog = function ()
         //libtuj.Ads.Show();
     }
 
-    this.showType = function(idx) {
+    this.showType = function(idx, dta) {
         $('.transmog-slots a').removeClass('selected');
         $('#transmog-slot-choice-'+idx).addClass('selected');
 
-        $('.transmog-results').hide();
-        $('#transmog-slot-results-'+idx).show();
+        $('#transmog-results').empty();
+
+        var items = dta[typeNames[idx]];
+        items.sort(self.itemSort);
+
+        for (var y = 0; y < items.length; y++) {
+            var box = libtuj.ce();
+            box.className = 'transmog-box';
+            d.appendChild(box);
+
+            var img = libtuj.ce('a');
+            img.className = 'transmog-img';
+            box.appendChild(img);
+            img.href = tuj.BuildHash({page: 'item', id: items[y].id});
+            img.style.backgroundImage = 'url(' + tujCDNPrefix + 'models/' + items[y].display + '.png)';
+
+            var prc = libtuj.ce('a');
+            box.appendChild(prc);
+            prc.href = img.href;
+            prc.rel = 'item=' + items[y].id;
+            prc.appendChild(libtuj.FormatPrice(items[y].buy));
+        }
+    }
+
+    this.itemSort = function(a,b) {
+        return (a.buy - b.buy) || (a.id - b.id);
     }
 
     this.load(tuj.params);

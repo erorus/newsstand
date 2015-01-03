@@ -22,4 +22,4 @@ a {color: white}
 
 table.category-fish .price {border-left-color: #444}
 
-.transmog-results .transmog-box:hover { background-color: #444 }
+#transmog-results .transmog-box:hover { background-color: #444 }
