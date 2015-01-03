@@ -16,7 +16,7 @@ if (!function_exists($resultFunc)) {
     json_return(array());
 }
 
-$canCache = false;
+$canCache = true;
 BotCheck();
 if ($canCache) {
     HouseETag($house);
@@ -49,6 +49,7 @@ $itemTypes = array(
     6	=> 'Waist',
     9	=> 'Wrist',
     20  => 'Robe',
+    26  => 'Ranged', // gun,some crossbows, wands
 );
 
 json_return($resultFunc($house));
@@ -73,6 +74,16 @@ function TransmogResult_plate($house)
     return TransmogArmor($house, 'i.class = 4 and i.subclass = 4');
 }
 
+function TransmogResult_main($house)
+{
+    return TransmogWeapon($house, 'i.class = 2 and (i.type in (21,13,15,17,25,26) or i.subclass in (18))');
+}
+
+function TransmogResult_off($house)
+{
+    return TransmogWeapon($house, '((i.class = 2 and i.type in (23,22,13,14)) or (i.class = 4 and i.subclass=6))');
+}
+
 function TransmogArmor($house, $where)
 {
     global $itemTypes;
@@ -86,6 +97,11 @@ function TransmogArmor($house, $where)
         $tr[$k] = array_merge($tr[$k], $items);
     }
     return $tr;
+}
+
+function TransmogWeapon($house, $where)
+{
+    return TransmogGenericItemList($house, ['where' => $where, 'group' => ['subclassname']]);
 }
 
 function TransmogGenericItemList($house, $params)
@@ -111,12 +127,13 @@ function TransmogGenericItemList($house, $params)
     }
 
     $sql = <<<EOF
-select ab.id, ab.display, ab.buy, ab.class, ab.subclass, ab.type
+select ab.id, ab.display, ab.buy, ab.class, ab.subclass, ifnull(ab.type, -1 & ab.subclass) `type`, ab.subclassname
 from (
     select aa.*, if(@previd = aa.display, 0, @previd := aa.display) previd
     from (select @previd := 0) aasetup, (
-        SELECT i.id, i.display, a.buy, i.class, i.subclass, i.type
+        SELECT i.id, i.display, a.buy, i.class, i.subclass, i.type, sc.fullname subclassname
         FROM `tblDBCItem` i
+        join tblDBCItemSubClass sc on i.class = sc.class and i.subclass = sc.id
         join tblAuction a on a.item=i.id
         $joins
         WHERE i.auctionable=1

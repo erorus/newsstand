@@ -40,7 +40,7 @@
                     <div></div>
                 </div>
                 <div class="page" id="front-page">
-                    <div id="category-sidebar">
+                    <div class="sidebar" id="category-sidebar">
                         <a rel="deals">Deals</a>
                         <a rel="unusuals">Unusuals</a>
                         <br/>
@@ -62,12 +62,22 @@
 
                         <a rel="enchanting">Enchanting</a>
                         <a rel="inscription">Inscription</a>
-                        <a>Jewelcrafting<small> Coming Soon</small></a>
+                        <!-- a>Jewelcrafting<small> Coming Soon</small></a -->
                         <br/>
 
                         <a rel="battlepets">Battle Pets</a>
                         <a rel="companions">Companions</a>
                         <a rel="fishing">Fishing</a>
+                        <br/>
+
+                        <a rel="transmog/cloth">Transmog: Cloth</a>
+                        <a rel="transmog/leather">Transmog: Leather</a>
+                        <a rel="transmog/mail">Transmog: Mail</a>
+                        <a rel="transmog/plate">Transmog: Plate</a>
+                        <br/>
+
+                        <a rel="transmog/main">Transmog: Main-Hand</a>
+                        <a rel="transmog/off">Transmog: Off-Hand</a>
                     </div>
 
                     <h2>Welcome to The Undermine Journal <sub>...your source for Auction House statistics and data in World of Warcraft.</sub></h2>

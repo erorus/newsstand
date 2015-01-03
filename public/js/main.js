@@ -1126,7 +1126,11 @@ var TUJ = function ()
         $('#category-sidebar a').each(function ()
         {
             if (this.rel) {
-                this.href = tuj.BuildHash({page: 'category', id: this.rel});
+                var parts = ['category',this.rel];
+                if (this.rel.indexOf('/') > 0) {
+                    parts = this.rel.split('/');
+                }
+                this.href = tuj.BuildHash({page: parts[0], id: parts[1]});
             }
         });
     }
