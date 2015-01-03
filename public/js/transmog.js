@@ -5,6 +5,7 @@ var TUJ_Transmog = function ()
     var resultFunctions = {};
     var self = this;
     var typeNames = [];
+    var lastTabs = {};
 
     var validPages = {
         'cloth': 'Cloth Armor',
@@ -32,7 +33,7 @@ var TUJ_Transmog = function ()
 
         for (var x = 0; x < lastResults.length; x++) {
             if (lastResults[x].hash == hash) {
-                TransmogResult(false, lastResults[x].data);
+                TransmogResult(false, lastResults[x].data, hash);
                 return;
             }
         }
@@ -60,7 +61,7 @@ var TUJ_Transmog = function ()
                     tuj.AskCaptcha(d.captcha);
                 }
                 else {
-                    TransmogResult(hash, d);
+                    TransmogResult(hash, d, hash);
                 }
             },
             complete: function ()
@@ -71,7 +72,7 @@ var TUJ_Transmog = function ()
         });
     }
 
-    function TransmogResult(hash, dta)
+    function TransmogResult(hash, dta, tabKey)
     {
         if (hash) {
             lastResults.push({hash: hash, data: dta});
@@ -106,7 +107,7 @@ var TUJ_Transmog = function ()
                 a = libtuj.ce('a');
                 d.appendChild(a);
                 a.id = 'transmog-slot-choice-' + x;
-                $(a).click(self.showType.bind(self, x, dta));
+                $(a).click(self.showType.bind(self, x, dta, tabKey));
                 a.appendChild(document.createTextNode(typeNames[x]));
                 if (x == 0) {
                     a.className = 'selected';
@@ -118,7 +119,10 @@ var TUJ_Transmog = function ()
         d.id = 'transmog-results';
         transmogPage.append(d);
 
-        self.showType(0, dta);
+        if (!lastTabs.hasOwnProperty(tabKey)) {
+            lastTabs[tabKey] = 0;
+        }
+        self.showType(lastTabs[tabKey], dta, tabKey);
 
         var s = libtuj.ce();
         s.style.textAlign = 'center';
@@ -132,11 +136,13 @@ var TUJ_Transmog = function ()
         //libtuj.Ads.Show();
     }
 
-    this.showType = function(idx, dta) {
+    this.showType = function(idx, dta, tabKey) {
         $('.transmog-slots a').removeClass('selected');
         $('#transmog-slot-choice-'+idx).addClass('selected');
 
         $('#transmog-results').empty();
+
+        lastTabs[tabKey] = idx;
 
         var items = dta[typeNames[idx]];
         items.sort(self.itemSort);

@@ -604,6 +604,22 @@ var TUJ_Item = function ()
             td.appendChild(libtuj.FormatPrice(Math.max(100, data.stats[bonusSet].selltovendor ? data.stats[bonusSet].selltovendor * 0.6 * stack : 0)));
         }
 
+        var showThumb = false;
+        switch (data.stats[bonusSet].classid) {
+            case 2:
+            case 4:
+                showThumb = true;
+                break;
+            default:
+                showThumb = false;
+        }
+        if (showThumb) {
+            var i = libtuj.ce();
+            i.className = 'transmog-img';
+            i.style.backgroundImage = 'url(' + tujCDNPrefix + 'models/' + data.stats[bonusSet].display + '.png)';
+            dest.appendChild(i);
+        }
+
         dest.appendChild(libtuj.Ads.Add('9943194718', 'box'));
     }
 

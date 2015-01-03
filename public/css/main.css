@@ -187,5 +187,7 @@ table.category-fish .price {border-left: 1px solid #CCC}
 
 #transmog-results .transmog-box { display: inline-block; text-align: center; margin: 2em 1em; }
 #transmog-results .transmog-box:hover { background-color: #EEE }
-#transmog-results .transmog-img { width: 200px; height: 200px; background-size: cover; display: inline-block; }
+.transmog-img { width: 200px; height: 200px; background-size: cover; display: inline-block; }
 #transmog-results span { display: block; }
+
+.item-stats .transmog-img { float: left; margin: 0 2em }
