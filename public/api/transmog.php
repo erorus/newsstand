@@ -123,6 +123,7 @@ from (
         and i.quality > 1
         $where
         and i.display is not null
+        and i.flags & 2 = 0
         and a.house = ?
         and a.buy > 0
         order by i.display, a.buy) aa
