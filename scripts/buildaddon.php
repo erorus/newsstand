@@ -50,6 +50,7 @@ function BuildAddonData($region)
     $item_global = [];
     $item_avg = [];
     $item_stddev = [];
+    $item_recent = [];
     $item_days = [];
 
     DebugMessage('Finding global prices');
@@ -68,6 +69,7 @@ function BuildAddonData($region)
 SELECT tis.item,
 datediff(now(), tis.lastseen) since,
 round(ifnull(avg(ih.price), tis.price)/100) price,
+round(ifnull(avg(if(ih.snapshot > timestampadd(hour, -72, now()), ih.price, null)), tis.price)/100) pricerecent,
 round(stddev(ih.price)/100) pricestddev
 FROM tblItemSummary tis
 join tblHouseCheck hc on hc.house = tis.house
@@ -96,6 +98,9 @@ EOF;
             if (!isset($item_stddev[$item])) {
                 $item_stddev[$item] = '';
             }
+            if (!isset($item_recent[$item])) {
+                $item_recent[$item] = '';
+            }
             if (!isset($item_days[$item])) {
                 $item_days[$item] = '';
             }
@@ -104,6 +109,7 @@ EOF;
 
             $item_avg[$item] .= str_repeat(chr(0), 4 * $hx  - strlen($item_avg[$item])) . pack('L', $prc);
             $item_stddev[$item] .= str_repeat(chr(0), 4 * $hx - strlen($item_stddev[$item])) . pack('L', $priceRow['pricestddev'] ? intval($priceRow['pricestddev'],10) : 0);
+            $item_recent[$item] .= str_repeat(chr(0), 4 * $hx - strlen($item_recent[$item])) . pack('L', $priceRow['pricerecent'] ? intval($priceRow['pricerecent'],10) : $prc);
             $item_days[$item] .= str_repeat(chr(255), $hx - strlen($item_days[$item])) . chr(min(251, intval($priceRow['since'],10)));
         }
         $result->close();
@@ -117,7 +123,6 @@ EOF;
     DebugMessage('Making lua strings');
 
     $priceLua = '';
-    $luaLineCount = 0;
     foreach ($item_global as $item => $globalPriceList) {
         heartbeat();
         if ($caughtKill)
@@ -125,6 +130,7 @@ EOF;
 
         $globalPrices = array_values(unpack('L*',$globalPriceList));
         $prices = isset($item_avg[$item]) ? array_values(unpack('L*',$item_avg[$item])) : [];
+        $recents = isset($item_recent[$item]) ? array_values(unpack('L*',$item_recent[$item])) : [];
         $stddevs = isset($item_stddev[$item]) ? array_values(unpack('L*',$item_stddev[$item])) : [];
 
         $priceBytes = 0;
@@ -143,6 +149,9 @@ EOF;
             if (!isset($stddevs[$x])) {
                 $stddevs[$x] = 0;
             }
+            if (!isset($recents[$x])) {
+                $recents[$x] = 0;
+            }
             if (!isset($prices[$x])) {
                 $prices[$x] = 0;
                 continue;
@@ -151,6 +160,8 @@ EOF;
                 if ($prices[$x] >= pow(2,8*$y)) {
                     $priceBytes = $y+1;
                 } elseif ($stddevs[$x] >= pow(2,8*$y)) {
+                    $priceBytes = $y+1;
+                } elseif ($recents[$x] >= pow(2,8*$y)) {
                     $priceBytes = $y+1;
                 }
             }
@@ -185,6 +196,14 @@ EOF;
 
             $priceBin = '';
             $price = $stddevs[$x];
+            for ($y = 0; $y < $priceBytes; $y++) {
+                $priceBin = chr($price % 256) . $priceBin;
+                $price = $price >> 8;
+            }
+            $thisPriceString .= $priceBin;
+
+            $priceBin = '';
+            $price = $recents[$x];
             for ($y = 0; $y < $priceBytes; $y++) {
                 $priceBin = chr($price % 256) . $priceBin;
                 $price = $price >> 8;

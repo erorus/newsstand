@@ -1,6 +1,6 @@
 --[[
 
-TheUndermineJournal addon, v 3.0
+TheUndermineJournal addon, v 3.2
 https://theunderminejournal.com/
 
 You should be able to query this DB from other addons:
@@ -22,6 +22,7 @@ Prices are returned in copper, but accurate to the last *silver* (with coppers a
 
     o['market']         -> average market price of the item on this AH over the past 14 days.
     o['stddev']         -> standard deviation of market price of the item on this AH over the past 14 days.
+    o['recent']         -> average market price of the item on this AH over the past 3 days.
 
     o['days']           -> number of days since item was last seen on the auction house, when data was compiled. valid values 0 - 250.
      o['days'] = 251 means item was seen on this AH, but over 250 days ago
@@ -208,6 +209,9 @@ function TUJMarketInfo(iid,...)
     offset = offset + priceSize
 
     tr['stddev'] = char2dec(string.sub(dta, offset, offset+priceSize-1)) * 100
+    offset = offset + priceSize
+
+    tr['recent'] = char2dec(string.sub(dta, offset, offset+priceSize-1)) * 100
     --offset = offset + priceSize
 
     return tr
@@ -266,11 +270,14 @@ local function GetCallback()
                 tooltip:AddLine("As of "..SecondsToTime(dataResults['age'],dataResults['age']>60).." ago:",r,g,b)
             end
 
-            if dataResults['market'] then
-                tooltip:AddDoubleLine("Realm Price",coins(dataResults['market'],false),r,g,b)
+            if dataResults['recent'] then
+                tooltip:AddDoubleLine("3-Day Price",coins(dataResults['recent'],false),r,g,b)
             end
             if dataResults['market'] then
-                tooltip:AddDoubleLine("Realm Std Dev",coins(dataResults['stddev'],false),r,g,b)
+                tooltip:AddDoubleLine("14-Day Price",coins(dataResults['market'],false),r,g,b)
+            end
+            if dataResults['market'] then
+                tooltip:AddDoubleLine("14-Day Std Dev",coins(dataResults['stddev'],false),r,g,b)
             end
             if dataResults['globalMedian'] then
                 tooltip:AddDoubleLine("Global Median",coins(dataResults['globalMedian'],false),r,g,b)
