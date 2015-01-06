@@ -284,7 +284,7 @@ addonTable.realmIndex = realmIndex
 
 local function crop(priceSize, b)
     local headerSize = 1 + priceSize * 3
-    local recordSize = 1 + priceSize * 2
+    local recordSize = 1 + priceSize * 3
 
     local offset = 1 + headerSize + recordSize * realmIndex
 
