@@ -123,6 +123,7 @@ EOF;
     DebugMessage('Making lua strings');
 
     $priceLua = '';
+    $luaLines = 0;
     foreach ($item_global as $item => $globalPriceList) {
         heartbeat();
         if ($caughtKill)
@@ -212,9 +213,19 @@ EOF;
 
             $priceString .= $thisPriceString;
         }
+        if ($luaLines == 0) {
+            $priceLua .= "somedata = function()\n";
+        }
         $priceLua .= sprintf("addonTable.marketData[%d]=crop(%d,%s)\n", $item, $priceBytes, luaQuote($priceString));
+        if (++$luaLines >= 2000) {
+            $priceLua .= "end\nsomedata()\n";
+            $luaLines = 0;
+        }
     }
     unset($items);
+    if ($luaLines > 0) {
+        $priceLua .= "end\nsomedata()\n";
+    }
 
     heartbeat();
     if ($caughtKill)
@@ -279,6 +290,8 @@ local function crop(priceSize, b)
 
     return string.sub(b, 1, headerSize)..string.sub(b, offset, offset + recordSize - 1)
 end
+
+local somedata = function() end
 
 EOF;
 
