@@ -55,7 +55,20 @@ function BuildAddonData($region)
 
     DebugMessage('Finding global prices');
 
-    $stmt = $db->prepare('SELECT item, median, mean, stddev FROM tblItemGlobal where bonusset=0');
+    $itemExcludeSql = <<<EOF
+and (i.quality > 0 or i.class in (2,4))
+and not (i.class = 0 and i.subclass = 5 and 0 = (select count(*) from tblDBCItemReagents ir where ir.item = i.id))
+EOF;
+
+    $sql = <<<EOF
+SELECT g.item, g.median, g.mean, g.stddev
+FROM tblItemGlobal g
+join tblItem i on g.item=i.id
+where g.bonusset=0
+$itemExcludeSql
+EOF;
+
+    $stmt = $db->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();
     $globalPrices = DBMapArray($result);
@@ -72,9 +85,11 @@ round(ifnull(avg(ih.price), tis.price)/100) price,
 round(ifnull(avg(if(ih.snapshot > timestampadd(hour, -72, now()), ih.price, null)), tis.price)/100) pricerecent,
 round(stddev(ih.price)/100) pricestddev
 FROM tblItemSummary tis
+join tblItem i on i.id = tis.item
 join tblHouseCheck hc on hc.house = tis.house
 left join tblItemHistory ih on ih.item=tis.item and ih.house = tis.house and ih.bonusset=tis.bonusset
 WHERE tis.house = ? and tis.bonusset=0
+$itemExcludeSql
 group by tis.item
 EOF;
 
