@@ -216,7 +216,16 @@ EOF;
         if ($luaLines == 0) {
             $priceLua .= "somedata = function()\n";
         }
-        $priceLua .= sprintf("addonTable.marketData[%d]=crop(%d,%s)\n", $item, $priceBytes, luaQuote($priceString));
+        $luaQuoted = luaQuote($priceString);
+        if (!is_array($luaQuoted)) {
+            $luaQuoteFull = $luaQuoted;
+        } else {
+            $luaQuoteFull = 'concathelp';
+            for ($x = 0; $x < count($luaQuoted); $x++) {
+                $priceLua .= 'concathelp = ' . ($x > 0 ? 'concathelp..' : '') . $luaQuoted[$x] . "\n";
+            }
+        }
+        $priceLua .= sprintf("addonTable.marketData[%d]=crop(%d,%s)\n", $item, $priceBytes, $luaQuoteFull);
         if (++$luaLines >= 2000) {
             $priceLua .= "end\nsomedata()\n";
             $luaLines = 0;
@@ -292,6 +301,7 @@ local function crop(priceSize, b)
 end
 
 local somedata = function() end
+local concathelp = ''
 
 EOF;
 
@@ -326,6 +336,10 @@ function MakeZip()
 function luaQuote($s) {
     global $luaQuoteChange;
 
+    if ($s == '') {
+        return "''";
+    }
+
     static $regex = '';
 
     if ($regex == '') {
@@ -337,14 +351,22 @@ function luaQuote($s) {
     }
 
     $parts = preg_split($regex, $s, -1, PREG_SPLIT_DELIM_CAPTURE);
-    $result = '';
+    $result = [];
     for ($x = 0; $x < count($parts); $x++) {
+        $resultIdx = floor($x / 15);
+        if (!isset($result[$resultIdx])) {
+            $result[$resultIdx] = '';
+        }
         $c = 0;
         $p = preg_replace_callback($regex, 'luaPreg', $parts[$x], -1, $c);
         if ($c == 0) {
             $p = luaBracket($p);
         }
-        $result .= ($result == '' ? '' : '..') . $p;
+        $result[$resultIdx] .= ($result[$resultIdx] == '' ? '' : '..') . $p;
+    }
+
+    if (count($result) == 1) {
+        return array_pop($result);
     }
 
     return $result;
