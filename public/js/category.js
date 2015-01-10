@@ -404,6 +404,11 @@ var TUJ_Category = function ()
 
             td = libtuj.ce('th');
             tr.appendChild(td);
+            td.className = 'price';
+            $(td).text('Regional');
+
+            td = libtuj.ce('th');
+            tr.appendChild(td);
             td.className = 'date';
             $(td).text('Last Seen');
 
@@ -427,6 +432,7 @@ var TUJ_Category = function ()
                         firstBreed = breed;
                         o.price = b.price;
                         o.avgprice = b.avgprice;
+                        o.regionavgprice = b.regionavgprice;
                         o.lastseen = Date.parse(b.lastseen.replace(dateRegEx, dateRegExFmt)) / 1000;
                     }
                     o.quantity += b.quantity;
@@ -436,6 +442,9 @@ var TUJ_Category = function ()
                     }
                     if (o.avgprice > b.avgprice) {
                         o.avgprice = b.avgprice;
+                    }
+                    if (o.regionavgprice > b.regionavgprice) {
+                        o.regionavgprice = b.regionavgprice;
                     }
                     x = Date.parse(b.lastseen.replace(dateRegEx, dateRegExFmt)) / 1000;
                     if (o.lastseen < x) {
@@ -513,6 +522,11 @@ var TUJ_Category = function ()
                 td.appendChild(libtuj.FormatPrice(allSpecies[x].avgprice));
 
                 td = libtuj.ce('td');
+                td.className = 'price';
+                tr.appendChild(td);
+                td.appendChild(libtuj.FormatPrice(allSpecies[x].regionavgprice));
+
+                td = libtuj.ce('td');
                 td.className = 'date';
                 tr.appendChild(td);
                 td.appendChild(libtuj.FormatDate(allSpecies[x].lastseen));
@@ -556,6 +570,11 @@ var TUJ_Category = function ()
                         td.className = 'price';
                         tr.appendChild(td);
                         td.appendChild(libtuj.FormatPrice(b.avgprice));
+
+                        td = libtuj.ce('td');
+                        td.className = 'price';
+                        tr.appendChild(td);
+                        td.appendChild(libtuj.FormatPrice(b.regionavgprice));
 
                         td = libtuj.ce('td');
                         td.className = 'date';

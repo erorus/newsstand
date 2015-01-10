@@ -37,7 +37,7 @@ function CategoryResult_battlepets($house)
 {
     global $db, $canCache;
 
-    $key = 'category_bpets';
+    $key = 'category_bpets2';
 
     if ($canCache && (($tr = MCGetHouse($house, $key)) !== false)) {
         return ['name' => 'Battle Pets', 'results' => [['name' => 'BattlePetList', 'data' => $tr]]];
@@ -46,7 +46,7 @@ function CategoryResult_battlepets($house)
     DBConnect();
 
     $sql = <<<EOF
-SELECT ps.species, ps.breed, ps.price, ps.quantity, ps.lastseen, round(avg(ph.price)) avgprice, p.name, p.type, p.icon, p.npc
+SELECT ps.species, ps.breed, ps.price, ps.quantity, ps.lastseen, round(avg(ph.price)) avgprice, p.name, p.type, p.icon, p.npc, 0 regionavgprice
 FROM tblPetSummary ps
 JOIN tblPet p on ps.species=p.id
 LEFT JOIN tblPetHistory ph on ph.house = ps.house and ph.species = ps.species and ph.breed = ps.breed
@@ -64,9 +64,56 @@ EOF;
     $tr = DBMapArray($result, array('type', 'species', 'breed'));
     $stmt->close();
 
+    $regional = CategoryBattlePetRegion(GetRegion($house));
+    foreach ($tr as &$allSpecies) {
+        foreach ($allSpecies as $species => &$allBreeds) {
+            foreach ($allBreeds as $breed => &$row) {
+                if (isset($regional[$species][$breed])) {
+                    $row['regionavgprice'] = $regional[$species][$breed]['price'];
+                }
+            }
+            unset($row);
+        }
+        unset($allBreeds);
+    }
+    unset($allSpecies);
+
     MCSetHouse($house, $key, $tr);
 
     return ['name' => 'Battle Pets', 'results' => [['name' => 'BattlePetList', 'data' => $tr]]];
+}
+
+function CategoryBattlePetRegion($region)
+{
+    global $db, $canCache;
+
+    $key = 'category_bpets_regional_'.$region;
+    if ($canCache && (($tr = MCGet($key)) !== false)) {
+        return $tr;
+    }
+
+    DBConnect();
+
+    $sql = <<<EOF
+select i.species, i.breed, round(avg(i.price)) price
+from `tblPetSummary` i
+join `tblRealm` r on i.house = r.house and r.region = ?
+group by i.species, i.breed
+EOF;
+
+    $stmt = $db->prepare($sql);
+    if (!$stmt) {
+        DebugMessage("Bad SQL: \n" . $sql, E_USER_ERROR);
+    }
+    $stmt->bind_param('s', $region);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $tr = DBMapArray($result, array('species', 'breed'));
+    $stmt->close();
+
+    MCSet($key, $tr, 60*60*6);
+
+    return $tr;
 }
 
 function CategoryResult_deals($house)
