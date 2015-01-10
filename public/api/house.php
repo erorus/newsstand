@@ -71,7 +71,8 @@ function HouseTopSellers($house)
 {
     global $db;
 
-    if (($tr = MCGetHouse($house, 'house_topsellers')) !== false) {
+    $cacheKey = 'house_topsellers2';
+    if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
     }
 
@@ -80,9 +81,10 @@ function HouseTopSellers($house)
     $sql = <<<EOF
 SELECT r.id realm, s.name
 FROM tblAuction a
-join tblSeller s on a.seller=s.id
+left join tblAuctionExtra ae on ae.id = a.id and ae.house = a.house
+join tblSeller s on a.seller = s.id
 join tblRealm r on s.realm = r.id
-join tblItemGlobal g on a.item=g.item
+join tblItemGlobal g on a.item = g.item and g.bonusset = ifnull(ae.bonusset, 0)
 where a.item != 86400
 and a.house = ?
 group by a.seller
@@ -97,7 +99,7 @@ EOF;
     $tr = DBMapArray($result, null);
     $stmt->close();
 
-    MCSetHouse($house, 'house_topsellers', $tr);
+    MCSetHouse($house, $cacheKey, $tr);
 
     return $tr;
 }
@@ -106,7 +108,9 @@ function HouseMostAvailable($house)
 {
     global $db;
 
-    if (($tr = MCGetHouse($house, 'house_mostavailable')) !== false) {
+    $cacheKey = 'house_mostavailable2';
+
+    if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
     }
 
@@ -117,6 +121,7 @@ SELECT i.id, i.name
 FROM `tblItemSummary` tis
 join tblDBCItem i on tis.item = i.id
 WHERE house = ?
+and tis.bonusset = 0
 order by tis.quantity desc
 limit 10
 EOF;
@@ -128,7 +133,7 @@ EOF;
     $tr = DBMapArray($result, null);
     $stmt->close();
 
-    MCSetHouse($house, 'house_mostavailable', $tr);
+    MCSetHouse($house, $cacheKey, $tr);
 
     return $tr;
 }
@@ -137,7 +142,9 @@ function HouseDeals($house)
 {
     global $db;
 
-    if (($tr = MCGetHouse($house, 'house_deals')) !== false) {
+    $cacheKey = 'house_deals2';
+
+    if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
     }
 
@@ -147,7 +154,7 @@ function HouseDeals($house)
 SELECT i.id, i.name
 FROM `tblItemSummary` tis
 join tblDBCItem i on tis.item = i.id
-join tblItemGlobal g on g.item = tis.item
+join tblItemGlobal g on g.item = tis.item and g.bonusset = tis.bonusset
 WHERE house = ?
 and tis.quantity > 0
 and i.quality > 0
@@ -163,7 +170,7 @@ EOF;
     $tr = DBMapArray($result, null);
     $stmt->close();
 
-    MCSetHouse($house, 'house_deals', $tr);
+    MCSetHouse($house, $cacheKey, $tr);
 
     return $tr;
 }
