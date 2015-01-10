@@ -353,7 +353,7 @@ function luaQuote($s) {
     $parts = preg_split($regex, $s, -1, PREG_SPLIT_DELIM_CAPTURE);
     $result = [];
     for ($x = 0; $x < count($parts); $x++) {
-        $resultIdx = floor($x / 15);
+        $resultIdx = floor($x / 30);
         if (!isset($result[$resultIdx])) {
             $result[$resultIdx] = '';
         }
