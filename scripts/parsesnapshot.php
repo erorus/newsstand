@@ -20,6 +20,11 @@ if (!DBConnect()) {
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
 }
 
+if (APIMaintenance()) {
+    DebugMessage('API Maintenance in progress, not parsing snapshots!', E_USER_NOTICE);
+    exit;
+}
+
 $stmt = $db->prepare('SELECT house, region FROM tblRealm GROUP BY house');
 $stmt->execute();
 $result = $stmt->get_result();
@@ -57,7 +62,7 @@ $toSleep = 0;
 while ((!$caughtKill) && (time() < ($loopStart + 60 * 30))) {
     heartbeat();
     sleep(min($toSleep, 10));
-    if ($caughtKill) {
+    if ($caughtKill || APIMaintenance()) {
         break;
     }
     ob_start();

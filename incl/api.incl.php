@@ -2,17 +2,18 @@
 
 require_once('memcache.incl.php');
 
-define('API_MAINTENANCE', false);
-define('API_VERSION', 2);
+define('API_VERSION', 3);
 define('THROTTLE_PERIOD', 3600); // seconds
 define('THROTTLE_MAXHITS', 200);
 define('BANLIST_CACHEKEY', 'banlist_cidrs');
 define('BANLIST_FILENAME', __DIR__ . '/banlist.txt');
 
-// maintenance mode
-if (API_MAINTENANCE && (php_sapi_name() != 'cli')) {
+if ((PHP_SAPI != 'cli') && (($inMaintenance = APIMaintenance()) !== false)) {
     header('HTTP/1.1 503 Service Unavailable');
+    header('Content-type: application/json');
     header('Cache-Control: no-cache');
+
+    echo json_encode(['maintenance' => $inMaintenance]);
     exit;
 }
 

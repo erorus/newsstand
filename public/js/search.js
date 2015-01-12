@@ -46,6 +46,14 @@ var TUJ_Search = function ()
                     SearchResult(hash, d);
                 }
             },
+            error: function (xhr, stat, er)
+            {
+                if ((xhr.status == 503) && xhr.hasOwnProperty('responseJSON') && xhr.responseJSON && xhr.responseJSON.hasOwnProperty('maintenance')) {
+                    tuj.APIMaintenance(xhr.responseJSON.maintenance);
+                } else {
+                    alert('Error fetching page data: ' + stat + ' ' + er);
+                }
+            },
             complete: function ()
             {
                 $('#progress-page').hide();

@@ -4,7 +4,7 @@ require_once(__DIR__ . '/database.credentials.php');
 
 $db = false;
 
-if (php_sapi_name() == 'cli') {
+if (PHP_SAPI == 'cli') {
     error_reporting(E_ALL);
 }
 
@@ -23,7 +23,7 @@ function DebugMessage($message, $debugLevel = E_USER_NOTICE)
 
         $pth = realpath(__DIR__ . '/../logs/scripterrors.log');
         if ($pth) {
-            $me = (php_sapi_name() == 'cli') ? ('CLI:' . realpath($argv[0])) : ('Web:' . $_SERVER['REQUEST_URI']);
+            $me = (PHP_SAPI == 'cli') ? ('CLI:' . realpath($argv[0])) : ('Web:' . $_SERVER['REQUEST_URI']);
             file_put_contents($pth, Date('Y-m-d H:i:s') . " $me$bt $message\n", FILE_APPEND | LOCK_EX);
         }
     }
@@ -33,7 +33,7 @@ function DebugMessage($message, $debugLevel = E_USER_NOTICE)
         $myPid = str_pad(getmypid(), 5, " ", STR_PAD_LEFT);
     }
 
-    if (php_sapi_name() == 'cli') {
+    if (PHP_SAPI == 'cli') {
         if ($debugLevel == E_USER_NOTICE) {
             echo Date('Y-m-d H:i:s') . " $myPid $message\n";
         } else {
@@ -54,7 +54,7 @@ function DBConnect($alternate = false)
         return $db;
     }
 
-    $isCLI = (php_sapi_name() == 'cli');
+    $isCLI = (PHP_SAPI == 'cli');
 
     $host = 'localhost';
     $user = $isCLI ? DATABASE_USERNAME_CLI : DATABASE_USERNAME_WEB;
@@ -301,7 +301,7 @@ function CatchKill()
     }
     $setCatch = true;
 
-    if (php_sapi_name() != 'cli') {
+    if (PHP_SAPI != 'cli') {
         DebugMessage('Cannot catch kill if not CLI', E_USER_WARNING);
         return;
     }
@@ -323,7 +323,7 @@ function RunMeNTimes($howMany = 1)
 {
     global $argv;
 
-    if (php_sapi_name() != 'cli') {
+    if (PHP_SAPI != 'cli') {
         DebugMessage('Cannot run once if not CLI', E_USER_WARNING);
         return;
     }
@@ -332,3 +332,32 @@ function RunMeNTimes($howMany = 1)
         die();
     }
 }
+
+// pass in nothing to get whether out of maintenance ("false") or timestamp when maintenance is expected to end
+// pass in timestamp to set maintenance and when it's expected to end
+function APIMaintenance($when = -1) {
+    if (!function_exists('MCGet')) {
+        DebugMessage('Tried to test for APIMaintenance without memcache loaded!', E_USER_ERROR);
+    }
+    $cacheKey = 'APIMaintenance';
+
+    if ($when == -1) {
+        return MCGet($cacheKey);
+    }
+    if ($when === false) {
+        $when = 0;
+    }
+    if (!is_numeric($when)) {
+        $when = strtotime($when);
+    }
+    if ($when) {
+        DebugMessage('Setting API maintenance mode, expected to end '.TimeDiff($when));
+        MCSet($cacheKey, $when, $when + 72*60*60);
+    } else {
+        DebugMessage('Ending API maintenance mode.');
+        MCDelete($cacheKey);
+    }
+
+    return $when;
+}
+

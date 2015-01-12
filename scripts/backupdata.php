@@ -3,6 +3,7 @@
 $startTime = time();
 
 require_once(__DIR__.'/../incl/incl.php');
+require_once(__DIR__.'/../incl/memcache.incl.php');
 
 $tables = [
     'tblBonusSet' => '1=1',
@@ -25,6 +26,8 @@ if (!(touch($sqlFile) && ($sqlFile = realpath($sqlFile)))) {
 }
 file_put_contents($sqlFile, '');
 
+APIMaintenance('+30 minutes');
+
 $cmd = 'mysqldump --verbose --quick --allow-keywords --skip-opt --create-options --add-drop-table --add-locks --extended-insert --single-transaction --user='.escapeshellarg(DATABASE_USERNAME_CLI).' --password='.escapeshellarg(DATABASE_PASSWORD_CLI).' --where=%s '.escapeshellarg(DATABASE_SCHEMA)." %s | gzip -c >> %s\n";
 foreach ($tables as $table => $where) {
     DebugMessage("Starting $table");
@@ -36,4 +39,7 @@ foreach ($tables as $table => $where) {
         break;
     }
 }
+
+APIMaintenance(false);
+
 DebugMessage('Done! Started ' . TimeDiff($startTime));

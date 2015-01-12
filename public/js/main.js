@@ -501,7 +501,11 @@ var TUJ = function ()
                 },
                 error: function (xhr, stat, er)
                 {
-                    alert('Error getting realms: ' + stat + ' ' + er);
+                    if ((xhr.status == 503) && xhr.hasOwnProperty('responseJSON') && xhr.responseJSON && xhr.responseJSON.hasOwnProperty('maintenance')) {
+                        self.APIMaintenance(xhr.responseJSON.maintenance);
+                    } else {
+                        alert('Error getting realms: ' + stat + ' ' + er);
+                    }
                     self.realms = [];
                 },
                 complete: function ()
@@ -1067,6 +1071,14 @@ var TUJ = function ()
                     Main();
                 }
             },
+            error: function (xhr, stat, er)
+            {
+                if ((xhr.status == 503) && xhr.hasOwnProperty('responseJSON') && xhr.responseJSON && xhr.responseJSON.hasOwnProperty('maintenance')) {
+                    tuj.APIMaintenance(xhr.responseJSON.maintenance);
+                } else {
+                    alert('Error fetching page data: ' + stat + ' ' + er);
+                }
+            },
             complete: function ()
             {
                 $('#progress-page').hide();
@@ -1165,6 +1177,35 @@ var TUJ = function ()
             Main();
         }
     }
+
+    this.APIMaintenance = function (maintenance)
+    {
+        var maintenancePage = $('#maintenance-page')[0];
+        if (!maintenancePage) {
+            maintenancePage = libtuj.ce();
+            maintenancePage.id = 'maintenance-page';
+            maintenancePage.className = 'page';
+            $('#main').append(maintenancePage);
+        }
+
+        $('#page-title').text('... is temporarily offline.');
+        tuj.SetTitle('Maintenance');
+
+        $(maintenancePage).empty();
+
+        var now = Date.now()/1000;
+
+        maintenancePage.appendChild(document.createTextNode("The goblins of The Undermine Journal are working behind the scenes on some site maintenance."));
+        if (maintenance > now) {
+            maintenancePage.appendChild(libtuj.ce('p'));
+            maintenancePage.appendChild(document.createTextNode("We expect to be back online " + libtuj.FormatDate(maintenance, true) + "."));
+        }
+        maintenancePage.appendChild(libtuj.ce('p'));
+        maintenancePage.appendChild(document.createTextNode("Please come back later."));
+
+        $(maintenancePage).show();
+    };
+
 
     Main();
 };
