@@ -307,7 +307,11 @@ local eventframe = CreateFrame("FRAME",addonName.."Events");
 local function onEvent(self,event,arg)
     if event == "PLAYER_ENTERING_WORLD" then
         eventframe:UnregisterEvent("PLAYER_ENTERING_WORLD")
-        if not addonTable.dataAge then
+        if addonTable.region ~= addonTable.GetRegion() then
+            print("The Undermine Journal - Warning: Config.wtf portal (" .. addonTable.region .. ") does not match realm region (" .. addonTable.GetRegion() .. "). Reload your UI for pricing data.")
+            addonTable.dataAge = nil
+            addonTable.marketData = nil
+        elseif not addonTable.dataAge then
             print("The Undermine Journal - Warning: could not find data for region "..addonTable.region..", no data loaded!")
         elseif not addonTable.marketData then
             print("The Undermine Journal - Warning: no data loaded!")

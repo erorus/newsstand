@@ -572,11 +572,14 @@ local realmIDs = {
 
 local addonName, addonTable = ...
 
-addonTable.region = string.upper(GetCVar("portal")) -- just a fallback, hopefully we'll overwrite it now
+addonTable.GetRegion = function()
+    local guid = UnitGUID("player")
+    if guid then
+        local realmId = tonumber(strmatch(guid, "^Player%-(%d+)"))
 
-local guid = UnitGUID("player")
-if guid then
-    local realmId = tonumber(strmatch(guid, "^Player%-(%d+)"))
-
-    addonTable.region = realmIDs[realmId] or addonTable.region
+        return realmIDs[realmId] or addonTable.region
+    end
+    return addonTable.region
 end
+
+addonTable.region = addonTable.GetRegion() or string.upper(GetCVar("portal") or "US")
