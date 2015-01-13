@@ -132,8 +132,12 @@ function BotCheck()
 
 function BanIP($ip = false)
 {
-    if ($ip === false) {
+    $exitAfter = false;
+    $addedBan = false;
+
+    if (($ip === false) && (PHP_SAPI != 'cli')){
         $ip = $_SERVER['REMOTE_ADDR'];
+        $exitAfter = true;
     }
     if (!$ip) {
         return false;
@@ -144,10 +148,15 @@ function BanIP($ip = false)
         file_put_contents(BANLIST_FILENAME, "\n$ip # " . Date('Y-m-d H:i:s'), FILE_APPEND & LOCK_EX);
         MCDelete(BANLIST_CACHEKEY);
         MCDelete(BANLIST_CACHEKEY . '_' . $ip);
+        $addedBan = true;
     }
 
-    header('HTTP/1.1 429 Too Many Requests');
-    exit;
+    if ($exitAfter) {
+        header('HTTP/1.1 429 Too Many Requests');
+        exit;
+    }
+
+    return $addedBan;
 }
 
 function IPIsBanned($ip = false)
