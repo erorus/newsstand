@@ -63,7 +63,7 @@ EOF;
     $sql = <<<EOF
 SELECT g.item, g.median, g.mean, g.stddev
 FROM tblItemGlobal g
-join tblItem i on g.item=i.id
+join tblDBCItem i on g.item=i.id
 where g.bonusset=0
 $itemExcludeSql
 EOF;
@@ -85,7 +85,7 @@ round(ifnull(avg(ih.price), tis.price)/100) price,
 round(ifnull(avg(if(ih.snapshot > timestampadd(hour, -72, now()), ih.price, null)), tis.price)/100) pricerecent,
 round(stddev(ih.price)/100) pricestddev
 FROM tblItemSummary tis
-join tblItem i on i.id = tis.item
+join tblDBCItem i on i.id = tis.item
 join tblHouseCheck hc on hc.house = tis.house
 left join tblItemHistory ih on ih.item=tis.item and ih.house = tis.house and ih.bonusset=tis.bonusset
 WHERE tis.house = ? and tis.bonusset=0
