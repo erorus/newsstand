@@ -1,6 +1,6 @@
 --[[
 
-TheUndermineJournal addon, v 3.2
+TheUndermineJournal addon, v 3.3
 https://theunderminejournal.com/
 
 You should be able to query this DB from other addons:
@@ -308,7 +308,7 @@ local function onEvent(self,event,arg)
     if event == "PLAYER_ENTERING_WORLD" then
         eventframe:UnregisterEvent("PLAYER_ENTERING_WORLD")
         if not addonTable.dataAge then
-            print("The Undermine Journal - Warning: could not find data for region "..GetCVar("portal")..", no data loaded!")
+            print("The Undermine Journal - Warning: could not find data for region "..addonTable.region..", no data loaded!")
         elseif not addonTable.marketData then
             print("The Undermine Journal - Warning: no data loaded!")
         else

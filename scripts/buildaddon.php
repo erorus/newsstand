@@ -287,7 +287,7 @@ EOF;
     $lua = <<<EOF
 local addonName, addonTable = ...
 
-if string.upper(GetCVar("portal")) ~= "$region" then
+if addonTable.region ~= "$region" then
     return
 end
 
