@@ -339,6 +339,7 @@ function MakeZip()
 
     $zip->addEmptyDir('TheUndermineJournal');
     $zip->addFromString("TheUndermineJournal/TheUndermineJournal.toc",$tocFile);
+    $zip->addFile('../addon/GetRegion.lua',"TheUndermineJournal/GetRegion.lua");
     $zip->addFile('../addon/TheUndermineJournal.lua',"TheUndermineJournal/TheUndermineJournal.lua");
     $zip->addFile('../addon/MarketData-US.lua',"TheUndermineJournal/MarketData-US.lua");
     $zip->addFile('../addon/MarketData-EU.lua',"TheUndermineJournal/MarketData-EU.lua");
