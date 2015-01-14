@@ -300,6 +300,9 @@ if not realmIndex then
     return
 end
 
+local tuj_substr = string.sub
+local tuj_concat = table.concat
+
 addonTable.marketData = {}
 addonTable.realmIndex = realmIndex
 
@@ -309,7 +312,7 @@ local function crop(priceSize, b)
 
     local offset = 1 + headerSize + recordSize * realmIndex
 
-    return string.sub(b, 1, headerSize)..string.sub(b, offset, offset + recordSize - 1)
+    return tuj_substr(b, 1, headerSize)..tuj_substr(b, offset, offset + recordSize - 1)
 end
 
 local somedata = function() end
@@ -384,7 +387,7 @@ function luaQuote($s) {
         case 2:
             return $result[0].'..'.$result[1];
     }
-    return 'table.concat({'.implode(',',$result).'})';
+    return 'tuj_concat({'.implode(',',$result).'})';
 }
 
 function luaPreg($m) {
