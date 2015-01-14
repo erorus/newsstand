@@ -1,5 +1,10 @@
 <?php
 
+$zipPath = false;
+if (isset($argv[1])) {
+    $zipPath = realpath($argv[1]);
+}
+
 chdir(__DIR__);
 
 $startTime = time();
@@ -24,7 +29,7 @@ $luaQuoteChange = [
 heartbeat();
 file_put_contents('../addon/MarketData-US.lua', BuildAddonData('US'));
 file_put_contents('../addon/MarketData-EU.lua', BuildAddonData('EU'));
-MakeZip();
+MakeZip($zipPath);
 
 DebugMessage('Done! Started '.TimeDiff($startTime));
 
@@ -231,16 +236,7 @@ EOF;
         if ($luaLines == 0) {
             $priceLua .= "somedata = function()\n";
         }
-        $luaQuoted = luaQuote($priceString);
-        if (!is_array($luaQuoted)) {
-            $luaQuoteFull = $luaQuoted;
-        } else {
-            $luaQuoteFull = 'concathelp';
-            for ($x = 0; $x < count($luaQuoted); $x++) {
-                $priceLua .= 'concathelp = ' . ($x > 0 ? 'concathelp..' : '') . $luaQuoted[$x] . "\n";
-            }
-        }
-        $priceLua .= sprintf("addonTable.marketData[%d]=crop(%d,%s)\n", $item, $priceBytes, $luaQuoteFull);
+        $priceLua .= sprintf("addonTable.marketData[%d]=crop(%d,%s)\n", $item, $priceBytes, luaQuote($priceString));
         if (++$luaLines >= 2000) {
             $priceLua .= "end\nsomedata()\n";
             $luaLines = 0;
@@ -316,14 +312,13 @@ local function crop(priceSize, b)
 end
 
 local somedata = function() end
-local concathelp = ''
 
 EOF;
 
     return pack('CCC', 239, 187, 191).$lua.$priceLua;
 }
 
-function MakeZip()
+function MakeZip($zipPath = false)
 {
     DebugMessage('Making zip file..');
 
@@ -346,7 +341,10 @@ function MakeZip()
     //$zip->addFromString("TheUndermineJournal/SpellToItem.lua",getspelltoitemlua());
     $zip->close();
 
-    rename($zipFilename, '../addon/TheUndermineJournal.zip');
+    if (!$zipPath) {
+        $zipPath = '../addon/TheUndermineJournal.zip';
+    }
+    rename($zipFilename, $zipPath);
 }
 
 function luaQuote($s) {
@@ -369,23 +367,23 @@ function luaQuote($s) {
     $parts = preg_split($regex, $s, -1, PREG_SPLIT_DELIM_CAPTURE);
     $result = [];
     for ($x = 0; $x < count($parts); $x++) {
-        $resultIdx = floor($x / 30);
-        if (!isset($result[$resultIdx])) {
-            $result[$resultIdx] = '';
-        }
         $c = 0;
         $p = preg_replace_callback($regex, 'luaPreg', $parts[$x], -1, $c);
         if ($c == 0) {
             $p = luaBracket($p);
         }
-        $result[$resultIdx] .= ($result[$resultIdx] == '' ? '' : '..') . $p;
+        $result[] = $p;
     }
 
-    if (count($result) == 1) {
-        return array_pop($result);
+    switch(count($result)) {
+        case 0:
+            return "''";
+        case 1:
+            return $result[0];
+        case 2:
+            return $result[0].'..'.$result[1];
     }
-
-    return $result;
+    return 'table.concat({'.implode(',',$result).'})';
 }
 
 function luaPreg($m) {
