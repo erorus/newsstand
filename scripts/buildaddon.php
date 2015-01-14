@@ -2,6 +2,7 @@
 
 $zipPath = false;
 if (isset($argv[1])) {
+    touch($argv[1]);
     $zipPath = realpath($argv[1]);
 }
 
