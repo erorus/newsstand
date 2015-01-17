@@ -63,7 +63,7 @@ function BuildAddonData($region)
 
     $itemExcludeSql = <<<EOF
 and (i.quality > 0 or i.class in (2,4))
-and not (i.class = 0 and i.subclass = 5 and 0 = (select count(*) from tblDBCItemReagents ir where ir.item = i.id))
+and not (i.class = 0 and i.subclass = 5 and 0 = (select count(*) from tblDBCItemReagents ir where ir.item = i.id) and i.quality < 2)
 EOF;
 
     $sql = <<<EOF

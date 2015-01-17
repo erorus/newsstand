@@ -18,8 +18,12 @@ if (!$item) {
 BotCheck();
 HouseETag($house);
 
+$stats = ItemStats($house, $item);
+if (count($stats) == 0) {
+    json_return([]);
+}
 $json = array(
-    'stats'         => ItemStats($house, $item),
+    'stats'         => $stats,
     'history'       => ItemHistory($house, $item),
     'daily'         => ItemHistoryDaily($house, $item),
     'monthly'       => ItemHistoryMonthly($house, $item),
