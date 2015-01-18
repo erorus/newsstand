@@ -183,7 +183,7 @@ function TUJMarketInfo(item,...)
     if not link then return tr end
     local itemString = string.match(link, "item[%-?%d:]+")
     local itemStringParts = { strsplit(":", itemString) }
-    local iid = itemString[2]
+    local iid = itemStringParts[2]
 
     local numBonuses = tonumber(itemStringParts[13],10)
     local bonusSet = 0
