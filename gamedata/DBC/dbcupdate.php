@@ -110,11 +110,11 @@ dtecho(dbcdecode('Item-sparse', array(
     71=>'name')));
 
 dtecho('Running items..');
-dtecho(run_sql('truncate table tblDBCItem'));
+//dtecho(run_sql('truncate table tblDBCItem'));
 $sql = <<<EOF
 insert into tblDBCItem (id, name, quality, level, class, subclass, icon, stacksize, binds,
 buyfromvendor, selltovendor, auctionable, type, requiredlevel, requiredskill, flags)
-(select i.id, s.name, s.quality, s.level, i.classid, i.subclassid,
+(select i.id, ifnull(s.name,''), ifnull(s.quality,0), s.level, i.classid, i.subclassid,
 if(right(lower(fd.name), 4) = '.blp', lower(substr(fd.name, 1, length(fd.name) - 4)), lower(fd.name)),
 s.stacksize, s.binds, s.buyprice, s.sellprice, case s.binds when 0 then 1 when 2 then 1 when 3 then 1 else 0 end,
 s.type, s.requiredlevel, s.requiredskill,
@@ -132,6 +132,22 @@ if(stat1 <= 0 and stat2 <= 0 and stat3 <= 0 and stat4 <= 0 and stat5 <= 0 and st
 from ttblItem i
 join `ttblItem-sparse` s on s.id = i.id
 left join ttblFileData fd on fd.id = i.iconfiledataid)
+on duplicate key update
+tblDBCItem.quality=if(values(name)='',tblDBCItem.quality,values(quality)),
+tblDBCItem.level=ifnull(values(level),tblDBCItem.level),
+tblDBCItem.class=values(class),
+tblDBCItem.subclass=values(subclass),
+tblDBCItem.icon=values(icon),
+tblDBCItem.stacksize=ifnull(values(stacksize), tblDBCItem.stacksize),
+tblDBCItem.binds=ifnull(values(binds), tblDBCItem.binds),
+tblDBCItem.buyfromvendor=ifnull(values(buyfromvendor), tblDBCItem.buyfromvendor),
+tblDBCItem.selltovendor=ifnull(values(selltovendor), tblDBCItem.selltovendor),
+tblDBCItem.auctionable=ifnull(values(auctionable), tblDBCItem.auctionable),
+tblDBCItem.type=ifnull(values(type), tblDBCItem.type),
+tblDBCItem.requiredlevel=ifnull(values(requiredlevel), tblDBCItem.requiredlevel),
+tblDBCItem.requiredskill=ifnull(values(requiredskill), tblDBCItem.requiredskill),
+tblDBCItem.flags=if(values(name)='',tblDBCItem.flags,values(flags)),
+tblDBCItem.name=if(values(name)='',tblDBCItem.name,values(name))
 EOF;
 dtecho(run_sql($sql));
 

@@ -23,7 +23,9 @@ function run_sql($sql) {
 
     if (!$stmt->execute()) {
         echo "\n";
-        DebugMessage("\nStatement failed:\n$sql\n".$db->error, E_USER_ERROR);
+        DebugMessage("\nStatement failed:\n", E_USER_NOTICE);
+        DebugMessage("\n$sql\n", E_USER_NOTICE);
+        DebugMessage("\n".$db->error, E_USER_ERROR);
     }
     $stmt->close();
 }
