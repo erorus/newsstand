@@ -147,7 +147,8 @@ function FetchItems($items)
         $json = FetchHTTP($url);
         $dta = json_decode($json, true);
         $jsonError = json_last_error();
-        if (($jsonError == JSON_ERROR_NONE) && !isset($dta['name']) && isset($dta['availableContexts']) && !(count($dta['availableContexts']) == 0 && ($dta['availableContexts'][0] == ''))) {
+        if (($jsonError == JSON_ERROR_NONE) && !isset($dta['name']) && isset($dta['availableContexts'])) {
+            array_filter($dta['availableContexts']);
             if (count($dta['availableContexts']) == 0) {
                 unset($dta['id']);
             } else {
