@@ -2,8 +2,9 @@
 ## Title: The Undermine Journal
 ## Notes: %s
 ## OptionalDeps: Auctionator, AuctionLite
-## Version: 3.3.%s
+## Version: 3.4.%s
 
+BonusSets.lua
 GetRegion.lua
 MarketData-US.lua
 MarketData-EU.lua

@@ -1,6 +1,6 @@
 --[[
 
-TheUndermineJournal addon, v 3.3
+TheUndermineJournal addon, v 3.4
 https://theunderminejournal.com/
 
 You should be able to query this DB from other addons:
@@ -9,11 +9,13 @@ You should be able to query this DB from other addons:
     TUJMarketInfo(52719,o)
     print(o['market'])
 
-Prints the market price of Greater Celestial Essence.
+Prints the market price of Greater Celestial Essence. The item can be identified by anything GetItemInfo takes (itemid, itemstring, itemlink).
 
 Prices are returned in copper, but accurate to the last *silver* (with coppers always 0).
 
+    o['input']          -> the item parameter you just passed in, verbatim
     o['itemid']         -> the ID of the item you just passed in
+    o['bonuses']        -> if present, a colon-separated list of bonus IDs that were considered as uniquely identifying the item for pricing
     o['age']            -> number of seconds since data was compiled
 
     o['globalMedian']   -> median market price across all US and EU realms
@@ -41,6 +43,8 @@ Tooltips are enabled by default and there is no savedvariable that remembers to 
 See http://tuj.me/TUJTooltip for more information/examples.
 
 ]]
+
+collectgarbage("collect") -- lots of strings made and trunc'ed in MarketData
 
 --[[
     This chunk from:
@@ -75,8 +79,6 @@ See http://tuj.me/TUJTooltip for more information/examples.
         on it staying the same.
         We will attempt to avoid this happening where possible (of course).
 ]]
-
-collectgarbage("collect") -- lots of strings made and trunc'ed in MarketData
 
 local function coins(money, graphic)
     local GOLD="ffd100"
@@ -158,8 +160,8 @@ local addonName, addonTable = ...
     pass a table as the second argument to wipe and reuse that table
     otherwise a new table will be created and returned
 ]]
-function TUJMarketInfo(iid,...)
-    if iid == 0 then
+function TUJMarketInfo(item,...)
+    if item == 0 then
         if addonTable.marketData then
             return true
         else
@@ -175,19 +177,57 @@ function TUJMarketInfo(iid,...)
         wipe(tr)
     end
 
-    if not iid then return tr end
     if not addonTable.marketData then return tr end
-    if not addonTable.marketData[iid] then return tr end
+
+    local _, link = GetItemInfo(item)
+    if not link then return tr end
+    local itemString = string.match(link, "item[%-?%d:]+")
+    local itemStringParts = { strsplit(":", itemString) }
+    local iid = itemString[2]
+
+    local numBonuses = tonumber(itemStringParts[13],10)
+    local bonusSet = 0
+
+    if numBonuses > 0 then
+        local matched = 0
+
+        for s,setBonuses in pairs(addonTable.bonusSets) do
+            local matches = 0
+            for x = 1,#setBonuses,1 do
+                for y = 1,numBonuses,1 do
+                    if itemStringParts[13+y] == setBonuses[x] then
+                        matches = matches + 1
+                        break
+                    end
+                end
+            end
+            if (matches > matched) and (matches == #setBonuses) then
+                matched = matches
+                bonusSet = s
+            end
+        end
+    end
+
+    local dataKey = iid
+    if bonusSet > 0 then
+        dataKey = dataKey .. 'x' .. bonusSet
+    end
+
+    if not addonTable.marketData[dataKey] then return tr end
 
     if not tr then tr = {} end
 
-    tr['itemid'] = iid
+    tr['input'] = item
+    tr['itemid'] = tonumber(iid,10)
+    if bonusSet > 0 then
+        tr['bonuses'] = table.concat(addonTable.bonusSets[bonusSet], ':')
+    end
 
     if addonTable.dataAge then
         tr['age'] = time() - addonTable.dataAge
     end
 
-    local dta = addonTable.marketData[iid]
+    local dta = addonTable.marketData[dataKey]
 
     local priceSize = string.byte(dta, 1);
 
@@ -228,12 +268,6 @@ function TUJTooltip(...)
     return tooltipsEnabled
 end
 
-local function GetIDFromLink(SpellLink)
-    local _, l = GetItemInfo(SpellLink)
-    if not l then return end
-    return tonumber(string.match(l, "^|c%x%x%x%x%x%x%x%x|H%w+:(%d+)"))
-end
-
 local _tooltipcallback, lasttooltip
 local dataResults = {}
 
@@ -248,21 +282,25 @@ local function GetCallback()
         if lasttooltip == tooltip then return end
         lasttooltip = tooltip
 
-        local iid
+        local itemLink
         local spellName, spellRank, spellID = GameTooltip:GetSpell()
         if spellID then
             return
-            --iid = addonTable.spelltoitem[spellID]
+            --item = addonTable.spelltoitem[spellID]
         else
             local name, item = tooltip:GetItem()
             if (not name) or (not item) then return end
-            iid = GetIDFromLink(item)
+            itemLink = item
         end
 
-        if iid and addonTable.marketData[iid] then
-            local r,g,b = .9,.8,.5
+        if not itemLink then
+            return
+        end
 
-            TUJMarketInfo(iid, dataResults)
+        TUJMarketInfo(itemLink, dataResults)
+
+        if dataResults['input'] and (dataResults['input'] == itemLink) then
+            local r,g,b = .9,.8,.5
 
             tooltip:AddLine(" ")
 
@@ -332,21 +370,12 @@ local origGetAuctionBuyout = GetAuctionBuyout
 local getAuctionBuyoutTable = {}
 
 function GetAuctionBuyout(item) -- Tekkub's API
-    local iid
-    if (type(item) == "string") then
-        iid = GetIDFromLink(item)
-    else
-        iid = item
-    end
-
-    if (iid) then
-        local result = TUJMarketInfo(iid, getAuctionBuyoutTable)
-        if (result and result['itemid'] == iid) then
-            if (result['market']) then
-                return result['market']
-            else
-                return result['globalMedian']
-            end
+    local result = TUJMarketInfo(item, getAuctionBuyoutTable)
+    if (result and result['input'] == item) then
+        if (result['market']) then
+            return result['market']
+        else
+            return result['globalMedian']
         end
     end
 

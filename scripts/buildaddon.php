@@ -28,11 +28,32 @@ $luaQuoteChange = [
 ];
 
 heartbeat();
+file_put_contents('../addon/BonusSets.lua', BuildBonusSets());
 file_put_contents('../addon/MarketData-US.lua', BuildAddonData('US'));
 file_put_contents('../addon/MarketData-EU.lua', BuildAddonData('EU'));
 MakeZip($zipPath);
 
 DebugMessage('Done! Started '.TimeDiff($startTime));
+
+function BuildBonusSets()
+{
+    global $db;
+
+    $stmt = $db->prepare('SELECT `set`, concat(\'\'\'\', cast(group_concat(bonus order by 1 separator \'\'\',\'\'\') as char), \'\'\'\') bonuses FROM `tblBonusSet` group by `set`');
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $sets = DBMapArray($result);
+    $stmt->close();
+
+    $lua = "local addonName, addonTable = ...\naddonTable.bonusSets = {\n";
+
+    foreach ($sets as $row) {
+        $lua .= "\t[".$row['set'].']={'.$row['bonuses']."},\n";
+    }
+
+    $lua .= "}\n";
+    return $lua;
+}
 
 function BuildAddonData($region)
 {
@@ -67,25 +88,27 @@ and not (i.class = 0 and i.subclass = 5 and 0 = (select count(*) from tblDBCItem
 EOF;
 
     $sql = <<<EOF
-SELECT g.item, g.median, g.mean, g.stddev
+SELECT g.item, g.bonusset, g.median, g.mean, g.stddev
 FROM tblItemGlobal g
 join tblDBCItem i on g.item=i.id
-where g.bonusset=0
+where 1=1
 $itemExcludeSql
 EOF;
 
     $stmt = $db->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();
-    $globalPrices = DBMapArray($result);
+    $globalPrices = DBMapArray($result, null);
     $stmt->close();
 
-    foreach ($globalPrices as $item => $priceRow) {
+    foreach ($globalPrices as $priceRow) {
+        $item = ''.$priceRow['item'].($priceRow['bonusset'] != '0' ? ('x'.$priceRow['bonusset']) : '');
         $item_global[$item] = pack('LLL', round($priceRow['median']/100), round($priceRow['mean']/100), round($priceRow['stddev']/100));
     }
+    unset($globalPrices);
 
     $sql = <<<EOF
-SELECT tis.item,
+SELECT tis.item, tis.bonusset,
 datediff(now(), tis.lastseen) since,
 round(ifnull(avg(ih.price), tis.price)/100) price,
 round(ifnull(avg(if(ih.snapshot > timestampadd(hour, -72, now()), ih.price, null)), tis.price)/100) pricerecent,
@@ -94,9 +117,9 @@ FROM tblItemSummary tis
 join tblDBCItem i on i.id = tis.item
 join tblHouseCheck hc on hc.house = tis.house
 left join tblItemHistory ih on ih.item=tis.item and ih.house = tis.house and ih.bonusset=tis.bonusset
-WHERE tis.house = ? and tis.bonusset=0
+WHERE tis.house = ?
 $itemExcludeSql
-group by tis.item
+group by tis.item, tis.bonusset
 EOF;
 
     for ($hx = 0; $hx < count($houses); $hx++) {
@@ -111,7 +134,7 @@ EOF;
         $stmt->execute();
         $result = $stmt->get_result();
         while ($priceRow = $result->fetch_assoc()) {
-            $item = intval($priceRow['item'],10);
+            $item = ''.$priceRow['item'].($priceRow['bonusset'] != '0' ? ('x'.$priceRow['bonusset']) : '');
 
             if (!isset($item_avg[$item])) {
                 $item_avg[$item] = '';
@@ -237,7 +260,7 @@ EOF;
         if ($luaLines == 0) {
             $priceLua .= "somedata = function()\n";
         }
-        $priceLua .= sprintf("addonTable.marketData[%d]=crop(%d,%s)\n", $item, $priceBytes, luaQuote($priceString));
+        $priceLua .= sprintf("addonTable.marketData['%s']=crop(%d,%s)\n", $item, $priceBytes, luaQuote($priceString));
         if (++$luaLines >= 2000) {
             $priceLua .= "end\nsomedata()\n";
             $luaLines = 0;
@@ -338,6 +361,7 @@ function MakeZip($zipPath = false)
 
     $zip->addEmptyDir('TheUndermineJournal');
     $zip->addFromString("TheUndermineJournal/TheUndermineJournal.toc",$tocFile);
+    $zip->addFile('../addon/BonusSets.lua',"TheUndermineJournal/BonusSets.lua");
     $zip->addFile('../addon/GetRegion.lua',"TheUndermineJournal/GetRegion.lua");
     $zip->addFile('../addon/TheUndermineJournal.lua',"TheUndermineJournal/TheUndermineJournal.lua");
     $zip->addFile('../addon/MarketData-US.lua',"TheUndermineJournal/MarketData-US.lua");
