@@ -79,7 +79,7 @@ function ItemHistory($house, $item)
 {
     global $db;
 
-    $key = 'item_historyb2_' . $item;
+    $key = 'item_history5_' . $item;
 
     if (($tr = MCGetHouse($house, $key)) !== false) {
         return $tr;
@@ -100,19 +100,19 @@ from (select
     ifnull(quantity,0) as quantity,
     if(age is null, @age, @age := age) as age
     from (select @price := null, @age := null, @prevBonusSet := null) priceSetup,
-        (select ifnull(ih.bonusset,0) bonusset, s.updated, ih.quantity, ih.price, ih.age
+        (select `is`.bonusset, s.updated, ih.quantity, ih.price, ih.age
         from tblSnapshot s
-        left join tblItemHistory ih on s.updated = ih.snapshot and ih.house=? and ih.item=?
-        where s.house = ? and s.updated >= timestampadd(day,-$historyDays,now()) and s.flags & 1 = 0
-        group by ih.bonusset, s.updated
-        order by ih.bonusset, s.updated asc
+        join tblItemSummary `is` on `is`.house = s.house
+        left join tblItemHistory ih on s.updated = ih.snapshot and ih.house = `is`.house and ih.item = `is`.item and ih.bonusset = `is`.bonusset
+        where `is`.item = ? and s.house = ? and s.updated >= timestampadd(day,-$historyDays,now()) and s.flags & 1 = 0
+        group by `is`.bonusset, s.updated
+        order by `is`.bonusset, s.updated asc
         ) ordered
     ) withoutresets
 EOF;
 
     $stmt = $db->prepare($sql);
-    $realHouse = abs($house);
-    $stmt->bind_param('iii', $house, $item, $realHouse);
+    $stmt->bind_param('ii', $item, $house);
     $stmt->execute();
     $result = $stmt->get_result();
     $tr = DBMapArray($result, array('bonusset', null));
