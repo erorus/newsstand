@@ -6,12 +6,18 @@ $startTime = time();
 
 require_once('../incl/incl.php');
 require_once('../incl/heartbeat.incl.php');
+require_once('../incl/memcache.incl.php');
 require_once('../incl/battlenet.incl.php');
 
 RunMeNTimes(1);
 
 if (!DBConnect()) {
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
+}
+
+if (APIMaintenance()) {
+    DebugMessage('API Maintenance in progress, not updating items!', E_USER_NOTICE);
+    exit;
 }
 
 $itemMap = array(
