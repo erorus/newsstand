@@ -335,7 +335,7 @@ function RunMeNTimes($howMany = 1)
 
 // pass in nothing to get whether out of maintenance ("false") or timestamp when maintenance is expected to end
 // pass in timestamp to set maintenance and when it's expected to end
-function APIMaintenance($when = -1) {
+function APIMaintenance($when = -1, $expire = false) {
     if (!function_exists('MCGet')) {
         DebugMessage('Tried to test for APIMaintenance without memcache loaded!', E_USER_ERROR);
     }
@@ -351,8 +351,13 @@ function APIMaintenance($when = -1) {
         $when = strtotime($when);
     }
     if ($when) {
-        DebugMessage('Setting API maintenance mode, expected to end '.TimeDiff($when));
-        MCSet($cacheKey, $when, $when + 72*60*60);
+        if ($expire == false) {
+            $expire = $when + 72*60*60;
+        } elseif (!is_numeric($expire)) {
+            $expire = strtotime($expire);
+        }
+        DebugMessage('Setting API maintenance mode, expected to end '.TimeDiff($when).', maximum '.TimeDiff($expire));
+        MCSet($cacheKey, $when, $expire);
     } else {
         DebugMessage('Ending API maintenance mode.');
         MCDelete($cacheKey);

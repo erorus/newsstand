@@ -26,7 +26,7 @@ if (!(touch($sqlFile) && ($sqlFile = realpath($sqlFile)))) {
 }
 file_put_contents($sqlFile, '');
 
-APIMaintenance('+30 minutes');
+APIMaintenance('+45 minutes');
 
 $cmd = 'mysqldump --verbose --quick --allow-keywords --skip-opt --create-options --add-drop-table --add-locks --extended-insert --single-transaction --user='.escapeshellarg(DATABASE_USERNAME_CLI).' --password='.escapeshellarg(DATABASE_PASSWORD_CLI).' --where=%s '.escapeshellarg(DATABASE_SCHEMA)." %s | gzip -c >> %s\n";
 foreach ($tables as $table => $where) {
@@ -40,6 +40,6 @@ foreach ($tables as $table => $where) {
     }
 }
 
-APIMaintenance(false);
+APIMaintenance('+5 minutes', '+5 minutes');
 
 DebugMessage('Done! Started ' . TimeDiff($startTime));
