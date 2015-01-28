@@ -277,7 +277,7 @@ function ItemGlobalNow($region, $item)
 {
     global $db;
 
-    $key = 'item_globalnow2_' . $region . '_' . $item;
+    $key = 'item_globalnow3_' . $region . '_' . $item;
     if (($tr = MCGet($key)) !== false) {
         return $tr;
     }
@@ -287,7 +287,7 @@ function ItemGlobalNow($region, $item)
     $sql = <<<EOF
     SELECT i.bonusset, r.house, i.price, i.quantity, unix_timestamp(i.lastseen) as lastseen
 FROM `tblItemSummary` i
-join tblRealm r on i.house = r.house and r.region = ?
+join tblRealm r on i.house = r.house and r.region = ? and r.canonical is not null
 WHERE i.item=?
 group by i.bonusset, r.house
 EOF;
@@ -309,7 +309,7 @@ function ItemGlobalMonthly($region, $item)
 {
     global $db;
 
-    $key = 'item_globalmonthly3_' . $region . '_' . $item;
+    $key = 'item_globalmonthly4_' . $region . '_' . $item;
     if (($tr = MCGet($key)) !== false) {
         return $tr;
     }
@@ -326,7 +326,7 @@ function ItemGlobalMonthly($region, $item)
     $sql = <<<EOF
 SELECT bonusset, month $sqlCols
 FROM `tblItemHistoryMonthly` ihm
-join tblRealm r on ihm.house = r.house and r.region = ?
+join tblRealm r on ihm.house = r.house and r.region = ? and r.canonical is not null
 WHERE ihm.item=?
 group by bonusset, month
 EOF;
