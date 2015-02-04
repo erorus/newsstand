@@ -142,7 +142,7 @@ function BanIP($ip = false)
     if (!$ip) {
         return false;
     }
-    $ip = trim(strtoupper($ip));
+    $ip = trim(strtolower($ip));
 
     if (!IPIsBanned($ip)) {
         file_put_contents(BANLIST_FILENAME, "\n$ip # " . Date('Y-m-d H:i:s'), FILE_APPEND | LOCK_EX);
@@ -167,7 +167,7 @@ function IPIsBanned($ip = false)
     if (!$ip) {
         return false;
     }
-    $ip = trim(strtoupper($ip));
+    $ip = trim(strtolower($ip));
 
     $cacheKey = BANLIST_CACHEKEY . '_' . $ip;
     $result = MCGet($cacheKey);
@@ -182,8 +182,8 @@ function IPIsBanned($ip = false)
             $fh = fopen(BANLIST_FILENAME, 'r');
             if ($fh) {
                 while (($line = fgets($fh, 4096)) !== false) {
-                    if (preg_match('/^\s*([\d\.:\/]+)/', $line, $res) > 0) {
-                        $banList[] = strtoupper($res[0]);
+                    if (preg_match('/^\s*([a-f\d\.:\/]+)/', $line, $res) > 0) {
+                        $banList[] = strtolower($res[0]);
                     }
                 }
             }
