@@ -5,7 +5,7 @@ require_once('memcache.incl.php');
 define('API_VERSION', 3);
 define('THROTTLE_PERIOD', 3600); // seconds
 define('THROTTLE_MAXHITS', 200);
-define('BANLIST_CACHEKEY', 'banlist_cidrs');
+define('BANLIST_CACHEKEY', 'banlist_cidrs2');
 define('BANLIST_FILENAME', __DIR__ . '/banlist.txt');
 
 if ((PHP_SAPI != 'cli') && (($inMaintenance = APIMaintenance()) !== false)) {

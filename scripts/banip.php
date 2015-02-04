@@ -9,6 +9,12 @@ if (!isset($argv[1])) {
 }
 $ip = trim($argv[1]);
 
+if ($ip == false) {
+    MCDelete(BANLIST_CACHEKEY);
+    DebugMessage("Cleared banlist from memcache.\n");
+    exit;
+}
+
 $ret = BanIP($ip);
 
 if ($ret) {
