@@ -5,7 +5,7 @@ require_once('memcache.incl.php');
 define('API_VERSION', 3);
 define('THROTTLE_PERIOD', 3600); // seconds
 define('THROTTLE_MAXHITS', 200);
-define('BANLIST_CACHEKEY', 'banlist_cidrs2');
+define('BANLIST_CACHEKEY', 'banlist_cidrs');
 define('BANLIST_FILENAME', __DIR__ . '/banlist.txt');
 
 if ((PHP_SAPI != 'cli') && (($inMaintenance = APIMaintenance()) !== false)) {
@@ -195,19 +195,27 @@ function IPIsBanned($ip = false)
     $ipv4 = (strpos($ip, ':') === false);
     if ($ipv4) {
         $longIp = ip2long($ip);
+    } else {
+        $binIp = inet_pton($ip);
     }
     for ($x = 0; $x < count($banList); $x++) {
         if (strpos($banList[$x], '/') !== false) {
             // mask
+            list($subnet, $mask) = explode('/', $banList[$x]);
+            $mask = intval($mask, 10);
             if ($ipv4 && (strpos($banList[$x], ':') === false)) {
                 // ipv4
-                list($subnet, $mask) = explode('/', $banList[$x]);
                 if (($longIp & ~((1 << (32 - $mask)) - 1)) == ip2long($subnet)) {
                     $result = true;
                     break;
                 }
             } elseif (!$ipv4 && (strpos($banList[$x], ':') !== false)) {
-                // TODO ipv6 masks
+                // ipv6
+                $binMask = pack("H*", str_pad(trim(str_repeat('f', floor($mask / 4)).substr(' 8ce', $mask % 4, 1)), 32, '0'));
+                if (($binIp & $binMask) == (inet_pton($subnet) & $binMask)) {
+                    $result = true;
+                    break;
+                }
             }
         } else {
             // single IP
