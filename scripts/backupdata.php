@@ -28,7 +28,7 @@ file_put_contents($sqlFile, '');
 
 APIMaintenance('+45 minutes');
 
-$cmd = 'mysqldump --verbose --quick --allow-keywords --skip-opt --create-options --add-drop-table --add-locks --extended-insert --single-transaction --user='.escapeshellarg(DATABASE_USERNAME_CLI).' --password='.escapeshellarg(DATABASE_PASSWORD_CLI).' --where=%s '.escapeshellarg(DATABASE_SCHEMA)." %s | gzip -c >> %s\n";
+$cmd = 'mysqldump --verbose --skip-opt --quick --allow-keywords --create-options --add-drop-table --add-locks --extended-insert --single-transaction --user='.escapeshellarg(DATABASE_USERNAME_CLI).' --password='.escapeshellarg(DATABASE_PASSWORD_CLI).' --where=%s '.escapeshellarg(DATABASE_SCHEMA)." %s | gzip -c >> %s\n";
 foreach ($tables as $table => $where) {
     DebugMessage("Starting $table");
     $trash = [];
