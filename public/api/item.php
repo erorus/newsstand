@@ -309,7 +309,7 @@ function ItemGlobalMonthly($region, $item)
 {
     global $db;
 
-    $key = 'item_globalmonthly4_' . $region . '_' . $item;
+    $key = 'item_globalmonthly_' . $region . '_' . $item;
     if (($tr = MCGet($key)) !== false) {
         return $tr;
     }
@@ -339,6 +339,7 @@ EOF;
     $stmt->close();
 
     $tr = array();
+    $today = strtotime(Date('Y-m-d'));
     foreach ($bonusRows as $bonusSet => &$rows) {
         $prevPrice = 0;
         for ($x = 0; $x < count($rows); $x++) {
@@ -360,7 +361,7 @@ EOF;
                     if (!checkdate($monthNum, $dayNum, $year)) {
                         break;
                     }
-                    if (strtotime("$year-$month-$day") > time()) {
+                    if (strtotime("$year-$month-$day") >= $today) {
                         break;
                     }
                     if ($prevPrice) {
