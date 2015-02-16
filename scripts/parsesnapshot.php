@@ -456,6 +456,9 @@ EOF;
 
     $ourDb->close();
 
+    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " finding missing prices");
+    UpdateMissingPrices($house, $snapshot, $noHistory);
+
     MCSetHouse($house, 'ts', $snapshot);
 
     DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " finished with $totalAuctions auctions in " . round(microtime(true) - $startTimer, 2) . " sec");
@@ -745,7 +748,7 @@ function UpdateSellerInfo(&$sellerInfo, $snapshot, $noHistory)
     }
 }
 
-function UpdateItemInfo($house, &$itemInfo, $snapshot, $noHistory)
+function UpdateItemInfo($house, &$itemInfo, $snapshot, $noHistory, $substitutePrices = false)
 {
     global $db, $maxPacketSize;
 
@@ -764,10 +767,21 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $noHistory)
     $sqlDeepEnd = sprintf(' on duplicate key update mktslvr%1$s=if(values(qty%1$s) > ifnull(qty%1$s,0), values(mktslvr%1$s), mktslvr%1$s), qty%1$s=if(values(qty%1$s) > ifnull(qty%1$s,0), values(qty%1$s), qty%1$s)', $day);
     $sqlDeep = '';
 
+    if ($substitutePrices) {
+        $snapshotString = '1999-01-01 00:00:00';
+        $sqlEnd = ' on duplicate key update quantity=values(quantity), price=values(price), lastseen=values(lastseen), age=values(age)';
+        $sqlDeepEnd = sprintf(' on duplicate key update mktslvr%1$s=least(values(mktslvr%1$s), mktslvr%1$s)', $day);
+    }
+
     foreach ($itemInfo as $itemKey => &$info) {
         list($item, $bonusSet) = explode(':', $itemKey, 2);
-        $price = GetMarketPrice($info);
-        $age = GetAverageAge($info, $price);
+        if ($substitutePrices) {
+            $price = $info['price'];
+            $age = 0;
+        } else {
+            $price = GetMarketPrice($info);
+            $age = GetAverageAge($info, $price);
+        }
 
         $sqlBit = sprintf('(%d,%u,%u,%u,%u,\'%s\',%u)', $house, $item, $bonusSet, $price, $info['tq'], $snapshotString, $age);
         if (strlen($sql) + strlen($sqlBit) + strlen($sqlEnd) + 5 > $maxPacketSize) {
@@ -776,7 +790,7 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $noHistory)
         }
         $sql .= ($sql == '' ? $sqlStart : ',') . $sqlBit;
 
-        if ($info['tq'] > 0) {
+        if ($substitutePrices || ($info['tq'] > 0)) {
             if (!$noHistory) {
                 if (strlen($sqlHistory) + strlen($sqlBit) + 5 > $maxPacketSize) {
                     DBQueryWithError($db, $sqlHistory);
@@ -846,6 +860,93 @@ function UpdatePetInfo($house, &$petInfo, $snapshot, $noHistory)
     if ($sqlHistory != '') {
         DBQueryWithError($db, $sqlHistory);
     }
+}
+
+function UpdateMissingPrices($house, $snapshot, $noHistory) {
+    global $db;
+
+    $sql = <<<EOF
+select bb.reagent, ((createdprice - sum(quantity * reagentprice)) / missingqty) as price
+from (
+   select aa.*, irs2.quantity, min(s2.price) reagentprice
+   from
+     (SELECT irs.spell, irs.reagent, irs.quantity missingqty, min(s.price) createdprice
+      from tblDBCItemReagents irs
+        join tblItemSummary s on s.item = irs.item and s.house = %1\$d and s.quantity > 0
+      where irs.reagent in (%2\$s)
+      group by irs.spell, irs.reagent) aa
+     join tblDBCItemReagents irs2 on irs2.spell = aa.spell
+     join tblItemSummary s2 on s2.item = irs2.reagent and s2.house = %1\$d and s2.lastseen > '2000-01-01'
+   group by aa.spell, irs2.reagent) bb
+group by bb.spell, bb.reagent
+order by 2
+EOF;
+
+    $stmt = $db->prepare(sprintf($sql, $house, implode(',', GetMissingItems())));
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $allPrices = [];
+    while ($row = $result->fetch_assoc()) {
+        $allPrices[$row['reagent']][] = $row['price'];
+    }
+    $result->close();
+    $stmt->close();
+
+    $itemInfo = [];
+
+    foreach ($allPrices as $item => &$prices) {
+        if (count($prices) >= 4) {
+            $toCut = count($prices) / 4;
+            array_splice($prices, 0, floor($toCut));
+            array_splice($prices, count($prices) - ceil($toCut));
+        }
+
+        $itemInfo["$item:0"] = [
+            'price' => floor(array_sum($prices) / count($prices)),
+            'tq' => 0
+        ];
+
+    }
+    unset($prices);
+
+    if (count($itemInfo)) {
+        UpdateItemInfo($house, $itemInfo, $snapshot, $noHistory, true);
+    }
+}
+
+function GetMissingItems() {
+    static $missingItems = false;
+
+    global $db;
+
+    $cacheKey = 'parse_missing_items';
+
+    if ($missingItems === false) {
+        $missingItems = MCGet($cacheKey);
+    }
+
+    if ($missingItems === false) {
+        $sql = <<<EOF
+SELECT i.id
+from tblDBCItemReagents dir
+join tblDBCItem i on dir.reagent=i.id
+join tblDBCItem i2 on dir.item=i2.id
+where not exists (select 1 from tblItemSummary s join tblRealm r on s.house=r.house and r.canonical is not null where s.item=i.id and s.lastseen > '2000-01-01' limit 1)
+and exists (select 1 from tblItemSummary s join tblRealm r on s.house=r.house and r.canonical is not null where s.item=i2.id and s.lastseen > '2000-01-01' limit 1)
+and not exists (select 1 from tblDBCItemVendorCost v where v.item = i.id limit 1)
+and i2.auctionable = 1
+group by i.id
+EOF;
+        $stmt = $db->prepare($sql);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $missingItems = array_keys(DBMapArray($result));
+        $stmt->close();
+
+        MCSet($cacheKey, $missingItems, 43200);
+    }
+
+    return $missingItems;
 }
 
 function GetAverageAge(&$info, $price)

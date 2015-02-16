@@ -172,30 +172,34 @@ var libtuj = {
                 dt = new Date(unix * 1000);
             }
 
-            var diff = Math.floor((now.getTime() - dt.getTime()) / 1000);
-            var suffix = diff < 0 ? ' from now' : ' ago';
-            diff = Math.abs(diff);
+            if (dt.getTime() > 978307200000) {
+                var diff = Math.floor((now.getTime() - dt.getTime()) / 1000);
+                var suffix = diff < 0 ? ' from now' : ' ago';
+                diff = Math.abs(diff);
 
-            if ((diff < 60) || (stopAt == 'second')) {
-                v = '' + (n = diff) + ' second' + (n != 1 ? 's' : '') + suffix;
-            }
-            else {
-                if ((diff < 60 * 60) || (stopAt == 'minute')) {
-                    v = '' + (n = Math.round(diff / 60)) + ' minute' + (n != 1 ? 's' : '') + suffix;
+                if ((diff < 60) || (stopAt == 'second')) {
+                    v = '' + (n = diff) + ' second' + (n != 1 ? 's' : '') + suffix;
                 }
                 else {
-                    if ((diff < 24 * 60 * 60) || (stopAt == 'hour')) {
-                        v = '' + (n = Math.round(diff / (60 * 60))) + ' hour' + (n != 1 ? 's' : '') + suffix;
+                    if ((diff < 60 * 60) || (stopAt == 'minute')) {
+                        v = '' + (n = Math.round(diff / 60)) + ' minute' + (n != 1 ? 's' : '') + suffix;
                     }
                     else {
-                        if ((diff < 10 * 24 * 60 * 60) || (stopAt == 'day')) {
-                            v = '' + (n = Math.round(diff / (24 * 60 * 60))) + ' day' + (n != 1 ? 's' : '') + suffix;
+                        if ((diff < 24 * 60 * 60) || (stopAt == 'hour')) {
+                            v = '' + (n = Math.round(diff / (60 * 60))) + ' hour' + (n != 1 ? 's' : '') + suffix;
                         }
                         else {
-                            v = dt.toLocaleDateString();
+                            if ((diff < 10 * 24 * 60 * 60) || (stopAt == 'day')) {
+                                v = '' + (n = Math.round(diff / (24 * 60 * 60))) + ' day' + (n != 1 ? 's' : '') + suffix;
+                            }
+                            else {
+                                v = dt.toLocaleDateString();
+                            }
                         }
                     }
                 }
+            } else {
+                v = 'Unknown';
             }
         }
         if (justValue) {

@@ -84,7 +84,7 @@ from (
     left join tblItemSummary s on s.house=? and s.item=i.id
     left join tblItemHistory h on h.house=? and h.item=i.id and h.bonusset = s.bonusset
     where $nameSearch
-    and ifnull(i.auctionable,1) = 1
+    and (s.item is not null or ifnull(i.auctionable,1) = 1)
     group by i.id, ifnull(s.bonusset,0)
     limit ?
 ) results
