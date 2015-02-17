@@ -585,7 +585,7 @@ function GetAuctionAge($id, $now, &$snapshotList)
         );
     }
 
-    return min(255, max(0, floor($seconds / (48 * 60 * 60) * 255)));
+    return min(254, max(0, floor($seconds / (48 * 60 * 60) * 255)));
 }
 
 function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
@@ -768,7 +768,6 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $noHistory, $substitutePr
     $sqlDeep = '';
 
     if ($substitutePrices) {
-        $snapshotString = '1999-01-01 00:00:00';
         $sqlEnd = ' on duplicate key update quantity=values(quantity), price=values(price), lastseen=values(lastseen), age=values(age)';
         $sqlDeepEnd = sprintf(' on duplicate key update mktslvr%1$s=least(values(mktslvr%1$s), mktslvr%1$s)', $day);
     }
@@ -777,7 +776,7 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $noHistory, $substitutePr
         list($item, $bonusSet) = explode(':', $itemKey, 2);
         if ($substitutePrices) {
             $price = $info['price'];
-            $age = 0;
+            $age = 255;
         } else {
             $price = GetMarketPrice($info);
             $age = GetAverageAge($info, $price);
@@ -876,7 +875,7 @@ from (
       where irs.reagent in (%2\$s)
       group by irs.spell, irs.reagent) aa
      join tblDBCItemReagents irs2 on irs2.spell = aa.spell
-     join tblItemSummary s2 on s2.item = irs2.reagent and s2.house = %1\$d and s2.lastseen > '2000-01-01'
+     join tblItemSummary s2 on s2.item = irs2.reagent and s2.house = %1\$d and not (s2.age = 255 and s2.quantity = 0)
    group by aa.spell, irs2.reagent) bb
 group by bb.spell, bb.reagent
 order by 2
@@ -901,6 +900,10 @@ EOF;
             array_splice($prices, count($prices) - ceil($toCut));
         }
 
+        if (count($prices) == 0) {
+            continue;
+        }
+
         $itemInfo["$item:0"] = [
             'price' => floor(array_sum($prices) / count($prices)),
             'tq' => 0
@@ -919,7 +922,7 @@ function GetMissingItems() {
 
     global $db;
 
-    $cacheKey = 'parse_missing_items';
+    $cacheKey = 'parse_missing_items2';
 
     if ($missingItems === false) {
         $missingItems = MCGet($cacheKey);
@@ -931,8 +934,8 @@ SELECT i.id
 from tblDBCItemReagents dir
 join tblDBCItem i on dir.reagent=i.id
 join tblDBCItem i2 on dir.item=i2.id
-where not exists (select 1 from tblItemSummary s join tblRealm r on s.house=r.house and r.canonical is not null where s.item=i.id and s.lastseen > '2000-01-01' limit 1)
-and exists (select 1 from tblItemSummary s join tblRealm r on s.house=r.house and r.canonical is not null where s.item=i2.id and s.lastseen > '2000-01-01' limit 1)
+where not exists (select 1 from tblItemSummary s join tblRealm r on s.house=r.house and r.canonical is not null where s.item=i.id and not (s.quantity=0 and s.age=255) limit 1)
+and exists (select 1 from tblItemSummary s join tblRealm r on s.house=r.house and r.canonical is not null where s.item=i2.id and not (s.quantity=0 and s.age=255) limit 1)
 and not exists (select 1 from tblDBCItemVendorCost v where v.item = i.id limit 1)
 and i2.auctionable = 1
 group by i.id
