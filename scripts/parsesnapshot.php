@@ -905,7 +905,7 @@ EOF;
         }
 
         $itemInfo["$item:0"] = [
-            'price' => floor(array_sum($prices) / count($prices)),
+            'price' => max(0, floor(array_sum($prices) / count($prices))),
             'tq' => 0
         ];
 
