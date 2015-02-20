@@ -222,29 +222,41 @@ var TUJ_Item = function ()
             itemPage.append(d);
             ItemPriceHeatMap(dta, cht);
 
-            d = libtuj.ce();
-            d.className = 'chart-section';
-            h = libtuj.ce('h2');
-            d.appendChild(h);
-            $(h).text('Quantity Heat Map');
-            d.appendChild(document.createTextNode('This heat map shows you the average available quantity at different times of the day.'));
-            cht = libtuj.ce();
-            cht.className = 'chart heatmap';
-            d.appendChild(cht);
-            itemPage.append(d);
-            ItemQuantityHeatMap(dta, cht);
+            var doHeatMap = false;
+            for (var x = 0; !doHeatMap && (x < dta.history[bonusSet].length); x++) {
+                doHeatMap |= !!dta.history[bonusSet][x].quantity;
+            }
+            if (doHeatMap) {
+                d = libtuj.ce();
+                d.className = 'chart-section';
+                h = libtuj.ce('h2');
+                d.appendChild(h);
+                $(h).text('Quantity Heat Map');
+                d.appendChild(document.createTextNode('This heat map shows you the average available quantity at different times of the day.'));
+                cht = libtuj.ce();
+                cht.className = 'chart heatmap';
+                d.appendChild(cht);
+                itemPage.append(d);
+                ItemQuantityHeatMap(dta, cht);
+            }
 
-            d = libtuj.ce();
-            d.className = 'chart-section';
-            h = libtuj.ce('h2');
-            d.appendChild(h);
-            $(h).text('Age Heat Map');
-            d.appendChild(document.createTextNode('This heat map shows you the average age of auctions at or below the market price, at different times of the day. Younger age means more posting activity by sellers.'));
-            cht = libtuj.ce();
-            cht.className = 'chart heatmap';
-            d.appendChild(cht);
-            itemPage.append(d);
-            ItemAgeHeatMap(dta, cht);
+            doHeatMap = false;
+            for (var x = 0; !doHeatMap && (x < dta.history[bonusSet].length); x++) {
+                doHeatMap |= dta.history[bonusSet][x].age != 255;
+            }
+            if (doHeatMap) {
+                d = libtuj.ce();
+                d.className = 'chart-section';
+                h = libtuj.ce('h2');
+                d.appendChild(h);
+                $(h).text('Age Heat Map');
+                d.appendChild(document.createTextNode('This heat map shows you the average age of auctions at or below the market price, at different times of the day. Younger age means more posting activity by sellers.'));
+                cht = libtuj.ce();
+                cht.className = 'chart heatmap';
+                d.appendChild(cht);
+                itemPage.append(d);
+                ItemAgeHeatMap(dta, cht);
+            }
         }
 
         itemPage.append(libtuj.Ads.Add('3753400314'));
