@@ -43,4 +43,6 @@ function UpdateDataTables() {
         $cmd .= ' ' . escapeshellarg($table);
 
     passthru($cmd);
+
+    file_put_contents($sqlFile, file_get_contents(__DIR__.'/sql/reagentprice.sql'), FILE_APPEND);
 }

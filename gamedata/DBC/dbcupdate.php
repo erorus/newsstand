@@ -258,8 +258,31 @@ dtecho(dbcdecode('Spell', array(
 	2=>'spellname',
 	4=>'longdescription',
 	24=>'miscid',
-	19=>'reagentsid'
+	19=>'reagentsid',
+    15=>'cooldownsid',
+    13=>'categoriesid',
 	)));
+
+dtecho(dbcdecode('SpellCooldowns', array(
+            1=>'id',
+            4=>'categorycooldown',
+            5=>'individualcooldown',
+        )));
+
+dtecho(dbcdecode('SpellCategories', array(
+            1=>'id',
+            4=>'categoryid',
+            10=>'chargecategoryid',
+        )));
+
+dtecho(dbcdecode('SpellCategory', array(
+            1=>'id',
+            2=>'flags',
+            6=>'chargecooldown',
+        )));
+
+dtecho(run_sql('create temporary table ttblSpellCategory2 select * from ttblSpellCategory'));
+$tables[] = 'SpellCategory2';
 
 dtecho(dbcdecode('SpellMisc', array(
 	1=>'miscid',
@@ -304,13 +327,27 @@ for ($x = 1; $x <= 8; $x++) {
 }
 
 dtecho(run_sql('truncate tblDBCSpell'));
-$sql = 'insert into tblDBCSpell (id,name,icon,description,cooldown,qtymade,yellow,skillline,crafteditem) ';
-$sql .= ' (select distinct s.spellid, s.spellname, si.iconpath, s.longdescription, null,  ';
-$sql .= ' if(se.itemcreated=0,0,if(se.diesides=0,if(se.qtymade=0,1,se.qtymade),(se.qtymade * 2 + se.diesides + 1)/2)),  ';
-$sql .= ' sla.yellowat,sla.lineid,if(se.itemcreated=0,null,se.itemcreated) ';
-$sql .= ' from ttblSpell s left join ttblSpellMisc sm on s.miscid=sm.miscid left join ttblSpellIcon si on si.iconid=sm.iconid,  ';
-$sql .= ' tblDBCItemReagents ir, ttblSpellEffect se, ttblSkillLineAbility sla  ';
-$sql .= ' where s.spellid=se.spellid and s.spellid=sla.spellid and se.effecttypeid in (24,53,157) and s.spellid=ir.spell)';
+$sql = <<<EOF
+insert into tblDBCSpell (id,name,icon,description,cooldown,qtymade,yellow,skillline,crafteditem)
+(select distinct s.spellid, s.spellname, si.iconpath, s.longdescription,
+    greatest(
+        ifnull(cd.categorycooldown * if(c.flags & 8, 86400, 1),0),
+        ifnull(cd.individualcooldown * if(c.flags & 8, 86400, 1),0),
+        ifnull(cc.chargecooldown,0)) / 1000,
+    if(se.itemcreated=0,0,if(se.diesides=0,if(se.qtymade=0,1,se.qtymade),(se.qtymade * 2 + se.diesides + 1)/2)),
+    sla.yellowat,sla.lineid,if(se.itemcreated=0,null,se.itemcreated)
+from ttblSpell s
+left join ttblSpellMisc sm on s.miscid=sm.miscid
+left join ttblSpellIcon si on si.iconid=sm.iconid
+left join ttblSpellCooldowns cd on cd.id = s.cooldownsid
+left join ttblSpellCategories cs on cs.id = s.categoriesid
+left join ttblSpellCategory c on c.id = cs.categoryid
+left join ttblSpellCategory2 cc on cc.id = cs.chargecategoryid
+join tblDBCItemReagents ir on s.spellid=ir.spell
+join ttblSpellEffect se on s.spellid=se.spellid
+join ttblSkillLineAbility sla on s.spellid=sla.spellid
+where se.effecttypeid in (24,53,157))
+EOF;
 dtecho(run_sql($sql));
 
 $sql = 'insert ignore into tblDBCSpell (id,name,icon,description) ';

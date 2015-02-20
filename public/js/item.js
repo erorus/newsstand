@@ -477,6 +477,29 @@ var TUJ_Item = function ()
                 td.appendChild(libtuj.FormatPrice(std * stack));
             }
 
+            if (data.stats[bonusSet].hasOwnProperty('reagentprice') && data.stats[bonusSet].reagentprice) {
+                tr = libtuj.ce('tr');
+                t.appendChild(tr);
+                tr.className = 'spacer';
+                td = libtuj.ce('td');
+                td.colSpan = spacerColSpan;
+                tr.appendChild(td);
+
+                tr = libtuj.ce('tr');
+                t.appendChild(tr);
+                tr.className = 'reagent-price';
+                td = libtuj.ce('th');
+                tr.appendChild(td);
+                td.appendChild(document.createTextNode('Crafting Cost'));
+                td = libtuj.ce('td');
+                tr.appendChild(td);
+                td.appendChild(libtuj.FormatPrice(data.stats[bonusSet].reagentprice));
+                if (stack) {
+                    td = libtuj.ce('td');
+                    tr.appendChild(td);
+                    td.appendChild(libtuj.FormatPrice(data.stats[bonusSet].reagentprice * stack));
+                }
+            }
             tr = libtuj.ce('tr');
             t.appendChild(tr);
             tr.className = 'spacer';
@@ -645,12 +668,15 @@ var TUJ_Item = function ()
 
     function ItemHistoryChart(data, dest)
     {
-        var hcdata = {price: [], priceMaxVal: 0, quantity: [], quantityMaxVal: 0};
+        var hcdata = {price: [], priceMaxVal: 0, quantity: [], quantityMaxVal: 0, reagentPrice: []};
 
         var allPrices = [];
         for (var x = 0; x < data.history[bonusSet].length; x++) {
             hcdata.price.push([data.history[bonusSet][x].snapshot * 1000, data.history[bonusSet][x].price]);
             hcdata.quantity.push([data.history[bonusSet][x].snapshot * 1000, data.history[bonusSet][x].quantity]);
+            if (hcdata.reagentPrice.length || data.history[bonusSet][x].hasOwnProperty('reagentprice')) {
+                hcdata.reagentPrice.push([data.history[bonusSet][x].snapshot * 1000, data.history[bonusSet][x].reagentprice]);
+            }
             if (data.history[bonusSet][x].quantity > hcdata.quantityMaxVal) {
                 hcdata.quantityMaxVal = data.history[bonusSet][x].quantity;
             }
@@ -665,6 +691,35 @@ var TUJ_Item = function ()
         var q3 = allPrices[Math.floor(allPrices.length * 0.75)];
         var iqr = q3 - q1;
         hcdata.priceMaxVal = q3 + (1.5 * iqr);
+
+        var chartSeries = [
+            {
+                type: 'area',
+                name: 'Market Price',
+                color: tujConstants.siteColors[tuj.colorTheme].bluePrice,
+                lineColor: tujConstants.siteColors[tuj.colorTheme].bluePrice,
+                fillColor: tujConstants.siteColors[tuj.colorTheme].bluePriceFill,
+                data: hcdata.price
+            },
+            {
+                type: 'line',
+                name: 'Quantity Available',
+                yAxis: 1,
+                color: tujConstants.siteColors[tuj.colorTheme].redQuantity,
+                data: hcdata.quantity
+            }
+        ];
+
+        if (hcdata.reagentPrice.length) {
+            chartSeries.splice(1,0,{
+                type: 'area',
+                name: 'Crafting Cost',
+                color: tujConstants.siteColors[tuj.colorTheme].greenPrice,
+                lineColor: tujConstants.siteColors[tuj.colorTheme].greenPrice,
+                fillColor: tujConstants.siteColors[tuj.colorTheme].greenPriceFill,
+                data: hcdata.reagentPrice
+            });
+        }
 
         Highcharts.setOptions({
             global: {
@@ -752,7 +807,10 @@ var TUJ_Item = function ()
                 {
                     var tr = '<b>' + Highcharts.dateFormat('%a %b %d, %I:%M%P', this.x) + '</b>';
                     tr += '<br><span style="color: #000099">Market Price: ' + libtuj.FormatPrice(this.points[0].y, true) + '</span>';
-                    tr += '<br><span style="color: #990000">Quantity: ' + libtuj.FormatQuantity(this.points[1].y, true) + '</span>';
+                    if (this.points.length > 2) {
+                        tr += '<br><span style="color: #009900">Crafting Cost: ' + libtuj.FormatPrice(this.points[1].y, true) + '</span>';
+                    }
+                    tr += '<br><span style="color: #990000">Quantity: ' + libtuj.FormatQuantity(this.points[this.points.length-1].y, true) + '</span>';
                     return tr;
                     // &lt;br/&gt;&lt;span style="color: #990000"&gt;Quantity: '+this.points[1].y+'&lt;/span&gt;<xsl:if test="itemgraphs/d[@matsprice != '']">&lt;br/&gt;&lt;span style="color: #999900"&gt;Materials Price: '+this.points[2].y.toFixed(2)+'g&lt;/span&gt;</xsl:if>';
                 }
@@ -776,23 +834,7 @@ var TUJ_Item = function ()
                     }
                 }
             },
-            series: [
-                {
-                    type: 'area',
-                    name: 'Market Price',
-                    color: tujConstants.siteColors[tuj.colorTheme].bluePrice,
-                    lineColor: tujConstants.siteColors[tuj.colorTheme].bluePrice,
-                    fillColor: tujConstants.siteColors[tuj.colorTheme].bluePriceFill,
-                    data: hcdata.price
-                },
-                {
-                    type: 'line',
-                    name: 'Quantity Available',
-                    yAxis: 1,
-                    color: tujConstants.siteColors[tuj.colorTheme].redQuantity,
-                    data: hcdata.quantity
-                }
-            ]
+            series: chartSeries
         });
     }
 

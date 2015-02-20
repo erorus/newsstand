@@ -38,7 +38,7 @@ function ItemStats($house, $item)
 {
     global $db;
 
-    $cacheKey = 'item_statsb4_' . $item;
+    $cacheKey = 'item_stats_' . $item;
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
@@ -50,7 +50,8 @@ function ItemStats($house, $item)
 select i.id, i.name, i.icon, i.display, i.class as classid, i.subclass, ifnull(max(ib.quality), i.quality) quality, i.level+sum(ifnull(ib.level,0)) level, i.stacksize, i.binds, i.buyfromvendor, i.selltovendor, i.auctionable,
 s.price, s.quantity, s.lastseen,
 ifnull(s.bonusset,0) bonusset, ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
-ifnull(group_concat(ib.`tag` order by ib.tagpriority separator ' '), if(ifnull(s.bonusset,0)=0,'',concat('Level ', i.level+sum(ifnull(ib.level,0))))) bonustag
+ifnull(group_concat(ib.`tag` order by ib.tagpriority separator ' '), if(ifnull(s.bonusset,0)=0,'',concat('Level ', i.level+sum(ifnull(ib.level,0))))) bonustag,
+if((select count(*) from tblDBCItemReagents ir where ir.item = i.id) = 0, null, GetReagentPrice(s.house, i.id, null)) reagentprice
 from tblDBCItem i
 left join tblItemSummary s on s.house = ? and s.item = i.id
 left join tblBonusSet bs on s.bonusset = bs.`set`
@@ -75,11 +76,39 @@ EOF;
     return $tr;
 }
 
+function ItemIsCrafted($item)
+{
+    global $db;
+
+    $key = 'item_crafted_' . $item;
+
+    if (($tr = MCGet($key)) !== false) {
+        return $tr == 'yes';
+    }
+
+    DBConnect();
+
+    $tr = 0;
+
+    $stmt = $db->prepare('select count(*) from tblDBCItemReagents where item = ?');
+    $stmt->bind_param('i', $item);
+    $stmt->execute();
+    $stmt->bind_result($tr);
+    $stmt->fetch();
+    $stmt->close();
+
+    $tr = $tr > 0 ? 'yes' : 'no';
+
+    MCSet($key, $tr);
+
+    return ($tr == 'yes');
+}
+
 function ItemHistory($house, $item)
 {
     global $db;
 
-    $key = 'item_history5_' . $item;
+    $key = 'item_history_' . $item;
 
     if (($tr = MCGetHouse($house, $key)) !== false) {
         return $tr;
@@ -89,7 +118,31 @@ function ItemHistory($house, $item)
 
     $historyDays = HISTORY_DAYS;
 
-    $sql = <<<EOF
+    if (ItemIsCrafted($item)) {
+        $sql = <<<EOF
+select bonusset, snapshot, price, quantity, age, reagentprice
+from (select
+    if(bonusset = @prevBonusSet, null, @price := null) resetprice,
+    if(bonusset = @prevBonusSet, null, @age := null) resetage,
+    (@prevBonusSet := bonusset) as bonusset,
+    unix_timestamp(updated) snapshot,
+    cast(if(quantity is null, @price, @price := price) as decimal(11,0)) `price`,
+    ifnull(quantity,0) as quantity,
+    if(age is null, @age, @age := age) as age,
+    reagentprice
+    from (select @price := null, @age := null, @prevBonusSet := null) priceSetup,
+        (select `is`.bonusset, s.updated, ih.quantity, ih.price, ih.age, GetReagentPrice(s.house, `is`.item, s.updated) reagentprice
+        from tblSnapshot s
+        join tblItemSummary `is` on `is`.house = s.house
+        left join tblItemHistory ih on s.updated = ih.snapshot and ih.house = `is`.house and ih.item = `is`.item and ih.bonusset = `is`.bonusset
+        where `is`.item = ? and s.house = ? and s.updated >= timestampadd(day,-$historyDays,now()) and s.flags & 1 = 0
+        group by `is`.bonusset, s.updated
+        order by `is`.bonusset, s.updated asc
+        ) ordered
+    ) withoutresets
+EOF;
+    } else {
+        $sql = <<<EOF
 select bonusset, snapshot, price, quantity, age
 from (select
     if(bonusset = @prevBonusSet, null, @price := null) resetprice,
@@ -110,6 +163,7 @@ from (select
         ) ordered
     ) withoutresets
 EOF;
+    }
 
     $stmt = $db->prepare($sql);
     $stmt->bind_param('ii', $item, $house);
