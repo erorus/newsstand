@@ -38,7 +38,7 @@ function ItemStats($house, $item)
 {
     global $db;
 
-    $cacheKey = 'item_stats_' . $item;
+    $cacheKey = 'item_statsa_' . $item;
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
@@ -46,15 +46,14 @@ function ItemStats($house, $item)
 
     DBConnect();
 
-    // , if((select count(*) from tblDBCItemReagents ir where ir.item = i.id) = 0, null, GetReagentPrice(s.house, i.id, null)) reagentprice
-
     $sql = <<<EOF
 select i.id, i.name, i.icon, i.display, i.class as classid, i.subclass, ifnull(max(ib.quality), i.quality) quality, i.level+sum(ifnull(ib.level,0)) level, i.stacksize, i.binds, i.buyfromvendor, i.selltovendor, i.auctionable,
 s.price, s.quantity, s.lastseen,
 ifnull(s.bonusset,0) bonusset, ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
-ifnull(group_concat(ib.`tag` order by ib.tagpriority separator ' '), if(ifnull(s.bonusset,0)=0,'',concat('Level ', i.level+sum(ifnull(ib.level,0))))) bonustag
+ifnull(group_concat(ib.`tag` order by ib.tagpriority separator ' '), if(ifnull(s.bonusset,0)=0,'',concat('Level ', i.level+sum(ifnull(ib.level,0))))) bonustag,
+if((select count(*) from tblDBCItemReagents ir where ir.item = i.id) = 0, null, GetReagentPrice(s.house, i.id, null)) reagentprice
 from tblDBCItem i
-left join tblItemSummary s on s.house = ? and s.item = i.id
+join tblItemSummary s on s.house = ? and s.item = i.id
 left join tblBonusSet bs on s.bonusset = bs.`set`
 left join tblDBCItemBonus ib on ifnull(bs.bonus, i.basebonus) = ib.id
 where i.id = ?
@@ -109,7 +108,7 @@ function ItemHistory($house, $item)
 {
     global $db;
 
-    $key = 'item_history_' . $item;
+    $key = 'item_historya_' . $item;
 
     if (($tr = MCGetHouse($house, $key)) !== false) {
         return $tr;
@@ -119,7 +118,7 @@ function ItemHistory($house, $item)
 
     $historyDays = HISTORY_DAYS;
 
-    if (false && ItemIsCrafted($item)) {
+    if (ItemIsCrafted($item)) {
         $sql = <<<EOF
 select bonusset, snapshot, price, quantity, age, reagentprice
 from (select
