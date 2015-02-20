@@ -46,12 +46,13 @@ function ItemStats($house, $item)
 
     DBConnect();
 
+    // , if((select count(*) from tblDBCItemReagents ir where ir.item = i.id) = 0, null, GetReagentPrice(s.house, i.id, null)) reagentprice
+
     $sql = <<<EOF
 select i.id, i.name, i.icon, i.display, i.class as classid, i.subclass, ifnull(max(ib.quality), i.quality) quality, i.level+sum(ifnull(ib.level,0)) level, i.stacksize, i.binds, i.buyfromvendor, i.selltovendor, i.auctionable,
 s.price, s.quantity, s.lastseen,
 ifnull(s.bonusset,0) bonusset, ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
-ifnull(group_concat(ib.`tag` order by ib.tagpriority separator ' '), if(ifnull(s.bonusset,0)=0,'',concat('Level ', i.level+sum(ifnull(ib.level,0))))) bonustag,
-if((select count(*) from tblDBCItemReagents ir where ir.item = i.id) = 0, null, GetReagentPrice(s.house, i.id, null)) reagentprice
+ifnull(group_concat(ib.`tag` order by ib.tagpriority separator ' '), if(ifnull(s.bonusset,0)=0,'',concat('Level ', i.level+sum(ifnull(ib.level,0))))) bonustag
 from tblDBCItem i
 left join tblItemSummary s on s.house = ? and s.item = i.id
 left join tblBonusSet bs on s.bonusset = bs.`set`
@@ -118,7 +119,7 @@ function ItemHistory($house, $item)
 
     $historyDays = HISTORY_DAYS;
 
-    if (ItemIsCrafted($item)) {
+    if (false && ItemIsCrafted($item)) {
         $sql = <<<EOF
 select bonusset, snapshot, price, quantity, age, reagentprice
 from (select
