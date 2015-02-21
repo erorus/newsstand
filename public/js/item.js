@@ -711,7 +711,7 @@ var TUJ_Item = function ()
         ];
 
         if (hcdata.reagentPrice.length) {
-            chartSeries.splice(1,0,{
+            chartSeries.splice(0,0,{
                 type: 'area',
                 name: 'Crafting Cost',
                 color: tujConstants.siteColors[tuj.colorTheme].greenPrice,
@@ -719,6 +719,7 @@ var TUJ_Item = function ()
                 fillColor: tujConstants.siteColors[tuj.colorTheme].greenPriceFill,
                 data: hcdata.reagentPrice
             });
+            chartSeries[1].fillColor = tujConstants.siteColors[tuj.colorTheme].bluePriceFillAlpha;
         }
 
         Highcharts.setOptions({
@@ -806,11 +807,13 @@ var TUJ_Item = function ()
                 formatter: function ()
                 {
                     var tr = '<b>' + Highcharts.dateFormat('%a %b %d, %I:%M%P', this.x) + '</b>';
-                    tr += '<br><span style="color: #000099">Market Price: ' + libtuj.FormatPrice(this.points[0].y, true) + '</span>';
+                    var idx = 0;
                     if (this.points.length > 2) {
-                        tr += '<br><span style="color: #009900">Crafting Cost: ' + libtuj.FormatPrice(this.points[1].y, true) + '</span>';
+                        tr += '<br><span style="color: #009900">Crafting Cost: ' + libtuj.FormatPrice(this.points[0].y, true) + '</span>';
+                        idx++;
                     }
-                    tr += '<br><span style="color: #990000">Quantity: ' + libtuj.FormatQuantity(this.points[this.points.length-1].y, true) + '</span>';
+                    tr += '<br><span style="color: #000099">Market Price: ' + libtuj.FormatPrice(this.points[idx].y, true) + '</span>';
+                    tr += '<br><span style="color: #990000">Quantity: ' + libtuj.FormatQuantity(this.points[idx+1].y, true) + '</span>';
                     return tr;
                     // &lt;br/&gt;&lt;span style="color: #990000"&gt;Quantity: '+this.points[1].y+'&lt;/span&gt;<xsl:if test="itemgraphs/d[@matsprice != '']">&lt;br/&gt;&lt;span style="color: #999900"&gt;Materials Price: '+this.points[2].y.toFixed(2)+'g&lt;/span&gt;</xsl:if>';
                 }
