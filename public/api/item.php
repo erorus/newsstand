@@ -38,7 +38,7 @@ function ItemStats($house, $item)
 {
     global $db;
 
-    $cacheKey = 'item_statsx_' . $item;
+    $cacheKey = 'item_statsy_' . $item;
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
@@ -51,24 +51,21 @@ select i.id, i.name, i.icon, i.display, i.class as classid, i.subclass, ifnull(m
 s.price, s.quantity, s.lastseen,
 ifnull(s.bonusset,0) bonusset, ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
 ifnull(group_concat(ib.`tag` order by ib.tagpriority separator ' '), if(ifnull(s.bonusset,0)=0,'',concat('Level ', i.level+sum(ifnull(ib.level,0))))) bonustag,
-if((select count(*) from tblDBCItemReagents ir where ir.item = i.id) = 0, null, GetReagentPrice(s.house, i.id, null)) reagentprice
+GetReagentPrice(s.house, i.id, null) reagentprice
 from tblDBCItem i
-left join tblItemSummary s on s.house = ? and s.item = i.id
+left join tblItemSummary s on s.house = %d and s.item = i.id
 left join tblBonusSet bs on s.bonusset = bs.`set`
 left join tblDBCItemBonus ib on ifnull(bs.bonus, i.basebonus) = ib.id
-where i.id = ?
+where i.id = %d
 group by s.bonusset
 EOF;
 
-    $stmt = $db->prepare($sql);
-    $stmt->bind_param('ii', $house, $item);
-    $stmt->execute();
-    $tr = DBMapArrayStatement($stmt, ['bonusset', null]);
+    $result = $db->query(sprintf($sql, $house, $item), MYSQLI_USE_RESULT);
+    $tr = DBMapArray($result, array('bonusset', null));
     foreach ($tr as &$bonusRow) {
         $bonusRow = array_pop($bonusRow);
     }
     unset($bonusRow);
-    $stmt->close();
 
     MCSetHouse($house, $cacheKey, $tr);
 
@@ -107,15 +104,13 @@ function ItemHistory($house, $item)
 {
     global $db;
 
-    $key = 'item_historyx_' . $item;
+    $key = 'item_historyy_' . $item;
 
     if (($tr = MCGetHouse($house, $key)) !== false) {
         return $tr;
     }
 
     DBConnect();
-
-    $historyDays = HISTORY_DAYS;
 
     if (ItemIsCrafted($item)) {
         $sql = <<<EOF
@@ -134,7 +129,7 @@ from (select
         from tblSnapshot s
         join tblItemSummary `is` on `is`.house = s.house
         left join tblItemHistory ih on s.updated = ih.snapshot and ih.house = `is`.house and ih.item = `is`.item and ih.bonusset = `is`.bonusset
-        where `is`.item = ? and s.house = ? and s.updated >= timestampadd(day,-$historyDays,now()) and s.flags & 1 = 0
+        where `is`.item = %d and s.house = %d and s.updated >= timestampadd(day,-%d,now()) and s.flags & 1 = 0
         group by `is`.bonusset, s.updated
         order by `is`.bonusset, s.updated asc
         ) ordered
@@ -156,7 +151,7 @@ from (select
         from tblSnapshot s
         join tblItemSummary `is` on `is`.house = s.house
         left join tblItemHistory ih on s.updated = ih.snapshot and ih.house = `is`.house and ih.item = `is`.item and ih.bonusset = `is`.bonusset
-        where `is`.item = ? and s.house = ? and s.updated >= timestampadd(day,-$historyDays,now()) and s.flags & 1 = 0
+        where `is`.item = %d and s.house = %d and s.updated >= timestampadd(day,-%d,now()) and s.flags & 1 = 0
         group by `is`.bonusset, s.updated
         order by `is`.bonusset, s.updated asc
         ) ordered
@@ -164,11 +159,8 @@ from (select
 EOF;
     }
 
-    $stmt = $db->prepare($sql);
-    $stmt->bind_param('ii', $item, $house);
-    $stmt->execute();
-    $tr = DBMapArrayStatement($stmt, array('bonusset', null));
-    $stmt->close();
+    $result = $db->query(sprintf($sql, $item, $house, HISTORY_DAYS));
+    $tr = DBMapArray($result, array('bonusset', null));
 
     foreach ($tr as &$bonusSet) {
         while (count($bonusSet) > 0 && is_null($bonusSet[0]['price'])) {

@@ -78,9 +78,9 @@ CREATE PROCEDURE GetReagentPriceR(
       FROM tblDBCItemReagents
       WHERE item = inID AND spell = _spellid;
 
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done := 1;
 
-      sproc: BEGIN
+    sproc: BEGIN
 
       set retailprice := GetMarketPrice(inHouse, inID, null, inDate);
 
@@ -104,40 +104,40 @@ CREATE PROCEDURE GetReagentPriceR(
 
       OPEN curspells;
       spell_loop: LOOP
-      FETCH curspells
-      INTO _spellid, _skillline, _istransmute;
-      IF done
-      THEN
-        LEAVE spell_loop;
-      END IF;
-      IF _istransmute > 0 AND seenspells > 0
-      THEN
-        LEAVE spell_loop;
-      END IF;
-
-      SET seenspells := seenspells + 1;
-      SET runningprice := 0;
-      SET retprice := NULL;
-
-      OPEN curreagents;
-      reagent_loop: LOOP
-        FETCH curreagents
-        INTO _reagentid, _quantity;
+        FETCH curspells
+        INTO _spellid, _skillline, _istransmute;
         IF done
         THEN
-          LEAVE reagent_loop;
+          LEAVE spell_loop;
         END IF;
-
-        CALL GetReagentPriceR(inHouse, _reagentid, inDate, inLevels + 1, _skillline, retprice);
-        IF retprice IS NULL
+        IF _istransmute > 0 AND seenspells > 0
         THEN
-          LEAVE reagent_loop;
+          LEAVE spell_loop;
         END IF;
 
-        SET runningprice := runningprice + (retprice * _quantity);
-      END LOOP;
-      CLOSE curreagents;
-      SET done := 0;
+        SET seenspells := seenspells + 1;
+        SET runningprice := 0;
+        SET retprice := NULL;
+
+        OPEN curreagents;
+        reagent_loop: LOOP
+          FETCH curreagents
+          INTO _reagentid, _quantity;
+          IF done
+          THEN
+            LEAVE reagent_loop;
+          END IF;
+
+          CALL GetReagentPriceR(inHouse, _reagentid, inDate, inLevels + 1, _skillline, retprice);
+          IF retprice IS NULL
+          THEN
+            LEAVE reagent_loop;
+          END IF;
+
+          SET runningprice := runningprice + (retprice * _quantity);
+        END LOOP;
+        CLOSE curreagents;
+        SET done := 0;
 
         IF (retprice IS NOT NULL) AND ((outPrice IS NULL) OR (runningprice < outPrice))
         THEN
