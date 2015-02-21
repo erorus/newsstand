@@ -105,31 +105,7 @@ function DBMapArray(&$result, $key = false, $autoClose = true)
             $key = array_keys($row);
             $key = array_shift($key);
         }
-        if (is_array($key)) {
-            switch (count($key)) {
-                case 1:
-                    $tr[$row[$key[0]]] = $singleCol ? $row[$singleCol] : $row;
-                    break;
-                case 2:
-                    if ($key[1]) {
-                        $tr[$row[$key[0]]][$row[$key[1]]] = $singleCol ? $row[$singleCol] : $row;
-                    } else {
-                        $tr[$row[$key[0]]][] = $singleCol ? $row[$singleCol] : $row;
-                    }
-                    break;
-                case 3:
-                    if ($key[2]) {
-                        $tr[$row[$key[0]]][$row[$key[1]]][$row[$key[2]]] = $row;
-                    } else {
-                        $tr[$row[$key[0]]][$row[$key[1]]][] = $singleCol ? $row[$singleCol] : $row;
-                    }
-                    break;
-            }
-        } elseif (is_null($key)) {
-            $tr[] = $singleCol ? $row[$singleCol] : $row;
-        } else {
-            $tr[$row[$key]] = $singleCol ? $row[$singleCol] : $row;
-        }
+        DBMapRow($tr, $row, $singleCol, $key);
     }
 
     if ($autoClose) {
@@ -137,6 +113,67 @@ function DBMapArray(&$result, $key = false, $autoClose = true)
     }
 
     return $tr;
+}
+
+// why this? because for some reason we get pretty php segfaults when we use stored mysql functions with group-bys and run it through fetch_assoc()
+function DBMapArrayStatement(&$stmt, $key = false)
+{
+    $tr = array();
+
+    $fields = [];
+    $fieldReferences = [];
+    $resultMeta = $stmt->result_metadata();
+    $fieldObjects = $resultMeta->fetch_fields();
+    $singleCol = count($fieldObjects) < 2;
+    for ($x = 0; $x < count($fieldObjects); $x++) {
+        $fieldName = $fieldObjects[$x]->name;
+        $fields[$fieldName] = 0;
+        $fieldReferences[] = &$fields[$fieldName];
+        if (($x == 0) && ($key === false)) {
+            $key = $fieldName;
+        }
+    }
+    $stmt->execute();
+    call_user_func_array([$stmt, 'bind_result'], $fieldReferences);
+
+    while ($stmt->fetch()) {
+        $row = [];
+        foreach ($fields as $k => $v) {
+            $row[$k] = $v;
+        }
+        DBMapRow($tr, $row, $singleCol, $key);
+    }
+
+    return $tr;
+}
+
+function DBMapRow(&$tr, &$row, $singleCol, $key)
+{
+    if (is_array($key)) {
+        switch (count($key)) {
+            case 1:
+                $tr[$row[$key[0]]] = $singleCol ? $row[$singleCol] : $row;
+                break;
+            case 2:
+                if ($key[1]) {
+                    $tr[$row[$key[0]]][$row[$key[1]]] = $singleCol ? $row[$singleCol] : $row;
+                } else {
+                    $tr[$row[$key[0]]][] = $singleCol ? $row[$singleCol] : $row;
+                }
+                break;
+            case 3:
+                if ($key[2]) {
+                    $tr[$row[$key[0]]][$row[$key[1]]][$row[$key[2]]] = $row;
+                } else {
+                    $tr[$row[$key[0]]][$row[$key[1]]][] = $singleCol ? $row[$singleCol] : $row;
+                }
+                break;
+        }
+    } elseif (is_null($key)) {
+        $tr[] = $singleCol ? $row[$singleCol] : $row;
+    } else {
+        $tr[$row[$key]] = $singleCol ? $row[$singleCol] : $row;
+    }
 }
 
 function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
