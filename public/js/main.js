@@ -278,6 +278,7 @@ var libtuj = {
     },
     Ads: {
         addCount: 0,
+        adsWillShow: true,
         Add: function (slot, cssClass)
         {
             var ad = libtuj.ce();
@@ -298,9 +299,24 @@ var libtuj = {
         },
         Show: function ()
         {
+            if (!libtuj.Ads.adsWillShow) {
+                libtuj.Ads.ShowSubstitutes();
+                return;
+            }
             while (libtuj.Ads.addCount > 0) {
                 (window.adsbygoogle = window.adsbygoogle || []).push({});
                 libtuj.Ads.addCount--;
+            }
+        },
+        ShowSubstitutes: function ()
+        {
+            var html = "<div>The Undermine Journal's servers cost at least $100 every month.</div><div>We rely on ads and donations to pay our bills.</div><div><br>If you won't view ads, please <a href=\"" + tuj.BuildHash({'page':'donate', 'id': ''}) + "\">consider a donation</a> to keep the site online. Thank you.</div>";
+            $('div.ad').removeClass('ad').addClass('adsubstitute').html(html);
+        },
+        onWindowLoad: function () {
+            libtuj.Ads.adsWillShow = window.adsbygoogle && !$.isArray(window.adsbygoogle);
+            if (!libtuj.Ads.adsWillShow) {
+                libtuj.Ads.ShowSubstitutes();
             }
         }
     },
@@ -1219,6 +1235,7 @@ $(document).ready(function ()
 {
     tuj = new TUJ();
 });
+$(window).load(libtuj.Ads.onWindowLoad);
 
 var optimizedResize = (function ()
 {

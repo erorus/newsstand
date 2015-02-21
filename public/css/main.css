@@ -44,11 +44,16 @@ body.realm #topcorner .region-realm { display: none }
 body.realm #topcorner form { display: none }
 body.realm #topcorner #realm-updated { display: none }
 
-.ad { width: 728px; height: 90px; margin: 1em auto }
-.ad.box { width: 336px; height: 280px; display: inline-block; margin: 1em 0 }
+.ad, .adsubstitute { width: 728px; height: 90px; margin: 1em auto }
+.ad.box, .adsubstitute.box { width: 336px; height: 280px; display: inline-block; margin: 1em 0 }
+
+.adsubstitute { -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; border: 1px dashed black; padding: 5px; text-align: center }
+.adsubstitute.box > div { margin: 1.5em 0 }
+.adsubstitute a { text-decoration: underline; white-space: nowrap }
 
 .ad > .adsbygoogle { display:inline-block; width:728px; height:90px }
 .ad.box > .adsbygoogle { display:inline-block; width:336px; height:280px }
+.adsubstitute > .adsbygoogle { display: none }
 
 .q0, .q0 a { color: #9d9d9d } /* Poor */
 .q1, .q1 a { color: #ffffff } /* Common */
@@ -165,6 +170,7 @@ img.captcha-button.selected { border-color: #006600 }
 #captcha-page input { font-size: 125% }
 
 #donate-page form { margin: 2em }
+#donate-page a { text-decoration: underline }
 #donate-thanks { display: none; margin: 2em; font-size: 125%; border-bottom: 1px solid black; padding: 0 2em 2em }
 
 #category-sidebar { position: relative; float: right; width: 14em; line-height: 1.4em; right: -2em }

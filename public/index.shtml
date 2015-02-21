@@ -117,6 +117,17 @@
                     <div class="news">
                         The services of The Undermine Journal are provided at no cost to the public, despite significant monthly bills for keeping the servers online and running. The ads you see on our data pages help to cover these costs of doing business, but they do not cover the time spent by staff on maintenance and new features.<p>
 
+                        Just as a quick reminder, here are some services we provide that you can't find anywhere else:
+                        <ul>
+                            <li>Hourly chart resolution for the past 2 weeks</li>
+                            <li>OHLC pricing charts for stackable items since December 2014</li>
+                            <li>Separate pricing for item bonus levels (Heroic, Warforged, Mythic...)</li>
+                            <li>Battle pet support, with separate pricing for different breeds</li>
+                            <li>Transmog buying gallery</li>
+                            <li>Seller posting patterns</li>
+                            <li><a href="http://stormspire.net/official-forum-undermine-journal/15527-undermine-journal-addon.html">Simple pricing addon</a></li>
+                        </ul>
+
                         We strive to provide a valuable service, and we would appreciate any contribution you make towards the continued operation of this site.<p>
 
                         <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
