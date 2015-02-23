@@ -18,7 +18,9 @@ if ($search == '') {
 BotCheck();
 HouseETag($house);
 
-if ($json = MCGetHouse($house, 'searchb_' . $search)) {
+$searchCacheKey = 'search_' . md5($search);
+
+if ($json = MCGetHouse($house, $searchCacheKey)) {
     json_return($json);
 }
 
@@ -39,7 +41,7 @@ foreach ($ak as $k) {
 
 $json = json_encode($json, JSON_NUMERIC_CHECK);
 
-MCSetHouse($house, 'search_' . $search, $json);
+MCSetHouse($house, $searchCacheKey, $json);
 
 json_return($json);
 
