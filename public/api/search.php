@@ -9,7 +9,7 @@ if (!isset($_GET['house']) || !isset($_GET['search'])) {
 }
 
 $house = intval($_GET['house'], 10);
-$search = strtolower(substr(trim($_GET['search']), 0, 50));
+$search = mb_strtolower(substr(trim($_GET['search'], " \t\n\r[]"), 0, 50));
 
 if ($search == '') {
     json_return(array());
