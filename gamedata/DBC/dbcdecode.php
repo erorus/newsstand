@@ -72,7 +72,7 @@ function dbcdecode($filenmpart,$fields,$typehints=array()) {
 
 	$sql = "create temporary table ttblNum$tbl (";
 	for ($x = 1; $x <= $numfields; $x++) $sql .= (($x > 1)?',':'')."n$x int ";
-	$sql .= ") type=heap;";
+	$sql .= ") engine=memory;";
 	fwrite(STDERR, run_sql($sql));
 	
 	fseek($f,$headersize+$postheadersize);
@@ -245,7 +245,7 @@ EOF;
 		}
 	}
 	foreach ($idxfields as $idx) $sql .= ', index using hash ('.$idx.')';
-	$sql .= ') type=heap;';	
+	$sql .= ') engine=memory;';
 	//dtecho("$sql");
 	run_sql($sql);
 
