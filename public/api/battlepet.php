@@ -40,7 +40,7 @@ function PetStats($house, $species)
     $sql = <<<EOF
 select i.id, i.name, i.icon, i.type, i.npc,
 s.price, s.quantity, s.lastseen, s.breed
-from tblPet i
+from tblDBCPet i
 left join tblPetSummary s on s.house = ? and s.species = i.id
 where i.id = ?
 EOF;

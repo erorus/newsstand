@@ -48,7 +48,7 @@ function CategoryResult_battlepets($house)
     $sql = <<<EOF
 SELECT ps.species, ps.breed, ps.price, ps.quantity, ps.lastseen, round(avg(ph.price)) avgprice, p.name, p.type, p.icon, p.npc, 0 regionavgprice
 FROM tblPetSummary ps
-JOIN tblPet p on ps.species=p.id
+JOIN tblDBCPet p on ps.species=p.id
 LEFT JOIN tblPetHistory ph on ph.house = ps.house and ph.species = ps.species and ph.breed = ps.breed
 WHERE ps.house = ?
 group by ps.species, ps.breed

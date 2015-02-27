@@ -338,7 +338,7 @@ function NewPets($limit = 20)
     $sql = <<<EOF
     select `is`.species from
     (select distinct species from tblPetSummary) `is`
-    left join tblPet i on i.id = `is`.species
+    left join tblDBCPet i on i.id = `is`.species
     where i.id is null
     limit ?
 EOF;
@@ -359,22 +359,17 @@ function SavePets($pets)
 
     $cols = array_keys($petMap);
 
-    $sql = 'insert into tblPet (`json`,`created`,`updated`,`' . implode('`,`', $cols) . '`) values (%s,NOW(),NOW()';
+    $sql = 'replace into tblDBCPet (`' . implode('`,`', $cols) . '`) values (';
+    $x = 0;
     foreach ($cols as $col) {
-        $sql .= ',%s';
+        $sql .= ($x++ == 0 ? '' : ',') . '%s';
     }
 
-    $sql .= ') on duplicate key update `updated` = values(`updated`), `json` = values(`json`)';
-    foreach ($cols as $col) {
-        if ($col != 'id') {
-            $sql .= ", `$col` = values(`$col`)";
-        }
-    }
+    $sql .= ')';
 
     foreach ($pets as $pet) {
         $params[0] = $sql;
-        $params[1] = "'" . $db->real_escape_string($pet['json']) . "'";
-        $x = 2;
+        $x = 1;
         foreach ($cols as $col) {
             $params[$x++] = (is_null($pet[$col]) ? 'null' : "'" . $db->real_escape_string($pet[$col]) . "'");
         }

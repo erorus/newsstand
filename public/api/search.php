@@ -142,9 +142,10 @@ function SearchBattlePets($house, $search)
 select i.id, i.name, i.icon, i.type, i.npc,
 min(if(s.quantity>0,s.price,null)) price, sum(s.quantity) quantity, unix_timestamp(max(s.lastseen)) lastseen,
 (select round(avg(h.price)) from tblPetHistory h where h.house=? and h.species=i.id group by h.breed order by 1 asc limit 1) avgprice
-from tblPet i
+from tblDBCPet i
 left join tblPetSummary s on s.house=? and s.species=i.id
 where i.name like ?
+and not i.flags & 0x10
 group by i.id
 limit ?
 EOF;

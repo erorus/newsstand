@@ -10,6 +10,20 @@ DBConnect();
 $tables = array();
 dtecho(run_sql('set session max_heap_table_size='.(1024*1024*1024)));
 
+dtecho(dbcdecode('FileData', array(1=>'id', 2=>'name')));
+dtecho(dbcdecode('BattlePetSpecies', array(1=>'id', 2=>'npcid', 3=>'iconid', 5=>'type', 6=>'category', 7=>'flags')));
+dtecho(dbcdecode('Creature', array(1=>'id', 15=>'name')));
+
+dtecho(run_sql('truncate tblDBCPet'));
+$sql = <<<EOF
+insert into tblDBCPet (id, name, type, icon, npc, category, flags)
+(select bps.id, c.name, bps.type, if(right(lower(fd.name), 4) = '.blp', lower(substr(fd.name, 1, length(fd.name) - 4)), lower(fd.name)), bps.npcid, bps.category, bps.flags
+from ttblBattlePetSpecies bps
+join ttblCreature c on bps.npcid = c.id
+join ttblFileData fd on bps.iconid = fd.id)
+EOF;
+dtecho(run_sql($sql));
+
 dtecho(dbcdecode('ItemBonus', array(2=>'bonusid', 3=>'changetype', 4=>'param1', 5=>'param2', 6=>'prio')));;
 dtecho(dbcdecode('ItemNameDescription', array(1=>'id', 2=>'name')));
 
@@ -82,7 +96,6 @@ foreach ($bonuses as $bonusId => $bonusData) {
 unset($bonuses, $bonusNames, $bonusId, $bonusData);
 dtecho(run_sql('update tblDBCItemBonus set flags = flags | 1 where ifnull(level,0) != 0'));
 
-dtecho(dbcdecode('FileData', array(1=>'id', 2=>'name')));
 dtecho(dbcdecode('Item', array(1=>'id', 2=>'classid', 3=>'subclassid', 8=>'iconfiledataid')));
 dtecho(dbcdecode('Item-sparse', array(
     1=>'id',
