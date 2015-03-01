@@ -693,20 +693,8 @@ function CategoryResult_blacksmithing($house)
     $tr = ['name' => 'Blacksmithing', 'results' => []];
     $sortIndex = 0;
 
-    for ($x = 1; $x <= 3; $x++) {
-        $idx = count($expansions) - $x;
-        $nm = ($x == 3) ? 'Other' : $expansions[$idx];
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'sort' => ['main' => $sortIndex++],
-            'data' => [
-                'name'  => $nm . ' Consumables',
-                'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion' . ($x == 3 ? '<=' : '=') . $idx . ' and x.level>40 and x.class=0 and xs.skillline=164) xyz on xyz.id = i.id'])
-            ]
-        ];
-    }
-
-    $key = 'category_blacksmithing_levels_' . (count($expansionLevels) - 1);
+    /*
+    $key = 'category_blacksmithing_levels2_' . (count($expansionLevels) - 1);
     if (($armorLevels = MCGet($key)) === false) {
         DBConnect();
 
@@ -778,8 +766,54 @@ EOF;
         }
     }
     $sortIndex++;
+    */
 
-    usort(
+    $x = count($expansions) - 1;
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'sort' => ['main' => $sortIndex++],
+        'data' => [
+            'name'  => $expansions[$x] . ' Weapons and Shields',
+            'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $x . ' and (x.class=2 or (x.class = 4 and x.subclass = 6)) and xs.skillline=164) xyz on xyz.id = i.id'])
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'sort' => ['main' => $sortIndex++],
+        'data' => [
+            'name'  => $expansions[$x] . ' Armor',
+            'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $x . ' and x.class = 4 and x.subclass != 6 and xs.skillline=164) xyz on xyz.id = i.id'])
+        ]
+    ];
+
+
+    for ($x = count($expansions) - 1; $x >= 5; $x--) {
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'sort' => ['main' => $sortIndex++],
+            'data' => [
+                'name'  => $expansions[$x] . ' Trade Goods',
+                'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $x . ' and x.class=7 and xs.skillline=164) xyz on xyz.id = i.id'])
+            ]
+        ];
+    }
+
+    for ($x = 1; $x <= 3; $x++) {
+        $idx = count($expansions) - $x;
+        $nm = ($x == 3) ? 'Other' : $expansions[$idx];
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'sort' => ['main' => $sortIndex++],
+            'data' => [
+                'name'  => $nm . ' Consumables',
+                'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion' . ($x == 3 ? '<=' : '=') . $idx . ' and x.level>40 and x.class=0 and xs.skillline=164) xyz on xyz.id = i.id'])
+            ]
+        ];
+    }
+
+    /*usort(
         $tr['results'], function ($a, $b) {
             if ($a['sort']['main'] != $b['sort']['main']) {
                 return $a['sort']['main'] - $b['sort']['main'];
@@ -792,7 +826,7 @@ EOF;
             }
             return strcmp($a['sort']['name'], $b['sort']['name']);
         }
-    );
+    );*/
 
     return $tr;
 }
