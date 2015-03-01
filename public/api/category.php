@@ -476,6 +476,12 @@ function CategoryResult_skinning($house)
         if ($x == 3) {
             $lsql .= ' and i.id != 38425 or i.id = 52977';
         }
+        if ($x == 4) {
+            $lsql .= ' and i.id != 110610';
+        }
+        if ($x == 5) {
+            $lsql .= ' or i.id = 110610';
+        }
         $lsql = 'i.class=7 and i.subclass=6 and i.quality > 0 and (' . $lsql . ')';
         $tr['results'][] = [
             'name' => 'ItemList',
@@ -514,7 +520,7 @@ function CategoryResult_herbalism($house)
         }
         if ($x == 5) {
             $lsql2 = ' or i.id in (109130)';
-            $lsql3 = ' and i.id not in (109629, 109628, 109627, 109626, 109625, 109624)';
+            $lsql3 = ' and i.id not in (109130, 109629, 109628, 109627, 109626, 109625, 109624)';
         }
         $lsql = '((i.class=7 and i.subclass=9 and i.quality in (1,2) and (' . $lsql . '))' . $lsql2 . ')' . $lsql3;
         $tr['results'][] = [
