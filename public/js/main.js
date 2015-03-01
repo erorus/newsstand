@@ -754,6 +754,7 @@ var TUJ = function ()
             i.name = 'search';
             i.type = 'text';
             i.placeholder = 'Search';
+            i.id = 'searchbox';
 
             $(form).on('submit',function ()
             {
@@ -1165,6 +1166,8 @@ var TUJ = function ()
                 this.href = tuj.BuildHash({page: parts[0], id: parts[1]});
             }
         });
+
+        $('#searchbox').focus();
     }
 
     function SetDarkTheme(dark)
