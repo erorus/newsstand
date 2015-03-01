@@ -1028,7 +1028,6 @@ function CategoryResult_tailoring($house)
 
     $tr = ['name' => 'Tailoring', 'results' => []];
 
-
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
@@ -1037,84 +1036,63 @@ function CategoryResult_tailoring($house)
         ]
     ];
 
-    $x = count($expansions);
-    $x--;
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
-            'name'  => $expansions[$x] . ' Bags',
-            'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.level between ' . $expansionLevels[$x - 1] . '+1 and ' . $expansionLevels[$x] . ' and x.class=1 and x.subclass=0 and xs.skillline=197) xyz on xyz.id = i.id'])
-        ]
-    ];
-    $x--;
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => $expansions[$x] . ' Bags',
-            'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.level between ' . $expansionLevels[$x - 1] . '+1 and ' . $expansionLevels[$x] . ' and x.class=1 and x.subclass=0 and xs.skillline=197) xyz on xyz.id = i.id'])
-        ]
-    ];
-    $x--;
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Other Bags',
-            'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.level<=' . $expansionLevels[$x] . ' and x.level>40 and x.class=1 and x.subclass=0 and xs.skillline=197) xyz on xyz.id = i.id'])
+            'name'  => 'Bags',
+            'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.level>40 and x.class=1 and x.subclass=0 and xs.skillline=197) xyz on xyz.id = i.id'])
         ]
     ];
 
-    $x = count($expansions);
-    $x--;
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
-            'name'  => $expansions[$x] . ' Profession Bags',
-            'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.level between ' . $expansionLevels[$x - 1] . '+1 and ' . $expansionLevels[$x] . ' and x.class=1 and x.subclass!=0 and xs.skillline=197) xyz on xyz.id = i.id'])
-        ]
-    ];
-    $x--;
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => $expansions[$x] . ' Profession Bags',
-            'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.level between ' . $expansionLevels[$x - 1] . '+1 and ' . $expansionLevels[$x] . ' and x.class=1 and x.subclass!=0 and xs.skillline=197) xyz on xyz.id = i.id'])
-        ]
-    ];
-    $x--;
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Other Profession Bags',
-            'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.level<=' . $expansionLevels[$x] . ' and x.level>40 and x.class=1 and x.subclass!=0 and xs.skillline=197) xyz on xyz.id = i.id'])
+            'name'  => 'Profession Bags',
+            'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.level>40 and x.class=1 and x.subclass!=0 and xs.skillline=197) xyz on xyz.id = i.id'])
         ]
     ];
 
-    $x = count($expansions);
-    $x--;
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
-            'name'  => $expansions[$x] . ' Spellthread',
-            'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion=' . $x . ' and x.class=0 and x.subclass=6 and xs.skillline=197) xyz on xyz.id = i.id'])
-        ]
-    ];
-    $x--;
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => $expansions[$x] . ' Spellthread',
-            'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion=' . $x . ' and x.class=0 and x.subclass=6 and xs.skillline=197) xyz on xyz.id = i.id'])
-        ]
-    ];
-    $x--;
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Other Spellthread',
-            'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion<=' . $x . ' and x.class=0 and x.subclass=6 and xs.skillline=197) xyz on xyz.id = i.id'])
+            'name'  => 'Armor',
+            'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.requiredlevel > ' . $expansionLevels[count($expansionLevels) - 2] . ' and x.class=4 and xs.skillline=197) xyz on xyz.id = i.id'])
         ]
     ];
 
+    for ($x = count($expansions) - 1; $x >= 5; $x--) {
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => $expansions[$x] . ' Trade Goods',
+                'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $x . ' and x.class=7 and xs.skillline=197) xyz on xyz.id = i.id'])
+            ]
+        ];
+    }
+
+    for ($x = count($expansions) - 1; $x >= 5; $x--) {
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => $expansions[$x] . ' Consumables',
+                'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $x . ' and x.class=0 and xs.skillline=197) xyz on xyz.id = i.id'])
+            ]
+        ];
+    }
+
+    for ($x = 1; $x <= 3; $x++) {
+        $idx = count($expansions) - $x;
+        $nm = ($x == 3 ? 'Other' : $expansions[$idx]);
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => $nm . ' Spellthread',
+                'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion=' . $idx . ' and x.class=0 and x.subclass=6 and xs.skillline=197) xyz on xyz.id = i.id'])
+            ]
+        ];
+    };
+
+    /*
     if (($pvpLevels = MCGet('category_tailoring_pvplevels_' . $expansionLevels[count($expansionLevels) - 1])) === false) {
         DBConnect();
         $sql = <<<EOF
@@ -1152,6 +1130,7 @@ EOF;
             ]
         ];
     }
+    */
 
     return $tr;
 }
