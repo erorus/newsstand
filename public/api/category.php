@@ -971,13 +971,64 @@ function CategoryResult_engineering($house)
             'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion=' . (count($expansions) - 1) . ' and x.level>40 and (x.class=2 or (x.class=4 and x.subclass>0)) and xs.skillline=202) xyz on xyz.id = i.id'])
         ]
     ];
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Ranged Enchants (Scopes)',
-            'items' => CategoryGenericItemList($house, ['joins' => 'join (SELECT xx.id from (select x.id, group_concat(se.description) dd from tblDBCItem x join tblDBCSpell xs on xs.crafteditem=x.id LEFT JOIN tblDBCItemSpell dis on dis.item=x.id LEFT JOIN tblDBCSpell se on se.id=dis.spell where x.level>40 and xs.skillline=202 group by x.id) xx where (xx.dd like \'%bow or gun%\' or xx.dd like \'%ranged weapon%\')) xyz on xyz.id = i.id'])
-        ]
-    ];
+
+    for ($x = count($expansions) - 1; $x >= 5; $x--) {
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => $expansions[$x] . ' Upgrades',
+                'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $x . ' and x.class=4 and x.subclass=0 and xs.skillline=202) xyz on xyz.id = i.id'])
+            ]
+        ];
+    }
+
+    for ($x = 1; $x <= 3; $x++) {
+        $idx = count($expansions) - $x;
+        $comp = $x == 3 ? "<= $idx" : "= $idx";
+        $nm = $x == 3 ? "Other" : $expansions[$idx];
+
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => $nm.' Ranged Enchants (Scopes)',
+                'items' => CategoryGenericItemList($house, ['joins' => 'join (SELECT xx.id from (select x.id, group_concat(se.description) dd from tblDBCItem x join tblDBCSpell xs on xs.crafteditem=x.id LEFT JOIN tblDBCItemSpell dis on dis.item=x.id LEFT JOIN tblDBCSpell se on se.id=dis.spell where x.level>40 and xs.skillline=202 and xs.expansion '.$comp.' group by x.id) xx where (xx.dd like \'%bow or gun%\' or xx.dd like \'%ranged weapon%\')) xyz on xyz.id = i.id'])
+            ]
+        ];
+
+        $sql = <<<EOF
+join (SELECT xx.id from (
+    select x.id, group_concat(se.description) dd
+    from tblDBCItem x
+    join tblDBCSpell xs on xs.crafteditem=x.id
+    LEFT JOIN tblDBCItemSpell dis on dis.item=x.id
+    LEFT JOIN tblDBCSpell se on se.id=dis.spell
+    where
+    ifnull(x.requiredskill,0) != 202
+    and (
+        (x.class=4 and (x.subclass not in (1,2,3,4) or x.level < 10) and (x.subclass != 0 or xs.expansion < 5))
+        or (x.class in (0,7) and x.id not in (
+            select reagent
+            from tblDBCItemReagents xir2
+            where xir2.reagent=x.id))
+        )
+    and xs.skillline=202
+    and xs.expansion $comp
+    group by x.id
+    ) xx
+    where xx.dd not like '%bow or gun%'
+    and xx.dd not like '%ranged weapon%'
+) xyz on xyz.id = i.id
+EOF;
+
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => $nm.' Gadgets',
+                'items' => CategoryGenericItemList($house, ['joins' => $sql])
+            ]
+        ];
+    }
+
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
@@ -990,38 +1041,6 @@ function CategoryResult_engineering($house)
         'data' => [
             'name'  => 'Mounts',
             'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.class=15 and x.subclass=5 and xs.skillline=202) xyz on xyz.id = i.id'])
-        ]
-    ];
-
-    $sql = <<<EOF
-join (SELECT xx.id from (
-    select x.id, group_concat(se.description) dd
-    from tblDBCItem x
-    join tblDBCSpell xs on xs.crafteditem=x.id
-    LEFT JOIN tblDBCItemSpell dis on dis.item=x.id
-    LEFT JOIN tblDBCSpell se on se.id=dis.spell
-    where
-    ifnull(x.requiredskill,0) != 202
-    and (
-        (x.class=4 and (x.subclass not in (1,2,3,4) or x.level < 10))
-        or (x.class in (0,7) and x.id not in (
-            select reagent
-            from tblDBCItemReagents xir2
-            where xir2.reagent=x.id))
-        )
-    and xs.skillline=202
-    group by x.id
-    ) xx
-    where xx.dd not like '%bow or gun%'
-    and xx.dd not like '%ranged weapon%'
-) xyz on xyz.id = i.id
-EOF;
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Non-Engineer Items',
-            'items' => CategoryGenericItemList($house, ['joins' => $sql])
         ]
     ];
 
