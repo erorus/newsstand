@@ -1194,6 +1194,7 @@ function CategoryResult_enchanting($house)
             'items' => CategoryGenericItemList($house, 'i.class=7 and i.subclass=12 and i.quality=4 and i.name like \'%Crystal\'')
         ]
     ];
+
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
@@ -1274,6 +1275,16 @@ function CategoryResult_inscription($house)
             )
         ]
     ];
+
+    for ($x = count($expansions) - 1; $x >= 5; $x--) {
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => $expansions[$x] . ' Trade Goods',
+                'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $x . ' and x.class=7 and x.subclass=14 and xs.skillline=773) xyz on xyz.id = i.id'])
+            ]
+        ];
+    }
 
     for ($y = 0; $y <= 1; $y++) {
         $x = count($expansions) - 1 - $y;
