@@ -524,7 +524,7 @@ SELECT s.id, max(ic.level) mx, min(ic.level) mn
 FROM tblDBCItemReagents ir, tblDBCItem ic, tblDBCSpell s
 WHERE ir.spell=s.id
 and ir.reagent=ic.id
-and ic.level < 100
+and ic.level <= 100
 and ic.id not in (select item from tblDBCItemVendorCost)
 and s.expansion is null
 group by s.id
@@ -537,6 +537,8 @@ while ($row = next_row($rst))
 
     if (is_null($row['mx']))
         $exp = 'null';
+    elseif ($row['mx'] > 90)
+        $exp = 5; // wod
     elseif ($row['mx'] > 85)
         $exp = 4; // mop
     elseif ($row['mx'] > 80)

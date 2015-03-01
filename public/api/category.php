@@ -797,6 +797,103 @@ EOF;
     return $tr;
 }
 
+function CategoryResult_jewelcrafting($house)
+{
+    global $expansions, $expansionLevels, $db, $qualities;
+
+    $gemColors = ['Red','Blue','Yellow','Purple','Green','Orange','Meta'];
+
+    $tr = ['name' => 'Jewelcrafting', 'results' => []];
+
+    for ($x = count($expansions) - 1; $x >= 5; $x--) {
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => $qualities[3] . ' ' . $expansions[$x] . ' Gems',
+                'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $x . ' and x.class=3 and xs.skillline=755 and x.quality >= 3) xyz on xyz.id = i.id'])
+            ]
+        ];
+    }
+
+    for ($x = count($expansions) - 1; $x >= 5; $x--) {
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => $qualities[2] . ' ' . $expansions[$x] . ' Gems',
+                'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $x . ' and x.class=3 and xs.skillline=755 and x.quality < 3) xyz on xyz.id = i.id'])
+            ]
+        ];
+    }
+
+    for ($x = count($expansions) - 1; $x >= 5; $x--) {
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => $qualities[4] . ' ' . $expansions[$x] . ' Jewelry',
+                'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $x . ' and x.class=4 and xs.skillline=755 and x.quality >= 4) xyz on xyz.id = i.id'])
+            ]
+        ];
+    }
+
+    for ($x = count($expansions) - 1; $x >= 5; $x--) {
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => $qualities[3] . ' ' . $expansions[$x] . ' Jewelry',
+                'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $x . ' and x.class=4 and xs.skillline=755 and x.quality < 4) xyz on xyz.id = i.id'])
+            ]
+        ];
+    }
+
+    for ($x = count($expansions) - 1; $x >= 5; $x--) {
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => $expansions[$x] . ' Trade Goods',
+                'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $x . ' and x.class=7 and xs.skillline=755) xyz on xyz.id = i.id'])
+            ]
+        ];
+    }
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Consumables',
+            'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.class = 0 and xs.skillline=755) xyz on xyz.id = i.id'])
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Other',
+            'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.class not in (0,2,3,4,7) and xs.skillline=755) xyz on xyz.id = i.id'])
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => $expansions[4] . ' Gems',
+            'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = 4 and x.class=3 and xs.skillline=755) xyz on xyz.id = i.id'])
+        ]
+    ];
+
+    for ($x = 0; $x < count($gemColors); $x++) {
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => 'Pre-' . $expansions[4] . ' ' . $gemColors[$x] . ' Gems',
+                'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion < 4 and x.class=3 and x.subclass='.$x.' and xs.skillline=755) xyz on xyz.id = i.id'])
+            ]
+        ];
+    }
+
+
+
+    return $tr;
+}
+
 function CategoryResult_engineering($house)
 {
     global $expansions, $expansionLevels;

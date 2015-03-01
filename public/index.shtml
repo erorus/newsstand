@@ -62,7 +62,7 @@
 
                         <a rel="enchanting">Enchanting</a>
                         <a rel="inscription">Inscription</a>
-                        <!-- a>Jewelcrafting<small> Coming Soon</small></a -->
+                        <a rel="jewelcrafting">Jewelcrafting</a>
                         <br/>
 
                         <a rel="battlepets">Battle Pets</a>
