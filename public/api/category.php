@@ -614,16 +614,6 @@ function CategoryResult_leatherworking($house)
         ]
     ];
 
-    for ($x = (count($expansions) - 1); $x >= 0; $x--) {
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'data' => [
-                'name'  => $expansions[$x] . ' Armor Kits',
-                'items' => CategoryGenericItemList($house, ['joins' => 'join (select x.id from tblDBCItem x, tblDBCSpell xs where xs.expansion=' . $x . ' and xs.crafteditem=x.id and x.class=0 and x.subclass=6 and xs.skillline=165) xyz on xyz.id = i.id'])
-            ]
-        ];
-    }
-
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
@@ -634,18 +624,49 @@ function CategoryResult_leatherworking($house)
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
-            'name'  => 'Epic Leather',
-            'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.requiredlevel > ' . $expansionLevels[count($expansionLevels) - 2] . ' and x.quality=4 and x.class=4 and x.subclass=2 and xs.skillline=165) xyz on xyz.id = i.id'])
+            'name'  => 'Leather',
+            'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.requiredlevel > ' . $expansionLevels[count($expansionLevels) - 2] . ' and x.class=4 and x.subclass=2 and xs.skillline=165) xyz on xyz.id = i.id'])
         ]
     ];
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
-            'name'  => 'Epic Mail',
-            'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.requiredlevel > ' . $expansionLevels[count($expansionLevels) - 2] . ' and x.quality=4 and x.class=4 and x.subclass=3 and xs.skillline=165) xyz on xyz.id = i.id'])
+            'name'  => 'Mail',
+            'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.requiredlevel > ' . $expansionLevels[count($expansionLevels) - 2] . ' and x.class=4 and x.subclass=3 and xs.skillline=165) xyz on xyz.id = i.id'])
         ]
     ];
 
+    for ($x = count($expansions) - 1; $x >= 5; $x--) {
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => $expansions[$x] . ' Trade Goods',
+                'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $x . ' and x.class=7 and xs.skillline=165) xyz on xyz.id = i.id'])
+            ]
+        ];
+    }
+
+    for ($x = count($expansions) - 1; $x >= 5; $x--) {
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => $expansions[$x] . ' Consumables',
+                'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $x . ' and x.class=0 and xs.skillline=165) xyz on xyz.id = i.id'])
+            ]
+        ];
+    }
+
+    for ($x = (count($expansions) - 1); $x >= 0; $x--) {
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => $expansions[$x] . ' Armor Kits',
+                'items' => CategoryGenericItemList($house, ['joins' => 'join (select x.id from tblDBCItem x, tblDBCSpell xs where xs.expansion=' . $x . ' and xs.crafteditem=x.id and x.class=0 and x.subclass=6 and xs.skillline=165) xyz on xyz.id = i.id'])
+            ]
+        ];
+    }
+
+    /*
     if (($pvpLevels = MCGet('category_leatherworking_pvplevels_' . $expansionLevels[count($expansionLevels) - 1])) === false) {
         DBConnect();
         $sql = <<<EOF
@@ -682,6 +703,7 @@ EOF;
             ]
         ];
     }
+    */
 
     return $tr;
 }
