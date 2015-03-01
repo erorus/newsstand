@@ -1330,9 +1330,29 @@ function CategoryResult_inscription($house)
 
 function CategoryResult_cooking($house)
 {
-    global $expansions, $db;
-
     $tr = ['name' => 'Cooking', 'results' => []];
+
+    $foods = [
+        'Draenor Fish' => implode(',',range(109137,109143)),
+        'Draenor Meat' => implode(',',range(109131,109136)),
+        '+75 Stat Food' => '111433,111441,111437,111445,111434,111442,111438,111446,111436,111444,111431,111439',
+        '+100 Stat Food' => '111449,111453,111450,111454,111452,111447',
+        '+125 Stat Food' => implode(',',range(122343,122348)),
+        'Draenor Feasts' => '118576,111458,111457',
+    ];
+
+    foreach ($foods as $name => $sql) {
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => $name,
+                'items' => CategoryGenericItemList($house, "i.id in ($sql)"),
+            ]
+        ];
+    }
+
+    /*
+    global $expansions, $db;
 
     $cexp = count($expansions) - 1;
     $fish = '74856,74857,74859,74860,74861,74863,74864,74865,74866,83064';
@@ -1412,6 +1432,7 @@ EOF;
             'items' => CategoryGenericItemList($house, ['joins' => "join (select x.crafteditem from tblDBCSpell x where x.skillline=185 and expansion=$cexp) xyz on xyz.crafteditem=i.id"])
         ]
     ];
+    */
 
     return $tr;
 }
