@@ -164,8 +164,22 @@ tblDBCItem.name=if(values(name)='',tblDBCItem.name,values(name))
 EOF;
 dtecho(run_sql($sql));
 
-dtecho(dbcdecode('ItemModifiedAppearance', array(2=>'itemid', 3=>'bonustype', 4=>'appearanceid', 6=>'idx')));
+dtecho(dbcdecode('ItemModifiedAppearance', array(2=>'itemid', 3=>'bonustype', 4=>'appearanceid', 5=>'iconoverride', 6=>'idx')));
 dtecho(dbcdecode('ItemAppearance', array(1=>'appearanceid', 2=>'display', 3=>'iconfiledataid')));
+
+$sql = <<<EOF
+update tblDBCItem i
+set icon =
+(select if(right(lower(fd.name), 4) = '.blp', lower(substr(fd.name, 1, length(fd.name) - 4)), lower(fd.name))
+from ttblFileData fd
+join ttblItemModifiedAppearance ima on ima.iconoverride=fd.id
+where ima.itemid = i.id
+order by if(ima.bonustype=0,0,1), ima.idx asc
+limit 1)
+where ifnull(icon,'') = ''
+EOF;
+
+dtecho(run_sql($sql));
 
 $sql = <<<EOF
 update tblDBCItem i
