@@ -694,7 +694,7 @@ var TUJ = function ()
             }
         }
         if (gotRegion == -2) {
-            p.region = 0;
+            p.region = (location.hostname.substr(0,3) == 'eu.') ? 1 : 0;
             if (self.params.region != undefined) {
                 p.region = self.params.region;
                 gotRegion = -1;
