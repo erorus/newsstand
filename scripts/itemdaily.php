@@ -40,6 +40,7 @@ from (
     and exists (select 1 from tblSnapshot s where updated >= date(now()) and s.house=hc.house and s.flags & 1 = 0)) aa
 join tblSnapshot s2 on s2.house = aa.house
 where s2.updated < date(now())
+and s2.flags & 1 = 0
 group by s2.house
 EOF;
 
