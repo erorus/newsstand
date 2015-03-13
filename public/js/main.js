@@ -811,6 +811,7 @@ var TUJ = function ()
             $('#topcorner .region-pick').hide();
             if (!self.params.realm) {
                 $('#topcorner #region-pick-' + validRegions[self.params.region]).show();
+                $('#topcorner .region-pick a')[0].href = self.BuildHash({region: 1-self.params.region, realm: undefined});
             }
 
             var regionLink = $('#topcorner a.region');
