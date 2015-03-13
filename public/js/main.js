@@ -342,6 +342,14 @@ var libtuj = {
             }
 
             window.localStorage.setItem(key, JSON.stringify(val));
+        },
+        Remove: function (key, val)
+        {
+            if (!window.localStorage) {
+                return false;
+            }
+
+            window.localStorage.removeItem(key);
         }
     }
 };
@@ -463,13 +471,17 @@ var tujConstants = {
 
 var TUJ = function ()
 {
+    var validRegions = ['US','EU'];
     var validPages = ['', 'search', 'item', 'seller', 'battlepet', 'contact', 'donate', 'category', 'transmog'];
     var pagesNeedRealm = [true, true, true, true, true, false, false, true, true];
     var houseInfo = {};
-    this.region = undefined;
+    var drawnRegion = -1;
+    this.validRegions = validRegions;
     this.realms = undefined;
+    this.allRealms = undefined;
     this.apiVersion = 0;
     this.params = {
+        region: undefined,
         realm: undefined,
         page: undefined,
         id: undefined
@@ -500,7 +512,7 @@ var TUJ = function ()
             SetDarkTheme(libtuj.Storage.Get('colorTheme') == 'dark');
         }
 
-        if (typeof self.realms == 'undefined') {
+        if (typeof self.allRealms == 'undefined') {
             inMain = false;
 
             $('#progress-page').show();
@@ -508,14 +520,13 @@ var TUJ = function ()
             $.ajax({
                 success: function (dta)
                 {
-                    self.region = dta.region;
-                    self.realms = dta.realms;
+                    self.allRealms = dta.realms;
                     if (dta.version) {
                         self.apiVersion = dta.version;
                     }
-                    if (typeof self.realms == 'undefined') {
+                    if (typeof self.allRealms == 'undefined') {
                         alert('Error getting realms');
-                        self.realms = [];
+                        self.allRealms = [];
                     }
                     Main();
                 },
@@ -526,13 +537,13 @@ var TUJ = function ()
                     } else {
                         alert('Error getting realms: ' + stat + ' ' + er);
                     }
-                    self.realms = [];
+                    self.allRealms = [];
                 },
                 complete: function ()
                 {
                     $('#progress-page').hide();
                 },
-                url: 'api/realms.php'
+                url: 'api/realms.php?r'
             });
             return;
         }
@@ -544,9 +555,11 @@ var TUJ = function ()
                 var searchRealm;
                 if (searchRealm = /^\?realm=([AH])-([^&]+)/i.exec(decodeURIComponent(location.search))) {
                     ls = {};
-                    for (var x in tuj.realms) {
-                        if (tuj.realms[x].name.toLowerCase() == searchRealm[2].toLowerCase()) {
-                            ls.realm = tuj.realms[x].id;
+                    var guessRegion = (location.hostname.substr(0,3) == 'eu.') ? 1 : 0;
+                    for (var x in tuj.realms[guessRegion]) {
+                        if (tuj.realms[guessRegion][x].name.toLowerCase() == searchRealm[2].toLowerCase()) {
+                            ls.realm = tuj.realms[guessRegion][x].id;
+                            ls.region = guessRegion;
                         }
                     }
 
@@ -555,7 +568,7 @@ var TUJ = function ()
                     return;
                 }
 
-                if (ls = libtuj.Storage.Get('defaultRealm')) {
+                if ((ls = libtuj.Storage.Get('defaultRealm')) && ls.hasOwnProperty('region')) {
                     var url = location.protocol + '//' + location.hostname + '/';
                     if (!(document.referrer && document.referrer.substr(0, url.length) == url)) {
                         inMain = false;
@@ -569,8 +582,21 @@ var TUJ = function ()
                 location.href = location.pathname + location.hash;
             }
         }
+        if (location.hostname.substr(0,3) == 'eu.') {
+            inMain = false;
+            location.href = '//'+location.hostname.substr(3)+'/'+self.BuildHash({region: 1});
+            return;
+        }
 
         UpdateSidebar();
+
+        if (self.params.region == undefined) {
+            inMain = false;
+            $('#main .page').hide();
+            $('#realm-list').removeClass('show');
+            $('#region-page').show();
+            return;
+        }
 
         if ($('#realm-list').length == 0) {
             inMain = false;
@@ -582,8 +608,11 @@ var TUJ = function ()
         $('#realm-list').removeClass('show');
         if (!self.params.realm && (!self.params.page || pagesNeedRealm[self.params.page])) {
             inMain = false;
-            $('#realm-list .realms-column a').each(function ()
-            {
+            libtuj.Storage.Remove('defaultRealm');
+            if (drawnRegion != self.params.region) {
+                DrawRealms();
+            }
+            $('#realm-list .realms-column a').each(function () {
                 this.href = self.BuildHash({realm: this.rel});
             });
             $('#realm-list').addClass('show');
@@ -629,6 +658,7 @@ var TUJ = function ()
         }
 
         var p = {
+            region: undefined,
             realm: undefined,
             page: undefined,
             id: undefined
@@ -643,9 +673,31 @@ var TUJ = function ()
 
         var y;
         var gotFaction = false;
+        var gotRegion = -2;
+
+        for (var x = 0; x < h.length; x++) {
+            for (y = 0; y < validRegions.length; y++) {
+                if (h[x].toUpperCase() == validRegions[y]) {
+                    p.region = y;
+                    gotRegion = x;
+                    break;
+                }
+            }
+        }
+        if (gotRegion == -2) {
+            p.region = 0;
+            if (self.params.region != undefined) {
+                p.region = self.params.region;
+                gotRegion = -1;
+            }
+        }
+        var realms = self.allRealms[p.region];
 
         nextParam:
             for (var x = 0; x < h.length; x++) {
+                if (x == gotRegion) {
+                    continue;
+                }
                 if (!p.page) {
                     for (y = 0; y < validPages.length; y++) {
                         if (h[x] == validPages[y]) {
@@ -655,16 +707,14 @@ var TUJ = function ()
                     }
                 }
                 if (!gotFaction) {
-                    for (y in self.validFactions) {
-                        if (h[x] == 'alliance' || h[x] == 'horde') {
-                            gotFaction = true;
-                            continue nextParam;
-                        }
+                    if (h[x] == 'alliance' || h[x] == 'horde') {
+                        gotFaction = true;
+                        continue nextParam;
                     }
                 }
                 if (!p.realm) {
-                    for (y in self.realms) {
-                        if (self.realms.hasOwnProperty(y) && h[x] == self.realms[y].slug) {
+                    for (y in realms) {
+                        if (realms.hasOwnProperty(y) && h[x] == realms[y].slug) {
                             p.realm = y;
                             continue nextParam;
                         }
@@ -672,6 +722,10 @@ var TUJ = function ()
                 }
                 p.id = h[x];
             }
+
+        if (!p.realm && (gotRegion < 0)) {
+            p.region = undefined;
+        }
 
         if (!self.SetParams(p)) {
             Main();
@@ -688,6 +742,10 @@ var TUJ = function ()
             }
         }
 
+        if (self.params.region != undefined) {
+            self.realms = self.allRealms[self.params.region];
+        }
+
         if (typeof self.params.page == 'string') {
             for (var x = 0; x < validPages.length; x++) {
                 if (validPages[x] == self.params.page) {
@@ -701,7 +759,7 @@ var TUJ = function ()
         }
 
         if (self.params.realm && !self.params.page) {
-            libtuj.Storage.Set('defaultRealm', {realm: self.params.realm});
+            libtuj.Storage.Set('defaultRealm', {region: self.params.region, realm: self.params.realm});
         }
 
         var h = self.BuildHash(self.params);
@@ -725,18 +783,23 @@ var TUJ = function ()
 
     function UpdateSidebar()
     {
-        $('#topcorner .region-pick').hide();
-        if (!self.params.realm) {
-            $('#topcorner #region-pick-' + self.region).show();
+        if (self.params.region != undefined) {
+            $('#topcorner > div').show();
+            $('#topcorner .region-pick').hide();
+            if (!self.params.realm) {
+                $('#topcorner #region-pick-' + validRegions[self.params.region]).show();
+            }
+
+            var regionLink = $('#topcorner a.region');
+            regionLink[0].href = self.params.region == 0 ? self.BuildHash({region: 1, realm: undefined}) : self.BuildHash({region: 0, realm: undefined});
+            regionLink.text(self.validRegions[self.params.region]);
+
+            var realmLink = $('#topcorner a.realm');
+            realmLink[0].href = self.BuildHash({realm: undefined});
+            realmLink.text(self.params.realm ? self.realms[self.params.realm].name : '');
+        } else {
+            $('#topcorner > div').hide();
         }
-
-        var regionLink = $('#topcorner a.region');
-        regionLink[0].href = self.region == 'US' ? '//eu.theunderminejournal.com' : '//theunderminejournal.com';
-        regionLink.text(self.region);
-
-        var realmLink = $('#topcorner a.realm');
-        realmLink[0].href = self.BuildHash({realm: undefined});
-        realmLink.text(self.params.realm ? self.realms[self.params.realm].name : '');
 
         var contactLink = $('#bottom-bar a.contact');
         contactLink[0].href = self.BuildHash({page: 'contact', id: undefined});
@@ -756,8 +819,7 @@ var TUJ = function ()
             i.placeholder = 'Search';
             i.id = 'searchbox';
 
-            $(form).on('submit',function ()
-            {
+            $(form).on('submit',function () {
                 location.href = self.BuildHash({page: 'search', id: this.search.value.replace('/', '')});
                 return false;
             }).append(i);
@@ -906,7 +968,7 @@ var TUJ = function ()
         }
 
         if (self.params.realm) {
-            title += self.region + ' ' + self.realms[self.params.realm].name + ' - ';
+            title += self.validRegions[self.params.region] + ' ' + self.realms[self.params.realm].name + ' - ';
         }
 
         document.title = title + 'The Undermine Journal';
@@ -941,8 +1003,11 @@ var TUJ = function ()
         }
 
         var h = '';
-        if (tParams.realm) {
-            h += '/' + self.realms[tParams.realm].slug;
+        if (tParams.region != undefined) {
+            h += '/' + validRegions[tParams.region].toLowerCase();
+            if (tParams.realm) {
+                h += '/' + self.allRealms[tParams.region][tParams.realm].slug;
+            }
         }
         if (tParams.page) {
             h += '/' + validPages[tParams.page];
@@ -959,6 +1024,11 @@ var TUJ = function ()
 
     function DrawRealms()
     {
+        if (drawnRegion != self.params.region) {
+            drawnRegion = self.params.region;
+            $('#realm-list').remove();
+        }
+
         var addResize = false;
         var realmList = $('#realm-list')[0];
 
@@ -970,7 +1040,7 @@ var TUJ = function ()
             var directions = libtuj.ce();
             directions.className = 'directions';
             realmList.appendChild(directions);
-            $(directions).text('Choose your realm below:');
+            $(directions).text('Choose your '+validRegions[drawnRegion]+' realm below:');
 
             addResize = true;
         }

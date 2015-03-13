@@ -17,11 +17,11 @@
                         </div>
                         <div id="region-pick-US" class="region-pick">
                             US Region
-                            <a href="https://eu.theunderminejournal.com">Looking for EU realms?</a>
+                            <a href="#eu">Looking for EU realms?</a>
                         </div>
                         <div id="region-pick-EU" class="region-pick">
                             EU Region
-                            <a href="https://theunderminejournal.com">Looking for US realms?</a>
+                            <a href="#us">Looking for US realms?</a>
                         </div>
                     </div>
                 </div>
@@ -38,6 +38,19 @@
                 </noscript>
                 <div class="page" id="progress-page">
                     <div></div>
+                </div>
+                <div class="page" id="region-page">
+                    <div class="directions">Choose your region:</div>
+                    <table>
+                        <tr>
+                            <td><a href="#us"><img src="images/flag.us.png"></a></td>
+                            <td><a href="#eu"><img src="images/flag.eu.png"></a></td>
+                        </tr>
+                        <tr>
+                            <td><a href="#us">US Realms</a></td>
+                            <td><a href="#eu">EU Realms</a></td>
+                        </tr>
+                    </table>
                 </div>
                 <div class="page" id="front-page">
                     <div class="sidebar" id="category-sidebar">

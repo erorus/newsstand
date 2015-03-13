@@ -34,7 +34,7 @@ var TUJ_Contact = function ()
         }
 
         var d = {
-            region: tuj.region,
+            region: params.region ? tuj.validRegions[params.region] : undefined,
             realm: params.realm ? tuj.realms[params.realm].name : undefined,
             house: params.realm ? tuj.realms[params.realm].house : undefined,
             from: f.from.value,

@@ -173,7 +173,7 @@ var TUJ_Item = function ()
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text('Snapshots');
-            d.appendChild(document.createTextNode('Here is the available quantity and market price of the item for every ' + tuj.region + ' ' + tuj.realms[params.realm].name + ' auction house snapshot seen recently.'));
+            d.appendChild(document.createTextNode('Here is the available quantity and market price of the item for every ' + tuj.validRegions[params.region] + ' ' + tuj.realms[params.realm].name + ' auction house snapshot seen recently.'));
             cht = libtuj.ce();
             cht.className = 'chart history';
             d.appendChild(cht);
@@ -267,7 +267,7 @@ var TUJ_Item = function ()
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text('Regional Daily Summary');
-            d.appendChild(document.createTextNode('Here is the total available quantity, and the average market price, for the item each day across all realms in the ' + tuj.region + '.'));
+            d.appendChild(document.createTextNode('Here is the total available quantity, and the average market price, for the item each day across all realms in the ' + tuj.validRegions[params.region] + '.'));
             cht = libtuj.ce();
             cht.className = 'chart monthly';
             d.appendChild(cht);
@@ -281,7 +281,7 @@ var TUJ_Item = function ()
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text('Current Regional Prices');
-            d.appendChild(document.createTextNode('The Regional Prices chart is sorted by price, and shows the price and quantity available of this item on all realms in the ' + tuj.region + '.'));
+            d.appendChild(document.createTextNode('The Regional Prices chart is sorted by price, and shows the price and quantity available of this item on all realms in the ' + tuj.validRegions[params.region] + '.'));
             cht = libtuj.ce();
             cht.className = 'chart columns';
             d.appendChild(cht);
@@ -297,7 +297,7 @@ var TUJ_Item = function ()
             var a = libtuj.ce('a');
             d.appendChild(a);
             d.appendChild(document.createTextNode('.'));
-            a.href = 'https://realmpop.com/' + tuj.region.toLowerCase() + '.html';
+            a.href = 'https://realmpop.com/' + tuj.validRegions[params.region].toLowerCase() + '.html';
             a.style.textDecoration = 'underline';
             a.appendChild(document.createTextNode('Realm Pop'));
 
@@ -317,7 +317,7 @@ var TUJ_Item = function ()
 
             var a = libtuj.ce('a');
             h.appendChild(a);
-            a.href = 'https://' + tuj.region.toLowerCase() + '.battle.net/wow/en/vault/character/auction/browse?sort=unitBuyout&itemId=' + itemId + '&start=0&end=40';
+            a.href = 'https://' + tuj.validRegions[params.region].toLowerCase() + '.battle.net/wow/en/vault/character/auction/browse?sort=unitBuyout&itemId=' + itemId + '&start=0&end=40';
             $(a).text('Current Auctions');
             d.appendChild(document.createTextNode('Here is the full list of auctions for this item from the latest snapshot. Click a seller name for details on that seller.'));
             d.appendChild(libtuj.ce('br'));
@@ -542,7 +542,7 @@ var TUJ_Item = function ()
                 lastseen: 0
             };
 
-            var headerPrefix = tuj.region + ' ';
+            var headerPrefix = tuj.validRegions[params.region] + ' ';
             var row;
             for (x = 0; row = data.globalnow[bonusSet][x]; x++) {
                 globalStats.quantity += row.quantity;

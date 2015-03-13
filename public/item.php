@@ -6,10 +6,9 @@ require_once('../incl/api.incl.php');
 $url = '/';
 if (isset($_GET['item']))
 {
-    $url .= '#';
+    $url .= '#'.strtolower(GetSiteRegion()).'/';
     if (isset($_GET['realm']) && preg_match('/^[AH]-/', $_GET['realm']))
     {
-        $faction = substr($_GET['realm'], 0, 1) == 'H' ? '/horde/' : '/alliance/';
         $toMatch = strtolower(trim(substr($_GET['realm'],2)));
         $realms = GetRealms(GetSiteRegion());
         $realm = '';
@@ -23,7 +22,7 @@ if (isset($_GET['item']))
         }
 
         if ($realm)
-            $url .= $realm.$faction;
+            $url .= $realm.'/';
     }
     $url .= 'item/'.$_GET['item'];
 }

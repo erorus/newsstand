@@ -10,6 +10,7 @@ if (isset($_COOKIE['__cfduid'])) { // cloudflare
     setcookie('__cfduid', '', strtotime('1 year ago'), '/', '.theunderminejournal.com', false, true);
 }
 
-$region = GetSiteRegion();
-
-json_return(array('version' => API_VERSION, 'region' => $region, 'realms' => GetRealms($region)));
+json_return([
+    'version' => API_VERSION,
+    'realms' => [GetRealms('US'),GetRealms('EU')]
+    ]);

@@ -158,7 +158,7 @@ var TUJ_BattlePet = function ()
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text('Snapshots');
-            d.appendChild(document.createTextNode('Here is the available quantity and market price of the battle pet for every ' + tuj.region + ' ' + tuj.realms[params.realm].name + ' auction house snapshot seen recently.'));
+            d.appendChild(document.createTextNode('Here is the available quantity and market price of the battle pet for every ' + tuj.validRegions[params.region] + ' ' + tuj.realms[params.realm].name + ' auction house snapshot seen recently.'));
             cht = libtuj.ce();
             cht.className = 'chart history';
             d.appendChild(cht);
@@ -198,7 +198,7 @@ var TUJ_BattlePet = function ()
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text('Current Regional Prices');
-            d.appendChild(document.createTextNode('The Regional Prices chart is sorted by price, and shows the price and quantity available of this battle pet on all realms in the ' + tuj.region + '.'));
+            d.appendChild(document.createTextNode('The Regional Prices chart is sorted by price, and shows the price and quantity available of this battle pet on all realms in the ' + tuj.validRegions[params.region] + '.'));
             cht = libtuj.ce();
             cht.className = 'chart columns';
             d.appendChild(cht);
@@ -214,7 +214,7 @@ var TUJ_BattlePet = function ()
             var a = libtuj.ce('a');
             d.appendChild(a);
             d.appendChild(document.createTextNode('.'));
-            a.href = 'https://realmpop.com/' + tuj.region.toLowerCase() + '.html';
+            a.href = 'https://realmpop.com/' + tuj.validRegions[params.region].toLowerCase() + '.html';
             a.style.textDecoration = 'underline';
             a.appendChild(document.createTextNode('Realm Pop'));
 
@@ -544,7 +544,7 @@ var TUJ_BattlePet = function ()
                 lastseen: 0
             };
 
-            var headerPrefix = tuj.region + ' ';
+            var headerPrefix = tuj.validRegions[params.region] + ' ';
             var row;
             for (x = 0; row = data.globalnow[x]; x++) {
                 globalStats.quantity += row.quantity;

@@ -71,14 +71,14 @@ span.price.full, span.age, span.nowrap { white-space: nowrap }
 abbr.full-date { border-bottom: 0 }
 abbr:hover.full-date { border-bottom: 1px dotted }
 
-#realm-list {display: none; text-align: center}
-#realm-list .directions {font-size: 150%; margin: 0 auto 2rem }
+#realm-list, #region-page {display: none; text-align: center}
+#realm-list .directions, #region-page .directions {font-size: 150%; margin: 0 auto 2rem }
 #realm-list.width-test, #realm-list.show {display: block}
 .realms-column {width: 15em; display: inline-block; vertical-align: top; text-align: left}
 #realm-list.width-test .realms-column {display: inline-block}
 .realms-column a {display: block; margin: 0.2em 0}
 
-#front-page, #contact-page, #progress-page, #donate-page { display: none }
+#front-page, #contact-page, #progress-page, #donate-page, #region-page { display: none }
 
 #front-page {position: relative; padding-right: 2em}
 #front-page a {text-decoration: underline}
@@ -197,3 +197,8 @@ table.category-fish .price {border-left: 1px solid #CCC}
 #transmog-results span { display: block; }
 
 .item-stats .transmog-img { float: left }
+
+#region-page table { width: 100%; max-width: 1000px; margin: 0 auto }
+#region-page table td { width: 50% }
+#region-page table img { width: 100%; max-width: 401px }
+
