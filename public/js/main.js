@@ -584,7 +584,16 @@ var TUJ = function ()
         }
         if (location.hostname.substr(0,3) == 'eu.') {
             inMain = false;
-            location.href = '//'+location.hostname.substr(3)+'/'+self.BuildHash({region: 1});
+            var rln = undefined;
+            if (self.params.realm) {
+                for (var x in self.allRealms[1]) {
+                    if (self.allRealms[1][x].name == self.realms[self.params.realm].name) {
+                        rln = x;
+                        break;
+                    }
+                }
+            }
+            location.href = '//'+location.hostname.substr(3)+'/'+self.BuildHash({region: 1, realm: rln});
             return;
         }
 
