@@ -4,6 +4,9 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         <meta name="viewport" content="width=868,maximum-scale=1">
         <meta name="msapplication-config" content="none"/>
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="apple-touch-icon" href="images/bigicon.png">
+        <link rel="manifest" href="manifest.json">
         <title>The Undermine Journal</title>
 <!--#include virtual="index.scripts.inc" -->    </head>
     <body>

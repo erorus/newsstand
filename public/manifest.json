@@ -1,0 +1,12 @@
+{
+    "lang": "en",
+    "name": "The Undermine Journal",
+    "short_name": "Undermine",
+    "icons": [{
+        "src": "images/bigicon.png",
+        "type": "image/png"
+    }],
+    "start_url": "/",
+    "display": "standalone",
+    "orientation": "portrait"
+}
