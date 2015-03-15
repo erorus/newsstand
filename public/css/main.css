@@ -198,6 +198,8 @@ table.category-fish .price {border-left: 1px solid #CCC}
 
 .item-stats .transmog-img { float: left }
 
+#region-page a {text-decoration: underline}
+#region-page .welcome {text-align: left; padding-bottom: 4em}
 #region-page table { width: 100%; max-width: 1000px; margin: 0 auto }
 #region-page table td { width: 50% }
 #region-page table img { width: 100%; max-width: 401px }

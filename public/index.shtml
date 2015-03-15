@@ -43,7 +43,9 @@
                     <div></div>
                 </div>
                 <div class="page" id="region-page">
-                    <div class="directions">Choose your region:</div>
+                    <div class="welcome">
+                        <h2>Welcome to The Undermine Journal <sub>...your source for Auction House statistics and data in World of Warcraft.</sub></h2>
+                    </div>
                     <table>
                         <tr>
                             <td><a href="#us"><img src="images/flag.us.png"></a></td>
