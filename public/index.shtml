@@ -7,6 +7,7 @@
         <meta name="apple-mobile-web-app-capable" content="yes">
         <link rel="apple-touch-icon" href="images/bigicon.png">
         <link rel="manifest" href="manifest.json">
+        <link rel="search" type="application/opensearchdescription+xml" title="Search TUJ" href="opensearch.xml">
         <title>The Undermine Journal</title>
 <!--#include virtual="index.scripts.inc" -->    </head>
     <body>

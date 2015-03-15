@@ -679,7 +679,7 @@ var TUJ = function ()
         if (h.charAt(0) == '#') {
             h = h.substr(1);
         }
-        h = decodeURIComponent(h);
+        h = decodeURIComponent(h.replace('+', ' '));
         h = h.split('/');
 
         var y;
