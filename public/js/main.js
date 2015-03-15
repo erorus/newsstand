@@ -684,6 +684,7 @@ var TUJ = function ()
 
         var y;
         var gotFaction = false;
+        var gotRealm = false;
         var gotRegion = -2;
 
         for (var x = 0; x < h.length; x++) {
@@ -722,10 +723,11 @@ var TUJ = function ()
                         continue nextParam;
                     }
                 }
-                if (!p.realm) {
+                if (!gotRealm) {
                     for (y in realms) {
                         if (realms.hasOwnProperty(y) && h[x] == realms[y].slug) {
                             p.realm = y;
+                            gotRealm = true;
                             continue nextParam;
                         }
                     }
