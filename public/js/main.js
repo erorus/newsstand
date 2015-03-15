@@ -669,8 +669,8 @@ var TUJ = function ()
         }
 
         var p = {
-            region: undefined,
-            realm: undefined,
+            region: self.params.region,
+            realm: self.params.realm,
             page: undefined,
             id: undefined
         }
@@ -690,17 +690,16 @@ var TUJ = function ()
             for (y = 0; y < validRegions.length; y++) {
                 if (h[x].toUpperCase() == validRegions[y]) {
                     p.region = y;
+                    if (p.region != self.params.region) {
+                        p.realm = undefined;
+                    }
                     gotRegion = x;
                     break;
                 }
             }
         }
-        if (gotRegion == -2) {
+        if (gotRegion < 0 && self.params.region == undefined) {
             p.region = 0;
-            if (self.params.region != undefined) {
-                p.region = self.params.region;
-                gotRegion = -1;
-            }
         }
         var realms = self.allRealms[p.region];
 
