@@ -569,20 +569,22 @@ var TUJ = function ()
                 var searchRealm;
                 if (searchRealm = /^\?realm=([AH])-([^&]+)/i.exec(decodeURIComponent(location.search))) {
                     ls = {};
-                    var guessRegion = (location.hostname.substr(0,3) == 'eu.') ? 1 : 0;
-                    for (var x in tuj.realms[guessRegion]) {
-                        if (tuj.realms[guessRegion][x].name.toLowerCase() == searchRealm[2].toLowerCase()) {
-                            ls.realm = tuj.realms[guessRegion][x].id;
+                    var guessRegion = self.params.region == undefined ? 0 : self.params.region;
+                    for (var x in tuj.allRealms[guessRegion]) {
+                        if (tuj.allRealms[guessRegion][x].name.toLowerCase() == searchRealm[2].toLowerCase()) {
+                            ls.realm = tuj.allRealms[guessRegion][x].id;
                             ls.region = guessRegion;
                         }
                     }
 
-                    inMain = false;
-                    tuj.SetParams(ls);
-                    return;
+                    if (ls.hasOwnProperty('realm')) {
+                        inMain = false;
+                        tuj.SetParams(ls);
+                        return;
+                    }
                 }
 
-                if ((ls = libtuj.Storage.Get('defaultRealm')) && ls.hasOwnProperty('region')) {
+                if (self.params.region == undefined && (ls = libtuj.Storage.Get('defaultRealm')) && ls.hasOwnProperty('region')) {
                     var url = location.protocol + '//' + location.hostname + '/';
                     if (!(document.referrer && document.referrer.substr(0, url.length) == url)) {
                         inMain = false;
@@ -595,20 +597,6 @@ var TUJ = function ()
             if (location.search) {
                 location.href = location.pathname + location.hash;
             }
-        }
-        if (location.hostname.substr(0,3) == 'eu.') {
-            inMain = false;
-            var rln = undefined;
-            if (self.params.realm) {
-                for (var x in self.allRealms[1]) {
-                    if (self.allRealms[1][x].name == self.realms[self.params.realm].name) {
-                        rln = x;
-                        break;
-                    }
-                }
-            }
-            location.href = '//'+location.hostname.substr(3)+'/'+self.BuildHash({region: 1, realm: rln});
-            return;
         }
 
         UpdateSidebar();
@@ -708,7 +696,7 @@ var TUJ = function ()
             }
         }
         if (gotRegion == -2) {
-            p.region = (location.hostname.substr(0,3) == 'eu.') ? 1 : 0;
+            p.region = 0;
             if (self.params.region != undefined) {
                 p.region = self.params.region;
                 gotRegion = -1;
