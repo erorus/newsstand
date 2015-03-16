@@ -738,6 +738,9 @@ var TUJ = function ()
         if (!p.realm && (gotRegion < 0)) {
             p.region = undefined;
         }
+        if (p.region != undefined && !gotRealm) {
+            p.realm = undefined;
+        }
 
         if (!self.SetParams(p)) {
             Main();
