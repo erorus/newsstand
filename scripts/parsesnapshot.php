@@ -922,7 +922,7 @@ function GetMissingItems() {
 
     global $db;
 
-    $cacheKey = 'parse_missing_items2';
+    $cacheKey = 'parse_missing_items';
 
     if ($missingItems === false) {
         $missingItems = MCGet($cacheKey);
@@ -938,6 +938,7 @@ where not exists (select 1 from tblItemSummary s join tblRealm r on s.house=r.ho
 and exists (select 1 from tblItemSummary s join tblRealm r on s.house=r.house and r.canonical is not null where s.item=i2.id and not (s.quantity=0 and s.age=255) limit 1)
 and not exists (select 1 from tblDBCItemVendorCost v where v.item = i.id limit 1)
 and i2.auctionable = 1
+and i.id not in (120945)
 group by i.id
 EOF;
         $stmt = $db->prepare($sql);

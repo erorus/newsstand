@@ -92,7 +92,7 @@ CREATE PROCEDURE GetReagentPriceR(
       FROM tblDBCItemReagents
       WHERE item = inID;
 
-      IF (inLevels >= 8) OR (x = 0)
+      IF (inLevels >= 4) OR (x = 0)
       THEN
         LEAVE sproc;
       END IF;
