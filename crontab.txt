@@ -31,5 +31,5 @@ CRON_TZ="UTC"
 
 23 10 * * 2 /var/newsstand/scripts/backupdata.sh > /var/newsstand/logs/backupdata.log 2>&1
 
-*/3 * * * * php /var/newsstand/scripts/wowtoken.php > /var/newsstand/logs/wowtoken.log 2>&1
+*/3 * * * * php /var/newsstand/scripts/wowtoken.php >> /var/newsstand/logs/wowtoken.log 2>&1
 59 0 * * * mv /var/newsstand/logs/wowtoken.log /var/newsstand/logs/wowtoken.yesterday.log
