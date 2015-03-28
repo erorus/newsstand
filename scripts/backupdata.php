@@ -16,6 +16,7 @@ $tables = [
     'tblPetSummary' => '1=1',
     'tblRealm' => '1=1',
     'tblSnapshot' => '1=1',
+    'tblWowToken' => '1=1',
 ];
 
 $sqlFile = __DIR__.'/../backup/backupdata.'.Date('Ymd').'.sql.gz';

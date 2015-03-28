@@ -50,6 +50,7 @@ function GetDataTables() {
         'tblSeller' => 'realm in ('.implode(',',$realms).')',
         'tblSellerHistory' => 'seller in ('.implode(',',$sellers).')',
         'tblSnapshot' => 'house='.$house,
+        'tblWowToken' => '1=1',
     ];
 
     $sqlFile = __DIR__.'/../testdata.sql.gz';

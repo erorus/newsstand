@@ -18,16 +18,27 @@ if (!DBConnect()) {
 
 $loopStart = time();
 $loops = 0;
+$gotData = [];
 while ((!$caughtKill) && (time() < ($loopStart + 60))) {
     heartbeat();
-    if (!NextDataFile()) {
+    if (!($region = NextDataFile())) {
         break;
+    }
+    if ($region !== true) {
+        $gotData[] = $region;
     }
     if ($loops++ > 30) {
         break;
     }
 }
-DebugMessage('Done! Started ' . TimeDiff($startTime));
+if ($gotData || (isset($argv[1]) && $argv[1] == 'build')) {
+    $gotData = array_unique($gotData);
+    if (!$gotData) {
+        $gotData = ['US','EU'];
+    }
+    BuildIncludes($gotData);
+    DebugMessage('Done! Started ' . TimeDiff($startTime));
+}
 
 function NextDataFile()
 {
@@ -82,8 +93,7 @@ function NextDataFile()
         return true;
     }
 
-    ParseTokenData($region, $snapshot, $lua);
-    return true;
+    return ParseTokenData($region, $snapshot, $lua);
 }
 
 function ParseTokenData($region, $snapshot, &$lua)
@@ -114,6 +124,8 @@ function ParseTokenData($region, $snapshot, &$lua)
     );
     $stmt->execute();
     $stmt->close();
+
+    return $lua['region'];
 }
 
 function LuaDecode($rawLua) {
@@ -127,4 +139,91 @@ function LuaDecode($rawLua) {
     }
 
     return $tr;
+}
+
+function BuildIncludes($regions)
+{
+    global $db;
+
+    $resultCodes = [
+        1 => 'Success',
+        2 => 'Disabled',
+        3 => 'Other Error',
+        4 => 'None For Sale',
+        5 => 'Too Many Tokens',
+        6 => 'No',
+        8 => 'Auctionable Token Owned',
+        9 => 'Trial Restricted',
+    ];
+
+    $timeZones = [
+        'US' => 'America/New_York',
+        'EU' => 'Europe/Paris',
+    ];
+
+    $htmlFormat = <<<EOF
+<div class="table-wrapper">
+    <table>
+        <tbody>
+        <tr>
+            <td>Buy Price</td>
+            <td>##BUY##g</td>
+        </tr>
+        <tr>
+            <td>Guaranteed Sell Price </td>
+            <td>##SELL##g</td>
+        </tr>
+        <tr>
+            <td>Estimated Time to Sell</td>
+            <td>##TIMETOSELL##</td>
+        </tr>
+        <tr>
+            <td>API Result</td>
+            <td>##RESULT##</td>
+        </tr>
+        <tr>
+            <td>Updated</td>
+            <td>##UPDATED##</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+EOF;
+
+    foreach ($regions as $region) {
+        $fileRegion = strtolower($region);
+        if ($fileRegion == 'us') {
+            $fileRegion = 'na';
+        }
+        $filenm = __DIR__.'/../wowtoken/'.$fileRegion.'.incl.html';
+
+        $sql = 'select * from tblWowToken w where region = ? and `when` = (select max(w2.`when`) from tblWowToken w2 where w2.region = ?)';
+        $stmt = $db->prepare($sql);
+        $stmt->bind_param('ss', $region, $region);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $tokenData = DBMapArray($result, null);
+        $tokenData = array_pop($tokenData);
+        $stmt->close();
+
+        $d = new DateTime('now', timezone_open($timeZones[$region]));
+        $d->setTimestamp(strtotime($tokenData['when']));
+
+        $replacements = [
+            'BUY' => number_format($tokenData['marketgold']),
+            'SELL' => number_format($tokenData['guaranteedgold']),
+            'TIMETOSELL' => TimeDiff($tokenData['sellseconds'] + 1, ['to' => 1, 'parts' => 3, 'precision' => 'minute', 'distance'  => false,]),
+            'RESULT' => isset($resultCodes[$tokenData['result']]) ? $resultCodes[$tokenData['result']] : ('Unknown: ' . $tokenData['result']),
+            'UPDATED' => $d->format('M jS, Y g:ia T'),
+        ];
+
+        $html = preg_replace_callback('/##([a-zA-Z0-9]+)##/', function ($m) use ($replacements) {
+                if (isset($replacements[$m[1]])) {
+                    return $replacements[$m[1]];
+                }
+                return $m[0];
+            }, $htmlFormat);
+
+        file_put_contents($filenm, $html);
+    }
 }
