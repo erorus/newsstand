@@ -19,3 +19,5 @@ public/globalprices.json
 addon/MarketData*.lua
 addon/BonusSets.lua
 addon/*.zip
+
+wowtoken/*.incl.html
