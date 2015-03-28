@@ -21,3 +21,4 @@ addon/BonusSets.lua
 addon/*.zip
 
 wowtoken/*.incl.html
+wowtoken/css/*.css.map
