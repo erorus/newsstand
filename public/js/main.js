@@ -608,6 +608,7 @@ var TUJ = function ()
             $('#main .page').hide();
             $('#realm-list').removeClass('show');
             $('#region-page').show();
+            document.body.className = 'region';
             return;
         }
 
@@ -874,6 +875,10 @@ var TUJ = function ()
         } else {
             $('#realm-updated').empty();
         }
+
+        if (window.TUJClassic) {
+            TUJClassic.UpdateSidebar();
+        }
     }
 
     function SetHouseInfo(house, dta)
@@ -915,7 +920,7 @@ var TUJ = function ()
             ru.appendChild(d);
         }
 
-        if (!self.params.page) {
+        if (!self.params.page || window.TUJClassic) {
             $('#front-page-sellers').empty();
             $('#front-page-most-available').empty();
             $('#front-page-deals').empty();
@@ -964,6 +969,10 @@ var TUJ = function ()
                     }
                 }
             }
+        }
+
+        if (window.TUJClassic) {
+            TUJClassic.SetHouseInfo();
         }
     }
 
