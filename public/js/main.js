@@ -523,7 +523,7 @@ var TUJ = function ()
             $('#bottom-bar .dark-only').click(SetDarkTheme.bind(self, false));
             $('#bottom-bar .light-only').click(SetDarkTheme.bind(self, true));
 
-            SetDarkTheme(libtuj.Storage.Get('colorTheme') == 'dark');
+            SetDarkTheme(!window.TUJClassic && libtuj.Storage.Get('colorTheme') == 'dark');
         }
 
         if (typeof self.allRealms == 'undefined') {
