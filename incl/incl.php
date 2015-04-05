@@ -17,6 +17,8 @@ function DebugMessage($message, $debugLevel = E_USER_NOTICE)
 {
     global $argv;
 
+    $message = str_replace("\n", "\n\t", $message);
+
     if ($debugLevel != E_USER_NOTICE) {
         $bt = debug_backtrace();
         $bt = isset($bt[1]) ? (' ' . $bt[1]['file'] . (isset($bt[1]['function']) ? (' ' . $bt[1]['function']) : '') . ' Line ' . $bt[1]['line']) : '';
