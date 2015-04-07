@@ -188,10 +188,6 @@ function BuildIncludes($regions)
             <td>##BUY##g</td>
         </tr>
         <tr>
-            <td>Guaranteed Sell Price </td>
-            <td>##SELL##g</td>
-        </tr>
-        <tr>
             <td>Estimated Time to Sell</td>
             <td>##TIMETOSELL##</td>
         </tr>
@@ -310,16 +306,12 @@ function SendTweets($regions)
 
 function SendTweet($region, $tweetData)
 {
-    $msg = "$region Region \nBuy: " . $tweetData['formatted']['BUY'] . "g, \nSell: " . $tweetData['formatted']['SELL'] . "g, \nSells in " . $tweetData['formatted']['TIMETOSELL'] . '.';
+    $msg = "$region Region #WoWToken: " . $tweetData['formatted']['BUY'] . "g, sells in " . $tweetData['formatted']['TIMETOSELL'] . '.';
     if ($tweetData['record']['result'] != 1) {
         $msg .= " \n" . $tweetData['formatted']['RESULT'] . ".";
     }
     if ($tweetData['timestamp'] < (time() - 30 * 60)) { // show timestamp if older than 30 mins
         $msg .= " \nFrom " . TimeDiff($tweetData['timestamp'], ['parts' => 2, 'precision' => 'minute']) . '.';
-    }
-
-    if (strlen($msg) < 120) {
-        $msg .= " \n#WoWToken";
     }
 
     DebugMessage('Sending tweet of ' . strlen($msg) . " chars:\n" . $msg);
