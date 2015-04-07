@@ -41,6 +41,13 @@ $timeZones = [
     'EU' => 'Europe/Paris',
 ];
 
+$timeLeftCodes = [
+    'Short' => 'less than 30 minutes',
+    'Medium' => '30 minutes to 2 hours',
+    'Long' => '2 to 12 hours',
+    'Very Long' => 'over 12 hours',
+];
+
 $loopStart = time();
 $loops = 0;
 $gotData = [];
@@ -170,22 +177,7 @@ function LuaDecode($rawLua) {
 function BuildIncludes($regions)
 {
     global $db;
-
-    $resultCodes = [
-        1 => 'Success',
-        2 => 'Disabled',
-        3 => 'Other Error',
-        4 => 'None For Sale',
-        5 => 'Too Many Tokens',
-        6 => 'No',
-        8 => 'Auctionable Token Owned',
-        9 => 'Trial Restricted',
-    ];
-
-    $timeZones = [
-        'US' => 'America/New_York',
-        'EU' => 'Europe/Paris',
-    ];
+    global $resultCodes, $timeZones, $timeLeftCodes;
 
     $htmlFormat = <<<EOF
 <div class="table-wrapper">
@@ -238,7 +230,7 @@ EOF;
         $replacements = [
             'BUY' => number_format($tokenData['marketgold']),
             'SELL' => number_format($tokenData['guaranteedgold']),
-            'TIMETOSELL' => $tokenData['timeleft'],
+            'TIMETOSELL' => isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft'],
             'RESULT' => isset($resultCodes[$tokenData['result']]) ? $resultCodes[$tokenData['result']] : ('Unknown: ' . $tokenData['result']),
             'UPDATED' => $d->format('M jS, Y g:ia T'),
         ];
@@ -257,7 +249,7 @@ EOF;
 function SendTweets($regions)
 {
     global $db;
-    global $resultCodes, $timeZones;
+    global $resultCodes, $timeZones, $timeLeftCodes;
 
     foreach ($regions as $region) {
         $fileRegion = strtolower($region);
@@ -292,7 +284,7 @@ function SendTweets($regions)
             'formatted' => [
                 'BUY' => number_format($tokenData['marketgold']),
                 'SELL' => number_format($tokenData['guaranteedgold']),
-                'TIMETOSELL' => $tokenData['timeleft'],
+                'TIMETOSELL' => isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft'],
                 'RESULT' => isset($resultCodes[$tokenData['result']]) ? $resultCodes[$tokenData['result']] : ('Unknown: ' . $tokenData['result']),
                 'UPDATED' => $d->format('M jS, Y g:ia T'),
             ],
