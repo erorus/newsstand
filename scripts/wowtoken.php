@@ -137,7 +137,7 @@ function ParseTokenData($region, $snapshot, &$lua)
         }
     }
 
-    $sql = 'replace into tblWowToken (`region`, `when`, `marketgold`, `sellseconds`, `guaranteedgold`, `result`) values (?, ?, floor(?/10000), ?, floor(?/10000), ?)';
+    $sql = 'replace into tblWowToken (`region`, `when`, `marketgold`, `timeleft`, `guaranteedgold`, `result`) values (?, ?, floor(?/10000), ?, floor(?/10000), ?)';
 
     $stmt = $db->prepare($sql);
     $stmt->bind_param('ssiiii',
@@ -238,7 +238,7 @@ EOF;
         $replacements = [
             'BUY' => number_format($tokenData['marketgold']),
             'SELL' => number_format($tokenData['guaranteedgold']),
-            'TIMETOSELL' => TimeDiff($tokenData['sellseconds'] + 1, ['to' => 1, 'parts' => 3, 'precision' => 'minute', 'distance'  => false,]),
+            'TIMETOSELL' => $tokenData['timeleft'],
             'RESULT' => isset($resultCodes[$tokenData['result']]) ? $resultCodes[$tokenData['result']] : ('Unknown: ' . $tokenData['result']),
             'UPDATED' => $d->format('M jS, Y g:ia T'),
         ];
@@ -292,7 +292,7 @@ function SendTweets($regions)
             'formatted' => [
                 'BUY' => number_format($tokenData['marketgold']),
                 'SELL' => number_format($tokenData['guaranteedgold']),
-                'TIMETOSELL' => TimeDiff($tokenData['sellseconds'] + 1, ['to' => 1, 'parts' => 2, 'precision' => 'minute', 'distance'  => false,]),
+                'TIMETOSELL' => $tokenData['timeleft'],
                 'RESULT' => isset($resultCodes[$tokenData['result']]) ? $resultCodes[$tokenData['result']] : ('Unknown: ' . $tokenData['result']),
                 'UPDATED' => $d->format('M jS, Y g:ia T'),
             ],
