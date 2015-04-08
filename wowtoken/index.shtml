@@ -1,130 +1,104 @@
 <!DOCTYPE HTML>
-<!--
-	Read Only by HTML5 UP
-	html5up.net | @n33co
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
--->
 <html>
 	<head>
 		<title>WoW Token Info</title>
-		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-		<meta name="description" content="" />
-		<meta name="keywords" content="" />
-		<!--[if lte IE 8]><script src="css/ie/html5shiv.js"></script><![endif]-->
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-		<script src="js/jquery.scrollzer.min.js"></script>
-		<script src="js/jquery.scrolly.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/skel/2.2.1/skel.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/skel-layers/2.0.2/skel-layers.min.js"></script>
-		<script src="js/init.js"></script>
-		<noscript>
-			<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skel/2.2.1/skel.css" />
-			<link rel="stylesheet" href="css/style.css" />
-			<link rel="stylesheet" href="css/style-xlarge.css" />
-		</noscript>
-		<!--[if lte IE 8]><link rel="stylesheet" href="css/ie/v8.css" /><![endif]-->
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+        <link href="css/mui.min.css" rel="stylesheet" type="text/css">
+        <link href='https://fonts.googleapis.com/css?family=Roboto:400,700|Roboto+Slab:700' rel='stylesheet' type='text/css'>
+        <style type="text/css">
+            body {
+                font-family: 'Roboto', sans-serif;
+                font-weight: 400;
+            }
+
+            b {
+                font-weight: 700;
+            }
+
+            h1, h2 {
+                font-family: 'Roboto Slab', serif;
+                font-weight: 700;
+            }
+
+            h1:first-child,
+            h2:first-child {
+                margin-top: 0;
+            }
+
+            #trademarks {
+                font-size: 75%;
+                color: #999;
+            }
+
+            table.results td {
+                font-weight: 700;
+                padding-top: 0.25em;
+            }
+
+            table.results td:first-child {
+                font-weight: normal;
+                padding-right: 2em;
+            }
+
+            table.results tr:first-child td {
+                padding-top: 0;
+            }
+
+            .mui-container {
+                max-width: 768px;
+            }
+
+            a {
+                white-space: nowrap;
+            }
+
+            #topcard {
+                background-color: #FFD;
+            }
+
+            .realm-panel {
+                background-color: #F6FFF6;
+            }
+
+            .extra-panel {
+                background-color: #F6F6FF;
+            }
+        </style>
 	</head>
 	<body>
-		<div id="wrapper">
+        <div class="mui-container">
+            <div class="mui-panel" id="topcard">
+                <h1>WoW Token Info</h1>
+                <i>WoW Token prices and historical statistics from the auction houses of World of Warcraft</i>
+            </div>
+    
+            <div class="mui-panel realm-panel">
+                <h2>North American Realms</h2>
+                <!--#include virtual="NA.incl.html"-->
+            </div>
+    
+            <div class="mui-panel realm-panel">
+                <h2>European Realms</h2>
+                <!--#include virtual="EU.incl.html"-->
+            </div>
+    
+            <div class="mui-panel extra-panel">
+                <h2>About</h2>
+                <p>The <a href="http://www.wowhead.com/item=122284/wow-token">WoW Token</a> is &quot;a new in-game item that allows players to simply and securely exchange gold and game time between each other.&quot; <a href="http://us.battle.net/wow/en/blog/18141101/introducing-the-wow-token-3-2-2015">Read this blog post for more details.</a></p>
+                <p>The WoW Token has a constant monetary cost, but its in-game gold price fluctuates with supply and demand. Here you'll find the most recent pricing information.</p>
+                <p>Pricing history charts should be coming soon, once we have a good idea of the available data.</p>
+                <p>Be sure to <a href="https://twitter.com/WoWTokens">follow us on Twitter</a> for updates.</p>
+            </div>
+    
+            <div class="mui-panel extra-panel">
+                <h2>Affiliates</h2>
+                For detailed auction house pricing information and statistics for <i>all items</i> on all NA and EU realms, visit <a href="https://theunderminejournal.com">The Undermine Journal</a>.
+                <br><br>
+                For detailed population statistics for all NA and EU realms, visit <a href="https://realmpop.com">Realm Pop</a>.
+            </div>
 
-			<!-- Header -->
-				<section id="header" class="skel-layers-fixed">
-					<header>
-						<span class="image avatar"><img src="images/tokenavatar.jpg" alt="" /></span>
-						<h1 id="logo">WoW Token</h1>
-						<p>&quot;Use: Adds 30 days of game time to your World of Warcraft account.&quot;</p>
-					</header>
-					<nav id="nav">
-						<ul>
-							<li><a href="#top" class="active">About</a></li>
-							<li><a href="#us">North America</a></li>
-							<li><a href="#eu">Europe</a></li>
-                            <li><a href="#affiliates">Affiliates</a></li>
-						</ul>
-					</nav>
-					<footer>
-						<ul class="icons">
-							<li><a href="https://twitter.com/wowtokens" class="icon fa-twitter"><span class="label">Twitter</span></a></li>
-							<!-- li><a href="#" class="icon fa-envelope"><span class="label">Email</span></a></li -->
-						</ul>
-					</footer>
-				</section>
-
-			<!-- Main -->
-				<div id="main">
-
-					<!-- One -->
-                    <section id="top">
-                        <div class="container">
-                            <header class="major">
-                                <h2>WoW Token Info</h2>
-                                <p>WoW Token prices and historical statistics<br> from the auction houses of World of Warcraft</p>
-                            </header>
-                            <p>The <a href="http://www.wowhead.com/item=122284/wow-token">WoW Token</a> is &quot;a new in-game item that allows players to simply and securely exchange gold and game time between each other.&quot; <a href="http://us.battle.net/wow/en/blog/18141101/introducing-the-wow-token-3-2-2015">Read this blog post for more details.</a></p>
-                            <p>The WoW Token has a constant monetary cost, but its in-game gold price fluctuates with supply and demand. Here you'll find the most recent pricing information.</p>
-                            <p>Pricing history charts should be coming soon, once we have a good idea of the available data.</p>
-                        </div>
-                    </section>
-
-                    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-                    <!-- WoW Token -->
-                    <ins class="adsbygoogle"
-                         style="display:block"
-                         data-ad-client="ca-pub-1018837251546750"
-                         data-ad-slot="5638381910"
-                         data-ad-format="auto"></ins>
-                    <script>
-                        (adsbygoogle = window.adsbygoogle || []).push({});
-                    </script>
-
-					<!-- Two -->
-                    <section id="us">
-                        <div class="container">
-                            <h3>North America</h3>
-                            <section>
-                                <!--#include virtual="na.incl.html" -->
-                            </section>
-                        </div>
-                    </section>
-
-                    <!-- Three -->
-                    <section id="eu">
-                        <div class="container">
-                            <h3>Europe</h3>
-                            <section>
-                                <!--#include virtual="eu.incl.html" -->
-                            </section>
-                        </div>
-                    </section>
-
-                    <!-- Four -->
-                    <section id="affiliates">
-                        <div class="container">
-                            <h3>Affiliates</h3>
-                            <section>
-                                <h4>The Undermine Journal</h4>
-                                For detailed auction house pricing information and statistics for <i>all items</i> on all NA and EU realms, visit <a href="https://theunderminejournal.com">The Undermine Journal</a>.
-                            </section>
-                            <br>
-                            <section>
-                                <h4>Realm Pop</h4>
-                                For detailed population statistics for all NA and EU realms, visit <a href="https://realmpop.com">Realm Pop</a>.
-                            </section>
-                        </div>
-                    </section>
-
-                </div>
-
-			<!-- Footer -->
-				<section id="footer">
-					<div class="container">
-						<ul class="copyright">
-							<li>Design: <a href="http://html5up.net">HTML5 UP</a><br><br>
-                                World of Warcraft, Warcraft and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc. in the U.S. and/or other countries.</li>
-						</ul>
-					</div>
-				</section>
-
-		</div>
+            <div id="trademarks">World of Warcraft, Warcraft and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc. in the U.S. and/or other countries.</div>
+        </div>
 	</body>
 </html>

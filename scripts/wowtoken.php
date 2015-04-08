@@ -19,7 +19,7 @@ CatchKill();
 
 define('SNAPSHOT_PATH', '/home/wowtoken/pending/');
 define('TWEET_FREQUENCY_MINUTES', 360); // tweet at least every 6 hours
-define('PRICE_CHANGE_THRESHOLD', 0); // was 0.2, for 20% change required. 0 means tweet every change
+define('PRICE_CHANGE_THRESHOLD', 0.02); // was 0.2, for 20% change required. 0 means tweet every change
 
 if (!DBConnect()) {
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
@@ -64,11 +64,8 @@ while ((!$caughtKill) && (time() < ($loopStart + 60))) {
     }
 }
 if ($gotData || (isset($argv[1]) && $argv[1] == 'build')) {
+    BuildIncludes(array_keys($timeZones));
     $gotData = array_unique($gotData);
-    if (!$gotData) {
-        $gotData = ['US','EU'];
-    }
-    BuildIncludes($gotData);
     SendTweets($gotData);
     DebugMessage('Done! Started ' . TimeDiff($startTime));
 }
@@ -180,34 +177,32 @@ function BuildIncludes($regions)
     global $resultCodes, $timeZones, $timeLeftCodes;
 
     $htmlFormat = <<<EOF
-<div class="table-wrapper">
-    <table>
-        <tbody>
-        <tr>
-            <td>Buy Price</td>
-            <td>##BUY##g</td>
-        </tr>
-        <tr>
-            <td>Estimated Time to Sell</td>
-            <td>##TIMETOSELL##</td>
-        </tr>
-        <tr>
-            <td>API Result</td>
-            <td>##RESULT##</td>
-        </tr>
-        <tr>
-            <td>Updated</td>
-            <td>##UPDATED##</td>
-        </tr>
-        </tbody>
-    </table>
-</div>
+                <table class="results">
+                    <tr>
+                        <td>Buy Price</td>
+                        <td>##buy##g</td>
+                    </tr>
+                    <tr>
+                        <td>Time to Sell</td>
+                        <td>##timeToSell##</td>
+                    </tr>
+                    <tr>
+                        <td>API Result</td>
+                        <td>##result##</td>
+                    </tr>
+                    <tr>
+                        <td>Updated</td>
+                        <td>##updated##</td>
+                    </tr>
+                </table>
 EOF;
 
+    $json = [];
+
     foreach ($regions as $region) {
-        $fileRegion = strtolower($region);
-        if ($fileRegion == 'us') {
-            $fileRegion = 'na';
+        $fileRegion = strtoupper($region);
+        if ($fileRegion == 'US') {
+            $fileRegion = 'NA';
         }
         $filenm = __DIR__.'/../wowtoken/'.$fileRegion.'.incl.html';
 
@@ -223,13 +218,23 @@ EOF;
         $d = new DateTime('now', timezone_open($timeZones[$region]));
         $d->setTimestamp(strtotime($tokenData['when']));
 
-        $replacements = [
-            'BUY' => number_format($tokenData['marketgold']),
-            'SELL' => number_format($tokenData['guaranteedgold']),
-            'TIMETOSELL' => isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft'],
-            'RESULT' => isset($resultCodes[$tokenData['result']]) ? $resultCodes[$tokenData['result']] : ('Unknown: ' . $tokenData['result']),
-            'UPDATED' => $d->format('M jS, Y g:ia T'),
+        $json[$fileRegion] = [
+            'timestamp' => strtotime($tokenData['when']),
+            'raw' => [
+                'buy' => $tokenData['marketgold'],
+                'timeToSell' => $tokenData['timeleft'],
+                'result' => $tokenData['result'],
+                'updated' => strtotime($tokenData['when']),
+            ],
+            'formatted' => [
+                'buy' => number_format($tokenData['marketgold']),
+                'timeToSell' => isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft'],
+                'result' => isset($resultCodes[$tokenData['result']]) ? $resultCodes[$tokenData['result']] : ('Unknown: ' . $tokenData['result']),
+                'updated' => $d->format('M jS, Y g:ia T'),
+            ],
         ];
+
+        $replacements = $json[$fileRegion]['formatted'];
 
         $html = preg_replace_callback('/##([a-zA-Z0-9]+)##/', function ($m) use ($replacements) {
                 if (isset($replacements[$m[1]])) {
@@ -240,6 +245,8 @@ EOF;
 
         file_put_contents($filenm, $html);
     }
+
+    file_put_contents(__DIR__.'/../wowtoken/snapshot.json', json_encode($json, JSON_NUMERIC_CHECK | JSON_PRETTY_PRINT));
 }
 
 function SendTweets($regions)
@@ -317,6 +324,9 @@ function SendTweet($region, $tweetData)
     DebugMessage('Sending tweet of ' . strlen($msg) . " chars:\n" . $msg);
 
     global $twitterCredentials;
+    if ($twitterCredentials === false) {
+        return true;
+    }
 
     $oauth = new OAuth($twitterCredentials['consumerKey'], $twitterCredentials['consumerSecret']);
     $oauth->setToken($twitterCredentials['accessToken'], $twitterCredentials['accessTokenSecret']);

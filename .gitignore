@@ -22,3 +22,4 @@ addon/*.zip
 
 wowtoken/*.incl.html
 wowtoken/css/*.css.map
+wowtoken/snapshot.json
