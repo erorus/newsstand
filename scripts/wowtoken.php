@@ -324,12 +324,16 @@ function SendTweets($regions)
 
 function SendTweet($region, $tweetData, $chartUrl)
 {
-    $msg = "$region Region #WoWToken: " . $tweetData['formatted']['BUY'] . "g, sells in " . $tweetData['formatted']['TIMETOSELL'] . '.';
+    $msg = "$region Region #WoWToken: " . $tweetData['formatted']['BUY'] . "g."; //, sells in " . $tweetData['formatted']['TIMETOSELL'] . '.';
     if ($tweetData['record']['result'] != 1) {
         $msg .= " \n" . $tweetData['formatted']['RESULT'] . ".";
     }
     if ($tweetData['timestamp'] < (time() - 30 * 60)) { // show timestamp if older than 30 mins
         $msg .= " \nFrom " . TimeDiff($tweetData['timestamp'], ['parts' => 2, 'precision' => 'minute']) . '.';
+    }
+
+    if ($msg == '') {
+        return false;
     }
 
     DebugMessage('Sending tweet of ' . strlen($msg) . " chars:\n" . $msg);
@@ -339,16 +343,20 @@ function SendTweet($region, $tweetData, $chartUrl)
         return true;
     }
 
-    $oauth = new OAuth($twitterCredentials['consumerKey'], $twitterCredentials['consumerSecret']);
-    $oauth->setToken($twitterCredentials['accessToken'], $twitterCredentials['accessTokenSecret']);
-    $url = 'https://api.twitter.com/1.1/statuses/update.json';
-
-    if ($msg == '') {
-        return false;
+    $media = false;
+    if ($chartUrl) {
+        $media = UploadTweetMedia($chartUrl);
     }
 
     $params = array();
     $params['status'] = $msg;
+    if ($media) {
+        $params['media_ids'][] = $media;
+    }
+
+    $oauth = new OAuth($twitterCredentials['consumerKey'], $twitterCredentials['consumerSecret']);
+    $oauth->setToken($twitterCredentials['accessToken'], $twitterCredentials['accessTokenSecret']);
+    $url = 'https://api.twitter.com/1.1/statuses/update.json';
 
     try {
         $didWork = $oauth->fetch($url, $params, 'POST', array('Connection' => 'close'));
@@ -445,4 +453,63 @@ function EncodeValue($v) {
     $quotient = floor($v / strlen($encoding));
     $remainder = $v - (strlen($encoding) * $quotient);
     return substr($encoding, $quotient, 1) . substr($encoding, $remainder, 1);
+}
+
+function UploadTweetMedia($mediaUrl) {
+    global $twitterCredentials;
+    if ($twitterCredentials === false) {
+        return false;
+    }
+
+    if (!$mediaUrl) {
+        return false;
+    }
+
+    $data = FetchHTTP($mediaUrl);
+    if (!$data) {
+        return false;
+    }
+
+    $boundary = '';
+    $mimedata['media'] = "content-disposition: form-data; name=\"media\"\r\nContent-Type: image/png\r\nContent-Transfer-Encoding: binary\r\n\r\n".$data;
+
+    while ($boundary == '') {
+        for ($x = 0; $x < 16; $x++) $boundary .= chr(rand(ord('a'),ord('z')));
+        foreach ($mimedata as $d) if (strpos($d,$boundary) !== false) $boundary = '';
+    }
+    $mime = '';
+    foreach ($mimedata as $d) $mime .= "--$boundary\r\n$d\r\n";
+    $mime .= "--$boundary--\r\n";
+
+    $oauth = new OAuth($twitterCredentials['consumerKey'], $twitterCredentials['consumerSecret']);
+    $oauth->setToken($twitterCredentials['accessToken'], $twitterCredentials['accessTokenSecret']);
+    $url = 'https://upload.twitter.com/1.1/media/upload.json';
+
+    $requestHeader = $oauth->getRequestHeader('POST',$url);
+
+    $inHeaders = ['Authorization' => $requestHeader, 'Content-Type' => 'multipart/form-data; boundary=' . $boundary];
+    $outHeaders = [];
+
+    $ret = PostHTTP($url, $mime, $inHeaders, $outHeaders);
+
+    if ($ret) {
+        $json = json_decode($ret, true);
+        if (json_last_error() == JSON_ERROR_NONE) {
+            if (isset($json['media_id_string'])) {
+                return $json['media_id_string'];
+            } else {
+                DebugMessage('Parsed JSON response from post to twitter, no media id', E_USER_WARNING);
+                DebugMessage(print_r($json, true), E_USER_WARNING);
+                return false;
+            }
+        } else {
+            DebugMessage('Non-JSON response from post to twitter', E_USER_WARNING);
+            DebugMessage($ret, E_USER_WARNING);
+            return false;
+        }
+    } else {
+        DebugMessage('No/bad response from post to twitter', E_USER_WARNING);
+        DebugMessage(print_r($outHeaders, true), E_USER_WARNING);
+        return false;
+    }
 }

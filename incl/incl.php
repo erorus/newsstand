@@ -246,6 +246,51 @@ function FetchHTTPError($errno, $errstr, $errfile, $errline, $errcontext)
     return true;
 }
 
+function PostHTTP($url, $toPost, $inHeaders = array(), &$outHeaders = array())
+{
+    global $fetchHTTPErrorCaught;
+
+    $fetchHTTPErrorCaught = false;
+    $http_opt = array(
+        'timeout'        => 60,
+        'connecttimeout' => 6,
+        'headers'        => $inHeaders,
+        'compress'       => true,
+        'redirect'       => 2
+    );
+
+    $http_info = array();
+    $fetchHTTPErrorCaught = false;
+    $oldErrorReporting = error_reporting(error_reporting() | E_WARNING);
+    set_error_handler('FetchHTTPError', E_WARNING);
+    $data = http_parse_message(http_post_data($url, $toPost, $http_opt, $http_info));
+    restore_error_handler();
+    error_reporting($oldErrorReporting);
+    unset($oldErrorReporting);
+
+    if (!$data) {
+        $outHeaders = array();
+        return false;
+    }
+
+    $outHeaders = array_merge(
+        array(
+            'httpVersion'    => $data->httpVersion,
+            'responseCode'   => $data->responseCode,
+            'responseStatus' => $data->responseStatus,
+        ), $data->headers
+    );
+
+    if ($fetchHTTPErrorCaught) {
+        return false;
+    }
+    if (preg_match('/^2\d\d$/', $http_info['response_code']) > 0) {
+        return $data->body;
+    } else {
+        return false;
+    }
+}
+
 function TimeDiff($time, $opt = array())
 {
     if (is_null($time)) {
