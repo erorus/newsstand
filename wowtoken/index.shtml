@@ -31,6 +31,10 @@
                 color: #999;
             }
 
+            table.results {
+                min-width: 270px;
+            }
+
             table.results td {
                 font-weight: 700;
                 padding-top: 0.25em;
@@ -46,7 +50,7 @@
             }
 
             .mui-container {
-                max-width: 768px;
+                max-width: 970px;
             }
 
             a {
@@ -63,6 +67,20 @@
 
             .extra-panel {
                 background-color: #F6F6FF;
+            }
+
+            img.sparkline {
+                float: right;
+                width: 400px;
+                height: 144px;
+                max-width: 100%;
+            }
+
+            @media all and (max-width: 768px) {
+                img.sparkline {
+                    float: none;
+                    margin-bottom: 1em;
+                }
             }
         </style>
 	</head>

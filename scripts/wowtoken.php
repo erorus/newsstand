@@ -63,10 +63,10 @@ while ((!$caughtKill) && (time() < ($loopStart + 60))) {
         break;
     }
 }
-if ($gotData || (isset($argv[1]) && $argv[1] == 'build')) {
+$forceBuild = (isset($argv[1]) && $argv[1] == 'build');
+if ($gotData || $forceBuild) {
     BuildIncludes(array_keys($timeZones));
-    $gotData = array_unique($gotData);
-    SendTweets($gotData);
+    SendTweets($forceBuild ? array_keys($timeZones) : array_unique($gotData));
     DebugMessage('Done! Started ' . TimeDiff($startTime));
 }
 
@@ -176,7 +176,10 @@ function BuildIncludes($regions)
     global $db;
     global $resultCodes, $timeZones, $timeLeftCodes;
 
+    $blankImage = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
     $htmlFormat = <<<EOF
+                <img src="##sparkurl##" class="sparkline">
                 <table class="results">
                     <tr>
                         <td>Buy Price</td>
@@ -218,6 +221,11 @@ EOF;
         $d = new DateTime('now', timezone_open($timeZones[$region]));
         $d->setTimestamp(strtotime($tokenData['when']));
 
+        $sparkUrl = GetChartURL($region);
+        if (!$sparkUrl) {
+            $sparkUrl = $blankImage;
+        }
+
         $json[$fileRegion] = [
             'timestamp' => strtotime($tokenData['when']),
             'raw' => [
@@ -231,6 +239,7 @@ EOF;
                 'timeToSell' => isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft'],
                 'result' => isset($resultCodes[$tokenData['result']]) ? $resultCodes[$tokenData['result']] : ('Unknown: ' . $tokenData['result']),
                 'updated' => $d->format('M jS, Y g:ia T'),
+                'sparkurl' => $sparkUrl,
             ],
         ];
 
@@ -303,15 +312,17 @@ function SendTweets($regions)
             //$needTweet |= $lastTweetData['record']['guaranteedgold'] * (1 - PRICE_CHANGE_THRESHOLD) > $tweetData['record']['guaranteedgold']; // guaranteed sell price went down over X percent
         }
 
-        if ($needTweet) {
-            if (SendTweet(strtoupper($fileRegion), $tweetData)) {
-                file_put_contents($filenm, json_encode($tweetData));
-            }
+        if (!$needTweet) {
+            continue;
+        }
+
+        if (SendTweet(strtoupper($fileRegion), $tweetData, GetChartURL($region))) {
+            file_put_contents($filenm, json_encode($tweetData));
         }
     }
 }
 
-function SendTweet($region, $tweetData)
+function SendTweet($region, $tweetData, $chartUrl)
 {
     $msg = "$region Region #WoWToken: " . $tweetData['formatted']['BUY'] . "g, sells in " . $tweetData['formatted']['TIMETOSELL'] . '.';
     if ($tweetData['record']['result'] != 1) {
@@ -361,4 +372,77 @@ function SendTweet($region, $tweetData)
     DebugMessage('Twitter returned: '.print_r($r, true), E_USER_WARNING);
 
     return false;
+}
+
+function GetChartURL($region) {
+    global $db;
+
+    static $cache = [];
+    if (isset($cache[$region])) {
+        return $cache[$region];
+    }
+
+    $sql = <<<EOF
+SELECT 96 - floor((unix_timestamp() - unix_timestamp(`when`)) / 900) x, marketgold y
+FROM `tblWowToken`
+WHERE region = ?
+and result = 1
+and `when` >= timestampadd(day, -24, now())
+EOF;
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('s', $region);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $sparkData = DBMapArray($result, null);
+    $stmt->close();
+
+    $cache[$region] = EncodeChartData($sparkData);
+    if ($cache[$region]) {
+        $cache[$region] = 'https://chart.googleapis.com/chart?chs=400x144&cht=ls&chco=FF0000&chg=100,25&chf=c,s,FFFFFF&chma=8,8,8,8&chd=e:' . $cache[$region];
+    }
+
+    return $cache[$region];
+
+}
+
+function EncodeChartData($xy) {
+    if (count($xy) == 0) {
+        return false;
+    }
+    $points = [];
+    for ($i = 0; $i < count($xy); $i++) {
+        $x = $xy[$i]['x'];
+        $y = $xy[$i]['y'];
+        $points[$x] = $y;
+        if ($i == 0) {
+            $minX = $maxX = $x;
+            $minY = $maxY = $y;
+            continue;
+        }
+        $minX = min($minX, $x);
+        $maxX = max($maxX, $x);
+        $minY = min($minY, $y);
+        $maxY = max($maxY, $y);
+    }
+    $range = $maxY - $minY;
+    if ($range == 0) {
+        return false;
+    }
+    for ($x = $minX; $x <= $maxX; $x++) {
+        if (!isset($points[$x])) {
+            $points[$x] = $points[$x-1];
+        } else {
+            $points[$x] = min(floor(($points[$x] - $minY) / $range * 4096), 4095);
+            $points[$x] = EncodeValue($points[$x]);
+        }
+    }
+    ksort($points);
+    return implode($points);
+}
+
+function EncodeValue($v) {
+    $encoding = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-.';
+    $quotient = floor($v / strlen($encoding));
+    $remainder = $v - (strlen($encoding) * $quotient);
+    return substr($encoding, $quotient, 1) . substr($encoding, $remainder, 1);
 }
