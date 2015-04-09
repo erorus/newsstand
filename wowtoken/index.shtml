@@ -72,8 +72,9 @@
             img.sparkline {
                 float: right;
                 width: 400px;
-                height: 144px;
+                height: 187px;
                 max-width: 100%;
+                border: 0;
             }
 
             @media all and (max-width: 768px) {

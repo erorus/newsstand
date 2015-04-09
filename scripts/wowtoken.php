@@ -179,7 +179,7 @@ function BuildIncludes($regions)
     $blankImage = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
     $htmlFormat = <<<EOF
-                <img src="##sparkurl##" class="sparkline">
+                <a href="##sparkurl##"><img src="##sparkurl##" class="sparkline"></a>
                 <table class="results">
                     <tr>
                         <td>Buy Price</td>
@@ -324,7 +324,7 @@ function SendTweets($regions)
 
 function SendTweet($region, $tweetData, $chartUrl)
 {
-    $msg = "$region Region #WoWToken: " . $tweetData['formatted']['BUY'] . "g."; //, sells in " . $tweetData['formatted']['TIMETOSELL'] . '.';
+    $msg = "$region Region #WoWToken: " . $tweetData['formatted']['BUY'] . "g, sells in " . $tweetData['formatted']['TIMETOSELL'] . '.';
     if ($tweetData['record']['result'] != 1) {
         $msg .= " \n" . $tweetData['formatted']['RESULT'] . ".";
     }
@@ -395,7 +395,7 @@ SELECT 96 - floor((unix_timestamp() - unix_timestamp(`when`)) / 900) x, marketgo
 FROM `tblWowToken`
 WHERE region = ?
 and result = 1
-and `when` >= timestampadd(day, -24, now())
+and `when` >= timestampadd(hour, -24, now())
 EOF;
     $stmt = $db->prepare($sql);
     $stmt->bind_param('s', $region);
@@ -406,7 +406,7 @@ EOF;
 
     $cache[$region] = EncodeChartData($sparkData);
     if ($cache[$region]) {
-        $cache[$region] = 'https://chart.googleapis.com/chart?chs=400x144&cht=ls&chco=FF0000&chg=100,25&chf=c,s,FFFFFF&chma=8,8,8,8&chd=e:' . $cache[$region];
+        $cache[$region] = 'https://chart.googleapis.com/chart?chs=600x280&cht=ls&chco=FF0000&chg=16.66,25&chxt=x,y&chf=c,s,FFFFFF&chma=8,8,8,8' . $cache[$region];
     }
 
     return $cache[$region];
@@ -432,6 +432,8 @@ function EncodeChartData($xy) {
         $minY = min($minY, $y);
         $maxY = max($maxY, $y);
     }
+    $minY = floor($minY / 1000) * 1000;
+    $maxY = ceil($maxY / 1000) * 1000;
     $range = $maxY - $minY;
     if ($range == 0) {
         return false;
@@ -440,12 +442,15 @@ function EncodeChartData($xy) {
         if (!isset($points[$x])) {
             $points[$x] = $points[$x-1];
         } else {
-            $points[$x] = min(floor(($points[$x] - $minY) / $range * 4096), 4095);
+            $points[$x] = floor(($points[$x] - $minY) / $range * 4096);
             $points[$x] = EncodeValue($points[$x]);
         }
     }
     ksort($points);
-    return implode($points);
+    $dataString = '&chxr=0,'.floor(($minX-96)/4).','.floor((96-$maxX)/4).'|1,'.$minY.','.$maxY;
+    $dataString .= '&chd=e:' . implode($points);
+
+    return $dataString;
 }
 
 function EncodeValue($v) {
