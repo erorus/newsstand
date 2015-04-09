@@ -427,7 +427,7 @@ EOF;
 
     $cache[$region] = EncodeChartData($sparkData);
     if ($cache[$region]) {
-        $cache[$region] = 'https://chart.googleapis.com/chart?chs=600x280&cht=ls&chco=FF0000&chg=16.66,25&chxt=x,y&chf=c,s,FFFFFF&chma=8,8,8,8' . $cache[$region];
+        $cache[$region] = 'https://chart.googleapis.com/chart?chs=600x280&cht=ls&chco=0000FF&chm=B,CCCCFF99,0,0,0&chg=16.66,25,5,0&chxt=x,y&chf=c,s,FFFFFF&chma=8,8,8,8' . $cache[$region];
     }
 
     return $cache[$region];

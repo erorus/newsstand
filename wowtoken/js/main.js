@@ -151,7 +151,7 @@ var wowtoken = {
                     name: 'Market Price',
                     color: '#0000FF',
                     lineColor: '#0000FF',
-                    fillColor: '#CCCCFF',
+                    fillColor: 'rgba(204,204,255,0.6)',
                     data: hcdata.buy
                 }
             ]
