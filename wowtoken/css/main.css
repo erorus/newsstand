@@ -1,0 +1,80 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+}
+
+b {
+    font-weight: 700;
+}
+
+h1, h2 {
+    font-family: 'Roboto Slab', serif;
+    font-weight: 700;
+}
+
+h1:first-child,
+h2:first-child {
+    margin-top: 0;
+}
+
+#trademarks {
+    font-size: 75%;
+    color: #999;
+}
+
+table.results {
+    min-width: 270px;
+}
+
+table.results td {
+    font-weight: 700;
+    padding-top: 0.25em;
+}
+
+table.results td:first-child {
+    font-weight: normal;
+    padding-right: 2em;
+}
+
+table.results tr:first-child td {
+    padding-top: 0;
+}
+
+.mui-container {
+    max-width: 970px;
+}
+
+a {
+    white-space: nowrap;
+}
+
+#topcard {
+    background-color: #FFD;
+}
+
+.realm-panel {
+    background-color: #F6FFF6;
+}
+
+.extra-panel {
+    background-color: #F6F6FF;
+}
+
+img.sparkline {
+    float: right;
+    width: 400px;
+    height: 187px;
+    max-width: 100%;
+    border: 0;
+}
+
+@media all and (max-width: 768px) {
+    img.sparkline {
+        float: none;
+        margin-bottom: 1em;
+    }
+}
+
+div.hc {
+    height: 300px;
+}

@@ -179,7 +179,6 @@ function BuildIncludes($regions)
     $blankImage = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
     $htmlFormat = <<<EOF
-                <a href="##sparkurl##"><img src="##sparkurl##" class="sparkline"></a>
                 <table class="results">
                     <tr>
                         <td>Buy Price</td>
@@ -201,6 +200,7 @@ function BuildIncludes($regions)
 EOF;
 
     $json = [];
+    $historyJson = [];
 
     foreach ($regions as $region) {
         $fileRegion = strtoupper($region);
@@ -225,6 +225,8 @@ EOF;
         if (!$sparkUrl) {
             $sparkUrl = $blankImage;
         }
+
+        $historyJson[$fileRegion] = BuildHistoryJson($region);
 
         $json[$fileRegion] = [
             'timestamp' => strtotime($tokenData['when']),
@@ -255,7 +257,26 @@ EOF;
         file_put_contents($filenm, $html);
     }
 
-    file_put_contents(__DIR__.'/../wowtoken/snapshot.json', json_encode($json, JSON_NUMERIC_CHECK | JSON_PRETTY_PRINT));
+    file_put_contents(__DIR__.'/../wowtoken/snapshot.json', json_encode($json, JSON_NUMERIC_CHECK));
+    file_put_contents(__DIR__.'/../wowtoken/history.json', json_encode($historyJson, JSON_NUMERIC_CHECK));
+}
+
+function BuildHistoryJson($region) {
+    global $db;
+
+    $sql = 'select unix_timestamp(`when`) `dt`, `marketgold` `buy`, `timeleft`+0 `time` from tblWowToken where region = ? and `result` = 1 order by `when` asc';
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('s', $region);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $tokenData = [];
+    while ($row = $result->fetch_row()) {
+        $tokenData[] = $row;
+    }
+    $result->close();
+    $stmt->close();
+
+    return $tokenData;
 }
 
 function SendTweets($regions)
