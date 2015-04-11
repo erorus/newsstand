@@ -313,6 +313,7 @@ function SendTweets($regions)
 
         $tweetData = [
             'timestamp' => strtotime($tokenData['when']),
+            'direction' => 0,
             'record' => $tokenData,
             'formatted' => [
                 'BUY' => number_format($tokenData['marketgold']),
@@ -323,12 +324,48 @@ function SendTweets($regions)
             ],
         ];
 
-        $needTweet = !isset($lastTweetData['timestamp']); // no last tweet data
+        $needTweet = false;
+        $changePct = 0;
+
+        if (isset($lastTweetData['direction'])) {
+            $lastAmt = $lastTweetData['record']['marketgold'];
+            $direction = 0;
+            if ($lastAmt > $tokenData['marketgold']) {
+                $direction = -1;
+            } elseif ($lastAmt < $tokenData['marketgold']) {
+                $direction = 1;
+            }
+            if ($direction != 0) { // some change happened
+                $changePct = round(($tokenData['marketgold'] / $lastAmt - 1) * 10000);
+                $tweetData['formatted']['BUYCHANGEPERCENT'] = round($changePct / 100, 2).'%';
+                $tweetData['formatted']['BUYCHANGEAMOUNT'] = number_format($tokenData['marketgold'] - $lastAmt);
+                switch (abs($lastTweetData['direction'])) {
+                    case 0: // change happened after unknown direction
+                        $tweetData['direction'] = $direction; // sets to +1 or -1
+                        break;
+                    case 1: // this change after a recent direction change
+                        if (($lastTweetData['direction'] > 0) == ($direction > 0)) { // this change in same direction as before
+                            $tweetData['direction'] += $direction; // sets to +2 or -2
+                            $needTweet = true; // this is a new confirmed, consistent direction
+                            break;
+                        }
+                    // fall through, change back to other direction, possible flipflop
+                    default:
+                        if (($lastTweetData['direction'] > 0) != ($direction > 0)) { // this change is in different direction than before
+                            $tweetData['direction'] = $direction; // sets to +1 or -1
+                        }
+                        break;
+                }
+            }
+        }
+
+        $needTweet |= !isset($lastTweetData['timestamp']); // no last tweet data
         if (!$needTweet) {
             $needTweet |= ($lastTweetData['timestamp'] < ($tweetData['timestamp'] - TWEET_FREQUENCY_MINUTES * 60 + 5)) && ($tweetData['record']['result'] == 1); // tweet at least every X minutes when result is good
             $needTweet |= $lastTweetData['record']['result'] != $tweetData['record']['result']; // result changed
             $needTweet |= $lastTweetData['record']['marketgold'] * (1 + PRICE_CHANGE_THRESHOLD) < $tweetData['record']['marketgold']; // market price went up over X percent
             $needTweet |= $lastTweetData['record']['marketgold'] * (1 - PRICE_CHANGE_THRESHOLD) > $tweetData['record']['marketgold']; // market price went down over X percent
+            $needTweet |= (($changePct != 0) && (abs($changePct) != 100)); // change happened, and not by 1%, possible turnaround
             //$needTweet |= $lastTweetData['record']['guaranteedgold'] * (1 + PRICE_CHANGE_THRESHOLD) < $tweetData['record']['guaranteedgold']; // guaranteed sell price went up over X percent
             //$needTweet |= $lastTweetData['record']['guaranteedgold'] * (1 - PRICE_CHANGE_THRESHOLD) > $tweetData['record']['guaranteedgold']; // guaranteed sell price went down over X percent
         }
@@ -345,12 +382,20 @@ function SendTweets($regions)
 
 function SendTweet($region, $tweetData, $chartUrl)
 {
-    $msg = "$region Region #WoWToken: " . $tweetData['formatted']['BUY'] . "g, sells in " . $tweetData['formatted']['TIMETOSELL'] . '.';
-    if ($tweetData['record']['result'] != 1) {
-        $msg .= " \n" . $tweetData['formatted']['RESULT'] . ".";
-    }
+    $msg = "#WoW$region #WoWToken: " . $tweetData['formatted']['BUY'] . "g, sells in " . $tweetData['formatted']['TIMETOSELL'] . '.';
     if ($tweetData['timestamp'] < (time() - 30 * 60)) { // show timestamp if older than 30 mins
         $msg .= " \nFrom " . TimeDiff($tweetData['timestamp'], ['parts' => 2, 'precision' => 'minute']) . '.';
+    } else {
+        if ($tweetData['record']['result'] != 1) {
+            $msg .= " \n" . $tweetData['formatted']['RESULT'] . ".";
+        } else {
+            if (isset($tweetData['formatted']['BUYCHANGEAMOUNT']) && ($tweetData['formatted']['BUYCHANGEAMOUNT'] != '0')) {
+                $msg .= " \nChange: ".$tweetData['formatted']['BUYCHANGEAMOUNT'].'g';
+                if (isset($tweetData['formatted']['BUYCHANGEPERCENT'])) {
+                    $msg .= ' ('.$tweetData['formatted']['BUYCHANGEPERCENT'].')';
+                }
+            }
+        }
     }
 
     if ($msg == '') {
@@ -370,10 +415,11 @@ function SendTweet($region, $tweetData, $chartUrl)
     }
 
     $params = array();
-    $params['status'] = $msg;
     if ($media) {
+        $msg .= "\n";
         $params['media_ids'][] = $media;
     }
+    $params['status'] = $msg;
 
     $oauth = new OAuth($twitterCredentials['consumerKey'], $twitterCredentials['consumerSecret']);
     $oauth->setToken($twitterCredentials['accessToken'], $twitterCredentials['accessTokenSecret']);
