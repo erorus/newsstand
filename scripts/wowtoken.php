@@ -509,8 +509,8 @@ function EncodeChartData($xy) {
         return false;
     }
     foreach ($yPoints as $x => &$y) {
-        $y = EncodeValue(floor(($y - $minY) / $range * 4096));
-        $xPoints[$x] = EncodeValue(floor(($x - $minX) / ($maxX - $minX) * 4096));
+        $y = EncodeValue(min(floor(($y - $minY) / $range * 4096), 4095));
+        $xPoints[$x] = EncodeValue(min(floor(($x - $minX) / ($maxX - $minX) * 4096), 4095));
     }
     unset($y);
     ksort($xPoints);
