@@ -387,13 +387,13 @@ function SendTweet($region, $tweetData, $chartUrl)
 {
     $msg = "#WoW$region #WoWToken: " . $tweetData['formatted']['BUY'] . "g, sells in " . $tweetData['formatted']['TIMETOSELL'] . '.';
     if ($tweetData['timestamp'] < (time() - 30 * 60)) { // show timestamp if older than 30 mins
-        $msg .= " \nFrom " . TimeDiff($tweetData['timestamp'], ['parts' => 2, 'precision' => 'minute']) . '.';
+        $msg .= " From " . TimeDiff($tweetData['timestamp'], ['parts' => 2, 'precision' => 'minute']) . '.';
     } else {
         if ($tweetData['record']['result'] != 1) {
-            $msg .= " \n" . $tweetData['formatted']['RESULT'] . ".";
+            $msg .= " " . $tweetData['formatted']['RESULT'] . ".";
         } else {
             if (isset($tweetData['formatted']['BUYCHANGEAMOUNT']) && ($tweetData['formatted']['BUYCHANGEAMOUNT'] != '0')) {
-                $msg .= " \nChange: ".$tweetData['formatted']['BUYCHANGEAMOUNT'].'g';
+                $msg .= " Change: ".$tweetData['formatted']['BUYCHANGEAMOUNT'].'g';
                 if (isset($tweetData['formatted']['BUYCHANGEPERCENT'])) {
                     $msg .= ' ('.$tweetData['formatted']['BUYCHANGEPERCENT'].')';
                 }
@@ -419,7 +419,6 @@ function SendTweet($region, $tweetData, $chartUrl)
 
     $params = array();
     if ($media) {
-        $msg .= "\n";
         $params['media_ids'][] = $media;
     }
     $params['status'] = $msg;
