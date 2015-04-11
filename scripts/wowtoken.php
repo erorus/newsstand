@@ -473,7 +473,7 @@ EOF;
 
     $cache[$region] = EncodeChartData($sparkData);
     if ($cache[$region]) {
-        $cache[$region] = 'https://chart.googleapis.com/chart?chs=600x280&cht=lxy&chco=0000FF&chm=B,CCCCFF99,0,0,0&chg=16.66,25,5,0&chxt=x,y&chf=c,s,FFFFFF&chma=8,8,8,8' . $cache[$region];
+        $cache[$region] = 'https://chart.googleapis.com/chart?chs=600x280&cht=lxy&chco=0000FF&chm=B,CCCCFF99,0,0,0|v,9999FF,0,,1&chg=100,25,5,0&chxt=x,y&chf=c,s,FFFFFF&chma=8,8,8,8' . $cache[$region];
     }
 
     return $cache[$region];
@@ -514,7 +514,7 @@ function EncodeChartData($xy) {
     ksort($xPoints);
     ksort($yPoints);
     $dataString = '';
-    $dataString .= '&chxr=0,'.floor(($minX-96)/4).','.floor((96-$maxX)/4).'|1,'.$minY.','.$maxY;
+    $dataString .= '&chxr=0,'.floor(($minX-96)/4).','.floor(($maxX-96)/4).'|1,'.$minY.','.$maxY;
     $dataString .= '&chd=e:' . implode($xPoints).','.implode($yPoints);
 
     return $dataString;
