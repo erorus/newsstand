@@ -76,6 +76,10 @@ function NextDataFile()
     $gotFile = false;
     foreach ($dir as $fileName) {
         if (preg_match('/^(\d+)-(US|EU)\.lua$/', $fileName, $res)) {
+            if (filesize(SNAPSHOT_PATH . $fileName) == 0) {
+                continue;
+            }
+            
             if (($handle = fopen(SNAPSHOT_PATH . $fileName, 'rb')) === false) {
                 continue;
             }
