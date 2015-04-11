@@ -346,7 +346,7 @@ function SendTweets($regions)
                         break;
                     case 1: // this change after a recent direction change
                         if (($lastTweetData['direction'] > 0) == ($direction > 0)) { // this change in same direction as before
-                            $tweetData['direction'] += $direction; // sets to +2 or -2
+                            $tweetData['direction'] = $lastTweetData['direction'] + $direction; // sets to +2 or -2
                             $needTweet = true; // this is a new confirmed, consistent direction
                             break;
                         }
