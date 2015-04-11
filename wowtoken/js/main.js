@@ -51,12 +51,47 @@ var wowtoken = {
     ShowChart: function(region, dta, dest) {
         var hcdata = { buy: [], timeleft: {} };
         var maxPrice = 0;
+        var o, showLabel, direction = 0, newDirection = 0;
+        var labelFormatter = function() {
+            return wowtoken.NumberCommas(this.y) + 'g';
+        };
         for (var x = 0; x < dta.length; x++) {
-            hcdata.buy.push({
+            o = {
                 x: dta[x][0]*1000,
                 y: dta[x][1],
                 //color: wowtoken.timeLeftMap.colors[dta[x][2]]
-            });
+            };
+            showLabel = false;
+            if (x + 1 < dta.length) {
+                if (o.y != dta[x+1][1]) {
+                    newDirection = o.y > dta[x+1][1] ? -1 : 1;
+                    if (newDirection != direction) {
+                        showLabel |= direction != 0;
+                        direction = newDirection;
+                    }
+                }
+            }
+            if (showLabel) {
+                o.dataLabels = {
+                    enabled: true,
+                    formatter: labelFormatter,
+                    x: 0,
+                    y: -5,
+                    color: 'black',
+                    rotation: 360-45,
+                    align: 'left',
+                    crop: false,
+                };
+                if (direction == 1) {
+                    o.dataLabels.y = 10;
+                    o.dataLabels.rotation = 45;
+                }
+                o.marker = {
+                    enabled: true,
+                    radius: 3,
+                }
+            }
+            hcdata.buy.push(o);
             hcdata.timeleft[dta[x][0]*1000] = dta[x][2];
             if (maxPrice < dta[x][1]) {
                 maxPrice = dta[x][1];
