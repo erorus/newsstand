@@ -299,13 +299,14 @@ function SendTweets($regions)
             }
         }
 
-        $sql = 'select * from tblWowToken w where region = ? and `when` = (select max(w2.`when`) from tblWowToken w2 where w2.region = ?)';
+        $sql = 'select * from tblWowToken w where region = ? order by `when` desc limit 2';
         $stmt = $db->prepare($sql);
-        $stmt->bind_param('ss', $region, $region);
+        $stmt->bind_param('s', $region);
         $stmt->execute();
         $result = $stmt->get_result();
-        $tokenData = DBMapArray($result, null);
-        $tokenData = array_pop($tokenData);
+        $bothTokenData = DBMapArray($result, null);
+        $tokenData = array_shift($bothTokenData);
+        $prevTokenData = count($bothTokenData) ? array_shift($bothTokenData) : [];
         $stmt->close();
 
         $d = new DateTime('now', timezone_open($timeZones[$region]));
@@ -325,19 +326,20 @@ function SendTweets($regions)
         ];
 
         $needTweet = false;
-        $changePct = 0;
+        $direction = 0;
 
         if (isset($lastTweetData['direction'])) {
             $lastAmt = $lastTweetData['record']['marketgold'];
-            $direction = 0;
             if ($lastAmt > $tokenData['marketgold']) {
                 $direction = -1;
             } elseif ($lastAmt < $tokenData['marketgold']) {
                 $direction = 1;
             }
             if ($direction != 0) { // some change happened
-                $tweetData['formatted']['BUYCHANGEPERCENT'] = round(($tokenData['marketgold'] / $lastAmt - 1) * 100, 2).'%';
-                $tweetData['formatted']['BUYCHANGEAMOUNT'] = number_format($tokenData['marketgold'] - $lastAmt);
+                if ($lastAmt) {
+                    $tweetData['formatted']['BUYCHANGEPERCENT'] = round(($tokenData['marketgold'] / $lastAmt - 1) * 100, 2).'%';
+                    $tweetData['formatted']['BUYCHANGEAMOUNT'] = number_format($tokenData['marketgold'] - $lastAmt);
+                }
                 switch (abs($lastTweetData['direction'])) {
                     case 0: // change happened after unknown direction
                         $tweetData['direction'] = $direction; // sets to +1 or -1
@@ -364,7 +366,9 @@ function SendTweets($regions)
             $needTweet |= $lastTweetData['record']['result'] != $tweetData['record']['result']; // result changed
             $needTweet |= $lastTweetData['record']['marketgold'] * (1 + PRICE_CHANGE_THRESHOLD) < $tweetData['record']['marketgold']; // market price went up over X percent
             $needTweet |= $lastTweetData['record']['marketgold'] * (1 - PRICE_CHANGE_THRESHOLD) > $tweetData['record']['marketgold']; // market price went down over X percent
-            $needTweet |= (($changePct != 0) && (abs($changePct) != 100)); // change happened, and not by 1%, possible turnaround
+
+            $changePct = (isset($prevTokenData['marketgold']) && $prevTokenData['marketgold']) ? round(($tokenData['marketgold'] / $prevTokenData['marketgold'] - 1) * 10000) : 0;
+            $needTweet |= (($direction != 0) && ($changePct != 0) && (abs($changePct) != 100)); // change happened this snapshot, and not by 1%, possible turnaround
             //$needTweet |= $lastTweetData['record']['guaranteedgold'] * (1 + PRICE_CHANGE_THRESHOLD) < $tweetData['record']['guaranteedgold']; // guaranteed sell price went up over X percent
             //$needTweet |= $lastTweetData['record']['guaranteedgold'] * (1 - PRICE_CHANGE_THRESHOLD) > $tweetData['record']['guaranteedgold']; // guaranteed sell price went down over X percent
         }
