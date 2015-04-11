@@ -473,7 +473,7 @@ EOF;
 
     $cache[$region] = EncodeChartData($sparkData);
     if ($cache[$region]) {
-        $cache[$region] = 'https://chart.googleapis.com/chart?chs=600x280&cht=ls&chco=0000FF&chm=B,CCCCFF99,0,0,0&chg=16.66,25,5,0&chxt=x,y&chf=c,s,FFFFFF&chma=8,8,8,8' . $cache[$region];
+        $cache[$region] = 'https://chart.googleapis.com/chart?chs=600x280&cht=lxy&chco=0000FF&chm=B,CCCCFF99,0,0,0&chg=16.66,25,5,0&chxt=x,y&chf=c,s,FFFFFF&chma=8,8,8,8' . $cache[$region];
     }
 
     return $cache[$region];
@@ -484,11 +484,12 @@ function EncodeChartData($xy) {
     if (count($xy) == 0) {
         return false;
     }
-    $points = [];
+    $xPoints = [];
+    $yPoints = [];
     for ($i = 0; $i < count($xy); $i++) {
         $x = $xy[$i]['x'];
         $y = $xy[$i]['y'];
-        $points[$x] = $y;
+        $yPoints[$x] = $y;
         if ($i == 0) {
             $minX = $maxX = $x;
             $minY = $maxY = $y;
@@ -505,17 +506,16 @@ function EncodeChartData($xy) {
     if ($range == 0) {
         return false;
     }
-    for ($x = $minX; $x <= $maxX; $x++) {
-        if (!isset($points[$x])) {
-            $points[$x] = $points[$x-1];
-        } else {
-            $points[$x] = floor(($points[$x] - $minY) / $range * 4096);
-            $points[$x] = EncodeValue($points[$x]);
-        }
+    foreach ($yPoints as $x => &$y) {
+        $y = EncodeValue(floor(($y - $minY) / $range * 4096));
+        $xPoints[$x] = EncodeValue(floor(($x - $minX) / ($maxX - $minX) * 4096));
     }
-    ksort($points);
-    $dataString = '&chxr=0,'.floor(($minX-96)/4).','.floor((96-$maxX)/4).'|1,'.$minY.','.$maxY;
-    $dataString .= '&chd=e:' . implode($points);
+    unset($y);
+    ksort($xPoints);
+    ksort($yPoints);
+    $dataString = '';
+    $dataString .= '&chxr=0,'.floor(($minX-96)/4).','.floor((96-$maxX)/4).'|1,'.$minY.','.$maxY;
+    $dataString .= '&chd=e:' . implode($xPoints).','.implode($yPoints);
 
     return $dataString;
 }
