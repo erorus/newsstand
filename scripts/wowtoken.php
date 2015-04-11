@@ -79,7 +79,7 @@ function NextDataFile()
             if (filesize(SNAPSHOT_PATH . $fileName) == 0) {
                 continue;
             }
-            
+
             if (($handle = fopen(SNAPSHOT_PATH . $fileName, 'rb')) === false) {
                 continue;
             }
@@ -341,8 +341,8 @@ function SendTweets($regions)
             }
             if ($direction != 0) { // some change happened
                 if ($lastAmt) {
-                    $tweetData['formatted']['BUYCHANGEPERCENT'] = round(($tokenData['marketgold'] / $lastAmt - 1) * 100, 2).'%';
-                    $tweetData['formatted']['BUYCHANGEAMOUNT'] = number_format($tokenData['marketgold'] - $lastAmt);
+                    $tweetData['formatted']['BUYCHANGEPERCENT'] = ($direction == 1 ? '+' : '') . round(($tokenData['marketgold'] / $lastAmt - 1) * 100, 2).'%';
+                    $tweetData['formatted']['BUYCHANGEAMOUNT'] = ($direction == 1 ? '+' : '') . number_format($tokenData['marketgold'] - $lastAmt);
                 }
                 switch (abs($lastTweetData['direction'])) {
                     case 0: // change happened after unknown direction
@@ -371,10 +371,14 @@ function SendTweets($regions)
             $needTweet |= $lastTweetData['record']['marketgold'] * (1 + PRICE_CHANGE_THRESHOLD) < $tweetData['record']['marketgold']; // market price went up over X percent
             $needTweet |= $lastTweetData['record']['marketgold'] * (1 - PRICE_CHANGE_THRESHOLD) > $tweetData['record']['marketgold']; // market price went down over X percent
 
-            $changePct = (isset($prevTokenData['marketgold']) && $prevTokenData['marketgold']) ? round(($tokenData['marketgold'] / $prevTokenData['marketgold'] - 1) * 10000) : 0;
-            $needTweet |= (($direction != 0) && ($changePct != 0) && (abs($changePct) != 100)); // change happened this snapshot, and not by 1%, possible turnaround
             //$needTweet |= $lastTweetData['record']['guaranteedgold'] * (1 + PRICE_CHANGE_THRESHOLD) < $tweetData['record']['guaranteedgold']; // guaranteed sell price went up over X percent
             //$needTweet |= $lastTweetData['record']['guaranteedgold'] * (1 - PRICE_CHANGE_THRESHOLD) > $tweetData['record']['guaranteedgold']; // guaranteed sell price went down over X percent
+        }
+
+        $changePct = (isset($prevTokenData['marketgold']) && $prevTokenData['marketgold']) ? round(($tokenData['marketgold'] / $prevTokenData['marketgold'] - 1) * 10000) : 0;
+        if (($direction != 0) && ($changePct != 0) && (abs($changePct) != 100)) { // change happened this snapshot, and not by 1%, possible turnaround
+            $needTweet = true;
+            $tweetData['formatted']['TURNAROUND'] = 'Possible '.($direction > 0 ? 'maximum' : 'minimum').'.';
         }
 
         if (!$needTweet) {
@@ -401,6 +405,10 @@ function SendTweet($region, $tweetData, $chartUrl)
                 if (isset($tweetData['formatted']['BUYCHANGEPERCENT'])) {
                     $msg .= ' ('.$tweetData['formatted']['BUYCHANGEPERCENT'].')';
                 }
+                $msg .= '.';
+            }
+            if (isset($tweetData['formatted']['TURNAROUND'])) {
+                $msg .= ' '.$tweetData['formatted']['TURNAROUND'];
             }
         }
     }
