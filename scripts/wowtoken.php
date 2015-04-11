@@ -336,8 +336,7 @@ function SendTweets($regions)
                 $direction = 1;
             }
             if ($direction != 0) { // some change happened
-                $changePct = round(($tokenData['marketgold'] / $lastAmt - 1) * 10000);
-                $tweetData['formatted']['BUYCHANGEPERCENT'] = round($changePct / 100, 2).'%';
+                $tweetData['formatted']['BUYCHANGEPERCENT'] = round(($tokenData['marketgold'] / $lastAmt - 1) * 100, 2).'%';
                 $tweetData['formatted']['BUYCHANGEAMOUNT'] = number_format($tokenData['marketgold'] - $lastAmt);
                 switch (abs($lastTweetData['direction'])) {
                     case 0: // change happened after unknown direction
