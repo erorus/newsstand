@@ -503,7 +503,7 @@ function SendTweet($region, $tweetData, $chartUrl)
 }
 
 function GetChartURL($region) {
-    global $db;
+    global $db, $timeZones;
 
     static $cache = [];
     if (isset($cache[$region])) {
@@ -515,7 +515,7 @@ SELECT 96 - floor((unix_timestamp() - unix_timestamp(`when`)) / 900) x, marketgo
 FROM `tblWowToken`
 WHERE region = ?
 and result = 1
-and `when` >= timestampadd(hour, -24, now())
+and `when` >= timestampadd(minute, -1456, now())
 EOF;
     $stmt = $db->prepare($sql);
     $stmt->bind_param('s', $region);
@@ -540,7 +540,11 @@ EOF;
 
     $cache[$region] = EncodeChartData($sparkData);
     if ($cache[$region]) {
-        $cache[$region] = 'https://chart.googleapis.com/chart?chs=600x280&cht=lxy&chco='.$colors['line'].'&chm=B,'.$colors['fill'].',0,0,0|v,'.$colors['point'].',0,,1&chg=100,25,5,0&chxt=x,y&chf=c,s,FFFFFF&chma=8,8,8,8' . $cache[$region];
+        $dThen = new DateTime('-24 hours', timezone_open($timeZones[$region]));
+        $dNow = new DateTime('now', timezone_open($timeZones[$region]));
+
+        $title = "$region WoW Token Prices - wowtoken.info|".$dThen->format('F jS').' - '.$dNow->format('F jS H:i T');
+        $cache[$region] = 'https://chart.googleapis.com/chart?chs=600x320&cht=lxy&chtt='.urlencode($title).'&chco='.$colors['line'].'&chm=B,'.$colors['fill'].',0,0,0|v,'.$colors['point'].',0,,1&chg=100,25,5,0&chxt=x,y&chf=c,s,FFFFFF&chma=8,8,8,8' . $cache[$region];
     }
 
     return $cache[$region];
@@ -558,12 +562,9 @@ function EncodeChartData($xy) {
         $y = $xy[$i]['y'];
         $yPoints[$x] = $y;
         if ($i == 0) {
-            $minX = $maxX = $x;
             $minY = $maxY = $y;
             continue;
         }
-        $minX = min($minX, $x);
-        $maxX = max($maxX, $x);
         $minY = min($minY, $y);
         $maxY = max($maxY, $y);
     }
@@ -575,13 +576,13 @@ function EncodeChartData($xy) {
     }
     foreach ($yPoints as $x => &$y) {
         $y = EncodeValue(min(floor(($y - $minY) / $range * 4096), 4095));
-        $xPoints[$x] = EncodeValue(min(floor(($x - $minX) / (96 - $minX) * 4096), 4095));
+        $xPoints[$x] = EncodeValue(min(floor($x / 96 * 4096), 4095));
     }
     unset($y);
     ksort($xPoints);
     ksort($yPoints);
     $dataString = '';
-    $dataString .= '&chxr=0,'.floor(($minX-96)/4).',0|1,'.$minY.','.$maxY;
+    $dataString .= '&chxr=0,-24,0|1,'.$minY.','.$maxY;
     $dataString .= '&chd=e:' . implode($xPoints).','.implode($yPoints);
 
     return $dataString;
