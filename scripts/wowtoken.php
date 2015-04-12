@@ -548,7 +548,9 @@ EOF;
         $dNow = new DateTime('now', timezone_open($timeZones[$region]));
 
         $title = "$regionName WoW Token Prices - wowtoken.info|".$dThen->format('F jS').' - '.$dNow->format('F jS H:i T');
-        $cache[$regionName] = 'https://chart.googleapis.com/chart?chs=600x300&cht=lxy&chtt='.urlencode($title).'&chco='.$colors['line'].'&chm=B,'.$colors['fill'].',0,0,0|v,'.$colors['point'].',0,,1&chg=100,25,5,0&chxt=x,y&chf=c,s,FFFFFF&chma=8,8,8,8' . $cache[$region];
+        $cache[$regionName] = 'https://chart.googleapis.com/chart?chs=600x300&cht=lxy&chtt=' . urlencode($title)
+            . '&chco='.$colors['line'].'&chm=B,'.$colors['fill'].',0,0,0|v,'.$colors['point'].',0,,1&chg=100,25,5,0&chxt=x,y&chf=c,s,FFFFFF&chma=8,8,8,8'
+            . $cache[$regionName];
     }
 
     return $cache[$regionName];
