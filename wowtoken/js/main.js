@@ -55,6 +55,18 @@ var wowtoken = {
         var labelFormatter = function() {
             return wowtoken.NumberCommas(this.y) + 'g';
         };
+        var colors = {
+            'line': '#0000ff',
+            'fill': 'rgba(204,204,255,0.6)',
+            'text': '#000099',
+        }
+        if (region == 'EU') {
+            colors = {
+                'line': '#ff0000',
+                'fill': 'rgba(255,204,204,0.6)',
+                'text': '#990000',
+            }
+        }
         for (var x = 0; x < dta.length; x++) {
             o = {
                 x: dta[x][0]*1000,
@@ -161,8 +173,8 @@ var wowtoken = {
                 formatter: function ()
                 {
                     var tr = '<b>' + Highcharts.dateFormat('%a %b %d, %I:%M%P', this.x) + '</b>';
-                    tr += '<br><span style="color: #000099">Price: ' + wowtoken.NumberCommas(this.points[0].y) + 'g</span>';
-                    tr += '<br><span style="color: #000099">Sells in: ' + wowtoken.timeLeftMap.names[hcdata.timeleft[this.x]] + '</span>';
+                    tr += '<br><span style="color: ' + colors.text + '">Price: ' + wowtoken.NumberCommas(this.points[0].y) + 'g</span>';
+                    tr += '<br><span style="color: ' + colors.text + '">Sells in: ' + wowtoken.timeLeftMap.names[hcdata.timeleft[this.x]] + '</span>';
                     return tr;
                 }
             },
@@ -184,9 +196,9 @@ var wowtoken = {
                 {
                     type: 'area',
                     name: 'Market Price',
-                    color: '#0000FF',
-                    lineColor: '#0000FF',
-                    fillColor: 'rgba(204,204,255,0.6)',
+                    color: colors.line,
+                    lineColor: colors.line,
+                    fillColor: colors.fill,
                     data: hcdata.buy
                 }
             ]
