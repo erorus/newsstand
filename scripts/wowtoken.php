@@ -330,42 +330,59 @@ function SendTweets($regions)
         ];
 
         $needTweet = false;
-        $direction = 0;
 
-        if (isset($lastTweetData['direction'])) {
-            $lastAmt = $lastTweetData['record']['marketgold'];
-            if ($lastAmt > $tokenData['marketgold']) {
-                $direction = -1;
-            } elseif ($lastAmt < $tokenData['marketgold']) {
-                $direction = 1;
-            }
-            if ($direction != 0) { // some change happened
-                if ($lastAmt) {
-                    $tweetData['formatted']['BUYCHANGEPERCENT'] = ($direction == 1 ? '+' : '') . round(($tokenData['marketgold'] / $lastAmt - 1) * 100, 2).'%';
-                    $tweetData['formatted']['BUYCHANGEAMOUNT'] = ($direction == 1 ? '+' : '') . number_format($tokenData['marketgold'] - $lastAmt);
-                }
-                switch (abs($lastTweetData['direction'])) {
-                    case 0: // change happened after unknown direction
-                        $tweetData['direction'] = $direction; // sets to +1 or -1
-                        break;
-                    case 1: // this change after a recent direction change
-                        if (($lastTweetData['direction'] > 0) == ($direction > 0)) { // this change in same direction as before
-                            $tweetData['direction'] = $lastTweetData['direction'] + $direction; // sets to +2 or -2
-                            $needTweet = true; // this is a new confirmed, consistent direction
-                            DebugMessage('Need '.$region.' tweet after confirmed direction change');
-                            break;
-                        }
-                    // fall through, change back to other direction, possible flipflop
-                    default:
-                        if (($lastTweetData['direction'] > 0) != ($direction > 0)) { // this change is in different direction than before
-                            $tweetData['direction'] = $direction; // sets to +1 or -1
-                        }
-                        break;
-                }
-            }
+        $lastAmt = isset($lastTweetData['record']) ? $lastTweetData['record']['marketgold'] : 0;
+        if ($lastAmt && ($lastAmt != $tokenData['marketgold'])) {
+            $tweetData['formatted']['BUYCHANGEPERCENT'] = ($lastAmt < $tokenData['marketgold'] ? '+' : '') . round(($tokenData['marketgold'] / $lastAmt - 1) * 100, 2).'%';
+            $tweetData['formatted']['BUYCHANGEAMOUNT'] = ($lastAmt < $tokenData['marketgold'] ? '+' : '') . number_format($tokenData['marketgold'] - $lastAmt);
         }
 
-        if (!isset($lastTweetData['timestamp'])) {
+        $direction = 0;
+
+        $sql = <<<EOF
+select if(count(*) < 2, 0, sign(sum(direction)))
+from (
+    select direction
+    from (
+        select aa.*, sign(market - @prev) direction, @prev := market ignoreme
+        from (
+            SELECT `when`, marketgold market
+            FROM `tblWowToken`
+            WHERE region = ?
+            and result=1
+            order by `when` desc
+            limit 100
+        ) aa, (select @prev := null) ab
+        order by aa.`when` asc
+    ) bb
+    where bb.direction != 0
+    order by bb.`when` desc
+    limit 2
+) cc
+EOF;
+        $stmt = $db->prepare($sql);
+        $stmt->bind_param('s', $region);
+        $stmt->execute();
+        $stmt->bind_result($direction);
+        if (!$stmt->fetch()) {
+            $direction = 0;
+        }
+        $stmt->close();
+
+        // direction is either 1 (going up), 0 (mix/not sure), or -1 (going down)
+        $tweetData['direction'] = $direction;
+
+        if (!$needTweet && $direction &&
+            isset($lastTweetData['direction']) &&
+            $lastTweetData['direction'] &&
+            $direction != $lastTweetData['direction']
+        ) {
+            $needTweet = true; // this is a new confirmed, consistent direction
+            DebugMessage('Need '.$region.' tweet after confirmed direction change from '.$lastTweetData['direction'].' to '.$direction);
+            $tweetData['formatted']['TURNAROUND'] = 'Price going '.($direction > 0 ? 'up' : 'down').'.';
+        }
+
+        if (!$needTweet && !isset($lastTweetData['timestamp'])) {
             $needTweet = true;
             DebugMessage('Need '.$region.' tweet after no last tweet data');
         }
@@ -390,10 +407,12 @@ function SendTweets($regions)
         $changePct = (isset($prevTokenData['marketgold']) && $prevTokenData['marketgold']) ? round(($tokenData['marketgold'] / $prevTokenData['marketgold'] - 1) * 2000) : 0;
         if (($direction != 0) && ($changePct != 0) && (abs($changePct) != 20)) { // change happened this snapshot, and not by 1%, possible turnaround
             if (!$needTweet) {
-                DebugMessage('Need '.$region.' tweet after change happened this snapshot ('.$changePct.')');
+                DebugMessage('Need '.$region.' tweet after non-1% change happened this snapshot ('.$changePct.')');
                 $needTweet = true;
             }
-            $tweetData['formatted']['TURNAROUND'] = 'Possible '.($direction > 0 ? 'maximum' : 'minimum').'.';
+            if (!isset($tweetData['formatted']['TURNAROUND'])) {
+                $tweetData['formatted']['TURNAROUND'] = 'Possible '.($direction > 0 ? 'maximum' : 'minimum').'.';
+            }
         }
 
         if (!$needTweet) {
