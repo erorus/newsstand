@@ -387,10 +387,10 @@ function SendTweets($regions)
         };
 
 
-        $changePct = (isset($prevTokenData['marketgold']) && $prevTokenData['marketgold']) ? round(($tokenData['marketgold'] / $prevTokenData['marketgold'] - 1) * 10000) : 0;
-        if (($direction != 0) && ($changePct != 0) && (abs($changePct) != 100)) { // change happened this snapshot, and not by 1%, possible turnaround
+        $changePct = (isset($prevTokenData['marketgold']) && $prevTokenData['marketgold']) ? round(($tokenData['marketgold'] / $prevTokenData['marketgold'] - 1) * 2000) : 0;
+        if (($direction != 0) && ($changePct != 0) && (abs($changePct) != 20)) { // change happened this snapshot, and not by 1%, possible turnaround
             if (!$needTweet) {
-                DebugMessage('Need '.$region.' tweet after change happened this snapshot');
+                DebugMessage('Need '.$region.' tweet after change happened this snapshot ('.$changePct.')');
                 $needTweet = true;
             }
             $tweetData['formatted']['TURNAROUND'] = 'Possible '.($direction > 0 ? 'maximum' : 'minimum').'.';
