@@ -225,7 +225,7 @@ EOF;
         $d = new DateTime('now', timezone_open($timeZones[$region]));
         $d->setTimestamp(strtotime($tokenData['when']));
 
-        $sparkUrl = GetChartURL($region);
+        $sparkUrl = GetChartURL($region, $fileRegion);
         if (!$sparkUrl) {
             $sparkUrl = $blankImage;
         }
@@ -424,7 +424,7 @@ EOF;
         DebugMessage(print_r($tweetData, true));
         DebugMessage(print_r($lastTweetData, true));
 
-        if (SendTweet(strtoupper($fileRegion), $tweetData, GetChartURL($region))) {
+        if (SendTweet(strtoupper($fileRegion), $tweetData, GetChartURL($region, strtoupper($fileRegion)))) {
             file_put_contents($filenm, json_encode($tweetData));
         }
     }
@@ -502,12 +502,16 @@ function SendTweet($region, $tweetData, $chartUrl)
     return false;
 }
 
-function GetChartURL($region) {
+function GetChartURL($region, $regionName = '') {
     global $db, $timeZones;
 
+    if (!$regionName) {
+        $regionName = strtoupper($region);
+    }
+
     static $cache = [];
-    if (isset($cache[$region])) {
-        return $cache[$region];
+    if (isset($cache[$regionName])) {
+        return $cache[$regionName];
     }
 
     $sql = <<<EOF
@@ -538,16 +542,16 @@ EOF;
         ];
     }
 
-    $cache[$region] = EncodeChartData($sparkData);
-    if ($cache[$region]) {
+    $cache[$regionName] = EncodeChartData($sparkData);
+    if ($cache[$regionName]) {
         $dThen = new DateTime('-24 hours', timezone_open($timeZones[$region]));
         $dNow = new DateTime('now', timezone_open($timeZones[$region]));
 
-        $title = "$region WoW Token Prices - wowtoken.info|".$dThen->format('F jS').' - '.$dNow->format('F jS H:i T');
-        $cache[$region] = 'https://chart.googleapis.com/chart?chs=600x320&cht=lxy&chtt='.urlencode($title).'&chco='.$colors['line'].'&chm=B,'.$colors['fill'].',0,0,0|v,'.$colors['point'].',0,,1&chg=100,25,5,0&chxt=x,y&chf=c,s,FFFFFF&chma=8,8,8,8' . $cache[$region];
+        $title = "$regionName WoW Token Prices - wowtoken.info|".$dThen->format('F jS').' - '.$dNow->format('F jS H:i T');
+        $cache[$regionName] = 'https://chart.googleapis.com/chart?chs=600x300&cht=lxy&chtt='.urlencode($title).'&chco='.$colors['line'].'&chm=B,'.$colors['fill'].',0,0,0|v,'.$colors['point'].',0,,1&chg=100,25,5,0&chxt=x,y&chf=c,s,FFFFFF&chma=8,8,8,8' . $cache[$region];
     }
 
-    return $cache[$region];
+    return $cache[$regionName];
 
 }
 
