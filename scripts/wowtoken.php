@@ -352,6 +352,7 @@ function SendTweets($regions)
                         if (($lastTweetData['direction'] > 0) == ($direction > 0)) { // this change in same direction as before
                             $tweetData['direction'] = $lastTweetData['direction'] + $direction; // sets to +2 or -2
                             $needTweet = true; // this is a new confirmed, consistent direction
+                            DebugMessage('Need '.$region.' tweet after confirmed direction change');
                             break;
                         }
                     // fall through, change back to other direction, possible flipflop
@@ -364,26 +365,45 @@ function SendTweets($regions)
             }
         }
 
-        $needTweet |= !isset($lastTweetData['timestamp']); // no last tweet data
-        if (!$needTweet) {
-            $needTweet |= ($lastTweetData['timestamp'] < ($tweetData['timestamp'] - TWEET_FREQUENCY_MINUTES * 60 + 5)) && ($tweetData['record']['result'] == 1); // tweet at least every X minutes when result is good
-            $needTweet |= $lastTweetData['record']['result'] != $tweetData['record']['result']; // result changed
-            $needTweet |= $lastTweetData['record']['marketgold'] * (1 + PRICE_CHANGE_THRESHOLD) < $tweetData['record']['marketgold']; // market price went up over X percent
-            $needTweet |= $lastTweetData['record']['marketgold'] * (1 - PRICE_CHANGE_THRESHOLD) > $tweetData['record']['marketgold']; // market price went down over X percent
-
-            //$needTweet |= $lastTweetData['record']['guaranteedgold'] * (1 + PRICE_CHANGE_THRESHOLD) < $tweetData['record']['guaranteedgold']; // guaranteed sell price went up over X percent
-            //$needTweet |= $lastTweetData['record']['guaranteedgold'] * (1 - PRICE_CHANGE_THRESHOLD) > $tweetData['record']['guaranteedgold']; // guaranteed sell price went down over X percent
+        if (!isset($lastTweetData['timestamp'])) {
+            $needTweet = true;
+            DebugMessage('Need '.$region.' tweet after no last tweet data');
         }
+        if (!$needTweet && ($lastTweetData['timestamp'] < ($tweetData['timestamp'] - TWEET_FREQUENCY_MINUTES * 60 + 5)) && ($tweetData['record']['result'] == 1)) { // tweet at least every X minutes when result is good
+            $needTweet = true;
+            DebugMessage('Need '.$region.' tweet after '.TWEET_FREQUENCY_MINUTES.' minutes. ('.$lastTweetData['timestamp'].')');
+        }
+        if (!$needTweet && $lastTweetData['record']['result'] != $tweetData['record']['result']) {
+            $needTweet = true;
+            DebugMessage('Need '.$region.' tweet after result changed');
+        }
+        if (!$needTweet && $lastTweetData['record']['marketgold'] * (1 + PRICE_CHANGE_THRESHOLD) < $tweetData['record']['marketgold']) {
+            $needTweet = true;
+            DebugMessage('Need '.$region.' tweet after market price went up over '.PRICE_CHANGE_THRESHOLD.'%');
+        }
+        if (!$needTweet && $lastTweetData['record']['marketgold'] * (1 - PRICE_CHANGE_THRESHOLD) > $tweetData['record']['marketgold']) {
+            $needTweet = true;
+            DebugMessage('Need '.$region.' tweet after market price went down over '.PRICE_CHANGE_THRESHOLD.'%');
+        };
+
 
         $changePct = (isset($prevTokenData['marketgold']) && $prevTokenData['marketgold']) ? round(($tokenData['marketgold'] / $prevTokenData['marketgold'] - 1) * 10000) : 0;
         if (($direction != 0) && ($changePct != 0) && (abs($changePct) != 100)) { // change happened this snapshot, and not by 1%, possible turnaround
-            $needTweet = true;
+            if (!$needTweet) {
+                DebugMessage('Need '.$region.' tweet after change happened this snapshot');
+                $needTweet = true;
+            }
             $tweetData['formatted']['TURNAROUND'] = 'Possible '.($direction > 0 ? 'maximum' : 'minimum').'.';
         }
 
         if (!$needTweet) {
+            DebugMessage('No '.$region.' tweet needed.');
             continue;
         }
+
+        DebugMessage(print_r($prevTokenData, true));
+        DebugMessage(print_r($tweetData, true));
+        DebugMessage(print_r($lastTweetData, true));
 
         if (SendTweet(strtoupper($fileRegion), $tweetData, GetChartURL($region))) {
             file_put_contents($filenm, json_encode($tweetData));
