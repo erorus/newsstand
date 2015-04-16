@@ -403,7 +403,7 @@ EOF;
             DebugMessage('Need '.$region.' tweet after market price went down over '.PRICE_CHANGE_THRESHOLD.'%');
         };
 
-
+        /*
         $changePct = (isset($prevTokenData['marketgold']) && $prevTokenData['marketgold']) ? round(($tokenData['marketgold'] / $prevTokenData['marketgold'] - 1) * 2000) : 0;
         if (($direction != 0) && ($changePct != 0) && (abs($changePct) != 20)) { // change happened this snapshot, and not by 1%, possible turnaround
             if (!$needTweet) {
@@ -414,6 +414,7 @@ EOF;
                 $tweetData['formatted']['TURNAROUND'] = 'Possible '.($direction > 0 ? 'maximum' : 'minimum').'.';
             }
         }
+        */
 
         if (!$needTweet) {
             DebugMessage('No '.$region.' tweet needed.');
