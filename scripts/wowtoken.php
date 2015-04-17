@@ -263,6 +263,24 @@ EOF;
 
     file_put_contents(__DIR__.'/../wowtoken/snapshot.json', json_encode($json, JSON_NUMERIC_CHECK));
     file_put_contents(__DIR__.'/../wowtoken/history.json', json_encode($historyJson, JSON_NUMERIC_CHECK));
+
+    $shtmlPath = __DIR__.'/../wowtoken/index.shtml';
+    if (file_exists($shtmlPath)) {
+        $shtml = file_get_contents($shtmlPath);
+        $htmlPath = preg_replace('/\.shtml$/', '.html', $shtmlPath);
+        $html = preg_replace_callback('/<!--#include virtual="([^"]+)"-->/', function($m) {
+                $path = __DIR__.'/../wowtoken/'.$m[1];
+                if (file_exists($path)) {
+                    return file_get_contents($path);
+                }
+                return '';
+            }, $shtml);
+        if (strpos($html, '/<!--#include/') === false) {
+            file_put_contents($htmlPath, $html);
+        } else {
+            unlink($htmlPath);
+        }
+    }
 }
 
 function BuildHistoryJson($region) {
