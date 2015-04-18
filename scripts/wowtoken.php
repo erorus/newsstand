@@ -446,9 +446,11 @@ EOF;
             continue;
         }
 
+        /*
         DebugMessage(print_r($prevTokenData, true));
         DebugMessage(print_r($tweetData, true));
         DebugMessage(print_r($lastTweetData, true));
+        */
 
         if (SendTweet(strtoupper($fileRegion), $tweetData, GetChartURL($region, strtoupper($fileRegion)))) {
             file_put_contents($filenm, json_encode($tweetData));
