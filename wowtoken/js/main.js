@@ -19,10 +19,64 @@ var wowtoken = {
         return (''+v).split("").reverse().join("").replace(/(\d{3})(?=\d)/g, '$1,').split("").reverse().join("");
     },
 
+    Storage: {
+        Get: function (key)
+        {
+            if (!window.localStorage) {
+                return false;
+            }
+
+            var v = window.localStorage.getItem(key);
+            if (v != null) {
+                return JSON.parse(v);
+            }
+            else {
+                return false;
+            }
+        },
+        Set: function (key, val)
+        {
+            if (!window.localStorage) {
+                return false;
+            }
+
+            window.localStorage.setItem(key, JSON.stringify(val));
+        },
+        Remove: function (key, val)
+        {
+            if (!window.localStorage) {
+                return false;
+            }
+
+            window.localStorage.removeItem(key);
+        }
+    },
+
     Main: function ()
     {
+        wowtoken.LastVisitCheck();
         wowtoken.LoadHistory();
         window.setTimeout(wowtoken.UpdateCheck, 60000*5);
+    },
+
+    LastVisitCheck: function()
+    {
+        var moveFAQ = false;
+
+        var lv = wowtoken.Storage.Get('lastvisit');
+        if (lv) {
+            lv = parseInt(lv, 10);
+            moveFAQ |= (lv > Date.now() - (10 * 24 * 60 * 60 * 1000));
+        }
+        wowtoken.Storage.Set('lastvisit', Date.now());
+
+        if (moveFAQ) {
+            var panelFAQ = document.getElementById('faq-panel');
+            var panelLinks = document.getElementById('links-panel');
+            if (panelFAQ && panelLinks) {
+                panelLinks.parentNode.insertBefore(panelFAQ, panelLinks);
+            }
+        }
     },
 
     LoadHistory: function ()
