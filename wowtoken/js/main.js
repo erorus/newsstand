@@ -211,7 +211,7 @@ var wowtoken = {
         }
         if (hcdata.zones.length) {
             hcdata.zones.push({
-                color: colors.timeleft[lastTimeLeft]
+                fillColor: colors.timeleft[lastTimeLeft]
             });
         }
 
