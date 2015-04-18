@@ -236,6 +236,7 @@ var wowtoken = {
                     },
                 ],
                 selected: 1,
+                inputEnabled: false
             },
             navigator: {
                 series: {
