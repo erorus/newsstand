@@ -6,12 +6,6 @@ var wowtoken = {
             '30 mins to 2 hours',
             '2 to 12 hours',
             'over 12 hours'
-        ],
-        colors: ['',
-            'red',
-            'orange',
-            'yellow',
-            'green'
         ]
     },
 
@@ -128,9 +122,10 @@ var wowtoken = {
     },
 
     ShowChart: function(region, dta, dest) {
-        var hcdata = { buy: [], timeleft: {}, navigator: [] };
+        var hcdata = { buy: [], timeleft: {}, navigator: [], zones: [] };
         var maxPrice = 0;
-        var o, showLabel, direction = 0, newDirection = 0, lastLabel = -1;;
+        var o, showLabel, direction = 0, newDirection = 0, lastLabel = -1;
+        var lastTimeLeft = -1;
         var labelFormatter = function() {
             return wowtoken.NumberCommas(this.y) + 'g';
         };
@@ -138,12 +133,26 @@ var wowtoken = {
             'line': '#0000ff',
             'fill': 'rgba(204,204,255,0.6)',
             'text': '#000099',
+            'timeleft': [
+                'rgba(204,204,255,0.6)',
+                'rgba(204,204,255,0.6)',
+                'rgba(178,178,229,0.6)',
+                'rgba(153,153,204,0.6)',
+                'rgba(127,127,178,0.6)',
+            ],
         }
         if (region == 'EU') {
             colors = {
                 'line': '#ff0000',
                 'fill': 'rgba(255,204,204,0.6)',
                 'text': '#990000',
+                'timeleft': [
+                    'rgba(255,204,204,0.6)',
+                    'rgba(255,204,204,0.6)',
+                    'rgba(229,178,178,0.6)',
+                    'rgba(204,153,153,0.6)',
+                    'rgba(178,127,127,0.6)',
+                ],
             }
         }
         for (var x = 0; x < dta.length; x++) {
@@ -153,6 +162,15 @@ var wowtoken = {
                 //color: wowtoken.timeLeftMap.colors[dta[x][2]]
             };
             hcdata.navigator.push([dta[x][0]*1000, dta[x][1]]);
+            if (lastTimeLeft != dta[x][2]) {
+                if (lastTimeLeft != -1) {
+                    hcdata.zones.push({
+                        value: o.x,
+                        fillColor: colors.timeleft[lastTimeLeft],
+                    });
+                }
+                lastTimeLeft = dta[x][2];
+            }
             showLabel = false;
             if (x + 1 < dta.length) {
                 if (o.y != dta[x+1][1]) {
@@ -190,6 +208,11 @@ var wowtoken = {
             if (maxPrice < dta[x][1]) {
                 maxPrice = dta[x][1];
             }
+        }
+        if (hcdata.zones.length) {
+            hcdata.zones.push({
+                color: colors.timeleft[lastTimeLeft]
+            });
         }
 
         Highcharts.setOptions({
@@ -335,7 +358,9 @@ var wowtoken = {
                     color: colors.line,
                     lineColor: colors.line,
                     fillColor: colors.fill,
-                    data: hcdata.buy
+                    data: hcdata.buy,
+                    zoneAxis: 'x',
+                    zones: hcdata.zones
                 }
             ]
         });
