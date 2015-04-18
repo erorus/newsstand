@@ -261,7 +261,7 @@ var wowtoken = {
             },
             xAxis: {
                 type: 'datetime',
-                maxZoom: 4 * 3600000, // four hours
+                minRange: 4 * 3600000, // four hours
                 title: {
                     text: null
                 },
@@ -269,7 +269,9 @@ var wowtoken = {
                     style: {
                         color: 'black'
                     }
-                }
+                },
+                units: [['hour',[6,12]],['day',[1]]],
+                ordinal: false,
             },
             yAxis: [
                 {

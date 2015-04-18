@@ -295,9 +295,9 @@ function BuildHistoryJson($region) {
     $tokenData = [];
     $prevPrice = -1;
     $prevTime = -1;
-    $weekago = time() - 605000;
+    $lately = time() - (3 * 24 * 60 * 60) - 5 * 60;
     while ($row = $result->fetch_row()) {
-        if (($row[0] > $weekago) || ($prevPrice != $row[1]) || ($prevTime != $row[2])) {
+        if (($row[0] > $lately) || ($prevPrice != $row[1]) || ($prevTime != $row[2])) {
             $tokenData[] = $row;
         }
         $prevPrice = $row[1];
