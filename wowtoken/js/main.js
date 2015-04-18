@@ -306,6 +306,11 @@ var wowtoken = {
                 }
             },
             plotOptions: {
+                area: {
+                    dataGrouping: {
+                        enabled: false
+                    }
+                },
                 series: {
                     lineWidth: 2,
                     marker: {
@@ -317,6 +322,7 @@ var wowtoken = {
                             }
                         }
                     },
+                    animation: false,
                     turboThreshold: 0,
                 }
             },
