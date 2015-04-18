@@ -22,7 +22,7 @@ var wowtoken = {
     Main: function ()
     {
         wowtoken.LoadHistory();
-        window.setTimeout(wowtoken.UpdateCheck, 60000);
+        window.setTimeout(wowtoken.UpdateCheck, 60000*5);
     },
 
     LoadHistory: function ()
@@ -70,7 +70,7 @@ var wowtoken = {
                 $('#'+region+'-'+attrib).html(d[region].formatted[attrib]);
             }
         }
-        window.setTimeout(wowtoken.UpdateCheck, 60000);
+        window.setTimeout(wowtoken.UpdateCheck, 60000*5);
     },
 
     ShowChart: function(region, dta, dest) {
