@@ -6,7 +6,7 @@
 		<meta http-equiv="content-type" content="text/html; charset=utf-8">
         <link href="css/mui.min.css" rel="stylesheet" type="text/css">
         <link href='https://fonts.googleapis.com/css?family=Roboto:400,700|Roboto+Slab:700' rel='stylesheet' type='text/css'>
-        <link href="css/main.css?2" rel="stylesheet" type="text/css">
+        <link href="css/main.css?3" rel="stylesheet" type="text/css">
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js" defer></script>
         <script type="text/javascript" src="js/highcharts.js?2" defer></script>
         <script type="text/javascript" src="js/main.js?3" defer></script>
@@ -15,6 +15,7 @@
         <div class="mui-container">
             <div class="mui-panel" id="topcard">
                 <h1>WoW Token Info</h1>
+                <div class="twitter"><a href="https://twitter.com/WoWTokens"><img src="images/twitter.png">@WoWTokens</a></div>
                 <i>WoW Token prices and historical statistics from the auction houses of World of Warcraft</i>
             </div>
 

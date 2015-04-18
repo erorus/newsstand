@@ -86,3 +86,17 @@ div.hc {
 .faq > li {
     margin: 0.5em 0;
 }
+
+#topcard div.twitter {
+    float: right;
+}
+#topcard div.twitter img {
+    height: 15px;
+    margin: 0 5px 0 15px;
+}
+@media all and (max-width: 400px) {
+    #topcard div.twitter {
+        display: none
+    }
+}
+
