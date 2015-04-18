@@ -293,8 +293,14 @@ function BuildHistoryJson($region) {
     $stmt->execute();
     $result = $stmt->get_result();
     $tokenData = [];
+    $prevPrice = -1;
+    $prevTime = -1;
     while ($row = $result->fetch_row()) {
-        $tokenData[] = $row;
+        if (($prevPrice != $row[1]) || ($prevTime != $row[2])) {
+            $tokenData[] = $row;
+        }
+        $prevPrice = $row[1];
+        $prevTime = $row[2];
     }
     $result->close();
     $stmt->close();

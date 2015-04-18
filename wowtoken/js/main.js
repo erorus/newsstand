@@ -128,9 +128,9 @@ var wowtoken = {
     },
 
     ShowChart: function(region, dta, dest) {
-        var hcdata = { buy: [], timeleft: {} };
+        var hcdata = { buy: [], timeleft: {}, navigator: [] };
         var maxPrice = 0;
-        var o, showLabel, direction = 0, newDirection = 0;
+        var o, showLabel, direction = 0, newDirection = 0, lastLabel = -1;;
         var labelFormatter = function() {
             return wowtoken.NumberCommas(this.y) + 'g';
         };
@@ -152,6 +152,7 @@ var wowtoken = {
                 y: dta[x][1],
                 //color: wowtoken.timeLeftMap.colors[dta[x][2]]
             };
+            hcdata.navigator.push([dta[x][0]*1000, dta[x][1]]);
             showLabel = false;
             if (x + 1 < dta.length) {
                 if (o.y != dta[x+1][1]) {
@@ -162,7 +163,9 @@ var wowtoken = {
                     }
                 }
             }
+            showLabel &= ((lastLabel == -1) || (lastLabel + 5 < x));
             if (showLabel) {
+                lastLabel = x;
                 o.dataLabels = {
                     enabled: true,
                     formatter: labelFormatter,
@@ -195,10 +198,54 @@ var wowtoken = {
             }
         });
 
-        $(dest).highcharts({
+        $(dest).highcharts('StockChart', {
             chart: {
                 zoomType: 'x',
                 backgroundColor: '#f6fff6'
+            },
+            rangeSelector: {
+                buttons: [
+                    {
+                        type: 'day',
+                        count: 3,
+                        text: '3d'
+                    },
+                    {
+                        type: 'week',
+                        count: 1,
+                        text: '1w'
+                    },
+                    {
+                        type: 'week',
+                        count: 2,
+                        text: '2w'
+                    },
+                    {
+                        type: 'month',
+                        count: 1,
+                        text: '1m'
+                    },
+                    {
+                        type: 'month',
+                        count: 3,
+                        text: '3m'
+                    },
+                    {
+                        type: 'all',
+                        text: 'all'
+                    },
+                ],
+                selected: 1,
+            },
+            navigator: {
+                series: {
+                    type: 'area',
+                    name: 'Market Price',
+                    color: colors.line,
+                    lineColor: colors.line,
+                    fillColor: colors.fill,
+                    data: hcdata.navigator
+                }
             },
             title: {
                 text: null
@@ -268,7 +315,8 @@ var wowtoken = {
                                 enabled: true
                             }
                         }
-                    }
+                    },
+                    turboThreshold: 0,
                 }
             },
             series: [
