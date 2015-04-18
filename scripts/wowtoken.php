@@ -186,19 +186,19 @@ function BuildIncludes($regions)
                 <table class="results">
                     <tr>
                         <td>Buy Price</td>
-                        <td>##buy##g</td>
+                        <td id="##region##-buy">##buy##</td>
                     </tr>
                     <tr>
                         <td>Time to Sell</td>
-                        <td>##timeToSell##</td>
+                        <td id="##region##-timeToSell">##timeToSell##</td>
                     </tr>
                     <tr>
                         <td>API Result</td>
-                        <td>##result##</td>
+                        <td id="##region##-result">##result##</td>
                     </tr>
                     <tr>
                         <td>Updated</td>
-                        <td>##updated##</td>
+                        <td id="##region##-updated">##updated##</td>
                     </tr>
                 </table>
 EOF;
@@ -241,11 +241,12 @@ EOF;
                 'updated' => strtotime($tokenData['when']),
             ],
             'formatted' => [
-                'buy' => number_format($tokenData['marketgold']),
+                'buy' => number_format($tokenData['marketgold']).'g',
                 'timeToSell' => isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft'],
                 'result' => isset($resultCodes[$tokenData['result']]) ? $resultCodes[$tokenData['result']] : ('Unknown: ' . $tokenData['result']),
                 'updated' => $d->format('M jS, Y g:ia T'),
                 'sparkurl' => $sparkUrl,
+                'region' => $fileRegion,
             ],
         ];
 
