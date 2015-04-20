@@ -263,6 +263,16 @@ EOF;
     }
 
     file_put_contents(__DIR__.'/../wowtoken/snapshot.json', json_encode($json, JSON_NUMERIC_CHECK));
+    file_put_contents(__DIR__.'/../wowtoken/history2.json', json_encode($historyJson, JSON_NUMERIC_CHECK));
+    $lately = time() - (24 * 60 * 60);
+    foreach ($regions as $region) {
+        for ($x = count($historyJson[$region]) - 1; $x >= 0; $x--) {
+            if ($historyJson[$region][$x][0] < $lately) {
+                break;
+            }
+            $historyJson[$region][$x][1] = rand(500, 50000);
+        }
+    }
     file_put_contents(__DIR__.'/../wowtoken/history.json', json_encode($historyJson, JSON_NUMERIC_CHECK));
 
     $shtmlPath = __DIR__.'/../wowtoken/index.shtml';

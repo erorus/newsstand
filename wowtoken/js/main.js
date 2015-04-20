@@ -93,7 +93,7 @@ var wowtoken = {
             {
                 wowtoken.ShowHistory(d);
             },
-            url: '/history.json'
+            url: '/history2.json'
         });
     },
 
