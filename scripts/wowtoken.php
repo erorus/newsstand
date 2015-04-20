@@ -266,6 +266,9 @@ EOF;
     file_put_contents(__DIR__.'/../wowtoken/history2.json', json_encode($historyJson, JSON_NUMERIC_CHECK));
     $lately = time() - (24 * 60 * 60);
     foreach ($regions as $region) {
+        if ($region == 'US') {
+            $region = 'NA';
+        }
         for ($x = count($historyJson[$region]) - 1; $x >= 0; $x--) {
             if ($historyJson[$region][$x][0] < $lately) {
                 break;
