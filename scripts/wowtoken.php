@@ -186,7 +186,11 @@ function BuildIncludes($regions)
                 <table class="results">
                     <tr>
                         <td>Buy Price</td>
-                        <td id="##region##-buy">##buy##</td>
+                        <td id="##region##-buy">1,337g</td>
+                    </tr>
+                    <tr>
+                        <td>Buy Price</td>
+                        <td id="##region##-buyimg"><img src="##buyimg##"></td>
                     </tr>
                     <tr>
                         <td>Time to Sell</td>
@@ -242,6 +246,7 @@ EOF;
             ],
             'formatted' => [
                 'buy' => number_format($tokenData['marketgold']).'g',
+                'buyimg' => BuildImageURI(number_format($tokenData['marketgold']).'g'),
                 'timeToSell' => isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft'],
                 'result' => isset($resultCodes[$tokenData['result']]) ? $resultCodes[$tokenData['result']] : ('Unknown: ' . $tokenData['result']),
                 'updated' => $d->format('M jS, Y g:ia T'),
@@ -297,10 +302,15 @@ EOF;
     }
 }
 
+function BuildImageURI($s) {
+    $imgdata = shell_exec('convert -background transparent -fill black -weight Bold -pointsize 14 label:'.escapeshellarg($s).' png:-');
+    return 'data:image/png;base64,'.base64_encode($imgdata);
+}
+
 function BuildHistoryJson($region) {
     global $db;
 
-    $sql = 'select unix_timestamp(`when`) `dt`, `marketgold` `buy`, `timeleft`+0 `time` from tblWowToken where region = ? and `result` = 1 order by `when` asc';
+    $sql = 'select unix_timestamp(`when`) `dt`, `marketgold` `buy`, `timeleft`+0 `time` from tblWowToken where region = ? and `result` = 1 and `when` < timestampadd(minute, -70, now()) order by `when` asc';
     $stmt = $db->prepare($sql);
     $stmt->bind_param('s', $region);
     $stmt->execute();

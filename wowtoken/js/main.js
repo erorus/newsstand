@@ -51,7 +51,7 @@ var wowtoken = {
         wowtoken.LastVisitCheck();
         wowtoken.EUCheck();
         wowtoken.LoadHistory();
-        window.setTimeout(wowtoken.UpdateCheck, 60000*5);
+        //window.setTimeout(wowtoken.UpdateCheck, 60000*5);
     },
 
     EUCheck: function()
