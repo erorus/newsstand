@@ -47,13 +47,13 @@
                 </ul>
             </div>
 
-            <div class="mui-panel realm-panel">
+            <div class="mui-panel realm-panel" id="na-panel">
                 <h2>North American Realms</h2>
                 <!--#include virtual="NA.incl.html"-->
                 <div id="hc-na"></div>
             </div>
     
-            <div class="mui-panel realm-panel">
+            <div class="mui-panel realm-panel" id="eu-panel">
                 <h2>European Realms</h2>
                 <!--#include virtual="EU.incl.html"-->
                 <div id="hc-eu"></div>

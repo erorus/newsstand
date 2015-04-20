@@ -49,8 +49,21 @@ var wowtoken = {
     Main: function ()
     {
         wowtoken.LastVisitCheck();
+        wowtoken.EUCheck();
         wowtoken.LoadHistory();
         window.setTimeout(wowtoken.UpdateCheck, 60000*5);
+    },
+
+    EUCheck: function()
+    {
+        var offset = (new Date()).getTimezoneOffset();
+        if ((offset < 120) && (offset > -360)) {
+            var panelEU = document.getElementById('eu-panel');
+            var panelNA = document.getElementById('na-panel');
+            if (panelEU && panelNA) {
+                panelNA.parentNode.insertBefore(panelEU, panelNA);
+            }
+        }
     },
 
     LastVisitCheck: function()
