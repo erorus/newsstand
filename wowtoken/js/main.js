@@ -347,7 +347,6 @@ var wowtoken = {
                             }
                         }
                     },
-                    animation: false,
                     turboThreshold: 0,
                 }
             },
