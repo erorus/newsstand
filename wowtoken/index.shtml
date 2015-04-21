@@ -9,7 +9,10 @@
         <link href="css/main.css?4" rel="stylesheet" type="text/css">
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js" defer></script>
         <script type="text/javascript" src="https://code.highcharts.com/stock/highstock.js" defer></script>
-        <script type="text/javascript" src="js/main.js?6" defer></script>
+        <script type="text/javascript">
+            var tokenHistoryUrl = '/token-history.json';
+        </script>
+        <script type="text/javascript" src="js/main.js?7" defer></script>
 	</head>
 	<body>
         <div class="mui-container">

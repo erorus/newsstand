@@ -268,7 +268,7 @@ EOF;
     }
 
     file_put_contents(__DIR__.'/../wowtoken/snapshot.json', json_encode($json, JSON_NUMERIC_CHECK));
-    file_put_contents(__DIR__.'/../wowtoken/history2.json', json_encode($historyJson, JSON_NUMERIC_CHECK));
+    file_put_contents(__DIR__.'/../wowtoken/token-history.json', json_encode($historyJson, JSON_NUMERIC_CHECK));
 
     $shtmlPath = __DIR__.'/../wowtoken/index.shtml';
     if (file_exists($shtmlPath)) {
