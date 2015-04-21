@@ -290,8 +290,8 @@ EOF;
 
 function BuildImageURI($s) {
     $imgdata = shell_exec('convert -background transparent -fill black -weight Bold -pointsize 14 label:'.escapeshellarg($s).' png:-');
-    //return 'data:image/png;i=<!--#echo var="REMOTE_ADDR"-->;base64,'.base64_encode($imgdata);
-    return 'data:image/png;base64,'.base64_encode($imgdata);
+    return 'data:image/png;i=<!--#echo var="REMOTE_ADDR"-->;base64,'.base64_encode($imgdata);
+    //return 'data:image/png;base64,'.base64_encode($imgdata);
 }
 
 function BuildHistoryJson($region) {
