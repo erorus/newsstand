@@ -11,6 +11,7 @@ chdir(__DIR__);
 $startTime = time();
 
 require_once('../incl/incl.php');
+require_once('../incl/memcache.incl.php');
 require_once('../incl/heartbeat.incl.php');
 require_once('../incl/wowtoken-twitter.credentials.php');
 
@@ -186,7 +187,7 @@ function BuildIncludes($regions)
                 <table class="results">
                     <tr>
                         <td>Buy Price</td>
-                        <td id="##region##-buyimg"><img src="##buyimg##"></td>
+                        <td id="##region##-buy">Loading...</td>
                     </tr>
                     <tr>
                         <td>Time to Sell</td>
@@ -225,10 +226,12 @@ EOF;
         $d = new DateTime('now', timezone_open($timeZones[$region]));
         $d->setTimestamp(strtotime($tokenData['when']));
 
+        /*
         $sparkUrl = GetChartURL($region, $fileRegion);
         if (!$sparkUrl) {
             $sparkUrl = $blankImage;
         }
+        */
 
         $historyJson[$fileRegion] = BuildHistoryJson($region);
 
@@ -242,11 +245,11 @@ EOF;
             ],
             'formatted' => [
                 'buy' => number_format($tokenData['marketgold']).'g',
-                'buyimg' => BuildImageURI(number_format($tokenData['marketgold']).'g'),
+                //'buyimg' => BuildImageURI(number_format($tokenData['marketgold']).'g'),
                 'timeToSell' => isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft'],
                 'result' => isset($resultCodes[$tokenData['result']]) ? $resultCodes[$tokenData['result']] : ('Unknown: ' . $tokenData['result']),
                 'updated' => $d->format('M jS, Y g:ia T'),
-                'sparkurl' => $sparkUrl,
+                //'sparkurl' => $sparkUrl,
                 'region' => $fileRegion,
             ],
         ];
@@ -264,7 +267,8 @@ EOF;
     }
 
     file_put_contents(__DIR__.'/../wowtoken/snapshot.json', json_encode($json, JSON_NUMERIC_CHECK));
-    file_put_contents(__DIR__.'/../wowtoken/token-history.json', json_encode($historyJson, JSON_NUMERIC_CHECK));
+    file_put_contents(__DIR__.'/../wowtoken/snapshot-history.json', json_encode(['update' => $json, 'history' => $historyJson], JSON_NUMERIC_CHECK));
+    MCSet('wowtoken-json-etag', time());
 
     $shtmlPath = __DIR__.'/../wowtoken/index-template.shtml';
     if (file_exists($shtmlPath)) {
@@ -290,8 +294,8 @@ EOF;
 
 function BuildImageURI($s) {
     $imgdata = shell_exec('convert -background transparent -fill black -weight Bold -pointsize 14 label:'.escapeshellarg($s).' png:-');
-    return 'data:image/png;i=<!--#echo var="REMOTE_ADDR"-->;base64,'.base64_encode($imgdata);
-    //return 'data:image/png;base64,'.base64_encode($imgdata);
+    //return 'data:image/png;i=<!--#echo var="REMOTE_ADDR"-->;base64,'.base64_encode($imgdata);
+    return 'data:image/png;base64,'.base64_encode($imgdata);
 }
 
 function BuildHistoryJson($region) {

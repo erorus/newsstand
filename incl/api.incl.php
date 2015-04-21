@@ -1,6 +1,7 @@
 <?php
 
 require_once('memcache.incl.php');
+require_once('incl.php');
 
 define('API_VERSION', 6);
 define('THROTTLE_PERIOD', 3600); // seconds

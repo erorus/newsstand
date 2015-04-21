@@ -51,7 +51,6 @@ var wowtoken = {
         wowtoken.LastVisitCheck();
         wowtoken.EUCheck();
         wowtoken.LoadHistory();
-        //window.setTimeout(wowtoken.UpdateCheck, 60000*5);
     },
 
     EUCheck: function()
@@ -91,9 +90,11 @@ var wowtoken = {
         $.ajax({
             success: function (d)
             {
-                wowtoken.ShowHistory(d);
+                wowtoken.ShowHistory(d.history);
+                wowtoken.ParseUpdate(d.update);
+                // window.setTimeout(wowtoken.LoadHistory, 60000*5);
             },
-            url: tokenHistoryUrl
+            url: '/data.php'
         });
     },
 
@@ -110,17 +111,6 @@ var wowtoken = {
         }
     },
 
-    UpdateCheck: function ()
-    {
-        $.ajax({
-            success: function (d)
-            {
-                wowtoken.ParseUpdate(d);
-            },
-            url: '/now.json'
-        });
-    },
-
     ParseUpdate: function (d)
     {
         for (var region in d) {
@@ -131,7 +121,6 @@ var wowtoken = {
                 $('#'+region+'-'+attrib).html(d[region].formatted[attrib]);
             }
         }
-        window.setTimeout(wowtoken.UpdateCheck, 60000*5);
     },
 
     ShowChart: function(region, dta, dest) {
