@@ -186,10 +186,6 @@ function BuildIncludes($regions)
                 <table class="results">
                     <tr>
                         <td>Buy Price</td>
-                        <td id="##region##-buy">1,337g</td>
-                    </tr>
-                    <tr>
-                        <td>Buy Price</td>
                         <td id="##region##-buyimg"><img src="##buyimg##"></td>
                     </tr>
                     <tr>
@@ -273,7 +269,7 @@ EOF;
     $shtmlPath = __DIR__.'/../wowtoken/index-template.shtml';
     if (file_exists($shtmlPath)) {
         $shtml = file_get_contents($shtmlPath);
-        $htmlPath = str_replace('-template', '', $shtmlPath);
+        $shtmlPath = str_replace('-template', '', $shtmlPath);
         $html = preg_replace_callback('/<!--#include virtual="([^"]+)"-->/', function($m) {
                 $path = __DIR__.'/../wowtoken/'.$m[1];
                 if (file_exists($path)) {
@@ -281,13 +277,21 @@ EOF;
                 }
                 return '';
             }, $shtml);
-        file_put_contents($htmlPath, $html);
+        file_put_contents($shtmlPath, $html);
+
+        $htmlPath = preg_replace('/\.shtml$/', '.html', $shtmlPath);
+        if (strpos($html, '<!--#') === false) {
+            file_put_contents($htmlPath, $html);
+        } else {
+            unlink($htmlPath);
+        }
     }
 }
 
 function BuildImageURI($s) {
     $imgdata = shell_exec('convert -background transparent -fill black -weight Bold -pointsize 14 label:'.escapeshellarg($s).' png:-');
-    return 'data:image/png;i=<!--#echo var="REMOTE_ADDR"-->;base64,'.base64_encode($imgdata);
+    //return 'data:image/png;i=<!--#echo var="REMOTE_ADDR"-->;base64,'.base64_encode($imgdata);
+    return 'data:image/png;base64,'.base64_encode($imgdata);
 }
 
 function BuildHistoryJson($region) {

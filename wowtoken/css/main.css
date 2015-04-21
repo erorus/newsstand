@@ -99,7 +99,3 @@ div.hc {
         display: none
     }
 }
-
-table.results tr:first-child {
-    display: none
-}
