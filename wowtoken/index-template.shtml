@@ -52,7 +52,7 @@
 
             <div class="mui-panel realm-panel" id="na-panel">
                 <h2>North American Realms</h2>
-                <!--#include virtual="NA.incl.shtml"-->
+                <!--#include virtual="NA.incl.html"-->
                 <div id="hc-na"></div>
             </div>
     
