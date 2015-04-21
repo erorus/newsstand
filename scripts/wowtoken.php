@@ -270,10 +270,10 @@ EOF;
     file_put_contents(__DIR__.'/../wowtoken/snapshot.json', json_encode($json, JSON_NUMERIC_CHECK));
     file_put_contents(__DIR__.'/../wowtoken/token-history.json', json_encode($historyJson, JSON_NUMERIC_CHECK));
 
-    $shtmlPath = __DIR__.'/../wowtoken/index.shtml';
+    $shtmlPath = __DIR__.'/../wowtoken/index-template.shtml';
     if (file_exists($shtmlPath)) {
         $shtml = file_get_contents($shtmlPath);
-        $htmlPath = preg_replace('/\.shtml$/', '.html', $shtmlPath);
+        $htmlPath = str_replace('-template', '', $shtmlPath);
         $html = preg_replace_callback('/<!--#include virtual="([^"]+)"-->/', function($m) {
                 $path = __DIR__.'/../wowtoken/'.$m[1];
                 if (file_exists($path)) {
@@ -281,17 +281,13 @@ EOF;
                 }
                 return '';
             }, $shtml);
-        if (strpos($html, '/<!--#include/') === false) {
-            file_put_contents($htmlPath, $html);
-        } else {
-            unlink($htmlPath);
-        }
+        file_put_contents($htmlPath, $html);
     }
 }
 
 function BuildImageURI($s) {
     $imgdata = shell_exec('convert -background transparent -fill black -weight Bold -pointsize 14 label:'.escapeshellarg($s).' png:-');
-    return 'data:image/png;base64,'.base64_encode($imgdata);
+    return 'data:image/png;i=<!--#echo var="REMOTE_ADDR"-->;base64,'.base64_encode($imgdata);
 }
 
 function BuildHistoryJson($region) {
