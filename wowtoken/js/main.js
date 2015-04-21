@@ -371,8 +371,8 @@ var wowtoken = {
                     lineColor: colors.line,
                     fillColor: colors.fill,
                     data: hcdata.buy,
-                    zoneAxis: 'x',
-                    zones: hcdata.zones
+                    //zoneAxis: 'x',
+                    //zones: hcdata.zones
                 }
             ]
         });
