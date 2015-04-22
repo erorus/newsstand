@@ -20,6 +20,7 @@ $banned = false;
 $firstHit = false;
 
 if (IPIsBanned()) {
+    $banned = true;
     $cacheKey = BANLIST_CACHEKEY . '_' . $_SERVER['REMOTE_ADDR'] . '_firsthit';
     $firstHit = MCGet($cacheKey);
     if ($firstHit === false) {
