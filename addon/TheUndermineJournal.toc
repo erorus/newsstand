@@ -1,4 +1,4 @@
-## Interface: 60000
+## Interface: 60100
 ## Title: The Undermine Journal
 ## Notes: %s
 ## OptionalDeps: Auctionator, AuctionLite
