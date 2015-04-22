@@ -16,6 +16,8 @@ function GetETag() {
 }
 
 $showOld = false;
+$banned = false;
+$firstHit = false;
 
 if (IPIsBanned()) {
     $cacheKey = BANLIST_CACHEKEY . '_' . $_SERVER['REMOTE_ADDR'] . '_firsthit';
@@ -25,6 +27,28 @@ if (IPIsBanned()) {
     } elseif ($firstHit < (time() - 20 * 60)) {
         $showOld = true;
     }
+}
+
+$suspicious = false;
+$suspicious |= ($_SERVER['SERVER_PROTOCOL'] != 'HTTP/1.1');
+$suspicious |= !isset($_SERVER['HTTP_ACCEPT_ENCODING']);
+
+if ($suspicious) {
+    $writeup = "IP: ".$_SERVER['REMOTE_ADDR'];
+    if ($banned) {
+        $writeup .= ' (Banned)';
+    }
+    $writeup .= "\nTime: ".Date("Y-m-d H:i:s")."\n";
+    if ($firstHit) {
+        $writeup .= 'First hit '.TimeDiff($firstHit)."\n";
+    }
+    $writeup .= 'Protocol: '.$_SERVER['SERVER_PROTOCOL']."\n";
+    $headers = getallheaders();
+    foreach ($headers as $k => $v) {
+        $writeup .= "$k: $v\n";
+    }
+    $writeup .= "\n";
+    file_put_contents(__DIR__.'/../logs/wowtoken.suspicious.log', $writeup, FILE_APPEND | LOCK_EX);
 }
 
 if (isset($_SERVER['HTTP_IF_NONE_MATCH'])) {
