@@ -187,7 +187,7 @@ function BuildIncludes($regions)
                 <table class="results">
                     <tr>
                         <td>Buy Price</td>
-                        <td id="##region##-buy">Loading...</td>
+                        <td id="##region##-buy">##buy##</td>
                     </tr>
                     <tr>
                         <td>Time to Sell</td>
@@ -206,6 +206,7 @@ EOF;
 
     $json = [];
     $historyJson = [];
+    $csv = "Region,UTC Date,Buy Price,Time Left\r\n";
 
     foreach ($regions as $region) {
         $fileRegion = strtoupper($region);
@@ -226,14 +227,19 @@ EOF;
         $d = new DateTime('now', timezone_open($timeZones[$region]));
         $d->setTimestamp(strtotime($tokenData['when']));
 
-        /*
         $sparkUrl = GetChartURL($region, $fileRegion);
         if (!$sparkUrl) {
             $sparkUrl = $blankImage;
         }
-        */
 
         $historyJson[$fileRegion] = BuildHistoryJson($region);
+        $prevPrice = -1;
+        foreach ($historyJson[$fileRegion] as $row) {
+            if ($row[1] != $prevPrice) {
+                $prevPrice = $row[1];
+                $csv .= "$fileRegion,".Date('Y-m-d H:i:s', $row[0]).",{$row[1]},{$row[2]}\r\n";
+            }
+        }
 
         $json[$fileRegion] = [
             'timestamp' => strtotime($tokenData['when']),
@@ -249,7 +255,7 @@ EOF;
                 'timeToSell' => isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft'],
                 'result' => isset($resultCodes[$tokenData['result']]) ? $resultCodes[$tokenData['result']] : ('Unknown: ' . $tokenData['result']),
                 'updated' => $d->format('M jS, Y g:ia T'),
-                //'sparkurl' => $sparkUrl,
+                'sparkurl' => $sparkUrl,
                 'region' => $fileRegion,
             ],
         ];
@@ -267,8 +273,9 @@ EOF;
     }
 
     file_put_contents(__DIR__.'/../wowtoken/snapshot.json', json_encode($json, JSON_NUMERIC_CHECK));
+    file_put_contents(__DIR__.'/../wowtoken/snapshot-history.csv', $csv);
     file_put_contents(__DIR__.'/../wowtoken/snapshot-history.json', json_encode([
-                'attention' => 'You do not have permission to use this data for any website except wowtoken.info. Bots will be found and banned.',
+                'attention' => 'Please see usage guidelines on https://wowtoken.info/',
                 'update' => $json,
                 'history' => $historyJson
             ], JSON_NUMERIC_CHECK));

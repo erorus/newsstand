@@ -9,7 +9,7 @@
         <link href="css/main.css?5" rel="stylesheet" type="text/css">
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js" defer></script>
         <script type="text/javascript" src="https://code.highcharts.com/stock/highstock.js" defer></script>
-        <script type="text/javascript" src="js/main.js?8" defer></script>
+        <script type="text/javascript" src="js/main.js?9" defer></script>
 	</head>
 	<body>
         <div class="mui-container">
@@ -58,7 +58,7 @@
                 <!--#include virtual="EU.incl.html"-->
                 <div id="hc-eu"></div>
             </div>
-    
+
             <div class="mui-panel extra-panel" id="links-panel">
                 <h2>Other Links</h2>
                 <a href="https://twitter.com/WoWTokens">Follow us on Twitter</a> to get pricing updates with charts, and occasional news.
@@ -66,6 +66,42 @@
                 <a href="https://theunderminejournal.com">The Undermine Journal</a> has pretty charts like these for <b>all auction house items on all realms</b>. Check it out.
                 <br><br>
                 <a href="https://realmpop.com">Realm Pop</a> has different pretty charts showing how many characters, races, and classes are on each realm.
+                <br><br>
+                <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+                    <input type="hidden" name="cmd" value="_s-xclick">
+                    <input type="hidden" name="hosted_button_id" value="UZEZEK7VUSCZ4">
+                    <input type="image" src="/images/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+                </form>
+            </div>
+
+            <div class="mui-panel extra-panel" id="api-panel">
+                <h2>Data Export</h2>
+                The data provided by WoW Token Info in the links below is made available under the <a href="http://opendatacommons.org/licenses/by/1.0">Open Data Commons Attribution License</a>.
+                You are free to share the data, to produce works from the data, and to modify and build upon the data, as long as you understand and follow the below conditions:<br><br>
+                <b>There is no warranty with this service, neither expressed nor implied.</b>
+                    <ul>
+                        <li>This is an unofficial service, provided by a guy with a computer at his house, automatically logging in to WoW 100 times a day.</li>
+                        <li>We may miss data updates due to the many factors out of our control. The update script might break, Blizzard might suspend the account (they've done it before), my cable modem might fail (thanks, Comcast!), solar flares...</li>
+                        <li>We may need to change the format of the data without warning. Though we'll try not to do that.</li>
+                        <li>This site may shut down at any time. We may be asked (or forced) to stop updates at Blizzard's request, or by any countermeasures they use.</li>
+                    </ul>
+                If you use data from this website for a public work, we ask that you mention and link to <a href="https://wowtoken.info/">https://wowtoken.info/</a> in your work.<br><br>
+                If you find this data useful, and/or you make ad or donation revenue from this data, please contribute a donation using the Donate button above.<br><br>
+                If your website has employees, then you probably don't want to rely on this, and should instead get your data from the game, like I do.<br><br>
+
+                <b><a href="wowtoken.json">JSON format</a></b>
+                <ul>
+                    <li>Updates no more frequently than every 15 minutes, usually by ##:10, ##:25, ##:40, ##:55. Please don't pull more often than that.</li>
+                    <li>Past 72 hours has full (15-min) timing resolution. Earlier than that, resolution drops down to only when we observed changes.</li>
+                    <li>This is the same exact data source as what powers the tables and graphs above.</li>
+                </ul>
+
+                <b><a href="wowtoken.csv">CSV format</a></b>
+                <ul>
+                    <li>Updates whenever the JSON updates.</li>
+                    <li>Timing resolution is only when we observed changes.</li>
+                </ul>
+
             </div>
 
             <div id="trademarks">World of Warcraft, Warcraft and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc. in the U.S. and/or other countries.</div>

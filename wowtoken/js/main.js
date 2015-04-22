@@ -94,7 +94,7 @@ var wowtoken = {
                 wowtoken.ParseUpdate(d.update);
                 // window.setTimeout(wowtoken.LoadHistory, 60000*5);
             },
-            url: '/data.php'
+            url: '/wowtoken.json'
         });
     },
 
