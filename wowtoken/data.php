@@ -15,9 +15,16 @@ function GetETag() {
     return $c;
 }
 
+$showOld = false;
+
 if (IPIsBanned()) {
-    header('HTTP/1.1 403 Forbidden');
-    exit;
+    $cacheKey = BANLIST_CACHEKEY . '_' . $_SERVER['REMOTE_ADDR'] . '_firsthit';
+    $firstHit = MCGet($cacheKey);
+    if ($firstHit === false) {
+        MCSet($cacheKey, time(), 50*60*60);
+    } elseif ($firstHit < (time() - 20 * 60)) {
+        $showOld = true;
+    }
 }
 
 if (isset($_SERVER['HTTP_IF_NONE_MATCH'])) {
@@ -35,5 +42,9 @@ $etag = GetETag();
 if ($etag) {
     header('ETag: W/"'.$etag.'"');
 }
-readfile('snapshot-history.json');
+if ($showOld) {
+    readfile('snapshot-history-old.json');
+} else {
+    readfile('snapshot-history.json');
+}
 
