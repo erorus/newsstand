@@ -72,7 +72,6 @@ $showOld |= isset($_GET['old']);
 ini_set('zlib.output_compression', 1);
 
 header('Content-type: application/json; charset=UTF-8');
-header('Cache-Control: max-age=900');
 $etag = GetETag();
 if ($etag) {
     header('ETag: W/"'.$etag.'"');
