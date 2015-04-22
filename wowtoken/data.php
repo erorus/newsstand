@@ -34,10 +34,13 @@ $suspicious = false;
 $suspicious |= ($_SERVER['SERVER_PROTOCOL'] != 'HTTP/1.1');
 $suspicious |= !isset($_SERVER['HTTP_ACCEPT_ENCODING']);
 
-if ($suspicious) {
+if ($suspicious || $banned) {
     $writeup = "IP: ".$_SERVER['REMOTE_ADDR'];
     if ($banned) {
         $writeup .= ' (Banned)';
+    }
+    if ($showOld) {
+        $writeup .= ' (showing old)';
     }
     $writeup .= "\nTime: ".Date("Y-m-d H:i:s")."\n";
     if ($firstHit) {
@@ -58,6 +61,8 @@ if (isset($_SERVER['HTTP_IF_NONE_MATCH'])) {
         exit;
     }
 }
+
+$showOld |= isset($_GET['old']);
 
 ini_set('zlib.output_compression', 1);
 
