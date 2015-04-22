@@ -267,7 +267,11 @@ EOF;
     }
 
     file_put_contents(__DIR__.'/../wowtoken/snapshot.json', json_encode($json, JSON_NUMERIC_CHECK));
-    file_put_contents(__DIR__.'/../wowtoken/snapshot-history.json', json_encode(['update' => $json, 'history' => $historyJson], JSON_NUMERIC_CHECK));
+    file_put_contents(__DIR__.'/../wowtoken/snapshot-history.json', json_encode([
+                'attention' => 'You do not have permission to use this data for any website except wowtoken.info. Bots will be found and banned.',
+                'update' => $json,
+                'history' => $historyJson
+            ], JSON_NUMERIC_CHECK));
     MCSet('wowtoken-json-etag', time());
 
     $shtmlPath = __DIR__.'/../wowtoken/index-template.shtml';

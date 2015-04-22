@@ -21,6 +21,8 @@ $firstHit = false;
 
 if (IPIsBanned()) {
     $banned = true;
+    $showOld = true;
+    /*
     $cacheKey = BANLIST_CACHEKEY . '_' . $_SERVER['REMOTE_ADDR'] . '_firsthit';
     $firstHit = MCGet($cacheKey);
     if ($firstHit === false) {
@@ -28,11 +30,14 @@ if (IPIsBanned()) {
     } elseif ($firstHit < (time() - 20 * 60)) {
         $showOld = true;
     }
+    */
 }
 
 $suspicious = false;
 $suspicious |= ($_SERVER['SERVER_PROTOCOL'] != 'HTTP/1.1');
 $suspicious |= !isset($_SERVER['HTTP_ACCEPT_ENCODING']);
+
+$showOld |= $suspicious;
 
 if ($suspicious || $banned) {
     $writeup = "IP: ".$_SERVER['REMOTE_ADDR'];
