@@ -49,6 +49,13 @@ $timeLeftCodes = [
     'Very Long' => 'over 12 hours',
 ];
 
+$timeLeftNumbers = [
+    'Short' => 1,
+    'Medium' => 2,
+    'Long' => 3,
+    'Very Long' => 4,
+];
+
 $loopStart = time();
 $loops = 0;
 $gotData = [];
@@ -179,7 +186,7 @@ function LuaDecode($rawLua) {
 function BuildIncludes($regions)
 {
     global $db;
-    global $resultCodes, $timeZones, $timeLeftCodes;
+    global $resultCodes, $timeZones, $timeLeftCodes, $timeLeftNumbers;
 
     $blankImage = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
@@ -245,7 +252,7 @@ EOF;
             'timestamp' => strtotime($tokenData['when']),
             'raw' => [
                 'buy' => $tokenData['marketgold'],
-                'timeToSell' => $tokenData['timeleft'],
+                'timeToSell' => isset($timeLeftNumbers[$tokenData['timeleft']]) ? $timeLeftNumbers[$tokenData['timeleft']] : $tokenData['timeleft'],
                 'result' => $tokenData['result'],
                 'updated' => strtotime($tokenData['when']),
             ],
