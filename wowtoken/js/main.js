@@ -309,9 +309,7 @@ var wowtoken = {
                         x: 5,
                         formatter: function ()
                         {
-                            return document.ontouchstart === undefined ?
-                                '' + wowtoken.NumberCommas(this.value) + 'g' :
-                                '' + Math.floor(this.value/1000) + 'k' ;
+                            return '' + Math.floor(this.value/1000) + 'k' ;
                         },
                         style: {
                             color: 'black'
