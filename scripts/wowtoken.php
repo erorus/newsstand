@@ -579,11 +579,11 @@ function GetChartURL($region, $regionName = '') {
     }
 
     $sql = <<<EOF
-SELECT 96 - floor((unix_timestamp() - unix_timestamp(`when`)) / 900) x, marketgold y
+SELECT 1440 - floor((unix_timestamp() - unix_timestamp(`when`)) / 60) x, marketgold y
 FROM `tblWowToken`
 WHERE region = ?
 and result = 1
-and `when` >= timestampadd(minute, -1456, now())
+and `when` >= timestampadd(minute, -1460, now())
 EOF;
     $stmt = $db->prepare($sql);
     $stmt->bind_param('s', $region);
@@ -646,7 +646,7 @@ function EncodeChartData($xy) {
     }
     foreach ($yPoints as $x => &$y) {
         $y = EncodeValue(min(floor(($y - $minY) / $range * 4096), 4095));
-        $xPoints[$x] = EncodeValue(min(floor($x / 96 * 4096), 4095));
+        $xPoints[$x] = EncodeValue(max(0, min(floor($x / 1440 * 4096), 4095)));
     }
     unset($y);
     ksort($xPoints);
