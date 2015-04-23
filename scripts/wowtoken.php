@@ -402,7 +402,7 @@ select if(count(*) < 2, 0, sign(sum(direction)))
 from (
     select direction
     from (
-        select aa.*, sign(market - @prev) direction, @prev := market ignoreme
+        select aa.*, sign(cast(market as signed) - cast(@prev as signed)) direction, @prev := market ignoreme
         from (
             SELECT `when`, marketgold market
             FROM `tblWowToken`
@@ -423,6 +423,7 @@ EOF;
         $stmt->execute();
         $stmt->bind_result($direction);
         if (!$stmt->fetch()) {
+            DebugMessage('Direction fetch failed: '.$stmt->error);
             $direction = 0;
         }
         $stmt->close();
@@ -430,7 +431,7 @@ EOF;
         // direction is either 1 (going up), 0 (mix/not sure), or -1 (going down)
         $tweetData['direction'] = $direction;
 
-        DebugMessage('Debug: '.$region.' last direction: '.(isset($lastTweetData['direction']) ? $lastTweetData['direction'] : 'unset').', cur direction: '.$direction);
+        //DebugMessage('Debug: '.$region.' last direction: '.(isset($lastTweetData['direction']) ? $lastTweetData['direction'] : 'unset').', cur direction: '.$direction);
 
         if (!$needTweet && $direction &&
             isset($lastTweetData['direction']) &&
