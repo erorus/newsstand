@@ -288,7 +288,7 @@ var wowtoken = {
                 type: 'datetime',
                 minRange: 4 * 3600000, // four hours
                 title: {
-                    text: null
+                    text: 'WoWToken.info'
                 },
                 labels: {
                     style: {
@@ -305,6 +305,8 @@ var wowtoken = {
                     },
                     labels: {
                         enabled: true,
+                        align: 'left',
+                        x: 0,
                         formatter: function ()
                         {
                             return document.ontouchstart === undefined ?
