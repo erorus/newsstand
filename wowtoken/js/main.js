@@ -306,7 +306,7 @@ var wowtoken = {
                     labels: {
                         enabled: true,
                         align: 'left',
-                        x: 0,
+                        x: 5,
                         formatter: function ()
                         {
                             return document.ontouchstart === undefined ?
