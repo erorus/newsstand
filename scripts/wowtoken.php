@@ -430,6 +430,8 @@ EOF;
         // direction is either 1 (going up), 0 (mix/not sure), or -1 (going down)
         $tweetData['direction'] = $direction;
 
+        DebugMessage('Debug: '.$region.' last direction: '.(isset($lastTweetData['direction']) ? $lastTweetData['direction'] : 'unset').', cur direction: '.$direction);
+
         if (!$needTweet && $direction &&
             isset($lastTweetData['direction']) &&
             $lastTweetData['direction'] &&
