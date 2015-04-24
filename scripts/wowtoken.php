@@ -82,8 +82,14 @@ function NextDataFile()
 {
     $dir = scandir(substr(SNAPSHOT_PATH, 0, -1), SCANDIR_SORT_ASCENDING);
     $gotFile = false;
+    $wait = false;
     foreach ($dir as $fileName) {
         if (preg_match('/^(\d+)-(US|EU)\.lua$/', $fileName, $res)) {
+            if (filemtime(SNAPSHOT_PATH . $fileName) > (time() - 5)) {
+                $wait = true;
+                continue;
+            }
+
             if (filesize(SNAPSHOT_PATH . $fileName) == 0) {
                 continue;
             }
@@ -108,6 +114,12 @@ function NextDataFile()
         }
     }
     unset($dir);
+
+    if ($wait && !$gotFile) {
+        heartbeat();
+        sleep(5);
+        return true;
+    }
 
     if (!$gotFile) {
         return false;
