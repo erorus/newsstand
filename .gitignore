@@ -23,3 +23,6 @@ addon/*.zip
 wowtoken/*.incl.html
 wowtoken/css/*.css.map
 wowtoken/*.json
+wowtoken/*.csv
+wowtoken/index.html
+wowtoken/index.shtml

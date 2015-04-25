@@ -1,17 +1,19 @@
 <!DOCTYPE HTML>
 <html>
-	<head>
-		<title>WoW Token Info</title>
+    <head>
+        <title>WoW Token Info</title>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
         <meta name="viewport" content="width=device-width,initial-scale=1">
-		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+        <meta name="msapplication-config" content="none"/>
+        <link rel="apple-touch-icon" sizes="152x152" href="images/apple-touch-icon.png">
         <link href="css/mui.min.css" rel="stylesheet" type="text/css">
         <link href='https://fonts.googleapis.com/css?family=Roboto:400,700|Roboto+Slab:700' rel='stylesheet' type='text/css'>
         <link href="css/main.css?5" rel="stylesheet" type="text/css">
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js" defer></script>
         <script type="text/javascript" src="https://code.highcharts.com/stock/highstock.js" defer></script>
         <script type="text/javascript" src="js/main.js?10" defer></script>
-	</head>
-	<body>
+    </head>
+    <body>
         <div class="mui-container">
             <div class="mui-panel" id="topcard">
                 <h1>WoW Token Info</h1>
@@ -106,5 +108,5 @@
 
             <div id="trademarks">World of Warcraft, Warcraft and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc. in the U.S. and/or other countries.</div>
         </div>
-	</body>
+    </body>
 </html>
