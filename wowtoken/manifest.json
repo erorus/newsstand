@@ -1,0 +1,11 @@
+{
+    "lang": "en",
+    "name": "WoW Token Info",
+    "short_name": "WoW Token",
+    "icons": [{
+        "src": "images/tokenavatar.jpg",
+        "type": "image/jpg"
+    }],
+    "start_url": "/",
+    "display": "standalone",
+}
