@@ -144,6 +144,26 @@ function CategoryResult_deals($house)
             [
                 'name' => 'ItemList',
                 'data' => [
+                    'name'        => 'Crafted Armor/Weapons',
+                    'items'       => CategoryDealsItemList($house, 'i.class in (2,4)', -1),
+                    'hiddenCols'  => ['lastseen' => true],
+                    'visibleCols' => ['globalmedian' => true],
+                    'sort'        => 'none'
+                ]
+            ],
+            [
+                'name' => 'ItemList',
+                'data' => [
+                    'name'        => 'Armor/Weapons with Bonuses',
+                    'items'       => CategoryDealsItemList($house, 'i.class in (2,4) and tis.bonusset != 0', 1),
+                    'hiddenCols'  => ['lastseen' => true],
+                    'visibleCols' => ['globalmedian' => true],
+                    'sort'        => 'none'
+                ]
+            ],
+            [
+                'name' => 'ItemList',
+                'data' => [
                     'name'        => 'Dropped Common/Junk Armor/Weapons',
                     'items'       => CategoryDealsItemList($house, 'i.class in (2,4) and i.quality < 2'),
                     'hiddenCols'  => ['lastseen' => true],
@@ -166,16 +186,6 @@ function CategoryResult_deals($house)
                 'data' => [
                     'name'        => 'Common Recipes',
                     'items'       => CategoryDealsItemList($house, 'i.class = 9 and i.quality <= 1'),
-                    'hiddenCols'  => ['lastseen' => true],
-                    'visibleCols' => ['globalmedian' => true],
-                    'sort'        => 'none'
-                ]
-            ],
-            [
-                'name' => 'ItemList',
-                'data' => [
-                    'name'        => 'Crafted Armor/Weapons',
-                    'items'       => CategoryDealsItemList($house, 'i.class in (2,4)', -1),
                     'hiddenCols'  => ['lastseen' => true],
                     'visibleCols' => ['globalmedian' => true],
                     'sort'        => 'none'
