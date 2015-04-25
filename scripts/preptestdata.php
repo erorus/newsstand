@@ -63,7 +63,7 @@ function GetDataTables() {
 
     $tmpFile = tempnam('/tmp', 'testdata');
 
-    $cmd = 'mysqldump --verbose --allow-keywords --skip-opt --create-options --add-drop-table --add-locks --extended-insert --no-autocommit --result-file=%s --user='.escapeshellarg(DATABASE_USERNAME_CLI).' --password='.escapeshellarg(DATABASE_PASSWORD_CLI).' --where=%s '.escapeshellarg(DATABASE_SCHEMA)." %s\n";
+    $cmd = 'mysqldump --verbose --allow-keywords --skip-opt --quick --create-options --add-drop-table --add-locks --extended-insert --no-autocommit --result-file=%s --user='.escapeshellarg(DATABASE_USERNAME_CLI).' --password='.escapeshellarg(DATABASE_PASSWORD_CLI).' --where=%s '.escapeshellarg(DATABASE_SCHEMA)." %s\n";
     foreach ($tables as $table => $where) {
         file_put_contents($tmpFile, '');
         $trash = [];
