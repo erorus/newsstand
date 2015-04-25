@@ -140,6 +140,10 @@ function ShowLogs()
                         case 'US':
                         case 'EU':
                             break;
+                        case 'wowtoken':
+                            if (count($parts) != 3) {
+                                return false;
+                            }
                         default:
                             return false;
                     }
@@ -153,7 +157,11 @@ function ShowLogs()
 
     foreach ($files as $path) {
         ob_start();
-        passthru('tail -n 20 ' . escapeshellarg($path));
+        if (basename($path) == 'error.log') {
+            passthru('grep -v '.escapeshellarg('SSL:').' . '.escapeshellarg($path).' | tail -n 20');
+        } else {
+            passthru('tail -n 20 ' . escapeshellarg($path));
+        }
         $log = ob_get_clean();
 
         echo '<h2>' . htmlentities($path) . '</h2>';
