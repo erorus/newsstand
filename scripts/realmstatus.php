@@ -151,10 +151,16 @@ function ShowLogs()
 
     foreach ($files as $path) {
         ob_start();
-        if (basename($path) == 'error.log') {
-            passthru('grep -v '.escapeshellarg('SSL:').' . '.escapeshellarg($path).' | tail -n 20');
-        } else {
-            passthru('tail -n 20 ' . escapeshellarg($path));
+        switch (basename($path)) {
+            case 'error.log':
+                passthru('grep -v '.escapeshellarg('SSL:').' '.escapeshellarg($path).' | tail -n 20');
+                break;
+            case 'private.access.log':
+                passthru('grep -v '.escapeshellarg('^'.$_SERVER['REMOTE_ADDR'].' ').' '.escapeshellarg($path).' | tail -n 20');
+                break;
+            default:
+                passthru('tail -n 20 ' . escapeshellarg($path));
+                break;
         }
         $log = ob_get_clean();
 
