@@ -135,16 +135,10 @@ function ShowLogs()
                     return true;
                 }
 
-                for ($x = 1; $x < count($parts) - 1; $x++) {
+                for ($x = 0; $x < count($parts) - 1; $x++) {
                     switch ($parts[$x]) {
-                        case 'US':
-                        case 'EU':
-                            break;
-                        case 'wowtoken':
-                            if (count($parts) != 3) {
-                                return false;
-                            }
-                        default:
+                        case 'yesterday':
+                        case 'lastweek':
                             return false;
                     }
                 }
