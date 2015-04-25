@@ -20,7 +20,7 @@ CatchKill();
 
 define('SNAPSHOT_PATH', '/home/wowtoken/pending/');
 define('TWEET_FREQUENCY_MINUTES', 360); // tweet at least every 6 hours
-define('PRICE_CHANGE_THRESHOLD', 0.025); // was 0.2, for 20% change required. 0 means tweet every change
+define('PRICE_CHANGE_THRESHOLD', 0.075); // was 0.2, for 20% change required. 0 means tweet every change
 
 if (!DBConnect()) {
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
