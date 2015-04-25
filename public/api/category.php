@@ -1599,7 +1599,7 @@ function CategoryDealsItemList($house, $dealsSql, $allowCrafted = 0)
 
     global $db, $canCache;
 
-    $key = 'category_dic_' . md5($dealsSql) . '_' . $allowCrafted;
+    $key = 'category_did_' . md5($dealsSql) . '_' . $allowCrafted;
 
     if ($canCache && (($tr = MCGetHouse($house, $key)) !== false)) {
         if (count($tr) == 0) {
@@ -1667,7 +1667,7 @@ EOF;
 ) aa
 where median > 1500000
 and median > price
-order by (cast(median as signed) - cast(price as signed))/price * (c_over/c_total) desc
+order by (cast(median as signed) - cast(price as signed))/greatest(5000000,price) * (c_over/c_total) desc
 limit 15
 EOF;
 
