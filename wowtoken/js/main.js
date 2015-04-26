@@ -10,7 +10,7 @@ var wowtoken = {
     },
 
     NumberCommas: function(v) {
-        return (''+v).split("").reverse().join("").replace(/(\d{3})(?=\d)/g, '$1,').split("").reverse().join("");
+        return v.toFixed().split("").reverse().join("").replace(/(\d{3})(?=\d)/g, '$1,').split("").reverse().join("");
     },
 
     Storage: {
@@ -124,13 +124,15 @@ var wowtoken = {
     },
 
     ShowChart: function(region, dta, dest) {
-        var hcdata = { buy: [], timeleft: {}, navigator: [], zones: [] };
+        var hcdata = { buy: [], timeleft: {}, navigator: [], zones: [], pct: {}, pctchart: [], realPrices: [] };
         var maxPrice = 0;
         var o, showLabel, direction = 0, newDirection = 0, lastLabel = -1;
         var lastTimeLeft = -1;
+        var priceUpperBound = (region == 'NA' ? 40000 : 60000);
         var labelFormatter = function() {
-            return wowtoken.NumberCommas(this.y) + 'g';
+            return wowtoken.NumberCommas(hcdata.realPrices[this.x]) + 'g';
         };
+
         var colors = {
             'line': '#0000ff',
             'fill': 'rgba(204,204,255,0.6)',
@@ -164,6 +166,25 @@ var wowtoken = {
                 //color: wowtoken.timeLeftMap.colors[dta[x][2]]
             };
             hcdata.navigator.push([dta[x][0]*1000, dta[x][1]]);
+            if (x != 0) {
+                for (var y = x-1; y > 0; y--) {
+                    if (dta[y][0] <= (dta[x][0] - 55*60)) {
+                        break;
+                    }
+                }
+                /*for (var z = x+1; z < dta.length; z++) {
+                    if (dta[z][0] >= (dta[x][0] + 40*60)) {
+                        break;
+                    }
+                }
+                if (z >= dta.length) {
+                    z = dta.length - 1;
+                }
+                 */
+                z = x;
+                hcdata.pct[o.x] = ((dta[z][1] - dta[y][1]) / dta[y][1]) / ((dta[z][0] - dta[y][0])/(60*60));
+                hcdata.pctchart.push([o.x, hcdata.pct[o.x] * 100]);
+            }
             if (lastTimeLeft != dta[x][2]) {
                 if (lastTimeLeft != -1) {
                     hcdata.zones.push({
@@ -205,6 +226,8 @@ var wowtoken = {
                     radius: 3,
                 }
             }
+            hcdata.realPrices[o.x] = o.y;
+            o.y = o.y * 32 / priceUpperBound;
             hcdata.buy.push(o);
             hcdata.timeleft[dta[x][0]*1000] = dta[x][2];
             if (maxPrice < dta[x][1]) {
@@ -260,7 +283,7 @@ var wowtoken = {
                         text: 'all'
                     },
                 ],
-                selected: 1,
+                selected: 0,
                 inputEnabled: false
             },
             navigator: {
@@ -306,17 +329,44 @@ var wowtoken = {
                     labels: {
                         enabled: true,
                         align: 'left',
-                        x: 5,
+                        x: 2,
+                        y: 0,
                         formatter: function ()
                         {
-                            return '' + Math.floor(this.value/1000) + 'k' ;
+                            return '' + Math.floor(this.value*priceUpperBound/32/1000) + 'k' ;
                         },
                         style: {
                             color: 'black'
                         }
                     },
                     min: 0,
-                    max: maxPrice
+                    max: 32,
+                    floor: 0,
+                    tickInterval: 1,
+                    tickAmount: 5,
+                },
+                {
+                    title: {
+                        enabled: false,
+                    },
+                    labels: {
+                        enabled: true,
+                        align: 'right',
+                        x: -2,
+                        y: 0,
+                        formatter: function ()
+                        {
+                            return this.value.toFixed(1) + '%' ;
+                        },
+                        style: {
+                            color: 'black'
+                        }
+                    },
+                    opposite: false,
+                    min: -4,
+                    max: 4,
+                    tickInterval: 1,
+                    tickAmount: 5,
                 }
             ],
             legend: {
@@ -327,7 +377,10 @@ var wowtoken = {
                 formatter: function ()
                 {
                     var tr = '<b>' + Highcharts.dateFormat('%a %b %d, %I:%M%P', this.x) + '</b>';
-                    tr += '<br><span style="color: ' + colors.text + '">Price: ' + wowtoken.NumberCommas(this.points[0].y) + 'g</span>';
+                    tr += '<br><span style="color: ' + colors.text + '">Price: ' + wowtoken.NumberCommas(hcdata.realPrices[this.x]) + 'g</span>';
+                    if (hcdata.pct.hasOwnProperty(this.x)) {
+                        tr += '<br><span style="color: #444">Rate: ' + (hcdata.pct[this.x] > 0 ? '+' : '') + (hcdata.pct[this.x]*100).toFixed(2) + '%/hr</span>';
+                    }
                     tr += '<br><span style="color: ' + colors.text + '">Sells in: ' + wowtoken.timeLeftMap.names[hcdata.timeleft[this.x]] + '</span>';
                     return tr;
                 }
@@ -362,7 +415,21 @@ var wowtoken = {
                     data: hcdata.buy,
                     //zoneAxis: 'x',
                     //zones: hcdata.zones
+                },
+                {
+                    type: 'line',
+                    name: 'Price Change',
+                    color: '#999999',
+                    lineColor: '#999999',
+                    data: hcdata.pctchart,
+                    enableMouseTracking: false,
+                    yAxis: 1,
+                    dashStyle: 'Dash',
+                    lineWidth: 1,
+                    //zoneAxis: 'x',
+                    //zones: hcdata.zones
                 }
+
             ]
         });
     }

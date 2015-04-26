@@ -15,7 +15,7 @@
         <link href="css/main.css?5" rel="stylesheet" type="text/css">
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js" defer></script>
         <script type="text/javascript" src="https://code.highcharts.com/stock/highstock.js" defer></script>
-        <script type="text/javascript" src="js/main.js?10" defer></script>
+        <script type="text/javascript" src="js/main.js?11" defer></script>
     </head>
     <body>
         <div class="mui-container">
@@ -98,7 +98,7 @@
                 <b><a href="wowtoken.json">JSON format</a></b>
                 <ul>
                     <li>Updates no more frequently than every 15 minutes, usually by ##:10, ##:25, ##:40, ##:55. Please don't pull more often than that.</li>
-                    <li>Past 72 hours has full (15-min) timing resolution. Earlier than that, resolution drops down to only when we observed changes.</li>
+                    <li>Data points present only when we observed changes.</li>
                     <li>This is the same exact data source as what powers the tables and graphs above.</li>
                 </ul>
 
