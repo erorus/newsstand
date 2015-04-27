@@ -93,7 +93,7 @@
 
                 <b><a href="wowtoken.json">JSON format</a></b>
                 <ul>
-                    <li>Updates no more frequently than every 15 minutes, usually by ##:10, ##:25, ##:40, ##:55. Please don't pull more often than that.</li>
+                    <li>Updates no more frequently than every 20 minutes, usually by ##:00, ##:20, ##:40. Please don't pull more often than that.</li>
                     <li>Data points present only when we observed changes.</li>
                     <li>This is the same exact data source as what powers the tables and graphs above.</li>
                 </ul>
