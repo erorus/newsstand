@@ -160,13 +160,13 @@ function ParseTokenData($region, $snapshot, &$lua)
         return false;
     }
     $snapshotString = Date('Y-m-d H:i:s', $lua['now']);
-    foreach (['selltime', 'market', 'result', 'guaranteed'] as $col) {
+    foreach (['selltime', 'market', 'result', 'selltimeraw'] as $col) {
         if (!isset($lua[$col])) {
             $lua[$col] = null;
         }
     }
 
-    $sql = 'replace into tblWowToken (`region`, `when`, `marketgold`, `timeleft`, `guaranteedgold`, `result`) values (?, ?, floor(?/10000), ?, floor(?/10000), ?)';
+    $sql = 'replace into tblWowToken (`region`, `when`, `marketgold`, `timeleft`, `timeleftraw`, `result`) values (?, ?, floor(?/10000), ?, ?, ?)';
 
     $stmt = $db->prepare($sql);
     $stmt->bind_param('ssiiii',
@@ -174,7 +174,7 @@ function ParseTokenData($region, $snapshot, &$lua)
         $snapshotString,
         $lua['market'],
         $lua['selltime'],
-        $lua['guaranteed'],
+        $lua['selltimeraw'],
         $lua['result']
     );
     $stmt->execute();
@@ -394,7 +394,6 @@ function SendTweets($regions)
             'record' => $tokenData,
             'formatted' => [
                 'BUY' => number_format($tokenData['marketgold']),
-                'SELL' => number_format($tokenData['guaranteedgold']),
                 'TIMETOSELL' => isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft'],
                 'RESULT' => isset($resultCodes[$tokenData['result']]) ? $resultCodes[$tokenData['result']] : ('Unknown: ' . $tokenData['result']),
                 'UPDATED' => $d->format('M jS, Y g:ia T'),
