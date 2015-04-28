@@ -11,7 +11,7 @@
         <link href="css/main.css?5" rel="stylesheet" type="text/css">
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js" defer></script>
         <script type="text/javascript" src="https://code.highcharts.com/stock/highstock.js" defer></script>
-        <script type="text/javascript" src="js/main.js?11" defer></script>
+        <script type="text/javascript" src="js/main.js?12" defer></script>
     </head>
     <body>
         <div class="mui-container">
@@ -54,11 +54,17 @@
                 <!--#include virtual="NA.incl.html"-->
                 <div id="hc-na"></div>
             </div>
-    
+
             <div class="mui-panel realm-panel" id="eu-panel">
                 <h2>European Realms</h2>
                 <!--#include virtual="EU.incl.html"-->
                 <div id="hc-eu"></div>
+            </div>
+
+            <div class="mui-panel realm-panel" id="cn-panel">
+                <h2>Chinese Realms</h2>
+                <!--#include virtual="CN.incl.html"-->
+                <div id="hc-cn"></div>
             </div>
 
             <div class="mui-panel extra-panel" id="links-panel">
