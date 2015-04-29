@@ -552,7 +552,7 @@ function SendTweet($region, $tweetData, $chartUrl)
     $params['status'] = $msg;
 
     $oauth = new OAuth($twitterCredentials['consumerKey'], $twitterCredentials['consumerSecret']);
-    $oauth->setToken($twitterCredentials['accessToken'], $twitterCredentials['accessTokenSecret']);
+    $oauth->setToken($twitterCredentials['WoWTokens']['accessToken'], $twitterCredentials['WoWTokens']['accessTokenSecret']);
     $url = 'https://api.twitter.com/1.1/statuses/update.json';
 
     try {
@@ -713,7 +713,7 @@ function UploadTweetMedia($mediaUrl) {
     $mime .= "--$boundary--\r\n";
 
     $oauth = new OAuth($twitterCredentials['consumerKey'], $twitterCredentials['consumerSecret']);
-    $oauth->setToken($twitterCredentials['accessToken'], $twitterCredentials['accessTokenSecret']);
+    $oauth->setToken($twitterCredentials['WoWTokens']['accessToken'], $twitterCredentials['WoWTokens']['accessTokenSecret']);
     $url = 'https://upload.twitter.com/1.1/media/upload.json';
 
     $requestHeader = $oauth->getRequestHeader('POST',$url);
