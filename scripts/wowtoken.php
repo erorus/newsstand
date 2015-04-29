@@ -501,7 +501,7 @@ EOF;
         DebugMessage(print_r($lastTweetData, true));
         */
 
-        if ($tweetId = SendTweet(strtoupper($fileRegion), $tweetData, GetChartURL($region, strtoupper($fileRegion)))) {
+        if ($tweetId = SendTweet(strtoupper($fileRegion), $tweetData, GetChartURL($region, strtoupper($fileRegion)), $lastTweetData)) {
             file_put_contents($filenm, json_encode($tweetData));
         }
         if ($tweetId && ($tweetId !== true)) {
@@ -549,25 +549,37 @@ function Retweet($tweetId, $accountName) {
 
 }
 
-function SendTweet($region, $tweetData, $chartUrl)
+function SendTweet($region, $tweetData, $chartUrl, $lastTweetData)
 {
-    $msg = "#WoW$region #WoWToken: " . $tweetData['formatted']['BUY'] . "g, sells in " . $tweetData['formatted']['TIMETOSELL'] . '.';
+    $regions = [
+        'NA' => 'North American',
+        'EU' => 'European',
+        'CN' => 'Chinese',
+    ];
+
+    $msg = isset($regions[$region]) ? $regions[$region] : $region;
+    $msg .= " WoW Token: " . $tweetData['formatted']['BUY'] . "g, sells in " . $tweetData['formatted']['TIMETOSELL'] . '.';
     if ($tweetData['timestamp'] < (time() - 30 * 60)) { // show timestamp if older than 30 mins
         $msg .= " From " . TimeDiff($tweetData['timestamp'], ['parts' => 2, 'precision' => 'minute']) . '.';
+    }
+    if ($tweetData['record']['result'] != 1) {
+        $msg .= " " . $tweetData['formatted']['RESULT'] . ".";
     } else {
-        if ($tweetData['record']['result'] != 1) {
-            $msg .= " " . $tweetData['formatted']['RESULT'] . ".";
-        } else {
-            if (isset($tweetData['formatted']['BUYCHANGEAMOUNT']) && ($tweetData['formatted']['BUYCHANGEAMOUNT'] != '0')) {
-                $msg .= " Change: ".$tweetData['formatted']['BUYCHANGEAMOUNT'].'g';
-                if (isset($tweetData['formatted']['BUYCHANGEPERCENT'])) {
-                    $msg .= ' ('.$tweetData['formatted']['BUYCHANGEPERCENT'].')';
+        if (isset($tweetData['formatted']['BUYCHANGEAMOUNT']) && ($tweetData['formatted']['BUYCHANGEAMOUNT'] != '0')) {
+            $msg .= " Change: ".$tweetData['formatted']['BUYCHANGEAMOUNT'].'g';
+            if (isset($tweetData['formatted']['BUYCHANGEPERCENT'])) {
+                $msg .= ' ('.$tweetData['formatted']['BUYCHANGEPERCENT'];
+                if (isset($lastTweetData['timestamp'])) {
+                    $msg .= ', '.round((time()-$lastTweetData['timestamp'])/3600,1).'h ago';
                 }
-                $msg .= '.';
+                $msg .= ')';
+            } elseif (isset($lastTweetData['timestamp'])) {
+                $msg .= '('.round((time()-$lastTweetData['timestamp'])/3600,1).'h ago)';
             }
-            if (isset($tweetData['formatted']['TURNAROUND'])) {
-                $msg .= ' '.$tweetData['formatted']['TURNAROUND'];
-            }
+            $msg .= '.';
+        }
+        if (isset($tweetData['formatted']['TURNAROUND'])) {
+            $msg .= ' '.$tweetData['formatted']['TURNAROUND'];
         }
     }
 
