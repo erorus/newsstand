@@ -22,6 +22,7 @@ if (isset($_GET['callback']) && ($_GET['callback']=='showkey') && isset($_GET['o
     $requestTokenInfo = MCGet('twittertoken-'.$requestTokenInfo['oauth_token']);
     if ($requestTokenInfo === false) {
         echo 'Could not find cached token';
+        exit;
     }
     MCDelete('twittertoken-'.$requestTokenInfo['oauth_token']);
 
@@ -30,5 +31,4 @@ if (isset($_GET['callback']) && ($_GET['callback']=='showkey') && isset($_GET['o
     $accessToken = $oauth->getAccessToken('https://api.twitter.com/oauth/access_token', '', $verifier);
     header('Content-type: text/plain');
     print_r($accessToken);
-    cleanup();
 }
