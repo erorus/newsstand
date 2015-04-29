@@ -57,6 +57,12 @@ $timeLeftNumbers = [
     'Very Long' => 4,
 ];
 
+$regionNames = [
+    'NA' => 'North American',
+    'EU' => 'European',
+    'CN' => 'Chinese',
+];
+
 $loopStart = time();
 $loops = 0;
 $gotData = [];
@@ -552,13 +558,9 @@ function Retweet($tweetId, $accountName) {
 
 function SendTweet($region, $tweetData, $chartUrl, $lastTweetData)
 {
-    $regions = [
-        'NA' => 'North American',
-        'EU' => 'European',
-        'CN' => 'Chinese',
-    ];
+    global $regionNames;
 
-    $msg = isset($regions[$region]) ? $regions[$region] : $region;
+    $msg = isset($regionNames[$region]) ? $regionNames[$region] : $region;
     $msg .= " WoW Token: " . $tweetData['formatted']['BUY'] . "g, sells in " . $tweetData['formatted']['TIMETOSELL'] . '.';
     if ($tweetData['timestamp'] < (time() - 30 * 60)) { // show timestamp if older than 30 mins
         $msg .= " From " . TimeDiff($tweetData['timestamp'], ['parts' => 2, 'precision' => 'minute']) . '.';
@@ -641,7 +643,7 @@ function SendTweet($region, $tweetData, $chartUrl, $lastTweetData)
 }
 
 function GetChartURL($region, $regionName = '') {
-    global $db, $timeZones;
+    global $db, $timeZones, $regionNames;
 
     if (!$regionName) {
         $regionName = strtoupper($region);
@@ -693,7 +695,7 @@ EOF;
         $dThen = new DateTime('-24 hours', timezone_open($timeZones[$region]));
         $dNow = new DateTime('now', timezone_open($timeZones[$region]));
 
-        $title = "$regionName WoW Token Prices - wowtoken.info|".$dThen->format('F jS').' - '.$dNow->format('F jS H:i T');
+        $title = (isset($regionNames[$regionName]) ? $regionNames[$regionName] : $regionName) . " WoW Token Prices - wowtoken.info|".$dThen->format('F jS').' - '.$dNow->format('F jS H:i T');
         $cache[$regionName] = 'https://chart.googleapis.com/chart?chs=600x300&cht=lxy&chtt=' . urlencode($title)
             . '&chco='.$colors['line'].'&chm=B,'.$colors['fill'].',0,0,0|v,'.$colors['point'].',0,,1&chg=100,25,5,0&chxt=x,y&chf=c,s,FFFFFF&chma=8,8,8,8'
             . $cache[$regionName];
