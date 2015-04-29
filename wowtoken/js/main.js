@@ -128,7 +128,15 @@ var wowtoken = {
         var maxPrice = 0;
         var o, showLabel, direction = 0, newDirection = 0, lastLabel = -1;
         var lastTimeLeft = -1;
-        var priceUpperBound = (region == 'NA' ? 40000 : 60000);
+        var priceUpperBound = 60000;
+        switch (region) {
+            case 'NA':
+                priceUpperBound = 40000;
+                break;
+            case 'CN':
+                priceUpperBound = 100000;
+                break;
+        }
         var labelFormatter = function() {
             return wowtoken.NumberCommas(hcdata.realPrices[this.x]) + 'g';
         };
@@ -161,8 +169,8 @@ var wowtoken = {
         }
         if (region == 'CN') {
             colors = {
-                'line': '#00ff00',
-                'fill': 'rgba(204,255,204,0.6)',
+                'line': '#00cc00',
+                'fill': 'rgba(178,230,178,0.6)',
                 'text': '#009900',
                 'timeleft': [
                     'rgba(204,255,204,0.6)',

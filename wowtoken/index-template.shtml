@@ -11,7 +11,7 @@
         <link href="css/main.css?5" rel="stylesheet" type="text/css">
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js" defer></script>
         <script type="text/javascript" src="https://code.highcharts.com/stock/highstock.js" defer></script>
-        <script type="text/javascript" src="js/main.js?12" defer></script>
+        <script type="text/javascript" src="js/main.js?13" defer></script>
     </head>
     <body>
         <div class="mui-container">
@@ -31,7 +31,7 @@
                             <li>Buy one with gold from the Auction House, then use it to add 30 days of game time to your subscription.</li>
                         </ol>
                     </li>
-                    <li><b>How much money does it cost?</b> It costs $20 from the in-game shop on North American realms. It costs &euro;20 or &pound;15 on European realms.</li>
+                    <li><b>How much money does it cost?</b> It costs $20 from the in-game shop on North American realms. It costs &euro;20 or &pound;15 on European realms. It costs &yen;30 on Chinese realms.</li>
                     <li><b>How much gold does it cost?</b> It varies over time (that's what this site is for), but the cost is the same for every realm in your region, from Aegwynn to Zuluhed. I'll say that again. <b>It costs the same on every realm.</b></li>
                     <li><b>Can I buy it with money then use it myself?</b> No, you can only sell that one on the Auction House. Plus, that would be dumb, it would be the most expensive way to add game time. If you want game time for money, <a href="https://us.battle.net/shop/en/product/world-of-warcraft-game-time">buy game time directly</a>.</li>
                     <li><b>Can I buy one to give to a friend?</b> No, like it says up there, either buy one with money and sell it for gold, or buy one with gold and use it yourself. That's it.</li>
@@ -42,7 +42,7 @@
                 <h2>TL;DR</h2>
                 <ul>
                     <li>The WoW Token is an in-game item.</li>
-                    <li>You can buy one from Blizzard for $20, &euro;20, or &pound;15 and sell it in the AH.</li>
+                    <li>You can buy one from Blizzard for $20, &euro;20, &pound;15, or &yen;30 and sell it in the AH.</li>
                     <li>You can buy one in the AH and use it for 30 days of game time.</li>
                     <li>The gold price is the same for all realms, and is shown in the charts on this site.</li>
                     <li>You really need to work on your attention span.</li>

@@ -621,9 +621,9 @@ EOF;
 
     if ($region == 'CN') {
         $colors = [
-            'line' => '00FF00',
-            'fill' => 'CCFFCC99',
-            'point' => '99FF99',
+            'line' => '00CC00',
+            'fill' => 'B2E6B299',
+            'point' => '99CC99',
         ];
     }
 
