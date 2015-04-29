@@ -501,10 +501,52 @@ EOF;
         DebugMessage(print_r($lastTweetData, true));
         */
 
-        if (SendTweet(strtoupper($fileRegion), $tweetData, GetChartURL($region, strtoupper($fileRegion)))) {
+        if ($tweetId = SendTweet(strtoupper($fileRegion), $tweetData, GetChartURL($region, strtoupper($fileRegion)))) {
             file_put_contents($filenm, json_encode($tweetData));
         }
+        if ($tweetId && ($tweetId !== true)) {
+            switch (strtoupper($fileRegion)) {
+                case 'NA':
+                case 'EU':
+                    Retweet($tweetId, 'WoWToken'.strtoupper($fileRegion));
+                    break;
+            }
+        }
     }
+}
+
+function Retweet($tweetId, $accountName) {
+    global $twitterCredentials;
+
+    $oauth = new OAuth($twitterCredentials['consumerKey'], $twitterCredentials['consumerSecret']);
+    $oauth->setToken($twitterCredentials[$accountName]['accessToken'], $twitterCredentials[$accountName]['accessTokenSecret']);
+    $url = 'https://api.twitter.com/1.1/statuses/retweet/'.$tweetId.'.json';
+
+    $params = ['id' => $tweetId];
+
+    try {
+        $didWork = $oauth->fetch($url, $params, 'POST', array('Connection' => 'close'));
+    } catch (OAuthException $e) {
+        $didWork = false;
+    }
+
+    $ri = $oauth->getLastResponseInfo();
+    $r = $oauth->getLastResponse();
+
+    if ($didWork && ($ri['http_code'] == '200')) {
+        return true;
+    }
+    if (isset($ri['http_code'])) {
+        DebugMessage('Twitter returned HTTP code ' . $ri['http_code'], E_USER_WARNING);
+    } else {
+        DebugMessage('Twitter returned unknown HTTP code', E_USER_WARNING);
+    }
+
+    DebugMessage('Twitter returned: '.print_r($ri, true), E_USER_WARNING);
+    DebugMessage('Twitter returned: '.print_r($r, true), E_USER_WARNING);
+
+    return false;
+
 }
 
 function SendTweet($region, $tweetData, $chartUrl)
@@ -565,6 +607,12 @@ function SendTweet($region, $tweetData, $chartUrl)
     $r = $oauth->getLastResponse();
 
     if ($didWork && ($ri['http_code'] == '200')) {
+        $json = json_decode($r, true);
+        if (json_last_error() == JSON_ERROR_NONE) {
+            if (isset($json['id_str'])) {
+                return $json['id_str'];
+            }
+        }
         return true;
     }
     if (isset($ri['http_code'])) {
