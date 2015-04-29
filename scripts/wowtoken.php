@@ -266,6 +266,7 @@ EOF;
             'raw' => [
                 'buy' => $tokenData['marketgold'],
                 'timeToSell' => isset($timeLeftNumbers[$tokenData['timeleft']]) ? $timeLeftNumbers[$tokenData['timeleft']] : $tokenData['timeleft'],
+                'timeToSellSeconds' => $tokenData['timeleftraw'],
                 'result' => $tokenData['result'],
                 'updated' => strtotime($tokenData['when']),
             ],
