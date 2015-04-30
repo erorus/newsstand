@@ -279,7 +279,9 @@ EOF;
             'formatted' => [
                 'buy' => number_format($tokenData['marketgold']).'g',
                 //'buyimg' => BuildImageURI(number_format($tokenData['marketgold']).'g'),
-                'timeToSell' => isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft'],
+                'timeToSell' => is_null($tokenData['timeleftraw']) ?
+                        (isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft']) :
+                        (DurationString($tokenData['timeleftraw'])),
                 'result' => isset($resultCodes[$tokenData['result']]) ? $resultCodes[$tokenData['result']] : ('Unknown: ' . $tokenData['result']),
                 'updated' => $d->format('M jS, Y g:ia T'),
                 'sparkurl' => $sparkUrl,
@@ -328,6 +330,19 @@ EOF;
             unlink($htmlPath);
         }
     }
+}
+
+function DurationString($s) {
+    if ($s <= 0) {
+        return 'Immediately';
+    }
+    if ($s <= 90) {
+        return "$s seconds";
+    }
+    if ($s <= (90 * 60)) {
+        return ''.round($s/60).' minutes';
+    }
+    return TimeDiff(time()+$s, ['parts' => 2, 'distance' => false]);
 }
 
 function BuildImageURI($s) {
