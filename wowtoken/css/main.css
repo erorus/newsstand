@@ -99,3 +99,11 @@ div.hc {
         display: none
     }
 }
+
+.notifications-allowed select {
+    float: right;
+}
+
+.notifications-allowed div {
+    margin-top: 10px;
+}
