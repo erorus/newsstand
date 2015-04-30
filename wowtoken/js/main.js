@@ -205,8 +205,9 @@ var wowtoken = {
                  */
                 z = x;
                 hcdata.pct[o.x] = ((dta[z][1] - dta[y][1]) / dta[y][1]) / ((dta[z][0] - dta[y][0])/(60*60));
-                hcdata.pctchart.push([o.x, hcdata.pct[o.x] * 100]);
+                //hcdata.pctchart.push([o.x, hcdata.pct[o.x] * 100]);
             }
+            /*
             if (lastTimeLeft != dta[x][2]) {
                 if (lastTimeLeft != -1) {
                     hcdata.zones.push({
@@ -216,6 +217,7 @@ var wowtoken = {
                 }
                 lastTimeLeft = dta[x][2];
             }
+             */
             showLabel = false;
             if (x + 1 < dta.length) {
                 if (o.y != dta[x+1][1]) {
@@ -366,7 +368,7 @@ var wowtoken = {
                     floor: 0,
                     tickInterval: 1,
                     tickAmount: 5,
-                },
+                }/*,
                 {
                     title: {
                         enabled: false,
@@ -389,7 +391,7 @@ var wowtoken = {
                     max: 4,
                     tickInterval: 1,
                     tickAmount: 5,
-                }
+                }*/
             ],
             legend: {
                 enabled: false
@@ -437,7 +439,7 @@ var wowtoken = {
                     data: hcdata.buy,
                     //zoneAxis: 'x',
                     //zones: hcdata.zones
-                },
+                }/*,
                 {
                     type: 'line',
                     name: 'Price Change',
@@ -450,8 +452,7 @@ var wowtoken = {
                     lineWidth: 1,
                     //zoneAxis: 'x',
                     //zones: hcdata.zones
-                }
-
+                }*/
             ]
         });
     }
