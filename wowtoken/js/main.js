@@ -9,6 +9,12 @@ var wowtoken = {
         ]
     },
 
+    regions: {
+        'na': 'NA',
+        'eu': 'EU',
+        'cn': 'CN',
+    },
+
     NumberCommas: function(v) {
         return v.toFixed().split("").reverse().join("").replace(/(\d{3})(?=\d)/g, '$1,').split("").reverse().join("");
     },

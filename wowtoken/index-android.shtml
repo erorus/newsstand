@@ -58,18 +58,21 @@
                 <h2>North American Realms</h2>
                 <!--#include virtual="NA.incl.html"-->
                 <div id="hc-na"></div>
+                <div id="ns-na"></div>
             </div>
 
             <div class="mui-panel realm-panel" id="eu-panel">
                 <h2>European Realms</h2>
                 <!--#include virtual="EU.incl.html"-->
                 <div id="hc-eu"></div>
+                <div id="ns-eu"></div>
             </div>
 
             <div class="mui-panel realm-panel" id="cn-panel">
                 <h2>Chinese Realms</h2>
                 <!--#include virtual="CN.incl.html"-->
                 <div id="hc-cn"></div>
+                <div id="ns-cn"></div>
             </div>
 
             <div class="mui-panel extra-panel" id="links-panel">

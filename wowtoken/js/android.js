@@ -42,14 +42,27 @@ wowtoken.Notification = {
                 console.warn('Error during getSubscription()', err);
             });
         });
-
-        console.log('end of init');
     },
 
     SetDenied: function(d) {
         if (d) {
             console.log('User has blocked notifications.');
             wowtoken.Notification.isSubscribed = false;
+            var oldSub = wowtoken.Storage.get('subscription');
+            if (oldSub) {
+                $.ajax({
+                    url: '/subscription.php',
+                    method: 'POST',
+                    data: {
+                        'id': oldSub.id,
+                        'endpoint': oldsub.endpoint,
+                        'action': 'unsubscribe'
+                    }
+                });
+                wowtoken.Storage.Remove('subscription');
+            }
+        } else {
+            // effectively reset the forms
         }
     },
 
@@ -71,7 +84,34 @@ wowtoken.Notification = {
     },
 
     SendSubscriptionToServer: function(sub) {
-        console.log('Send to server: ',sub);
+        var data = {
+            'id': sub.subscriptionId,
+            'endpoint': sub.endpoint,
+            'action': 'subscribe',
+        };
+
+        var oldSub = wowtoken.Storage.Get('subscription');
+        if (oldSub) {
+            data.oldid = oldSub.id;
+            data.oldendpoint = oldSub.endpoint;
+
+            if ((data.oldid == data.id) && (data.oldendpoint == data.endpoint)) {
+                console.log('subcription info matches cached info');
+                return; // no need to update what we already have
+            }
+        }
+
+        $.ajax({
+            url: '/subscription.php',
+            method: 'POST',
+            data: data,
+            success: function (d) {
+                wowtoken.Storage.Set('subscription', {
+                    id: d.id,
+                    endpoint: d.endpoint
+                });
+            }
+        });
     },
 };
 
