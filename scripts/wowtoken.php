@@ -414,7 +414,9 @@ function SendTweets($regions)
             'record' => $tokenData,
             'formatted' => [
                 'BUY' => number_format($tokenData['marketgold']),
-                'TIMETOSELL' => isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft'],
+                'TIMETOSELL' => is_null($tokenData['timeleftraw']) ?
+                        (isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft']) :
+                        (DurationString($tokenData['timeleftraw'])),
                 'RESULT' => isset($resultCodes[$tokenData['result']]) ? $resultCodes[$tokenData['result']] : ('Unknown: ' . $tokenData['result']),
                 'UPDATED' => $d->format('M jS, Y g:ia T'),
             ],
