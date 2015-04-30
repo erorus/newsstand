@@ -354,22 +354,20 @@ function BuildImageURI($s) {
 function BuildHistoryJson($region) {
     global $db;
 
-    $sql = 'select unix_timestamp(`when`) `dt`, `marketgold` `buy`, `timeleft`+0 `time` from tblWowToken where region = ? and `result` = 1 order by `when` asc'; // and `when` < timestampadd(minute, -70, now())
+    $sql = 'select unix_timestamp(`when`) `dt`, `marketgold` `buy`, `timeleft`+0 `time`, `timeleftraw` from tblWowToken where region = ? and `result` = 1 order by `when` asc'; // and `when` < timestampadd(minute, -70, now())
     $stmt = $db->prepare($sql);
     $stmt->bind_param('s', $region);
     $stmt->execute();
     $result = $stmt->get_result();
     $tokenData = [];
     $prevPrice = -1;
-    $prevTime = -1;
-    //$lately = time() - (3 * 24 * 60 * 60) - 5 * 60;
+    $lately = time() - (3 * 24 * 60 * 60) - 5 * 60;
     while ($row = $result->fetch_row()) {
-        //if (($row[0] > $lately) || ($prevPrice != $row[1]) || ($prevTime != $row[2])) {
-        if ($prevPrice != $row[1]) {
+        if (($row[0] > $lately) || ($prevPrice != $row[1])) {
+        //if ($prevPrice != $row[1]) {
             $tokenData[] = $row;
         }
         $prevPrice = $row[1];
-        $prevTime = $row[2];
     }
     $result->close();
     $stmt->close();

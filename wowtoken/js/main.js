@@ -13,6 +13,24 @@ var wowtoken = {
         return v.toFixed().split("").reverse().join("").replace(/(\d{3})(?=\d)/g, '$1,').split("").reverse().join("");
     },
 
+    PrettySeconds: function(s) {
+        s = parseInt(s, 10);
+
+        if (s <= 0) {
+            return 'Immediately';
+        }
+        if (s <= 90) {
+            return '' + s + " seconds";
+        }
+        var m = Math.round(s/60);
+        if (m <= 90) {
+            return '' + m + ' minutes';
+        }
+        var h = Math.floor(m/60);
+        m = m % 60;
+        return '' + h + ' hours, ' + m + ' minutes';
+    },
+
     Storage: {
         Get: function (key)
         {
@@ -253,7 +271,10 @@ var wowtoken = {
             hcdata.realPrices[o.x] = o.y;
             o.y = o.y * 32 / priceUpperBound;
             hcdata.buy.push(o);
-            hcdata.timeleft[dta[x][0]*1000] = dta[x][2];
+            hcdata.timeleft[dta[x][0]*1000] = wowtoken.timeLeftMap.names[dta[x][2]];
+            if (dta[x][3] != null) {
+                hcdata.timeleft[dta[x][0]*1000] = wowtoken.PrettySeconds(dta[x][3]);
+            }
             if (maxPrice < dta[x][1]) {
                 maxPrice = dta[x][1];
             }
@@ -405,7 +426,7 @@ var wowtoken = {
                     if (hcdata.pct.hasOwnProperty(this.x)) {
                         tr += '<br><span style="color: #444">Rate: ' + (hcdata.pct[this.x] > 0 ? '+' : '') + (hcdata.pct[this.x]*100).toFixed(2) + '%/hr</span>';
                     }
-                    tr += '<br><span style="color: ' + colors.text + '">Sells in: ' + wowtoken.timeLeftMap.names[hcdata.timeleft[this.x]] + '</span>';
+                    tr += '<br><span style="color: ' + colors.text + '">Sells in: ' + hcdata.timeleft[this.x] + '</span>';
                     return tr;
                 }
             },
