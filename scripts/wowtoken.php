@@ -40,6 +40,7 @@ $resultCodes = [
 $timeZones = [
     'US' => 'America/New_York',
     'EU' => 'Europe/Paris',
+    'CN' => 'Asia/Shanghai',
 ];
 
 $timeLeftCodes = [
@@ -54,6 +55,12 @@ $timeLeftNumbers = [
     'Medium' => 2,
     'Long' => 3,
     'Very Long' => 4,
+];
+
+$regionNames = [
+    'NA' => 'North American',
+    'EU' => 'European',
+    'CN' => 'Chinese',
 ];
 
 $loopStart = time();
@@ -84,7 +91,7 @@ function NextDataFile()
     $gotFile = false;
     $wait = false;
     foreach ($dir as $fileName) {
-        if (preg_match('/^(\d+)-(US|EU)\.lua$/', $fileName, $res)) {
+        if (preg_match('/^(\d+)-(US|EU|CN)\.lua$/', $fileName, $res)) {
             if (filemtime(SNAPSHOT_PATH . $fileName) > (time() - 5)) {
                 $wait = true;
                 continue;
@@ -159,13 +166,13 @@ function ParseTokenData($region, $snapshot, &$lua)
         return false;
     }
     $snapshotString = Date('Y-m-d H:i:s', $lua['now']);
-    foreach (['selltime', 'market', 'result', 'guaranteed'] as $col) {
+    foreach (['selltime', 'market', 'result', 'selltimeraw'] as $col) {
         if (!isset($lua[$col])) {
             $lua[$col] = null;
         }
     }
 
-    $sql = 'replace into tblWowToken (`region`, `when`, `marketgold`, `timeleft`, `guaranteedgold`, `result`) values (?, ?, floor(?/10000), ?, floor(?/10000), ?)';
+    $sql = 'replace into tblWowToken (`region`, `when`, `marketgold`, `timeleft`, `timeleftraw`, `result`) values (?, ?, floor(?/10000), ?, ?, ?)';
 
     $stmt = $db->prepare($sql);
     $stmt->bind_param('ssiiii',
@@ -173,7 +180,7 @@ function ParseTokenData($region, $snapshot, &$lua)
         $snapshotString,
         $lua['market'],
         $lua['selltime'],
-        $lua['guaranteed'],
+        $lua['selltimeraw'],
         $lua['result']
     );
     $stmt->execute();
@@ -265,6 +272,7 @@ EOF;
             'raw' => [
                 'buy' => $tokenData['marketgold'],
                 'timeToSell' => isset($timeLeftNumbers[$tokenData['timeleft']]) ? $timeLeftNumbers[$tokenData['timeleft']] : $tokenData['timeleft'],
+                'timeToSellSeconds' => $tokenData['timeleftraw'],
                 'result' => $tokenData['result'],
                 'updated' => strtotime($tokenData['when']),
             ],
@@ -393,7 +401,6 @@ function SendTweets($regions)
             'record' => $tokenData,
             'formatted' => [
                 'BUY' => number_format($tokenData['marketgold']),
-                'SELL' => number_format($tokenData['guaranteedgold']),
                 'TIMETOSELL' => isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft'],
                 'RESULT' => isset($resultCodes[$tokenData['result']]) ? $resultCodes[$tokenData['result']] : ('Unknown: ' . $tokenData['result']),
                 'UPDATED' => $d->format('M jS, Y g:ia T'),
@@ -501,31 +508,81 @@ EOF;
         DebugMessage(print_r($lastTweetData, true));
         */
 
-        if (SendTweet(strtoupper($fileRegion), $tweetData, GetChartURL($region, strtoupper($fileRegion)))) {
+        if ($tweetId = SendTweet(strtoupper($fileRegion), $tweetData, GetChartURL($region, strtoupper($fileRegion)), $lastTweetData)) {
             file_put_contents($filenm, json_encode($tweetData));
+        }
+        if ($tweetId && ($tweetId !== true)) {
+            switch (strtoupper($fileRegion)) {
+                case 'NA':
+                case 'EU':
+                    Retweet($tweetId, 'WoWToken'.strtoupper($fileRegion));
+                    break;
+            }
         }
     }
 }
 
-function SendTweet($region, $tweetData, $chartUrl)
+function Retweet($tweetId, $accountName) {
+    global $twitterCredentials;
+
+    $oauth = new OAuth($twitterCredentials['consumerKey'], $twitterCredentials['consumerSecret']);
+    $oauth->setToken($twitterCredentials[$accountName]['accessToken'], $twitterCredentials[$accountName]['accessTokenSecret']);
+    $url = 'https://api.twitter.com/1.1/statuses/retweet/'.$tweetId.'.json';
+
+    $params = ['id' => $tweetId];
+
+    try {
+        $didWork = $oauth->fetch($url, $params, 'POST', array('Connection' => 'close'));
+    } catch (OAuthException $e) {
+        $didWork = false;
+    }
+
+    $ri = $oauth->getLastResponseInfo();
+    $r = $oauth->getLastResponse();
+
+    if ($didWork && ($ri['http_code'] == '200')) {
+        return true;
+    }
+    if (isset($ri['http_code'])) {
+        DebugMessage('Twitter returned HTTP code ' . $ri['http_code'], E_USER_WARNING);
+    } else {
+        DebugMessage('Twitter returned unknown HTTP code', E_USER_WARNING);
+    }
+
+    DebugMessage('Twitter returned: '.print_r($ri, true), E_USER_WARNING);
+    DebugMessage('Twitter returned: '.print_r($r, true), E_USER_WARNING);
+
+    return false;
+
+}
+
+function SendTweet($region, $tweetData, $chartUrl, $lastTweetData)
 {
-    $msg = "#WoW$region #WoWToken: " . $tweetData['formatted']['BUY'] . "g, sells in " . $tweetData['formatted']['TIMETOSELL'] . '.';
+    global $regionNames;
+
+    $msg = isset($regionNames[$region]) ? $regionNames[$region] : $region;
+    $msg .= " WoW Token: " . $tweetData['formatted']['BUY'] . "g, sells in " . $tweetData['formatted']['TIMETOSELL'] . '.';
     if ($tweetData['timestamp'] < (time() - 30 * 60)) { // show timestamp if older than 30 mins
         $msg .= " From " . TimeDiff($tweetData['timestamp'], ['parts' => 2, 'precision' => 'minute']) . '.';
+    }
+    if ($tweetData['record']['result'] != 1) {
+        $msg .= " " . $tweetData['formatted']['RESULT'] . ".";
     } else {
-        if ($tweetData['record']['result'] != 1) {
-            $msg .= " " . $tweetData['formatted']['RESULT'] . ".";
-        } else {
-            if (isset($tweetData['formatted']['BUYCHANGEAMOUNT']) && ($tweetData['formatted']['BUYCHANGEAMOUNT'] != '0')) {
-                $msg .= " Change: ".$tweetData['formatted']['BUYCHANGEAMOUNT'].'g';
-                if (isset($tweetData['formatted']['BUYCHANGEPERCENT'])) {
-                    $msg .= ' ('.$tweetData['formatted']['BUYCHANGEPERCENT'].')';
+        if (isset($tweetData['formatted']['BUYCHANGEAMOUNT']) && ($tweetData['formatted']['BUYCHANGEAMOUNT'] != '0')) {
+            $msg .= " Change: ".$tweetData['formatted']['BUYCHANGEAMOUNT'].'g';
+            if (isset($tweetData['formatted']['BUYCHANGEPERCENT'])) {
+                $msg .= ' ('.$tweetData['formatted']['BUYCHANGEPERCENT'];
+                if (isset($lastTweetData['timestamp'])) {
+                    $msg .= ', '.round((time()-$lastTweetData['timestamp'])/3600,1).'h ago';
                 }
-                $msg .= '.';
+                $msg .= ')';
+            } elseif (isset($lastTweetData['timestamp'])) {
+                $msg .= '('.round((time()-$lastTweetData['timestamp'])/3600,1).'h ago)';
             }
-            if (isset($tweetData['formatted']['TURNAROUND'])) {
-                $msg .= ' '.$tweetData['formatted']['TURNAROUND'];
-            }
+            $msg .= '.';
+        }
+        if (isset($tweetData['formatted']['TURNAROUND'])) {
+            $msg .= ' '.$tweetData['formatted']['TURNAROUND'];
         }
     }
 
@@ -552,7 +609,7 @@ function SendTweet($region, $tweetData, $chartUrl)
     $params['status'] = $msg;
 
     $oauth = new OAuth($twitterCredentials['consumerKey'], $twitterCredentials['consumerSecret']);
-    $oauth->setToken($twitterCredentials['accessToken'], $twitterCredentials['accessTokenSecret']);
+    $oauth->setToken($twitterCredentials['WoWTokens']['accessToken'], $twitterCredentials['WoWTokens']['accessTokenSecret']);
     $url = 'https://api.twitter.com/1.1/statuses/update.json';
 
     try {
@@ -565,6 +622,12 @@ function SendTweet($region, $tweetData, $chartUrl)
     $r = $oauth->getLastResponse();
 
     if ($didWork && ($ri['http_code'] == '200')) {
+        $json = json_decode($r, true);
+        if (json_last_error() == JSON_ERROR_NONE) {
+            if (isset($json['id_str'])) {
+                return $json['id_str'];
+            }
+        }
         return true;
     }
     if (isset($ri['http_code'])) {
@@ -580,7 +643,7 @@ function SendTweet($region, $tweetData, $chartUrl)
 }
 
 function GetChartURL($region, $regionName = '') {
-    global $db, $timeZones;
+    global $db, $timeZones, $regionNames;
 
     if (!$regionName) {
         $regionName = strtoupper($region);
@@ -619,12 +682,20 @@ EOF;
         ];
     }
 
+    if ($region == 'CN') {
+        $colors = [
+            'line' => '00CC00',
+            'fill' => 'B2E6B299',
+            'point' => '99CC99',
+        ];
+    }
+
     $cache[$regionName] = EncodeChartData($sparkData);
     if ($cache[$regionName]) {
         $dThen = new DateTime('-24 hours', timezone_open($timeZones[$region]));
         $dNow = new DateTime('now', timezone_open($timeZones[$region]));
 
-        $title = "$regionName WoW Token Prices - wowtoken.info|".$dThen->format('F jS').' - '.$dNow->format('F jS H:i T');
+        $title = (isset($regionNames[$regionName]) ? $regionNames[$regionName] : $regionName) . " WoW Token Prices - wowtoken.info|".$dThen->format('F jS').' - '.$dNow->format('F jS H:i T');
         $cache[$regionName] = 'https://chart.googleapis.com/chart?chs=600x300&cht=lxy&chtt=' . urlencode($title)
             . '&chco='.$colors['line'].'&chm=B,'.$colors['fill'].',0,0,0|v,'.$colors['point'].',0,,1&chg=100,25,5,0&chxt=x,y&chf=c,s,FFFFFF&chma=8,8,8,8'
             . $cache[$regionName];
@@ -705,7 +776,7 @@ function UploadTweetMedia($mediaUrl) {
     $mime .= "--$boundary--\r\n";
 
     $oauth = new OAuth($twitterCredentials['consumerKey'], $twitterCredentials['consumerSecret']);
-    $oauth->setToken($twitterCredentials['accessToken'], $twitterCredentials['accessTokenSecret']);
+    $oauth->setToken($twitterCredentials['WoWTokens']['accessToken'], $twitterCredentials['WoWTokens']['accessTokenSecret']);
     $url = 'https://upload.twitter.com/1.1/media/upload.json';
 
     $requestHeader = $oauth->getRequestHeader('POST',$url);
