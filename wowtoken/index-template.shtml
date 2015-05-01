@@ -5,13 +5,17 @@
         <meta http-equiv="content-type" content="text/html; charset=utf-8">
         <meta name="viewport" content="width=device-width,initial-scale=1">
         <meta name="msapplication-config" content="none"/>
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="mobile-web-app-capable" content="yes">
+        <link rel="manifest" href="manifest.json">
         <link rel="apple-touch-icon" sizes="152x152" href="images/apple-touch-icon.png">
+        <link rel="icon" sizes="270x270" href="images/tokenavatar.jpg">
         <link href="css/mui.min.css" rel="stylesheet" type="text/css">
         <link href='https://fonts.googleapis.com/css?family=Roboto:400,700|Roboto+Slab:700' rel='stylesheet' type='text/css'>
-        <link href="css/main.css?5" rel="stylesheet" type="text/css">
+        <link href="css/main.css?6" rel="stylesheet" type="text/css">
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js" defer></script>
         <script type="text/javascript" src="https://code.highcharts.com/stock/highstock.js" defer></script>
-        <script type="text/javascript" src="js/main.js?14" defer></script>
+        <script type="text/javascript" src="js/main.js?15" defer></script>
     </head>
     <body>
         <div class="mui-container">
@@ -53,18 +57,21 @@
                 <h2>North American Realms</h2>
                 <!--#include virtual="NA.incl.html"-->
                 <div id="hc-na"></div>
+                <div id="ns-na"></div>
             </div>
 
             <div class="mui-panel realm-panel" id="eu-panel">
                 <h2>European Realms</h2>
                 <!--#include virtual="EU.incl.html"-->
                 <div id="hc-eu"></div>
+                <div id="ns-eu"></div>
             </div>
 
             <div class="mui-panel realm-panel" id="cn-panel">
                 <h2>Chinese Realms</h2>
                 <!--#include virtual="CN.incl.html"-->
                 <div id="hc-cn"></div>
+                <div id="ns-cn"></div>
             </div>
 
             <div class="mui-panel extra-panel" id="links-panel">
