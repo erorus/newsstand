@@ -279,7 +279,9 @@ EOF;
             'formatted' => [
                 'buy' => number_format($tokenData['marketgold']).'g',
                 //'buyimg' => BuildImageURI(number_format($tokenData['marketgold']).'g'),
-                'timeToSell' => isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft'],
+                'timeToSell' => is_null($tokenData['timeleftraw']) ?
+                        (isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft']) :
+                        (DurationString($tokenData['timeleftraw'])),
                 'result' => isset($resultCodes[$tokenData['result']]) ? $resultCodes[$tokenData['result']] : ('Unknown: ' . $tokenData['result']),
                 'updated' => $d->format('M jS, Y g:ia T'),
                 'sparkurl' => $sparkUrl,
@@ -330,6 +332,19 @@ EOF;
     }
 }
 
+function DurationString($s) {
+    if ($s <= 0) {
+        return 'Immediately';
+    }
+    if ($s <= 90) {
+        return "$s seconds";
+    }
+    if ($s <= (90 * 60)) {
+        return ''.round($s/60).' minutes';
+    }
+    return TimeDiff(time()+$s, ['parts' => 2, 'distance' => false]);
+}
+
 function BuildImageURI($s) {
     $imgdata = shell_exec('convert -background transparent -fill black -weight Bold -pointsize 14 label:'.escapeshellarg($s).' png:-');
     //return 'data:image/png;i=<!--#echo var="REMOTE_ADDR"-->;base64,'.base64_encode($imgdata);
@@ -339,22 +354,20 @@ function BuildImageURI($s) {
 function BuildHistoryJson($region) {
     global $db;
 
-    $sql = 'select unix_timestamp(`when`) `dt`, `marketgold` `buy`, `timeleft`+0 `time` from tblWowToken where region = ? and `result` = 1 order by `when` asc'; // and `when` < timestampadd(minute, -70, now())
+    $sql = 'select unix_timestamp(`when`) `dt`, `marketgold` `buy`, `timeleft`+0 `time`, `timeleftraw` from tblWowToken where region = ? and `result` = 1 order by `when` asc'; // and `when` < timestampadd(minute, -70, now())
     $stmt = $db->prepare($sql);
     $stmt->bind_param('s', $region);
     $stmt->execute();
     $result = $stmt->get_result();
     $tokenData = [];
     $prevPrice = -1;
-    $prevTime = -1;
-    //$lately = time() - (3 * 24 * 60 * 60) - 5 * 60;
+    $lately = time() - (3 * 24 * 60 * 60) - 5 * 60;
     while ($row = $result->fetch_row()) {
-        //if (($row[0] > $lately) || ($prevPrice != $row[1]) || ($prevTime != $row[2])) {
-        if ($prevPrice != $row[1]) {
+        if (($row[0] > $lately) || ($prevPrice != $row[1])) {
+        //if ($prevPrice != $row[1]) {
             $tokenData[] = $row;
         }
         $prevPrice = $row[1];
-        $prevTime = $row[2];
     }
     $result->close();
     $stmt->close();
@@ -401,7 +414,9 @@ function SendTweets($regions)
             'record' => $tokenData,
             'formatted' => [
                 'BUY' => number_format($tokenData['marketgold']),
-                'TIMETOSELL' => isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft'],
+                'TIMETOSELL' => is_null($tokenData['timeleftraw']) ?
+                        (isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft']) :
+                        (DurationString($tokenData['timeleftraw'])),
                 'RESULT' => isset($resultCodes[$tokenData['result']]) ? $resultCodes[$tokenData['result']] : ('Unknown: ' . $tokenData['result']),
                 'UPDATED' => $d->format('M jS, Y g:ia T'),
             ],
