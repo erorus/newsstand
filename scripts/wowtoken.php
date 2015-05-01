@@ -895,6 +895,7 @@ EOF;
         $message = $regionNames[$properRegion] . ' price %s: now '.$formatted['BUY']."g, sells in " . $formatted['TIMETOSELL'] . '. As of '.$formatted['UPDATED'].'.';
 
         foreach ($rows as $endpoint => $allIds) {
+            $sent = [];
             $chunks = array_chunk($allIds, 50, true);
             foreach ($chunks as $chunk) {
                 $lookup = [];
@@ -902,9 +903,19 @@ EOF;
                 $failed = [];
                 $successful = [];
                 foreach ($chunk as $id => $row) {
-                    $lookup[] = $id;
-                    $toSend[] = $row['subid'];
-                    MCSet('tokennotify-'.md5($endpoint.'#'.$row['subid']), sprintf($message, $direction.' '.number_format($row['value'], 0).'g'), 8 * 60 * 60);
+                    $msg = sprintf($message, $direction.' '.number_format($row['value'], 0).'g');
+                    $key = md5($endpoint.'#'.$row['subid']);
+                    if (!isset($sent[$key])) {
+                        $lookup[] = $id;
+                        $toSend[] = $row['subid'];
+                        $sent[$key] = $msg;
+                    } else {
+                        $sent[$key] .= " \n".$msg;
+                    }
+                    MCSet('tokennotify-'.$key, $sent[$key], 8 * 60 * 60);
+                }
+                if (!count($toSend)) {
+                    continue;
                 }
                 $toSend = json_encode([
                     'registration_ids' => $toSend,
@@ -947,7 +958,7 @@ EOF;
                     $stmt->close();
                 }
 
-                DebugMessage('Sent '.count($lookup).' messages, '.count($successful).' successful, '.count($failed).' failed.');
+                DebugMessage('Sent '.count($lookup).' messages to '.$endpoint.' - '.count($successful).' successful, '.count($failed).' failed.');
             }
         }
 
