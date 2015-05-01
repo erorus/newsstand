@@ -26,6 +26,9 @@ switch($_POST['action']) {
     case 'selection':
         ActSelection();
         break;
+    case 'fetch':
+        ActFetch();
+        break;
     default:
         header('HTTP/1.1 400 Bad Request');
         exit();
@@ -57,7 +60,7 @@ function ActSubscribe() {
 
     if ($oldId) {
         // already have this sub, I guess just update lastseen
-        $sql = 'update tblWowTokenSubs set lastseen = now() where id = ?';
+        $sql = 'update tblWowTokenSubs set lastseen = now(), lastfail = null where id = ?';
         $stmt = $db->prepare($sql);
         $stmt->bind_param('i', $oldId);
         $allGood &= $stmt->execute();
@@ -77,7 +80,7 @@ function ActSubscribe() {
         }
 
         if ($oldId) {
-            $sql = 'update tblWowTokenSubs set subid=?, endpoint=?, lastseen=now() where id=?';
+            $sql = 'update tblWowTokenSubs set subid=?, endpoint=?, lastseen=now(), lastfail=null where id=?';
             $stmt = $db->prepare($sql);
             $stmt->bind_param('ssi', $_POST['id'], $_POST['endpoint'], $oldId);
             $allGood &= $stmt->execute();
@@ -205,4 +208,22 @@ function ActSelection() {
     } else {
         header('HTTP/1.1 500 Internal Server Error');
     }
+}
+
+function ActFetch() {
+    $required = ['id','endpoint'];
+    foreach ($required as $v) {
+        if (!isset($_POST[$v])) {
+            ReturnBadRequest();
+        }
+    }
+
+    echo json_encode([
+            'title' => 'WoWToken.info',
+            'notification' => [
+                'body' => 'hey fetched body here',
+                'tag' => 'wowtoken',
+                'icon' => '/images/token-192x192.jpg'
+            ],
+        ]);
 }
