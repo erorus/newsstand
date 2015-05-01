@@ -586,15 +586,14 @@ function SendTweet($region, $tweetData, $chartUrl, $lastTweetData)
         $msg .= " " . $tweetData['formatted']['RESULT'] . ".";
     } else {
         if (isset($tweetData['formatted']['BUYCHANGEAMOUNT']) && ($tweetData['formatted']['BUYCHANGEAMOUNT'] != '0')) {
-            $msg .= " Change: ".$tweetData['formatted']['BUYCHANGEAMOUNT'].'g';
+            $msg .= " ".$tweetData['formatted']['BUYCHANGEAMOUNT'].'g';
             if (isset($tweetData['formatted']['BUYCHANGEPERCENT'])) {
-                $msg .= ' ('.$tweetData['formatted']['BUYCHANGEPERCENT'];
+                $msg .= ', '.$tweetData['formatted']['BUYCHANGEPERCENT'];
                 if (isset($lastTweetData['timestamp'])) {
                     $msg .= ', '.round((time()-$lastTweetData['timestamp'])/3600,1).'h ago';
                 }
-                $msg .= ')';
             } elseif (isset($lastTweetData['timestamp'])) {
-                $msg .= '('.round((time()-$lastTweetData['timestamp'])/3600,1).'h ago)';
+                $msg .= ', '.round((time()-$lastTweetData['timestamp'])/3600,1).'h ago';
             }
             $msg .= '.';
         }
