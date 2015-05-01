@@ -1,6 +1,7 @@
 <?php
 
 require_once(__DIR__.'/../incl/incl.php');
+require_once(__DIR__.'/../incl/memcache.incl.php');
 
 if ($_SERVER["REQUEST_METHOD"] != 'POST') {
     header('HTTP/1.1 405 Method Not Allowed');
@@ -218,10 +219,18 @@ function ActFetch() {
         }
     }
 
+    $key = 'tokennotify-'.md5($_POST['endpoint'].'#'.$_POST['id']);
+    $msg = MCGet($key);
+    if ($msg == false) {
+        $msg = 'Couldn\'t find notification data, but something probably happened that you should check out at WoWToken.info.';
+    } else {
+        MCDelete($key);
+    }
+
     echo json_encode([
             'title' => 'WoWToken.info',
             'notification' => [
-                'body' => 'hey fetched body here',
+                'body' => $msg,
                 'tag' => 'wowtoken',
                 'icon' => '/images/token-192x192.jpg'
             ],

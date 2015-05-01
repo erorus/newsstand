@@ -1,4 +1,4 @@
-console.log('v10');
+console.log('v11');
 self.addEventListener('push', function(event) {
     event.waitUntil(
         self.registration.pushManager.getSubscription().then(function(reg) {
@@ -16,11 +16,14 @@ self.addEventListener('push', function(event) {
                     }
 
                     return resp.json().then(function(data) {
-                        return self.registration.showNotification(data.title, data.notification)
+                        if (!data.notification) {
+                            throw new Error();
+                        }
+                        return self.registration.showNotification(data.title, data.notification);
                     });
                 });
-        }).catch(function() {
-            self.registration.showNotification('WoWToken.info', {
+        }).catch(function(err) {
+            return self.registration.showNotification('WoWToken.info', {
                 body: 'Couldn\'t fetch notification data, but something probably happened that you should check out at WoWToken.info.',
                 icon: '/images/token-192x192.jpg',
                 tag: 'wowtoken'
@@ -48,7 +51,6 @@ self.addEventListener('notificationclick', function(event) {
     )
 });
 
-/*
 self.addEventListener('install', function(event) {
     event.waitUntil(
         caches.open('wowtokeninfo-cache-1').then(function(cache) {
@@ -56,4 +58,3 @@ self.addEventListener('install', function(event) {
         })
     );
 });
- */
