@@ -148,10 +148,9 @@ var wowtoken = {
     },
 
     ShowChart: function(region, dta, dest) {
-        var hcdata = { buy: [], timeleft: {}, navigator: [], zones: [], pct: {}, pctchart: [], realPrices: [] };
+        var hcdata = { buy: [], timeleft: {}, navigator: [], pct: {}, pctchart: [], realPrices: [] };
         var maxPrice = 0;
         var o, showLabel, direction = 0, newDirection = 0, lastLabel = -1;
-        var lastTimeLeft = -1;
         var priceUpperBound = 60000;
         switch (region) {
             case 'NA':
@@ -229,19 +228,8 @@ var wowtoken = {
                  */
                 z = x;
                 hcdata.pct[o.x] = ((dta[z][1] - dta[y][1]) / dta[y][1]) / ((dta[z][0] - dta[y][0])/(60*60));
-                //hcdata.pctchart.push([o.x, hcdata.pct[o.x] * 100]);
+                hcdata.pctchart.push([o.x, hcdata.pct[o.x] * 100]);
             }
-            /*
-            if (lastTimeLeft != dta[x][2]) {
-                if (lastTimeLeft != -1) {
-                    hcdata.zones.push({
-                        value: o.x,
-                        fillColor: colors.timeleft[lastTimeLeft],
-                    });
-                }
-                lastTimeLeft = dta[x][2];
-            }
-             */
             showLabel = false;
             if (x + 1 < dta.length) {
                 if (o.y != dta[x+1][1]) {
@@ -284,11 +272,6 @@ var wowtoken = {
             if (maxPrice < dta[x][1]) {
                 maxPrice = dta[x][1];
             }
-        }
-        if (hcdata.zones.length) {
-            hcdata.zones.push({
-                fillColor: colors.timeleft[lastTimeLeft]
-            });
         }
 
         Highcharts.setOptions({
@@ -395,7 +378,7 @@ var wowtoken = {
                     floor: 0,
                     tickInterval: 1,
                     tickAmount: 5,
-                }/*,
+                },
                 {
                     title: {
                         enabled: false,
@@ -418,7 +401,7 @@ var wowtoken = {
                     max: 4,
                     tickInterval: 1,
                     tickAmount: 5,
-                }*/
+                }
             ],
             legend: {
                 enabled: false
@@ -464,9 +447,7 @@ var wowtoken = {
                     lineColor: colors.line,
                     fillColor: colors.fill,
                     data: hcdata.buy,
-                    //zoneAxis: 'x',
-                    //zones: hcdata.zones
-                }/*,
+                },
                 {
                     type: 'line',
                     name: 'Price Change',
@@ -477,9 +458,7 @@ var wowtoken = {
                     yAxis: 1,
                     dashStyle: 'Dash',
                     lineWidth: 1,
-                    //zoneAxis: 'x',
-                    //zones: hcdata.zones
-                }*/
+                }
             ]
         });
     }
