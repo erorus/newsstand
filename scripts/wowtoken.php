@@ -582,14 +582,14 @@ function SendTweet($region, $tweetData, $chartUrl, $lastTweetData)
         $msg .= " " . $tweetData['formatted']['RESULT'] . ".";
     } else {
         if (isset($tweetData['formatted']['BUYCHANGEAMOUNT']) && ($tweetData['formatted']['BUYCHANGEAMOUNT'] != '0')) {
-            $msg .= " ".$tweetData['formatted']['BUYCHANGEAMOUNT'].'g';
+            $msg .= " Changed ".$tweetData['formatted']['BUYCHANGEAMOUNT'].'g';
             if (isset($tweetData['formatted']['BUYCHANGEPERCENT'])) {
-                $msg .= ', '.$tweetData['formatted']['BUYCHANGEPERCENT'];
+                $msg .= ' or '.$tweetData['formatted']['BUYCHANGEPERCENT'];
                 if (isset($lastTweetData['timestamp'])) {
-                    $msg .= ', '.round((time()-$lastTweetData['timestamp'])/3600,1).'h ago';
+                    $msg .= ' since '.round((time()-$lastTweetData['timestamp'])/3600,1).'h ago';
                 }
             } elseif (isset($lastTweetData['timestamp'])) {
-                $msg .= ', '.round((time()-$lastTweetData['timestamp'])/3600,1).'h ago';
+                $msg .= ' since '.round((time()-$lastTweetData['timestamp'])/3600,1).'h ago';
             }
             $msg .= '.';
         }
@@ -825,6 +825,8 @@ function SendAndroidNotifications($regions)
     global $db;
     global $timeZones, $timeLeftCodes, $regionNames;
 
+    $sent = [];
+
     foreach ($regions as $region) {
         $properRegion = strtoupper($region);
         if ($properRegion == 'US') {
@@ -888,7 +890,6 @@ EOF;
         $message = $regionNames[$properRegion] . ' price %s: now '.$formatted['BUY']."g, sells in " . $formatted['TIMETOSELL'] . '. As of '.$formatted['UPDATED'].'.';
 
         foreach ($rows as $endpoint => $allIds) {
-            $sent = [];
             $chunks = array_chunk($allIds, 50, true);
             foreach ($chunks as $chunk) {
                 $lookup = [];
