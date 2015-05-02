@@ -281,9 +281,7 @@ EOF;
             'formatted' => [
                 'buy' => number_format($tokenData['marketgold']).'g',
                 //'buyimg' => BuildImageURI(number_format($tokenData['marketgold']).'g'),
-                'timeToSell' => is_null($tokenData['timeleftraw']) ?
-                        (isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft']) :
-                        (DurationString($tokenData['timeleftraw'])),
+                'timeToSell' => isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft'],
                 'result' => isset($resultCodes[$tokenData['result']]) ? $resultCodes[$tokenData['result']] : ('Unknown: ' . $tokenData['result']),
                 'updated' => $d->format('M jS, Y g:ia T'),
                 'sparkurl' => $sparkUrl,
@@ -416,9 +414,7 @@ function SendTweets($regions)
             'record' => $tokenData,
             'formatted' => [
                 'BUY' => number_format($tokenData['marketgold']),
-                'TIMETOSELL' => is_null($tokenData['timeleftraw']) ?
-                        (isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft']) :
-                        (DurationString($tokenData['timeleftraw'])),
+                'TIMETOSELL' => isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft'],
                 'RESULT' => isset($resultCodes[$tokenData['result']]) ? $resultCodes[$tokenData['result']] : ('Unknown: ' . $tokenData['result']),
                 'UPDATED' => $d->format('M jS, Y g:ia T'),
             ],
@@ -858,9 +854,7 @@ function SendAndroidNotifications($regions)
 
         $formatted = [
             'BUY' => number_format($tokenData['marketgold']),
-            'TIMETOSELL' => is_null($tokenData['timeleftraw']) ?
-                    (isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft']) :
-                    (DurationString($tokenData['timeleftraw'])),
+            'TIMETOSELL' => isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft'],
             'UPDATED' => $d->format('M j g:ia T'),
         ];
 
