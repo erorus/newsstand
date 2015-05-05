@@ -217,10 +217,10 @@ function BuildIncludes($regions)
                         <td>Buy Price</td>
                         <td id="##region##-buy">##buy##</td>
                     </tr>
-                    <tr>
+                    <!-- tr>
                         <td>Time to Sell</td>
                         <td id="##region##-timeToSell">##timeToSell##</td>
-                    </tr>
+                    </tr -->
                     <tr>
                         <td>API Result</td>
                         <td id="##region##-result">##result##</td>
@@ -574,7 +574,7 @@ function SendTweet($region, $tweetData, $chartUrl, $lastTweetData)
     global $regionNames;
 
     $msg = isset($regionNames[$region]) ? $regionNames[$region] : $region;
-    $msg .= " WoW Token: " . $tweetData['formatted']['BUY'] . "g, sells in " . $tweetData['formatted']['TIMETOSELL'] . '.';
+    $msg .= " WoW Token: " . $tweetData['formatted']['BUY'] . "g."; //, sells in " . $tweetData['formatted']['TIMETOSELL'] . '.';
     if ($tweetData['timestamp'] < (time() - 30 * 60)) { // show timestamp if older than 30 mins
         $msg .= " From " . TimeDiff($tweetData['timestamp'], ['parts' => 2, 'precision' => 'minute']) . '.';
     }
@@ -887,7 +887,8 @@ EOF;
             continue;
         }
 
-        $message = $regionNames[$properRegion] . ' price %s: now '.$formatted['BUY']."g, sells in " . $formatted['TIMETOSELL'] . '. As of '.$formatted['UPDATED'].'.';
+        //sells in " . $formatted['TIMETOSELL'] . '
+        $message = $regionNames[$properRegion] . ' price %s: now '.$formatted['BUY']."g, as of ".$formatted['UPDATED'].'.';
 
         foreach ($rows as $endpoint => $allIds) {
             $chunks = array_chunk($allIds, 50, true);
