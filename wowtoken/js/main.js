@@ -472,7 +472,7 @@ var wowtoken = {
                 priceUpperBound = 100000;
                 break;
             case 'TW':
-                priceUpperBound = 200000;
+                priceUpperBound = 350000;
                 break;
         }
         var labelFormatter = function() {
