@@ -13,6 +13,7 @@ var wowtoken = {
         'na': 'NA',
         'eu': 'EU',
         'cn': 'CN',
+        'tw': 'TW',
     },
 
     NumberCommas: function(v) {
@@ -470,6 +471,9 @@ var wowtoken = {
             case 'CN':
                 priceUpperBound = 100000;
                 break;
+            case 'TW':
+                priceUpperBound = 200000;
+                break;
         }
         var labelFormatter = function() {
             return wowtoken.NumberCommas(hcdata.realPrices[this.x]) + 'g';
@@ -512,6 +516,20 @@ var wowtoken = {
                     'rgba(178,229,178,0.6)',
                     'rgba(153,204,153,0.6)',
                     'rgba(127,178,127,0.6)',
+                ],
+            }
+        }
+        if (region == 'TW') {
+            colors = {
+                'line': '#cccc00',
+                'fill': 'rgba(290,230,178,0.6)',
+                'text': '#999900',
+                'timeleft': [
+                    'rgba(255,255,204,0.6)',
+                    'rgba(255,255,204,0.6)',
+                    'rgba(229,229,178,0.6)',
+                    'rgba(204,204,153,0.6)',
+                    'rgba(178,178,127,0.6)',
                 ],
             }
         }

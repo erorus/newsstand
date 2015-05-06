@@ -42,6 +42,7 @@ $timeZones = [
     'US' => 'America/New_York',
     'EU' => 'Europe/Paris',
     'CN' => 'Asia/Shanghai',
+    'TW' => 'Asia/Taipei',
 ];
 
 $timeLeftCodes = [
@@ -62,6 +63,7 @@ $regionNames = [
     'NA' => 'North American',
     'EU' => 'European',
     'CN' => 'Chinese',
+    'TW' => 'Taiwanese',
 ];
 
 $loopStart = time();
@@ -93,7 +95,7 @@ function NextDataFile()
     $gotFile = false;
     $wait = false;
     foreach ($dir as $fileName) {
-        if (preg_match('/^(\d+)-(US|EU|CN)\.lua$/', $fileName, $res)) {
+        if (preg_match('/^(\d+)-(US|EU|CN|TW)\.lua$/', $fileName, $res)) {
             if (filemtime(SNAPSHOT_PATH . $fileName) > (time() - 5)) {
                 $wait = true;
                 continue;
@@ -699,6 +701,14 @@ EOF;
             'line' => '00CC00',
             'fill' => 'B2E6B299',
             'point' => '99CC99',
+        ];
+    }
+
+    if ($region == 'TW') {
+        $colors = [
+            'line' => 'CCCC00',
+            'fill' => 'E6E6B299',
+            'point' => 'CCCC99',
         ];
     }
 
