@@ -14,6 +14,7 @@ var wowtoken = {
         'eu': 'EU',
         'cn': 'CN',
         'tw': 'TW',
+        'kr': 'KR',
     },
 
     NumberCommas: function(v) {
@@ -474,6 +475,9 @@ var wowtoken = {
             case 'TW':
                 priceUpperBound = 350000;
                 break;
+            case 'KR':
+                priceUpperBound = 250000;
+                break;
         }
         var labelFormatter = function() {
             return wowtoken.NumberCommas(hcdata.realPrices[this.x]) + 'g';
@@ -522,7 +526,7 @@ var wowtoken = {
         if (region == 'TW') {
             colors = {
                 'line': '#cccc00',
-                'fill': 'rgba(290,230,178,0.6)',
+                'fill': 'rgba(230,230,178,0.6)',
                 'text': '#999900',
                 'timeleft': [
                     'rgba(255,255,204,0.6)',
@@ -530,6 +534,20 @@ var wowtoken = {
                     'rgba(229,229,178,0.6)',
                     'rgba(204,204,153,0.6)',
                     'rgba(178,178,127,0.6)',
+                ],
+            }
+        }
+        if (region == 'KR') {
+            colors = {
+                'line': '#00cccc',
+                'fill': 'rgba(178,230,230,0.6)',
+                'text': '#009999',
+                'timeleft': [
+                    'rgba(204,255,255,0.6)',
+                    'rgba(204,255,255,0.6)',
+                    'rgba(178,229,229,0.6)',
+                    'rgba(153,204,204,0.6)',
+                    'rgba(127,178,178,0.6)',
                 ],
             }
         }
