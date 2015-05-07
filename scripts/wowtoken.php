@@ -714,7 +714,7 @@ EOF;
         ];
     }
 
-    if ($region == 'TW') {
+    if ($region == 'KR') {
         $colors = [
             'line' => '00CCCC',
             'fill' => 'B2E6E699',

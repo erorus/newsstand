@@ -464,98 +464,63 @@ var wowtoken = {
         var hcdata = { buy: [], timeleft: {}, navigator: [], pct: {}, pctchart: [], realPrices: [] };
         var maxPrice = 0;
         var o, showLabel, direction = 0, newDirection = 0, lastLabel = -1;
-        var priceUpperBound = 60000;
+        var priceUpperBound = 100000;
+        var colors = {
+            'line': '#000000',
+            'fill': 'rgba(51,51,51,0.6)',
+            'text': '#000000',
+        };
+
         switch (region) {
             case 'NA':
                 priceUpperBound = 40000;
+                colors = {
+                    'line': '#0000ff',
+                    'fill': 'rgba(204,204,255,0.6)',
+                    'text': '#000099',
+                };
+                break;
+            case 'EU':
+                priceUpperBound = 60000;
+                colors = {
+                    'line': '#ff0000',
+                    'fill': 'rgba(255,204,204,0.6)',
+                    'text': '#990000',
+                }
                 break;
             case 'CN':
                 priceUpperBound = 100000;
+                colors = {
+                    'line': '#00cc00',
+                    'fill': 'rgba(178,230,178,0.6)',
+                    'text': '#009900',
+                }
                 break;
             case 'TW':
-                priceUpperBound = 350000;
+                priceUpperBound = 500000;
+                colors = {
+                    'line': '#cccc00',
+                    'fill': 'rgba(230,230,178,0.6)',
+                    'text': '#999900',
+                }
                 break;
             case 'KR':
                 priceUpperBound = 250000;
+                colors = {
+                    'line': '#00cccc',
+                    'fill': 'rgba(178,230,230,0.6)',
+                    'text': '#009999',
+                }
                 break;
         }
         var labelFormatter = function() {
             return wowtoken.NumberCommas(hcdata.realPrices[this.x]) + 'g';
         };
 
-        var colors = {
-            'line': '#0000ff',
-            'fill': 'rgba(204,204,255,0.6)',
-            'text': '#000099',
-            'timeleft': [
-                'rgba(204,204,255,0.6)',
-                'rgba(204,204,255,0.6)',
-                'rgba(178,178,229,0.6)',
-                'rgba(153,153,204,0.6)',
-                'rgba(127,127,178,0.6)',
-            ],
-        }
-        if (region == 'EU') {
-            colors = {
-                'line': '#ff0000',
-                'fill': 'rgba(255,204,204,0.6)',
-                'text': '#990000',
-                'timeleft': [
-                    'rgba(255,204,204,0.6)',
-                    'rgba(255,204,204,0.6)',
-                    'rgba(229,178,178,0.6)',
-                    'rgba(204,153,153,0.6)',
-                    'rgba(178,127,127,0.6)',
-                ],
-            }
-        }
-        if (region == 'CN') {
-            colors = {
-                'line': '#00cc00',
-                'fill': 'rgba(178,230,178,0.6)',
-                'text': '#009900',
-                'timeleft': [
-                    'rgba(204,255,204,0.6)',
-                    'rgba(204,255,204,0.6)',
-                    'rgba(178,229,178,0.6)',
-                    'rgba(153,204,153,0.6)',
-                    'rgba(127,178,127,0.6)',
-                ],
-            }
-        }
-        if (region == 'TW') {
-            colors = {
-                'line': '#cccc00',
-                'fill': 'rgba(230,230,178,0.6)',
-                'text': '#999900',
-                'timeleft': [
-                    'rgba(255,255,204,0.6)',
-                    'rgba(255,255,204,0.6)',
-                    'rgba(229,229,178,0.6)',
-                    'rgba(204,204,153,0.6)',
-                    'rgba(178,178,127,0.6)',
-                ],
-            }
-        }
-        if (region == 'KR') {
-            colors = {
-                'line': '#00cccc',
-                'fill': 'rgba(178,230,230,0.6)',
-                'text': '#009999',
-                'timeleft': [
-                    'rgba(204,255,255,0.6)',
-                    'rgba(204,255,255,0.6)',
-                    'rgba(178,229,229,0.6)',
-                    'rgba(153,204,204,0.6)',
-                    'rgba(127,178,178,0.6)',
-                ],
-            }
-        }
         for (var x = 0; x < dta.length; x++) {
             o = {
                 x: dta[x][0]*1000,
                 y: dta[x][1],
-                //color: wowtoken.timeLeftMap.colors[dta[x][2]]
             };
             hcdata.navigator.push([dta[x][0]*1000, dta[x][1]]);
             if (x != 0) {
@@ -564,15 +529,6 @@ var wowtoken = {
                         break;
                     }
                 }
-                /*for (var z = x+1; z < dta.length; z++) {
-                    if (dta[z][0] >= (dta[x][0] + 40*60)) {
-                        break;
-                    }
-                }
-                if (z >= dta.length) {
-                    z = dta.length - 1;
-                }
-                 */
                 z = x;
                 hcdata.pct[o.x] = ((dta[z][1] - dta[y][1]) / dta[y][1]) / ((dta[z][0] - dta[y][0])/(60*60));
                 hcdata.pctchart.push([o.x, hcdata.pct[o.x] * 100]);
