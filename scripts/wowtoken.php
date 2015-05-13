@@ -871,6 +871,10 @@ function SendAndroidNotifications($regions)
             continue;
         }
 
+        if (($tokenData['result'] != 1) || ($tokenData['result'] != $prevTokenData['result'])) {
+            continue;
+        }
+
         $d = new DateTime('now', timezone_open($timeZones[$region]));
         $d->setTimestamp(strtotime($tokenData['when']));
 
