@@ -470,7 +470,7 @@ EOF;
 
         //DebugMessage('Debug: '.$region.' last direction: '.(isset($lastTweetData['direction']) ? $lastTweetData['direction'] : 'unset').', cur direction: '.$direction);
 
-        if (!$needTweet && $direction &&
+        if (false && !$needTweet && $direction &&
             isset($lastTweetData['direction']) &&
             $lastTweetData['direction'] &&
             $direction != $lastTweetData['direction']
