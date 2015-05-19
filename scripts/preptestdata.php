@@ -6,7 +6,7 @@ DBConnect();
 GetDataTables();
 
 function GetDataTables() {
-    global $db;
+    global $db, $argv;
 
     $sql = 'SELECT house from tblRealm where region=\'US\' and slug=\'medivh\'';
     $stmt = $db->prepare($sql);
@@ -52,6 +52,18 @@ function GetDataTables() {
         'tblSnapshot' => 'house='.$house,
         'tblWowToken' => '1=1',
     ];
+
+    if (count($argv) > 1) {
+        $toRemove = array_diff(array_keys($tables), array_slice($argv, 1));;
+        foreach ($toRemove as $tblName) {
+            unset($tables[$tblName]);
+        }
+    }
+
+    if (count($tables) == 0) {
+        echo "No tables marked for export.\n";
+        exit(1);
+    }
 
     $sqlFile = __DIR__.'/../testdata.sql.gz';
 
