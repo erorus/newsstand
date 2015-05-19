@@ -76,6 +76,13 @@ var wowtoken = {
     Notification: {
         isSubscribed: false,
         createdForms: false,
+        regionMinMax: {
+            'na': [10000, 60000, 1000],
+            'eu': [10000, 90000, 1000],
+            'cn': [30000, 120000, 1000],
+            'tw': [150000, 420000, 3000],
+            'kr': [100000, 210000, 1000]
+        },
 
         Check: function() {
             if (!('serviceWorker' in navigator)) {
@@ -141,6 +148,9 @@ var wowtoken = {
             var target = 0;
 
             for (var region in wowtoken.regions) {
+                if (!wowtoken.Notification.regionMinMax.hasOwnProperty(region)) {
+                    continue;
+                }
                 var ns = document.getElementById('ns-'+region);
                 if (!ns) {
                     continue;
@@ -174,7 +184,7 @@ var wowtoken = {
                 o.label = '(None)';
                 sup.appendChild(o);
                 target = sub.hasOwnProperty(sup.id) ? sub[sup.id] : 0;
-                for (var x = 1000; x < 100000; x += 1000) {
+                for (var x = wowtoken.Notification.regionMinMax[region][0]; x <= wowtoken.Notification.regionMinMax[region][1]; x += wowtoken.Notification.regionMinMax[region][2]) {
                     var o = document.createElement('option');
                     o.value = x;
                     o.label = ''+wowtoken.NumberCommas(x)+'g';
@@ -198,7 +208,7 @@ var wowtoken = {
                 o.label = '(None)';
                 sdn.appendChild(o);
                 target = sub.hasOwnProperty(sdn.id) ? sub[sdn.id] : 0;
-                for (var x = 1000; x < 100000; x += 1000) {
+                for (var x = wowtoken.Notification.regionMinMax[region][0]; x <= wowtoken.Notification.regionMinMax[region][1]; x += wowtoken.Notification.regionMinMax[region][2]) {
                     var o = document.createElement('option');
                     o.value = x;
                     o.label = ''+wowtoken.NumberCommas(x)+'g';
