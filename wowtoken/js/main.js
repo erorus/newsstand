@@ -544,6 +544,7 @@ var wowtoken = {
                 }
             }
             showLabel &= ((lastLabel == -1) || (lastLabel + 5 < x));
+            showLabel &= (lastLabel == -1) || (Math.abs((dta[x][1] - dta[lastLabel][1]) / dta[x][1]) > 0.05);
             if (showLabel) {
                 lastLabel = x;
                 o.dataLabels = {
