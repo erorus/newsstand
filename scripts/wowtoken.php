@@ -217,22 +217,38 @@ function BuildIncludes($regions)
 
     $htmlFormat = <<<EOF
                 <table class="results">
-                    <tr>
-                        <td>Buy Price</td>
-                        <td id="##region##-buy">##buy##</td>
-                    </tr>
-                    <!-- tr>
-                        <td>Time to Sell</td>
-                        <td id="##region##-timeToSell">##timeToSell##</td>
-                    </tr -->
-                    <tr>
-                        <td>API Result</td>
-                        <td id="##region##-result">##result##</td>
-                    </tr>
-                    <tr>
-                        <td>Updated</td>
-                        <td id="##region##-updated">##updated##</td>
-                    </tr>
+                    <tbody>
+                        <tr>
+                            <td>Buy Price</td>
+                            <td id="##region##-buy">##buy##</td>
+                        </tr>
+                        <tr>
+                            <td style="vertical-align: bottom">24-Hour Range</td>
+                            <td>
+                                <table>
+                                    <tr>
+                                        <td colspan="2"><img src="##rangeImg##" width="150" height="75"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>##24min##</td>
+                                        <td align="right">##24max##</td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <!-- tr>
+                            <td>Time to Sell</td>
+                            <td id="##region##-timeToSell">##timeToSell##</td>
+                        </tr -->
+                        <tr>
+                            <td>API Result</td>
+                            <td id="##region##-result">##result##</td>
+                        </tr>
+                        <tr>
+                            <td>Updated</td>
+                            <td id="##region##-updated">##updatedhtml##</td>
+                        </tr>
+                    </tbody>
                 </table>
 EOF;
 
@@ -256,6 +272,18 @@ EOF;
         $tokenData = array_pop($tokenData);
         $stmt->close();
 
+        $sql = 'select min(`marketgold`) `min`, max(`marketgold`) `max` from tblWowToken w where region = ? and `when` between timestampadd(hour, -24, ?) and ?';
+        $stmt = $db->prepare($sql);
+        $stmt->bind_param('sss', $region, $tokenData['when'], $tokenData['when']);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        while ($row = $result->fetch_assoc()) {
+            $tokenData['24min'] = $row['min'];
+            $tokenData['24max'] = $row['max'];
+        }
+        $result->close();
+        $stmt->close();
+
         $d = new DateTime('now', timezone_open($timeZones[$region]));
         $d->setTimestamp(strtotime($tokenData['when']));
 
@@ -277,6 +305,8 @@ EOF;
             'timestamp' => strtotime($tokenData['when']),
             'raw' => [
                 'buy' => $tokenData['marketgold'],
+                '24min' => $tokenData['24min'],
+                '24max' => $tokenData['24max'],
                 'timeToSell' => isset($timeLeftNumbers[$tokenData['timeleft']]) ? $timeLeftNumbers[$tokenData['timeleft']] : $tokenData['timeleft'],
                 'timeToSellSeconds' => $tokenData['timeleftraw'],
                 'result' => $tokenData['result'],
@@ -284,10 +314,14 @@ EOF;
             ],
             'formatted' => [
                 'buy' => number_format($tokenData['marketgold']).'g',
+                '24min' => number_format($tokenData['24min']).'g',
+                '24max' => number_format($tokenData['24max']).'g',
+                'rangeImg' => 'https://chart.googleapis.com/chart?chs=150x75&cht=gom&chd=t:'.round(($tokenData['marketgold'] - $tokenData['24min'])/($tokenData['24max'] - $tokenData['24min'])*100).'&chco=3333CC,CC3333&chf=bg,s,FFFFFF00',
                 //'buyimg' => BuildImageURI(number_format($tokenData['marketgold']).'g'),
                 'timeToSell' => isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft'],
                 'result' => isset($resultCodes[$tokenData['result']]) ? $resultCodes[$tokenData['result']] : ('Unknown: ' . $tokenData['result']),
-                'updated' => $d->format('M jS, Y g:ia T'),
+                //'updated' => $d->format('M jS, Y g:ia T'),
+                'updated' => $d->format('M jS, Y g:ia\\&\\n\\b\\s\\p\\;T'),
                 'sparkurl' => $sparkUrl,
                 'region' => $fileRegion,
             ],

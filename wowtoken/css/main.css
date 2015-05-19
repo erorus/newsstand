@@ -26,17 +26,17 @@ table.results {
     min-width: 270px;
 }
 
-table.results td {
+table.results > tbody > tr > td {
     font-weight: 700;
     padding-top: 0.25em;
 }
 
-table.results td:first-child {
+table.results > tbody > tr > td:first-child {
     font-weight: normal;
     padding-right: 2em;
 }
 
-table.results tr:first-child td {
+table.results > tbody > tr:first-child > td {
     padding-top: 0;
 }
 
