@@ -579,10 +579,12 @@ var wowtoken = {
             hcdata.realPrices[o.x] = o.y;
             o.y = o.y * 32 / priceUpperBound;
             hcdata.buy.push(o);
+            /*
             hcdata.timeleft[dta[x][0]*1000] = wowtoken.timeLeftMap.names[dta[x][2]];
             if (dta[x][3] != null) {
                 hcdata.timeleft[dta[x][0]*1000] = wowtoken.PrettySeconds(dta[x][3]);
             }
+            */
             if (maxPrice < dta[x][1]) {
                 maxPrice = dta[x][1];
             }
@@ -729,7 +731,7 @@ var wowtoken = {
                     if (hcdata.pct.hasOwnProperty(this.x)) {
                         tr += '<br><span style="color: #444">Rate: ' + (hcdata.pct[this.x] > 0 ? '+' : '') + (hcdata.pct[this.x]*100).toFixed(2) + '%/hr</span>';
                     }
-                    tr += '<br><span style="color: ' + colors.text + '">Sells in: ' + hcdata.timeleft[this.x] + '</span>';
+                    //tr += '<br><span style="color: ' + colors.text + '">Sells in: ' + hcdata.timeleft[this.x] + '</span>';
                     return tr;
                 }
             },

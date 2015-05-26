@@ -246,7 +246,7 @@ function BuildIncludes($regions)
                         </tr>
                         <tr>
                             <td>Updated</td>
-                            <td id="##region##-updated">##updatedhtml##</td>
+                            <td id="##region##-updatedhtml">##updatedhtml##</td>
                         </tr>
                     </tbody>
                 </table>
@@ -254,7 +254,7 @@ EOF;
 
     $json = [];
     $historyJson = [];
-    $csv = "Region,UTC Date,Buy Price,Time Left\r\n";
+    $csv = "Region,UTC Date,Buy Price\r\n"; //,Time Left
 
     foreach ($regions as $region) {
         $fileRegion = strtoupper($region);
@@ -287,17 +287,19 @@ EOF;
         $d = new DateTime('now', timezone_open($timeZones[$region]));
         $d->setTimestamp(strtotime($tokenData['when']));
 
+        /*
         $sparkUrl = GetChartURL($region, $fileRegion);
         if (!$sparkUrl) {
             $sparkUrl = $blankImage;
         }
+        */
 
         $historyJson[$fileRegion] = BuildHistoryJson($region);
         $prevPrice = -1;
         foreach ($historyJson[$fileRegion] as $row) {
             if ($row[1] != $prevPrice) {
                 $prevPrice = $row[1];
-                $csv .= "$fileRegion,".Date('Y-m-d H:i:s', $row[0]).",{$row[1]},{$row[2]}\r\n";
+                $csv .= "$fileRegion,".Date('Y-m-d H:i:s', $row[0]).",{$row[1]}\r\n"; //,{$row[2]}
             }
         }
 
@@ -322,7 +324,7 @@ EOF;
                 'result' => isset($resultCodes[$tokenData['result']]) ? $resultCodes[$tokenData['result']] : ('Unknown: ' . $tokenData['result']),
                 'updated' => $d->format('M jS, Y g:ia T'),
                 'updatedhtml' => $d->format('M jS, Y g:ia\\&\\n\\b\\s\\p\\;T'),
-                'sparkurl' => $sparkUrl,
+                //'sparkurl' => $sparkUrl,
                 'region' => $fileRegion,
             ],
         ];
@@ -337,6 +339,8 @@ EOF;
             }, $htmlFormat);
 
         file_put_contents($filenm, $html);
+
+        unset($json[$fileRegion]['formatted']['rangeImg']);
     }
 
     file_put_contents(__DIR__.'/../wowtoken/snapshot.json', json_encode($json, JSON_NUMERIC_CHECK));
@@ -392,7 +396,8 @@ function BuildImageURI($s) {
 function BuildHistoryJson($region) {
     global $db;
 
-    $sql = 'select unix_timestamp(`when`) `dt`, `marketgold` `buy`, `timeleft`+0 `time`, `timeleftraw` from tblWowToken where region = ? and `result` = 1 order by `when` asc'; // and `when` < timestampadd(minute, -70, now())
+    // , `timeleft`+0 `time`, `timeleftraw`
+    $sql = 'select unix_timestamp(`when`) `dt`, `marketgold` `buy` from tblWowToken where region = ? and `result` = 1 order by `when` asc'; // and `when` < timestampadd(minute, -70, now())
     $stmt = $db->prepare($sql);
     $stmt->bind_param('s', $region);
     $stmt->execute();
