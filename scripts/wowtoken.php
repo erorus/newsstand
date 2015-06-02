@@ -985,10 +985,16 @@ EOF;
                 $ret = PostHTTP($endpoint, $toSend, $headers, $outHeaders);
                 $ret = json_decode($ret, true);
                 if ((json_last_error() != JSON_ERROR_NONE) || (!isset($ret['results']))) {
-                    // can only assume all went through
-                    DebugMessage("Bad response from $endpoint\n".print_r($headers, true).print_r($toSend, true).print_r($outHeaders, true)."\n$ret");
-                    $successful = $lookup;
-                    $failed = [];
+                    if ((count($lookup) == 1) && isset($outHeaders['responseCode']) && ($outHeaders['responseCode'] == '404')) {
+                        // only sent one, which failed, so mark it as failed
+                        $successful = [];
+                        $failed = $lookup;
+                    } else {
+                        // can only assume all went through
+                        DebugMessage("Bad response from $endpoint\n".print_r($headers, true).$toSend."\n".print_r($outHeaders, true)."\n$ret");
+                        $successful = $lookup;
+                        $failed = [];
+                    }
                 } else {
                     for ($x = 0; $x < count($ret['results']); $x++) {
                         if (isset($ret['results'][$x]['error'])) {
