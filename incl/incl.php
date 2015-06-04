@@ -65,12 +65,13 @@ function DBConnect($alternate = false)
 
     $thisDb = new mysqli($host, $user, $pass, $database);
     if ($thisDb->connect_error) {
-        $thisDb = false;
         if (!$isCLI) {
             if ($thisDb->connect_errno == 1226) { // max_user_connections
                 APIMaintenance('+2 minutes');
+                exit;
             }
         }
+        $thisDb = false;
     } else {
         $thisDb->set_charset("utf8");
         $thisDb->query('SET time_zone=\'+0:00\'');
