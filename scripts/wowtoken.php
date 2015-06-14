@@ -316,7 +316,7 @@ EOF;
                 'buy' => number_format($tokenData['marketgold']).'g',
                 '24min' => number_format($tokenData['24min']).'g',
                 '24max' => number_format($tokenData['24max']).'g',
-                'rangeImg' => (is_null($tokenData['24min']) || ($tokenData['24max'] == $tokenData['24min'])) ? '' : 'data:image/png;base64,'.base64_encode(FetchHTTP('https://chart.googleapis.com/chart?chs=150x75&cht=gom&chd=t:'.round(($tokenData['marketgold'] - $tokenData['24min'])/($tokenData['24max'] - $tokenData['24min'])*100).'&chco=3333CC,CC3333&chf=bg,s,FFFFFF00')),
+                'rangeImg' => (is_null($tokenData['24min']) || ($tokenData['24max'] == $tokenData['24min'])) ? $blankImage : 'data:image/png;base64,'.base64_encode(FetchHTTP('https://chart.googleapis.com/chart?chs=150x75&cht=gom&chd=t:'.round(($tokenData['marketgold'] - $tokenData['24min'])/($tokenData['24max'] - $tokenData['24min'])*100).'&chco=3333CC,CC3333&chf=bg,s,FFFFFF00')),
                 //'buyimg' => BuildImageURI(number_format($tokenData['marketgold']).'g'),
                 'timeToSell' => isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft'],
                 'result' => isset($resultCodes[$tokenData['result']]) ? $resultCodes[$tokenData['result']] : ('Unknown: ' . $tokenData['result']),
