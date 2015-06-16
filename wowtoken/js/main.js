@@ -491,7 +491,7 @@ var wowtoken = {
                 };
                 break;
             case 'EU':
-                priceUpperBound = 60000;
+                priceUpperBound = 80000;
                 colors = {
                     'line': '#ff0000',
                     'fill': 'rgba(255,204,204,0.6)',
@@ -499,7 +499,7 @@ var wowtoken = {
                 }
                 break;
             case 'CN':
-                priceUpperBound = 100000;
+                priceUpperBound = 120000;
                 colors = {
                     'line': '#00cc00',
                     'fill': 'rgba(178,230,178,0.6)',
