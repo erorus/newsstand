@@ -12,10 +12,11 @@
         <link rel="icon" sizes="270x270" href="images/tokenavatar.jpg">
         <link href="css/mui.min.css" rel="stylesheet" type="text/css">
         <link href='https://fonts.googleapis.com/css?family=Roboto:400,700|Roboto+Slab:700' rel='stylesheet' type='text/css'>
-        <link href="css/main.css?7" rel="stylesheet" type="text/css">
+        <link href="css/main.css?8" rel="stylesheet" type="text/css">
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js" defer></script>
         <script type="text/javascript" src="https://code.highcharts.com/stock/highstock.js" defer></script>
         <script type="text/javascript" src="js/main.js?22" defer></script>
+        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
     </head>
     <body>
         <div class="mui-container">
@@ -60,6 +61,15 @@
                     <li>You really need to work on your attention span.</li>
                 </ul>
             </div>
+
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-1018837251546750"
+                 data-ad-slot="2933007114"
+                 data-ad-format="auto"></ins>
+            <script>
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
 
             <div class="mui-panel realm-panel" id="na-panel">
                 <h2>North American Realms</h2>
