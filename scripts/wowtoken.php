@@ -402,11 +402,17 @@ function BuildHistoryJson($region) {
     $result = $stmt->get_result();
     $tokenData = [];
     $prevPrice = -1;
+    // all observations past 3 days
     $lately = time() - (3 * 24 * 60 * 60) - 5 * 60;
+    // all changes past 7 days
+    $recently = time() - ((7 * 24 * 60 * 60) + (60 * 60));
+    // every 2 hours at max, older than 7 days
+    $interval = 2 * 60 * 60 - 8 * 60;
+    $prevTime = 0;
     while ($row = $result->fetch_row()) {
-        if (($row[0] > $lately) || ($prevPrice != $row[1])) {
-        //if ($prevPrice != $row[1]) {
+        if (($row[0] > $lately) || (($prevPrice != $row[1]) && ($row[0] > $recently)) || ($prevTime < ($row[0] - $interval))) {
             $tokenData[] = $row;
+            $prevTime = $row[0];
         }
         $prevPrice = $row[1];
     }
