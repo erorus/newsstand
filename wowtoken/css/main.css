@@ -109,9 +109,9 @@ div.hc {
 }
 
 .adsbygoogle {
-    margin-bottom: 20px;
     width: 320px;
     height: 100px;
+    margin: 0 auto 20px;
 }
 
 @media (min-width:500px) {
