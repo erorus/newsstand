@@ -110,4 +110,13 @@ div.hc {
 
 .adsbygoogle {
     margin-bottom: 20px;
+    width: 320px;
+    height: 100px;
+}
+
+@media (min-width:500px) {
+    .adsbygoogle { width: 468px; height: 60px; }
+}
+@media (min-width:800px) {
+    .adsbygoogle { width: 728px; height: 90px; }
 }
