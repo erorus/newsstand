@@ -382,6 +382,57 @@ function CategoryResult_unusuals($house)
     ];
 }
 
+function CategoryResult_auction($house)
+{
+    return [
+        'name'    => 'Ancient Trading Mechanism',
+        'results' => [
+            [
+                'name' => 'ItemList',
+                'data' => [
+                    'name'  => 'Modules',
+                    'items' => CategoryGenericItemList($house, 'i.id in (118375,118376,118377,118378,118379)')
+                ]
+            ],
+            [
+                'name' => 'ItemList',
+                'data' => [
+                    'name'  => 'Arcane Crystal Module',
+                    'items' => CategoryGenericItemList($house, 'i.id in (118344,118345,118346,118347)')
+                ]
+            ],
+            [
+                'name' => 'ItemList',
+                'data' => [
+                    'name'  => 'Auction Control Module',
+                    'items' => CategoryGenericItemList($house, 'i.id in (118197,118331,118332)')
+                ]
+            ],
+            [
+                'name' => 'ItemList',
+                'data' => [
+                    'name'  => 'Universal Language Module',
+                    'items' => CategoryGenericItemList($house, 'i.id in (118333,118334,118335)')
+                ]
+            ],
+            [
+                'name' => 'ItemList',
+                'data' => [
+                    'name'  => 'Super Cooling Module',
+                    'items' => CategoryGenericItemList($house, 'i.id in (118336,118337,118338,118339)')
+                ]
+            ],
+            [
+                'name' => 'ItemList',
+                'data' => [
+                    'name'  => 'Cyclical Power Module',
+                    'items' => CategoryGenericItemList($house, 'i.id in (118340,118341,118342,118343)')
+                ]
+            ],
+        ]
+    ];
+}
+
 function CategoryResult_mining($house)
 {
     return [
