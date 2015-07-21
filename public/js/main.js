@@ -607,6 +607,8 @@ var TUJ = function ()
             inMain = false;
             $('#main .page').hide();
             $('#realm-list').removeClass('show');
+            $('#region-page a.region-us').attr('href', tuj.BuildHash({region:0}));
+            $('#region-page a.region-eu').attr('href', tuj.BuildHash({region:1}));
             $('#region-page').show();
             document.body.className = 'region';
             return;

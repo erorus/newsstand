@@ -49,12 +49,12 @@
                     </div>
                     <table>
                         <tr>
-                            <td><a href="#us"><img src="images/flag.us.png"></a></td>
-                            <td><a href="#eu"><img src="images/flag.eu.png"></a></td>
+                            <td><a href="#us" class="region-us"><img src="images/flag.us.png"></a></td>
+                            <td><a href="#eu" class="region-eu"><img src="images/flag.eu.png"></a></td>
                         </tr>
                         <tr>
-                            <td><a href="#us">US Realms</a></td>
-                            <td><a href="#eu">EU Realms</a></td>
+                            <td><a href="#us" class="region-us">US Realms</a></td>
+                            <td><a href="#eu" class="region-eu">EU Realms</a></td>
                         </tr>
                     </table>
                 </div>
