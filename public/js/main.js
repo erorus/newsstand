@@ -323,21 +323,28 @@ var libtuj = {
     Storage: {
         Get: function (key)
         {
-            if (!window.localStorage) {
+            try {
+                if (!window.localStorage) {
+                    return false;
+                }
+            } catch (e) {
                 return false;
             }
 
             var v = window.localStorage.getItem(key);
             if (v != null) {
                 return JSON.parse(v);
-            }
-            else {
+            } else {
                 return false;
             }
         },
         Set: function (key, val)
         {
-            if (!window.localStorage) {
+            try {
+                if (!window.localStorage) {
+                    return false;
+                }
+            } catch (e) {
                 return false;
             }
 
@@ -345,7 +352,11 @@ var libtuj = {
         },
         Remove: function (key, val)
         {
-            if (!window.localStorage) {
+            try {
+                if (!window.localStorage) {
+                    return false;
+                }
+            } catch (e) {
                 return false;
             }
 
