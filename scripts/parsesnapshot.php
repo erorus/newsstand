@@ -164,11 +164,19 @@ function ParseAuctionData($house, $snapshot, &$json)
     $lowMax = -1;
     $highMax = -1;
     $hasRollOver = false;
+
+    $jsonAuctions = [];
     if (isset($json['auctions']['auctions'])) {
-        $auctionCount = count($json['auctions']['auctions']);
+        $jsonAuctions = $json['auctions']['auctions'];
+    } elseif (isset($json['auctions']) && (count($json['auctions']) > 5)) {
+        $jsonAuctions = $json['auctions'];
+    }
+
+    if ($jsonAuctions) {
+        $auctionCount = count($jsonAuctions);
 
         for ($x = 0; $x < $auctionCount; $x++) {
-            $auctionId = $json['auctions']['auctions'][$x]['auc'];
+            $auctionId = $jsonAuctions[$x]['auc'];
 
             $naiveMax = max($naiveMax, $auctionId);
             if ($auctionId < 0x20000000) {
@@ -233,13 +241,13 @@ function ParseAuctionData($house, $snapshot, &$json)
     $petInfo = array();
     $sellerInfo = array();
 
-    if (isset($json['auctions']['auctions'])) {
-        $auctionCount = count($json['auctions']['auctions']);
+    if ($jsonAuctions) {
+        $auctionCount = count($jsonAuctions);
         DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " parsing $auctionCount auctions");
         $ourDb->begin_transaction();
 
         for ($x = 0; $x < $auctionCount; $x++) {
-            $auction =& $json['auctions']['auctions'][$x];
+            $auction =& $jsonAuctions[$x];
             if ($auction['owner'] == '???') {
                 continue;
             }
@@ -265,7 +273,7 @@ function ParseAuctionData($house, $snapshot, &$json)
         $delayedAuctionSql = [];
 
         for ($x = 0; $x < $auctionCount; $x++) {
-            $auction =& $json['auctions']['auctions'][$x];
+            $auction =& $jsonAuctions[$x];
 
             $totalAuctions++;
             if ($auction['buyout'] != 0) {
