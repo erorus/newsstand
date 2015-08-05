@@ -167,9 +167,9 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     $jsonAuctions = [];
     if (isset($json['auctions']['auctions'])) {
-        $jsonAuctions = $json['auctions']['auctions'];
+        $jsonAuctions =& $json['auctions']['auctions'];
     } elseif (isset($json['auctions']) && (count($json['auctions']) > 5)) {
-        $jsonAuctions = $json['auctions'];
+        $jsonAuctions =& $json['auctions'];
     }
 
     if ($jsonAuctions) {
