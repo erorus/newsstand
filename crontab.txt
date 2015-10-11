@@ -13,8 +13,8 @@ CRON_TZ="UTC"
 * * * * * php /var/newsstand/scripts/parsesnapshot.php >> /var/newsstand/logs/parsesnapshot.log 2>&1
 0 0 * * * mv /var/newsstand/logs/parsesnapshot.log /var/newsstand/logs/parsesnapshot.yesterday.log
 
-23 4 * * * php /var/newsstand/scripts/realms2houses.php >> /var/newsstand/logs/realms2houses.log 2>&1
-0 0 * * 0 mv /var/newsstand/logs/realms2houses.log /var/newsstand/logs/realms2houses.lastweek.log
+#23 4 * * * php /var/newsstand/scripts/realms2houses.php >> /var/newsstand/logs/realms2houses.log 2>&1
+#0 0 * * 0 mv /var/newsstand/logs/realms2houses.log /var/newsstand/logs/realms2houses.lastweek.log
 
 10 */3 * * * php /var/newsstand/scripts/itemglobal.php >> /var/newsstand/logs/itemglobal.log 2>&1
 0 0 * * 0 mv /var/newsstand/logs/itemglobal.log /var/newsstand/logs/itemglobal.lastweek.log
@@ -26,10 +26,11 @@ CRON_TZ="UTC"
 0 0 * * * mv /var/newsstand/logs/itemdaily.log /var/newsstand/logs/itemdaily.yesterday.log
 
 0 * * * * /var/newsstand/private/awstats/wwwroot/cgi-bin/awstats.pl -config=newsstand >/dev/null 2>&1
+0 * * * * /var/newsstand/private/awstats/wwwroot/cgi-bin/awstats.pl -config=wowtoken >/dev/null 2>&1
 
 10 7 * * 2,6 /var/newsstand/scripts/buildaddon.sh > /var/newsstand/logs/buildaddon.log 2>&1
 
 23 10 * * 2 /var/newsstand/scripts/backupdata.sh > /var/newsstand/logs/backupdata.log 2>&1
 
-*/3 * * * * php /var/newsstand/scripts/wowtoken.php >> /var/newsstand/logs/wowtoken.log 2>&1
+*/2 * * * * php /var/newsstand/scripts/wowtoken.php >> /var/newsstand/logs/wowtoken.log 2>&1
 59 0 * * * mv /var/newsstand/logs/wowtoken.log /var/newsstand/logs/wowtoken.yesterday.log
