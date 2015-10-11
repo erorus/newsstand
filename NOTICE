@@ -1,0 +1,47 @@
+Newsstand
+Copyright 2015 Gerard Dombroski
+
+Newsstand contains the code for:
+
+- The Undermine Journal
+https://theunderminejournal.com/
+
+- WoW Token Info
+https://wowtoken.info/
+
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use these files except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+----------------
+
+Thanks to:
+
+Blizzard & the Battle.net API team
+https://dev.battle.net/
+
+ZAM Network & the Wowhead team
+http://www.wowhead.com/
+
+Phanx
+https://github.com/Phanx/LibRealmInfo
+
+----------------
+
+This code contains public/js/highcharts-custom.js:
+
+ Highcharts 4.0.3 JS v/Highstock 2.0.3 (2014-07-03)
+
+ (c) 2011-2014 Torstein Honsi
+
+ License: www.highcharts.com/license
+
