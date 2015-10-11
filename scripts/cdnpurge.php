@@ -100,7 +100,7 @@ function PurgePath($localPath)
 
     $data = [
         'a'     => 'zone_file_purge',
-        'tkn'   => 'ce2d32655610115c1866795590af0c3e27483',
+        'tkn'   => 'ce2d32655610115c1866795590af0c3e27483', // don't bother, this key is no longer valid
         'email' => 'cloudflare@everynothing.net',
         'z'     => 'theunderminejournal.com',
         'url'   => 'https://cdn.theunderminejournal.com/' . $localPath
