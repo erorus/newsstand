@@ -1,7 +1,6 @@
 <?php
 
-define('WOWI_USERNAME', 'TheUndermineJournal');
-define('WOWI_PASSWORD', 'xkVaCvUqanRT3K67TS');
+require_once(__DIR__.'/wowiupdater.credentials.php');
 
 date_default_timezone_set('UTC');
 
