@@ -67,7 +67,7 @@ function DBConnect($alternate = false)
     if ($thisDb->connect_error) {
         if (!$isCLI) {
             if ($thisDb->connect_errno == 1226) { // max_user_connections
-                APIMaintenance('+2 minutes');
+                APIMaintenance('+2 minutes', '+2 minutes');
                 exit;
             }
         }
