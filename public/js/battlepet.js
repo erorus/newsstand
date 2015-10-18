@@ -114,7 +114,7 @@ var TUJ_BattlePet = function ()
         ta.className = 'battlepet'
         var timg = libtuj.ce('img');
         ta.appendChild(timg);
-        timg.src = tujCDNPrefix + 'icon/large/' + dta.stats.icon + '.jpg';
+        timg.src = libtuj.IconURL(dta.stats.icon, 'large');
         var ttl = '[' + dta.stats.name + ']' + (breedId && breeds.length > 1 ? ' ' + tujConstants.breeds[breedId] : '');
         ta.appendChild(document.createTextNode(ttl));
 

@@ -69,6 +69,10 @@ var libtuj = {
         }
         return tr;
     },
+    IconURL: function(nm, size)
+    {
+        return tujCDNPrefix + 'icon/' + size + '/' + nm.replace(' ', '-') + (size == 'tiny' ? '.png' : '.jpg');
+    },
     FormatPrice: function (amt, justValue)
     {
         var v = '', g, c;

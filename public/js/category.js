@@ -271,7 +271,7 @@ var TUJ_Category = function ()
             i = libtuj.ce('img');
             td.appendChild(i);
             i.className = 'icon';
-            i.src = tujCDNPrefix + 'icon/medium/' + item.icon + '.jpg';
+            i.src = libtuj.IconURL(item.icon, 'medium');
 
             td = libtuj.ce('td');
             td.className = 'name';
@@ -489,7 +489,7 @@ var TUJ_Category = function ()
                 i = libtuj.ce('img');
                 td.appendChild(i);
                 i.className = 'icon';
-                i.src = tujCDNPrefix + 'icon/medium/' + allSpecies[x].icon + '.jpg';
+                i.src = libtuj.IconURL(allSpecies[x].icon, 'medium');
 
                 td = libtuj.ce('td');
                 td.className = 'name';
@@ -693,7 +693,7 @@ var TUJ_Category = function ()
             i = libtuj.ce('img');
             td.appendChild(i);
             i.className = 'icon';
-            i.src = tujCDNPrefix + 'icon/medium/' + item.icon + '.jpg';
+            i.src = libtuj.IconURL(item.icon, 'medium');
 
             td = libtuj.ce('td');
             td.className = 'name';

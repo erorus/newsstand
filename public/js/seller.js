@@ -457,7 +457,7 @@ var TUJ_Seller = function ()
             i = libtuj.ce('img');
             td.appendChild(i);
             i.className = 'icon';
-            i.src = tujCDNPrefix + 'icon/medium/' + auc.icon + '.jpg';
+            i.src = libtuj.IconURL(auc.icon, 'medium');
 
             td = libtuj.ce('td');
             tr.appendChild(td);
@@ -585,7 +585,7 @@ var TUJ_Seller = function ()
             i = libtuj.ce('img');
             td.appendChild(i);
             i.className = 'icon';
-            i.src = tujCDNPrefix + 'icon/medium/' + auc.icon + '.jpg';
+            i.src = libtuj.IconURL(auc.icon, 'medium');
 
             td = libtuj.ce('td');
             tr.appendChild(td);

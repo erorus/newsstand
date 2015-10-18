@@ -138,7 +138,7 @@ var TUJ_Item = function ()
         ta.className = 'item'
         var timg = libtuj.ce('img');
         ta.appendChild(timg);
-        timg.src = tujCDNPrefix + 'icon/large/' + dta.stats[bonusSet].icon + '.jpg';
+        timg.src = libtuj.IconURL(dta.stats[bonusSet].icon, 'large');
         ta.appendChild(document.createTextNode('[' + dta.stats[bonusSet].name + ']' + (dta.stats[bonusSet].bonustag ? ' ' + dta.stats[bonusSet].bonustag : '')));
 
         $('#page-title').empty().append(ta);
