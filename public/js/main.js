@@ -71,6 +71,9 @@ var libtuj = {
     },
     IconURL: function(nm, size)
     {
+        if (!nm) {
+            nm = 'inv_misc_questionmark';
+        }
         return tujCDNPrefix + 'icon/' + size + '/' + nm.replace(' ', '-') + (size == 'tiny' ? '.png' : '.jpg');
     },
     FormatPrice: function (amt, justValue)
@@ -572,7 +575,7 @@ var TUJ = function ()
                 {
                     $('#progress-page').hide();
                 },
-                url: 'api/realms.php?r'
+                url: 'api/realms.php'
             });
             return;
         }
