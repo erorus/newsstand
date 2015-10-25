@@ -160,7 +160,7 @@
                     <li>This is the same exact data source as what powers the tables and graphs above.</li>
                 </ul>
 
-                <b><a href="wowtoken-nohistory.json">JSON format with CORS</a> without history</b>
+                <b><a href="snapshot.json">JSON format with CORS</a> without history</b>
                 <ul>
                     <li>Only the recent "update" portion of the wowtoken.json file above. No "history". Much smaller.</li>
                     <li>Updates no more frequently than every 10 minutes (same time as the previous JSON).</li>
