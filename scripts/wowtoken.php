@@ -336,14 +336,14 @@ EOF;
                 return $m[0];
             }, $htmlFormat);
 
-        file_put_contents($filenm, $html);
+        AtomicFilePutContents($filenm, $html);
 
         unset($json[$fileRegion]['formatted']['rangeImg']);
     }
 
-    file_put_contents(__DIR__.'/../wowtoken/snapshot.json', json_encode($json, JSON_NUMERIC_CHECK));
-    file_put_contents(__DIR__.'/../wowtoken/snapshot-history.csv', $csv);
-    file_put_contents(__DIR__.'/../wowtoken/snapshot-history.json', json_encode([
+    AtomicFilePutContents(__DIR__.'/../wowtoken/snapshot.json', json_encode($json, JSON_NUMERIC_CHECK));
+    AtomicFilePutContents(__DIR__.'/../wowtoken/snapshot-history.csv', $csv);
+    AtomicFilePutContents(__DIR__.'/../wowtoken/snapshot-history.json', json_encode([
                 'attention' => 'Please see usage guidelines on https://wowtoken.info/',
                 'update' => $json,
                 'history' => $historyJson
@@ -361,11 +361,11 @@ EOF;
                 }
                 return '';
             }, $shtml);
-        file_put_contents($shtmlPath, $html);
+        AtomicFilePutContents($shtmlPath, $html);
 
         $htmlPath = preg_replace('/\.shtml$/', '.html', $shtmlPath);
         if (strpos($html, '<!--#') === false) {
-            file_put_contents($htmlPath, $html);
+            AtomicFilePutContents($htmlPath, $html);
         } else {
             unlink($htmlPath);
         }
@@ -1033,3 +1033,8 @@ EOF;
     }
 }
 
+function AtomicFilePutContents($path, $data) {
+    $aPath = "$path.atomic";
+    file_put_contents($aPath, $data);
+    rename($aPath, $path);
+}
