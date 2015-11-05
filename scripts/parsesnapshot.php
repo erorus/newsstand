@@ -275,13 +275,13 @@ function ParseAuctionData($house, $snapshot, &$json)
         for ($x = 0; $x < $auctionCount; $x++) {
             $auction =& $jsonAuctions[$x];
 
+            if (isset($auction['petBreedId'])) {
+                $auction['petBreedId'] = (($auction['petBreedId'] - 3) % 10) + 3; // squash gender
+            }
+
             $totalAuctions++;
             if ($auction['buyout'] != 0) {
                 if (isset($auction['petSpeciesId'])) {
-                    if ($auction['petBreedId'] > 12) {
-                        $auction['petBreedId'] -= 10;
-                    } // squash gender
-
                     if (!isset($petInfo[$auction['petSpeciesId']][$auction['petBreedId']])) {
                         $petInfo[$auction['petSpeciesId']][$auction['petBreedId']] = array('a' => array(), 'tq' => 0);
                     }
