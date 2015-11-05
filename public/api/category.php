@@ -37,7 +37,7 @@ function CategoryResult_battlepets($house)
 {
     global $db, $canCache;
 
-    $key = 'category_bpets2';
+    $key = 'category_bpets3';
 
     if ($canCache && (($tr = MCGetHouse($house, $key)) !== false)) {
         return ['name' => 'Battle Pets', 'results' => [['name' => 'BattlePetList', 'data' => $tr]]];

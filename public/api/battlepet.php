@@ -31,7 +31,8 @@ function PetStats($house, $species)
 {
     global $db;
 
-    if (($tr = MCGetHouse($house, 'battlepet_stats_' . $species)) !== false) {
+    $key = 'battlepet_stats2_' . $species;
+    if (($tr = MCGetHouse($house, $key)) !== false) {
         return $tr;
     }
 
@@ -56,7 +57,7 @@ EOF;
     unset($breedRow);
     $stmt->close();
 
-    MCSetHouse($house, 'battlepet_stats_' . $species, $tr);
+    MCSetHouse($house, $key, $tr);
 
     return $tr;
 }
@@ -65,7 +66,8 @@ function PetHistory($house, $species)
 {
     global $db;
 
-    if (($tr = MCGetHouse($house, 'battlepet_history_' . $species)) !== false) {
+    $key = 'battlepet_history2_' . $species;
+    if (($tr = MCGetHouse($house, $key)) !== false) {
         return $tr;
     }
 
@@ -104,7 +106,7 @@ EOF;
     }
     unset($breedSet);
 
-    MCSetHouse($house, 'battlepet_history_' . $species, $tr);
+    MCSetHouse($house, $key, $tr);
 
     return $tr;
 }
@@ -113,7 +115,8 @@ function PetAuctions($house, $species)
 {
     global $db;
 
-    if (($tr = MCGetHouse($house, 'battlepet_auctions_' . $species)) !== false) {
+    $key = 'battlepet_auctions2_' . $species;
+    if (($tr = MCGetHouse($house, $key)) !== false) {
         return $tr;
     }
 
@@ -134,7 +137,7 @@ EOF;
     $tr = DBMapArray($result, array('breed', null));
     $stmt->close();
 
-    MCSetHouse($house, 'battlepet_auctions_' . $species, $tr);
+    MCSetHouse($house, $key, $tr);
 
     return $tr;
 }
@@ -143,7 +146,7 @@ function PetGlobalNow($region, $species)
 {
     global $db;
 
-    $key = 'battlepet_globalnow_' . $region . '_' . $species;
+    $key = 'battlepet_globalnow2_' . $region . '_' . $species;
     if (($tr = MCGet($key)) !== false) {
         return $tr;
     }
