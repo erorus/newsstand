@@ -1380,6 +1380,18 @@ function CategoryResult_inscription($house)
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
+            'name'  => 'Trade Goods',
+            'items' => CategoryGenericItemList(
+                $house, [
+                    'joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . (count($expansions) - 1) . ' and x.class=7 and xs.skillline=773) xyz on xyz.id = i.id',
+                ]
+            )
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
             'name'  => 'Crafted Consumable',
             'items' => CategoryGenericItemList(
                 $house, [
