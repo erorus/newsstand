@@ -483,7 +483,7 @@ var wowtoken = {
 
         switch (region) {
             case 'NA':
-                priceUpperBound = 40000;
+                priceUpperBound = 60000;
                 colors = {
                     'line': '#0000ff',
                     'fill': 'rgba(204,204,255,0.6)',
