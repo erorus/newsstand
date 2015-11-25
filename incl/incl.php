@@ -161,7 +161,7 @@ function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
         'connecttimeout' => 6,
         'headers'        => $inHeaders,
         'compress'       => true,
-        'redirect'       => (preg_match('/^https?:\/\/(?:[a-z]+\.)*\bbattle\.net\//', $url) > 0) ? 0 : 3
+        'redirect'       => 3,
     );
     //if ($eTag) $http_opt['etag'] = $eTag;
 
