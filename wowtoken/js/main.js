@@ -226,7 +226,7 @@ var wowtoken = {
 
         Subscribe: function(evt) {
             navigator.serviceWorker.ready.then(function(serviceWorkerRegistration) {
-                serviceWorkerRegistration.pushManager.subscribe().then(function(subscription) {
+                serviceWorkerRegistration.pushManager.subscribe({userVisibleOnly:true}).then(function(subscription) {
                     // sub successful
                     wowtoken.Notification.isSubscribed = true;
 
