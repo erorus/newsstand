@@ -890,6 +890,8 @@ function SendAndroidNotifications($regions)
 
     $sent = [];
 
+    $AndroidEndpoint = 'https://android.googleapis.com/gcm/send';
+
     foreach ($regions as $region) {
         $properRegion = strtoupper($region);
         if ($properRegion == 'US') {
@@ -930,12 +932,13 @@ function SendAndroidNotifications($regions)
         $direction = $tokenData['marketgold'] > $prevTokenData['marketgold'] ? 'over' : 'under';
 
         $sql = <<<EOF
-select s.endpoint, s.id, s.subid, e.region, e.value
+select s.endpoint, s.id, e.region, e.value
 from tblWowTokenSubs s
 join tblWowTokenEvents e on e.subid = s.id
 where s.lastfail is null
 and e.direction = '$direction'
 and e.region = '$properRegion'
+and s.endpoint like '$AndroidEndpoint%'
 EOF;
 
         if ($direction == 'over') {
@@ -965,11 +968,12 @@ EOF;
                 $failed = [];
                 $successful = [];
                 foreach ($chunk as $id => $row) {
+                    $registrationId = substr($endpoint, strlen($AndroidEndpoint)+1);
                     $msg = sprintf($message, $direction.' '.number_format($row['value'], 0).'g');
-                    $key = md5($endpoint.'#'.$row['subid']);
+                    $key = md5($endpoint);
                     if (!isset($sent[$key])) {
                         $lookup[] = $id;
-                        $toSend[] = $row['subid'];
+                        $toSend[] = $registrationId;
                         $sent[$key] = $msg;
                     } else {
                         $sent[$key] .= " \n".$msg;
@@ -988,7 +992,7 @@ EOF;
                     'Content-Type' => 'application/json',
                 ];
                 $outHeaders = [];
-                $ret = PostHTTP($endpoint, $toSend, $headers, $outHeaders);
+                $ret = PostHTTP($AndroidEndpoint, $toSend, $headers, $outHeaders);
                 $ret = json_decode($ret, true);
                 if ((json_last_error() != JSON_ERROR_NONE) || (!isset($ret['results']))) {
                     if ((count($lookup) == 1) && isset($outHeaders['responseCode']) && ($outHeaders['responseCode'] == '404')) {
@@ -1026,7 +1030,7 @@ EOF;
                     $stmt->close();
                 }
 
-                DebugMessage('Sent '.count($lookup).' messages to '.$endpoint.' - '.count($successful).' successful, '.count($failed).' failed.');
+                DebugMessage('Sent '.count($lookup).' messages to '.$AndroidEndpoint.' - '.count($successful).' successful, '.count($failed).' failed.');
             }
         }
 

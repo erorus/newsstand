@@ -224,6 +224,17 @@ var wowtoken = {
             }
         },
 
+        GetEndpoint: function (subscription)
+        {
+            var endpoint = subscription.endpoint;
+            // for Chrome 43
+            if (endpoint === 'https://android.googleapis.com/gcm/send' &&
+                'subscriptionId' in subscription) {
+                return endpoint + '/' + subscription.subscriptionId;
+            }
+            return endpoint;
+        },
+
         Subscribe: function(evt) {
             navigator.serviceWorker.ready.then(function(serviceWorkerRegistration) {
                 serviceWorkerRegistration.pushManager.subscribe({userVisibleOnly:true}).then(function(subscription) {
@@ -262,7 +273,6 @@ var wowtoken = {
             if (!sub) {
                 return;
             }
-            evt.id = sub.id;
             evt.endpoint = sub.endpoint;
 
             $.ajax({
@@ -293,7 +303,6 @@ var wowtoken = {
                         url: '/subscription.php',
                         method: 'POST',
                         data: {
-                            'id': oldSub.id,
                             'endpoint': oldSub.endpoint,
                             'action': 'unsubscribe'
                         }
@@ -314,7 +323,8 @@ var wowtoken = {
 
                     var storageSub = wowtoken.Storage.Get('subscription');
                     if (storageSub) {
-                        if ((subscription.endpoint != storageSub.endpoint) || (subscription.subscriptionId != storageSub.id)) {
+                        var subEndpoint = wowtoken.Notification.GetEndpoint(subscription);
+                        if (subEndpoint != storageSub.endpoint) {
                             // weird, we have a sub in storage different than the one we're unsubbing. do both.
                             UnsubscribeFromStorage();
                         } else {
@@ -330,8 +340,7 @@ var wowtoken = {
                         url: '/subscription.php',
                         method: 'POST',
                         data: {
-                            'id': subscription.subscriptionId,
-                            'endpoint': subscription.endpoint,
+                            'endpoint': wowtoken.Notification.GetEndpoint(subscription),
                             'action': 'unsubscribe'
                         }
                     });
@@ -346,14 +355,12 @@ var wowtoken = {
 
         SendSubscriptionToServer: function(sub, evt) {
             var data = {
-                'id': sub.subscriptionId,
-                'endpoint': sub.endpoint,
+                'endpoint': wowtoken.Notification.GetEndpoint(sub),
                 'action': 'subscribe',
             };
 
             var oldSub = wowtoken.Storage.Get('subscription');
             if (oldSub) {
-                data.oldid = oldSub.id;
                 data.oldendpoint = oldSub.endpoint;
             }
 

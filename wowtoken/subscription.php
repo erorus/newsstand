@@ -38,9 +38,11 @@ switch($_POST['action']) {
 header('Content-type: application/json; charset=UTF-8');
 
 function ActSubscribe() {
-    if (!isset($_POST['id']) || !isset($_POST['endpoint'])) {
+    if (!isset($_POST['endpoint'])) {
         ReturnBadRequest();
     }
+
+    $_POST['endpoint'] = substr($_POST['endpoint'], 0, 512);
 
     global $db;
     DBConnect();
@@ -48,10 +50,10 @@ function ActSubscribe() {
     $oldId = 0;
     $allGood = true;
 
-    $sql = 'select id from tblWowTokenSubs where subid=? and endpoint=? limit 1';
+    $sql = 'select id from tblWowTokenSubs where endpoint=? limit 1';
 
     $stmt = $db->prepare($sql);
-    $stmt->bind_param('ss', $_POST['id'], $_POST['endpoint']);
+    $stmt->bind_param('s', $_POST['endpoint']);
     $stmt->execute();
     $stmt->bind_result($oldId);
     if (!$stmt->fetch()) {
@@ -67,11 +69,13 @@ function ActSubscribe() {
         $allGood &= $stmt->execute();
         $stmt->close();
     } else {
-        if (isset($_POST['oldid']) && isset($_POST['oldendpoint'])) {
-            $sql = 'select id from tblWowTokenSubs where subid=? and endpoint=? limit 1';
+        if (isset($_POST['oldendpoint'])) {
+            $_POST['oldendpoint'] = substr($_POST['oldendpoint'], 0, 512);
+
+            $sql = 'select id from tblWowTokenSubs where endpoint=? limit 1';
 
             $stmt = $db->prepare($sql);
-            $stmt->bind_param('ss', $_POST['oldid'], $_POST['oldendpoint']);
+            $stmt->bind_param('s', $_POST['oldendpoint']);
             $stmt->execute();
             $stmt->bind_result($oldId);
             if (!$stmt->fetch()) {
@@ -81,22 +85,22 @@ function ActSubscribe() {
         }
 
         if ($oldId) {
-            $sql = 'update tblWowTokenSubs set subid=?, endpoint=?, lastseen=now(), lastfail=null where id=?';
+            $sql = 'update tblWowTokenSubs set endpoint=?, lastseen=now(), lastfail=null where id=?';
             $stmt = $db->prepare($sql);
-            $stmt->bind_param('ssi', $_POST['id'], $_POST['endpoint'], $oldId);
+            $stmt->bind_param('si', $_POST['endpoint'], $oldId);
             $allGood &= $stmt->execute();
             $stmt->close();
         } else {
-            $sql = 'insert into tblWowTokenSubs (subid, endpoint, firstseen, lastseen) values (?, ?, now(), now())';
+            $sql = 'insert into tblWowTokenSubs (endpoint, firstseen, lastseen) values (?, now(), now())';
             $stmt = $db->prepare($sql);
-            $stmt->bind_param('ss', $_POST['id'], $_POST['endpoint']);
+            $stmt->bind_param('s', $_POST['endpoint']);
             $allGood &= $stmt->execute();
             $stmt->close();
         }
     }
 
     if ($allGood) {
-        $out = ['id' => $_POST['id'], 'endpoint' => $_POST['endpoint']];
+        $out = ['endpoint' => $_POST['endpoint']];
 
         if ($oldId) {
             $sql = 'SELECT concat(lower(region), \'-\', if(direction = 1, \'up\', \'dn\')) k, `value` FROM `tblWowTokenEvents` where subid = ?';
@@ -118,40 +122,43 @@ function ActSubscribe() {
 }
 
 function ActUnsubscribe() {
-    if (!isset($_POST['id']) || !isset($_POST['endpoint'])) {
+    if (!isset($_POST['endpoint'])) {
         ReturnBadRequest();
     }
+
+    $_POST['endpoint'] = substr($_POST['endpoint'], 0, 512);
 
     global $db;
     DBConnect();
 
     $allGood = true;
 
-    $sql = 'delete from tblWowTokenEvents where subid=(select id from tblWowTokenSubs where subid=? and endpoint=?)';
+    $sql = 'delete from tblWowTokenEvents where subid=(select id from tblWowTokenSubs where endpoint=?)';
     $stmt = $db->prepare($sql);
-    $stmt->bind_param('ss', $_POST['id'], $_POST['endpoint']);
+    $stmt->bind_param('s', $_POST['endpoint']);
     $allGood &= $stmt->execute();
     $stmt->close();
 
-    $sql = 'delete from tblWowTokenSubs where subid=? and endpoint=?';
+    $sql = 'delete from tblWowTokenSubs where endpoint=?';
     $stmt = $db->prepare($sql);
-    $stmt->bind_param('ss', $_POST['id'], $_POST['endpoint']);
+    $stmt->bind_param('s', $_POST['endpoint']);
     $allGood &= $stmt->execute();
     $stmt->close();
 
     if ($allGood) {
-        echo json_encode(['id' => $_POST['id'], 'endpoint' => $_POST['endpoint']]);
+        echo json_encode(['endpoint' => $_POST['endpoint']]);
     } else {
         header('HTTP/1.1 500 Internal Server Error');
     }
 }
 
 function ActSelection() {
-    $required = ['id','endpoint','dir','region','value'];
+    $required = ['endpoint','dir','region','value'];
     foreach ($required as $v) {
         if (!isset($_POST[$v])) {
             ReturnBadRequest();
         }
+        $_POST[$v] = substr($_POST[$v], 0, 512);
     }
     if (!in_array($_POST['dir'],['up','dn'])) {
         ReturnBadRequest();
@@ -166,9 +173,9 @@ function ActSelection() {
     $allGood = true;
     $id = 0;
 
-    $sql = 'select id from tblWowTokenSubs where subid=? and endpoint=? limit 1';
+    $sql = 'select id from tblWowTokenSubs where endpoint=? limit 1';
     $stmt = $db->prepare($sql);
-    $stmt->bind_param('ss', $_POST['id'], $_POST['endpoint']);
+    $stmt->bind_param('s', $_POST['endpoint']);
     $stmt->execute();
     $stmt->bind_result($id);
     if (!$stmt->fetch()) {
@@ -212,14 +219,15 @@ function ActSelection() {
 }
 
 function ActFetch() {
-    $required = ['id','endpoint'];
+    $required = ['endpoint'];
     foreach ($required as $v) {
         if (!isset($_POST[$v])) {
             ReturnBadRequest();
         }
+        $_POST[$v] = substr($_POST[$v], 0, 512);
     }
 
-    $key = 'tokennotify-'.md5($_POST['endpoint'].'#'.$_POST['id']);
+    $key = 'tokennotify-'.md5($_POST['endpoint']);
     $msg = MCGet($key);
     if ($msg == false) {
         $msg = 'Couldn\'t find notification data, but something probably happened that you should check out at WoWToken.info.';
