@@ -200,7 +200,8 @@ EOF;
     $stmt->bind_param('ii', $house, $item);
     $stmt->execute();
     $result = $stmt->get_result();
-    $tr = DBMapArray($result, null);
+    $tr = $result->fetch_all(MYSQLI_ASSOC);
+    $result->close();
     $stmt->close();
 
     MCSet($cacheKey, $tr, 60 * 60 * 8);

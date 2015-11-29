@@ -91,7 +91,8 @@ EOF;
     $stmt->bind_param('ii', $seller, $house);
     $stmt->execute();
     $result = $stmt->get_result();
-    $tr = DBMapArray($result, null);
+    $tr = $result->fetch_all(MYSQLI_ASSOC);
+    $result->close();
     $stmt->close();
 
     while (count($tr) > 0 && is_null($tr[0]['total'])) {
@@ -167,7 +168,8 @@ EOF;
     $stmt->bind_param('ii', $house, $seller);
     $stmt->execute();
     $result = $stmt->get_result();
-    $tr = DBMapArray($result, null);
+    $tr = $result->fetch_all(MYSQLI_ASSOC);
+    $result->close();
     $stmt->close();
 
     MCSetHouse($house, $cacheKey, $tr);
@@ -202,7 +204,8 @@ EOF;
     $stmt->bind_param('ii', $house, $seller);
     $stmt->execute();
     $result = $stmt->get_result();
-    $tr = DBMapArray($result, null);
+    $tr = $result->fetch_all(MYSQLI_ASSOC);
+    $result->close();
     $stmt->close();
 
     MCSetHouse($house, 'seller_petauctions_' . $seller, $tr);
