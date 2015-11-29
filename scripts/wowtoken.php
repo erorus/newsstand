@@ -950,7 +950,7 @@ EOF;
         $stmt = $db->prepare($sql);
         $stmt->execute();
         $result = $stmt->get_result();
-        $rows = DBMapArray($result, ['endpoint', 'id']);
+        $rows = DBMapArray($result, ['id']);
         $stmt->close();
 
         if (count($rows) == 0) {
@@ -960,17 +960,16 @@ EOF;
         //sells in " . $formatted['TIMETOSELL'] . '
         $message = $regionNames[$properRegion] . ' price %s: now '.$formatted['BUY']."g, as of ".$formatted['UPDATED'].'.';
 
-        foreach ($rows as $endpoint => $allIds) {
-            $chunks = array_chunk($allIds, 50, true);
+            $chunks = array_chunk($rows, 50, true);
             foreach ($chunks as $chunk) {
                 $lookup = [];
                 $toSend = [];
                 $failed = [];
                 $successful = [];
                 foreach ($chunk as $id => $row) {
-                    $registrationId = substr($endpoint, strlen($AndroidEndpoint)+1);
+                    $registrationId = substr($row['endpoint'], strlen($AndroidEndpoint)+1);
                     $msg = sprintf($message, $direction.' '.number_format($row['value'], 0).'g');
-                    $key = md5($endpoint);
+                    $key = md5($row['endpoint']);
                     if (!isset($sent[$key])) {
                         $lookup[] = $id;
                         $toSend[] = $registrationId;
@@ -1001,7 +1000,7 @@ EOF;
                         $failed = $lookup;
                     } else {
                         // can only assume all went through
-                        DebugMessage("Bad response from $endpoint\n".print_r($headers, true).$toSend."\n".print_r($outHeaders, true)."\n$ret");
+                        DebugMessage("Bad response from $AndroidEndpoint\n".print_r($headers, true).$toSend."\n".print_r($outHeaders, true)."\n$ret");
                         $successful = $lookup;
                         $failed = [];
                     }
@@ -1032,8 +1031,6 @@ EOF;
 
                 DebugMessage('Sent '.count($lookup).' messages to '.$AndroidEndpoint.' - '.count($successful).' successful, '.count($failed).' failed.');
             }
-        }
-
     }
 }
 
