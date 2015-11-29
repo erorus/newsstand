@@ -960,77 +960,77 @@ EOF;
         //sells in " . $formatted['TIMETOSELL'] . '
         $message = $regionNames[$properRegion] . ' price %s: now '.$formatted['BUY']."g, as of ".$formatted['UPDATED'].'.';
 
-            $chunks = array_chunk($rows, 50, true);
-            foreach ($chunks as $chunk) {
-                $lookup = [];
-                $toSend = [];
-                $failed = [];
-                $successful = [];
-                foreach ($chunk as $id => $row) {
-                    $registrationId = substr($row['endpoint'], strlen($AndroidEndpoint)+1);
-                    $msg = sprintf($message, $direction.' '.number_format($row['value'], 0).'g');
-                    $key = md5($row['endpoint']);
-                    if (!isset($sent[$key])) {
-                        $lookup[] = $id;
-                        $toSend[] = $registrationId;
-                        $sent[$key] = $msg;
-                    } else {
-                        $sent[$key] .= " \n".$msg;
-                    }
-                    MCSet('tokennotify-'.$key, $sent[$key], 8 * 60 * 60);
-                }
-                if (!count($toSend)) {
-                    continue;
-                }
-                $toSend = json_encode([
-                    'registration_ids' => $toSend,
-                    'time_to_live' => 4 * 60 * 60
-                ]);
-                $headers = [
-                    'Authorization' => 'key='.ANDROID_GCM_KEY,
-                    'Content-Type' => 'application/json',
-                ];
-                $outHeaders = [];
-                $ret = PostHTTP($AndroidEndpoint, $toSend, $headers, $outHeaders);
-                $ret = json_decode($ret, true);
-                if ((json_last_error() != JSON_ERROR_NONE) || (!isset($ret['results']))) {
-                    if ((count($lookup) == 1) && isset($outHeaders['responseCode']) && ($outHeaders['responseCode'] == '404')) {
-                        // only sent one, which failed, so mark it as failed
-                        $successful = [];
-                        $failed = $lookup;
-                    } else {
-                        // can only assume all went through
-                        DebugMessage("Bad response from $AndroidEndpoint\n".print_r($headers, true).$toSend."\n".print_r($outHeaders, true)."\n$ret");
-                        $successful = $lookup;
-                        $failed = [];
-                    }
+        $chunks = array_chunk($rows, 50, true);
+        foreach ($chunks as $chunk) {
+            $lookup = [];
+            $toSend = [];
+            $failed = [];
+            $successful = [];
+            foreach ($chunk as $id => $row) {
+                $registrationId = substr($row['endpoint'], strlen($AndroidEndpoint)+1);
+                $msg = sprintf($message, $direction.' '.number_format($row['value'], 0).'g');
+                $key = md5($row['endpoint']);
+                if (!isset($sent[$key])) {
+                    $lookup[] = $id;
+                    $toSend[] = $registrationId;
+                    $sent[$key] = $msg;
                 } else {
-                    for ($x = 0; $x < count($ret['results']); $x++) {
-                        if (isset($ret['results'][$x]['error'])) {
-                            $failed[] = $lookup[$x];
-                        } else {
-                            $successful[] = $lookup[$x];
-                        }
+                    $sent[$key] .= " \n".$msg;
+                }
+                MCSet('tokennotify-'.$key, $sent[$key], 8 * 60 * 60);
+            }
+            if (!count($toSend)) {
+                continue;
+            }
+            $toSend = json_encode([
+                'registration_ids' => $toSend,
+                'time_to_live' => 4 * 60 * 60
+            ]);
+            $headers = [
+                'Authorization' => 'key='.ANDROID_GCM_KEY,
+                'Content-Type' => 'application/json',
+            ];
+            $outHeaders = [];
+            $ret = PostHTTP($AndroidEndpoint, $toSend, $headers, $outHeaders);
+            $ret = json_decode($ret, true);
+            if ((json_last_error() != JSON_ERROR_NONE) || (!isset($ret['results']))) {
+                if ((count($lookup) == 1) && isset($outHeaders['responseCode']) && ($outHeaders['responseCode'] == '404')) {
+                    // only sent one, which failed, so mark it as failed
+                    $successful = [];
+                    $failed = $lookup;
+                } else {
+                    // can only assume all went through
+                    DebugMessage("Bad response from $AndroidEndpoint\n".print_r($headers, true).$toSend."\n".print_r($outHeaders, true)."\n$ret");
+                    $successful = $lookup;
+                    $failed = [];
+                }
+            } else {
+                for ($x = 0; $x < count($ret['results']); $x++) {
+                    if (isset($ret['results'][$x]['error'])) {
+                        $failed[] = $lookup[$x];
+                    } else {
+                        $successful[] = $lookup[$x];
                     }
                 }
+            }
 
-                $stmt = $db->prepare('update tblWowTokenEvents set lasttrigger=now() where subid in ('.implode(',', $lookup).') and region=\''.$properRegion.'\' and direction=\''.$direction.'\'');
+            $stmt = $db->prepare('update tblWowTokenEvents set lasttrigger=now() where subid in ('.implode(',', $lookup).') and region=\''.$properRegion.'\' and direction=\''.$direction.'\'');
+            $stmt->execute();
+            $stmt->close();
+
+            if (count($successful)) {
+                $stmt = $db->prepare('update tblWowTokenSubs set lastpush=now() where id in ('.implode(',', $successful).')');
                 $stmt->execute();
                 $stmt->close();
-
-                if (count($successful)) {
-                    $stmt = $db->prepare('update tblWowTokenSubs set lastpush=now() where id in ('.implode(',', $successful).')');
-                    $stmt->execute();
-                    $stmt->close();
-                }
-                if (count($failed)) {
-                    $stmt = $db->prepare('update tblWowTokenSubs set lastpush=now(), lastfail=now() where id in ('.implode(',', $failed).')');
-                    $stmt->execute();
-                    $stmt->close();
-                }
-
-                DebugMessage('Sent '.count($lookup).' messages to '.$AndroidEndpoint.' - '.count($successful).' successful, '.count($failed).' failed.');
             }
+            if (count($failed)) {
+                $stmt = $db->prepare('update tblWowTokenSubs set lastpush=now(), lastfail=now() where id in ('.implode(',', $failed).')');
+                $stmt->execute();
+                $stmt->close();
+            }
+
+            DebugMessage('Sent '.count($lookup).' messages to '.$AndroidEndpoint.' - '.count($successful).' successful, '.count($failed).' failed.');
+        }
     }
 }
 
