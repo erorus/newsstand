@@ -423,13 +423,10 @@ var TUJ_Seller = function ()
         td.className = 'price';
         $(td).text('Buyout Each');
 
-        var hasCheaper = data.auctions.length && data.auctions[0].hasOwnProperty('cheaper');
-        if (hasCheaper) {
-            td = libtuj.ce('th');
-            tr.appendChild(td);
-            td.className = 'quantity';
-            $(td).text('Cheaper');
-        }
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.className = 'quantity';
+        $(td).text('Cheaper');
 
         data.auctions.sort(function (a, b)
         {
@@ -512,13 +509,11 @@ var TUJ_Seller = function ()
                 td.appendChild(a);
             }
 
-            if (hasCheaper) {
-                td = libtuj.ce('td');
-                tr.appendChild(td);
-                td.className = 'quantity';
-                if (auc.cheaper) {
-                    td.appendChild(libtuj.FormatQuantity(auc.cheaper));
-                }
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.className = 'quantity';
+            if (auc.cheaper) {
+                td.appendChild(libtuj.FormatQuantity(auc.cheaper));
             }
         }
 
