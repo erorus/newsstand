@@ -232,9 +232,9 @@ function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
         }
         if ($delay > 0 && $delay <= 10) {
             sleep($delay);
+            $isRetry = true;
+            return FetchHTTP($url, $inHeaders, $outHeaders);
         }
-        $isRetry = true;
-        return FetchHTTP($url, $inHeaders, $outHeaders);
     } else {
         return false;
     }
