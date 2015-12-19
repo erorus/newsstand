@@ -224,20 +224,22 @@ function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
     }
     if (preg_match('/^2\d\d$/', $http_info['response_code']) > 0) {
         return $data->body;
-    } elseif (!$wasRetry && isset($data->headers['Retry-After'])) {
-        $delay = intval($data->headers['Retry-After'], 10);
-        DebugMessage("Asked to wait $delay seconds for $url", E_USER_NOTICE);
-        if ($debuggingBattleNetCalls && $usesBattleNetKey && count($apiHits)) {
-            file_put_contents(__DIR__ . '/../logs/battlenetwaits.log', print_r($apiHits, true), FILE_APPEND | LOCK_EX);
-        }
-        if ($delay > 0 && $delay <= 10) {
-            sleep($delay);
-            $isRetry = true;
-            return FetchHTTP($url, $inHeaders, $outHeaders);
-        }
     } else {
-        return false;
+        $outHeaders['body'] = $data->body;
+        if (!$wasRetry && isset($data->headers['Retry-After'])) {
+            $delay = intval($data->headers['Retry-After'], 10);
+            DebugMessage("Asked to wait $delay seconds for $url", E_USER_NOTICE);
+            if ($debuggingBattleNetCalls && $usesBattleNetKey && count($apiHits)) {
+                file_put_contents(__DIR__ . '/../logs/battlenetwaits.log', print_r($apiHits, true), FILE_APPEND | LOCK_EX);
+            }
+            if ($delay > 0 && $delay <= 10) {
+                sleep($delay);
+                $isRetry = true;
+                return FetchHTTP($url, $inHeaders, $outHeaders);
+            }
+        }
     }
+    return false;
 }
 
 function FetchHTTPError($errno, $errstr, $errfile, $errline, $errcontext)

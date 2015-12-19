@@ -931,13 +931,39 @@ var TUJ = function ()
 
         if (houseInfo[house].timestamps.lastupdate) {
             var d = libtuj.ce();
-            d.appendChild(document.createTextNode('Updated ' + libtuj.FormatDate(houseInfo[house].timestamps.lastupdate, true, 'minute')));
+            d.appendChild(document.createTextNode('Updated '));
+            d.appendChild(libtuj.FormatDate(houseInfo[house].timestamps.lastupdate, false, 'minute'));
             ru.appendChild(d);
         }
         if (houseInfo[house].timestamps.scheduled && houseInfo[house].timestamps.scheduled * 1000 > Date.now()) {
             var d = libtuj.ce();
-            d.appendChild(document.createTextNode('Next update ' + libtuj.FormatDate(houseInfo[house].timestamps.scheduled, true, 'minute')));
+            d.appendChild(document.createTextNode('Next update '));
+            d.appendChild(libtuj.FormatDate(houseInfo[house].timestamps.scheduled, false, 'minute'));
             ru.appendChild(d);
+        } else if (houseInfo[house].timestamps.hasOwnProperty('lastcheck')) {
+            if (houseInfo[house].timestamps.lastcheck.ts) {
+                var d = libtuj.ce();
+                d.appendChild(document.createTextNode('Last checked '));
+                d.appendChild(libtuj.FormatDate(houseInfo[house].timestamps.lastcheck.ts, false, 'minute'));
+                ru.appendChild(d);
+            }
+            if (houseInfo[house].timestamps.lastcheck.json) {
+                if (houseInfo[house].timestamps.lastcheck.json.hasOwnProperty('reason')) {
+                    if (houseInfo[house].timestamps.lastcheck.json.reason.length > 50) {
+                        d = libtuj.ce('abbr');
+                        d.style.overflow = 'hidden';
+                        d.style.textOverflow = 'ellipsis';
+                        d.style.whiteSpace = 'nowrap';
+                        d.style.width = '100%';
+                        d.style.display = 'block';
+                        d.setAttribute('title', houseInfo[house].timestamps.lastcheck.json.reason);
+                    } else {
+                        d = libtuj.ce();
+                    }
+                    d.appendChild(document.createTextNode('Blizzard API: ' + houseInfo[house].timestamps.lastcheck.json.reason));
+                    ru.appendChild(d);
+                }
+            }
         }
 
         if (!self.params.page || window.TUJClassic) {

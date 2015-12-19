@@ -87,12 +87,23 @@ ENDSQL;
 
     $url = GetBattleNetURL($region, "wow/auction/data/$slug");
 
-    $json = FetchHTTP($url);
-    $dta = json_decode($json, true);
+    $outHeaders = [];
+    $dta = [];
+    $json = FetchHTTP($url, [], $outHeaders);
+    if ($json !== false) {
+        $dta = json_decode($json, true);
+        if (json_last_error() != JSON_ERROR_NONE) {
+            $dta = [];
+        }
+    } else {
+        if (isset($outHeaders['body'])) {
+            $json = $outHeaders['body'];
+        }
+    }
     if (!isset($dta['files'])) {
         $delay = GetCheckDelay(strtotime($lastDate));
         DebugMessage("$region $slug returned no files. Waiting " . floor($delay / 60) . " minutes.", E_USER_WARNING);
-        SetHouseNextCheck($house, time() + $delay);
+        SetHouseNextCheck($house, time() + $delay, $json);
         return 0;
     }
 
@@ -103,7 +114,7 @@ ENDSQL;
     if ($modified <= strtotime($lastDate)) {
         $delay = GetCheckDelay($modified);
         DebugMessage("$region $slug still not updated. Waiting " . floor($delay / 60) . " minutes.");
-        SetHouseNextCheck($house, time() + $delay);
+        SetHouseNextCheck($house, time() + $delay, $json);
 
         return 0;
     }
@@ -121,7 +132,7 @@ ENDSQL;
     }
     if (!$data) {
         DebugMessage("$region $slug data file empty. Will try again in 30 seconds.");
-        SetHouseNextCheck($house, time() + 30);
+        SetHouseNextCheck($house, time() + 30, $json);
         http_persistent_handles_clean();
 
         return 10;
@@ -138,8 +149,8 @@ ENDSQL;
         http_persistent_handles_clean();
     }
 
-    $stmt = $db->prepare('INSERT INTO tblHouseCheck (house, nextcheck) VALUES (?, NULL) ON DUPLICATE KEY UPDATE nextcheck=values(nextcheck)');
-    $stmt->bind_param('i', $house);
+    $stmt = $db->prepare('INSERT INTO tblHouseCheck (house, nextcheck, lastcheck, lastcheckresult, lastchecksuccess, lastchecksuccessresult) VALUES (?, NULL, now(), ?, now(), ?) ON DUPLICATE KEY UPDATE nextcheck=values(nextcheck), lastcheck=values(lastcheck), lastcheckresult=values(lastcheckresult), lastchecksuccess=values(lastchecksuccess), lastchecksuccessresult=values(lastchecksuccessresult)');
+    $stmt->bind_param('iss', $house, $json, $json);
     $stmt->execute();
     $stmt->close();
 
@@ -166,12 +177,12 @@ function GetCheckDelay($modified)
     return $delayMinutes * 60;
 }
 
-function SetHouseNextCheck($house, $nextCheck)
+function SetHouseNextCheck($house, $nextCheck, $json)
 {
     global $db;
 
-    $stmt = $db->prepare('INSERT INTO tblHouseCheck (house, nextcheck) VALUES (?, from_unixtime(?)) ON DUPLICATE KEY UPDATE nextcheck=values(nextcheck)');
-    $stmt->bind_param('ii', $house, $nextCheck);
+    $stmt = $db->prepare('INSERT INTO tblHouseCheck (house, nextcheck, lastcheck, lastcheckresult) VALUES (?, from_unixtime(?), now(), ?) ON DUPLICATE KEY UPDATE nextcheck=values(nextcheck), lastcheck=values(lastcheck), lastcheckresult=values(lastcheckresult)');
+    $stmt->bind_param('iis', $house, $nextCheck, $json);
     $stmt->execute();
     $stmt->close();
 }

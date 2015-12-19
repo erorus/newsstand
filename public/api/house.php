@@ -10,7 +10,7 @@ if (!isset($_GET['house'])) {
 
 $house = intval($_GET['house'], 10);
 
-HouseETag($house);
+header('Expires: ' . Date(DATE_RFC1123, strtotime('+15 minutes')));
 
 $json = array(
     'timestamps'    => HouseTimestamps($house),
@@ -27,25 +27,35 @@ function HouseTimestamps($house)
 {
     global $db;
 
-    if (($tr = MCGetHouse($house, 'house_timestamps')) !== false) {
+    $cacheKey = 'house_timestamps2';
+    if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
     }
 
     DBConnect();
 
     $tr = [
-        'delayednext' => 0,
         'scheduled'   => 0,
+        'delayednext' => 0,
         'lastupdate'  => 0,
         'mindelta'    => 0,
         'avgdelta'    => 0,
         'maxdelta'    => 0,
+        'lastcheck'   => ['ts' => 0, 'json' => 0],
+        'lastsuccess' => ['ts' => 0, 'json' => 0],
     ];
 
     $sql = <<<EOF
 select unix_timestamp(timestampadd(second, least(ifnull(min(delta)+15, 45*60), 150*60), max(deltas.updated))) scheduled,
-(SELECT hc.nextcheck FROM tblHouseCheck hc WHERE hc.house = ?),
-unix_timestamp(max(deltas.updated)) lastupdate, min(delta) mindelta, round(avg(delta)) avgdelta, max(delta) maxdelta
+unix_timestamp(hc.nextcheck),
+unix_timestamp(max(deltas.updated)) lastupdate,
+min(delta) mindelta,
+round(avg(delta)) avgdelta,
+max(delta) maxdelta,
+unix_timestamp(hc.lastcheck),
+hc.lastcheckresult,
+unix_timestamp(hc.lastchecksuccess),
+hc.lastchecksuccessresult
 from (
     select sn.updated,
     if(sn.updated > timestampadd(hour, -72, now()), unix_timestamp(sn.updated) - @prevdate, null) delta,
@@ -53,16 +63,37 @@ from (
     from (select @prevdate := null) setup, tblSnapshot sn
 where sn.house = ?
     order by sn.updated) deltas
+left join tblHouseCheck hc on hc.house = ?
 EOF;
 
     $stmt = $db->prepare($sql);
     $stmt->bind_param('ii', $house, $house);
     $stmt->execute();
-    $stmt->bind_result($tr['scheduled'], $tr['delayednext'], $tr['lastupdate'], $tr['mindelta'], $tr['avgdelta'], $tr['maxdelta']);
+    $stmt->bind_result(
+        $tr['scheduled'],
+        $tr['delayednext'],
+        $tr['lastupdate'],
+        $tr['mindelta'],
+        $tr['avgdelta'],
+        $tr['maxdelta'],
+        $tr['lastcheck']['ts'],
+        $tr['lastcheck']['json'],
+        $tr['lastsuccess']['ts'],
+        $tr['lastsuccess']['json']
+    );
     $stmt->fetch();
     $stmt->close();
 
-    MCSetHouse($house, 'house_timestamps', $tr);
+    foreach (['lastcheck','lastsuccess'] as $k) {
+        if (!is_null($tr[$k]['json'])) {
+            $decoded = json_decode($tr[$k]['json'], true);
+            if (json_last_error() == JSON_ERROR_NONE) {
+                $tr[$k]['json'] = $decoded;
+            }
+        }
+    }
+
+    MCSetHouse($house, $cacheKey, $tr, 900);
 
     return $tr;
 }
