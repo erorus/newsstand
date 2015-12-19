@@ -21,7 +21,7 @@ function MCGetHouse($house, $key = 'ts')
             MCSetHouse($house, $key, $houseKeys[$house]); // so we don't query a billion times on this key
             $altDb = DBConnect(true);
             if ($altDb) {
-                $stmt = $altDb->prepare('SELECT updated FROM tblSnapshot WHERE house = ?');
+                $stmt = $altDb->prepare('SELECT unix_timestamp(updated) FROM tblSnapshot WHERE house = ?');
                 $stmt->bind_param('i', $house);
                 $stmt->execute();
                 $stmt->bind_result($houseKeys[$house]);
