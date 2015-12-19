@@ -17,7 +17,25 @@ function MCGetHouse($house, $key = 'ts')
         }
         $houseKeys[$house] = $memcache->get('h' . $house . '_ts');
         if ($houseKeys[$house] === false) {
-            $houseKeys[$house] = 0;
+            $houseKeys[$house] = 1;
+            MCSetHouse($house, $key, $houseKeys[$house]); // so we don't query a billion times on this key
+            $altDb = DBConnect(true);
+            if ($altDb) {
+                $stmt = $altDb->prepare('SELECT updated FROM tblSnapshot WHERE house = ?');
+                $stmt->bind_param('i', $house);
+                $stmt->execute();
+                $stmt->bind_result($houseKeys[$house]);
+                $gotHouse = $stmt->fetch() === true;
+                $stmt->close();
+
+                if ($gotHouse) {
+                    MCSetHouse($house, $key, $houseKeys[$house]);
+                } else {
+                    $houseKeys[$house] = 1;
+                }
+
+                $altDb->close();
+            }
         }
         return $houseKeys[$house];
     }
