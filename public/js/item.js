@@ -885,21 +885,54 @@ var TUJ_Item = function ()
             }
         });
 
-        $(dest).highcharts({
+        $(dest).highcharts("StockChart", {
             chart: {
                 zoomType: 'x',
                 backgroundColor: tujConstants.siteColors[tuj.colorTheme].background
             },
+            rangeSelector: {
+                buttons: [
+                    {
+                        type: 'week',
+                        count: 2,
+                        text: '2w'
+                    },
+                    {
+                        type: 'month',
+                        count: 1,
+                        text: '1m'
+                    },
+                    {
+                        type: 'month',
+                        count: 3,
+                        text: '3m'
+                    },
+                    {
+                        type: 'month',
+                        count: 6,
+                        text: '6m'
+                    },
+                    {
+                        type: 'year',
+                        count: 1,
+                        text: '1y'
+                    },
+                    {
+                        type: 'all',
+                        text: 'all'
+                    },
+                ],
+                selected: 4,
+                inputEnabled: false
+            },
+            navigator: {
+                enabled: false,
+            },
+            scrollbar: {
+                enabled: false,
+            },
             title: {
                 text: null
-            },
-            subtitle: {
-                text: document.ontouchstart === undefined ?
-                    'Click and drag in the plot area to zoom in' :
-                    'Pinch the chart to zoom in',
-                style: {
-                    color: tujConstants.siteColors[tuj.colorTheme].text
-                }
             },
             xAxis: {
                 type: 'datetime',
@@ -932,7 +965,8 @@ var TUJ_Item = function ()
                         }
                     },
                     min: 0,
-                    max: hcdata.priceMaxVal
+                    max: hcdata.priceMaxVal,
+                    opposite: false,
                 },
                 {
                     title: {
@@ -1060,21 +1094,54 @@ var TUJ_Item = function ()
             }
         });
 
-        $(dest).highcharts({
+        $(dest).highcharts("StockChart", {
             chart: {
                 zoomType: 'x',
                 backgroundColor: tujConstants.siteColors[tuj.colorTheme].background
             },
+            rangeSelector: {
+                buttons: [
+                    {
+                        type: 'week',
+                        count: 2,
+                        text: '2w'
+                    },
+                    {
+                        type: 'month',
+                        count: 1,
+                        text: '1m'
+                    },
+                    {
+                        type: 'month',
+                        count: 3,
+                        text: '3m'
+                    },
+                    {
+                        type: 'month',
+                        count: 6,
+                        text: '6m'
+                    },
+                    {
+                        type: 'year',
+                        count: 1,
+                        text: '1y'
+                    },
+                    {
+                        type: 'all',
+                        text: 'all'
+                    },
+                ],
+                selected: 4,
+                inputEnabled: false
+            },
+            navigator: {
+                enabled: false,
+            },
+            scrollbar: {
+                enabled: false,
+            },
             title: {
                 text: null
-            },
-            subtitle: {
-                text: document.ontouchstart === undefined ?
-                    'Click and drag in the plot area to zoom in' :
-                    'Pinch the chart to zoom in',
-                style: {
-                    color: tujConstants.siteColors[tuj.colorTheme].text
-                }
             },
             xAxis: {
                 type: 'datetime',
@@ -1106,6 +1173,7 @@ var TUJ_Item = function ()
                             color: tujConstants.siteColors[tuj.colorTheme].text
                         }
                     },
+                    opposite: false,
                     min: 0,
                     max: hcdata.priceMaxVal
                 },
@@ -1244,7 +1312,39 @@ var TUJ_Item = function ()
                 backgroundColor: tujConstants.siteColors[tuj.colorTheme].background
             },
             rangeSelector: {
-                enabled: false
+                buttons: [
+                    {
+                        type: 'week',
+                        count: 2,
+                        text: '2w'
+                    },
+                    {
+                        type: 'month',
+                        count: 1,
+                        text: '1m'
+                    },
+                    {
+                        type: 'month',
+                        count: 3,
+                        text: '3m'
+                    },
+                    {
+                        type: 'month',
+                        count: 6,
+                        text: '6m'
+                    },
+                    {
+                        type: 'year',
+                        count: 1,
+                        text: '1y'
+                    },
+                    {
+                        type: 'all',
+                        text: 'all'
+                    },
+                ],
+                selected: 2,
+                inputEnabled: false
             },
             navigator: {
                 enabled: false
@@ -1254,15 +1354,6 @@ var TUJ_Item = function ()
             },
             title: {
                 text: null
-            },
-            subtitle: {
-                text: document.ontouchstart === undefined ?
-                    'Click and drag in the plot area to zoom in' :
-                    'Pinch the chart to zoom in',
-                style: {
-                    color: tujConstants.siteColors[tuj.colorTheme].text
-                }
-
             },
             xAxis: {
                 type: 'datetime',
@@ -1295,6 +1386,7 @@ var TUJ_Item = function ()
                         }
                     },
                     height: '60%',
+                    opposite: false,
                     min: 0,
                     max: hcdata.ohlcMaxVal
                 },
