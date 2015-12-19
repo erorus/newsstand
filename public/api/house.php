@@ -10,7 +10,7 @@ if (!isset($_GET['house'])) {
 
 $house = intval($_GET['house'], 10);
 
-header('Expires: ' . Date(DATE_RFC1123, strtotime('+15 minutes')));
+HouseETag($house, true);
 
 $json = array(
     'timestamps'    => HouseTimestamps($house),
@@ -27,7 +27,11 @@ function HouseTimestamps($house)
 {
     global $db;
 
-    $cacheKey = 'house_timestamps2';
+    $cacheKey = MCGet('housecheck_'.$house);
+    if ($cacheKey === false) {
+        $cacheKey = 0;
+    }
+    $cacheKey = 'house_timestamps_'.$cacheKey;
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
     }
@@ -93,7 +97,7 @@ EOF;
         }
     }
 
-    MCSetHouse($house, $cacheKey, $tr, 900);
+    MCSetHouse($house, $cacheKey, $tr);
 
     return $tr;
 }

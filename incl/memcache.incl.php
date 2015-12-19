@@ -35,7 +35,7 @@ function MCSetHouse($house, $key, $val, $expire = 10800)
     }
 
     $fullKey = 'h' . $house . '_' . $prefix . $key;
-    return $memcache->set($fullKey, $val, false, $expire);
+    return $memcache->set($fullKey, $val, 0, $expire);
 }
 
 function MCGet($key)
@@ -52,14 +52,14 @@ function MCSet($key, $val, $expire = 10800)
 {
     global $memcache;
 
-    return $memcache->set($key, $val, false, $expire);
+    return $memcache->set($key, $val, 0, $expire);
 }
 
 function MCAdd($key, $val, $expire = 10800)
 {
     global $memcache;
 
-    return $memcache->add($key, $val, false, $expire);
+    return $memcache->add($key, $val, 0, $expire);
 }
 
 function MCDelete($key)

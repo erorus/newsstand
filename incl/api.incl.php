@@ -341,9 +341,13 @@ function UserThrottleCount($reset = false)
     return $returned = ++$vals[$kCount];
 }
 
-function HouseETag($house)
+function HouseETag($house, $includeFetches = false)
 {
-    $curTag = 'W/"' . MCGetHouse($house) . '"';
+    $curTag = $includeFetches ? MCGet('housecheck_'.$house) : '';
+    if ($curTag === false) {
+        $curTag = 'x';
+    }
+    $curTag = 'W/"' . MCGetHouse($house) . $curTag . '"';
     $theirTag = isset($_SERVER['HTTP_IF_NONE_MATCH']) ? $_SERVER['HTTP_IF_NONE_MATCH'] : '';
 
     if ($curTag && $curTag == $theirTag) {

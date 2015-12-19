@@ -159,6 +159,8 @@ ENDSQL;
     $stmt->execute();
     $stmt->close();
 
+    MCSet('housecheck_'.$house, time(), 0);
+
     file_put_contents(SNAPSHOT_PATH . "$modified-" . str_pad($house, 5, '0', STR_PAD_LEFT) . ".json", $data, LOCK_EX);
 
     return 0;
@@ -185,6 +187,8 @@ function SetHouseNextCheck($house, $nextCheck, $json)
     $stmt->bind_param('iis', $house, $nextCheck, $json);
     $stmt->execute();
     $stmt->close();
+
+    MCSet('housecheck_'.$house, time(), 0);
 }
 
 function AuctionFileSort($a, $b)
