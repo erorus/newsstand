@@ -733,7 +733,7 @@ var wowtoken = {
                 shared: true,
                 formatter: function ()
                 {
-                    var tr = '<b>' + Highcharts.dateFormat('%a %b %d, %I:%M%P', this.x) + '</b>';
+                    var tr = '<b>' + Highcharts.dateFormat('%a %b %e %Y, %l:%M%P', this.x) + '</b>';
                     tr += '<br><span style="color: ' + colors.text + '">Price: ' + wowtoken.NumberCommas(hcdata.realPrices[this.x]) + 'g</span>';
                     if (hcdata.pct.hasOwnProperty(this.x)) {
                         tr += '<br><span style="color: #444">Rate: ' + (hcdata.pct[this.x] > 0 ? '+' : '') + (hcdata.pct[this.x]*100).toFixed(2) + '%/hr</span>';

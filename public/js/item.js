@@ -806,7 +806,7 @@ var TUJ_Item = function ()
                 shared: true,
                 formatter: function ()
                 {
-                    var tr = '<b>' + Highcharts.dateFormat('%a %b %d, %I:%M%P', this.x) + '</b>';
+                    var tr = '<b>' + Highcharts.dateFormat('%a %b %e %Y, %l:%M%P', this.x) + '</b>';
                     var idx = 0;
                     if (this.points.length > 2) {
                         tr += '<br><span style="color: #009900">Crafting Cost: ' + libtuj.FormatPrice(this.points[0].y, true) + '</span>';
@@ -963,7 +963,7 @@ var TUJ_Item = function ()
                 shared: true,
                 formatter: function ()
                 {
-                    var tr = '<b>' + Highcharts.dateFormat('%a %b %d', this.x) + '</b>';
+                    var tr = '<b>' + Highcharts.dateFormat('%a %b %e %Y', this.x) + '</b>';
                     if (this.points[1]) {
                         tr += '<br><span style="color: #000099">Market Price: ' + libtuj.FormatPrice(this.points[1].y, true) + '</span>';
                     }
@@ -1138,7 +1138,7 @@ var TUJ_Item = function ()
                 shared: true,
                 formatter: function ()
                 {
-                    var tr = '<b>' + Highcharts.dateFormat('%a %b %d', this.x) + '</b>';
+                    var tr = '<b>' + Highcharts.dateFormat('%a %b %e %Y', this.x) + '</b>';
                     if (this.points[0]) {
                         tr += '<br><span style="color: #000099">Region Price: ' + libtuj.FormatPrice(this.points[0].y, true) + '</span>';
                     }
@@ -1329,7 +1329,7 @@ var TUJ_Item = function ()
                 shared: true,
                 formatter: function ()
                 {
-                    var tr = '<b>' + Highcharts.dateFormat('%a %b %d', this.x) + '</b>';
+                    var tr = '<b>' + Highcharts.dateFormat('%a %b %e %Y', this.x) + '</b>';
                     tr += '<br><table class="highcharts-tuj-tooltip" style="color: #000099;" cellspacing="0" cellpadding="0">';
                     tr += '<tr><td>Open:</td><td align="right">' + libtuj.FormatPrice(this.points[0].point.open, true) + '</td></tr>';
                     tr += '<tr><td>High:</td><td align="right">' + libtuj.FormatPrice(this.points[0].point.high, true) + '</td></tr>';
