@@ -216,11 +216,12 @@ function BuildIncludes($regions)
     $blankImage = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
     $htmlFormat = <<<EOF
-                <table class="results">
+                <meta itemprop="price" content="##rawbuy##"><meta itemprop="priceCurrency" content="XAU">
+                <table class="results" itemprop="priceSpecification" itemscope itemtype="http://schema.org/PriceSpecification">
                     <tbody>
                         <tr>
                             <td>Buy Price</td>
-                            <td id="##region##-buy">##buy##</td>
+                            <td id="##region##-buy" itemprop="price" content="##rawbuy##">##buy##<meta itemprop="priceCurrency" content="XAU"></td>
                         </tr>
                         <tr>
                             <td style="vertical-align: bottom">24-Hour Range</td>
@@ -230,8 +231,8 @@ function BuildIncludes($regions)
                                         <td colspan="2"><img src="##rangeImg##" width="150" height="75"></td>
                                     </tr>
                                     <tr>
-                                        <td>##24min##</td>
-                                        <td align="right">##24max##</td>
+                                        <td itemprop="minPrice" content="##raw24min##">##24min##</td>
+                                        <td itemprop="maxPrice" content="##raw24max##" align="right">##24max##</td>
                                     </tr>
                                 </table>
                             </td>
@@ -246,7 +247,7 @@ function BuildIncludes($regions)
                         </tr>
                         <tr>
                             <td>Updated</td>
-                            <td id="##region##-updatedhtml">##updatedhtml##</td>
+                            <td itemprop="validFrom" content="##rawupdatedISO8601##" id="##region##-updatedhtml">##updatedhtml##</td>
                         </tr>
                     </tbody>
                 </table>
@@ -311,6 +312,7 @@ EOF;
                 'timeToSellSeconds' => $tokenData['timeleftraw'],
                 'result' => $tokenData['result'],
                 'updated' => strtotime($tokenData['when']),
+                'updatedISO8601' => Date(DATE_ISO8601, strtotime($tokenData['when'])),
             ],
             'formatted' => [
                 'buy' => number_format($tokenData['marketgold']).'g',
@@ -327,11 +329,16 @@ EOF;
             ],
         ];
 
-        $replacements = $json[$fileRegion]['formatted'];
+        $replacements = $json[$fileRegion];
 
         $html = preg_replace_callback('/##([a-zA-Z0-9]+)##/', function ($m) use ($replacements) {
-                if (isset($replacements[$m[1]])) {
-                    return $replacements[$m[1]];
+                if (substr($m[1], 0, 3) == 'raw') {
+                    if (isset($replacements['raw'][substr($m[1], 3)])) {
+                        return $replacements['raw'][substr($m[1], 3)];
+                    }
+                }
+                if (isset($replacements['formatted'][$m[1]])) {
+                    return $replacements['formatted'][$m[1]];
                 }
                 return $m[0];
             }, $htmlFormat);

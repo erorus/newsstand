@@ -37,7 +37,7 @@
         <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
     </head>
     <body>
-        <div class="mui-container">
+        <div class="mui-container" itemscope itemtype="http://schema.org/Product">
             <div class="mui-panel" id="topcard">
                 <h1>WoW Token Info</h1>
                 <div class="twitter"><a href="https://twitter.com/WoWTokens"><img src="images/twitter.png">@WoWTokens</a></div>
@@ -47,11 +47,19 @@
             <div class="mui-panel extra-panel" id="faq-panel">
                 <h2>What is this I don't even</h2>
                 <ul class="faq">
-                    <li><b>What is a WoW Token?</b> The WoW Token is an item in World of Warcraft.</li>
+                    <li><b>What is a <span itemprop="name">WoW Token</span>?</b> The WoW Token is an item in
+                        <span itemprop="isRelatedTo" itemscope itemtype="http://schema.org/Product">
+                            <span itemprop="brand" itemscope itemtype="http://schema.org/Brand">
+                                <meta itemprop="name" content="Blizzard">
+                                <meta itemprop="url" content="http://www.blizzard.com/">
+                            </span>
+                            <span itemprop="name">World of Warcraft</span>.
+                            <meta itemprop="url" content="http://us.battle.net/wow/">
+                        </span></li>
                     <li><b>What do I do with it?</b> There are <b>only two things</b> you can do with a WoW Token:
                         <ol>
                             <li>Buy one with money from the in-game Shop, then sell it in the Auction House for gold.</li>
-                            <li>Buy one with gold from the Auction House, then use it to add 30 days of game time to your subscription.</li>
+                            <li>Buy one with gold from the Auction House, then use it to <span itemprop="description">add 30 days of game time to your World of Warcraft subscription</span>.</li>
                         </ol>
                     </li>
                     <li><b>How much money does it cost?</b> You buy it from the in-game shop.
@@ -68,12 +76,12 @@
                     <li><b>Can I buy one to give to a friend?</b> No, like it says up there, either buy one with money and sell it for gold, or buy one with gold and use it yourself. That's it.</li>
                     <li><b>Can I buy one with gold and resell it later?</b> No, all you can do are those 2 things mentioned above. That's it. Blizzard locked this thing down. Don't overcomplicate this.</li>
                     <li><b>I don't have a sub right now, but I know I have the gold.</b> Just log in to the game, and on the character select screen, there's someplace to buy a token and use the gold from your characters.</li>
-                    <li><b>I'm still confused. Can you run me through that again?</b> Try reading <a href="http://www.wowhead.com/guides/wow-token">Wowhead's guide</a> about the WoW Token.</li>
+                    <li><b>I'm still confused. Can you run me through that again?</b> Try reading <a href="http://www.wowhead.com/guides/wow-token">Wowhead's guide</a><meta itemprop="sameAs" content="http://www.wowhead.com/item=122284/wow-token"> about the WoW Token.</li>
                 </ul>
                 <h2>TL;DR</h2>
                 <ul>
                     <li>The WoW Token is an in-game item.</li>
-                    <li>You can buy one from Blizzard for $20, &euro;20, &pound;15, CN&yen;30, NT$500, or &#8361;22,000 and sell it in the AH.</li>
+                    <li>You can buy one from <span itemprop="brand" itemscope itemtype="http://schema.org/Brand"><span itemprop="name">Blizzard</span><meta itemprop="url" content="http://www.blizzard.com/"></span> for $20, &euro;20, &pound;15, CN&yen;30, NT$500, or &#8361;22,000 and sell it in the AH.</li>
                     <li>You can buy one in the AH and use it for 30 days of game time.</li>
                     <li>The gold price is the same for all realms, and is shown in the charts on this site.</li>
                 </ul>
@@ -95,36 +103,86 @@
                 (adsbygoogle = window.adsbygoogle || []).push({});
             </script>
 
-            <div class="mui-panel realm-panel" id="na-panel">
-                <h2>North American Realms</h2>
+            <div class="mui-panel realm-panel" id="na-panel" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+                <h2 itemprop="name">WoW Token on North American Realms</h2>
+                <meta itemprop="description" content="30 days of game time on North American realms in World of Warcraft">
+                <span itemprop="areaServed" itemscope itemtype="http://schema.org/Place">
+                    <span itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
+                        <meta itemprop="addressCountry" content="US">
+                    </span>
+                </span>
+                <span itemprop="areaServed" itemscope itemtype="http://schema.org/Place">
+                    <span itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
+                        <meta itemprop="addressCountry" content="CA">
+                    </span>
+                </span>
+                <span itemprop="areaServed" itemscope itemtype="http://schema.org/Place">
+                    <span itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
+                        <meta itemprop="addressCountry" content="AU">
+                    </span>
+                </span>
+                <span itemprop="areaServed" itemscope itemtype="http://schema.org/Place">
+                    <span itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
+                        <meta itemprop="addressCountry" content="MX">
+                    </span>
+                </span>
+                <span itemprop="areaServed" itemscope itemtype="http://schema.org/Place">
+                    <span itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
+                        <meta itemprop="addressCountry" content="BR">
+                    </span>
+                </span>
                 <!--#include virtual="NA.incl.html"-->
                 <div id="hc-na"></div>
                 <div id="ns-na"></div>
             </div>
 
-            <div class="mui-panel realm-panel" id="eu-panel">
-                <h2>European Realms</h2>
+            <div class="mui-panel realm-panel" id="eu-panel" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+                <h2 itemprop="name">WoW Token on European Realms</h2>
+                <meta itemprop="description" content="30 days of game time on European realms in World of Warcraft">
+                <span itemprop="areaServed" itemscope itemtype="http://schema.org/Place">
+                    <span itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
+                        <meta itemprop="addressCountry" content="EU">
+                    </span>
+                </span>
                 <!--#include virtual="EU.incl.html"-->
                 <div id="hc-eu"></div>
                 <div id="ns-eu"></div>
             </div>
 
-            <div class="mui-panel realm-panel" id="cn-panel">
+            <div class="mui-panel realm-panel" id="cn-panel" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
                 <h2>Chinese Realms</h2>
+                <meta itemprop="description" content="30 days of game time on Chinese realms in World of Warcraft">
+                <span itemprop="areaServed" itemscope itemtype="http://schema.org/Place">
+                    <span itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
+                        <meta itemprop="addressCountry" content="CN">
+                    </span>
+                </span>
                 <!--#include virtual="CN.incl.html"-->
                 <div id="hc-cn"></div>
                 <div id="ns-cn"></div>
             </div>
 
-            <div class="mui-panel realm-panel" id="tw-panel">
-                <h2>Taiwanese Realms</h2>
+            <div class="mui-panel realm-panel" id="tw-panel" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+                <h2 itemprop="name">WoW Token on Taiwanese Realms</h2>
+                <meta itemprop="description" content="30 days of game time on Taiwanese realms in World of Warcraft">
+                <span itemprop="areaServed" itemscope itemtype="http://schema.org/Place">
+                    <span itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
+                        <meta itemprop="addressCountry" content="TW">
+                    </span>
+                </span>
                 <!--#include virtual="TW.incl.html"-->
                 <div id="hc-tw"></div>
                 <div id="ns-tw"></div>
             </div>
 
-            <div class="mui-panel realm-panel" id="kr-panel">
-                <h2>Korean Realms</h2>
+            <div class="mui-panel realm-panel" id="kr-panel" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+                <h2 itemprop="name">WoW Token on Korean Realms</h2>
+                <meta itemprop="description" content="30 days of game time on Korean realms in World of Warcraft">
+                <span itemprop="areaServed" itemscope itemtype="http://schema.org/Place">
+                    <span itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
+                        <meta itemprop="addressCountry" content="KR">
+                    </span>
+                </span>
                 <!--#include virtual="KR.incl.html"-->
                 <div id="hc-kr"></div>
                 <div id="ns-kr"></div>
