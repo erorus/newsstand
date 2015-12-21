@@ -104,7 +104,7 @@
             </script>
 
             <div class="mui-panel realm-panel" id="na-panel" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-                <h2 itemprop="name">WoW Token on North American Realms</h2>
+                <h2 itemprop="name">North American Realms</h2>
                 <meta itemprop="description" content="30 days of game time on North American realms in World of Warcraft">
                 <span itemprop="areaServed" itemscope itemtype="http://schema.org/Place">
                     <span itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
@@ -137,7 +137,7 @@
             </div>
 
             <div class="mui-panel realm-panel" id="eu-panel" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-                <h2 itemprop="name">WoW Token on European Realms</h2>
+                <h2 itemprop="name">European Realms</h2>
                 <meta itemprop="description" content="30 days of game time on European realms in World of Warcraft">
                 <span itemprop="areaServed" itemscope itemtype="http://schema.org/Place">
                     <span itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
@@ -150,7 +150,7 @@
             </div>
 
             <div class="mui-panel realm-panel" id="cn-panel" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-                <h2>Chinese Realms</h2>
+                <h2 itemprop="name">Chinese Realms</h2>
                 <meta itemprop="description" content="30 days of game time on Chinese realms in World of Warcraft">
                 <span itemprop="areaServed" itemscope itemtype="http://schema.org/Place">
                     <span itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
@@ -163,7 +163,7 @@
             </div>
 
             <div class="mui-panel realm-panel" id="tw-panel" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-                <h2 itemprop="name">WoW Token on Taiwanese Realms</h2>
+                <h2 itemprop="name">Taiwanese Realms</h2>
                 <meta itemprop="description" content="30 days of game time on Taiwanese realms in World of Warcraft">
                 <span itemprop="areaServed" itemscope itemtype="http://schema.org/Place">
                     <span itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
@@ -176,7 +176,7 @@
             </div>
 
             <div class="mui-panel realm-panel" id="kr-panel" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-                <h2 itemprop="name">WoW Token on Korean Realms</h2>
+                <h2 itemprop="name">Korean Realms</h2>
                 <meta itemprop="description" content="30 days of game time on Korean realms in World of Warcraft">
                 <span itemprop="areaServed" itemscope itemtype="http://schema.org/Place">
                     <span itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
