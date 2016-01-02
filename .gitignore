@@ -13,6 +13,7 @@ incl/banlist.txt
 public/index.scripts.inc
 scripts/realms2houses_cache/*
 scripts/cdnpurge.dates.json
+scripts/zopfli
 compress/*
 
 public/globalprices.json

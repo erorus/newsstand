@@ -23,6 +23,8 @@ define('SNAPSHOT_PATH', '/home/wowtoken/pending/');
 define('TWEET_FREQUENCY_MINUTES', 360); // tweet at least every 6 hours
 define('PRICE_CHANGE_THRESHOLD', 0.15); // was 0.2, for 20% change required. 0 means tweet every change
 
+define('WOWTOKEN_FLAGS_COMPRESS', 0x1);
+
 if (!DBConnect()) {
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
 }
@@ -348,14 +350,13 @@ EOF;
         unset($json[$fileRegion]['formatted']['rangeImg']);
     }
 
-    AtomicFilePutContents(__DIR__.'/../wowtoken/snapshot.json', json_encode($json, JSON_NUMERIC_CHECK));
-    AtomicFilePutContents(__DIR__.'/../wowtoken/snapshot-history.csv', $csv);
+    AtomicFilePutContents(__DIR__.'/../wowtoken/snapshot.json', json_encode($json, JSON_NUMERIC_CHECK), WOWTOKEN_FLAGS_COMPRESS);
     AtomicFilePutContents(__DIR__.'/../wowtoken/snapshot-history.json', json_encode([
                 'attention' => 'Please see usage guidelines on https://wowtoken.info/',
                 'update' => $json,
                 'history' => $historyJson
-            ], JSON_NUMERIC_CHECK));
-    MCSet('wowtoken-json-etag', time());
+            ], JSON_NUMERIC_CHECK), WOWTOKEN_FLAGS_COMPRESS);
+    AtomicFilePutContents(__DIR__.'/../wowtoken/snapshot-history.csv', $csv, WOWTOKEN_FLAGS_COMPRESS);
 
     $shtmlPath = __DIR__.'/../wowtoken/index-template.shtml';
     if (file_exists($shtmlPath)) {
@@ -1041,8 +1042,34 @@ EOF;
     }
 }
 
-function AtomicFilePutContents($path, $data) {
+function AtomicFilePutContents($path, $data, $flags = 0) {
     $aPath = "$path.atomic";
     file_put_contents($aPath, $data);
+    if ($flags & WOWTOKEN_FLAGS_COMPRESS) {
+        static $hasZopfli = null;
+        if (is_null($hasZopfli)) {
+            $hasZopfli = is_executable(__DIR__.'/zopfli');
+        }
+        $o = [];
+        $ret = 0;
+        $zaPath = "$aPath.gz";
+        $zPath = "$path.gz";
+
+        exec(($hasZopfli ? escapeshellcmd(__DIR__.'/zopfli') : 'gzip') . ' -c ' . escapeshellarg($aPath) . ' > ' . escapeshellarg($zaPath), $o, $ret);
+
+        if ($ret != 0) {
+            if (file_exists($zaPath)) {
+                unlink($zaPath);
+            }
+            if (file_exists($zPath)) {
+                unlink($zPath);
+            }
+        } else {
+            $tm = filemtime($aPath);
+            touch($aPath, $tm); // wipes out fractional seconds
+            touch($zaPath, $tm); // identical time to $aPath
+            rename($zaPath, $zPath);
+        }
+    }
     rename($aPath, $path);
 }
