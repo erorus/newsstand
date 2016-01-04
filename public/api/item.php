@@ -178,7 +178,7 @@ function ItemHistoryDaily($house, $item)
 {
     global $db;
 
-    $cacheKey = 'item_historydaily_' . $house . '_' . $item;
+    $cacheKey = 'item_historydaily2_' . $house . '_' . $item;
 
     if (($tr = MCGet($cacheKey)) !== false) {
         return $tr;
@@ -193,6 +193,7 @@ select `when` as `date`,
 `quantitymin`, `quantityavg`, `quantitymax`, round(`presence`/255*100,1) as `presence`
 from tblItemHistoryDaily
 where house = ? and item = ?
+and `when` not between '2015-12-16' and '2015-12-22'
 order by `when` asc
 EOF;
 
@@ -213,7 +214,7 @@ function ItemHistoryMonthly($house, $item)
 {
     global $db;
 
-    $cacheKey = 'item_historymonthly2_' . $house . '_' . $item;
+    $cacheKey = 'item_historymonthly_' . $house . '_' . $item;
 
     if (($tr = MCGet($cacheKey)) !== false) {
         return $tr;
@@ -247,6 +248,9 @@ EOF;
             $month = ($monthNum < 10 ? '0' : '') . $monthNum;
             for ($dayNum = 1; $dayNum <= 31; $dayNum++) {
                 $day = ($dayNum < 10 ? '0' : '') . $dayNum;
+                if ($year == 2015 && $monthNum == 12 && ($dayNum >= 16 && $dayNum <= 22)) {
+                    continue;
+                }
                 if (!is_null($rows[$x]['mktslvr' . $day])) {
                     $tr[$bonusSet][] = array('date'     => "$year-$month-$day",
                                   'silver'   => $rows[$x]['mktslvr' . $day],
@@ -354,7 +358,7 @@ function ItemGlobalMonthly($region, $item)
 {
     global $db;
 
-    $key = 'item_globalmonthly_' . $region . '_' . $item;
+    $key = 'item_globalmonthly2_' . $region . '_' . $item;
     if (($tr = MCGet($key)) !== false) {
         return $tr;
     }
@@ -396,6 +400,9 @@ EOF;
             $month = ($monthNum < 10 ? '0' : '') . $monthNum;
             for ($dayNum = 1; $dayNum <= 31; $dayNum++) {
                 $day = ($dayNum < 10 ? '0' : '') . $dayNum;
+                if ($year == 2015 && $monthNum == 12 && ($dayNum >= 16 && $dayNum <= 22)) {
+                    continue;
+                }
                 if (!is_null($rows[$x]['mkt' . $day])) {
                     $tr[$bonusSet][] = array('date'     => "$year-$month-$day",
                                   'silver'   => round($rows[$x]['mkt' . $day] / 100, 2),
