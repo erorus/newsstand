@@ -12,6 +12,7 @@ RunMeNTimes(2);
 CatchKill();
 
 define('SNAPSHOT_PATH', '/var/newsstand/snapshots/');
+define('FAILED_SNAPSHOT_PATH', '/var/newsstand/snapshots.corrupted/');
 define('MAX_BONUSES', 6); // is a count, 1 through N
 
 ini_set('memory_limit', '512M');
@@ -120,14 +121,17 @@ function NextDataFile()
     );
     $json = json_decode(fread($handle, filesize(SNAPSHOT_PATH . $fileName)), true);
 
-    ftruncate($handle, 0);
-    fclose($handle);
-    unlink(SNAPSHOT_PATH . $fileName);
 
     if (json_last_error() != JSON_ERROR_NONE) {
+        fclose($handle);
+        rename(SNAPSHOT_PATH . $fileName, FAILED_SNAPSHOT_PATH . $fileName);
         DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " $snapshot data file corrupted! " . json_last_error_msg(), E_USER_WARNING);
         return 0;
     }
+
+    ftruncate($handle, 0);
+    fclose($handle);
+    unlink(SNAPSHOT_PATH . $fileName);
 
     ParseAuctionData($house, $snapshot, $json);
     return 0;
