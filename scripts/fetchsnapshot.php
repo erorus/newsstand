@@ -123,9 +123,14 @@ ENDSQL;
     $dlStart = microtime(true);
     $data = FetchHTTP(preg_replace('/^http:/', 'https:', $fileInfo['url']), array(), $outHeaders);
     $dlDuration = microtime(true) - $dlStart;
-    if (!$data) {
-        DebugMessage("$region $slug data file empty. Waiting 5 seconds and trying again.");
-        sleep(5);
+    if (!$data || (substr($data, -4) != "]\r\n}")) {
+        if (!$data) {
+            DebugMessage("$region $slug data file empty. Waiting 5 seconds and trying again.");
+            sleep(5);
+        } else {
+            DebugMessage("$region $slug data file malformed. Waiting 15 seconds and trying again.");
+            sleep(15);
+        }
         $dlStart = microtime(true);
         $data = FetchHTTP($fileInfo['url'] . (parse_url($fileInfo['url'], PHP_URL_QUERY) ? '&' : '?') . 'please', array(), $outHeaders);
         $dlDuration = microtime(true) - $dlStart;
@@ -136,6 +141,9 @@ ENDSQL;
         http_persistent_handles_clean();
 
         return 10;
+    }
+    if (substr($data, -4) != "]\r\n}") {
+        DebugMessage("$region $slug data file still probably malformed. Passing along anyway.");
     }
 
     $xferBytes = isset($outHeaders['X-Original-Content-Length']) ? $outHeaders['X-Original-Content-Length'] : strlen($data);
