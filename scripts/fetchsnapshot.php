@@ -119,7 +119,7 @@ ENDSQL;
         return 0;
     }
 
-    DebugMessage("$region $slug updated " . TimeDiff($modified) . ", fetching auction data file");
+    DebugMessage("$region $slug updated " . TimeDiff($modified, ['precision' => 'second']) . ", fetching auction data file");
     $dlStart = microtime(true);
     $data = FetchHTTP(preg_replace('/^http:/', 'https:', $fileInfo['url']), array(), $outHeaders);
     $dlDuration = microtime(true) - $dlStart;
@@ -128,8 +128,8 @@ ENDSQL;
             DebugMessage("$region $slug data file empty. Waiting 5 seconds and trying again.");
             sleep(5);
         } else {
-            DebugMessage("$region $slug data file malformed. Waiting 15 seconds and trying again.");
-            sleep(15);
+            DebugMessage("$region $slug data file malformed. Waiting 10 seconds and trying again.");
+            sleep(10);
         }
         $dlStart = microtime(true);
         $data = FetchHTTP($fileInfo['url'] . (parse_url($fileInfo['url'], PHP_URL_QUERY) ? '&' : '?') . 'please', array(), $outHeaders);
