@@ -349,7 +349,7 @@ var TUJ_Category = function ()
 
     resultFunctions.BattlePetList = function (data, dest)
     {
-        var t, td, tr, firstBreed, breed, species, petType, allSpecies, o, x, b;
+        var t, td, tr, firstBreed, breed, species, petType, allSpecies, o, x, b, i, a;
 
         var dateRegEx = /^(\d{4}-\d\d-\d\d) (\d\d:\d\d:\d\d)$/;
         var dateRegExFmt = '$1T$2.000Z';
@@ -445,13 +445,13 @@ var TUJ_Category = function ()
                     }
                     o.quantity += b.quantity;
                     o.breedCount++;
-                    if (o.price > b.price) {
+                    if (o.price > b.price && b.quantity) {
                         o.price = b.price;
                     }
-                    if (o.avgprice > b.avgprice) {
+                    if (o.avgprice > b.avgprice && b.avgprice) {
                         o.avgprice = b.avgprice;
                     }
-                    if (o.regionavgprice > b.regionavgprice) {
+                    if (o.regionavgprice > b.regionavgprice && b.regionavgprice) {
                         o.regionavgprice = b.regionavgprice;
                     }
                     x = Date.parse(b.lastseen.replace(dateRegEx, dateRegExFmt)) / 1000;
