@@ -143,7 +143,11 @@ ENDSQL;
         return 10;
     }
     if (substr($data, -4) != "]\r\n}") {
-        DebugMessage("$region $slug data file still probably malformed. Passing along anyway.");
+        $delay = GetCheckDelay($modified);
+        DebugMessage("$region $slug data file still probably malformed. Waiting " . floor($delay / 60) . " minutes.");
+        SetHouseNextCheck($house, time() + $delay, $json);
+
+        return 0;
     }
 
     $xferBytes = isset($outHeaders['X-Original-Content-Length']) ? $outHeaders['X-Original-Content-Length'] : strlen($data);
