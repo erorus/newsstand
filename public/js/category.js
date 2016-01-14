@@ -448,10 +448,10 @@ var TUJ_Category = function ()
                     if (o.price > b.price && b.quantity) {
                         o.price = b.price;
                     }
-                    if (o.avgprice > b.avgprice && b.avgprice) {
+                    if ((o.avgprice > b.avgprice && b.avgprice) || (!o.avgprice)) {
                         o.avgprice = b.avgprice;
                     }
-                    if (o.regionavgprice > b.regionavgprice && b.regionavgprice) {
+                    if ((o.regionavgprice > b.regionavgprice && b.regionavgprice) || (!o.regionavgprice)) {
                         o.regionavgprice = b.regionavgprice;
                     }
                     x = Date.parse(b.lastseen.replace(dateRegEx, dateRegExFmt)) / 1000;
