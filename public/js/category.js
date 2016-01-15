@@ -445,7 +445,7 @@ var TUJ_Category = function ()
                     }
                     o.quantity += b.quantity;
                     o.breedCount++;
-                    if (o.price > b.price && b.quantity) {
+                    if (b.quantity && ((o.price > b.price) || (!o.quantity))) {
                         o.price = b.price;
                     }
                     if ((o.avgprice > b.avgprice && b.avgprice) || (!o.avgprice)) {
