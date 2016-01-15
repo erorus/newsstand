@@ -354,6 +354,19 @@ var TUJ_Category = function ()
         var dateRegEx = /^(\d{4}-\d\d-\d\d) (\d\d:\d\d:\d\d)$/;
         var dateRegExFmt = '$1T$2.000Z';
 
+        var speciesSort = function (a, b) {
+            return (b.price - a.price) ||
+                a.name.localeCompare(b.name);
+        };
+
+        var breedSort = function (a, b) {
+            var ab = allSpecies[x].breeds[a];
+            var bb = allSpecies[x].breeds[b];
+            return ((bb.quantity > 0 ? 1 : 0) - (ab.quantity > 0 ? 1 : 0)) ||
+                (bb.price - ab.price) ||
+                tujConstants.breeds[a].localeCompare(tujConstants.breeds[b]);
+        };
+
         var d = libtuj.ce('div');
         dest.appendChild(d);
         d.appendChild(document.createTextNode('Click "(All)" in the Breeds column to expand the row for separate breeds.'));
@@ -473,12 +486,7 @@ var TUJ_Category = function ()
                 allSpecies.push(o);
             }
 
-            allSpecies.sort(function (a, b)
-            {
-                return ((b.quantity > 0 ? 1 : 0) - (a.quantity > 0 ? 1 : 0)) ||
-                    (b.price - a.price) ||
-                    a.name.localeCompare(b.name);
-            });
+            allSpecies.sort(speciesSort);
 
             for (x = 0; x < allSpecies.length; x++) {
                 tr = libtuj.ce('tr');
@@ -541,7 +549,16 @@ var TUJ_Category = function ()
                 td.appendChild(libtuj.FormatDate(allSpecies[x].lastseen));
 
                 if (allSpecies[x].breedCount > 1) {
+                    var workingBreeds = [];
                     for (breed in tujConstants.breeds) {
+                        if (!tujConstants.breeds.hasOwnProperty(breed) || !allSpecies[x].breeds.hasOwnProperty(breed)) {
+                            continue;
+                        }
+                        workingBreeds.push(breed);
+                    }
+                    workingBreeds.sort(breedSort);
+
+                    for (i = 0; breed = workingBreeds[i]; i++) {
                         if (!tujConstants.breeds.hasOwnProperty(breed) || !allSpecies[x].breeds.hasOwnProperty(breed)) {
                             continue;
                         }
