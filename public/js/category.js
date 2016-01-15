@@ -443,11 +443,11 @@ var TUJ_Category = function ()
                         o.regionavgprice = b.regionavgprice;
                         o.lastseen = Date.parse(b.lastseen.replace(dateRegEx, dateRegExFmt)) / 1000;
                     }
-                    o.quantity += b.quantity;
                     o.breedCount++;
                     if (b.quantity && ((o.price > b.price) || (!o.quantity))) {
                         o.price = b.price;
                     }
+                    o.quantity += b.quantity;
                     if ((o.avgprice > b.avgprice && b.avgprice) || (!o.avgprice)) {
                         o.avgprice = b.avgprice;
                     }
