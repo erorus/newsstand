@@ -475,7 +475,8 @@ var TUJ_Category = function ()
 
             allSpecies.sort(function (a, b)
             {
-                return b.price - a.price ||
+                return ((b.quantity > 0 ? 1 : 0) - (a.quantity > 0 ? 1 : 0)) ||
+                    (b.price - a.price) ||
                     a.name.localeCompare(b.name);
             });
 
