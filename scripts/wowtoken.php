@@ -414,8 +414,8 @@ function BuildHistoryJson($region) {
     $lately = time() - (3 * 24 * 60 * 60) - 5 * 60;
     // all changes past 7 days
     $recently = time() - ((7 * 24 * 60 * 60) + (60 * 60));
-    // every 2 hours at max, older than 7 days
-    $interval = 2 * 60 * 60 - 8 * 60;
+    // every 4 hours at max, older than 7 days
+    $interval = 4 * 60 * 60 - 8 * 60;
     $prevTime = 0;
     while ($row = $result->fetch_row()) {
         if (($row[0] > $lately) || (($prevPrice != $row[1]) && ($row[0] > $recently)) || ($prevTime < ($row[0] - $interval))) {
