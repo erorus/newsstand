@@ -27,3 +27,4 @@ wowtoken/*.json
 wowtoken/*.csv
 wowtoken/index.html
 wowtoken/index.shtml
+wowtoken/snapshot*.gz
