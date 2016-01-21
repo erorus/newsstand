@@ -116,7 +116,24 @@ function GetHouse($realm)
 
 function BotCheck()
 {
-    if (IPIsBanned()) {
+    $banned = IPIsBanned();
+    if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $filterOpts = array(
+            'default' => false,
+            'flags' => FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+        );
+
+        $otherIPs = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'], 6);
+        if (count($otherIPs) == 6) {
+            array_pop($otherIPs);
+        }
+        while (count($otherIPs) && !$banned) {
+            if ($otherIP = filter_var(trim(array_shift($otherIPs)), FILTER_VALIDATE_IP, $filterOpts)) {
+                $banned |= IPIsBanned($otherIP);
+            }
+        }
+    }
+    if ($banned) {
         header('HTTP/1.1 403 Forbidden');
         exit;
     }
