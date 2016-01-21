@@ -6,7 +6,7 @@ require_once('incl.php');
 define('API_VERSION', 10);
 define('THROTTLE_PERIOD', 3600); // seconds
 define('THROTTLE_MAXHITS', 200);
-define('BANLIST_CACHEKEY', 'banlist_cidrs');
+define('BANLIST_CACHEKEY', 'banlist_cidrs2');
 define('BANLIST_FILENAME', __DIR__ . '/banlist.txt');
 
 if ((PHP_SAPI != 'cli') && (($inMaintenance = APIMaintenance()) !== false)) {
@@ -196,38 +196,46 @@ function IPIsBanned($ip = false)
     $ipv4 = (strpos($ip, ':') === false);
     if ($ipv4) {
         $longIp = ip2long($ip);
+        $parts = explode('.', $ip);
+        if (count($parts) == 4) {
+            $domain = implode('.', array_reverse($parts)).'.cbl.abuseat.org.';
+            $result = (gethostbyname($domain) != $domain);
+        }
     } else {
         $binIp = inet_pton($ip);
     }
-    for ($x = 0; $x < count($banList); $x++) {
-        if (strpos($banList[$x], '/') !== false) {
-            // mask
-            list($subnet, $mask) = explode('/', $banList[$x]);
-            $mask = intval($mask, 10);
-            if ($ipv4 && (strpos($banList[$x], ':') === false)) {
-                // ipv4
-                if (($longIp & ~((1 << (32 - $mask)) - 1)) == ip2long($subnet)) {
+
+    if (!$result) {
+        for ($x = 0; $x < count($banList); $x++) {
+            if (strpos($banList[$x], '/') !== false) {
+                // mask
+                list($subnet, $mask) = explode('/', $banList[$x]);
+                $mask = intval($mask, 10);
+                if ($ipv4 && (strpos($banList[$x], ':') === false)) {
+                    // ipv4
+                    if (($longIp & ~((1 << (32 - $mask)) - 1)) == ip2long($subnet)) {
+                        $result = true;
+                        break;
+                    }
+                } elseif (!$ipv4 && (strpos($banList[$x], ':') !== false)) {
+                    // ipv6
+                    $binMask = pack("H*", str_pad(trim(str_repeat('f', floor($mask / 4)).substr(' 8ce', $mask % 4, 1)), 32, '0'));
+                    if (($binIp & $binMask) == (inet_pton($subnet) & $binMask)) {
+                        $result = true;
+                        break;
+                    }
+                }
+            } else {
+                // single IP
+                if ($ip == $banList[$x]) {
                     $result = true;
                     break;
                 }
-            } elseif (!$ipv4 && (strpos($banList[$x], ':') !== false)) {
-                // ipv6
-                $binMask = pack("H*", str_pad(trim(str_repeat('f', floor($mask / 4)).substr(' 8ce', $mask % 4, 1)), 32, '0'));
-                if (($binIp & $binMask) == (inet_pton($subnet) & $binMask)) {
-                    $result = true;
-                    break;
-                }
-            }
-        } else {
-            // single IP
-            if ($ip == $banList[$x]) {
-                $result = true;
-                break;
             }
         }
     }
 
-    MCSet($cacheKey, $result ? 'yes' : 'no');
+    MCSet($cacheKey, $result ? 'yes' : 'no', 43200);
 
     return $result;
 }
