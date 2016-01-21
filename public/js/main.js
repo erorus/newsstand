@@ -1020,7 +1020,7 @@ var TUJ = function ()
                 }
             }
 
-            $('#front-page-banned').empty();
+            $('#front-page-banned').hide();
             if (self.banned.isbanned) {
                 var banHTML = '';
                 banHTML += 'The IP address of you or your proxy ';
@@ -1043,7 +1043,7 @@ var TUJ = function ()
 
                 banHTML += '<br><br>You can drop us a line at the <a href="' + tuj.BuildHash({page: 'contact', id: undefined}) + '">contact page</a> if you need us to investigate further.';
 
-                $('#front-page-banned').html(banHTML);
+                $('#front-page-banned').html(banHTML).show();
             }
         }
 
