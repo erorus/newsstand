@@ -6,7 +6,7 @@ require_once('incl.php');
 define('API_VERSION', 10);
 define('THROTTLE_PERIOD', 3600); // seconds
 define('THROTTLE_MAXHITS', 200);
-define('BANLIST_CACHEKEY', 'banlist_cidrs2');
+define('BANLIST_CACHEKEY', 'banlist_cidrs3');
 define('BANLIST_FILENAME', __DIR__ . '/banlist.txt');
 
 if ((PHP_SAPI != 'cli') && (($inMaintenance = APIMaintenance()) !== false)) {
@@ -114,9 +114,16 @@ function GetHouse($realm)
     return $tr;
 }
 
-function BotCheck()
+function BotCheck($returnReason = false)
 {
-    $banned = IPIsBanned();
+    if ((PHP_SAPI == 'cli') || (!isset($_SERVER['REMOTE_ADDR']))) {
+        return false;
+    }
+
+    $checked = $_SERVER['REMOTE_ADDR'];
+    $reason = '';
+    $banned = IPIsBanned($checked, $reason);
+
     if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
         $filterOpts = array(
             'default' => false,
@@ -129,10 +136,19 @@ function BotCheck()
         }
         while (count($otherIPs) && !$banned) {
             if ($otherIP = filter_var(trim(array_shift($otherIPs)), FILTER_VALIDATE_IP, $filterOpts)) {
-                $banned |= IPIsBanned($otherIP);
+                $banned |= IPIsBanned($checked = $otherIP, $reason);
             }
         }
     }
+
+    if ($returnReason) {
+        return [
+            'isbanned' => $banned,
+            'ip' => $banned ? $checked : '',
+            'reason' => $banned ? $reason : '',
+        ];
+    }
+
     if ($banned) {
         header('HTTP/1.1 403 Forbidden');
         exit;
@@ -177,7 +193,7 @@ function BanIP($ip = false)
     return $addedBan;
 }
 
-function IPIsBanned($ip = false)
+function IPIsBanned($ip = false, &$result = '')
 {
     if ($ip === false) {
         $ip = $_SERVER['REMOTE_ADDR'];
@@ -190,7 +206,7 @@ function IPIsBanned($ip = false)
     $cacheKey = BANLIST_CACHEKEY . '_' . $ip;
     $result = MCGet($cacheKey);
     if ($result !== false) {
-        return $result == 'yes';
+        return $result != 'no';
     }
 
     $banList = MCGet(BANLIST_CACHEKEY);
@@ -216,7 +232,9 @@ function IPIsBanned($ip = false)
         $parts = explode('.', $ip);
         if (count($parts) == 4) {
             $domain = implode('.', array_reverse($parts)).'.cbl.abuseat.org.';
-            $result = (gethostbyname($domain) != $domain);
+            if (gethostbyname($domain) != $domain) {
+                $result = 'cbl';
+            }
         }
     } else {
         $binIp = inet_pton($ip);
@@ -231,30 +249,30 @@ function IPIsBanned($ip = false)
                 if ($ipv4 && (strpos($banList[$x], ':') === false)) {
                     // ipv4
                     if (($longIp & ~((1 << (32 - $mask)) - 1)) == ip2long($subnet)) {
-                        $result = true;
+                        $result = 'mask';
                         break;
                     }
                 } elseif (!$ipv4 && (strpos($banList[$x], ':') !== false)) {
                     // ipv6
                     $binMask = pack("H*", str_pad(trim(str_repeat('f', floor($mask / 4)).substr(' 8ce', $mask % 4, 1)), 32, '0'));
                     if (($binIp & $binMask) == (inet_pton($subnet) & $binMask)) {
-                        $result = true;
+                        $result = 'mask';
                         break;
                     }
                 }
             } else {
                 // single IP
                 if ($ip == $banList[$x]) {
-                    $result = true;
+                    $result = 'ip';
                     break;
                 }
             }
         }
     }
 
-    MCSet($cacheKey, $result ? 'yes' : 'no', 43200);
+    MCSet($cacheKey, $result ? $result : 'no', 43200);
 
-    return $result;
+    return !!$result;
 }
 
 function CaptchaDetails()
