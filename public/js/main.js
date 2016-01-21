@@ -498,6 +498,7 @@ var TUJ = function ()
     this.realms = undefined;
     this.allRealms = undefined;
     this.apiVersion = 0;
+    this.banned = {isbanned: false};
     this.params = {
         region: undefined,
         realm: undefined,
@@ -555,6 +556,9 @@ var TUJ = function ()
                     self.allRealms = dta.realms;
                     if (dta.version) {
                         self.apiVersion = dta.version;
+                    }
+                    if (dta.hasOwnProperty('banned')) {
+                        self.banned = dta.banned;
                     }
                     if (typeof self.allRealms == 'undefined') {
                         alert('Error getting realms');
@@ -1014,6 +1018,32 @@ var TUJ = function ()
                         d.appendChild(libtuj.ce('br'));
                     }
                 }
+            }
+
+            $('#front-page-banned').empty();
+            if (self.banned.isbanned) {
+                var banHTML = '';
+                banHTML += 'The IP address of you or your proxy ';
+                if (self.banned.ip) {
+                    banHTML += '(' + self.banned.ip + ') ';
+                }
+                banHTML += ' has been banned from most queries at The Undermine Journal.';
+
+                switch (self.banned.reason) {
+                    case 'cbl':
+                        banHTML += '<br><br>The IP address is <a href="http://www.abuseat.org/lookup.cgi">listed in the Composite Blocking List (CBL)</a>. Visit that page and enter your IP address for more information on what to do. We ban IPs listed on the CBL because they include botnets and open proxies which may be used to send repeated requests to TUJ.';
+                        break;
+                    case 'mask':
+                        banHTML += '<br><br>The IP address is on a network that has sent repeated automated queries to TUJ. Your computer may not be affected, but many others at your network/ISP are.'
+                        break;
+                    case 'ip':
+                        banHTML += '<br><br>The IP address was the source of many repeated automated queries to TUJ.';
+                        break;
+                }
+
+                banHTML += '<br><br>You can drop us a line at the <a href="' + tuj.BuildHash({page: 'contact', id: undefined}) + '">contact page</a> if you need us to investigate further.';
+
+                $('#front-page-banned').html(banHTML);
             }
         }
 

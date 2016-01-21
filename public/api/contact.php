@@ -31,6 +31,9 @@ $_POST['message'] = preg_replace('/\r\n?/', "\n", $_POST['message']);
 
 $body = "Date: " . Date('Y-m-d H:i:s') . "\nFrom: " . $_POST['from'] . "\nIP: " . $_SERVER['REMOTE_ADDR'] . "\nUser Agent: " . $_SERVER['HTTP_USER_AGENT'] . "\n";
 
+$banned = BotCheck(true);
+$body .= "Banned: " . ($banned['isbanned'] ? 'yes: ' . $banned['reason'] . ' ' . $banned['ip'] : 'no') . "\n";
+
 if (isset($_POST['region'])) {
     $body .= "Region: " . $_POST['region'] . "\n";
 }

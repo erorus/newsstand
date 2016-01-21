@@ -117,6 +117,7 @@
                     </div>
 
                     <h2>Welcome to The Undermine Journal <sub>...your source for Auction House statistics and data in World of Warcraft.</sub></h2>
+                    <div id="front-page-banned" class="news"></div>
 
                     <!--#include virtual="index.news.inc" -->
 
