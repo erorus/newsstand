@@ -193,6 +193,34 @@ function BanIP($ip = false)
     return $addedBan;
 }
 
+function IPInDNSBL($ip)
+{
+    $ipv4 = (strpos($ip, ':') === false);
+    if (!$ipv4) {
+        return false;
+    }
+
+    $parts = explode('.', $ip);
+    if (count($parts) != 4) {
+        return false;
+    }
+
+    $lookup = implode('.', array_reverse($parts));
+    $domains = [
+        //'cbl' => 'cbl.abuseat.org.',
+        'sorbs' => 'proxies.dnsbl.sorbs.net.',
+    ];
+
+    foreach ($domains as $r => $domain) {
+        $domain = "$lookup.$domain";
+        if (gethostbyname($domain) != $domain) {
+            return $r;
+        }
+    }
+
+    return false;
+}
+
 function IPIsBanned($ip = false, &$result = '')
 {
     if ($ip === false) {
@@ -229,13 +257,7 @@ function IPIsBanned($ip = false, &$result = '')
     $ipv4 = (strpos($ip, ':') === false);
     if ($ipv4) {
         $longIp = ip2long($ip);
-        $parts = explode('.', $ip);
-        if (count($parts) == 4) {
-            $domain = implode('.', array_reverse($parts)).'.cbl.abuseat.org.';
-            if (gethostbyname($domain) != $domain) {
-                $result = 'cbl';
-            }
-        }
+        $result = IPInDNSBL($ip);
     } else {
         $binIp = inet_pton($ip);
     }
