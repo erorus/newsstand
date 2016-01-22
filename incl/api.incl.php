@@ -6,7 +6,7 @@ require_once('incl.php');
 define('API_VERSION', 10);
 define('THROTTLE_PERIOD', 3600); // seconds
 define('THROTTLE_MAXHITS', 200);
-define('BANLIST_CACHEKEY', 'banlist_cidrs3');
+define('BANLIST_CACHEKEY', 'banlist_cidrs4');
 define('BANLIST_FILENAME', __DIR__ . '/banlist.txt');
 
 if ((PHP_SAPI != 'cli') && (($inMaintenance = APIMaintenance()) !== false)) {
