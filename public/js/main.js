@@ -1031,7 +1031,7 @@ var TUJ = function ()
 
                 switch (self.banned.reason) {
                     case 'cbl':
-                        banHTML += '<br><br>The IP address is <a href="http://www.abuseat.org/lookup.cgi">listed in the Composite Blocking List (CBL)</a>. Visit that page and enter your IP address for more information on what to do. We ban IPs listed on the CBL because they include botnets and open proxies which may be used to send repeated requests to TUJ.';
+                        banHTML += '<br><br>The IP address is listed on a third-party block list. We restrict IPs on that list because they include botnets and open proxies which may be used to send repeated requests to TUJ.';
                         break;
                     case 'mask':
                         banHTML += '<br><br>The IP address is on a network that has sent repeated automated queries to TUJ. Your computer may not be affected, but many others at your network/ISP are.'
