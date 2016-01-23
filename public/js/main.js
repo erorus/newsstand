@@ -951,7 +951,7 @@ var TUJ = function ()
                     } else {
                         d = libtuj.ce();
                     }
-                    d.appendChild(document.createTextNode(self.lang.blizzardAPI + ' ' + houseInfo[house].timestamps.lastcheck.json.reason));
+                    d.appendChild(document.createTextNode('Blizzard API: ' + houseInfo[house].timestamps.lastcheck.json.reason));
                     ru.appendChild(d);
                 }
             }

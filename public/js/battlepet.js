@@ -115,7 +115,7 @@ var TUJ_BattlePet = function ()
         var timg = libtuj.ce('img');
         ta.appendChild(timg);
         timg.src = libtuj.IconURL(dta.stats.icon, 'large');
-        var ttl = '[' + dta.stats.name + ']' + (breedId && breeds.length > 1 ? ' ' + tuj.lang.breeds[breedId] : '');
+        var ttl = '[' + dta.stats.name + ']' + (breedId && breeds.length > 1 ? ' ' + tuj.lang.breedsLookup[breedId] : '');
         ta.appendChild(document.createTextNode(ttl));
 
         $('#page-title').empty().append(ta);
@@ -131,7 +131,7 @@ var TUJ_BattlePet = function ()
             a = libtuj.ce('a');
             d.appendChild(a);
             a.href = tuj.BuildHash({page: 'battlepet', id: '' + speciesId});
-            a.appendChild(document.createTextNode(tuj.lang.breeds[0]));
+            a.appendChild(document.createTextNode(tuj.lang.breedsLookup[0]));
             if (breedId == 0) {
                 a.className = 'selected';
             }
@@ -140,7 +140,7 @@ var TUJ_BattlePet = function ()
                 a = libtuj.ce('a');
                 d.appendChild(a);
                 a.href = tuj.BuildHash({page: 'battlepet', id: '' + speciesId + '.' + breeds[x]});
-                a.appendChild(document.createTextNode(tuj.lang.breeds[breeds[x]]));
+                a.appendChild(document.createTextNode(tuj.lang.breedsLookup[breeds[x]]));
                 if (breedId == breeds[x]) {
                     a.className = 'selected';
                 }
@@ -1418,7 +1418,7 @@ var TUJ_BattlePet = function ()
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.className = 'breed';
-            td.appendChild(document.createTextNode(tuj.lang.breeds[auc.breed]));
+            td.appendChild(document.createTextNode(tuj.lang.breedsLookup[auc.breed]));
 
             td = libtuj.ce('td');
             tr.appendChild(td);

@@ -40,7 +40,7 @@ function CategoryResult_battlepets($house)
     $key = 'category_bpets3';
 
     if ($canCache && (($tr = MCGetHouse($house, $key)) !== false)) {
-        return ['name' => 'Battle Pets', 'results' => [['name' => 'BattlePetList', 'data' => $tr]]];
+        return ['name' => 'battlepets', 'results' => [['name' => 'BattlePetList', 'data' => $tr]]];
     }
 
     DBConnect();
@@ -80,7 +80,7 @@ EOF;
 
     MCSetHouse($house, $key, $tr);
 
-    return ['name' => 'Battle Pets', 'results' => [['name' => 'BattlePetList', 'data' => $tr]]];
+    return ['name' => 'battlepets', 'results' => [['name' => 'BattlePetList', 'data' => $tr]]];
 }
 
 function CategoryBattlePetRegion($region)
@@ -119,7 +119,7 @@ EOF;
 function CategoryResult_deals($house)
 {
     $tr = [
-        'name'    => 'Deals',
+        'name'    => 'deals',
         'results' => [
             [
                 'name' => 'ItemList',
@@ -276,7 +276,7 @@ EOF;
 function CategoryResult_unusuals($house)
 {
     return [
-        'name'    => 'Unusual Items',
+        'name'    => 'unusualItems',
         'results' => [
             [
                 'name' => 'ItemList',
@@ -436,7 +436,7 @@ function CategoryResult_auction($house)
 function CategoryResult_mining($house)
 {
     return [
-        'name'    => 'Mining',
+        'name'    => 'mining',
         'results' => [
             [
                 'name' => 'ItemList',
@@ -521,7 +521,7 @@ function CategoryResult_skinning($house)
 {
     global $expansions, $expansionLevels;
 
-    $tr = ['name' => 'Skinning', 'results' => []];
+    $tr = ['name' => 'skinning', 'results' => []];
 
     for ($x = count($expansions); $x--; $x >= 0) {
         $lsql = (($x > 0) ? (' i.level >' . (($x <= 2) ? '=' : '') . ' ' . $expansionLevels[$x - 1] . ' and ') : '') . ' i.level <' . (($x >= 3) ? '=' : '') . ' ' . $expansionLevels[$x];
@@ -560,7 +560,7 @@ function CategoryResult_herbalism($house)
 {
     global $expansions, $expansionLevels;
 
-    $tr = ['name' => 'Herbalism', 'results' => []];
+    $tr = ['name' => 'herbalism', 'results' => []];
 
     for ($x = count($expansions); $x--; $x >= 0) {
         $lsql = (($x > 0) ? (' i.level >' . (($x == 1) ? '=' : '') . ' ' . $expansionLevels[$x - 1] . ' and ') : '') . ' i.level <' . (($x > 0) ? '=' : '') . ' ' . $expansionLevels[$x];
@@ -600,7 +600,7 @@ function CategoryResult_alchemy($house)
 {
     global $expansions, $expansionLevels;
 
-    $tr = ['name' => 'Alchemy', 'results' => []];
+    $tr = ['name' => 'alchemy', 'results' => []];
 
     $tr['results'][] = [
         'name' => 'ItemList',
@@ -671,7 +671,7 @@ function CategoryResult_leatherworking($house)
 {
     global $expansions, $expansionLevels, $db;
 
-    $tr = ['name' => 'Leatherworking', 'results' => []];
+    $tr = ['name' => 'leatherworking', 'results' => []];
 
     $tr['results'][] = [
         'name' => 'ItemList',
@@ -779,7 +779,7 @@ function CategoryResult_blacksmithing($house)
 {
     global $expansions, $expansionLevels, $db, $qualities;
 
-    $tr = ['name' => 'Blacksmithing', 'results' => []];
+    $tr = ['name' => 'blacksmithing', 'results' => []];
     $sortIndex = 0;
 
     /*
@@ -926,7 +926,7 @@ function CategoryResult_jewelcrafting($house)
 
     $gemColors = ['Red','Blue','Yellow','Purple','Green','Orange','Meta'];
 
-    $tr = ['name' => 'Jewelcrafting', 'results' => []];
+    $tr = ['name' => 'jewelcrafting', 'results' => []];
 
     for ($x = count($expansions) - 1; $x >= 5; $x--) {
         $tr['results'][] = [
@@ -1021,7 +1021,7 @@ function CategoryResult_engineering($house)
 {
     global $expansions, $expansionLevels;
 
-    $tr = ['name' => 'Engineering', 'results' => []];
+    $tr = ['name' => 'engineering', 'results' => []];
 
     $exp = $expansions[count($expansions) - 1];
 
@@ -1112,7 +1112,7 @@ function CategoryResult_tailoring($house)
 {
     global $expansions, $expansionLevels, $db;
 
-    $tr = ['name' => 'Tailoring', 'results' => []];
+    $tr = ['name' => 'tailoring', 'results' => []];
 
     $tr['results'][] = [
         'name' => 'ItemList',
@@ -1225,7 +1225,7 @@ function CategoryResult_enchanting($house)
 {
     global $expansions;
 
-    $tr = ['name' => 'Enchanting', 'results' => []];
+    $tr = ['name' => 'enchanting', 'results' => []];
 
     $tr['results'][] = [
         'name' => 'ItemList',
@@ -1272,7 +1272,7 @@ function CategoryResult_inscription($house)
 {
     global $expansions;
 
-    $tr = ['name' => 'Inscription', 'results' => []];
+    $tr = ['name' => 'inscription', 'results' => []];
 
     $x = count($expansions) - 1;
     $tr['results'][] = [
@@ -1433,7 +1433,7 @@ function CategoryResult_inscription($house)
 
 function CategoryResult_cooking($house)
 {
-    $tr = ['name' => 'Cooking', 'results' => []];
+    $tr = ['name' => 'cooking', 'results' => []];
 
     $foods = [
         'Draenor Fish' => implode(',',range(109137,109143)),
@@ -1555,7 +1555,7 @@ function CategoryResult_fishing($house)
         //[118512, 118564, 118565, 118566], // savage piranha
     ];
 
-    $tr = ['name' => 'Fishing', 'results' => []];
+    $tr = ['name' => 'fishing', 'results' => []];
 
     $fishIds = [];
     foreach ($fish as $f) {
@@ -1578,7 +1578,7 @@ function CategoryResult_fishing($house)
 
 function CategoryResult_companions($house)
 {
-    $tr = ['name' => 'Companions', 'results' => []];
+    $tr = ['name' => 'companions', 'results' => []];
 
     $tr['results'][] = [
         'name' => 'ItemList',

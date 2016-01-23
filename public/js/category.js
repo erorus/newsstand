@@ -82,18 +82,23 @@ var TUJ_Category = function ()
         categoryPage.show();
 
         if (!dta.hasOwnProperty('name')) {
-            $('#page-title').empty().append(document.createTextNode('Category: ' + params.id));
-            tuj.SetTitle('Category: ' + params.id);
+            $('#page-title').empty().append(document.createTextNode(tuj.lang.category + ': ' + params.id));
+            tuj.SetTitle(tuj.lang.category + ': ' + params.id);
 
             var h2 = libtuj.ce('h2');
             categoryPage.append(h2);
-            h2.appendChild(document.createTextNode('Category ' + params.id + ' not found.'));
+            h2.appendChild(document.createTextNode(tuj.lang.category + ' ' + params.id + ' not found.'));
 
             return;
         }
 
-        $('#page-title').empty().append(document.createTextNode('Category: ' + dta.name));
-        tuj.SetTitle('Category: ' + dta.name);
+        var titleName = dta.name;
+        if (tuj.lang.hasOwnProperty(titleName)) {
+            titleName = tuj.lang[titleName];
+        }
+
+        $('#page-title').empty().append(document.createTextNode(tuj.lang.category + ': ' + titleName));
+        tuj.SetTitle(tuj.lang.category + ': ' + titleName);
 
         if (!dta.hasOwnProperty('results')) {
             return;
@@ -151,7 +156,15 @@ var TUJ_Category = function ()
             td.className = 'title';
             tr.appendChild(td);
             titleTd = td;
-            $(td).text(data.name);
+
+            var sluggedName = data.name.toLowerCase().replace(/[^ a-z0-9]/, '');
+            for (x = 0; x < sluggedName.length; x++) {
+                if (sluggedName.substr(x, 1) == ' ') {
+                    sluggedName = sluggedName.substr(0, x) + sluggedName.substr(x+1, 1).toUpperCase() + sluggedName.substr(x+2);
+                }
+            }
+
+            $(td).text(tuj.lang.hasOwnProperty(sluggedName) ? tuj.lang[sluggedName] : data.name);
         }
 
         tr = libtuj.ce('tr');
@@ -161,18 +174,18 @@ var TUJ_Category = function ()
         td.className = 'name';
         tr.appendChild(td);
         td.colSpan = 2;
-        $(td).text('Name');
+        $(td).text(tuj.lang.name);
 
         td = libtuj.ce('th');
         td.className = 'quantity';
         tr.appendChild(td);
-        $(td).text('Avail');
+        $(td).text(tuj.lang.availableAbbrev);
 
         if (data.visibleCols.bid) {
             td = libtuj.ce('th');
             td.className = 'price';
             tr.appendChild(td);
-            $(td).text('Bid');
+            $(td).text(tuj.lang.bid);
             titleColSpan++;
         }
 
@@ -180,7 +193,7 @@ var TUJ_Category = function ()
             td = libtuj.ce('th');
             td.className = 'price';
             tr.appendChild(td);
-            $(td).text('Current');
+            $(td).text(tuj.lang.currentPriceAbbrev);
             titleColSpan++;
         }
 
@@ -188,7 +201,7 @@ var TUJ_Category = function ()
             td = libtuj.ce('th');
             td.className = 'price';
             tr.appendChild(td);
-            $(td).text('Mean')
+            $(td).text(tuj.lang.mean)
             titleColSpan++;
         }
 
@@ -196,7 +209,7 @@ var TUJ_Category = function ()
             td = libtuj.ce('th');
             td.className = 'price';
             tr.appendChild(td);
-            $(td).text('Global Median');
+            $(td).text(tuj.lang.globalMedian);
             titleColSpan++;
         }
 
@@ -204,7 +217,7 @@ var TUJ_Category = function ()
             td = libtuj.ce('th');
             td.className = 'date';
             tr.appendChild(td);
-            $(td).text('Age');
+            $(td).text(tuj.lang.age);
             titleColSpan++;
         }
 
@@ -212,7 +225,7 @@ var TUJ_Category = function ()
             td = libtuj.ce('th');
             td.className = 'date';
             tr.appendChild(td);
-            $(td).text('Last Seen');
+            $(td).text(tuj.lang.lastSeen);
             titleColSpan++;
         }
 
@@ -278,7 +291,7 @@ var TUJ_Category = function ()
             tr.appendChild(td);
             a = libtuj.ce('a');
             td.appendChild(a);
-            a.rel = 'item=' + item.id + (item.bonusurl ? '&bonus=' + item.bonusurl : (item.basebonus ? '&bonus=' + item.basebonus : ''));
+            a.rel = 'item=' + item.id + (item.bonusurl ? '&bonus=' + item.bonusurl : (item.basebonus ? '&bonus=' + item.basebonus : '')) + (tuj.locale != 'enus' ? '&locale=' + tuj.locale : '');
             a.href = tuj.BuildHash({page: 'item', id: item.id + (item.bonusurl ? ('.'+item.bonusurl).replace(':','.') : '')});
             $(a).text('[' + item.name + (item.bonusname ? ' ' + item.bonusname.substr(0, item.bonusname.indexOf('|') >= 0 ? item.bonusname.indexOf('|') : item.bonusname.length) : '') + ']' + (item.bonustag ? ' ' : ''));
             if (item.bonustag) {
@@ -364,12 +377,12 @@ var TUJ_Category = function ()
             var bb = allSpecies[x].breeds[b];
             return ((bb.quantity > 0 ? 1 : 0) - (ab.quantity > 0 ? 1 : 0)) ||
                 (bb.price - ab.price) ||
-                tuj.lang.breeds[a].localeCompare(tuj.lang.breeds[b]);
+                tuj.lang.breedsLookup[a].localeCompare(tuj.lang.breedsLookup[b]);
         };
 
         var d = libtuj.ce('div');
         dest.appendChild(d);
-        d.appendChild(document.createTextNode('Click "(All)" in the Breeds column to expand the row for separate breeds.'));
+        d.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.expandBreeds, tuj.lang.all)));
         d.appendChild(libtuj.ce('br'));
         d.style.marginBottom = '2em';
         d.style.textAlign = 'center';
@@ -401,37 +414,37 @@ var TUJ_Category = function ()
             tr.appendChild(td);
             td.colSpan = 2;
             td.className = 'name';
-            $(td).text('Name');
+            $(td).text(tuj.lang.name);
 
             td = libtuj.ce('th');
             tr.appendChild(td);
             td.className = 'breeds';
-            $(td).text('Breeds');
+            $(td).text(tuj.lang.breeds);
 
             td = libtuj.ce('th');
             tr.appendChild(td);
             td.className = 'quantity';
-            $(td).text('Avail');
+            $(td).text(tuj.lang.availableAbbrev);
 
             td = libtuj.ce('th');
             tr.appendChild(td);
             td.className = 'price';
-            $(td).text('Current');
+            $(td).text(tuj.lang.currentPriceAbbrev);
 
             td = libtuj.ce('th');
             tr.appendChild(td);
             td.className = 'price';
-            $(td).text('Mean');
+            $(td).text(tuj.lang.mean);
 
             td = libtuj.ce('th');
             tr.appendChild(td);
             td.className = 'price';
-            $(td).text('Regional');
+            $(td).text(tuj.lang.regional);
 
             td = libtuj.ce('th');
             tr.appendChild(td);
             td.className = 'date';
-            $(td).text('Last Seen');
+            $(td).text(tuj.lang.lastSeen);
 
             allSpecies = [];
 
@@ -506,7 +519,7 @@ var TUJ_Category = function ()
                 a = libtuj.ce('a');
                 td.appendChild(a);
                 a.href = tuj.BuildHash({page: 'battlepet', id: allSpecies[x].id});
-                a.rel = 'npc=' + allSpecies[x].npc;
+                a.rel = 'npc=' + allSpecies[x].npc + (tuj.locale != 'enus' ? '&locale=' + tuj.locale : '');
                 $(a).text('[' + allSpecies[x].name + ']');
 
                 td = libtuj.ce('td');
@@ -517,10 +530,10 @@ var TUJ_Category = function ()
                     a = libtuj.ce('span');
                     a.style.cursor = 'pointer';
                     td.appendChild(a);
-                    $(a).text('(All)');
+                    $(a).text('(' + tuj.lang.all + ')');
                     $(a).click(ShowBreedRows.bind(a, allSpecies[x].id));
                 } else {
-                    td.appendChild(document.createTextNode(tuj.lang.breeds[allSpecies[x].firstBreed]));
+                    td.appendChild(document.createTextNode(tuj.lang.breedsLookup[allSpecies[x].firstBreed]));
                 }
 
                 td = libtuj.ce('td');
@@ -550,8 +563,8 @@ var TUJ_Category = function ()
 
                 if (allSpecies[x].breedCount > 1) {
                     var workingBreeds = [];
-                    for (breed in tuj.lang.breeds) {
-                        if (!tuj.lang.breeds.hasOwnProperty(breed) || !allSpecies[x].breeds.hasOwnProperty(breed)) {
+                    for (breed in tuj.lang.breedsLookup) {
+                        if (!tuj.lang.breedsLookup.hasOwnProperty(breed) || !allSpecies[x].breeds.hasOwnProperty(breed)) {
                             continue;
                         }
                         workingBreeds.push(breed);
@@ -559,7 +572,7 @@ var TUJ_Category = function ()
                     workingBreeds.sort(breedSort);
 
                     for (i = 0; breed = workingBreeds[i]; i++) {
-                        if (!tuj.lang.breeds.hasOwnProperty(breed) || !allSpecies[x].breeds.hasOwnProperty(breed)) {
+                        if (!tuj.lang.breedsLookup.hasOwnProperty(breed) || !allSpecies[x].breeds.hasOwnProperty(breed)) {
                             continue;
                         }
                         var b = allSpecies[x].breeds[breed];
@@ -579,8 +592,8 @@ var TUJ_Category = function ()
                         a = libtuj.ce('a');
                         td.appendChild(a);
                         a.href = tuj.BuildHash({page: 'battlepet', id: '' + allSpecies[x].id + '.' + breed});
-                        a.rel = 'npc=' + allSpecies[x].npc;
-                        $(a).text(tuj.lang.breeds[breed]);
+                        a.rel = 'npc=' + allSpecies[x].npc + (tuj.locale != 'enus' ? '&locale=' + tuj.locale : '');
+                        $(a).text(tuj.lang.breedsLookup[breed]);
 
                         td = libtuj.ce('td');
                         td.className = 'quantity';
@@ -647,31 +660,31 @@ var TUJ_Category = function ()
         td.className = 'name';
         td.colSpan = 2;
         tr.appendChild(td);
-        $(td).text('Name');
+        $(td).text(tuj.lang.name);
 
         td = libtuj.ce('th');
         td.colSpan = 2;
         td.className = 'price';
         tr.appendChild(td);
-        $(td).text('Flesh');
+        $(td).text(tuj.lang.flesh);
 
         td = libtuj.ce('th');
         td.colSpan = 2;
         td.className = 'price';
         tr.appendChild(td);
-        $(td).text('Small');
+        $(td).text(tuj.lang.small);
 
         td = libtuj.ce('th');
         td.colSpan = 2;
         td.className = 'price';
         tr.appendChild(td);
-        $(td).text('Regular');
+        $(td).text(tuj.lang.regular);
 
         td = libtuj.ce('th');
         td.colSpan = 2;
         td.className = 'price';
         tr.appendChild(td);
-        $(td).text('Enormous');
+        $(td).text(tuj.lang.enormous);
 
         tr = libtuj.ce('tr');
         tr.className = 'subheading';
@@ -686,12 +699,12 @@ var TUJ_Category = function ()
             td = libtuj.ce('th');
             td.className = 'price';
             tr.appendChild(td);
-            $(td).text('Price');
+            $(td).text(tuj.lang.price);
 
             td = libtuj.ce('th');
             td.className = 'quantity';
             tr.appendChild(td);
-            $(td).text('Avail');
+            $(td).text(tuj.lang.availableAbbrev);
         }
 
         data.fish.sort(function (a, b)
@@ -726,7 +739,7 @@ var TUJ_Category = function ()
                 a = libtuj.ce('a');
                 td.appendChild(a);
                 a.href = tuj.BuildHash({page: 'item', id: f[y]});
-                a.rel = 'item=' + f[y];
+                a.rel = 'item=' + f[y] + (tuj.locale != 'enus' ? '&locale=' + tuj.locale : '');
                 a.appendChild(libtuj.FormatPrice(data.prices[f[y]].price));
 
                 td = libtuj.ce('td');
@@ -735,7 +748,7 @@ var TUJ_Category = function ()
                 a = libtuj.ce('a');
                 td.appendChild(a);
                 a.href = tuj.BuildHash({page: 'item', id: f[y]});
-                a.rel = 'item=' + f[y];
+                a.rel = 'item=' + f[y] + (tuj.locale != 'enus' ? '&locale=' + tuj.locale : '');
                 a.appendChild(libtuj.FormatQuantity(data.prices[f[y]].quantity));
             }
 
