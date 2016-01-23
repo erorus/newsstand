@@ -69,8 +69,8 @@
                             <td><a href="#eu" class="region-eu"><img src="images/flag.eu.png"></a></td>
                         </tr>
                         <tr>
-                            <td><a href="#us" class="region-us">US Realms</a></td>
-                            <td><a href="#eu" class="region-eu">EU Realms</a></td>
+                            <td><a href="#us" class="region-us text">US Realms</a></td>
+                            <td><a href="#eu" class="region-eu text">EU Realms</a></td>
                         </tr>
                     </table>
                 </div>
@@ -116,7 +116,7 @@
                         <a rel="transmog/off">Transmog: Off-Hand</a>
                     </div>
 
-                    <h2>Welcome to The Undermine Journal <sub>...your source for Auction House statistics and data in World of Warcraft.</sub></h2>
+                    <h2 id="front-welcome">Welcome to The Undermine Journal <sub>...your source for Auction House statistics and data in World of Warcraft.</sub></h2>
                     <div id="front-page-banned" class="news banned"></div>
 
                     <!--#include virtual="index.news.inc" -->

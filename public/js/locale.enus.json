@@ -53,6 +53,47 @@
     "expectOnline": "We expect to be back online %s.",
     "pleaseComeBack": "Please come back later.",
 
+    "deals": "Deals",
+    "unusuals": "Unusuals",
+    "category_auction": "Garrison AH",
+
+    "blacksmithing": "Blacksmithing",
+    "leatherworking": "Leatherworking",
+    "tailoring": "Tailoring",
+    "herbalism": "Herbalism",
+    "mining": "Mining",
+    "skinning": "Skinning",
+    "alchemy": "Alchemy",
+    "cooking": "Cooking",
+    "engineering": "Engineering",
+    "enchanting": "Enchanting",
+    "inscription": "Inscription",
+    "jewelcrafting": "Jewelcrafting",
+    "battlepets": "Battle Pets",
+    "companions": "Companions",
+    "fishing": "Fishing",
+
+    "transmog/cloth": "Transmog: Cloth",
+    "transmog/leather": "Transmog: Leather",
+    "transmog/mail": "Transmog: Mail",
+    "transmog/plate": "Transmog: Plate",
+    "transmog/main": "Transmog: Main-Hand",
+    "transmog/off": "Transmog: Off-Hand",
+
+    "realmsUS": "US Realms",
+    "regionUS": "US Region",
+    "lookingUS": "Looking for US realms?",
+
+    "realmsEU": "EU Realms",
+    "regionEU": "EU Region",
+    "lookingEU": "Looking for EU realms?",
+
+    "welcomeTo": "Welcome to %s",
+    "yourSource": "...your source for Auction House statistics and data in World of Warcraft.",
+
+    "lightTheme": "Light Theme",
+    "darkTheme": "Dark Theme",
+
     "breeds": {
         "0": "All Breeds",
         "3": "B/B",

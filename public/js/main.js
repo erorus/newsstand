@@ -573,6 +573,11 @@ var TUJ = function ()
             $('#realm-list').removeClass('show');
             $('#region-page a.region-us').attr('href', tuj.BuildHash({region:0}));
             $('#region-page a.region-eu').attr('href', tuj.BuildHash({region:1}));
+
+            $('#region-page a.region-us.text').html(self.lang.realmsUS);
+            $('#region-page a.region-eu.text').html(self.lang.realmsEU);
+            $('#region-page h2').html(libtuj.sprintf(self.lang.welcomeTo, 'The Undermine Journal') + ' <sub>' + self.lang.yourSource + '</sub>');
+
             $('#region-page').show();
             document.body.className = 'region';
             return;
@@ -791,6 +796,9 @@ var TUJ = function ()
 
     function UpdateSidebar()
     {
+        $('#region-pick-US').html(self.lang.regionUS + ' <a href="#eu">' + self.lang.lookingEU + '</a>');
+        $('#region-pick-EU').html(self.lang.regionEU + ' <a href="#us">' + self.lang.lookingUS + '</a>');
+
         if (self.params.region != undefined) {
             $('#topcorner > div').show();
             $('#topcorner .region-pick').hide();
@@ -812,9 +820,14 @@ var TUJ = function ()
 
         var contactLink = $('#bottom-bar a.contact');
         contactLink[0].href = self.BuildHash({page: 'contact', id: undefined});
+        contactLink.html(self.lang.contact);
 
         var donateLink = $('#bottom-bar a.donate');
         donateLink[0].href = self.BuildHash({page: 'donate', id: undefined});
+        donateLink.html(self.lang.donate);
+
+        $('#bottom-bar a.dark-only').html(self.lang.lightTheme);
+        $('#bottom-bar a.light-only').html(self.lang.darkTheme);
 
         $('#title a')[0].href = self.BuildHash({page: undefined});
         $('#page-title').empty();
@@ -1305,8 +1318,16 @@ var TUJ = function ()
                     parts = this.rel.split('/');
                 }
                 this.href = tuj.BuildHash({page: parts[0], id: parts[1]});
+
+                if (self.lang.hasOwnProperty(this.rel)) {
+                    this.innerHTML = self.lang[this.rel];
+                } else if (self.lang.hasOwnProperty('category_' + this.rel)) {
+                    this.innerHTML = self.lang['category_' + this.rel];
+                }
             }
         });
+        $('#front-welcome').html(libtuj.sprintf(self.lang.welcomeTo, 'The Undermine Journal') + ' <sub>' + self.lang.yourSource + '</sub>');
+
         if (!jQuery.browser.mobile) {
             $('#searchbox').focus();
         }
