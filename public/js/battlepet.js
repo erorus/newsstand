@@ -96,12 +96,12 @@ var TUJ_BattlePet = function ()
         }
 
         if (breeds.length == 0) {
-            $('#page-title').empty().append(document.createTextNode('Battle Pet: ' + params.id));
-            tuj.SetTitle('Battle Pet: ' + params.id);
+            $('#page-title').empty().append(document.createTextNode(tuj.lang.battlepet + ': ' + params.id));
+            tuj.SetTitle(tuj.lang.battlepet + ': ' + params.id);
 
             var h2 = libtuj.ce('h2');
             battlePetPage.append(h2);
-            h2.appendChild(document.createTextNode('Battle Pet ' + params.id + ' not found.'));
+            h2.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.notFound, tuj.lang.battlepet + ' ' + params.id)));
 
             return;
         }
@@ -109,7 +109,7 @@ var TUJ_BattlePet = function ()
         var dta = BattlePetBreedData(dtaAll, breeds);
 
         var ta = libtuj.ce('a');
-        ta.href = 'http://www.wowhead.com/npc=' + dta.stats.npc;
+        ta.href = 'http://' + tuj.lang.wowheadDomain + '.wowhead.com/npc=' + dta.stats.npc;
         ta.target = '_blank';
         ta.className = 'battlepet'
         var timg = libtuj.ce('img');
@@ -157,8 +157,8 @@ var TUJ_BattlePet = function ()
             d.className = 'chart-section';
             h = libtuj.ce('h2');
             d.appendChild(h);
-            $(h).text('Snapshots');
-            d.appendChild(document.createTextNode('Here is the available quantity and market price of the battle pet for every ' + tuj.validRegions[params.region] + ' ' + tuj.realms[params.realm].name + ' auction house snapshot seen recently.'));
+            $(h).text(tuj.lang.snapshots);
+            d.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.snapshotsDesc, tuj.lang.battlepet, tuj.validRegions[params.region] + ' ' + tuj.realms[params.realm].name)));
             cht = libtuj.ce();
             cht.className = 'chart history';
             d.appendChild(cht);
@@ -171,8 +171,8 @@ var TUJ_BattlePet = function ()
             d.className = 'chart-section';
             h = libtuj.ce('h2');
             d.appendChild(h);
-            $(h).text('Pricing Heat Map');
-            d.appendChild(document.createTextNode('This heat map helps to identify if prices have a pattern based on the time of day.'));
+            $(h).text(tuj.lang.pricingHeatMap);
+            d.appendChild(document.createTextNode(tuj.lang.pricingHeatMapDesc));
             cht = libtuj.ce();
             cht.className = 'chart heatmap';
             d.appendChild(cht);
@@ -183,8 +183,8 @@ var TUJ_BattlePet = function ()
             d.className = 'chart-section';
             h = libtuj.ce('h2');
             d.appendChild(h);
-            $(h).text('Quantity Heat Map');
-            d.appendChild(document.createTextNode('This heat map shows you the average available quantity at different times of the day.'));
+            $(h).text(tuj.lang.quantityHeatMap);
+            d.appendChild(document.createTextNode(tuj.lang.quantityHeatMapDesc));
             cht = libtuj.ce();
             cht.className = 'chart heatmap';
             d.appendChild(cht);
@@ -197,8 +197,8 @@ var TUJ_BattlePet = function ()
             d.className = 'chart-section';
             h = libtuj.ce('h2');
             d.appendChild(h);
-            $(h).text('Current Regional Prices');
-            d.appendChild(document.createTextNode('The Regional Prices chart is sorted by price, and shows the price and quantity available of this battle pet on all realms in the ' + tuj.validRegions[params.region] + '.'));
+            $(h).text(tuj.lang.regionalPrices);
+            d.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.regionalPricesDesc, tuj.lang.battlepet, tuj.validRegions[params.region])));
             cht = libtuj.ce();
             cht.className = 'chart columns';
             d.appendChild(cht);
@@ -209,14 +209,13 @@ var TUJ_BattlePet = function ()
             d.className = 'chart-section';
             h = libtuj.ce('h2');
             d.appendChild(h);
-            $(h).text('Price/Population Scatter Plot');
-            d.appendChild(document.createTextNode('This scatter plot has the same data as above, but shows the price relative to the realm population, provided by '));
+            $(h).text(tuj.lang.pricePopScatter);
+
             var a = libtuj.ce('a');
-            d.appendChild(a);
-            d.appendChild(document.createTextNode('.'));
             a.href = 'https://realmpop.com/' + tuj.validRegions[params.region].toLowerCase() + '.html';
             a.style.textDecoration = 'underline';
             a.appendChild(document.createTextNode('Realm Pop'));
+            $(d).append(libtuj.sprintf(tuj.lang.pricePopScatterDesc, a.outerHTML));
 
             cht = libtuj.ce();
             cht.className = 'chart scatter';
@@ -230,8 +229,8 @@ var TUJ_BattlePet = function ()
             d.className = 'chart-section';
             h = libtuj.ce('h2');
             d.appendChild(h);
-            $(h).text('Current Auctions');
-            d.appendChild(document.createTextNode('Here is the full list of auctions for this battle pet from the latest snapshot. Click a seller name for details on that seller.'));
+            $(h).text(tuj.lang.currentAuctions);
+            d.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.currentAuctionsDesc, tuj.lang.battlepet)));
             d.appendChild(libtuj.ce('br'));
             d.appendChild(libtuj.ce('br'));
             cht = libtuj.ce();
@@ -452,7 +451,7 @@ var TUJ_BattlePet = function ()
         tr.className = 'available';
         td = libtuj.ce('th');
         tr.appendChild(td);
-        td.appendChild(document.createTextNode('Available Quantity'));
+        td.appendChild(document.createTextNode(tuj.lang.availableQuantity));
         td = libtuj.ce('td');
         tr.appendChild(td);
         td.appendChild(libtuj.FormatQuantity(data.stats.quantity));
@@ -463,7 +462,7 @@ var TUJ_BattlePet = function ()
             tr.className = 'last-seen';
             td = libtuj.ce('th');
             tr.appendChild(td);
-            td.appendChild(document.createTextNode('Last Seen'));
+            td.appendChild(document.createTextNode(tuj.lang.lastSeen));
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.appendChild(libtuj.FormatDate(data.stats.lastseen));
@@ -481,7 +480,7 @@ var TUJ_BattlePet = function ()
         tr.className = 'current-price';
         td = libtuj.ce('th');
         tr.appendChild(td);
-        td.appendChild(document.createTextNode('Current Price'));
+        td.appendChild(document.createTextNode(tuj.lang.currentPrice));
         td = libtuj.ce('td');
         tr.appendChild(td);
         td.appendChild(libtuj.FormatPrice(data.stats.price));
@@ -501,7 +500,7 @@ var TUJ_BattlePet = function ()
             tr.className = 'median-price';
             td = libtuj.ce('th');
             tr.appendChild(td);
-            td.appendChild(document.createTextNode('Median Price'));
+            td.appendChild(document.createTextNode(tuj.lang.medianPrice));
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.appendChild(libtuj.FormatPrice(median = libtuj.Median(prices)));
@@ -513,7 +512,7 @@ var TUJ_BattlePet = function ()
             tr.className = 'mean-price';
             td = libtuj.ce('th');
             tr.appendChild(td);
-            td.appendChild(document.createTextNode('Mean Price'));
+            td.appendChild(document.createTextNode(tuj.lang.meanPrice));
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.appendChild(libtuj.FormatPrice(mn));
@@ -523,12 +522,12 @@ var TUJ_BattlePet = function ()
             tr.className = 'standard-deviation';
             td = libtuj.ce('th');
             tr.appendChild(td);
-            td.appendChild(document.createTextNode('Standard Deviation'));
+            td.appendChild(document.createTextNode(tuj.lang.standardDeviation));
             td = libtuj.ce('td');
             tr.appendChild(td);
             if (std / mn > 0.33) {
                 abbr = libtuj.ce('abbr');
-                abbr.title = 'Market price is highly volatile!';
+                abbr.title = tuj.lang.volatilePrice;
                 abbr.style.fontSize = '80%';
                 abbr.appendChild(document.createTextNode('(!)'));
                 td.appendChild(abbr);
@@ -564,7 +563,7 @@ var TUJ_BattlePet = function ()
             tr.className = 'available';
             td = libtuj.ce('th');
             tr.appendChild(td);
-            td.appendChild(document.createTextNode(headerPrefix + 'Quantity'));
+            td.appendChild(document.createTextNode(headerPrefix + tuj.lang.quantity));
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.appendChild(libtuj.FormatQuantity(globalStats.quantity));
@@ -575,7 +574,7 @@ var TUJ_BattlePet = function ()
             tr.className = 'median-price';
             td = libtuj.ce('th');
             tr.appendChild(td);
-            td.appendChild(document.createTextNode(headerPrefix + 'Median Price'));
+            td.appendChild(document.createTextNode(headerPrefix + tuj.lang.medianPrice));
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.appendChild(libtuj.FormatPrice(median = libtuj.Median(globalStats.prices)));
@@ -586,7 +585,7 @@ var TUJ_BattlePet = function ()
             tr.className = 'mean-price';
             td = libtuj.ce('th');
             tr.appendChild(td);
-            td.appendChild(document.createTextNode(headerPrefix + 'Mean Price'));
+            td.appendChild(document.createTextNode(headerPrefix + tuj.lang.meanPrice));
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.appendChild(libtuj.FormatPrice(mn));
@@ -634,8 +633,8 @@ var TUJ_BattlePet = function ()
             },
             subtitle: {
                 text: document.ontouchstart === undefined ?
-                    'Click and drag in the plot area to zoom in' :
-                    'Pinch the chart to zoom in',
+                    tuj.lang.zoomClickDrag :
+                    tuj.lang.zoomPinch,
                 style: {
                     color: tujConstants.siteColors[tuj.colorTheme].text
                 }
@@ -655,7 +654,7 @@ var TUJ_BattlePet = function ()
             yAxis: [
                 {
                     title: {
-                        text: 'Market Price',
+                        text: tuj.lang.marketPrice,
                         style: {
                             color: tujConstants.siteColors[tuj.colorTheme].bluePrice
                         }
@@ -675,7 +674,7 @@ var TUJ_BattlePet = function ()
                 },
                 {
                     title: {
-                        text: 'Quantity Available',
+                        text: tuj.lang.availableQuantity,
                         style: {
                             color: tujConstants.siteColors[tuj.colorTheme].redQuantity
                         }
@@ -703,8 +702,8 @@ var TUJ_BattlePet = function ()
                 formatter: function ()
                 {
                     var tr = '<b>' + Highcharts.dateFormat('%a %b %e %Y, %l:%M%P', this.x) + '</b>';
-                    tr += '<br><span style="color: #000099">Market Price: ' + libtuj.FormatPrice(this.points[0].y, true) + '</span>';
-                    tr += '<br><span style="color: #990000">Quantity: ' + libtuj.FormatQuantity(this.points[1].y, true) + '</span>';
+                    tr += '<br><span style="color: #000099">' + tuj.lang.marketPrice + ': ' + libtuj.FormatPrice(this.points[0].y, true) + '</span>';
+                    tr += '<br><span style="color: #990000">' + tuj.lang.quantity + ': ' + libtuj.FormatQuantity(this.points[1].y, true) + '</span>';
                     return tr;
                     // &lt;br/&gt;&lt;span style="color: #990000"&gt;Quantity: '+this.points[1].y+'&lt;/span&gt;<xsl:if test="battlepetgraphs/d[@matsprice != '']">&lt;br/&gt;&lt;span style="color: #999900"&gt;Materials Price: '+this.points[2].y.toFixed(2)+'g&lt;/span&gt;</xsl:if>';
                 }
@@ -731,7 +730,7 @@ var TUJ_BattlePet = function ()
             series: [
                 {
                     type: 'area',
-                    name: 'Market Price',
+                    name: tuj.lang.marketPrice,
                     color: tujConstants.siteColors[tuj.colorTheme].bluePrice,
                     lineColor: tujConstants.siteColors[tuj.colorTheme].bluePrice,
                     fillColor: tujConstants.siteColors[tuj.colorTheme].bluePriceFill,
@@ -739,7 +738,7 @@ var TUJ_BattlePet = function ()
                 },
                 {
                     type: 'line',
-                    name: 'Quantity Available',
+                    name: tuj.lang.availableQuantity,
                     yAxis: 1,
                     color: tujConstants.siteColors[tuj.colorTheme].redQuantity,
                     data: hcdata.quantity
@@ -751,11 +750,8 @@ var TUJ_BattlePet = function ()
     function BattlePetPriceHeatMap(data, dest)
     {
         var hcdata = {minVal: undefined, maxVal: 0, days: {}, heat: [], categories: {
-            x: [
-                'Midnight - 3am', '3am - 6am', '6am - 9am', '9am - Noon', 'Noon - 3pm', '3pm - 6pm', '6pm - 9pm',
-                '9pm - Midnight'
-            ],
-            y: ['Saturday', 'Friday', 'Thursday', 'Wednesday', 'Tuesday', 'Monday', 'Sunday']
+            x: tuj.lang.heatMapTimes,
+            y: tuj.lang.heatMayDays
         }};
 
         var CalcAvg = function (a)
@@ -858,7 +854,7 @@ var TUJ_BattlePet = function ()
 
             series: [
                 {
-                    name: 'Market Price',
+                    name: tuj.lang.marketPrice,
                     borderWidth: 1,
                     borderColor: tujConstants.siteColors[tuj.colorTheme].background,
                     data: hcdata.heat,
@@ -883,11 +879,8 @@ var TUJ_BattlePet = function ()
     function BattlePetQuantityHeatMap(data, dest)
     {
         var hcdata = {minVal: undefined, maxVal: 0, days: {}, heat: [], categories: {
-            x: [
-                'Midnight - 3am', '3am - 6am', '6am - 9am', '9am - Noon', 'Noon - 3pm', '3pm - 6pm', '6pm - 9pm',
-                '9pm - Midnight'
-            ],
-            y: ['Saturday', 'Friday', 'Thursday', 'Wednesday', 'Tuesday', 'Monday', 'Sunday']
+            x: tuj.lang.heatMapTimes,
+            y: tuj.lang.heatMayDays
         }};
 
         var CalcAvg = function (a)
@@ -990,7 +983,7 @@ var TUJ_BattlePet = function ()
 
             series: [
                 {
-                    name: 'Quantity',
+                    name: tuj.lang.quantity,
                     borderWidth: 1,
                     borderColor: tujConstants.siteColors[tuj.colorTheme].background,
                     data: hcdata.heat,
@@ -1096,8 +1089,8 @@ var TUJ_BattlePet = function ()
             },
             subtitle: {
                 text: document.ontouchstart === undefined ?
-                    'Click and drag in the plot area to zoom in' :
-                    'Pinch the chart to zoom in',
+                    tuj.lang.zoomClickDrag :
+                    tuj.lang.zoomPinch,
                 style: {
                     color: tujConstants.siteColors[tuj.colorTheme].text
                 }
@@ -1110,7 +1103,7 @@ var TUJ_BattlePet = function ()
             yAxis: [
                 {
                     title: {
-                        text: 'Market Price',
+                        text: tuj.lang.marketPrice,
                         style: {
                             color: tujConstants.siteColors[tuj.colorTheme].bluePrice
                         }
@@ -1130,7 +1123,7 @@ var TUJ_BattlePet = function ()
                 },
                 {
                     title: {
-                        text: 'Quantity',
+                        text: tuj.lang.quantity,
                         style: {
                             color: tujConstants.siteColors[tuj.colorTheme].redQuantity
                         }
@@ -1159,9 +1152,9 @@ var TUJ_BattlePet = function ()
                 {
                     var realmNames = libtuj.GetRealmsForHouse(hcdata.houses[this.x], 40);
                     var tr = '<b>' + realmNames + '</b>';
-                    tr += '<br><span style="color: #000099">Market Price: ' + libtuj.FormatPrice(this.points[0].y, true) + '</span>';
-                    tr += '<br><span style="color: #990000">Quantity: ' + libtuj.FormatQuantity(this.points[1].y, true) + '</span>';
-                    tr += '<br><span style="color: #990000">Last seen: ' + libtuj.FormatDate(hcdata.lastseen[this.x], true) + '</span>';
+                    tr += '<br><span style="color: #000099">' + tuj.lang.marketPrice + ': ' + libtuj.FormatPrice(this.points[0].y, true) + '</span>';
+                    tr += '<br><span style="color: #990000">' + tuj.lang.quantity + ': ' + libtuj.FormatQuantity(this.points[1].y, true) + '</span>';
+                    tr += '<br><span style="color: #990000">' + tuj.lang.lastSeen + ': ' + libtuj.FormatDate(hcdata.lastseen[this.x], true) + '</span>';
                     return tr;
                 },
                 useHTML: true
@@ -1188,7 +1181,7 @@ var TUJ_BattlePet = function ()
             series: [
                 {
                     type: 'line',
-                    name: 'Market Price',
+                    name: tuj.lang.marketPrice,
                     color: tujConstants.siteColors[tuj.colorTheme].bluePriceFill,
                     lineColor: tujConstants.siteColors[tuj.colorTheme].bluePrice,
                     data: hcdata.price,
@@ -1200,7 +1193,7 @@ var TUJ_BattlePet = function ()
                 },
                 {
                     type: 'column',
-                    name: 'Quantity',
+                    name: tuj.lang.quantity,
                     color: tujConstants.siteColors[tuj.colorTheme].redQuantityFill,
                     borderColor: tujConstants.siteColors[tuj.colorTheme].background,
                     data: hcdata.quantity,
@@ -1293,7 +1286,7 @@ var TUJ_BattlePet = function ()
             },
             xAxis: {
                 title: {
-                    text: 'Population',
+                    text: tuj.lang.population,
                     style: {
                         color: tujConstants.siteColors[tuj.colorTheme].greenPriceDim
                     }
@@ -1308,7 +1301,7 @@ var TUJ_BattlePet = function ()
             },
             yAxis: {
                 title: {
-                    text: 'Market Price',
+                    text: tuj.lang.marketPrice,
                     style: {
                         color: tujConstants.siteColors[tuj.colorTheme].bluePrice
                     }
@@ -1335,9 +1328,9 @@ var TUJ_BattlePet = function ()
                 {
                     var realmNames = libtuj.GetRealmsForHouse(hcdata.houses[this.point.id], 40);
                     var tr = '<b>' + realmNames + '</b>';
-                    tr += '<br><span style="color: #000099">Market Price: ' + libtuj.FormatPrice(this.point.y, true) + '</span>';
-                    tr += '<br><span style="color: #990000">Quantity: ' + libtuj.FormatQuantity(hcdata.quantity[this.point.id], true) + '</span>';
-                    tr += '<br><span style="color: #990000">Last seen: ' + libtuj.FormatDate(hcdata.lastseen[this.point.id], true) + '</span>';
+                    tr += '<br><span style="color: #000099">' + tuj.lang.marketPrice + ': ' + libtuj.FormatPrice(this.point.y, true) + '</span>';
+                    tr += '<br><span style="color: #990000">' + tuj.lang.quantity + ': ' + libtuj.FormatQuantity(hcdata.quantity[this.point.id], true) + '</span>';
+                    tr += '<br><span style="color: #990000">' + tuj.lang.lastSeen + ': ' + libtuj.FormatDate(hcdata.lastseen[this.point.id], true) + '</span>';
                     return tr;
                 },
                 useHTML: true
@@ -1359,7 +1352,7 @@ var TUJ_BattlePet = function ()
             },
             series: [
                 {
-                    name: 'Market Price',
+                    name: tuj.lang.marketPrice,
                     color: tujConstants.siteColors[tuj.colorTheme].bluePrice,
                     data: hcdata.price,
                     yAxis: 0,
@@ -1381,32 +1374,32 @@ var TUJ_BattlePet = function ()
         td = libtuj.ce('th');
         tr.appendChild(td);
         td.className = 'breed';
-        $(td).text('Breed');
+        $(td).text(tuj.lang.breed);
 
         td = libtuj.ce('th');
         tr.appendChild(td);
         td.className = 'quality';
-        $(td).text('Quality');
+        $(td).text(tuj.lang.quality);
 
         td = libtuj.ce('th');
         tr.appendChild(td);
         td.className = 'level';
-        $(td).text('Level');
+        $(td).text(tuj.lang.level);
 
         td = libtuj.ce('th');
         tr.appendChild(td);
         td.className = 'price';
-        $(td).text('Bid Each');
+        $(td).text(tuj.lang.bidEach);
 
         td = libtuj.ce('th');
         tr.appendChild(td);
         td.className = 'price';
-        $(td).text('Buyout Each');
+        $(td).text(tuj.lang.buyoutEach);
 
         td = libtuj.ce('th');
         tr.appendChild(td);
         td.className = 'seller';
-        $(td).text('Seller');
+        $(td).text(tuj.lang.seller);
 
         data.auctions.sort(function (a, b)
         {

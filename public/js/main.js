@@ -6,9 +6,15 @@ var libtuj = {
         }
         return document.createElement(tag);
     },
-    sprintf: function (s, v)
+    sprintf: function ()
     {
-        return s.replace('%s', v);
+        var args = arguments;
+        return args[0].replace(/{(\d+)}/g, function(match, number) {
+            return typeof args[number] != 'undefined'
+                ? args[number]
+                : match
+                ;
+        });
     },
     AddScript: function (url)
     {

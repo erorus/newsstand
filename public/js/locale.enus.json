@@ -1,6 +1,6 @@
 {
     "localeCode": "enus",
-    "wowheadPrefix": "www",
+    "wowheadDomain": "www",
         
     "suffixGold": "g",
     "suffixSilver": "s",
@@ -17,8 +17,8 @@
     "timeHourAbbrev": "hr",
     "timeHoursAbbrev": "hrs",
 
-    "timePast": "%s ago",
-    "timeFuture": "%s from now",
+    "timePast": "{1} ago",
+    "timeFuture": "{1} from now",
 
     "unknown": "Unknown",
     "submit": "Submit",
@@ -31,8 +31,8 @@
     "mostAvailable": "Most Available",
     "potentialDeals": "Potential Deals",
 
-    "ipIsBanned": "The IP address of you or your proxy %s has been banned from most queries at The Undermine Journal.",
-    "bannedContact": "You can drop us a line at the <a href=\"%s\">contact page</a> if you need us to investigate further.",
+    "ipIsBanned": "The IP address of you or your proxy {1} has been banned from most queries at The Undermine Journal.",
+    "bannedContact": "You can drop us a line at the <a href=\"{1}\">contact page</a> if you need us to investigate further.",
 
     "search": "Search",
     "item": "Item",
@@ -44,14 +44,16 @@
     "transmog": "Transmog",
     "maintenance": "Maintenance",
 
-    "chooseRealm": "Choose your %s realm below:",
+    "chooseRealm": "Choose your {1} realm below:",
     "solveCaptcha": "Solve Captcha",
-    "captchaDirections": "You viewed a lot of pages recently. To make sure you're not a script, please select all the %s without helms.",
+    "captchaDirections": "You viewed a lot of pages recently. To make sure you're not a script, please select all the {1} without helms.",
 
     "temporarilyOffline": "... is temporarily offline.",
     "maintenanceGoblins": "The goblins of The Undermine Journal are working behind the scenes on some site maintenance.",
-    "expectOnline": "We expect to be back online %s.",
+    "expectOnline": "We expect to be back online {1}.",
     "pleaseComeBack": "Please come back later.",
+
+    "notFound": "{1} not found.",
 
     "deals": "Deals",
     "unusuals": "Unusuals",
@@ -88,11 +90,57 @@
     "regionEU": "EU Region",
     "lookingEU": "Looking for EU realms?",
 
-    "welcomeTo": "Welcome to %s",
+    "welcomeTo": "Welcome to {1}",
     "yourSource": "...your source for Auction House statistics and data in World of Warcraft.",
 
     "lightTheme": "Light Theme",
     "darkTheme": "Dark Theme",
+
+    "snapshots": "Snapshots",
+    "snapshotsDesc": "Here is the available quantity and market price of the {1} for every {2} auction house snapshot seen recently.",
+    "pricingHeatMap": "Pricing Heat Map",
+    "pricingHeatMapDesc": "This heat map helps to identify if prices have a pattern based on the time of day.",
+    "quantityHeatMap": "Quantity Heat Map",
+    "quantityHeatMapDesc": "This heat map shows you the average available quantity at different times of the day.",
+    "regionalPrices": "Current Regional Prices",
+    "regionalPricesDesc": "'The Regional Prices chart is sorted by price, and shows the price and quantity available of this {1} on all realms in the {2} region.",
+    "pricePopScatter": "Price/Population Scatter Plot",
+    "pricePopScatterDesc": "This scatter plot has the same data as above, but shows the price relative to the realm population, provided by {1}.",
+    "currentAuctions": "Current Auctions",
+    "currentAuctionsDesc": "Here is the full list of auctions for this {1} from the latest snapshot. Click a seller name for details on that seller.",
+
+    "availableQuantity": "Available Quantity",
+    "lastSeen": "Last Seen",
+    "currentPrice": "Current Price",
+    "medianPrice": "Median Price",
+    "meanPrice": "Mean Price",
+    "marketPrice": "Market Price",
+    "standardDeviation": "Standard Deviation",
+    "volatilePrice": "Market price is highly volatile!",
+    "quantity": "Quantity",
+    "population": "Population",
+
+    "breed": "Breed",
+    "quality": "Quality",
+    "level": "Level",
+    "bidEach": "Bid Each",
+    "buyoutEach": "Buyout Each",
+
+    "zoomClickDrag": "Click and drag in the plot area to zoom in",
+    "zoomPinch": "Pinch the chart to zoom in",
+
+    "heatMapTimes": [
+        "Midnight - 3am",
+        "3am - 6am",
+        "6am - 9am",
+        "9am - Noon",
+        "Noon - 3pm",
+        "3pm - 6pm",
+        "6pm - 9pm",
+        "9pm - Midnight"
+    ],
+
+    "heatMapDays": ["Saturday", "Friday", "Thursday", "Wednesday", "Tuesday", "Monday", "Sunday"],
 
     "breeds": {
         "0": "All Breeds",
