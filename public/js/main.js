@@ -6,6 +6,10 @@ var libtuj = {
         }
         return document.createElement(tag);
     },
+    sprintf: function (s, v)
+    {
+        return s.replace('%s', v);
+    },
     AddScript: function (url)
     {
         var s = libtuj.ce('script');
@@ -83,10 +87,10 @@ var libtuj = {
             amt = Math.round(amt);
             if (amt >= 100) {// 1s
                 g = (amt / 10000).toFixed(2);
-                v = '' + g + 'g';
+                v = '' + g + tuj.lang.suffixGold;
             } else {
                 c = amt;
-                v = '' + c + 'c';
+                v = '' + c + tuj.lang.suffixCopper;
             }
         }
         if (justValue) {
@@ -116,12 +120,12 @@ var libtuj = {
             var c = Math.floor(amt % 100);
 
             if (g) {
-                v += '' + g + 'g ';
+                v += '' + g + tuj.lang.suffixGold + ' ';
             }
             if (g || s) {
-                v += '' + s + 's ';
+                v += '' + s + tuj.lang.suffixSilver + ' ';
             }
-            v += '' + c + 'c';
+            v += '' + c + tuj.lang.suffixCopper;
         }
         if (justValue) {
             return v;
@@ -185,19 +189,23 @@ var libtuj = {
                 diff = Math.abs(diff);
 
                 if ((diff < 60) || (stopAt == 'second')) {
-                    v = '' + (n = diff) + ' second' + (n != 1 ? 's' : '') + suffix;
+                    v = libtuj.sprintf(diff < 0 ? tuj.lang.timeFuture : tuj.lang.timePast,
+                        '' + (n = diff) + ' ' + (n != 1 ? tuj.lang.timeSeconds : tuj.lang.timeSecond));
                 }
                 else {
                     if ((diff < 60 * 60) || (stopAt == 'minute')) {
-                        v = '' + (n = Math.round(diff / 60)) + ' minute' + (n != 1 ? 's' : '') + suffix;
+                        v = libtuj.sprintf(diff < 0 ? tuj.lang.timeFuture : tuj.lang.timePast,
+                            '' + (n = Math.round(diff / 60)) + ' ' + (n != 1 ? tuj.lang.timeMinutes : tuj.lang.timeMinute));
                     }
                     else {
                         if ((diff < 24 * 60 * 60) || (stopAt == 'hour')) {
-                            v = '' + (n = Math.round(diff / (60 * 60))) + ' hour' + (n != 1 ? 's' : '') + suffix;
+                            v = libtuj.sprintf(diff < 0 ? tuj.lang.timeFuture : tuj.lang.timePast,
+                                '' + (n = Math.round(diff / (60 * 60))) + ' ' + (n != 1 ? tuj.lang.timeHours : tuj.lang.timeHour));
                         }
                         else {
                             if ((diff < 10 * 24 * 60 * 60) || (stopAt == 'day')) {
-                                v = '' + (n = Math.round(diff / (24 * 60 * 60))) + ' day' + (n != 1 ? 's' : '') + suffix;
+                                v = libtuj.sprintf(diff < 0 ? tuj.lang.timeFuture : tuj.lang.timePast,
+                                    '' + (n = Math.round(diff / (24 * 60 * 60))) + ' ' + (n != 1 ? tuj.lang.timeDays : tuj.lang.timeDay));
                             }
                             else {
                                 v = dt.toLocaleDateString();
@@ -206,7 +214,7 @@ var libtuj = {
                     }
                 }
             } else {
-                v = 'Unknown';
+                v = tuj.lang.unknown;
             }
         }
         if (justValue) {
@@ -229,7 +237,7 @@ var libtuj = {
 
         var diff = diffByte * 48 / 255;
         if (!isNaN(diff)) {
-            v = '' + (n = diff.toFixed(1)) + ' hr' + (n != '1.0' ? 's' : '');
+            v = '' + (n = diff.toFixed(1)) + ' ' + (n != '1.0' ? tuj.lang.timeHoursAbbrev : tuj.lang.timeHourAbbrev);
         }
 
         if (justValue) {
@@ -373,82 +381,7 @@ var libtuj = {
 };
 
 var tujConstants = {
-    breeds: {
-        0: 'All Breeds',
-        3: 'B/B',
-        4: 'P/P',
-        5: 'S/S',
-        6: 'H/H',
-        7: 'H/P',
-        8: 'P/S',
-        9: 'H/S',
-        10: 'P/B',
-        11: 'S/B',
-        12: 'H/B'
-    },
-    qualities: {
-        0: 'Poor',
-        1: 'Common',
-        2: 'Uncommon',
-        3: 'Rare',
-        4: 'Epic',
-        5: 'Legendary',
-        6: 'Artifact',
-        7: 'Heirloom'
-    },
-    itemClasses: {
-        7: 'Trade Goods',
-        0: 'Consumable',
-        5: 'Reagent',
-
-        3: 'Gem',
-        16: 'Glyph',
-
-        2: 'Weapon',
-        4: 'Armor',
-
-        9: 'Recipe',
-
-        1: 'Container',
-        11: 'Quiver',
-
-        17: 'Battle Pets',
-
-        12: 'Quest',
-        13: 'Key',
-
-        6: 'Projectile',
-        8: 'Generic',
-        10: 'Money',
-        14: 'Permanent',
-        15: 'Miscellaneous'
-    },
     itemClassOrder: [2, 9, 6, 4, 7, 3, 14, 1, 15, 8, 16, 10, 12, 13, 17, 18, 5, 11],
-    races: {
-        10: 'Blood Elves',
-        11: 'Draenei',
-        3: 'Dwarves',
-        7: 'Gnomes',
-        9: 'Goblins',
-        1: 'Humans',
-        4: 'Night Elves',
-        2: 'Orcs',
-        6: 'Tauren',
-        8: 'Trolls',
-        5: 'Undead'
-    },
-    petTypes: {
-        8: 'Aquatic',
-        7: 'Beast',
-        4: 'Critter',
-        1: 'Dragonkin',
-        6: 'Elemental',
-        2: 'Flying',
-        0: 'Humanoid',
-        5: 'Magic',
-        9: 'Mechanical',
-        3: 'Undead'
-    },
     siteColors: {
         light: {
             background: '#FFFFFF',
@@ -505,6 +438,9 @@ var TUJ = function ()
         page: undefined,
         id: undefined
     }
+    this.locales = {};
+    this.locale = false;
+    this.lang = false;
     var hash = {
         sets: 0,
         changes: 0,
@@ -543,6 +479,12 @@ var TUJ = function ()
             $('#bottom-bar .light-only').click(SetDarkTheme.bind(self, true));
 
             SetDarkTheme(!window.TUJClassic && libtuj.Storage.Get('colorTheme') == 'dark');
+        }
+
+        if (self.locale == false) {
+            inMain = false;
+            LoadLocale('enus');
+            return;
         }
 
         if (typeof self.allRealms == 'undefined') {
@@ -676,6 +618,32 @@ var TUJ = function ()
             tuj['page_' + validPages[self.params.page]].load(self.params);
         }
 
+    }
+
+    function LoadLocale(locName) {
+        if (self.locales.hasOwnProperty(locName)) {
+            self.locale = locName;
+            self.lang = $.extend(true, {}, self.locales.enus, self.locales[self.locale]);
+            Main();
+            return;
+        }
+
+        $.ajax({
+            success: function (dta)
+            {
+                if (dta.hasOwnProperty('localeCode')) {
+                    self.locale = dta.localeCode;
+                    self.locales[dta.localeCode] = dta;
+                    self.lang = $.extend(true, {}, self.locales.enus, self.locales[self.locale]);
+                }
+                Main();
+            },
+            error: function (xhr, stat, er)
+            {
+                alert('Error getting locale ' + locName + ': ' + stat + ' ' + er);
+            },
+            url: 'js/locale.' + locName + '.json'
+        });
     }
 
     function ReadParams()
@@ -857,7 +825,7 @@ var TUJ = function ()
             var i = libtuj.ce('input');
             i.name = 'search';
             i.type = 'text';
-            i.placeholder = 'Search';
+            i.placeholder = self.lang.search;
             i.id = 'searchbox';
             i.autocomplete = 'off';
 
@@ -941,13 +909,13 @@ var TUJ = function ()
         }
         if (houseInfo[house].timestamps.scheduled && houseInfo[house].timestamps.scheduled * 1000 > Date.now()) {
             var d = libtuj.ce();
-            d.appendChild(document.createTextNode('Next update '));
+            d.appendChild(document.createTextNode(self.lang.nextUpdate + ' '));
             d.appendChild(libtuj.FormatDate(houseInfo[house].timestamps.scheduled, false, 'minute'));
             ru.appendChild(d);
         } else if (houseInfo[house].timestamps.hasOwnProperty('lastcheck')) {
             if (houseInfo[house].timestamps.lastcheck.ts) {
                 var d = libtuj.ce();
-                d.appendChild(document.createTextNode('Last checked '));
+                d.appendChild(document.createTextNode(self.lang.lastChecked + ' '));
                 d.appendChild(libtuj.FormatDate(houseInfo[house].timestamps.lastcheck.ts, false, 'minute'));
                 ru.appendChild(d);
             }
@@ -964,7 +932,7 @@ var TUJ = function ()
                     } else {
                         d = libtuj.ce();
                     }
-                    d.appendChild(document.createTextNode('Blizzard API: ' + houseInfo[house].timestamps.lastcheck.json.reason));
+                    d.appendChild(document.createTextNode(self.lang.blizzardAPI + ' ' + houseInfo[house].timestamps.lastcheck.json.reason));
                     ru.appendChild(d);
                 }
             }
@@ -981,7 +949,7 @@ var TUJ = function ()
                     var d = document.getElementById('front-page-sellers');
                     var h = libtuj.ce('h3');
                     d.appendChild(h);
-                    $(h).text('Top Sellers');
+                    $(h).text(self.lang.topSellers);
                     for (var x = 0; x < info.sellers.length; x++) {
                         var a = libtuj.ce('a');
                         a.href = tuj.BuildHash({page: 'seller', realm: info.sellers[x].realm, id: info.sellers[x].name});
@@ -994,7 +962,7 @@ var TUJ = function ()
                     var d = document.getElementById('front-page-most-available');
                     var h = libtuj.ce('h3');
                     d.appendChild(h);
-                    $(h).text('Most Available');
+                    $(h).text(self.lang.mostAvailable);
                     for (var x = 0; x < info.mostAvailable.length; x++) {
                         var a = libtuj.ce('a');
                         a.href = tuj.BuildHash({page: 'item', id: info.mostAvailable[x].id});
@@ -1008,7 +976,7 @@ var TUJ = function ()
                     var d = document.getElementById('front-page-deals');
                     var h = libtuj.ce('h3');
                     d.appendChild(h);
-                    $(h).text('Potential Deals');
+                    $(h).text(self.lang.potentialDeals);
                     for (var x = 0; x < info.deals.length; x++) {
                         var a = libtuj.ce('a');
                         a.href = tuj.BuildHash({page: 'item', id: info.deals[x].id});
@@ -1023,11 +991,7 @@ var TUJ = function ()
             $('#front-page-banned').hide();
             if (self.banned.isbanned) {
                 var banHTML = '';
-                banHTML += 'The IP address of you or your proxy ';
-                if (self.banned.ip) {
-                    banHTML += '(' + self.banned.ip + ') ';
-                }
-                banHTML += ' has been banned from most queries at The Undermine Journal.';
+                banHTML += libtuj.sprintf(self.lang.ipIsBanned, self.banned.ip ? '(' + self.banned.ip + ')' : '');
 
                 switch (self.banned.reason) {
                     case 'cbl':
@@ -1042,7 +1006,7 @@ var TUJ = function ()
                         break;
                 }
 
-                banHTML += '<br><br>You can drop us a line at the <a href="' + tuj.BuildHash({page: 'contact', id: undefined}) + '">contact page</a> if you need us to investigate further.';
+                banHTML += '<br><br>' + libtuj.sprintf(self.lang.bannedContact, tuj.BuildHash({page: 'contact', id: undefined}));
 
                 $('#front-page-banned').html(banHTML).show();
             }
@@ -1062,7 +1026,11 @@ var TUJ = function ()
         }
         else {
             if (self.params.page) {
-                title += validPages[self.params.page].substr(0, 1).toUpperCase() + validPages[self.params.page].substr(1);
+                if (self.lang.hasOwnProperty(validPages[self.params.page])) {
+                    title += self.lang[validPages[self.params.page]];
+                } else {
+                    title += validPages[self.params.page].substr(0, 1).toUpperCase() + validPages[self.params.page].substr(1);
+                }
                 if (self.params.id) {
                     title += ': ' + self.params.id;
                 }
@@ -1143,7 +1111,7 @@ var TUJ = function ()
             var directions = libtuj.ce();
             directions.className = 'directions';
             realmList.appendChild(directions);
-            $(directions).text('Choose your '+validRegions[drawnRegion]+' realm below:');
+            $(directions).text(libtuj.sprintf(self.lang.chooseRealm, validRegions[drawnRegion]));
 
             addResize = true;
         }
@@ -1291,12 +1259,12 @@ var TUJ = function ()
             $('#main').append(captchaPage);
         }
 
-        $('#page-title').text('Solve Captcha');
-        tuj.SetTitle('Solve Captcha');
+        $('#page-title').text(self.lang.solveCaptcha);
+        tuj.SetTitle(self.lang.solveCaptcha);
 
         $(captchaPage).empty();
 
-        captchaPage.appendChild(document.createTextNode("You viewed a lot of pages recently. To make sure you're not a script, please select all the " + tujConstants.races[c.lookfor] + " without helms."));
+        captchaPage.appendChild(document.createTextNode(libtuj.sprintf(self.lang.captchaDirections, self.lang.races[c.lookfor])));
 
         d = libtuj.ce();
         d.className = 'captcha';
@@ -1316,7 +1284,7 @@ var TUJ = function ()
         d.appendChild(b);
 
         b = libtuj.ce('input');
-        b.value = 'Submit';
+        b.value = self.lang.submit;
         b.type = 'button';
         $(b).click(CaptchaSubmit);
         d.appendChild(b);
@@ -1385,20 +1353,20 @@ var TUJ = function ()
             $('#main').append(maintenancePage);
         }
 
-        $('#page-title').text('... is temporarily offline.');
-        tuj.SetTitle('Maintenance');
+        $('#page-title').text(self.lang.temporarilyOffline);
+        tuj.SetTitle(self.lang.maintenance);
 
         $(maintenancePage).empty();
 
         var now = Date.now()/1000;
 
-        maintenancePage.appendChild(document.createTextNode("The goblins of The Undermine Journal are working behind the scenes on some site maintenance."));
+        maintenancePage.appendChild(document.createTextNode(self.lang.maintenanceGoblins));
         if (maintenance > now) {
             maintenancePage.appendChild(libtuj.ce('p'));
-            maintenancePage.appendChild(document.createTextNode("We expect to be back online " + libtuj.FormatDate(maintenance, true) + "."));
+            maintenancePage.appendChild(document.createTextNode(libtuj.sprintf(self.lang.expectOnline, libtuj.FormatDate(maintenance, true))));
         }
         maintenancePage.appendChild(libtuj.ce('p'));
-        maintenancePage.appendChild(document.createTextNode("Please come back later."));
+        maintenancePage.appendChild(document.createTextNode(self.lang.pleaseComeBack));
 
         $(maintenancePage).show();
     };

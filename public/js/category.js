@@ -364,7 +364,7 @@ var TUJ_Category = function ()
             var bb = allSpecies[x].breeds[b];
             return ((bb.quantity > 0 ? 1 : 0) - (ab.quantity > 0 ? 1 : 0)) ||
                 (bb.price - ab.price) ||
-                tujConstants.breeds[a].localeCompare(tujConstants.breeds[b]);
+                tuj.lang.breeds[a].localeCompare(tuj.lang.breeds[b]);
         };
 
         var d = libtuj.ce('div');
@@ -374,8 +374,8 @@ var TUJ_Category = function ()
         d.style.marginBottom = '2em';
         d.style.textAlign = 'center';
 
-        for (petType in tujConstants.petTypes) {
-            if (!tujConstants.petTypes.hasOwnProperty(petType)) {
+        for (petType in tuj.lang.petTypes) {
+            if (!tuj.lang.petTypes.hasOwnProperty(petType)) {
                 continue;
             }
 
@@ -392,7 +392,7 @@ var TUJ_Category = function ()
             td = libtuj.ce('th');
             tr.appendChild(td);
             td.colSpan = 12;
-            $(td).text(tujConstants.petTypes[petType]);
+            $(td).text(tuj.lang.petTypes[petType]);
 
             tr = libtuj.ce('tr');
             t.appendChild(tr);
@@ -520,7 +520,7 @@ var TUJ_Category = function ()
                     $(a).text('(All)');
                     $(a).click(ShowBreedRows.bind(a, allSpecies[x].id));
                 } else {
-                    td.appendChild(document.createTextNode(tujConstants.breeds[allSpecies[x].firstBreed]));
+                    td.appendChild(document.createTextNode(tuj.lang.breeds[allSpecies[x].firstBreed]));
                 }
 
                 td = libtuj.ce('td');
@@ -550,8 +550,8 @@ var TUJ_Category = function ()
 
                 if (allSpecies[x].breedCount > 1) {
                     var workingBreeds = [];
-                    for (breed in tujConstants.breeds) {
-                        if (!tujConstants.breeds.hasOwnProperty(breed) || !allSpecies[x].breeds.hasOwnProperty(breed)) {
+                    for (breed in tuj.lang.breeds) {
+                        if (!tuj.lang.breeds.hasOwnProperty(breed) || !allSpecies[x].breeds.hasOwnProperty(breed)) {
                             continue;
                         }
                         workingBreeds.push(breed);
@@ -559,7 +559,7 @@ var TUJ_Category = function ()
                     workingBreeds.sort(breedSort);
 
                     for (i = 0; breed = workingBreeds[i]; i++) {
-                        if (!tujConstants.breeds.hasOwnProperty(breed) || !allSpecies[x].breeds.hasOwnProperty(breed)) {
+                        if (!tuj.lang.breeds.hasOwnProperty(breed) || !allSpecies[x].breeds.hasOwnProperty(breed)) {
                             continue;
                         }
                         var b = allSpecies[x].breeds[breed];
@@ -580,7 +580,7 @@ var TUJ_Category = function ()
                         td.appendChild(a);
                         a.href = tuj.BuildHash({page: 'battlepet', id: '' + allSpecies[x].id + '.' + breed});
                         a.rel = 'npc=' + allSpecies[x].npc;
-                        $(a).text(tujConstants.breeds[breed]);
+                        $(a).text(tuj.lang.breeds[breed]);
 
                         td = libtuj.ce('td');
                         td.className = 'quantity';

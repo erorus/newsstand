@@ -568,7 +568,7 @@ var TUJ_Seller = function ()
         data.petAuctions.sort(function (a, b)
         {
             return a.name.localeCompare(b.name) ||
-                tujConstants.breeds[a.breed].localeCompare(tujConstants.breeds[b.breed]) ||
+                tuj.lang.breeds[a.breed].localeCompare(tuj.lang.breeds[b.breed]) ||
                 a.quality - b.quality ||
                 a.buy - b.buy ||
                 a.bid - b.bid;
@@ -599,12 +599,12 @@ var TUJ_Seller = function ()
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.className = 'breed';
-            td.appendChild(document.createTextNode(tujConstants.breeds[auc.breed]));
+            td.appendChild(document.createTextNode(tuj.lang.breeds[auc.breed]));
 
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.className = 'quality';
-            td.appendChild(document.createTextNode(tujConstants.qualities[auc.quality]));
+            td.appendChild(document.createTextNode(tuj.lang.qualities[auc.quality]));
 
             td = libtuj.ce('td');
             tr.appendChild(td);

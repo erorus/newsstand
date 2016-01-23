@@ -115,7 +115,7 @@ var TUJ_BattlePet = function ()
         var timg = libtuj.ce('img');
         ta.appendChild(timg);
         timg.src = libtuj.IconURL(dta.stats.icon, 'large');
-        var ttl = '[' + dta.stats.name + ']' + (breedId && breeds.length > 1 ? ' ' + tujConstants.breeds[breedId] : '');
+        var ttl = '[' + dta.stats.name + ']' + (breedId && breeds.length > 1 ? ' ' + tuj.lang.breeds[breedId] : '');
         ta.appendChild(document.createTextNode(ttl));
 
         $('#page-title').empty().append(ta);
@@ -131,7 +131,7 @@ var TUJ_BattlePet = function ()
             a = libtuj.ce('a');
             d.appendChild(a);
             a.href = tuj.BuildHash({page: 'battlepet', id: '' + speciesId});
-            a.appendChild(document.createTextNode(tujConstants.breeds[0]));
+            a.appendChild(document.createTextNode(tuj.lang.breeds[0]));
             if (breedId == 0) {
                 a.className = 'selected';
             }
@@ -140,7 +140,7 @@ var TUJ_BattlePet = function ()
                 a = libtuj.ce('a');
                 d.appendChild(a);
                 a.href = tuj.BuildHash({page: 'battlepet', id: '' + speciesId + '.' + breeds[x]});
-                a.appendChild(document.createTextNode(tujConstants.breeds[breeds[x]]));
+                a.appendChild(document.createTextNode(tuj.lang.breeds[breeds[x]]));
                 if (breedId == breeds[x]) {
                     a.className = 'selected';
                 }
@@ -1425,12 +1425,12 @@ var TUJ_BattlePet = function ()
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.className = 'breed';
-            td.appendChild(document.createTextNode(tujConstants.breeds[auc.breed]));
+            td.appendChild(document.createTextNode(tuj.lang.breeds[auc.breed]));
 
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.className = 'quality';
-            td.appendChild(document.createTextNode(tujConstants.qualities[auc.quality]));
+            td.appendChild(document.createTextNode(tuj.lang.qualities[auc.quality]));
 
             td = libtuj.ce('td');
             tr.appendChild(td);

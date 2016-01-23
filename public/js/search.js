@@ -111,7 +111,7 @@ var TUJ_Search = function ()
                     td.className = 'title';
                     tr.appendChild(td);
                     td.colSpan = 6;
-                    $(td).text(tujConstants.itemClasses.hasOwnProperty(item.classid) ? tujConstants.itemClasses[item.classid] : ('Class ' + item.classid));
+                    $(td).text(tuj.lang.itemClasses.hasOwnProperty(item.classid) ? tuj.lang.itemClasses[item.classid] : ('Class ' + item.classid));
 
                     tr = libtuj.ce('tr');
                     tableHeader = tr;

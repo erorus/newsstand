@@ -1,0 +1,131 @@
+{
+    "localeCode": "enus",
+    "wowheadPrefix": "www",
+        
+    "suffixGold": "g",
+    "suffixSilver": "s",
+    "suffixCopper": "c",
+
+    "timeSecond": "second",
+    "timeSeconds": "seconds",
+    "timeMinute": "minute",
+    "timeMinutes": "minutes",
+    "timeHour": "hour",
+    "timeHours": "hours",
+    "timeDay": "day",
+    "timeDays": "days",
+    "timeHourAbbrev": "hr",
+    "timeHoursAbbrev": "hrs",
+
+    "timePast": "%s ago",
+    "timeFuture": "%s from now",
+
+    "unknown": "Unknown",
+    "submit": "Submit",
+
+    "nextUpdate": "Next update",
+    "lastChecked": "Last checked",
+    "blizzardAPI": "Blizzard API:",
+
+    "topSellers": "Top Sellers",
+    "mostAvailable": "Most Available",
+    "potentialDeals": "Potential Deals",
+
+    "ipIsBanned": "The IP address of you or your proxy %s has been banned from most queries at The Undermine Journal.",
+    "bannedContact": "You can drop us a line at the <a href=\"%s\">contact page</a> if you need us to investigate further.",
+
+    "search": "Search",
+    "item": "Item",
+    "seller": "Seller",
+    "battlepet": "Battle Pet",
+    "contact": "Contact",
+    "donate": "Donate",
+    "category": "Category",
+    "transmog": "Transmog",
+    "maintenance": "Maintenance",
+
+    "chooseRealm": "Choose your %s realm below:",
+    "solveCaptcha": "Solve Captcha",
+    "captchaDirections": "You viewed a lot of pages recently. To make sure you're not a script, please select all the %s without helms.",
+
+    "temporarilyOffline": "... is temporarily offline.",
+    "maintenanceGoblins": "The goblins of The Undermine Journal are working behind the scenes on some site maintenance.",
+    "expectOnline": "We expect to be back online %s.",
+    "pleaseComeBack": "Please come back later.",
+
+    "breeds": {
+        "0": "All Breeds",
+        "3": "B/B",
+        "4": "P/P",
+        "5": "S/S",
+        "6": "H/H",
+        "7": "H/P",
+        "8": "P/S",
+        "9": "H/S",
+        "10": "P/B",
+        "11": "S/B",
+        "12": "H/B"
+    },
+    "qualities": {
+        "0": "Poor",
+        "1": "Common",
+        "2": "Uncommon",
+        "3": "Rare",
+        "4": "Epic",
+        "5": "Legendary",
+        "6": "Artifact",
+        "7": "Heirloom"
+    },
+    "itemClasses": {
+        "7": "Trade Goods",
+        "0": "Consumable",
+        "5": "Reagent",
+
+        "3": "Gem",
+        "16": "Glyph",
+
+        "2": "Weapon",
+        "4": "Armor",
+
+        "9": "Recipe",
+
+        "1": "Container",
+        "11": "Quiver",
+
+        "17": "Battle Pets",
+
+        "12": "Quest",
+        "13": "Key",
+
+        "6": "Projectile",
+        "8": "Generic",
+        "10": "Money",
+        "14": "Permanent",
+        "15": "Miscellaneous"
+    },
+    "races": {
+        "10": "Blood Elves",
+        "11": "Draenei",
+        "3": "Dwarves",
+        "7": "Gnomes",
+        "9": "Goblins",
+        "1": "Humans",
+        "4": "Night Elves",
+        "2": "Orcs",
+        "6": "Tauren",
+        "8": "Trolls",
+        "5": "Undead"
+    },
+    "petTypes": {
+        "8": "Aquatic",
+        "7": "Beast",
+        "4": "Critter",
+        "1": "Dragonkin",
+        "6": "Elemental",
+        "2": "Flying",
+        "0": "Humanoid",
+        "5": "Magic",
+        "9": "Mechanical",
+        "3": "Undead"
+    }
+}
