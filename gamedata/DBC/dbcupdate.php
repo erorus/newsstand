@@ -233,11 +233,6 @@ dtecho(dbcdecode('ItemEffect', array(2=>'itemid', 4=>'spellid')));
 dtecho(run_sql('truncate table tblDBCItemSpell'));
 dtecho(run_sql('insert ignore into tblDBCItemSpell (select * from ttblItemEffect where itemid > 0 and spellid > 0)'));
 
-dtecho(dbcdecode('ItemSubClass', array(2=>'classid',3=>'subclassid',12=>'subclassname',13=>'subclassfullname')));
-dtecho(run_sql('truncate table tblDBCItemSubClass'));
-dtecho(run_sql('insert into tblDBCItemSubClass (select * from ttblItemSubClass)'));
-dtecho(run_sql('update tblDBCItemSubClass set fullname=null where fullname=\'\''));
-
 dtecho(dbcdecode('ItemRandomSuffix', array(1=>'suffixid', 2=>'name1', 3=>'name2')));
 dtecho(dbcdecode('ItemRandomProperties', array(1=>'suffixid', 2=>'name1', 8=>'name2')));
 dtecho(run_sql('truncate table tblDBCRandEnchants'));
