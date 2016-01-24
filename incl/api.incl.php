@@ -10,6 +10,15 @@ define('BANLIST_CACHEKEY', 'banlist_cidrs4');
 define('BANLIST_FILENAME', __DIR__ . '/banlist.txt');
 
 $VALID_LOCALES = ['enus','dede','eses','frfr','itit','ptbr','ruru'];
+$LANG_LEVEL = [
+    '__LEVEL_enus__' => 'Level',
+    '__LEVEL_dede__' => 'Stufe',
+    '__LEVEL_eses__' => 'Nivel',
+    '__LEVEL_frfr__' => 'Niveau',
+    '__LEVEL_itit__' => 'Livello',
+    '__LEVEL_ptbr__' => 'Nível',
+    '__LEVEL_ruru__' => 'Уровень',
+];
 
 if ((PHP_SAPI != 'cli') && (($inMaintenance = APIMaintenance()) !== false)) {
     header('HTTP/1.1 503 Service Unavailable');
@@ -50,13 +59,13 @@ function GetLocale()
     return 'enus';
 }
 
-function LocaleColumns($colName)
+function LocaleColumns($colName, $usesPattern = false)
 {
     global $VALID_LOCALES;
 
     $tr = '';
     foreach ($VALID_LOCALES as $locId) {
-        $tr .= ($tr == '' ? '' : ', ') . $colName . '_' . $locId;
+        $tr .= ($tr == '' ? '' : ', ') . ($usesPattern ? sprintf($colName, '_' . $locId) : ($colName . '_' . $locId));
     }
 
     return $tr;

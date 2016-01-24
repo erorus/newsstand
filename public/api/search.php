@@ -18,7 +18,8 @@ if ($search == '') {
 BotCheck();
 HouseETag($house);
 
-$searchCacheKey = 'search_' . md5($search);
+$locale = GetLocale();
+$searchCacheKey = 'search_' . $locale . '_' . md5($search);
 
 if ($json = MCGetHouse($house, $searchCacheKey)) {
     json_return($json);
@@ -27,7 +28,7 @@ if ($json = MCGetHouse($house, $searchCacheKey)) {
 DBConnect();
 
 $json = array(
-    'items'      => SearchItems($house, $search),
+    'items'      => SearchItems($house, $search, $locale),
     'sellers'    => SearchSellers($house, $search),
     'battlepets' => SearchBattlePets($house, $search),
 );
@@ -45,23 +46,22 @@ MCSetHouse($house, $searchCacheKey, $json);
 
 json_return($json);
 
-function SearchItems($house, $search)
+function SearchItems($house, $search, $locale)
 {
-    global $db;
+    global $db, $LANG_LEVEL;
 
-    $suffixes = MCGet('search_itemsuffixes2');
+    $suffixes = MCGet('search_itemsuffixes_' . $locale);
     if ($suffixes === false) {
-        $stmt = $db->prepare('SELECT lower(suffix) FROM tblDBCItemRandomSuffix union select lower(name) from tblDBCItemBonus where name is not null');
+        $stmt = $db->prepare('SELECT lower(suffix) FROM tblDBCItemRandomSuffix union select lower(name_'.$locale.') from tblDBCItemBonus where name_'.$locale.' is not null');
         $stmt->execute();
         $result = $stmt->get_result();
         $suffixes = DBMapArray($result, null);
         $stmt->close();
 
-        MCSet('search_itemsuffixes2', $suffixes, 86400);
+        MCSet('search_itemsuffixes_' . $locale, $suffixes, 86400);
     }
 
     $terms = preg_replace('/\s+/', '%', " $search ");
-    $locale = GetLocale();
     $nameSearch = "i.name_$locale like ?";
 
     $terms2 = '';
@@ -76,10 +76,15 @@ function SearchItems($house, $search)
     }
 
     $localizedItemNames = LocaleColumns('i.name');
+    $bonusNames = LocaleColumns('ifnull(group_concat(distinct ib.name%1$s order by ib.namepriority desc separator \'|\'), \'\') bonusname%1$s', true);
+    $bonusTags = LocaleColumns('ifnull(group_concat(distinct ib.`tag%1$s` order by ib.tagpriority separator \' \'), if(results.bonusset=0,\'\',concat(\'__LEVEL%1$s__ \', results.level+sum(ifnull(ib.level,0))))) bonustag%1$s', true);
+    $bonusTags = strtr($bonusTags, $LANG_LEVEL);
+
     $sql = <<<EOF
 select results.*,
 ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
-ifnull(group_concat(distinct ib.`tag` order by ib.tagpriority separator ' '), if(results.bonusset=0,'',concat('Level ', results.level+sum(ifnull(ib.level,0))))) bonustag,
+$bonusNames,
+$bonusTags,
 results.level+sum(ifnull(ib.level,0)) sortlevel
 from (
     select i.id, $localizedItemNames, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice,

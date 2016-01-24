@@ -71,7 +71,7 @@ while ($row = next_row($rst)) {
 
 dtecho(run_sql('truncate table tblDBCItemBonus'));
 foreach ($bonuses as $bonusId => $bonusData) {
-    $sql = "insert into tblDBCItemBonus (id, quality, `level`, tag, tagpriority, `name`, namepriority) values ($bonusId";
+    $sql = "insert into tblDBCItemBonus (id, quality, `level`, tag_enus, tagpriority, `name_enus`, namepriority) values ($bonusId";
     if (isset($bonusData['quality'])) {
         $sql .= ', ' . $bonusData['quality'];
     } else {

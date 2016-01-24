@@ -36,9 +36,9 @@ json_return($json);
 
 function ItemStats($house, $item)
 {
-    global $db;
+    global $db, $LANG_LEVEL;
 
-    $cacheKey = 'item_stats_l_' . $item;
+    $cacheKey = 'item_stats_l2_' . $item;
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
@@ -47,11 +47,13 @@ function ItemStats($house, $item)
     DBConnect();
 
     $localeCols = LocaleColumns('i.name');
+    $bonusTags = LocaleColumns('ifnull(group_concat(ib.`tag%1$s` order by ib.tagpriority separator \' \'), if(ifnull(s.bonusset,0)=0,\'\',concat(\'__LEVEL%1$s__ \', i.level+sum(ifnull(ib.level,0))))) bonustag%1$s', true);
+    $bonusTags = strtr($bonusTags, $LANG_LEVEL);
     $sql = <<<EOF
 select i.id, $localeCols, i.icon, i.display, i.class as classid, i.subclass, ifnull(max(ib.quality), i.quality) quality, i.level+sum(ifnull(ib.level,0)) level, i.stacksize, i.binds, i.buyfromvendor, i.selltovendor, i.auctionable,
 s.price, s.quantity, s.lastseen,
 ifnull(s.bonusset,0) bonusset, ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
-ifnull(group_concat(ib.`tag` order by ib.tagpriority separator ' '), if(ifnull(s.bonusset,0)=0,'',concat('Level ', i.level+sum(ifnull(ib.level,0))))) bonustag,
+$bonusTags,
 GetReagentPrice(s.house, i.id, null) reagentprice
 from tblDBCItem i
 left join tblItemSummary s on s.house = %d and s.item = i.id
@@ -281,9 +283,9 @@ EOF;
 
 function ItemAuctions($house, $item)
 {
-    global $db;
+    global $db, $LANG_LEVEL;
 
-    $cacheKey = 'item_auctionsb3_' . $item;
+    $cacheKey = 'item_auctions_l_' . $item;
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
@@ -291,12 +293,16 @@ function ItemAuctions($house, $item)
 
     DBConnect();
 
+    $bonusNames = LocaleColumns('ifnull(group_concat(distinct ib.name%1$s order by ib.namepriority desc separator \'|\'), \'\') bonusname%1$s', true);
+    $bonusTags = LocaleColumns('ifnull(group_concat(distinct ib.`tag%1$s` order by ib.tagpriority separator \' \'), if(ifnull(bs.set,0)=0,\'\',concat(\'__LEVEL%1$s__ \', i.level+sum(ifnull(ib.level,0))))) bonustag%1$s', true);
+    $bonusTags = strtr($bonusTags, $LANG_LEVEL);
+
     $sql = <<<EOF
 SELECT ifnull(ae.bonusset,0) bonusset, a.quantity, a.bid, a.buy, ifnull(ae.`rand`,0) `rand`, ifnull(ae.seed,0) `seed`, s.realm sellerrealm, ifnull(s.name, '???') sellername,
 concat_ws(':',ae.bonus1,ae.bonus2,ae.bonus3,ae.bonus4,ae.bonus5,ae.bonus6) bonuses,
 ifnull(GROUP_CONCAT(distinct bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
-ifnull(group_concat(distinct ib.name order by ib.namepriority desc separator '|'), '') bonusname,
-ifnull(group_concat(distinct ib.`tag` order by ib.tagpriority separator ' '), if(ifnull(bs.set,0)=0,'',concat('Level ', i.level+sum(ifnull(ib.level,0))))) bonustag,
+$bonusNames,
+$bonusTags,
 re.name randname
 FROM `tblAuction` a
 join tblDBCItem i on a.item=i.id

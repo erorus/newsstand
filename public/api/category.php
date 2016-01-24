@@ -1600,7 +1600,7 @@ function CategoryResult_companions($house)
 
 function CategoryGenericItemList($house, $params)
 {
-    global $db, $canCache;
+    global $db, $canCache, $LANG_LEVEL;
 
     $key = 'category_gil_' . md5(json_encode($params));
 
@@ -1623,10 +1623,15 @@ function CategoryGenericItemList($house, $params)
     }
 
     $localizedItemNames = LocaleColumns('i.name');
+    $bonusNames = LocaleColumns('ifnull(group_concat(distinct ib.name%1$s order by ib.namepriority desc separator \'|\'), \'\') bonusname%1$s', true);
+    $bonusTags = LocaleColumns('ifnull(group_concat(distinct ib.`tag%1$s` order by ib.tagpriority separator \' \'), if(results.bonusset=0,\'\',concat(\'__LEVEL%1$s__ \', results.level+sum(ifnull(ib.level,0))))) bonustag%1$s', true);
+    $bonusTags = strtr($bonusTags, $LANG_LEVEL);
+
     $sql = <<<EOF
 select results.*, $outside
 ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
-ifnull(group_concat(distinct ib.`tag` order by ib.tagpriority separator ' '), if(results.bonusset=0,'',concat('Level ', results.level+sum(ifnull(ib.level,0))))) bonustag
+$bonusNames,
+$bonusTags
 from (
     select i.id, $localizedItemNames, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice, s.age, round(avg(h.age)) avgage,
     ifnull(s.bonusset,0) bonusset, i.level, i.basebonus `basebonus` $cols

@@ -463,11 +463,11 @@ var TUJ_Seller = function ()
             a.rel = 'item=' + auc.item + (auc.rand ? '&rand=' + auc.rand : '') + (auc.bonuses ? '&bonus=' + auc.bonuses : '') + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
             a.href = tuj.BuildHash({page: 'item', id: auc.item + (auc.bonusurl ? ('.'+auc.bonusurl).replace(':','.') : '')});
             td.appendChild(a);
-            $(a).text('[' + auc['name_' + tuj.locale] + (auc.bonusname ? ' ' + auc.bonusname.substr(0, auc.bonusname.indexOf('|') >= 0 ? auc.bonusname.indexOf('|') : auc.bonusname.length) : '') + (auc.randname ? ' ' + auc.randname : '') + ']' + (auc.bonustag ? ' ' : ''));
-            if (auc.bonustag) {
+            $(a).text('[' + auc['name_' + tuj.locale] + (auc['bonusname_' + tuj.locale] ? ' ' + auc['bonusname_' + tuj.locale].substr(0, auc['bonusname_' + tuj.locale].indexOf('|') >= 0 ? auc['bonusname_' + tuj.locale].indexOf('|') : auc['bonusname_' + tuj.locale].length) : '') + (auc.randname ? ' ' + auc.randname : '') + ']' + (auc['bonustag_' + tuj.locale] ? ' ' : ''));
+            if (auc['bonustag_' + tuj.locale]) {
                 var tagspan = libtuj.ce('span');
                 tagspan.className = 'nowrap';
-                $(tagspan).text(auc.bonustag);
+                $(tagspan).text(auc['bonustag_' + tuj.locale]);
                 a.appendChild(tagspan);
             }
 

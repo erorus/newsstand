@@ -129,7 +129,7 @@ var TUJ_Item = function ()
         }
 
         bonusSets.sort(function(a,b) {
-            return (dta.stats[a].level - dta.stats[b].level) || dta.stats[a].bonustag.localeCompare(dta.stats[b].bonustag) || a - b;
+            return (dta.stats[a].level - dta.stats[b].level) || dta.stats[a]['bonustag_' + tuj.locale].localeCompare(dta.stats[b]['bonustag_' + tuj.locale]) || a - b;
         });
 
         var ta = libtuj.ce('a');
@@ -139,10 +139,10 @@ var TUJ_Item = function ()
         var timg = libtuj.ce('img');
         ta.appendChild(timg);
         timg.src = libtuj.IconURL(dta.stats[bonusSet].icon, 'large');
-        ta.appendChild(document.createTextNode('[' + dta.stats[bonusSet]['name_' + tuj.locale] + ']' + (dta.stats[bonusSet].bonustag ? ' ' + dta.stats[bonusSet].bonustag : '')));
+        ta.appendChild(document.createTextNode('[' + dta.stats[bonusSet]['name_' + tuj.locale] + ']' + (dta.stats[bonusSet]['bonustag_' + tuj.locale] ? ' ' + dta.stats[bonusSet]['bonustag_' + tuj.locale] : '')));
 
         $('#page-title').empty().append(ta);
-        tuj.SetTitle('[' + dta.stats[bonusSet]['name_' + tuj.locale] + ']' + (dta.stats[bonusSet].bonustag ? ' ' + dta.stats[bonusSet].bonustag : ''));
+        tuj.SetTitle('[' + dta.stats[bonusSet]['name_' + tuj.locale] + ']' + (dta.stats[bonusSet]['bonustag_' + tuj.locale] ? ' ' + dta.stats[bonusSet]['bonustag_' + tuj.locale] : ''));
 
         if (bonusSets.length > 1) {
             d = libtuj.ce();
@@ -153,7 +153,7 @@ var TUJ_Item = function ()
                 a = libtuj.ce('a');
                 d.appendChild(a);
                 a.href = tuj.BuildHash({page: 'item', id: '' + itemId + (dta.stats[bonusSets[x]].bonusurl ? ('.' + dta.stats[bonusSets[x]].bonusurl) : '')});
-                a.appendChild(document.createTextNode(dta.stats[bonusSets[x]].bonustag || (bonusSets[x] == 0 ? tuj.lang.normal : '')));
+                a.appendChild(document.createTextNode(dta.stats[bonusSets[x]]['bonustag_' + tuj.locale] || (bonusSets[x] == 0 ? tuj.lang.normal : '')));
                 if (bonusSet == bonusSets[x]) {
                     a.className = 'selected';
                 }
@@ -2301,11 +2301,11 @@ var TUJ_Item = function ()
                 //a.href = tuj.BuildHash({page: 'item', id: data.stats[bonusSet].id + (auc.bonusurl ? ('.'+auc.bonusurl).replace(':','.') : '')});
                 a.href = 'http://' + tuj.lang.wowheadDomain + '.wowhead.com/item=' + data.stats[bonusSet].id + (auc.bonuses ? '&bonus=' + auc.bonuses : '');
                 td.appendChild(a);
-                $(a).text('[' + data.stats[bonusSet]['name_' + tuj.locale] + (auc.bonusname ? ' ' + auc.bonusname.substr(0, auc.bonusname.indexOf('|') >= 0 ? auc.bonusname.indexOf('|') : auc.bonusname.length) : '') + (auc.randname ? ' ' + auc.randname : '') + ']' + (auc.bonustag ? ' ' : ''));
-                if (auc.bonustag) {
+                $(a).text('[' + data.stats[bonusSet]['name_' + tuj.locale] + (auc['bonusname_' + tuj.locale] ? ' ' + auc['bonusname_' + tuj.locale].substr(0, auc['bonusname_' + tuj.locale].indexOf('|') >= 0 ? auc['bonusname_' + tuj.locale].indexOf('|') : auc['bonusname_' + tuj.locale].length) : '') + (auc.randname ? ' ' + auc.randname : '') + ']' + (auc['bonustag_' + tuj.locale] ? ' ' : ''));
+                if (auc['bonustag_' + tuj.locale]) {
                     var tagspan = libtuj.ce('span');
                     tagspan.className = 'nowrap';
-                    $(tagspan).text(auc.bonustag);
+                    $(tagspan).text(auc['bonustag_' + tuj.locale]);
                     a.appendChild(tagspan);
                 }
             }
