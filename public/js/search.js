@@ -74,7 +74,7 @@ var TUJ_Search = function ()
         var searchPage = $('#search-page');
         searchPage.empty();
 
-        $('#page-title').text('Search: ' + params.id);
+        $('#page-title').text(tuj.lang.search + ': ' + params.id);
 
         var results = 0;
         var lastResult;
@@ -111,7 +111,7 @@ var TUJ_Search = function ()
                     td.className = 'title';
                     tr.appendChild(td);
                     td.colSpan = 6;
-                    $(td).text(tuj.lang.itemClasses.hasOwnProperty(item.classid) ? tuj.lang.itemClasses[item.classid] : ('Class ' + item.classid));
+                    $(td).text(tuj.lang.itemClasses.hasOwnProperty(item.classid) ? tuj.lang.itemClasses[item.classid] : (tuj.lang.class + ' ' + item.classid));
 
                     tr = libtuj.ce('tr');
                     tableHeader = tr;
@@ -121,27 +121,27 @@ var TUJ_Search = function ()
                     td.className = 'name';
                     tr.appendChild(td);
                     td.colSpan = 2;
-                    $(td).text('Name');
+                    $(td).text(tuj.lang.name);
 
                     td = libtuj.ce('th');
                     td.className = 'quantity';
                     tr.appendChild(td);
-                    $(td).text('Avail');
+                    $(td).text(tuj.lang.availableAbbrev);
 
                     td = libtuj.ce('th');
                     td.className = 'price';
                     tr.appendChild(td);
-                    $(td).text('Current');
+                    $(td).text(tuj.lang.currentPriceAbbrev);
 
                     td = libtuj.ce('th');
                     td.className = 'price';
                     tr.appendChild(td);
-                    $(td).text('Mean');
+                    $(td).text(tuj.lang.mean);
 
                     td = libtuj.ce('th');
                     td.className = 'date';
                     tr.appendChild(td);
-                    $(td).text('Last Seen');
+                    $(td).text(tuj.lang.lastSeen);
                 }
                 else {
                     if (++classResults % 30 == 0) {
@@ -165,7 +165,7 @@ var TUJ_Search = function ()
                 tr.appendChild(td);
                 a = libtuj.ce('a');
                 td.appendChild(a);
-                a.rel = 'item=' + item.id + (item.bonusurl ? '&bonus=' + item.bonusurl : (item.basebonus ? '&bonus=' + item.basebonus : ''));
+                a.rel = 'item=' + item.id + (item.bonusurl ? '&bonus=' + item.bonusurl : (item.basebonus ? '&bonus=' + item.basebonus : '')) + (tuj.locale != 'enus' ? '&locale=' + tuj.locale : '');
                 a.href = tuj.BuildHash({page: 'item', id: item.id + (item.bonusurl ? ('.'+item.bonusurl).replace(':','.') : '')});
                 $(a).text('[' + item.name + (item.bonusname ? ' ' + item.bonusname.substr(0, item.bonusname.indexOf('|') >= 0 ? item.bonusname.indexOf('|') : item.bonusname.length) : '') + ']' + (item.bonustag ? ' ' : ''));
                 if (item.bonustag) {
@@ -216,7 +216,7 @@ var TUJ_Search = function ()
             td.className = 'title';
             tr.appendChild(td);
             td.colSpan = 5;
-            $(td).text('Sellers');
+            $(td).text(tuj.lang.sellers);
 
             tr = libtuj.ce('tr');
             t.appendChild(tr);
@@ -224,12 +224,12 @@ var TUJ_Search = function ()
             td = libtuj.ce('th');
             td.className = 'name';
             tr.appendChild(td);
-            $(td).text('Name');
+            $(td).text(tuj.lang.name);
 
             td = libtuj.ce('th');
             td.className = 'date';
             tr.appendChild(td);
-            $(td).text('Last Seen');
+            $(td).text(tuj.lang.lastSeen);
 
             for (x = 0; seller = dta.sellers[x]; x++) {
                 results++;
@@ -278,7 +278,7 @@ var TUJ_Search = function ()
                     td.className = 'title';
                     tr.appendChild(td);
                     td.colSpan = 6;
-                    $(td).text('Battle Pets');
+                    $(td).text(tuj.lang.battlepets);
 
                     tr = libtuj.ce('tr');
                     tableHeader = tr;
@@ -288,27 +288,27 @@ var TUJ_Search = function ()
                     td.className = 'name';
                     tr.appendChild(td);
                     td.colSpan = 2;
-                    $(td).text('Name');
+                    $(td).text(tuj.lang.name);
 
                     td = libtuj.ce('th');
                     td.className = 'quantity';
                     tr.appendChild(td);
-                    $(td).text('Avail');
+                    $(td).text(tuj.lang.availableAbbrev);
 
                     td = libtuj.ce('th');
                     td.className = 'price';
                     tr.appendChild(td);
-                    $(td).text('Current');
+                    $(td).text(tuj.lang.currentPriceAbbrev);
 
                     td = libtuj.ce('th');
                     td.className = 'price';
                     tr.appendChild(td);
-                    $(td).text('Mean');
+                    $(td).text(tuj.lang.mean);
 
                     td = libtuj.ce('th');
                     td.className = 'date';
                     tr.appendChild(td);
-                    $(td).text('Last Seen');
+                    $(td).text(tuj.lang.lastSeen);
                 }
                 else {
                     if (petResults % 30 == 0) {
@@ -334,7 +334,7 @@ var TUJ_Search = function ()
                 td.appendChild(a);
                 a.href = tuj.BuildHash({page: 'battlepet', id: pet.id});
                 if (pet.npc) {
-                    a.rel = 'npc=' + pet.npc;
+                    a.rel = 'npc=' + pet.npc + (tuj.locale != 'enus' ? '&locale=' + tuj.locale : '');
                 }
                 $(a).text('[' + pet.name + ']');
 
@@ -366,7 +366,7 @@ var TUJ_Search = function ()
         else {
             if (results == 0) {
                 var h2 = libtuj.ce('h2');
-                h2.appendChild(document.createTextNode('No results found.'));
+                h2.appendChild(document.createTextNode(tuj.lang.noResults));
                 searchPage.append(h2);
             }
             searchPage.show();

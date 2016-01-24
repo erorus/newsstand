@@ -36,7 +36,9 @@
     "search": "Search",
     "item": "Item",
     "seller": "Seller",
+    "sellers": "Sellers",
     "battlepet": "Battle Pet",
+    "battlepets": "Battle Pets",
     "contact": "Contact",
     "donate": "Donate",
     "category": "Category",
@@ -53,6 +55,7 @@
     "pleaseComeBack": "Please come back later.",
 
     "notFound": "{1} not found.",
+    "noResults": "No results found.",
     "contactTheEditor": "Contact The Editor",
     "donateTo": "Donate to {1}",
 
@@ -73,7 +76,6 @@
     "enchanting": "Enchanting",
     "inscription": "Inscription",
     "jewelcrafting": "Jewelcrafting",
-    "battlepets": "Battle Pets",
     "companions": "Companions",
     "fishing": "Fishing",
 
@@ -183,7 +185,7 @@
     "essence": "Essence",
     "shard": "Shard",
     "crystal": "Crystal",
-
+    "class": "Class",
 
     "zoomClickDrag": "Click and drag in the plot area to zoom in",
     "zoomPinch": "Pinch the chart to zoom in",
