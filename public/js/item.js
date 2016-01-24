@@ -2301,7 +2301,7 @@ var TUJ_Item = function ()
                 //a.href = tuj.BuildHash({page: 'item', id: data.stats[bonusSet].id + (auc.bonusurl ? ('.'+auc.bonusurl).replace(':','.') : '')});
                 a.href = 'http://' + tuj.lang.wowheadDomain + '.wowhead.com/item=' + data.stats[bonusSet].id + (auc.bonuses ? '&bonus=' + auc.bonuses : '');
                 td.appendChild(a);
-                $(a).text('[' + data.stats[bonusSet]['name_' + tuj.locale] + (auc['bonusname_' + tuj.locale] ? ' ' + auc['bonusname_' + tuj.locale].substr(0, auc['bonusname_' + tuj.locale].indexOf('|') >= 0 ? auc['bonusname_' + tuj.locale].indexOf('|') : auc['bonusname_' + tuj.locale].length) : '') + (auc.randname ? ' ' + auc.randname : '') + ']' + (auc['bonustag_' + tuj.locale] ? ' ' : ''));
+                $(a).text('[' + data.stats[bonusSet]['name_' + tuj.locale] + (auc['bonusname_' + tuj.locale] ? ' ' + auc['bonusname_' + tuj.locale].substr(0, auc['bonusname_' + tuj.locale].indexOf('|') >= 0 ? auc['bonusname_' + tuj.locale].indexOf('|') : auc['bonusname_' + tuj.locale].length) : '') + (auc['randname_' + tuj.locale] ? ' ' + auc['randname_' + tuj.locale] : '') + ']' + (auc['bonustag_' + tuj.locale] ? ' ' : ''));
                 if (auc['bonustag_' + tuj.locale]) {
                     var tagspan = libtuj.ce('span');
                     tagspan.className = 'nowrap';

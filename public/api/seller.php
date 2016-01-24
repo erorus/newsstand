@@ -122,9 +122,11 @@ function SellerAuctions($house, $seller)
     $bonusNames = LocaleColumns('ifnull(group_concat(distinct ib.name%1$s order by ib.namepriority desc separator \'|\'), \'\') bonusname%1$s', true);
     $bonusTags = LocaleColumns('ifnull(group_concat(distinct ib.`tag%1$s` order by ib.tagpriority separator \' \'), if(ifnull(bs.set,0)=0,\'\',concat(\'__LEVEL%1$s__ \', i.level+sum(ifnull(ib.level,0))))) bonustag%1$s', true);
     $bonusTags = strtr($bonusTags, $LANG_LEVEL);
+    $randNames = LocaleColumns('re.name%1$s randname%1$s', true);
+    $randNamesOutside = LocaleColumns('randname');
 
     $sql = <<<EOF
-select item, $itemNamesOutside, quality, class, subclass, icon, stacksize, quantity, bid, buy, `rand`, seed, bonuses, bonusurl, $bonusNamesOutside, $bonusTagsOutside, randname,
+select item, $itemNamesOutside, quality, class, subclass, icon, stacksize, quantity, bid, buy, `rand`, seed, bonuses, bonusurl, $bonusNamesOutside, $bonusTagsOutside, $randNamesOutside,
 (SELECT ifnull(sum(quantity),0) from tblAuction a2 left join tblAuctionExtra ae2 on a2.house=ae2.house and a2.id=ae2.id where a2.house=results.house and a2.item=results.item and ifnull(ae2.bonusset,0) = ifnull(results.bonusset,0) and a2.seller!=results.seller and
 ((results.buy > 0 and a2.buy > 0 and (a2.buy / a2.quantity < results.buy / results.quantity)) or (results.buy = 0 and (a2.bid / a2.quantity < results.bid / results.quantity)))) cheaper
 from (
@@ -133,7 +135,7 @@ from (
     ifnull(GROUP_CONCAT(distinct bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
     $bonusNames,
     $bonusTags,
-    re.name randname,
+    $randNames,
     a.house, a.seller, ae.bonusset
     FROM `tblAuction` a
     left join tblDBCItem i on a.item=i.id

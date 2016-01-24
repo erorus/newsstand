@@ -238,10 +238,10 @@ dtecho(run_sql('insert ignore into tblDBCItemSpell (select * from ttblItemEffect
 dtecho(dbcdecode('ItemRandomSuffix', array(1=>'suffixid', 2=>'name1', 3=>'name2')));
 dtecho(dbcdecode('ItemRandomProperties', array(1=>'suffixid', 2=>'name1', 8=>'name2')));
 dtecho(run_sql('truncate table tblDBCRandEnchants'));
-dtecho(run_sql('insert into tblDBCRandEnchants (id, name) (select suffixid, ifnull(name1, name2) from ttblItemRandomProperties)'));
-dtecho(run_sql('insert into tblDBCRandEnchants (id, name) (select suffixid * -1, ifnull(name1, name2) from ttblItemRandomSuffix)'));
+dtecho(run_sql('insert into tblDBCRandEnchants (id, name_enus) (select suffixid, ifnull(name1, name2) from ttblItemRandomProperties)'));
+dtecho(run_sql('insert into tblDBCRandEnchants (id, name_enus) (select suffixid * -1, ifnull(name1, name2) from ttblItemRandomSuffix)'));
 dtecho(run_sql('truncate table tblDBCItemRandomSuffix'));
-dtecho(run_sql('insert into tblDBCItemRandomSuffix (suffix) (select distinct name from tblDBCRandEnchants where trim(name) like \'of %\')'));
+dtecho(run_sql('insert into tblDBCItemRandomSuffix (locale, suffix) (select distinct \'enus\', name from tblDBCRandEnchants where trim(name) like \'of %\')'));
 
 /*
 dtecho(dbcdecode('ItemToBattlePet', array(1=>'itemid',2=>'speciesid')));

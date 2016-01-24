@@ -86,6 +86,13 @@ foreach ($LOCALES as $locale) {
     dtecho(run_sql('delete from ttblDBCItemBonus where id not in (select id from tblDBCItemBonus)'));
     dtecho(run_sql("insert into tblDBCItemBonus (id, tag_$locale, name_$locale) (select id, tag_$locale, name_$locale from ttblDBCItemBonus) on duplicate key update tag_$locale = values(tag_$locale), name_$locale = values(name_$locale)"));
 
+    // DBCItemRandomSuffix
+    dtecho(dbcdecode('ItemRandomSuffix', array(1=>'suffixid', 2=>'name1', 3=>'name2')));
+    dtecho(dbcdecode('ItemRandomProperties', array(1=>'suffixid', 2=>'name1', 8=>'name2')));
+    dtecho(run_sql('insert into tblDBCRandEnchants (id, name_'.$locale.') (select suffixid, ifnull(name1, name2) from ttblItemRandomProperties) on duplicate key update name_'.$locale.'=values(name_'.$locale.')'));
+    dtecho(run_sql('insert into tblDBCRandEnchants (id, name_'.$locale.') (select suffixid * -1, ifnull(name1, name2) from ttblItemRandomSuffix) on duplicate key update name_'.$locale.'=values(name_'.$locale.')'));
+    dtecho(run_sql('insert ignore into tblDBCItemRandomSuffix (locale, suffix) (select distinct \''.$locale.'\', name_'.$locale.' from tblDBCRandEnchants where trim(name_'.$locale.') != \'\' and id < 0)'));
+
     /* */
 }
 

@@ -52,7 +52,7 @@ function SearchItems($house, $search, $locale)
 
     $suffixes = MCGet('search_itemsuffixes_' . $locale);
     if ($suffixes === false) {
-        $stmt = $db->prepare('SELECT lower(suffix) FROM tblDBCItemRandomSuffix union select lower(name_'.$locale.') from tblDBCItemBonus where name_'.$locale.' is not null');
+        $stmt = $db->prepare('SELECT lower(suffix) FROM tblDBCItemRandomSuffix where locale=\''.$locale.'\' union select lower(name_'.$locale.') from tblDBCItemBonus where name_'.$locale.' is not null');
         $stmt->execute();
         $result = $stmt->get_result();
         $suffixes = DBMapArray($result, null);

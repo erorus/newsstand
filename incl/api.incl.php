@@ -50,11 +50,13 @@ function json_return($json)
 function GetLocale()
 {
     global $VALID_LOCALES;
-    if (isset($_POST['locale']) && in_array($_POST['locale'], $VALID_LOCALES)) {
-        return $_POST['locale'];
+    $localeKeys = array_flip($VALID_LOCALES);
+
+    if (isset($_POST['locale']) && isset($localeKeys[$_POST['locale']])) {
+        return $VALID_LOCALES[$localeKeys[$_POST['locale']]];
     }
-    if (isset($_GET['locale']) && in_array($_GET['locale'], $VALID_LOCALES)) {
-        return $_GET['locale'];
+    if (isset($_GET['locale']) && isset($localeKeys[$_GET['locale']])) {
+        return $VALID_LOCALES[$localeKeys[$_GET['locale']]];
     }
     return 'enus';
 }
