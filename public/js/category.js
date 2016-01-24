@@ -87,7 +87,7 @@ var TUJ_Category = function ()
 
             var h2 = libtuj.ce('h2');
             categoryPage.append(h2);
-            h2.appendChild(document.createTextNode(tuj.lang.category + ' ' + params.id + ' not found.'));
+            h2.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.notFound, tuj.lang.category + ' ' + params.id)));
 
             return;
         }

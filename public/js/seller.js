@@ -76,18 +76,18 @@ var TUJ_Seller = function ()
         sellerPage.show();
 
         if (!dta.stats) {
-            $('#page-title').empty().append(document.createTextNode('Seller: ' + params.id));
-            tuj.SetTitle('Seller: ' + params.id);
+            $('#page-title').empty().append(document.createTextNode(tuj.lang.seller + ': ' + params.id));
+            tuj.SetTitle(tuj.lang.seller + ': ' + params.id);
 
             var h2 = libtuj.ce('h2');
             sellerPage.append(h2);
-            h2.appendChild(document.createTextNode('Seller ' + params.id + ' not found.'));
+            h2.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.notFound, tuj.lang.seller + ' ' + params.id)));
 
             return;
         }
 
-        $('#page-title').empty().append(document.createTextNode('Seller: ' + dta.stats.name));
-        tuj.SetTitle('Seller: ' + dta.stats.name);
+        $('#page-title').empty().append(document.createTextNode(tuj.lang.seller + ': ' + dta.stats.name));
+        tuj.SetTitle(tuj.lang.seller + ': ' + dta.stats.name);
 
         var d, cht, h;
 
@@ -97,8 +97,8 @@ var TUJ_Seller = function ()
         d.className = 'chart-section';
         h = libtuj.ce('h2');
         d.appendChild(h);
-        $(h).text('Snapshots');
-        d.appendChild(document.createTextNode('Here you\'ll find the amount of new and total auctions by this seller at each snapshot.'))
+        $(h).text(tuj.lang.snapshots);
+        d.appendChild(document.createTextNode(tuj.lang.snapshotsSellerDesc))
         cht = libtuj.ce();
         cht.className = 'chart history';
         d.appendChild(cht);
@@ -110,7 +110,7 @@ var TUJ_Seller = function ()
             d.className = 'chart-section';
             h = libtuj.ce('h2');
             d.appendChild(h);
-            $(h).text('Posting Heat Map');
+            $(h).text(tuj.lang.postingHeatMap);
             cht = libtuj.ce();
             cht.className = 'chart heatmap';
             d.appendChild(cht);
@@ -123,7 +123,7 @@ var TUJ_Seller = function ()
             d.className = 'chart-section';
             h = libtuj.ce('h2');
             d.appendChild(h);
-            $(h).text('Current Auctions');
+            $(h).text(tuj.lang.currentAuctions);
             cht = libtuj.ce();
             cht.className = 'auctionlist';
             d.appendChild(cht);
@@ -136,7 +136,7 @@ var TUJ_Seller = function ()
             d.className = 'chart-section';
             h = libtuj.ce('h2');
             d.appendChild(h);
-            $(h).text('Current Pet Auctions');
+            $(h).text(tuj.lang.currentPetAuctions);
             cht = libtuj.ce();
             cht.className = 'auctionlist';
             d.appendChild(cht);
@@ -175,8 +175,8 @@ var TUJ_Seller = function ()
             },
             subtitle: {
                 text: document.ontouchstart === undefined ?
-                    'Click and drag in the plot area to zoom in' :
-                    'Pinch the chart to zoom in',
+                    tuj.lang.zoomClickDrag :
+                    tuj.lang.zoomPinch,
                 style: {
                     color: tujConstants.siteColors[tuj.colorTheme].text
                 }
@@ -196,7 +196,7 @@ var TUJ_Seller = function ()
             yAxis: [
                 {
                     title: {
-                        text: 'Number of Auctions',
+                        text: tuj.lang.numberOfAuctions,
                         style: {
                             color: tujConstants.siteColors[tuj.colorTheme].bluePrice
                         }
@@ -223,8 +223,8 @@ var TUJ_Seller = function ()
                 formatter: function ()
                 {
                     var tr = '<b>' + Highcharts.dateFormat('%a %b %e %Y, %l:%M%P', this.x) + '</b>';
-                    tr += '<br><span style="color: #000099">Total: ' + libtuj.FormatQuantity(this.points[0].y, true) + '</span>';
-                    tr += '<br><span style="color: #990000">New: ' + libtuj.FormatQuantity(this.points[1].y, true) + '</span>';
+                    tr += '<br><span style="color: #000099">' + tuj.lang.total + ': ' + libtuj.FormatQuantity(this.points[0].y, true) + '</span>';
+                    tr += '<br><span style="color: #990000">' + tuj.lang['new'] + ': ' + libtuj.FormatQuantity(this.points[1].y, true) + '</span>';
                     return tr;
                 }
             },
@@ -250,7 +250,7 @@ var TUJ_Seller = function ()
             series: [
                 {
                     type: 'area',
-                    name: 'Total',
+                    name: tuj.lang.total,
                     color: tujConstants.siteColors[tuj.colorTheme].bluePrice,
                     lineColor: tujConstants.siteColors[tuj.colorTheme].bluePrice,
                     fillColor: tujConstants.siteColors[tuj.colorTheme].bluePriceFill,
@@ -258,7 +258,7 @@ var TUJ_Seller = function ()
                 },
                 {
                     type: 'line',
-                    name: 'New',
+                    name: tuj.lang['new'],
                     color: tujConstants.siteColors[tuj.colorTheme].redQuantity,
                     data: hcdata.newAuc
                 }
@@ -269,11 +269,8 @@ var TUJ_Seller = function ()
     function SellerPostingHeatMap(data, dest)
     {
         var hcdata = {minVal: undefined, maxVal: 0, days: {}, heat: [], categories: {
-            x: [
-                'Midnight - 3am', '3am - 6am', '6am - 9am', '9am - Noon', 'Noon - 3pm', '3pm - 6pm', '6pm - 9pm',
-                '9pm - Midnight'
-            ],
-            y: ['Saturday', 'Friday', 'Thursday', 'Wednesday', 'Tuesday', 'Monday', 'Sunday']
+            x: tuj.lang.heatMapTimes,
+            y: tuj.lang.heatMayDays
         }};
 
         var CalcAvg = function (a)
@@ -371,7 +368,7 @@ var TUJ_Seller = function ()
 
             series: [
                 {
-                    name: 'New Auctions',
+                    name: tuj.lang.newAuctions,
                     borderWidth: 1,
                     borderColor: tujConstants.siteColors[tuj.colorTheme].background,
                     data: hcdata.heat,
@@ -405,28 +402,28 @@ var TUJ_Seller = function ()
         td = libtuj.ce('th');
         tr.appendChild(td);
         td.className = 'quantity';
-        $(td).text('Quantity');
+        $(td).text(tuj.lang.quantity);
 
         td = libtuj.ce('th');
         tr.appendChild(td);
         td.className = 'name';
         td.colSpan = 2;
-        $(td).text('Item');
+        $(td).text(tuj.lang.item);
 
         td = libtuj.ce('th');
         tr.appendChild(td);
         td.className = 'price';
-        $(td).text('Bid Each');
+        $(td).text(tuj.lang.bidEach);
 
         td = libtuj.ce('th');
         tr.appendChild(td);
         td.className = 'price';
-        $(td).text('Buyout Each');
+        $(td).text(tuj.lang.buyoutEach);
 
         td = libtuj.ce('th');
         tr.appendChild(td);
         td.className = 'quantity';
-        $(td).text('Cheaper');
+        $(td).text(tuj.lang.cheaper);
 
         data.auctions.sort(function (a, b)
         {
@@ -463,7 +460,7 @@ var TUJ_Seller = function ()
             tr.appendChild(td);
             td.className = 'name';
             a = libtuj.ce('a');
-            a.rel = 'item=' + auc.item + (auc.rand ? '&rand=' + auc.rand : '') + (auc.bonuses ? '&bonus=' + auc.bonuses : '');
+            a.rel = 'item=' + auc.item + (auc.rand ? '&rand=' + auc.rand : '') + (auc.bonuses ? '&bonus=' + auc.bonuses : '') + (tuj.locale != 'enus' ? '&locale=' + tuj.locale : '');
             a.href = tuj.BuildHash({page: 'item', id: auc.item + (auc.bonusurl ? ('.'+auc.bonusurl).replace(':','.') : '')});
             td.appendChild(a);
             $(a).text('[' + auc.name + (auc.bonusname ? ' ' + auc.bonusname.substr(0, auc.bonusname.indexOf('|') >= 0 ? auc.bonusname.indexOf('|') : auc.bonusname.length) : '') + (auc.randname ? ' ' + auc.randname : '') + ']' + (auc.bonustag ? ' ' : ''));
@@ -480,7 +477,7 @@ var TUJ_Seller = function ()
             s = libtuj.FormatFullPrice(auc.bid / auc.quantity);
             if (stackable && auc.quantity > 1) {
                 a = libtuj.ce('abbr');
-                a.title = libtuj.FormatFullPrice(auc.bid, true) + ' total';
+                a.title = libtuj.FormatFullPrice(auc.bid, true) + ' ' + tuj.lang.total;
                 a.appendChild(s);
             }
             else {
@@ -494,7 +491,7 @@ var TUJ_Seller = function ()
             s = libtuj.FormatFullPrice(auc.buy / auc.quantity);
             if (stackable && auc.quantity > 1 && auc.buy) {
                 a = libtuj.ce('abbr');
-                a.title = libtuj.FormatFullPrice(auc.buy, true) + ' total';
+                a.title = libtuj.FormatFullPrice(auc.buy, true) + ' ' + tuj.lang.total;
                 a.appendChild(s);
             }
             else {
@@ -533,37 +530,37 @@ var TUJ_Seller = function ()
         tr.appendChild(td);
         td.className = 'name';
         td.colSpan = 2;
-        $(td).text('Species');
+        $(td).text(tuj.lang.species);
 
         td = libtuj.ce('th');
         tr.appendChild(td);
         td.className = 'breed';
-        $(td).text('Breed');
+        $(td).text(tuj.lang.breed);
 
         td = libtuj.ce('th');
         tr.appendChild(td);
         td.className = 'quality';
-        $(td).text('Quality');
+        $(td).text(tuj.lang.quality);
 
         td = libtuj.ce('th');
         tr.appendChild(td);
         td.className = 'level';
-        $(td).text('Level');
+        $(td).text(tuj.lang.level);
 
         td = libtuj.ce('th');
         tr.appendChild(td);
         td.className = 'price';
-        $(td).text('Bid Each');
+        $(td).text(tuj.lang.bidEach);
 
         td = libtuj.ce('th');
         tr.appendChild(td);
         td.className = 'price';
-        $(td).text('Buyout Each');
+        $(td).text(tuj.lang.buyoutEach);
 
         td = libtuj.ce('th');
         tr.appendChild(td);
         td.className = 'quantity';
-        $(td).text('Cheaper');
+        $(td).text(tuj.lang.cheaper);
 
         data.petAuctions.sort(function (a, b)
         {
@@ -591,7 +588,7 @@ var TUJ_Seller = function ()
             tr.appendChild(td);
             td.className = 'name';
             a = libtuj.ce('a');
-            a.rel = 'npc=' + auc.npc;
+            a.rel = 'npc=' + auc.npc + (tuj.locale != 'enus' ? '&locale=' + tuj.locale : '');
             a.href = tuj.BuildHash({page: 'battlepet', id: auc.species});
             td.appendChild(a);
             $(a).text('[' + auc.name + ']');
