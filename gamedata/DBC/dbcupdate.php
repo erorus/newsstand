@@ -322,13 +322,13 @@ dtecho(dbcdecode('SpellReagents', array(
 dtecho(dbcdecode('SkillLine', array(1=>'lineid',2=>'linecatid',3=>'linename')));
 dtecho(dbcdecode('SkillLineAbility', array(1=>'slaid',2=>'lineid',3=>'spellid',9=>'greyat',10=>'yellowat')));
 
-dtecho(run_sql('truncate tblDBCSkillLines'));
-dtecho(run_sql('insert into tblDBCSkillLines (select lineid, linename from ttblSkillLine where ((linecatid=11) or (linecatid=9 and (linename=\'Cooking\' or linename like \'Way of %\'))))'));
+dtecho(run_sql('CREATE temporary TABLE `ttblDBCSkillLines` (`id` smallint unsigned NOT NULL, `name` char(50) NOT NULL, PRIMARY KEY (`id`)) ENGINE=memory'));
+dtecho(run_sql('insert into ttblDBCSkillLines (select lineid, linename from ttblSkillLine where ((linecatid=11) or (linecatid=9 and (linename=\'Cooking\' or linename like \'Way of %\'))))'));
 
 dtecho('Getting trades..');
 dtecho(run_sql('truncate tblDBCItemReagents'));
 for ($x = 1; $x <= 8; $x++) {
-    $sql = 'insert into tblDBCItemReagents (select itemcreated, sl.id, sr.reagent'.$x.', sr.reagentcount'.$x.'/if(se.diesides=0,if(se.qtymade=0,1,se.qtymade),(se.qtymade * 2 + se.diesides + 1)/2), s.spellid, 1 from ttblSpell s, ttblSpellReagents sr, ttblSpellEffect se, ttblSkillLineAbility sla, tblDBCSkillLines sl where sla.lineid=sl.id and sla.spellid=s.spellid and s.reagentsid=sr.reagentsid and s.spellid=se.spellid and se.itemcreated != 0 and sr.reagent'.$x.' != 0)';
+    $sql = 'insert into tblDBCItemReagents (select itemcreated, sl.id, sr.reagent'.$x.', sr.reagentcount'.$x.'/if(se.diesides=0,if(se.qtymade=0,1,se.qtymade),(se.qtymade * 2 + se.diesides + 1)/2), s.spellid, 1 from ttblSpell s, ttblSpellReagents sr, ttblSpellEffect se, ttblSkillLineAbility sla, ttblDBCSkillLines sl where sla.lineid=sl.id and sla.spellid=s.spellid and s.reagentsid=sr.reagentsid and s.spellid=se.spellid and se.itemcreated != 0 and sr.reagent'.$x.' != 0)';
     $sr = run_sql($sql);
     if ($sr != '') dtecho($sql."\n".$sr);
 }
@@ -390,8 +390,8 @@ run_sql($sql);
 //$sql = 'replace INTO tblItemVendorCost (itemid, copper) VALUES (52078, 0)';
 //run_sql($sql);
 
-$sql = 'replace into tblDBCSkillLines values (0,\'Vendor\')';
-run_sql($sql);
+//$sql = 'replace into ttblDBCSkillLines values (0,\'Vendor\')';
+//run_sql($sql);
 
 /* arctic fur */
 $sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values (44128,0,38425,10,-32515,0)';
