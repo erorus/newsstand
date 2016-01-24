@@ -255,8 +255,6 @@ dtecho(run_sql('insert ignore into tblDBCItemToBattlePet (select * from ttblItem
 dtecho(dbcdecode('SpellIcon', array(1=>'iconid',2=>'iconpath')));
 dtecho(run_sql('update ttblSpellIcon set iconpath = substring_index(iconpath,\'\\\\\',-1) where instr(iconpath,\'\\\\\') > 0'));
 
-dtecho(dbcdecode('SpellItemEnchantment', array(1=>'enchantid',6=>'k1',7=>'k2',8=>'k3',12=>'effect',15=>'itemid')));
-
 dtecho(dbcdecode('SpellEffect', array(
 	1=>'effectid',
 	3=>'effecttypeid', //24 = create item, 53 = enchant, 157 = create tradeskill item
@@ -266,19 +264,6 @@ dtecho(dbcdecode('SpellEffect', array(
 	28=>'spellid',
 	29=>'effectorder'
 	)));
-
-dtecho(run_sql('truncate table tblDBCEnchants'));
-dtecho(run_sql('insert into tblDBCEnchants (id, effect, gem) (select enchantid, replace(replace(replace(effect,\'$k1\',k1),\'$k2\',k2),\'$k3\',k3), itemid from ttblSpellItemEnchantment)'));
-
-$rst = get_rst('select * from tblDBCEnchants where effect regexp \'\\\\$[0-9]+s1\'');
-while ($row = next_row($rst)) {
-	$c = preg_match_all('/\$(\d+)s1/',$row['effect'],$res);
-	for ($x = 0; $x < $c; $x++) {
-		$r = get_single_row('select qtymade from ttblSpellEffect where spellid=\''.$res[1][$x].'\' and effectorder=0');
-		if (isset($r['qtymade'])) $row['effect'] = str_replace($res[0][$x],$r['qtymade'],$row['effect']);
-	}
-	run_sql('update tblDBCEnchants set effect=\''.sql_esc($row['effect']).'\' where id=\''.sql_esc($row['id']).'\'');
-}
 
 dtecho(dbcdecode('Spell', array(
 	1=>'spellid',
