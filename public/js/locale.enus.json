@@ -53,6 +53,8 @@
     "pleaseComeBack": "Please come back later.",
 
     "notFound": "{1} not found.",
+    "contactTheEditor": "Contact The Editor",
+    "donateTo": "Donate to {1}",
 
     "deals": "Deals",
     "unusuals": "Unusuals",
@@ -102,10 +104,18 @@
 
     "snapshots": "Snapshots",
     "snapshotsDesc": "Here is the available quantity and market price of the {1} for every {2} auction house snapshot seen recently.",
+    "dailySummary": "Daily Summary",
+    "dailySummaryDesc": "Here is the maximum available quantity, and the market price at that time, for the item each day. The regional average price for each day is included for comparison.",
+    "dailyDetails": "Daily Details",
+    "dailyDetailsDesc": "This chart is similar to the Daily Summary, but includes the \"OHLC\" market prices for the item each day, along with the minimum, average, and maximum available quantity.",
     "pricingHeatMap": "Pricing Heat Map",
     "pricingHeatMapDesc": "This heat map helps to identify if prices have a pattern based on the time of day.",
     "quantityHeatMap": "Quantity Heat Map",
     "quantityHeatMapDesc": "This heat map shows you the average available quantity at different times of the day.",
+    "ageHeatMap": "Age Heat Map",
+    "ageHeatMapDesc": "This heat map shows you the average age of auctions at or below the market price, at different times of the day. Younger age means more posting activity by sellers.",
+    "regionalDailySummary": "Regional Daily Summary",
+    "regionalDailySummaryDesc": "Here is the total available quantity, and the average market price, for the item each day across all realms in the {1} region.",
     "regionalPrices": "Current Regional Prices",
     "regionalPricesDesc": "'The Regional Prices chart is sorted by price, and shows the price and quantity available of this {1} on all realms in the {2} region.",
     "pricePopScatter": "Price/Population Scatter Plot",
@@ -122,10 +132,18 @@
     "meanPrice": "Mean Price",
     "mean": "Mean",
     "marketPrice": "Market Price",
+    "regionPrice": "Region Price",
     "price": "Price",
     "standardDeviation": "Standard Deviation",
     "volatilePrice": "Market price is highly volatile!",
+    "craftingCost": "Crafting Cost",
+    "typicalAuctionAge": "Typical Auction Age",
+    "maxAuctionAge": "Max Auction Age",
+    "sellToVendor": "Sell to Vendor",
+    "cannot": "Cannot",
+    "listingFee": "48hr Listing Fee",
     "quantity": "Quantity",
+    "quantityRange": "Quantity Range",
     "population": "Population",
 
     "breed": "Breed",
@@ -134,6 +152,10 @@
     "level": "Level",
     "bidEach": "Bid Each",
     "buyoutEach": "Buyout Each",
+    "total": "Total",
+
+    "one": "One",
+    "stackof": "Stack of {1}",
 
     "name": "Name",
     "bid": "Bid",
@@ -147,6 +169,7 @@
     "enormous": "Enormous",
 
     "all": "All",
+    "normal": "Normal",
     "other": "Other",
     "consumables": "Consumables",
     "otherConsumables": "Other Consumables",
@@ -177,6 +200,14 @@
     ],
 
     "heatMapDays": ["Saturday", "Friday", "Thursday", "Wednesday", "Tuesday", "Monday", "Sunday"],
+
+    "rangeButtons": {
+        "2week": "2w",
+        "1month": "1m",
+        "3month": "3m",
+        "6month": "6m",
+        "1year": "1y"
+    },
 
     "breedsLookup": {
         "0": "All Breeds",

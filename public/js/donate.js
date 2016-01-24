@@ -15,8 +15,8 @@ var TUJ_Donate = function ()
         var donatePage = $('#donate-page');
         donatePage.show();
 
-        $('#page-title').text('Donate to The Undermine Journal');
-        tuj.SetTitle('Donate');
+        $('#page-title').text(libtuj.sprintf(tuj.lang.donateTo, "The Undermine Journal"));
+        tuj.SetTitle(tuj.lang.donate);
 
         if (params.id && params.id == 'thanks') {
             $('#donate-thanks').show();

@@ -19,8 +19,8 @@ var TUJ_Contact = function ()
 
         contactPage.show();
 
-        $('#page-title').text('Contact The Editor');
-        tuj.SetTitle('Contact The Editor');
+        $('#page-title').text(tuj.lang.contactTheEditor);
+        tuj.SetTitle(tuj.lang.contactTheEditor);
     }
 
     this.submit = function (f)
