@@ -22,36 +22,6 @@ if ($canCache) {
     HouseETag($house);
 }
 
-$itemTypes = array(
-    16	=> 'Back',
-    18	=> 'Bag',
-    5	=> 'Chest',
-    8	=> 'Feet',
-    11	=> 'Finger',
-    10	=> 'Hands',
-    1	=> 'Head',
-    23	=> 'Held In Off-hand',
-    7	=> 'Legs',
-    21	=> 'Main Hand',
-    2	=> 'Neck',
-    22	=> 'Off Hand',
-    13	=> 'One-Hand',
-    24	=> 'Projectile',
-    15	=> 'Ranged',
-    28	=> 'Relic',
-    14	=> 'Shield',
-    4	=> 'Shirt',
-    3	=> 'Shoulder',
-    19	=> 'Tabard',
-    25	=> 'Thrown',
-    12	=> 'Trinket',
-    17	=> 'Two-Hand',
-    6	=> 'Waist',
-    9	=> 'Wrist',
-    20  => 'Robe',
-    26  => 'Ranged', // gun,some crossbows, wands
-);
-
 json_return($resultFunc($house));
 
 function TransmogResult_cloth($house)
@@ -86,11 +56,10 @@ function TransmogResult_off($house)
 
 function TransmogArmor($house, $where)
 {
-    global $itemTypes;
     $tr = [];
     $trId = TransmogGenericItemList($house, ['where' => $where, 'group' => ['type']]);
     foreach ($trId as $typeId => &$items) {
-        $k = isset($itemTypes[$typeId]) ? $itemTypes[$typeId] : $typeId;
+        $k = $typeId;
         if (!isset($tr[$k])) {
             $tr[$k] = [];
         }
@@ -108,7 +77,7 @@ function TransmogGenericItemList($house, $params)
 {
     global $db, $canCache;
 
-    $key = 'transmog_gi_' . md5(json_encode($params));
+    $key = 'transmog_gi2_' . md5(json_encode($params));
 
     if ($canCache && (($tr = MCGetHouse($house, $key)) !== false)) {
         return $tr;
@@ -131,9 +100,8 @@ select ab.id, ab.display, ab.buy, ab.class, ab.subclass, ifnull(ab.type, -1 & ab
 from (
     select aa.*, if(@previd = aa.display, 0, @previd := aa.display) previd
     from (select @previd := 0) aasetup, (
-        SELECT i.id, i.display, a.buy, i.class, i.subclass, i.type, sc.fullname subclassname
+        SELECT i.id, i.display, a.buy, i.class, i.subclass, i.type, concat_ws('-', i.class, i.subclass) subclassname
         FROM `tblDBCItem` i
-        join tblDBCItemSubClass sc on i.class = sc.class and i.subclass = sc.id
         join tblAuction a on a.item=i.id
         $joins
         WHERE i.auctionable=1

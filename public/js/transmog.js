@@ -101,12 +101,19 @@ var TUJ_Transmog = function ()
         //transmogPage.append(libtuj.Ads.Add('8323200718'));
 
         typeNames = [];
+        var tn;
         for (var k in dta) {
             if (dta.hasOwnProperty(k)) {
-                typeNames.push(k);
+                tn = k;
+                if (tuj.lang.itemTypes.hasOwnProperty(k)) {
+                    tn = tuj.lang.itemTypes[k];
+                } else if (tuj.lang.itemSubClasses.hasOwnProperty(k)) {
+                    tn = tuj.lang.itemSubClasses[k];
+                }
+                typeNames.push({'id': k, 'nm': tn});
             }
         }
-        typeNames.sort(function(a,b) { return a.localeCompare(b); });
+        typeNames.sort(function(a,b) { return a.nm.localeCompare(b.nm); });
 
         if (typeNames.length > 1) {
             d = libtuj.ce();
@@ -118,7 +125,7 @@ var TUJ_Transmog = function ()
                 d.appendChild(a);
                 a.id = 'transmog-slot-choice-' + x;
                 $(a).click(self.showType.bind(self, x, dta, tabKey));
-                a.appendChild(document.createTextNode(typeNames[x]));
+                a.appendChild(document.createTextNode(typeNames[x].nm));
                 if (x == 0) {
                     a.className = 'selected';
                 }
@@ -153,7 +160,7 @@ var TUJ_Transmog = function ()
 
         lastTabs[tabKey] = idx;
 
-        var items = dta[typeNames[idx]];
+        var items = dta[typeNames[idx].id];
         items.sort(self.itemSort);
 
         for (var y = 0; y < items.length; y++) {
