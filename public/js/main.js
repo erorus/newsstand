@@ -653,7 +653,7 @@ var TUJ = function ()
             {
                 alert('Error getting locale ' + locName + ': ' + stat + ' ' + er);
             },
-            url: 'js/locale.' + locName + '.json'
+            url: 'js/locale/' + locName + '.json'
         });
     }
 
