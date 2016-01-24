@@ -61,7 +61,8 @@ function SearchItems($house, $search)
     }
 
     $terms = preg_replace('/\s+/', '%', " $search ");
-    $nameSearch = 'i.name like ?';
+    $locale = GetLocale();
+    $nameSearch = "i.name_$locale like ?";
 
     $terms2 = '';
 
@@ -70,17 +71,18 @@ function SearchItems($house, $search)
     for ($x = 0; $x < count($suffixes); $x++) {
         if (substr($barewords, -1 * strlen($suffixes[$x])) == $suffixes[$x]) {
             $terms2 = '%' . str_replace(' ', '%', substr($barewords, 0, -1 * strlen($suffixes[$x]) - 1)) . '%';
-            $nameSearch = '(i.name like ? or i.name like ?)';
+            $nameSearch = "(i.name_$locale like ? or i.name_$locale like ?)";
         }
     }
 
+    $localizedItemNames = LocaleColumns('i.name');
     $sql = <<<EOF
 select results.*,
 ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
 ifnull(group_concat(distinct ib.`tag` order by ib.tagpriority separator ' '), if(results.bonusset=0,'',concat('Level ', results.level+sum(ifnull(ib.level,0))))) bonustag,
 results.level+sum(ifnull(ib.level,0)) sortlevel
 from (
-    select i.id, i.name, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice,
+    select i.id, $localizedItemNames, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice,
     ifnull(s.bonusset,0) bonusset, i.level, i.basebonus
     from tblDBCItem i
     left join tblItemSummary s on s.house=? and s.item=i.id

@@ -22,7 +22,7 @@ if (APIMaintenance()) {
 
 $itemMap = array(
     'id'            => array('name' => 'id', 'required' => true),
-    'name'          => array('name' => 'name', 'required' => true),
+    'name_enus'     => array('name' => 'name', 'required' => true),
     'quality'       => array('name' => 'quality', 'required' => true),
     'level'         => array('name' => 'itemLevel', 'required' => false),
     'class'         => array('name' => 'itemClass', 'required' => true),

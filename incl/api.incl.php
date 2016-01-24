@@ -9,6 +9,8 @@ define('THROTTLE_MAXHITS', 200);
 define('BANLIST_CACHEKEY', 'banlist_cidrs4');
 define('BANLIST_FILENAME', __DIR__ . '/banlist.txt');
 
+$VALID_LOCALES = ['enus','dede','eses','frfr','itit','ptbr','ruru'];
+
 if ((PHP_SAPI != 'cli') && (($inMaintenance = APIMaintenance()) !== false)) {
     header('HTTP/1.1 503 Service Unavailable');
     header('Content-type: application/json');
@@ -34,6 +36,30 @@ function json_return($json)
     header('Content-type: application/json');
     echo $json;
     exit;
+}
+
+function GetLocale()
+{
+    global $VALID_LOCALES;
+    if (isset($_POST['locale']) && in_array($_POST['locale'], $VALID_LOCALES)) {
+        return $_POST['locale'];
+    }
+    if (isset($_GET['locale']) && in_array($_GET['locale'], $VALID_LOCALES)) {
+        return $_GET['locale'];
+    }
+    return 'enus';
+}
+
+function LocaleColumns($colName)
+{
+    global $VALID_LOCALES;
+
+    $tr = '';
+    foreach ($VALID_LOCALES as $locId) {
+        $tr .= ($tr == '' ? '' : ', ') . $colName . '_' . $locId;
+    }
+
+    return $tr;
 }
 
 function GetSiteRegion()

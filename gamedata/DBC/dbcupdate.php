@@ -5,6 +5,8 @@ require_once('dbcdecode.php');
 header('Content-type: text/plain');
 error_reporting(E_ALL);
 
+$dirnm = 'current/enUS';
+
 DBConnect();
 
 $tables = array();
@@ -125,7 +127,7 @@ dtecho(dbcdecode('Item-sparse', array(
 dtecho('Running items..');
 //dtecho(run_sql('truncate table tblDBCItem'));
 $sql = <<<EOF
-insert into tblDBCItem (id, name, quality, level, class, subclass, icon, stacksize, binds,
+insert into tblDBCItem (id, name_enus, quality, level, class, subclass, icon, stacksize, binds,
 buyfromvendor, selltovendor, auctionable, type, requiredlevel, requiredskill, flags)
 (select i.id, ifnull(s.name,''), ifnull(s.quality,0), s.level, i.classid, i.subclassid,
 if(right(lower(fd.name), 4) = '.blp', lower(substr(fd.name, 1, length(fd.name) - 4)), lower(fd.name)),
@@ -160,7 +162,7 @@ tblDBCItem.type=ifnull(values(type), tblDBCItem.type),
 tblDBCItem.requiredlevel=ifnull(values(requiredlevel), tblDBCItem.requiredlevel),
 tblDBCItem.requiredskill=ifnull(values(requiredskill), tblDBCItem.requiredskill),
 tblDBCItem.flags=if(values(name)='',tblDBCItem.flags,values(flags)),
-tblDBCItem.name=if(values(name)='',tblDBCItem.name,values(name))
+tblDBCItem.name_enus=if(values(name_enus)='',tblDBCItem.name_enus,values(name_enus))
 EOF;
 dtecho(run_sql($sql));
 

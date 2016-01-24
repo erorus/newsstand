@@ -38,7 +38,7 @@ function ItemStats($house, $item)
 {
     global $db;
 
-    $cacheKey = 'item_statsy_' . $item;
+    $cacheKey = 'item_stats_l_' . $item;
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
@@ -46,8 +46,9 @@ function ItemStats($house, $item)
 
     DBConnect();
 
+    $localeCols = LocaleColumns('i.name');
     $sql = <<<EOF
-select i.id, i.name, i.icon, i.display, i.class as classid, i.subclass, ifnull(max(ib.quality), i.quality) quality, i.level+sum(ifnull(ib.level,0)) level, i.stacksize, i.binds, i.buyfromvendor, i.selltovendor, i.auctionable,
+select i.id, $localeCols, i.icon, i.display, i.class as classid, i.subclass, ifnull(max(ib.quality), i.quality) quality, i.level+sum(ifnull(ib.level,0)) level, i.stacksize, i.binds, i.buyfromvendor, i.selltovendor, i.auctionable,
 s.price, s.quantity, s.lastseen,
 ifnull(s.bonusset,0) bonusset, ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
 ifnull(group_concat(ib.`tag` order by ib.tagpriority separator ' '), if(ifnull(s.bonusset,0)=0,'',concat('Level ', i.level+sum(ifnull(ib.level,0))))) bonustag,

@@ -177,7 +177,7 @@ var TUJ_Transmog = function ()
             var prc = libtuj.ce('a');
             box.appendChild(prc);
             prc.href = img.href;
-            prc.rel = 'item=' + items[y].id + (tuj.locale != 'enus' ? '&locale=' + tuj.locale : '');
+            prc.rel = 'item=' + items[y].id + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
             prc.appendChild(libtuj.FormatPrice(items[y].buy));
         }
     }

@@ -1602,7 +1602,7 @@ function CategoryGenericItemList($house, $params)
 {
     global $db, $canCache;
 
-    $key = 'category_gib2_' . md5(json_encode($params));
+    $key = 'category_gil_' . md5(json_encode($params));
 
     if ($canCache && (($tr = MCGetHouse($house, $key)) !== false)) {
         return $tr;
@@ -1622,12 +1622,13 @@ function CategoryGenericItemList($house, $params)
         $outside = '';
     }
 
+    $localizedItemNames = LocaleColumns('i.name');
     $sql = <<<EOF
 select results.*, $outside
 ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
 ifnull(group_concat(distinct ib.`tag` order by ib.tagpriority separator ' '), if(results.bonusset=0,'',concat('Level ', results.level+sum(ifnull(ib.level,0))))) bonustag
 from (
-    select i.id, i.name, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice, s.age, round(avg(h.age)) avgage,
+    select i.id, $localizedItemNames, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice, s.age, round(avg(h.age)) avgage,
     ifnull(s.bonusset,0) bonusset, i.level, i.basebonus `basebonus` $cols
     from tblDBCItem i
     left join tblItemSummary s on s.house=? and s.item=i.id

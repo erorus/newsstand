@@ -242,7 +242,7 @@ var TUJ_Category = function ()
                         b.globalmedian, b.avgprice
                     ]))) ||
                         (a.bid - b.bid) ||
-                        a.name.localeCompare(b.name);
+                        a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]);
                 });
                 break;
 
@@ -252,7 +252,7 @@ var TUJ_Category = function ()
                     return ((b.globalmedian - b.price) - (a.globalmedian - a.price)) ||
                         ((a.price ? 0 : 1) - (b.price ? 0 : 1)) ||
                         (a.price - b.price) ||
-                        a.name.localeCompare(b.name);
+                        a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]);
                 });
                 break;
 
@@ -261,7 +261,7 @@ var TUJ_Category = function ()
                 {
                     return ((a.price ? 0 : 1) - (b.price ? 0 : 1)) ||
                         (a.price - b.price) ||
-                        a.name.localeCompare(b.name);
+                        a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]);
                 });
                 break;
 
@@ -270,7 +270,7 @@ var TUJ_Category = function ()
                 {
                     return ((a.price ? 0 : 1) - (b.price ? 0 : 1)) ||
                         (b.price - a.price) ||
-                        a.name.localeCompare(b.name);
+                        a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]);
                 });
         }
 
@@ -291,9 +291,9 @@ var TUJ_Category = function ()
             tr.appendChild(td);
             a = libtuj.ce('a');
             td.appendChild(a);
-            a.rel = 'item=' + item.id + (item.bonusurl ? '&bonus=' + item.bonusurl : (item.basebonus ? '&bonus=' + item.basebonus : '')) + (tuj.locale != 'enus' ? '&locale=' + tuj.locale : '');
+            a.rel = 'item=' + item.id + (item.bonusurl ? '&bonus=' + item.bonusurl : (item.basebonus ? '&bonus=' + item.basebonus : '')) + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
             a.href = tuj.BuildHash({page: 'item', id: item.id + (item.bonusurl ? ('.'+item.bonusurl).replace(':','.') : '')});
-            $(a).text('[' + item.name + (item.bonusname ? ' ' + item.bonusname.substr(0, item.bonusname.indexOf('|') >= 0 ? item.bonusname.indexOf('|') : item.bonusname.length) : '') + ']' + (item.bonustag ? ' ' : ''));
+            $(a).text('[' + item['name_' + tuj.locale] + (item.bonusname ? ' ' + item.bonusname.substr(0, item.bonusname.indexOf('|') >= 0 ? item.bonusname.indexOf('|') : item.bonusname.length) : '') + ']' + (item.bonustag ? ' ' : ''));
             if (item.bonustag) {
                 var tagspan = libtuj.ce('span');
                 tagspan.className = 'nowrap';
@@ -519,7 +519,7 @@ var TUJ_Category = function ()
                 a = libtuj.ce('a');
                 td.appendChild(a);
                 a.href = tuj.BuildHash({page: 'battlepet', id: allSpecies[x].id});
-                a.rel = 'npc=' + allSpecies[x].npc + (tuj.locale != 'enus' ? '&locale=' + tuj.locale : '');
+                a.rel = 'npc=' + allSpecies[x].npc + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
                 $(a).text('[' + allSpecies[x].name + ']');
 
                 td = libtuj.ce('td');
@@ -592,7 +592,7 @@ var TUJ_Category = function ()
                         a = libtuj.ce('a');
                         td.appendChild(a);
                         a.href = tuj.BuildHash({page: 'battlepet', id: '' + allSpecies[x].id + '.' + breed});
-                        a.rel = 'npc=' + allSpecies[x].npc + (tuj.locale != 'enus' ? '&locale=' + tuj.locale : '');
+                        a.rel = 'npc=' + allSpecies[x].npc + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
                         $(a).text(tuj.lang.breedsLookup[breed]);
 
                         td = libtuj.ce('td');
@@ -730,7 +730,7 @@ var TUJ_Category = function ()
             td.className = 'name';
             tr.appendChild(td);
             a = libtuj.ce('a');
-            $(td).text(item.name);
+            $(td).text(item['name_' + tuj.locale]);
 
             for (y = 0; y < fishTypeCount && y < f.length; y++) {
                 td = libtuj.ce('td');
@@ -739,7 +739,7 @@ var TUJ_Category = function ()
                 a = libtuj.ce('a');
                 td.appendChild(a);
                 a.href = tuj.BuildHash({page: 'item', id: f[y]});
-                a.rel = 'item=' + f[y] + (tuj.locale != 'enus' ? '&locale=' + tuj.locale : '');
+                a.rel = 'item=' + f[y] + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
                 a.appendChild(libtuj.FormatPrice(data.prices[f[y]].price));
 
                 td = libtuj.ce('td');
@@ -748,7 +748,7 @@ var TUJ_Category = function ()
                 a = libtuj.ce('a');
                 td.appendChild(a);
                 a.href = tuj.BuildHash({page: 'item', id: f[y]});
-                a.rel = 'item=' + f[y] + (tuj.locale != 'enus' ? '&locale=' + tuj.locale : '');
+                a.rel = 'item=' + f[y] + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
                 a.appendChild(libtuj.FormatQuantity(data.prices[f[y]].quantity));
             }
 

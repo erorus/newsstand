@@ -143,7 +143,7 @@ function HouseMostAvailable($house)
 {
     global $db;
 
-    $cacheKey = 'house_mostavailable2';
+    $cacheKey = 'house_mostavailable_l';
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
@@ -151,8 +151,9 @@ function HouseMostAvailable($house)
 
     DBConnect();
 
+    $localizedItemNames = LocaleColumns('i.name');
     $sql = <<<EOF
-SELECT i.id, i.name
+SELECT i.id, $localizedItemNames
 FROM `tblItemSummary` tis
 join tblDBCItem i on tis.item = i.id
 WHERE house = ?
@@ -177,7 +178,7 @@ function HouseDeals($house)
 {
     global $db;
 
-    $cacheKey = 'house_deals2';
+    $cacheKey = 'house_deals_l';
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
@@ -185,8 +186,9 @@ function HouseDeals($house)
 
     DBConnect();
 
+    $localizedItemNames = LocaleColumns('i.name');
     $sql = <<<EOF
-SELECT i.id, i.name
+SELECT i.id, $localizedItemNames
 FROM `tblItemSummary` tis
 join tblDBCItem i on tis.item = i.id
 join tblItemGlobal g on g.item = tis.item and g.bonusset = tis.bonusset

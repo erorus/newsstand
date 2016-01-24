@@ -606,6 +606,7 @@ var TUJ = function ()
             $('#realm-list .realms-column a').each(function () {
                 this.href = self.BuildHash({realm: this.rel});
             });
+            $('#realm-list .directions').text(libtuj.sprintf(self.lang.chooseRealm, validRegions[drawnRegion]));
             $('#realm-list').addClass('show');
             document.body.className = 'realm';
             return;
@@ -655,6 +656,10 @@ var TUJ = function ()
             },
             url: 'js/locale/' + locName + '.json'
         });
+    }
+
+    self.ChangeLocale = function(locName) {
+        LoadLocale(locName);
     }
 
     function ReadParams()
@@ -857,6 +862,8 @@ var TUJ = function ()
             d.id = 'realm-updated';
 
             $('#topcorner .region-realm').after(d).after(form);
+        } else {
+            $('#topcorner form input')[0].placeholder = self.lang.search;
         }
 
         if (self.params.realm) {
@@ -985,8 +992,8 @@ var TUJ = function ()
                     for (var x = 0; x < info.mostAvailable.length; x++) {
                         var a = libtuj.ce('a');
                         a.href = tuj.BuildHash({page: 'item', id: info.mostAvailable[x].id});
-                        a.rel = 'item=' + info.mostAvailable[x].id;
-                        a.appendChild(document.createTextNode('[' + info.mostAvailable[x].name + ']'));
+                        a.rel = 'item=' + info.mostAvailable[x].id + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
+                        a.appendChild(document.createTextNode('[' + info.mostAvailable[x]['name_' + tuj.locale] + ']'));
                         d.appendChild(a);
                         d.appendChild(libtuj.ce('br'));
                     }
@@ -999,8 +1006,8 @@ var TUJ = function ()
                     for (var x = 0; x < info.deals.length; x++) {
                         var a = libtuj.ce('a');
                         a.href = tuj.BuildHash({page: 'item', id: info.deals[x].id});
-                        a.rel = 'item=' + info.deals[x].id;
-                        a.appendChild(document.createTextNode('[' + info.deals[x].name + ']'));
+                        a.rel = 'item=' + info.deals[x].id + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
+                        a.appendChild(document.createTextNode('[' + info.deals[x]['name_' + tuj.locale] + ']'));
                         d.appendChild(a);
                         d.appendChild(libtuj.ce('br'));
                     }

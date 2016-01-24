@@ -129,7 +129,7 @@
     "regionalDailySummary": "Regional Daily Summary",
     "regionalDailySummaryDesc": "Here is the total available quantity, and the average market price, for the item each day across all realms in the {1} region.",
     "regionalPrices": "Current Regional Prices",
-    "regionalPricesDesc": "'The Regional Prices chart is sorted by price, and shows the price and quantity available of this {1} on all realms in the {2} region.",
+    "regionalPricesDesc": "The Regional Prices chart is sorted by price, and shows the price and quantity available of this {1} on all realms in the {2} region.",
     "pricePopScatter": "Price/Population Scatter Plot",
     "pricePopScatterDesc": "This scatter plot has the same data as above, but shows the price relative to the realm population, provided by {1}.",
     "currentPetAuctions": "Current Pet Auctions",

@@ -13,6 +13,7 @@ var TUJ_Search = function ()
         }
 
         var qs = {
+            locale: tuj.locale,
             house: tuj.realms[params.realm].house,
             search: params.id
         };
@@ -84,7 +85,7 @@ var TUJ_Search = function ()
             dta.items.sort(function (a, b)
             {
                 return tujConstants.itemClassOrder[a.classid] - tujConstants.itemClassOrder[b.classid] ||
-                    a.name.localeCompare(b.name) ||
+                    a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]) ||
                     a.sortlevel - b.sortlevel;
             });
 
@@ -165,9 +166,9 @@ var TUJ_Search = function ()
                 tr.appendChild(td);
                 a = libtuj.ce('a');
                 td.appendChild(a);
-                a.rel = 'item=' + item.id + (item.bonusurl ? '&bonus=' + item.bonusurl : (item.basebonus ? '&bonus=' + item.basebonus : '')) + (tuj.locale != 'enus' ? '&locale=' + tuj.locale : '');
+                a.rel = 'item=' + item.id + (item.bonusurl ? '&bonus=' + item.bonusurl : (item.basebonus ? '&bonus=' + item.basebonus : '')) + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
                 a.href = tuj.BuildHash({page: 'item', id: item.id + (item.bonusurl ? ('.'+item.bonusurl).replace(':','.') : '')});
-                $(a).text('[' + item.name + (item.bonusname ? ' ' + item.bonusname.substr(0, item.bonusname.indexOf('|') >= 0 ? item.bonusname.indexOf('|') : item.bonusname.length) : '') + ']' + (item.bonustag ? ' ' : ''));
+                $(a).text('[' + item['name_' + tuj.locale] + (item.bonusname ? ' ' + item.bonusname.substr(0, item.bonusname.indexOf('|') >= 0 ? item.bonusname.indexOf('|') : item.bonusname.length) : '') + ']' + (item.bonustag ? ' ' : ''));
                 if (item.bonustag) {
                     var tagspan = libtuj.ce('span');
                     tagspan.className = 'nowrap';
@@ -334,7 +335,7 @@ var TUJ_Search = function ()
                 td.appendChild(a);
                 a.href = tuj.BuildHash({page: 'battlepet', id: pet.id});
                 if (pet.npc) {
-                    a.rel = 'npc=' + pet.npc + (tuj.locale != 'enus' ? '&locale=' + tuj.locale : '');
+                    a.rel = 'npc=' + pet.npc + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
                 }
                 $(a).text('[' + pet.name + ']');
 

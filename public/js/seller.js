@@ -428,9 +428,9 @@ var TUJ_Seller = function ()
         data.auctions.sort(function (a, b)
         {
             return tujConstants.itemClassOrder[a['class']] - tujConstants.itemClassOrder[b['class']] ||
-                (a.name ? 0 : -1) ||
-                (b.name ? 0 : 1) ||
-                a.name.localeCompare(b.name) ||
+                (a['name_' + tuj.locale] ? 0 : -1) ||
+                (b['name_' + tuj.locale] ? 0 : 1) ||
+                a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]) ||
                 Math.floor(a.buy / a.quantity) - Math.floor(b.buy / b.quantity) ||
                 Math.floor(a.bid / a.quantity) - Math.floor(b.bid / b.quantity) ||
                 a.quantity - b.quantity;
@@ -460,10 +460,10 @@ var TUJ_Seller = function ()
             tr.appendChild(td);
             td.className = 'name';
             a = libtuj.ce('a');
-            a.rel = 'item=' + auc.item + (auc.rand ? '&rand=' + auc.rand : '') + (auc.bonuses ? '&bonus=' + auc.bonuses : '') + (tuj.locale != 'enus' ? '&locale=' + tuj.locale : '');
+            a.rel = 'item=' + auc.item + (auc.rand ? '&rand=' + auc.rand : '') + (auc.bonuses ? '&bonus=' + auc.bonuses : '') + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
             a.href = tuj.BuildHash({page: 'item', id: auc.item + (auc.bonusurl ? ('.'+auc.bonusurl).replace(':','.') : '')});
             td.appendChild(a);
-            $(a).text('[' + auc.name + (auc.bonusname ? ' ' + auc.bonusname.substr(0, auc.bonusname.indexOf('|') >= 0 ? auc.bonusname.indexOf('|') : auc.bonusname.length) : '') + (auc.randname ? ' ' + auc.randname : '') + ']' + (auc.bonustag ? ' ' : ''));
+            $(a).text('[' + auc['name_' + tuj.locale] + (auc.bonusname ? ' ' + auc.bonusname.substr(0, auc.bonusname.indexOf('|') >= 0 ? auc.bonusname.indexOf('|') : auc.bonusname.length) : '') + (auc.randname ? ' ' + auc.randname : '') + ']' + (auc.bonustag ? ' ' : ''));
             if (auc.bonustag) {
                 var tagspan = libtuj.ce('span');
                 tagspan.className = 'nowrap';
@@ -588,7 +588,7 @@ var TUJ_Seller = function ()
             tr.appendChild(td);
             td.className = 'name';
             a = libtuj.ce('a');
-            a.rel = 'npc=' + auc.npc + (tuj.locale != 'enus' ? '&locale=' + tuj.locale : '');
+            a.rel = 'npc=' + auc.npc + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
             a.href = tuj.BuildHash({page: 'battlepet', id: auc.species});
             td.appendChild(a);
             $(a).text('[' + auc.name + ']');
