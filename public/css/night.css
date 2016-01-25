@@ -23,3 +23,10 @@ a {color: white}
 table.category-fish .price {border-left-color: #444}
 
 #transmog-results .transmog-box:hover { background-color: #444 }
+
+#choose-locale {
+    border: 1px solid #AAA;
+    background-color: #333;
+    color: #CCC;
+    background-image: url("../images/caret_down_grey.png");
+}

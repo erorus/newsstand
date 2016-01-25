@@ -388,6 +388,15 @@ var libtuj = {
 
 var tujConstants = {
     itemClassOrder: [2, 9, 6, 4, 7, 3, 14, 1, 15, 8, 16, 10, 12, 13, 17, 18, 5, 11],
+    locales: {
+        enus: 'English',
+        dede: 'Deutsch',
+        eses: 'Español',
+        frfr: 'Français',
+        itit: 'Italiano',
+        ptbr: 'Português',
+        ruru: 'Русский'
+    },
     siteColors: {
         light: {
             background: '#FFFFFF',
@@ -488,8 +497,30 @@ var TUJ = function ()
         }
 
         if (self.locale == false) {
+            var o, locSel = libtuj.ce('select');
+            locSel.id = 'choose-locale';
+            $(locSel).on('change', function() {
+                LoadLocale(this.options[this.selectedIndex].value, true);
+            });
+            for (var loc in tujConstants.locales) {
+                if (!tujConstants.locales.hasOwnProperty(loc)) {
+                    continue;
+                }
+                o = libtuj.ce('option');
+                o.value = loc;
+                o.text = tujConstants.locales[loc];
+                locSel.appendChild(o);
+            }
+            document.body.insertBefore(locSel, document.body.firstChild);
+
+            var savedLocale = libtuj.Storage.Get('locale');
             inMain = false;
-            LoadLocale('enus');
+            if (savedLocale && (savedLocale != 'enus')) {
+                LoadLocale('enus', false);
+                LoadLocale(savedLocale, true);
+            } else {
+                LoadLocale('enus', true);
+            }
             return;
         }
 
@@ -632,34 +663,40 @@ var TUJ = function ()
 
     }
 
-    function LoadLocale(locName) {
-        if (self.locales.hasOwnProperty(locName)) {
+    function LoadLocale(locName, activate) {
+        if (activate && self.locales.hasOwnProperty(locName)) {
             self.locale = locName;
+            libtuj.Storage.Set('locale', self.locale);
+            var locSel = document.getElementById('choose-locale');
+            for (var x = 0; x < locSel.options.length; x++) {
+                if (locSel.options[x].value == locName) {
+                    locSel.selectedIndex = x;
+                    break;
+                }
+            }
             self.lang = $.extend(true, {}, self.locales.enus, self.locales[self.locale]);
             Main();
             return;
         }
 
         $.ajax({
-            success: function (dta)
-            {
+            success: function(dta) {
                 if (dta.hasOwnProperty('localeCode')) {
-                    self.locale = dta.localeCode;
                     self.locales[dta.localeCode] = dta;
-                    self.lang = $.extend(true, {}, self.locales.enus, self.locales[self.locale]);
+                    if (activate) {
+                        LoadLocale(dta.localeCode, true);
+                    }
                 }
-                Main();
             },
             error: function (xhr, stat, er)
             {
                 alert('Error getting locale ' + locName + ': ' + stat + ' ' + er);
+                if (locName != 'enus') {
+                    LoadLocale('enus', true);
+                }
             },
             url: 'js/locale/' + locName + '.json'
         });
-    }
-
-    self.ChangeLocale = function(locName) {
-        LoadLocale(locName);
     }
 
     function ReadParams()

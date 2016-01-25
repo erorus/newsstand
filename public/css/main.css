@@ -205,3 +205,21 @@ table.category-fish .price {border-left: 1px solid #CCC}
 #region-page table td { width: 50% }
 #region-page table img { width: 100%; max-width: 401px }
 
+#choose-locale {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 10px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border: 1px solid #444;
+    background-color: white;
+    color: #333;
+    padding-right: 12px;
+    background-image: url("../images/caret_down_black.png");
+    background-repeat: no-repeat;
+    background-position: right;
+    background-size: 15px;
+    z-index: 20;
+}
