@@ -2259,7 +2259,7 @@ var TUJ_Item = function ()
         if (data.stats[bonusSet].stacksize > 1) {
             td = libtuj.ce('th');
             tr.appendChild(td);
-            td.className = tuj.lang.quantity;
+            td.className = 'quantity';
             $(td).text(tuj.lang.quantity);
         }
 
@@ -2313,7 +2313,7 @@ var TUJ_Item = function ()
             if (data.stats[bonusSet].stacksize > 1) {
                 td = libtuj.ce('td');
                 tr.appendChild(td);
-                td.className = tuj.lang.quantity;
+                td.className = 'quantity';
                 td.appendChild(libtuj.FormatQuantity(auc.quantity));
             }
 
