@@ -561,7 +561,7 @@ var TUJ = function ()
                                     continue;
                                 }
                                 if (y.substr(0, ls[x].l.length) == ls[x].l) {
-                                    LoadLocale(ls[x].l, true);
+                                    LoadLocale(y, true);
                                     found = true;
                                     break;
                                 }
