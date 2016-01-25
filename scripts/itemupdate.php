@@ -42,7 +42,7 @@ $itemMap = array(
 
 $petMap = array(
     'id'   => array('name' => 'speciesId', 'required' => true),
-    'name' => array('name' => 'name', 'required' => true),
+    'name_enus' => array('name' => 'name', 'required' => true),
     'type' => array('name' => 'petTypeId', 'required' => true),
     'icon' => array('name' => 'icon', 'required' => true),
     'npc'  => array('name' => 'creatureId', 'required' => false),

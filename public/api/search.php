@@ -30,7 +30,7 @@ DBConnect();
 $json = array(
     'items'      => SearchItems($house, $search, $locale),
     'sellers'    => SearchSellers($house, $search),
-    'battlepets' => SearchBattlePets($house, $search),
+    'battlepets' => SearchBattlePets($house, $search, $locale),
 );
 
 $ak = array_keys($json);
@@ -139,19 +139,20 @@ EOF;
     return $tr;
 }
 
-function SearchBattlePets($house, $search)
+function SearchBattlePets($house, $search, $locale)
 {
     global $db;
 
     $terms = preg_replace('/\s+/', '%', " $search ");
 
+    $names = LocaleColumns('i.name');
     $sql = <<<EOF
-select i.id, i.name, i.icon, i.type, i.npc,
+select i.id, $names, i.icon, i.type, i.npc,
 min(if(s.quantity>0,s.price,null)) price, sum(s.quantity) quantity, unix_timestamp(max(s.lastseen)) lastseen,
 (select round(avg(h.price)) from tblPetHistory h where h.house=? and h.species=i.id group by h.breed order by 1 asc limit 1) avgprice
 from tblDBCPet i
 left join tblPetSummary s on s.house=? and s.species=i.id
-where i.name like ?
+where i.name_$locale like ?
 and not i.flags & 0x10
 group by i.id
 limit ?

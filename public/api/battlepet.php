@@ -31,15 +31,16 @@ function PetStats($house, $species)
 {
     global $db;
 
-    $key = 'battlepet_stats2_' . $species;
+    $key = 'battlepet_stats_l_' . $species;
     if (($tr = MCGetHouse($house, $key)) !== false) {
         return $tr;
     }
 
     DBConnect();
 
+    $names = LocaleColumns('i.name');
     $sql = <<<EOF
-select i.id, i.name, i.icon, i.type, i.npc,
+select i.id, $names, i.icon, i.type, i.npc,
 s.price, s.quantity, s.lastseen, s.breed
 from tblDBCPet i
 left join tblPetSummary s on s.house = ? and s.species = i.id

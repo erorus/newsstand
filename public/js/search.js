@@ -257,7 +257,7 @@ var TUJ_Search = function ()
         if (dta.battlepets) {
             dta.battlepets.sort(function (a, b)
             {
-                return a.name.localeCompare(b.name);
+                return a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]);
             });
 
             var pet;
@@ -337,7 +337,7 @@ var TUJ_Search = function ()
                 if (pet.npc) {
                     a.rel = 'npc=' + pet.npc + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
                 }
-                $(a).text('[' + pet.name + ']');
+                $(a).text('[' + pet['name_' + tuj.locale] + ']');
 
                 td = libtuj.ce('td');
                 td.className = 'quantity';

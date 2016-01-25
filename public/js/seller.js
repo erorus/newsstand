@@ -564,7 +564,7 @@ var TUJ_Seller = function ()
 
         data.petAuctions.sort(function (a, b)
         {
-            return a.name.localeCompare(b.name) ||
+            return a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]) ||
                 tuj.lang.breedsLookup[a.breed].localeCompare(tuj.lang.breedsLookup[b.breed]) ||
                 a.quality - b.quality ||
                 a.buy - b.buy ||
@@ -591,7 +591,7 @@ var TUJ_Seller = function ()
             a.rel = 'npc=' + auc.npc + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
             a.href = tuj.BuildHash({page: 'battlepet', id: auc.species});
             td.appendChild(a);
-            $(a).text('[' + auc.name + ']');
+            $(a).text('[' + auc['name_' + tuj.locale] + ']');
 
             td = libtuj.ce('td');
             tr.appendChild(td);

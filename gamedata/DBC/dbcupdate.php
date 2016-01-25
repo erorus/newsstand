@@ -18,7 +18,7 @@ dtecho(dbcdecode('Creature', array(1=>'id', 15=>'name')));
 
 dtecho(run_sql('truncate tblDBCPet'));
 $sql = <<<EOF
-insert into tblDBCPet (id, name, type, icon, npc, category, flags)
+insert into tblDBCPet (id, name_enus, type, icon, npc, category, flags)
 (select bps.id, c.name, bps.type, if(right(lower(fd.name), 4) = '.blp', lower(substr(fd.name, 1, length(fd.name) - 4)), lower(fd.name)), bps.npcid, bps.category, bps.flags
 from ttblBattlePetSpecies bps
 join ttblCreature c on bps.npcid = c.id

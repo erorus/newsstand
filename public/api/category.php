@@ -37,7 +37,7 @@ function CategoryResult_battlepets($house)
 {
     global $db, $canCache;
 
-    $key = 'category_bpets3';
+    $key = 'category_bpets_l';
 
     if ($canCache && (($tr = MCGetHouse($house, $key)) !== false)) {
         return ['name' => 'battlepets', 'results' => [['name' => 'BattlePetList', 'data' => $tr]]];
@@ -45,8 +45,10 @@ function CategoryResult_battlepets($house)
 
     DBConnect();
 
+    $names = LocaleColumns('p.name');
+
     $sql = <<<EOF
-SELECT ps.species, ps.breed, ps.price, ps.quantity, ps.lastseen, round(avg(ph.price)) avgprice, p.name, p.type, p.icon, p.npc, 0 regionavgprice
+SELECT ps.species, ps.breed, ps.price, ps.quantity, ps.lastseen, round(avg(ph.price)) avgprice, $names, p.type, p.icon, p.npc, 0 regionavgprice
 FROM tblPetSummary ps
 JOIN tblDBCPet p on ps.species=p.id
 LEFT JOIN tblPetHistory ph on ph.house = ps.house and ph.species = ps.species and ph.breed = ps.breed

@@ -369,7 +369,7 @@ var TUJ_Category = function ()
 
         var speciesSort = function (a, b) {
             return (b.price - a.price) ||
-                a.name.localeCompare(b.name);
+                a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]);
         };
 
         var breedSort = function (a, b) {
@@ -491,7 +491,7 @@ var TUJ_Category = function ()
                     continue;
                 }
 
-                o.name = data[petType][species][firstBreed].name;
+                o.name = data[petType][species][firstBreed]['name_' + tuj.locale];
                 o.icon = data[petType][species][firstBreed].icon;
                 o.npc = data[petType][species][firstBreed].npc;
                 o.firstBreed = firstBreed;

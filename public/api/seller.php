@@ -166,14 +166,15 @@ function SellerPetAuctions($house, $seller)
 {
     global $db;
 
-    if (($tr = MCGetHouse($house, 'seller_petauctions_' . $seller)) !== false) {
+    if (($tr = MCGetHouse($house, 'seller_petauctions_l_' . $seller)) !== false) {
         return $tr;
     }
 
     DBConnect();
 
+    $names = LocaleColumns('p.name');
     $sql = <<<EOF
-SELECT ap.species, ap.breed, quantity, bid, buy, ap.level, ap.quality, p.name, p.icon, p.type, p.npc,
+SELECT ap.species, ap.breed, quantity, bid, buy, ap.level, ap.quality, $names, p.icon, p.type, p.npc,
 (SELECT ifnull(sum(quantity),0)
 from tblAuction a2
 join tblAuctionPet ap2 on a2.house = ap2.house and a2.id = ap2.id

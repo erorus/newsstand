@@ -115,7 +115,7 @@ var TUJ_BattlePet = function ()
         var timg = libtuj.ce('img');
         ta.appendChild(timg);
         timg.src = libtuj.IconURL(dta.stats.icon, 'large');
-        var ttl = '[' + dta.stats.name + ']' + (breedId && breeds.length > 1 ? ' ' + tuj.lang.breedsLookup[breedId] : '');
+        var ttl = '[' + dta.stats['name_' + tuj.locale] + ']' + (breedId && breeds.length > 1 ? ' ' + tuj.lang.breedsLookup[breedId] : '');
         ta.appendChild(document.createTextNode(ttl));
 
         $('#page-title').empty().append(ta);
