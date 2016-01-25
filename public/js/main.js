@@ -463,6 +463,7 @@ var TUJ = function ()
     }
     var inMain = false;
     var self = this;
+    var checkLanguageHeader = false;
 
     this.colorTheme = '';
 
@@ -519,6 +520,7 @@ var TUJ = function ()
                 LoadLocale('enus', false);
                 LoadLocale(savedLocale, true);
             } else {
+                checkLanguageHeader = (savedLocale == false);
                 LoadLocale('enus', true);
             }
             return;
@@ -538,6 +540,37 @@ var TUJ = function ()
                     }
                     if (dta.hasOwnProperty('banned')) {
                         self.banned = dta.banned;
+                    }
+                    if (dta.hasOwnProperty('language') && checkLanguageHeader) {
+                        var l = dta.language.toLowerCase().replace(/[\s-]/, '').split(',');
+                        var x, y, m, ls = [];
+                        for (x = 0; x < l.length; x++) {
+                            if (m = l[x].match(/^([\w]+);q=([\d\.]+)$/)) {
+                                ls.push({l:m[1], q:parseFloat(m[2]), o:x});
+                            } else {
+                                ls.push({l:l[x], q:1, o:x});
+                            }
+                        }
+                        ls.sort(function(a,b){
+                            return (b.q - a.q) || (a.o - b.o);
+                        });
+                        var found = false;
+                        for (x = 0; x < ls.length; x++) {
+                            for (y in tujConstants.locales) {
+                                if (!tujConstants.locales.hasOwnProperty(y)) {
+                                    continue;
+                                }
+                                if (y.substr(0, ls[x].l.length) == ls[x].l) {
+                                    LoadLocale(ls[x].l, true);
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (found) {
+                                break;
+                            }
+                        }
+                        checkLanguageHeader = false;
                     }
                     if (typeof self.allRealms == 'undefined') {
                         alert('Error getting realms');

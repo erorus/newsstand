@@ -12,6 +12,7 @@ if (isset($_COOKIE['__cfduid'])) { // cloudflare
 
 json_return([
     'version' => API_VERSION,
+    'language' => isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : 'en-US,en;q=0.5',
     'banned' => BotCheck(true),
     'realms' => [GetRealms('US'),GetRealms('EU')]
     ]);
