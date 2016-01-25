@@ -1332,10 +1332,13 @@ var TUJ = function ()
                 }
                 this.href = tuj.BuildHash({page: parts[0], id: parts[1]});
 
-                if (self.lang.hasOwnProperty(this.rel)) {
-                    this.innerHTML = self.lang[this.rel];
-                } else if (self.lang.hasOwnProperty('category_' + this.rel)) {
+                var m;
+                if (self.lang.hasOwnProperty('category_' + this.rel)) {
                     this.innerHTML = self.lang['category_' + this.rel];
+                } else if (self.lang.hasOwnProperty(this.rel)) {
+                    this.innerHTML = self.lang[this.rel];
+                } else if (m = this.rel.match(/^transmog\/(\w+)$/)) {
+                    this.innerHTML = self.lang.transmog + ': ' + self.lang[m[1]];
                 }
             }
         });
