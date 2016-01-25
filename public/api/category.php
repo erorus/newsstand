@@ -649,7 +649,7 @@ JOIN tblDBCItem xic on xs.crafteditem=xic.id
 LEFT JOIN tblDBCItemSpell dis on dis.item=xic.id
 LEFT JOIN tblDBCSpell se on se.id=dis.spell
 WHERE xs.skillline=171 and xic.class=0 and xic.subclass in (1,2)
-and xic.name not like '%protection%'
+and xic.name_enus not like '%protection%'
 group by xic.id) xx
 where (xx.dd not like '%increas%' or (xx.dd like '%speed%' and xx.dd not like '%haste%'))
 and xx.dd not like '%restor%'
@@ -1233,28 +1233,28 @@ function CategoryResult_enchanting($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Dust',
-            'items' => CategoryGenericItemList($house, 'i.class=7 and i.subclass=12 and i.quality=1 and i.name like \'%Dust\'')
+            'items' => CategoryGenericItemList($house, 'i.class=7 and i.subclass=12 and i.quality=1 and i.name_enus like \'%Dust\'')
         ]
     ];
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Essence',
-            'items' => CategoryGenericItemList($house, 'i.class=7 and i.subclass=12 and i.quality=2 and ((i.level>85 and i.name like \'%Essence\') or (i.name like \'Greater%Essence\'))')
+            'items' => CategoryGenericItemList($house, 'i.class=7 and i.subclass=12 and i.quality=2 and ((i.level>85 and i.name_enus like \'%Essence\') or (i.name_enus like \'Greater%Essence\'))')
         ]
     ];
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Shard',
-            'items' => CategoryGenericItemList($house, 'i.class=7 and i.subclass=12 and i.quality=3 and i.name not like \'Small%\' and i.name like \'%Shard\'')
+            'items' => CategoryGenericItemList($house, 'i.class=7 and i.subclass=12 and i.quality=3 and i.name_enus not like \'Small%\' and i.name_enus like \'%Shard\'')
         ]
     ];
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Crystal',
-            'items' => CategoryGenericItemList($house, 'i.class=7 and i.subclass=12 and i.quality=4 and i.name like \'%Crystal\'')
+            'items' => CategoryGenericItemList($house, 'i.class=7 and i.subclass=12 and i.quality=4 and i.name_enus like \'%Crystal\'')
         ]
     ];
 
