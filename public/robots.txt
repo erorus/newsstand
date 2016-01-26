@@ -1,7 +1,14 @@
 User-agent: *
 Disallow: /images/
 Disallow: /icon/
-Disallow: /api/
+Disallow: /api/battlepet.php
+Disallow: /api/captcha.php
+Disallow: /api/category.php
+Disallow: /api/contact.php
+Disallow: /api/item.php
+Disallow: /api/search.php
+Disallow: /api/seller.php
+Disallow: /api/transmog.php
 Disallow: /item.php
 Disallow: /seller.php
 Disallow: /user.php
