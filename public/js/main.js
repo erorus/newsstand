@@ -999,7 +999,7 @@ var TUJ = function ()
 
         if (houseInfo[house].timestamps.lastupdate) {
             var d = libtuj.ce();
-            d.appendChild(document.createTextNode('Updated '));
+            d.appendChild(document.createTextNode(self.lang.updated + ' '));
             d.appendChild(libtuj.FormatDate(houseInfo[house].timestamps.lastupdate, false, 'minute'));
             ru.appendChild(d);
         }
