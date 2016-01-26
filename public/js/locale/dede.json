@@ -18,7 +18,7 @@
     "timeHoursAbbrev": "Std.",
 
     "timePast": "vor {1}",
-    "timeFuture": "{1} von jetzt an",
+    "timeFuture": "{1} ab jetzt",
 
     "unknown": "Unbekannt",
     "submit": "Senden",
@@ -27,7 +27,7 @@
     "lastChecked": "Zuletzt überprüft",
 
     "topSellers": "Top Verkäufer",
-    "mostAvailable": "am häufigsten verfügbar",
+    "mostAvailable": "Häufigste Items",
     "potentialDeals": "Potentielle Deals",
 
     "ipIsBanned": "The IP address of you or your proxy {1} has been banned from most queries at The Undermine Journal.",
@@ -39,7 +39,7 @@
     "sellers": "Verkäufer",
     "battlepet": "Kampfhaustier",
     "battlepets": "Kampfhaustiere",
-    "contact": "Kontact",
+    "contact": "Kontakt",
     "donate": "Spenden",
     "category": "Kategorie",
     "transmog": "Transmog",
@@ -60,7 +60,7 @@
     "donateTo": "Spende an {1}",
 
     "deals": "Deals",
-    "unusuals": "Unusuals",
+    "unusuals": "Unübliches",
     "unusualItems": "Ungewöhnliche Items",
     "category_auction": "Garnison AH",
 
@@ -96,11 +96,11 @@
 
     "realmsUS": "US Realms",
     "regionUS": "US Region",
-    "lookingUS": "Suchst Du nach US realms?",
+    "lookingUS": "Suchst Du nach US Realms?",
 
     "realmsEU": "EU Realms",
     "regionEU": "EU Region",
-    "lookingEU": "Suchst Du nach EU realms?",
+    "lookingEU": "Suchst Du nach EU Realms?",
 
     "welcomeTo": "Willkommen bei {1}",
     "yourSource": "...Deine Quelle für Auktionshaus-Statistiken und Daten in World of Warcraft.",
