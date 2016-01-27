@@ -362,7 +362,7 @@ var TUJ_Category = function ()
 
     resultFunctions.BattlePetList = function (data, dest)
     {
-        var t, td, tr, firstBreed, breed, species, petType, allSpecies, o, x, b, i, a;
+        var t, td, tr, firstBreed, breed, species, petType, allSpecies, o, x, b, i, a, loc;
 
         var dateRegEx = /^(\d{4}-\d\d-\d\d) (\d\d:\d\d:\d\d)$/;
         var dateRegExFmt = '$1T$2.000Z';
@@ -491,7 +491,11 @@ var TUJ_Category = function ()
                     continue;
                 }
 
-                o.name = data[petType][species][firstBreed]['name_' + tuj.locale];
+                for (loc in tujConstants.locales) {
+                    if (tujConstants.locales.hasOwnProperty(loc) && data[petType][species][firstBreed].hasOwnProperty('name_' + loc)) {
+                        o['name_' + loc] = data[petType][species][firstBreed]['name_' + loc];
+                    }
+                }
                 o.icon = data[petType][species][firstBreed].icon;
                 o.npc = data[petType][species][firstBreed].npc;
                 o.firstBreed = firstBreed;
@@ -520,7 +524,7 @@ var TUJ_Category = function ()
                 td.appendChild(a);
                 a.href = tuj.BuildHash({page: 'battlepet', id: allSpecies[x].id});
                 a.rel = 'npc=' + allSpecies[x].npc + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
-                $(a).text('[' + allSpecies[x].name + ']');
+                $(a).text('[' + allSpecies[x]['name_' + tuj.locale] + ']');
 
                 td = libtuj.ce('td');
                 td.className = 'breeds';
