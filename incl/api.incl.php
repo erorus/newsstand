@@ -8,6 +8,7 @@ define('THROTTLE_PERIOD', 3600); // seconds
 define('THROTTLE_MAXHITS', 200);
 define('BANLIST_CACHEKEY', 'banlist_cidrs4');
 define('BANLIST_FILENAME', __DIR__ . '/banlist.txt');
+define('BANLIST_USE_DNSBL', false);
 
 $VALID_LOCALES = ['enus','dede','eses','frfr','itit','ptbr','ruru'];
 $LANG_LEVEL = [
@@ -232,6 +233,9 @@ function BanIP($ip = false)
 
 function IPInDNSBL($ip)
 {
+    if (!BANLIST_USE_DNSBL) {
+        return false;
+    }
     $ipv4 = (strpos($ip, ':') === false);
     if (!$ipv4) {
         return false;
