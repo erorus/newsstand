@@ -31,9 +31,9 @@
         <link href="css/mui.min.css" rel="stylesheet" type="text/css">
         <link href='https://fonts.googleapis.com/css?family=Roboto:400,700|Roboto+Slab:700' rel='stylesheet' type='text/css'>
         <link href="css/main.css?10" rel="stylesheet" type="text/css">
-        <link rel="preload" href="wowtoken.json" as="script">
+        <link rel="prefetch" href="wowtoken.json" as="script">
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js" defer></script>
-        <script type="text/javascript" src="https://code.highcharts.com/stock/highstock.js" defer></script>
+        <script type="text/javascript" src="js/highcharts-custom.js" defer></script>
         <script type="text/javascript" src="js/main.js?26" defer></script>
         <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
     </head>
