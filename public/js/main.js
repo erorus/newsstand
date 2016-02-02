@@ -191,27 +191,23 @@ var libtuj = {
 
             if (dt.getTime() > 978307200000) {
                 var diff = Math.floor((now.getTime() - dt.getTime()) / 1000);
-                var suffix = diff < 0 ? ' from now' : ' ago';
+                var timeFormat = diff < 0 ? tuj.lang.timeFuture : tuj.lang.timePast;
                 diff = Math.abs(diff);
 
                 if ((diff < 60) || (stopAt == 'second')) {
-                    v = libtuj.sprintf(diff < 0 ? tuj.lang.timeFuture : tuj.lang.timePast,
-                        '' + (n = diff) + ' ' + (n != 1 ? tuj.lang.timeSeconds : tuj.lang.timeSecond));
+                    v = libtuj.sprintf(timeFormat, '' + (n = diff) + ' ' + (n != 1 ? tuj.lang.timeSeconds : tuj.lang.timeSecond));
                 }
                 else {
                     if ((diff < 60 * 60) || (stopAt == 'minute')) {
-                        v = libtuj.sprintf(diff < 0 ? tuj.lang.timeFuture : tuj.lang.timePast,
-                            '' + (n = Math.round(diff / 60)) + ' ' + (n != 1 ? tuj.lang.timeMinutes : tuj.lang.timeMinute));
+                        v = libtuj.sprintf(timeFormat, '' + (n = Math.round(diff / 60)) + ' ' + (n != 1 ? tuj.lang.timeMinutes : tuj.lang.timeMinute));
                     }
                     else {
                         if ((diff < 24 * 60 * 60) || (stopAt == 'hour')) {
-                            v = libtuj.sprintf(diff < 0 ? tuj.lang.timeFuture : tuj.lang.timePast,
-                                '' + (n = Math.round(diff / (60 * 60))) + ' ' + (n != 1 ? tuj.lang.timeHours : tuj.lang.timeHour));
+                            v = libtuj.sprintf(timeFormat, '' + (n = Math.round(diff / (60 * 60))) + ' ' + (n != 1 ? tuj.lang.timeHours : tuj.lang.timeHour));
                         }
                         else {
                             if ((diff < 10 * 24 * 60 * 60) || (stopAt == 'day')) {
-                                v = libtuj.sprintf(diff < 0 ? tuj.lang.timeFuture : tuj.lang.timePast,
-                                    '' + (n = Math.round(diff / (24 * 60 * 60))) + ' ' + (n != 1 ? tuj.lang.timeDays : tuj.lang.timeDay));
+                                v = libtuj.sprintf(timeFormat, '' + (n = Math.round(diff / (24 * 60 * 60))) + ' ' + (n != 1 ? tuj.lang.timeDays : tuj.lang.timeDay));
                             }
                             else {
                                 v = dt.toLocaleDateString();
