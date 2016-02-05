@@ -593,6 +593,7 @@ var TUJ = function ()
         }
 
         var ls, firstRun = !hash.watching;
+        CheckForProxy();
         ReadParams();
         if (firstRun) {
             if (!self.params.realm) {
@@ -672,7 +673,7 @@ var TUJ = function ()
             return;
         }
 
-        if (!self.params.page) {
+        if (!self.params.page || (pagesNeedRealm[self.params.page] && self.banned.isbanned)) {
             inMain = false;
             document.body.className = 'front';
             ShowRealmFrontPage();
@@ -726,6 +727,26 @@ var TUJ = function ()
             },
             url: 'js/locale/' + locName + '.json'
         });
+    }
+
+    function CheckForProxy() {
+        if (!self.banned.isbanned) {
+            if (Fletcher16(tujCDNPrefix) != tujCDNPrefixChecksum) {
+                self.banned = {
+                    isbanned: true,
+                    reason: 'proxy'
+                }
+            }
+        }
+    }
+
+    function Fletcher16(s) {
+        var s1=0, s2=0;
+        for (var x = 0; x < s.length; x++) {
+            s1 = (s1 + (s.charCodeAt(x) & 255)) % 255;
+            s2 = (s2 + s1) % 255;
+        }
+        return (s2 << 8) | s1;
     }
 
     function ReadParams()
@@ -1095,6 +1116,9 @@ var TUJ = function ()
                         break;
                     case 'ip':
                         banHTML += '<br><br>The IP address was the source of many repeated automated queries to TUJ.';
+                        break;
+                    case 'proxy':
+                        banHTML += '<br><br>The Undermine Journal does not support the use of content-altering web proxies.';
                         break;
                 }
 
