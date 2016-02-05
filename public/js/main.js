@@ -731,7 +731,7 @@ var TUJ = function ()
 
     function CheckForProxy() {
         if (!self.banned.isbanned) {
-            if (Fletcher16(tujCDNPrefix) != tujCDNPrefixChecksum) {
+            if ((typeof tujCDNPrefixChecksum != 'undefined') && (Fletcher16(tujCDNPrefix) != tujCDNPrefixChecksum)) {
                 self.banned = {
                     isbanned: true,
                     reason: 'proxy'
