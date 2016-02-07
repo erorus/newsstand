@@ -1382,7 +1382,7 @@ var TUJ = function ()
 
         captchaPage.appendChild(document.createTextNode(libtuj.sprintf(self.lang.captchaDirections, self.lang.races[c.lookfor])));
 
-        d = libtuj.ce();
+        var d = libtuj.ce();
         d.className = 'captcha';
         captchaPage.appendChild(d);
 
