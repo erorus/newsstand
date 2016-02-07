@@ -109,7 +109,7 @@
     "darkTheme": "Tema Escuro",
 
     "snapshots": "Snapshots",
-    "snapshotsDesc": "Aqui está disponível a quantidade e preço de mercado de {1} para cada {2} snapshot da Casa de Leilões vista recentemente. Here is the available quantity and market price of the {1} for every {2} auction house snapshot seen recently.",
+    "snapshotsDesc": "Aqui está disponível a quantidade e preço de mercado de {1} para cada {2} snapshot da Casa de Leilões vista recentemente.",
     "snapshotsSellerDesc": "Aqui você irá encontrar a quantidade de Leilões novos e totais deste vendedor a cada snapshot.",
     "dailySummary": "Resumo Diário",
     "dailySummaryDesc": "Aqui está a quantidade máxima disponível e o preço de mercado na época, para o item a cada dia. O preço médio regional para cada dia está incluído para comparação.",
