@@ -1,4 +1,5 @@
 <div class="news">
+    <hr>
     We're considering offering a Market Notifications service again. Please <a href="https://www.surveymonkey.com/r/RLNG2MC">take our short survey</a> to let us know whether you're interested.
     <hr>
     You can now view The Undermine Journal in a variety of other languages! Just pick your language from the dropdown box in the upper right corner.<br><br>
