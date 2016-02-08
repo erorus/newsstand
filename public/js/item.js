@@ -1509,7 +1509,7 @@ var TUJ_Item = function ()
     {
         var hcdata = {minVal: undefined, maxVal: 0, days: {}, heat: [], categories: {
             x: tuj.lang.heatMapTimes,
-            y: tuj.lang.heatMayDays
+            y: tuj.lang.heatMapDays
         }};
 
         var CalcAvg = function (a)
@@ -1633,7 +1633,7 @@ var TUJ_Item = function ()
     {
         var hcdata = {minVal: undefined, maxVal: 0, days: {}, heat: [], categories: {
             x: tuj.lang.heatMapTimes,
-            y: tuj.lang.heatMayDays
+            y: tuj.lang.heatMapDays
         }};
 
         var CalcAvg = function (a)
@@ -1757,7 +1757,7 @@ var TUJ_Item = function ()
     {
         var hcdata = {minVal: undefined, maxVal: 0, days: {}, heat: [], categories: {
             x: tuj.lang.heatMapTimes,
-            y: tuj.lang.heatMayDays
+            y: tuj.lang.heatMapDays
         }};
 
         var CalcAvg = function (a)
