@@ -311,7 +311,7 @@ if addonTable.region ~= "$region" then
     return
 end
 
-local realmName = string.gsub(string.upper(GetRealmName()), '[- ()\']', '')
+local realmName = string.gsub(string.upper(GetRealmName()), '[- ()\'’]', '')
 
 addonTable.dataAge = $dataAge
 
