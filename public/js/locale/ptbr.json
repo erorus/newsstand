@@ -23,7 +23,7 @@
     "unknown": "Desconhecido",
     "submit": "Enviar",
 
-    "updated": "Atualizado",
+    "updated": "Atualizado há",
     "nextUpdate": "Próxima Atualização",
     "lastChecked": "Última Verificação",
 
@@ -48,7 +48,7 @@
 
     "chooseRealm": "Escolha seu reino {1} abaixo:",
     "solveCaptcha": "Resolver Captcha",
-    "captchaDirections": "You viewed a lot of pages recently. To make sure you're not a script, please select all the {1} without helms.",
+    "captchaDirections": "Você visualizou muitas páginas recentemente. Para nos certificarmos que você não é um script, por favor selecione  todos os {1} sem capacetes.",
 
     "temporarilyOffline": "... está temporariamente offline.",
     "maintenanceGoblins": "Os Goblins do Undermine Journal estão trabalhando por trás das cortinas em alguma manutenção do site.",
@@ -63,7 +63,7 @@
     "deals": "Pechinchas",
     "unusuals": "Incomuns",
     "unusualItems": "Itens Incomuns",
-    "category_auction": "Casa de Leilões da AH",
+    "category_auction": "Casa de Leilões da Guarnição",
 
     "blacksmithing": "Ferraria",
     "leatherworking": "Couraria",
