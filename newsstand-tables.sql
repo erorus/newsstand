@@ -35,7 +35,8 @@ CREATE TABLE IF NOT EXISTS `tblAuction` (
   `quantity` smallint(5) unsigned NOT NULL,
   `bid` decimal(11,0) NOT NULL,
   `buy` decimal(11,0) NOT NULL,
-  `seller` int(10) unsigned NOT NULL
+  `seller` int(10) unsigned NOT NULL,
+  `timeleft` ENUM( 'SHORT', 'MEDIUM', 'LONG', 'VERY_LONG' ) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -297,6 +298,17 @@ CREATE TABLE IF NOT EXISTS `tblHouseCheck` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `tblItemExpired` (
+  `item` mediumint(8) unsigned NOT NULL,
+  `bonusset` tinyint(3) unsigned NOT NULL,
+  `house` smallint(5) unsigned NOT NULL,
+  `when` date NOT NULL,
+  `created` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  `expired` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`item`,`bonusset`,`house`,`when`),
+  KEY `house` (`house`,`when`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
 -- Table structure for table `tblItemGlobal`
