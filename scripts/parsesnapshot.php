@@ -147,7 +147,7 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     $region = $houseRegionCache[$house]['region'];
 
-    $stmt = $ourDb->prepare('SELECT a.id, a.bid, a.timeleft+0 timeleft, a.item, concat_ws(\':\', a.item, ifnull(ae.bonusset,0)) infokey FROM tblAuction a LEFT JOIN tblAuctionExtra ae on a.house=ae.house and a.id=ae.id WHERE a.house = ?');
+    $stmt = $ourDb->prepare('SELECT a.id, a.bid, a.buy, a.timeleft+0 timeleft, concat_ws(\':\', a.item, ifnull(ae.bonusset,0)) infokey FROM tblAuction a LEFT JOIN tblAuctionExtra ae on a.house=ae.house and a.id=ae.id WHERE a.house = ?');
     $stmt->bind_param('i', $house);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -334,14 +334,16 @@ function ParseAuctionData($house, $snapshot, &$json)
                 }
             } else {
                 // new auction
-                if ($itemInfoKey !== false) {
-                    if (isset($expiredItemInfo[$itemInfoKey])) {
-                        $expiredItemInfo[$itemInfoKey]['n']++;
-                    } else {
-                        $expiredItemInfo[$itemInfoKey] = [
-                            'n' => 1,
-                            'x' => 0,
-                        ];
+                if ($auction['buyout'] != 0) {
+                    if ($itemInfoKey !== false) {
+                        if (isset($expiredItemInfo[$itemInfoKey])) {
+                            $expiredItemInfo[$itemInfoKey]['n']++;
+                        } else {
+                            $expiredItemInfo[$itemInfoKey] = [
+                                'n' => 1,
+                                'x' => 0,
+                            ];
+                        }
                     }
                 }
             }
@@ -451,8 +453,8 @@ EOF;
         // all missing auctions
         if (!isset($existingPetIds[$oldRow['id']])) {
             // missing item auction
-            if (($oldRow['timeleft'] > 0) && ($oldRow['timeleft'] <= $expiredLength)) {
-                // probably expired
+            if (($oldRow['buy'] > 0) && ($oldRow['timeleft'] > 0) && ($oldRow['timeleft'] <= $expiredLength)) {
+                // probably expired item with buyout
                 if (isset($expiredItemInfo[$oldRow['infokey']])) {
                     $expiredItemInfo[$oldRow['infokey']]['x']++;
                 } else {
