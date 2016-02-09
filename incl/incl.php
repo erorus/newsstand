@@ -12,6 +12,12 @@ date_default_timezone_set('UTC');
 mb_internal_encoding("UTF-8");
 
 define('HISTORY_DAYS', 14);
+$TIMELEFT_ENUM = [
+    'SHORT'     => 1,
+    'MEDIUM'    => 2,
+    'LONG'      => 3,
+    'VERY_LONG' => 4,
+];
 
 function DebugMessage($message, $debugLevel = E_USER_NOTICE)
 {

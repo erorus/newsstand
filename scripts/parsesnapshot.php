@@ -138,6 +138,7 @@ function ParseAuctionData($house, $snapshot, &$json)
     global $maxPacketSize;
     global $houseRegionCache;
     global $auctionExtraItemsCache;
+    global $TIMELEFT_ENUM;
 
     $snapshotString = Date('Y-m-d H:i:s', $snapshot);
     $startTimer = microtime(true);
@@ -146,7 +147,7 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     $region = $houseRegionCache[$house]['region'];
 
-    $stmt = $ourDb->prepare('SELECT a.id, a.bid, a.item, concat_ws(\':\', a.item, ifnull(ae.bonusset,0)) infokey FROM tblAuction a LEFT JOIN tblAuctionExtra ae on a.house=ae.house and a.id=ae.id WHERE a.house = ?');
+    $stmt = $ourDb->prepare('SELECT a.id, a.bid, a.timeleft+0 timeleft, a.item, concat_ws(\':\', a.item, ifnull(ae.bonusset,0)) infokey FROM tblAuction a LEFT JOIN tblAuctionExtra ae on a.house=ae.house and a.id=ae.id WHERE a.house = ?');
     $stmt->bind_param('i', $house);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -228,7 +229,7 @@ function ParseAuctionData($house, $snapshot, &$json)
     $snapshotList = DBMapArray($result, null);
     $stmt->close();
 
-    $sqlStart = 'REPLACE INTO tblAuction (house, id, item, quantity, bid, buy, seller) VALUES ';
+    $sqlStart = 'REPLACE INTO tblAuction (house, id, item, quantity, bid, buy, seller, timeleft) VALUES ';
     $sqlStartPet = 'REPLACE INTO tblAuctionPet (house, id, species, breed, `level`, quality) VALUES ';
     $sqlStartExtra = 'REPLACE INTO tblAuctionExtra (house, id, `rand`, `seed`, `context`, `bonusset`';
     for ($x = 1; $x <= MAX_BONUSES; $x++) {
@@ -278,6 +279,7 @@ function ParseAuctionData($house, $snapshot, &$json)
             if (isset($auction['petBreedId'])) {
                 $auction['petBreedId'] = (($auction['petBreedId'] - 3) % 10) + 3; // squash gender
             }
+            $auction['timeLeft'] = isset($TIMELEFT_ENUM[$auction['timeLeft']]) ? $TIMELEFT_ENUM[$auction['timeLeft']] : 0;
 
             $totalAuctions++;
             if ($auction['buyout'] != 0) {
@@ -312,6 +314,7 @@ function ParseAuctionData($house, $snapshot, &$json)
 
             if (isset($existingIds[$auction['auc']])) {
                 $needUpdate = ($auction['bid'] != $existingIds[$auction['auc']]['bid']);
+                $needUpdate |= ($auction['timeLeft'] != $existingIds[$auction['auc']]['timeleft']);
                 unset($existingIds[$auction['auc']]);
                 unset($existingPetIds[$auction['auc']]);
                 if (!$needUpdate) {
@@ -320,14 +323,15 @@ function ParseAuctionData($house, $snapshot, &$json)
             }
 
             $thisSql = sprintf(
-                '(%u, %u, %u, %u, %u, %u, %u)',
+                '(%u, %u, %u, %u, %u, %u, %u, %u)',
                 $house,
                 $auction['auc'],
                 $auction['item'],
                 $auction['quantity'],
                 $auction['bid'],
                 $auction['buyout'],
-                $auction['owner'] == '???' ? 0 : $sellerInfo[$auction['ownerRealm']][$auction['owner']]['id']
+                $auction['owner'] == '???' ? 0 : $sellerInfo[$auction['ownerRealm']][$auction['owner']]['id'],
+                $auction['timeLeft']
             );
             if (strlen($sql) + 5 + strlen($thisSql) > $maxPacketSize) {
                 DBQueryWithError($ourDb, $sql);
