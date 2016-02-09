@@ -229,6 +229,16 @@ function ParseAuctionData($house, $snapshot, &$json)
     $snapshotList = DBMapArray($result, null);
     $stmt->close();
 
+    $prevSnapshot = $snapshot;
+    if (count($snapshotList)) {
+        $prevSnapshot = intval($snapshotList[count($snapshotList)-1]['updated'],10);
+    }
+    $snapshotWindow = $snapshot - $prevSnapshot;
+    $expiredLength = 1; // any missing shorts can be considered expired
+    if ($snapshotWindow > 1800) { // 30 mins
+        $expiredLength = 2; // any missing shorts or mediums can be expired
+    }
+
     $sqlStart = 'REPLACE INTO tblAuction (house, id, item, quantity, bid, buy, seller, timeleft) VALUES ';
     $sqlStartPet = 'REPLACE INTO tblAuctionPet (house, id, species, breed, `level`, quality) VALUES ';
     $sqlStartExtra = 'REPLACE INTO tblAuctionExtra (house, id, `rand`, `seed`, `context`, `bonusset`';
@@ -241,6 +251,7 @@ function ParseAuctionData($house, $snapshot, &$json)
     $itemInfo = array();
     $petInfo = array();
     $sellerInfo = array();
+    $expiredItemInfo = array();
 
     if ($jsonAuctions) {
         $auctionCount = count($jsonAuctions);
@@ -282,6 +293,7 @@ function ParseAuctionData($house, $snapshot, &$json)
             $auction['timeLeft'] = isset($TIMELEFT_ENUM[$auction['timeLeft']]) ? $TIMELEFT_ENUM[$auction['timeLeft']] : 0;
 
             $totalAuctions++;
+            $itemInfoKey = false;
             if ($auction['buyout'] != 0) {
                 if (isset($auction['petSpeciesId'])) {
                     if (!isset($petInfo[$auction['petSpeciesId']][$auction['petBreedId']])) {
@@ -319,6 +331,18 @@ function ParseAuctionData($house, $snapshot, &$json)
                 unset($existingPetIds[$auction['auc']]);
                 if (!$needUpdate) {
                     continue;
+                }
+            } else {
+                // new auction
+                if ($itemInfoKey !== false) {
+                    if (isset($expiredItemInfo[$itemInfoKey])) {
+                        $expiredItemInfo[$itemInfoKey]['n']++;
+                    } else {
+                        $expiredItemInfo[$itemInfoKey] = [
+                            'n' => 1,
+                            'x' => 0,
+                        ];
+                    }
                 }
             }
 
@@ -423,6 +447,25 @@ EOF;
         DBQueryWithError($ourDb, $sql);
     }
 
+    foreach ($existingIds as &$oldRow) {
+        // all missing auctions
+        if (!isset($existingPetIds[$oldRow['id']])) {
+            // missing item auction
+            if (($oldRow['timeleft'] > 0) && ($oldRow['timeleft'] <= $expiredLength)) {
+                // probably expired
+                if (isset($expiredItemInfo[$oldRow['infokey']])) {
+                    $expiredItemInfo[$oldRow['infokey']]['x']++;
+                } else {
+                    $expiredItemInfo[$oldRow['infokey']] = [
+                        'n' => 0,
+                        'x' => 1,
+                    ];
+                }
+            }
+        }
+    }
+    unset($oldRow);
+
     $preDeleted = count($itemInfo);
     foreach ($existingIds as &$oldRow) {
         if ((!isset($existingPetIds[$oldRow['id']])) && (!isset($itemInfo[$oldRow['infokey']]))) {
@@ -445,6 +488,30 @@ EOF;
 
     DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating seller history");
     UpdateSellerInfo($sellerInfo, $snapshot, $noHistory);
+
+    if (count($expiredItemInfo) > 0) {
+        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating new/expired auctions for " . count($expiredItemInfo) . " items");
+
+        $expiredWhen = Date('Y-m-d', $snapshot);
+        $sqlStart = 'INSERT INTO tblItemExpired (item, bonusset, house, `when`, created, expired) VALUES ';
+        $sqlEnd = ' ON DUPLICATE KEY UPDATE created=created+values(created), expired=expired+values(expired)';
+        $sql = '';
+        foreach ($expiredItemInfo as $infoKey => $expiredInfo) {
+            $keyParts = explode(':', $infoKey);
+            $sqlPart = sprintf('(%u, %u, %u, \'%s\', %u, %u)', $keyParts[0], $keyParts[1], $house, $expiredWhen, $expiredInfo['n'], $expiredInfo['x']);
+
+            if (strlen($sql) + 10 + strlen($sqlPart) + strlen($sqlEnd) > $maxPacketSize) {
+                DBQueryWithError($ourDb, $sql . $sqlEnd);
+                $sql = '';
+            }
+
+            $sql .= ($sql == '' ? $sqlStart : ',') . $sqlPart;
+        }
+
+        if ($sql != '') {
+            DBQueryWithError($ourDb, $sql . $sqlEnd);
+        }
+    }
 
     if (count($existingIds) > 0) {
         DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " deleting " . count($existingIds) . " auctions");

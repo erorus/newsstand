@@ -177,6 +177,25 @@ function CleanOldData()
         return;
     }
 
+    for ($hx = 0; $hx < count($houses); $hx++) {
+        heartbeat();
+        if ($caughtKill) {
+            return;
+        }
+
+        $house = $houses[$hx];
+        $cutoffDate = Date('Y-m-d H:i:s', strtotime('' . ((HISTORY_DAYS * 2) + 3) . ' days ago'));
+
+        $sql = sprintf('delete from tblItemExpired where house = %d and `when` < \'%s\'', $house, $cutoffDate);
+        $db->query($sql);
+
+        DebugMessage(sprintf('%d expired item rows removed from house %d since %s', $db->affected_rows, $house, $cutoffDate));
+    }
+
+    if ($caughtKill) {
+        return;
+    }
+
     $rowCount = 0;
     DebugMessage('Clearing out old seller history');
     $sql = 'delete from tblSellerHistory where snapshot < timestampadd(day, -' . HISTORY_DAYS . ', now()) limit 5000';
