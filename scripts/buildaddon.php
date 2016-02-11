@@ -279,21 +279,17 @@ EOF;
 
     $houseLookup = array_flip($houses);
 
-    $stmt = $db->prepare('select name, house, ownerrealm from tblRealm where region = ?');
+    $stmt = $db->prepare('select rgh.realmguid, rgh.house from tblRealmGuidHouse rgh join tblRealm r on rgh.house = r.house and r.canonical is not null where r.region = ?');
     $stmt->bind_param('s', $region);
     $stmt->execute();
     $result = $stmt->get_result();
-    $realms = DBMapArray($result);
+    $guids = DBMapArray($result);
     $stmt->close();
 
-    $realmLua = '';
-    $realmPattern = 'if realmName == "%s" then realmIndex = %d end'."\n";
-    foreach ($realms as $realmRow) {
-        if (isset($houseLookup[$realmRow['house']])) {
-            $realmLua .= sprintf($realmPattern, mb_ereg_replace('[^\w]', '', mb_strtoupper($realmRow['name'])), $houseLookup[$realmRow['house']]);
-            if (!is_null($realmRow['ownerrealm'])) {
-                $realmLua .= sprintf($realmPattern, mb_ereg_replace('[^\w]', '', mb_strtoupper($realmRow['ownerrealm'])), $houseLookup[$realmRow['house']]);
-            }
+    $guidLua = '';
+    foreach ($guids as $guidRow) {
+        if (isset($houseLookup[$guidRow['house']])) {
+            $guidLua .= ($guidLua == '' ? '' : ',') . '[' . $guidRow['realmguid'] . ']=' . $houseLookup[$guidRow['house']];
         }
     }
 
@@ -307,19 +303,16 @@ EOF;
     $lua = <<<EOF
 local addonName, addonTable = ...
 
-if addonTable.region ~= "$region" then
-    return
+local realmId = nil
+local guid = UnitGUID("player")
+if guid then
+    realmId = tonumber(strmatch(guid, "^Player%-(%d+)"))
 end
 
-local realmName = string.gsub(string.upper(GetRealmName()), '[- ()\'’]', '')
-
-addonTable.dataAge = $dataAge
-
-local realmIndex = nil
-$realmLua
+local realmGuids = {{$guidLua}}
+local realmIndex = realmGuids[realmId]
 
 if not realmIndex then
-    print("The Undermine Journal - Warning: detected region $region but could not find data for realm "..GetRealmName())
     return
 end
 
@@ -328,6 +321,7 @@ local tuj_concat = table.concat
 
 addonTable.marketData = {}
 addonTable.realmIndex = realmIndex
+addonTable.dataAge = $dataAge
 
 local function crop(priceSize, b)
     local headerSize = 1 + priceSize * 3
@@ -362,7 +356,6 @@ function MakeZip($zipPath = false)
     $zip->addEmptyDir('TheUndermineJournal');
     $zip->addFromString("TheUndermineJournal/TheUndermineJournal.toc",$tocFile);
     $zip->addFile('../addon/BonusSets.lua',"TheUndermineJournal/BonusSets.lua");
-    $zip->addFile('../addon/GetRegion.lua',"TheUndermineJournal/GetRegion.lua");
     $zip->addFile('../addon/TheUndermineJournal.lua',"TheUndermineJournal/TheUndermineJournal.lua");
     $zip->addFile('../addon/MarketData-US.lua',"TheUndermineJournal/MarketData-US.lua");
     $zip->addFile('../addon/MarketData-EU.lua',"TheUndermineJournal/MarketData-EU.lua");
