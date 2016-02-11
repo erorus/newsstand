@@ -47,6 +47,7 @@ function GetDataTables() {
         'tblPetHistory' => 'house='.$house,
         'tblPetSummary' => 'house='.$house,
         'tblRealm' => '1=1',
+        'tblRealmGuidHouse' => '1=1',
         'tblSeller' => 'realm in ('.implode(',',$realms).')',
         'tblSellerHistory' => 'seller in ('.implode(',',$sellers).')',
         'tblSnapshot' => 'house='.$house,
