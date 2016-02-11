@@ -168,6 +168,7 @@ EOF;
 
     $priceLua = '';
     $luaLines = 0;
+    $dataFuncIndex = 0;
     foreach ($item_global as $item => $globalPriceList) {
         heartbeat();
         if ($caughtKill)
@@ -258,17 +259,18 @@ EOF;
             $priceString .= $thisPriceString;
         }
         if ($luaLines == 0) {
-            $priceLua .= "somedata = function()\n";
+            $dataFuncIndex++;
+            $priceLua .= "dataFuncs[$dataFuncIndex] = function()\n";
         }
         $priceLua .= sprintf("addonTable.marketData['%s']=crop(%d,%s)\n", $item, $priceBytes, luaQuote($priceString));
         if (++$luaLines >= 2000) {
-            $priceLua .= "end\nsomedata()\n";
+            $priceLua .= "end\n";
             $luaLines = 0;
         }
     }
     unset($items);
     if ($luaLines > 0) {
-        $priceLua .= "end\nsomedata()\n";
+        $priceLua .= "end\n";
     }
 
     heartbeat();
@@ -302,26 +304,13 @@ EOF;
 
     $lua = <<<EOF
 local addonName, addonTable = ...
+addonTable.dataLoads = addonTable.dataLoads or {}
 
-local realmId = nil
-local guid = UnitGUID("player")
-if guid then
-    realmId = tonumber(strmatch(guid, "^Player%-(%d+)"))
-end
-
-local realmGuids = {{$guidLua}}
-local realmIndex = realmGuids[realmId]
-
-if not realmIndex then
-    return
-end
+local realmIndex
+local dataFuncs = {}
 
 local tuj_substr = string.sub
 local tuj_concat = table.concat
-
-addonTable.marketData = {}
-addonTable.realmIndex = realmIndex
-addonTable.dataAge = $dataAge
 
 local function crop(priceSize, b)
     local headerSize = 1 + priceSize * 3
@@ -332,11 +321,38 @@ local function crop(priceSize, b)
     return tuj_substr(b, 1, headerSize)..tuj_substr(b, offset, offset + recordSize - 1)
 end
 
-local somedata = function() end
+EOF;
+
+    $luaEnd = <<<EOF
+
+local dataLoad = function(realmId)
+    local realmGuids = {{$guidLua}}
+    realmIndex = realmGuids[realmId]
+
+    if not realmIndex then
+        wipe(dataFuncs)
+        return false
+    end
+
+    addonTable.marketData = {}
+    addonTable.realmIndex = realmIndex
+    addonTable.dataAge = $dataAge
+
+    for i=1,#dataFuncs,1 do
+        dataFuncs[i]()
+        dataFuncs[i]=nil
+    end
+
+    wipe(dataFuncs)
+    return true
+end
+
+table.insert(addonTable.dataLoads, dataLoad)
 
 EOF;
 
-    return pack('CCC', 239, 187, 191).$lua.$priceLua;
+
+    return pack('CCC', 239, 187, 191).$lua.$priceLua.$luaEnd;
 }
 
 function MakeZip($zipPath = false)

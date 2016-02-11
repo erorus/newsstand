@@ -44,8 +44,6 @@ See http://tuj.me/TUJTooltip for more information/examples.
 
 ]]
 
-collectgarbage("collect") -- lots of strings made and trunc'ed in MarketData
-
 --[[
     This chunk from:
 
@@ -345,15 +343,24 @@ local eventframe = CreateFrame("FRAME",addonName.."Events");
 local function onEvent(self,event,arg)
     if event == "PLAYER_ENTERING_WORLD" then
         eventframe:UnregisterEvent("PLAYER_ENTERING_WORLD")
+
+        local realmId
+        local guid = UnitGUID("player")
+        if guid then
+            realmId = tonumber(strmatch(guid, "^Player%-(%d+)"))
+        end
+        if not realmId then
+            realmId = "nil"
+        else
+            for i=1,#addonTable.dataLoads,1 do
+                addonTable.dataLoads[i](realmId)
+                addonTable.dataLoads[i]=nil
+            end
+        end
+        wipe(addonTable.dataLoads)
+        collectgarbage("collect") -- lots of strings made and trunc'ed in MarketData
+
         if not addonTable.realmIndex then
-            local realmId = nil
-            local guid = UnitGUID("player")
-            if guid then
-                realmId = tonumber(strmatch(guid, "^Player%-(%d+)"))
-            end
-            if not realmId then
-                realmId = "nil"
-            end
             print("The Undermine Journal - Warning: could not find data for realm ID "..realmId..", no data loaded!")
         elseif not addonTable.marketData then
             print("The Undermine Journal - Warning: no data loaded!")
