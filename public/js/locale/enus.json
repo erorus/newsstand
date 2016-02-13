@@ -355,5 +355,6 @@
     "subscription": "Subscription",
 
     "logIn": "Log in",
+    "logInBattleNet": "Log in with Battle.net",
     "logOut": "Log out"
 }
