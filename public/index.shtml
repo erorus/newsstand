@@ -27,6 +27,7 @@
         <title>The Undermine Journal</title>
 <!--#include virtual="index.scripts.inc" -->    </head>
     <body>
+        <div id="super-bar"><span id="login-info"></span></div>
         <div id="page">
             <div id="topbar">
                 <div id="topcorner" class="give-padding">

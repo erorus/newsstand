@@ -268,6 +268,10 @@ function PostHTTP($url, $toPost, $inHeaders = array(), &$outHeaders = array())
         'redirect'       => 2
     );
 
+    if (!is_string($toPost)) {
+        $toPost = http_build_query($toPost);
+    }
+
     $http_info = array();
     $fetchHTTPErrorCaught = false;
     $oldErrorReporting = error_reporting(error_reporting() | E_WARNING);

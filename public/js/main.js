@@ -366,6 +366,7 @@ var libtuj = {
             }
 
             window.localStorage.setItem(key, JSON.stringify(val));
+            return true;
         },
         Remove: function (key, val)
         {
@@ -378,6 +379,7 @@ var libtuj = {
             }
 
             window.localStorage.removeItem(key);
+            return true;
         }
     }
 };
@@ -508,7 +510,7 @@ var TUJ = function ()
                 o.text = tujConstants.locales[loc];
                 locSel.appendChild(o);
             }
-            document.body.insertBefore(locSel, document.body.firstChild);
+            $('#super-bar').append(locSel);
 
             var savedLocale = libtuj.Storage.Get('locale');
             inMain = false;
@@ -603,6 +605,8 @@ var TUJ = function ()
         }
 
         if (firstRun) {
+            CheckLogin();
+
             if (!self.params.realm) {
                 var searchRealm;
                 if (searchRealm = /^\?realm=([AH])-([^&]+)/i.exec(decodeURIComponent(location.search))) {
@@ -760,6 +764,45 @@ var TUJ = function ()
         }
         return (s2 << 8) | s1;
     }
+
+    function CheckLogin() {
+        var loginState = libtuj.Storage.Get('loginState');
+        if (!loginState) {
+            return;
+        }
+
+        $.ajax({
+            data: {
+                'loginstate': loginState
+            },
+            method: 'POST',
+            success: function(dta) {
+                switch (dta.step) {
+                    case 0: // state not found
+                        libtuj.Storage.Remove('loginState');
+                        break;
+                    case 3: // login complete
+                        libtuj.Storage.Remove('loginState');
+                        if (dta.user) {
+                            libtuj.Storage.Set('user', dta.user);
+                        } else {
+                            libtuj.Storage.Remove('user');
+                        }
+                        break;
+                    default:
+                        libtuj.Storage.Set('loginState', loginState);
+                        break;
+                }
+                UpdateSidebar();
+            },
+            url: 'api/subscription.php'
+        });
+    }
+
+    this.LogOut = function() {
+        libtuj.Storage.Remove('user');
+        Main();
+    };
 
     function ReadParams()
     {
@@ -926,6 +969,20 @@ var TUJ = function ()
             realmLink.text(self.params.realm ? self.realms[self.params.realm].name : '');
         } else {
             $('#topcorner > div').hide();
+        }
+
+        var userInfo = libtuj.Storage.Get('user');
+        if (!userInfo) {
+            var loginLink = $('<a>');
+            loginLink[0].href = self.BuildHash({page: 'subscription'});
+            loginLink.text(self.lang.logIn);
+            $('#login-info').empty().append(loginLink);
+        } else {
+            var logoutLink = $('<a>');
+            logoutLink[0].href = 'javascript:;';
+            logoutLink.click(self.LogOut);
+            logoutLink.text(self.lang.logOut);
+            $('#login-info').empty().text(userInfo.battletag + ' - ').append(logoutLink);
         }
 
         var contactLink = $('#bottom-bar a.contact');

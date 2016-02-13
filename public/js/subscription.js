@@ -26,6 +26,13 @@ var TUJ_Subscription = function ()
 
     this.ShowLoginForm = function()
     {
+        if (libtuj.Storage.Get('loginState')) {
+            $('#subscription-login').empty().html('Login in progress...');
+        }
+        if (!libtuj.Storage.Set('loginState', 0)) {
+            self.StorageFail();
+            return;
+        }
         formElements = {};
 
         var region = tuj.validRegions[0];
@@ -35,7 +42,6 @@ var TUJ_Subscription = function ()
 
         var i, f = formElements.form = libtuj.ce('form');
         f.method = 'GET';
-        f.action = 'https://' + region.toLowerCase() + '.battle.net/oauth/authorize';
         $('#subscription-login').empty().append(f);
 
         i = formElements.clientId = libtuj.ce('input');
@@ -56,7 +62,6 @@ var TUJ_Subscription = function ()
         i = formElements.redirectUri = libtuj.ce('input');
         i.type = 'hidden';
         i.name = 'redirect_uri';
-        i.value = 'https://' + location.host + '/api/subscription.php';
         $(f).append(i);
 
         i = formElements.responseType = libtuj.ce('input');
@@ -72,15 +77,21 @@ var TUJ_Subscription = function ()
         $(f).append(i);
 
         $.ajax({
-            data: {'loginparams': 1},
+            data: {
+                'loginfrom': tuj.BuildHash({}),
+                'region': region,
+            },
             type: 'POST',
             success: function (d) {
                 if (!d.state) {
                     self.LoginFail();
                     return;
                 }
+                libtuj.Storage.Set('loginState', d.state);
+                formElements.form.action = d.authUri.replace('%s', region.toLowerCase());
                 formElements.clientId.value = d.clientId;
                 formElements.state.value = d.state;
+                formElements.redirectUri.value = d.redirectUri;
                 formElements.submit.disabled = false;
             },
             error: self.LoginFail,
@@ -92,6 +103,11 @@ var TUJ_Subscription = function ()
     {
         $('#subscription-login').empty().html('Error setting up login, please try again later.');
     };
+
+    this.StorageFail = function()
+    {
+        $('#subscription-login').empty().html('Please enable cookies (persistent local storage) to log in.');
+    }
 
     this.load(tuj.params);
 }
