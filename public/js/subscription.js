@@ -26,13 +26,6 @@ var TUJ_Subscription = function ()
 
     this.ShowLoginForm = function()
     {
-        if (libtuj.Storage.Get('loginState')) {
-            $('#subscription-login').empty().html('Login in progress...');
-        }
-        if (!libtuj.Storage.Set('loginState', 0)) {
-            self.StorageFail();
-            return;
-        }
         formElements = {};
 
         var region = tuj.validRegions[0];
@@ -87,7 +80,6 @@ var TUJ_Subscription = function ()
                     self.LoginFail();
                     return;
                 }
-                libtuj.Storage.Set('loginState', d.state);
                 formElements.form.action = d.authUri.replace('%s', region.toLowerCase());
                 formElements.clientId.value = d.clientId;
                 formElements.state.value = d.state;
@@ -103,11 +95,6 @@ var TUJ_Subscription = function ()
     {
         $('#subscription-login').empty().html('Error setting up login, please try again later.');
     };
-
-    this.StorageFail = function()
-    {
-        $('#subscription-login').empty().html('Please enable cookies (persistent local storage) to log in.');
-    }
 
     this.load(tuj.params);
 }

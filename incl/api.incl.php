@@ -10,6 +10,9 @@ define('BANLIST_CACHEKEY', 'banlist_cidrs4');
 define('BANLIST_FILENAME', __DIR__ . '/banlist.txt');
 define('BANLIST_USE_DNSBL', false);
 
+define('SUBSCRIPTION_LOGIN_COOKIE', 'session');
+define('SUBSCRIPTION_SESSION_LENGTH', 1209600); // 2 weeks
+
 $VALID_LOCALES = ['enus','dede','eses','frfr','itit','ptbr','ruru'];
 $LANG_LEVEL = [
     '__LEVEL_enus__' => 'Level',
@@ -462,4 +465,34 @@ function HouseETag($house, $includeFetches = false)
     }
 
     header('ETag: ' . $curTag);
+}
+
+function GetLoginState($logOut = false) {
+    //TODO: this should be in the database too, not just memcache
+
+    $userInfo = [];
+    if (!isset($_COOKIE[SUBSCRIPTION_LOGIN_COOKIE])) {
+        return $userInfo;
+    }
+    $state = preg_replace('/[^a-zA-Z0-9_-]/', '', substr($_COOKIE[SUBSCRIPTION_LOGIN_COOKIE], 0, 30));
+
+    if ($logOut) {
+        MCDelete('usersession_'.$state);
+    } else {
+        $userInfo = MCGet('usersession_'.$state);
+        if ($userInfo === false) {
+            $logOut = true;
+        }
+    }
+
+    if ($logOut) {
+        setcookie(SUBSCRIPTION_LOGIN_COOKIE, '', time() - SUBSCRIPTION_SESSION_LENGTH, '/api/', '', true, true);
+        return [];
+    }
+
+    if (!headers_sent()) {
+        setcookie(SUBSCRIPTION_LOGIN_COOKIE, $state, time() + SUBSCRIPTION_SESSION_LENGTH, '/api/', '', true, true);
+    }
+
+    return $userInfo;
 }

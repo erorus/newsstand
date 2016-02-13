@@ -16,13 +16,6 @@ var libtuj = {
                 ;
         });
     },
-    AddScript: function (url)
-    {
-        var s = libtuj.ce('script');
-        s.type = 'text/javascript';
-        s.src = url;
-        document.getElementsByTagName('head')[0].appendChild(s);
-    },
     Mean: function (a)
     {
         if (a.length < 1) {
@@ -440,6 +433,7 @@ var TUJ = function ()
     var pagesNeedRealm = [true, true, true, true, true, false, false, true, true, false];
     var houseInfo = {};
     var drawnRegion = -1;
+    var loggedInUser = false;
     this.validRegions = validRegions;
     this.realms = undefined;
     this.allRealms = undefined;
@@ -701,7 +695,10 @@ var TUJ = function ()
         document.body.className = validPages[self.params.page];
 
         if (typeof tuj['page_' + validPages[self.params.page]] == 'undefined') {
-            libtuj.AddScript(tujCDNPrefix + 'js/' + validPages[self.params.page] + '.js?' + self.apiVersion);
+            var s = libtuj.ce('script');
+            s.type = 'text/javascript';
+            s.src = tujCDNPrefix + 'js/' + validPages[self.params.page] + '.js?' + self.apiVersion;
+            document.getElementsByTagName('head')[0].appendChild(s);
         }
         else {
             tuj['page_' + validPages[self.params.page]].load(self.params);
@@ -766,42 +763,46 @@ var TUJ = function ()
     }
 
     function CheckLogin() {
-        var loginState = libtuj.Storage.Get('loginState');
-        if (!loginState) {
-            return;
-        }
-
         $.ajax({
             data: {
-                'loginstate': loginState
+                'getlogin': 1
             },
             method: 'POST',
             success: function(dta) {
-                switch (dta.step) {
-                    case 0: // state not found
-                        libtuj.Storage.Remove('loginState');
-                        break;
-                    case 3: // login complete
-                        libtuj.Storage.Remove('loginState');
-                        if (dta.user) {
-                            libtuj.Storage.Set('user', dta.user);
-                        } else {
-                            libtuj.Storage.Remove('user');
-                        }
-                        break;
-                    default:
-                        libtuj.Storage.Set('loginState', loginState);
-                        break;
+                if (dta.battletag) {
+                    loggedInUser = dta;
+                } else {
+                    loggedInUser = false;
                 }
+                UpdateSidebar();
+            },
+            error: function() {
+                loggedInUser = false;
                 UpdateSidebar();
             },
             url: 'api/subscription.php'
         });
     }
 
+    this.IsLoggedIn = function() {
+        return !!(loggedInUser);
+    };
+
     this.LogOut = function() {
-        libtuj.Storage.Remove('user');
-        Main();
+        $.ajax({
+            data: {
+                'logout': 1
+            },
+            method: 'POST',
+            success: function(dta) {
+                loggedInUser = false;
+                Main();
+            },
+            error: function() {
+                alert('Error logging out. Try again?');
+            },
+            url: 'api/subscription.php'
+        });
     };
 
     function ReadParams()
@@ -971,10 +972,9 @@ var TUJ = function ()
             $('#topcorner > div').hide();
         }
 
-        var userInfo = libtuj.Storage.Get('user');
-        if (!userInfo) {
+        if (!loggedInUser) {
             var loginLink = $('<a>');
-            loginLink[0].href = self.BuildHash({page: 'subscription'});
+            loginLink[0].href = self.BuildHash({page: 'subscription', id: ''});
             loginLink.text(self.lang.logIn);
             $('#login-info').empty().append(loginLink);
         } else {
@@ -982,7 +982,7 @@ var TUJ = function ()
             logoutLink[0].href = 'javascript:;';
             logoutLink.click(self.LogOut);
             logoutLink.text(self.lang.logOut);
-            $('#login-info').empty().text(userInfo.battletag + ' - ').append(logoutLink);
+            $('#login-info').empty().text(loggedInUser.battletag + ' - ').append(logoutLink);
         }
 
         var contactLink = $('#bottom-bar a.contact');
