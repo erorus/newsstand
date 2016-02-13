@@ -31,7 +31,7 @@
             <div id="topbar">
                 <div id="topcorner" class="give-padding">
                     <div>
-                        <div class="region-realm">
+                        <div class="region-realm no-realm-hide">
                             <a class="region"></a>
                             <a class="realm"></a>
                         </div>
@@ -151,6 +151,9 @@
                     <div class="done">
                         Thanks for your comments. We read all messages we receive, but replies may be delayed by a few days.
                     </div>
+                </div>
+                <div class="page" id="subscription-page">
+
                 </div>
                 <div class="page" id="donate-page">
                     <div class="news" id="donate-thanks">

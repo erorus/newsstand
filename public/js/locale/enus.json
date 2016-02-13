@@ -350,5 +350,10 @@
         "5": "Magic",
         "9": "Mechanical",
         "3": "Undead"
-    }
+    },
+
+    "subscription": "Subscription",
+
+    "logIn": "Log in",
+    "logOut": "Log out"
 }

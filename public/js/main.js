@@ -434,8 +434,8 @@ var tujConstants = {
 var TUJ = function ()
 {
     var validRegions = ['US','EU'];
-    var validPages = ['', 'search', 'item', 'seller', 'battlepet', 'contact', 'donate', 'category', 'transmog'];
-    var pagesNeedRealm = [true, true, true, true, true, false, false, true, true];
+    var validPages = ['', 'search', 'item', 'seller', 'battlepet', 'contact', 'donate', 'category', 'transmog', 'subscription'];
+    var pagesNeedRealm = [true, true, true, true, true, false, false, true, true, false];
     var houseInfo = {};
     var drawnRegion = -1;
     this.validRegions = validRegions;
@@ -595,6 +595,13 @@ var TUJ = function ()
         var ls, firstRun = !hash.watching;
         CheckForProxy();
         ReadParams();
+
+        if (self.params.realm) {
+            $('#topcorner').addClass('with-realm');
+        } else {
+            $('#topcorner').removeClass('with-realm');
+        }
+
         if (firstRun) {
             if (!self.params.realm) {
                 var searchRealm;
@@ -634,50 +641,55 @@ var TUJ = function ()
 
         window.scrollTo(0, 0);
 
-        if (self.params.region == undefined) {
-            inMain = false;
+        if (!self.params.page || pagesNeedRealm[self.params.page]) {
+            if (self.params.region == undefined) {
+                inMain = false;
+                $('#main .page').hide();
+                $('#realm-list').removeClass('show');
+                $('#region-page a.region-us').attr('href', tuj.BuildHash({region:0}));
+                $('#region-page a.region-eu').attr('href', tuj.BuildHash({region:1}));
+
+                $('#region-page a.region-us.text').html(self.lang.realmsUS);
+                $('#region-page a.region-eu.text').html(self.lang.realmsEU);
+                $('#region-page h2').html(libtuj.sprintf(self.lang.welcomeTo, 'The Undermine Journal') + ' <sub>' + self.lang.yourSource + '</sub>');
+
+                $('#region-page').show();
+                document.body.className = 'region';
+                return;
+            }
+
+            if ($('#realm-list').length == 0) {
+                inMain = false;
+                DrawRealms();
+                return;
+            }
+
             $('#main .page').hide();
             $('#realm-list').removeClass('show');
-            $('#region-page a.region-us').attr('href', tuj.BuildHash({region:0}));
-            $('#region-page a.region-eu').attr('href', tuj.BuildHash({region:1}));
-
-            $('#region-page a.region-us.text').html(self.lang.realmsUS);
-            $('#region-page a.region-eu.text').html(self.lang.realmsEU);
-            $('#region-page h2').html(libtuj.sprintf(self.lang.welcomeTo, 'The Undermine Journal') + ' <sub>' + self.lang.yourSource + '</sub>');
-
-            $('#region-page').show();
-            document.body.className = 'region';
-            return;
-        }
-
-        if ($('#realm-list').length == 0) {
-            inMain = false;
-            DrawRealms();
-            return;
-        }
-
-        $('#main .page').hide();
-        $('#realm-list').removeClass('show');
-        if (!self.params.realm && (!self.params.page || pagesNeedRealm[self.params.page])) {
-            inMain = false;
-            libtuj.Storage.Remove('defaultRealm');
-            if (drawnRegion != self.params.region) {
-                DrawRealms();
+            if (!self.params.realm) {
+                inMain = false;
+                libtuj.Storage.Remove('defaultRealm');
+                if (drawnRegion != self.params.region) {
+                    DrawRealms();
+                }
+                $('#realm-list .realms-column a').each(function () {
+                    this.href = self.BuildHash({realm: this.rel});
+                });
+                $('#realm-list .directions').text(libtuj.sprintf(self.lang.chooseRealm, validRegions[drawnRegion]));
+                $('#realm-list').addClass('show');
+                document.body.className = 'realm';
+                return;
             }
-            $('#realm-list .realms-column a').each(function () {
-                this.href = self.BuildHash({realm: this.rel});
-            });
-            $('#realm-list .directions').text(libtuj.sprintf(self.lang.chooseRealm, validRegions[drawnRegion]));
-            $('#realm-list').addClass('show');
-            document.body.className = 'realm';
-            return;
-        }
 
-        if (!self.params.page || (pagesNeedRealm[self.params.page] && self.banned.isbanned)) {
-            inMain = false;
-            document.body.className = 'front';
-            ShowRealmFrontPage();
-            return;
+            if (!self.params.page || (pagesNeedRealm[self.params.page] && self.banned.isbanned)) {
+                inMain = false;
+                document.body.className = 'front';
+                ShowRealmFrontPage();
+                return;
+            }
+        } else {
+            $('#main .page').hide();
+            $('#realm-list').removeClass('show');
         }
 
         inMain = false;
@@ -947,6 +959,9 @@ var TUJ = function ()
 
             var d = libtuj.ce('div');
             d.id = 'realm-updated';
+
+            d.className = 'no-realm-hide';
+            form.className = 'no-realm-hide';
 
             $('#topcorner .region-realm').after(d).after(form);
         } else {

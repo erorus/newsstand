@@ -40,9 +40,8 @@ h2 sub { display: block; font-weight: normal; font-size: 66%; margin-left: 2em }
 
 #topcorner #realm-updated { margin-top: 1em; font-size: 75% }
 
-body.realm #topcorner .region-realm { display: none }
-body.realm #topcorner form { display: none }
-body.realm #topcorner #realm-updated { display: none }
+#topcorner .no-realm-hide { display: none }
+#topcorner.with-realm .no-realm-hide { display: block }
 
 .ad, .adsubstitute { width: 728px; height: 90px; margin: 1em auto }
 .ad.box, .adsubstitute.box { width: 336px; height: 280px; display: inline-block; margin: 1em 0 }
