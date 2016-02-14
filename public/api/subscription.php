@@ -17,6 +17,16 @@ if (isset($_POST['logout'])) {
     json_return(GetLoginState(true));
 }
 
+if (isset($_POST['settings'])) {
+    $loginState = GetLoginState();
+    if (!$loginState) {
+        json_return(false);
+    }
+    json_return([
+        'email' => GetSubEmail($loginState),
+        ]);
+}
+
 json_return([]);
 
 ///////////////////////////////
@@ -224,4 +234,12 @@ function ProcessAuthCode($state, $code) {
 function LoginFinish($hash = '#subscription') {
     header('Location: https://' . $_SERVER["HTTP_HOST"] . '/' . $hash);
     exit;
+}
+
+function GetSubEmail($loginState)
+{
+    $json = [];
+
+
+    return $json;
 }

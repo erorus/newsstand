@@ -365,7 +365,8 @@
         "missingtoken": "Error: Battle.net did not return an access token. Please try again.",
         "nouser": "Error: Battle.net returned no response when requesting your user ID with the access token. Please try again.",
         "baduser": "Error: Battle.net returned an invalid response when requesting your user ID with the access token. Please try again.",
-        "missinguser": "Error: Battle.net returned an incomplete response when requesting your user ID with the access token. Please try again."
+        "missinguser": "Error: Battle.net returned an incomplete response when requesting your user ID with the access token. Please try again.",
+        "nodata": "Error fetching subscription data, please try again."
     },
     "logIn": "Log in",
     "logOut": "Log out"

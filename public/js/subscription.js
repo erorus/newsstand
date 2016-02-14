@@ -14,32 +14,44 @@ var TUJ_Subscription = function ()
             }
         }
 
-        var subscriptionPage = $('#subscription-page');
-
         $('#page-title').text(tuj.lang.subscription);
         tuj.SetTitle(tuj.lang.subscription);
 
         var userName = tuj.LoggedInUserName();
         if (userName) {
             ShowLoggedInAs(userName);
+            $('#subscription-description').hide();
+            $('#subscription-settings').empty().hide();
+            FetchSubscriptionSettings();
         } else {
             ShowLoginForm();
+            $('#subscription-description').show();
+            $('#subscription-settings').empty().hide();
         }
 
         ShowSubscriptionMessage(params.id);
 
-        subscriptionPage.show();
+        $('#subscription-page').show();
     };
 
     function ShowSubscriptionMessage(id)
     {
-        var msg = '';
-
         if (id && tuj.lang.SubscriptionErrors.hasOwnProperty(id)) {
-            msg = tuj.lang.SubscriptionErrors[id];
+            $('#subscription-message').empty().html(tuj.lang.SubscriptionErrors[id]).show();
+        } else {
+            $('#subscription-message').empty().hide();
         }
+    }
 
-        $('#subscription-message').empty().html(msg);
+    function ShowSubscriptionSettings(dta)
+    {
+        var settingsParent = $('#subscription-settings');
+        settingsParent.empty().hide();
+
+
+
+
+        settingsParent.show();
     }
 
     function ShowLoggedInAs(userName)
@@ -123,9 +135,25 @@ var TUJ_Subscription = function ()
         });
     }
 
+    function FetchSubscriptionSettings()
+    {
+        $.ajax({
+            data: {'settings': 1},
+            type: 'POST',
+            success: ShowSubscriptionSettings,
+            error: SettingsFail,
+            url: 'api/subscription.php'
+        });
+    }
+
     function LoginFail()
     {
         $('#subscription-login').empty().html('Error setting up login, please try again later.');
+    }
+
+    function SettingsFail()
+    {
+        $('#subscription-settings').empty().html(tuj.lang.SubscriptionErrors.nodata);
     }
 
     this.load(tuj.params);
