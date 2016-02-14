@@ -355,6 +355,18 @@
     "subscription": "Subscription",
 
     "logInBattleNet": "Log in with Battle.net",
+    "loggedInAs": "You are logged in as <b>{1}</b>.",
+    "SubscriptionErrors": {
+        "nohttps": "Error: We could not establish HTTPS connection.",
+        "nosession": "Error: we could not make a new user session. Please try again.",
+        "nostate": "Error: We could not find the state returned by Battle.net. Please try again.",
+        "notoken": "Error: Battle.net returned no access token response. Please try again.",
+        "badtoken": "Error: Battle.net returned an invalid access token response. Please try again.",
+        "missingtoken": "Error: Battle.net did not return an access token. Please try again.",
+        "nouser": "Error: Battle.net returned no response when requesting your user ID with the access token. Please try again.",
+        "baduser": "Error: Battle.net returned an invalid response when requesting your user ID with the access token. Please try again.",
+        "missinguser": "Error: Battle.net returned an incomplete response when requesting your user ID with the access token. Please try again."
+    },
     "logIn": "Log in",
     "logOut": "Log out"
 }

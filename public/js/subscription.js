@@ -19,12 +19,40 @@ var TUJ_Subscription = function ()
         $('#page-title').text(tuj.lang.subscription);
         tuj.SetTitle(tuj.lang.subscription);
 
-        this.ShowLoginForm();
+        var userName = tuj.LoggedInUserName();
+        if (userName) {
+            ShowLoggedInAs(userName);
+        } else {
+            ShowLoginForm();
+        }
+
+        ShowSubscriptionMessage(params.id);
 
         subscriptionPage.show();
     };
 
-    this.ShowLoginForm = function()
+    function ShowSubscriptionMessage(id)
+    {
+        var msg = '';
+
+        if (id && tuj.lang.SubscriptionErrors.hasOwnProperty(id)) {
+            msg = tuj.lang.SubscriptionErrors[id];
+        }
+
+        $('#subscription-message').empty().html(msg);
+    }
+
+    function ShowLoggedInAs(userName)
+    {
+        var logOut = libtuj.ce('input');
+        logOut.type = 'button';
+        logOut.value = tuj.lang.logOut;
+        $(logOut).click(tuj.LogOut);
+
+        $('#subscription-login').empty().html(libtuj.sprintf(tuj.lang.loggedInAs, userName) + ' ').append(logOut);
+    }
+
+    function ShowLoginForm()
     {
         formElements = {};
 
@@ -64,11 +92,14 @@ var TUJ_Subscription = function ()
         $(f).append(i);
 
         i = formElements.submit = libtuj.ce('input');
-        i.type = 'submit';
+        i.type = 'button';
         i.value = tuj.lang.logInBattleNet;
-        i.disabled = true;
+        $(i).click(FetchStateAndSubmit.bind(self, formElements, region));
         $(f).append(i);
+    }
 
+    function FetchStateAndSubmit(formElements, region)
+    {
         $.ajax({
             data: {
                 'loginfrom': tuj.BuildHash({}),
@@ -77,24 +108,25 @@ var TUJ_Subscription = function ()
             type: 'POST',
             success: function (d) {
                 if (!d.state) {
-                    self.LoginFail();
+                    LoginFail();
                     return;
                 }
-                formElements.form.action = d.authUri.replace('%s', region.toLowerCase());
                 formElements.clientId.value = d.clientId;
                 formElements.state.value = d.state;
                 formElements.redirectUri.value = d.redirectUri;
-                formElements.submit.disabled = false;
+                formElements.submit.disabled = true;
+                formElements.form.action = d.authUri.replace('%s', region.toLowerCase());
+                formElements.form.submit();
             },
-            error: self.LoginFail,
+            error: LoginFail,
             url: 'api/subscription.php'
         });
-    };
+    }
 
-    this.LoginFail = function()
+    function LoginFail()
     {
         $('#subscription-login').empty().html('Error setting up login, please try again later.');
-    };
+    }
 
     this.load(tuj.params);
 }

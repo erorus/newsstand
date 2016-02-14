@@ -13,10 +13,6 @@ if (isset($_GET['state']) && isset($_GET['code'])) {
     LoginFinish(ProcessAuthCode($_GET['state'], $_GET['code']));
 }
 
-if (isset($_POST['getlogin'])) {
-    json_return(GetLoginState(false));
-}
-
 if (isset($_POST['logout'])) {
     json_return(GetLoginState(true));
 }
@@ -26,6 +22,10 @@ json_return([]);
 ///////////////////////////////
 
 function GetLoginParams($loginFrom, $region) {
+    if (GetLoginState()) {
+        return [];
+    }
+
     $loginFrom = substr($loginFrom, 0, 120);
     if ($region != 'EU') {
         $region = 'US';
@@ -48,7 +48,7 @@ function MakeNewState($stateInfo) {
     $tries = 0;
     while ($tries++ < 10) {
         $state = strtr(base64_encode(openssl_random_pseudo_bytes(18)), '+/', '-_');
-        if (MCAdd('bnetstate_'.$state, $stateInfo)) {
+        if (MCAdd('bnetstate_'.$state, $stateInfo, 3600)) {
             return $state;
         }
     }

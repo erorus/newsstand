@@ -17,6 +17,8 @@ h2 sub { display: block; font-weight: normal; font-size: 66%; margin-left: 2em }
 #bottom-bar a { cursor: pointer }
 
 #super-bar { position: absolute; top: 5px; right: 5px; left: 5px; font-size: 85%; text-align: right; line-height: 0; z-index: 20; }
+#super-bar select, #super-bar input { font-size: 10px; border: 1px solid #444; background-color: white; color: #333; margin-left: 12px; }
+#super-bar select { -webkit-appearance: none; -moz-appearance: none; appearance: none; padding-right: 12px; background-image: url("../images/caret_down_black.png"); background-repeat: no-repeat; background-position: right; background-size: 15px; }
 
 #topbar { position: relative; width: 100%; }
 #topcorner { position: absolute; top: 0; right: 0; width: 22em; height: 100% }
@@ -207,19 +209,4 @@ table.category-fish .price {border-left: 1px solid #CCC}
 #region-page table td { width: 50% }
 #region-page table img { width: 100%; max-width: 401px }
 
-#choose-locale {
-    font-size: 10px;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    border: 1px solid #444;
-    background-color: white;
-    color: #333;
-    padding-right: 12px;
-    margin-left: 12px;
-
-    background-image: url("../images/caret_down_black.png");
-    background-repeat: no-repeat;
-    background-position: right;
-    background-size: 15px;
-}
+#subscription-message { color: red; padding: 1em; margin: 1em; font-style: italic }

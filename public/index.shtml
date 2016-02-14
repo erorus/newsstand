@@ -154,8 +154,8 @@
                     </div>
                 </div>
                 <div class="page" id="subscription-page">
-                    <div id="subscription-login">
-                    </div>
+                    <div id="subscription-login"></div>
+                    <div id="subscription-message"></div>
                 </div>
                 <div class="page" id="donate-page">
                     <div class="news" id="donate-thanks">

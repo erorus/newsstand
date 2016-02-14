@@ -426,6 +426,12 @@ var tujConstants = {
     }
 }
 
+if (!Date.now) {
+    Date.now = function now() {
+        return new Date().getTime();
+    };
+}
+
 var TUJ = function ()
 {
     var validRegions = ['US','EU'];
@@ -533,6 +539,13 @@ var TUJ = function ()
                     if (dta.hasOwnProperty('banned')) {
                         self.banned = dta.banned;
                     }
+                    if (dta.hasOwnProperty('user')) {
+                        if (dta.user.name) {
+                            loggedInUser = dta.user;
+                        } else {
+                            loggedInUser = false;
+                        }
+                    }
                     if (dta.hasOwnProperty('language') && checkLanguageHeader) {
                         var l = dta.language.toLowerCase().replace(/[\s-]/, '').split(',');
                         var x, y, m, ls = [];
@@ -578,12 +591,13 @@ var TUJ = function ()
                         alert('Error getting realms: ' + stat + ' ' + er);
                     }
                     self.allRealms = [];
+                    loggedInUser = false;
                 },
                 complete: function ()
                 {
                     $('#progress-page').hide();
                 },
-                url: 'api/realms.php'
+                url: 'api/realms.php?' + Date.now()
             });
             return;
         }
@@ -599,8 +613,6 @@ var TUJ = function ()
         }
 
         if (firstRun) {
-            CheckLogin();
-
             if (!self.params.realm) {
                 var searchRealm;
                 if (searchRealm = /^\?realm=([AH])-([^&]+)/i.exec(decodeURIComponent(location.search))) {
@@ -762,30 +774,8 @@ var TUJ = function ()
         return (s2 << 8) | s1;
     }
 
-    function CheckLogin() {
-        $.ajax({
-            data: {
-                'getlogin': 1
-            },
-            method: 'POST',
-            success: function(dta) {
-                if (dta.name) {
-                    loggedInUser = dta;
-                } else {
-                    loggedInUser = false;
-                }
-                UpdateSidebar();
-            },
-            error: function() {
-                loggedInUser = false;
-                UpdateSidebar();
-            },
-            url: 'api/subscription.php'
-        });
-    }
-
-    this.IsLoggedIn = function() {
-        return !!(loggedInUser);
+    this.LoggedInUserName = function() {
+        return !!(loggedInUser) ? loggedInUser.name : false;
     };
 
     this.LogOut = function() {
@@ -978,11 +968,16 @@ var TUJ = function ()
             loginLink.text(self.lang.logIn);
             $('#login-info').empty().append(loginLink);
         } else {
-            var logoutLink = $('<a>');
-            logoutLink[0].href = 'javascript:;';
-            logoutLink.click(self.LogOut);
-            logoutLink.text(self.lang.logOut);
-            $('#login-info').empty().text(loggedInUser.name + ' - ').append(logoutLink);
+            var logoutLink = libtuj.ce('input');
+            logoutLink.type = 'button';
+            logoutLink.value = self.lang.logOut;
+            $(logoutLink).click(self.LogOut);
+
+            var subLink = $('<a>');
+            subLink[0].href = self.BuildHash({page: 'subscription', id: ''});
+            subLink.text(loggedInUser.name);
+
+            $('#login-info').empty().append(subLink).append(logoutLink);
         }
 
         var contactLink = $('#bottom-bar a.contact');
