@@ -769,7 +769,7 @@ var TUJ = function ()
             },
             method: 'POST',
             success: function(dta) {
-                if (dta.battletag) {
+                if (dta.name) {
                     loggedInUser = dta;
                 } else {
                     loggedInUser = false;
@@ -982,7 +982,7 @@ var TUJ = function ()
             logoutLink[0].href = 'javascript:;';
             logoutLink.click(self.LogOut);
             logoutLink.text(self.lang.logOut);
-            $('#login-info').empty().text(loggedInUser.battletag + ' - ').append(logoutLink);
+            $('#login-info').empty().text(loggedInUser.name + ' - ').append(logoutLink);
         }
 
         var contactLink = $('#bottom-bar a.contact');

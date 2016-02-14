@@ -55,23 +55,112 @@ function MakeNewState($stateInfo) {
     return false;
 }
 
-function MakeNewSession($userInfo) {
-    //TODO: this should be in the database too, not just memcache
+function MakeNewSession($provider, $providerId, $userName) {
+    $userInfo = [ // all params here must also be created from the DB in GetLoginState
+        'id' => 0,
+        'name' => $userName,
+    ];
 
-    $userInfo['started'] = time();
+    $db = DBConnect();
+
+    $stateBytesParam = '';
+    $stmt = $db->prepare('SELECT COUNT(*) FROM tblUserSession WHERE session=?');
+    $stmt->bind_param('s', $stateBytesParam);
+
     $tries = 0;
+    $state = false;
     while ($tries++ < 10) {
-        $state = strtr(base64_encode(openssl_random_pseudo_bytes(18)), '+/', '-_');
-        if (MCAdd('usersession_'.$state, $userInfo)) {
-            return $state;
+        $stateBytesParam = $stateBytes = openssl_random_pseudo_bytes(18);
+        $state = strtr(base64_encode($stateBytes), '+/', '-_');
+
+        $stmt->execute();
+        $cntReturn = 0;
+        $stmt->bind_result($cntReturn);
+        $stmt->fetch();
+
+        if ($cntReturn > 0) {
+            continue;
         }
+
+        if (!MCAdd('usersession_'.$state, [])) {
+            continue;
+        }
+
+        $stmt->close();
+
+        $userId = GetUserByProvider($provider, $providerId, $userName);
+        $ip = substr($_SERVER['REMOTE_ADDR'], 0, 40);
+        $ua = substr($_SERVER['HTTP_USER_AGENT'], 0, 250);
+
+        $stmt = $db->prepare('INSERT INTO tblUserSession (session, user, firstseen, lastseen, ip, useragent) values (?, ?, NOW(), NOW(), ?, ?)');
+        $stmt->bind_param('siss', $stateBytes, $userId, $ip, $ua);
+        $stmt->execute();
+
+        $userInfo['id'] = $userId;
+        MCSet('usersession_'.$state, $userInfo);
+
+        break;
     }
-    return false;
+
+    $stmt->close();
+
+    if ($tries >= 10) {
+        return false;
+    }
+
+    return $state;
+}
+
+function GetUserByProvider($provider, $providerId, $userName) {
+    $db = DBConnect();
+
+    $userName = substr(trim($userName ?: ''), 0, 32);
+    if (!$userName) {
+        $userName = null;
+    }
+
+    $userId = false;
+    $stmt = $db->prepare('SELECT user FROM tblUserAuth WHERE provider=? AND providerid=?');
+    $stmt->bind_param('ss', $provider, $providerId);
+    $stmt->execute();
+    $stmt->bind_result($userId);
+    if (!$stmt->fetch()) {
+        $userId = false;
+    }
+    $stmt->close();
+
+    if ($userId !== false) {
+        $stmt = $db->prepare('UPDATE tblUserAuth SET lastseen=NOW() WHERE provider=? AND providerid=?');
+        $stmt->bind_param('ss', $provider, $providerId);
+        $stmt->execute();
+        $stmt->close();
+
+        $stmt = $db->prepare('UPDATE tblUser SET name=IFNULL(?, name), lastseen=NOW() WHERE id=?');
+        $stmt->bind_param('si', $userName, $userId);
+        $stmt->execute();
+        $stmt->close();
+
+        return $userId;
+    }
+
+    $stmt = $db->prepare('INSERT INTO tblUser (name, firstseen, lastseen) VALUES (IFNULL(?, \'User\'), NOW(), NOW())');
+    $stmt->bind_param('s', $userName);
+    $stmt->execute();
+    $stmt->close();
+
+    $userId = $db->insert_id;
+
+    $stmt = $db->prepare('INSERT INTO tblUserAuth (provider, providerid, user, firstseen, lastseen) VALUES (?, ?, ?, NOW(), NOW())');
+    $stmt->bind_param('ssi', $provider, $providerId, $userId);
+    $stmt->execute();
+    $stmt->close();
+
+    return $userId;
 }
 
 function ProcessAuthCode($state, $code) {
     // user auth'd to battle.net, and came back with a code we can confirm w/battle.net
-    $state = preg_replace('/[^a-zA-Z0-9_-]/', '', substr($state, 0, 30));
+    $state = preg_replace('/[^a-zA-Z0-9_-]/', '', substr($state, 0, 24));
 
     if (!isset($_SERVER['HTTPS']) || ($_SERVER['HTTPS'] == '')) {
         return '#subscription/nohttps';
@@ -123,7 +212,7 @@ function ProcessAuthCode($state, $code) {
     }
 
     // at this point we have the battle.net user id and battletag in $userData
-    $session = MakeNewSession($userData);
+    $session = MakeNewSession('Battle.net', $userData['id'], $userData['battletag']);
     if ($session === false) {
         return '#subscription/nosession';
     }
