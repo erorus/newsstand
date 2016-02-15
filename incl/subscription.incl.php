@@ -6,6 +6,9 @@ require_once('memcache.incl.php');
 define('SUBSCRIPTION_LOGIN_COOKIE', 'session');
 define('SUBSCRIPTION_SESSION_LENGTH', 1209600); // 2 weeks
 
+define('SUBSCRIPTION_MESSAGES_CACHEKEY', 'submessage_');
+define('SUBSCRIPTION_MESSAGES_MAX', 50);
+
 function GetLoginState($logOut = false) {
     $userInfo = [];
     if (!isset($_COOKIE[SUBSCRIPTION_LOGIN_COOKIE])) {
@@ -70,5 +73,55 @@ function GetLoginState($logOut = false) {
     }
 
     return $userInfo;
+}
+
+function SendUserMessage($userId, $messageType, $subject, $message)
+{
+    $db = DBConnect();
+
+    $loops = 0;
+    while (!MCAdd(SUBSCRIPTION_MESSAGES_CACHEKEY . "lock_$userId", 1, 15)) {
+        usleep(250000);
+        if ($loops++ >= 120) { // 30 seconds
+            return false;
+        }
+    }
+
+    $seq = 0;
+    $cnt = 0;
+    $stmt = $db->prepare('select ifnull(max(seq),0)+1, count(*) from tblUserMessages where user = ?');
+    $stmt->bind_param('i', $userId);
+    $stmt->execute();
+    $stmt->bind_result($seq, $cnt);
+    $stmt->fetch();
+    $stmt->close();
+
+    $stmt = $db->prepare('INSERT INTO tblUserMessages (user, seq, created, type, subject, message) VALUES (?, ?, NOW(), ?, ?, ?)');
+    $stmt->bind_param('iisss', $userId, $seq, $messageType, $subject, $message);
+    $success = $stmt->execute();
+    $stmt->close();
+
+    if ($success) {
+        $cnt++;
+    }
+    if ($cnt > SUBSCRIPTION_MESSAGES_MAX) {
+        $stmt = $db->prepare('delete from tblUserMessages where user = ? order by seq asc limit ?');
+        $cnt = $cnt - SUBSCRIPTION_MESSAGES_MAX;
+        $stmt->bind_param('ii', $userId, $cnt);
+        $stmt->execute();
+        $stmt->close();
+    }
+
+    MCDelete(SUBSCRIPTION_MESSAGES_CACHEKEY . "lock_$userId");
+    if (!$success) {
+        DebugMessage("Error adding user message: ".$db->error);
+        return false;
+    }
+
+    MCDelete(SUBSCRIPTION_MESSAGES_CACHEKEY . $userId);
+
+    // TODO: send mails, etc here
+
+    return $seq;
 }
 

@@ -25,6 +25,7 @@ if (isset($_POST['settings'])) {
     }
     json_return([
         'email' => GetSubEmail($loginState),
+        'messages' => GetSubMessages($loginState),
         ]);
 }
 
@@ -243,4 +244,25 @@ function GetSubEmail($loginState)
 
 
     return $json;
+}
+
+function GetSubMessages($loginState)
+{
+    $userId = $loginState['id'];
+    $messages = MCGet(SUBSCRIPTION_MESSAGES_CACHEKEY . $userId);
+    if ($messages !== false) {
+        return $messages;
+    }
+
+    $db = DBConnect();
+    $stmt = $db->prepare('SELECT seq, unix_timestamp(created) created, type, subject FROM tblUserMessages WHERE user=?');
+    $stmt->bind_param('i', $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $messages = DBMapArray($result, null);
+    $stmt->close();
+
+    MCSet(SUBSCRIPTION_MESSAGES_CACHEKEY . $userId, $messages);
+
+    return $messages;
 }
