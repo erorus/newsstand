@@ -4,6 +4,7 @@ require_once('../../incl/incl.php');
 require_once('../../incl/memcache.incl.php');
 require_once('../../incl/api.incl.php');
 require_once('../../incl/battlenet.credentials.php');
+require_once('../../incl/subscription.incl.php');
 
 if (isset($_POST['loginfrom']) && isset($_POST['region'])) {
     json_return(GetLoginParams($_POST['loginfrom'], $_POST['region']));

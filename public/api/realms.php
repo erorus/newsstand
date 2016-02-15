@@ -3,6 +3,7 @@
 require_once('../../incl/incl.php');
 require_once('../../incl/memcache.incl.php');
 require_once('../../incl/api.incl.php');
+require_once('../../incl/subscription.incl.php');
 
 header('Cache-Control: no-cache');
 
