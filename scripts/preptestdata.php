@@ -4,6 +4,7 @@ require_once(__DIR__.'/../incl/incl.php');
 ini_set('memory_limit','256M');
 
 DBConnect();
+$db->query('set session transaction isolation level read uncommitted');
 
 GetDataTables();
 

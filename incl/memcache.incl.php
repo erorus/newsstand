@@ -89,3 +89,53 @@ function MCDelete($key)
 
     return $memcache->delete($key);
 }
+
+$MCHousesLocked = [];
+function MCHouseLock($house, $waitSeconds = 30)
+{
+    global $MCHousesLocked;
+    static $registeredShutdown = false;
+
+    if (isset($MCHousesLocked[$house])) {
+        return true;
+    }
+
+    $giveUpAt = microtime(true) + $waitSeconds;
+    $me = [
+        'pid' => getmypid(),
+        'script' => $_SERVER["SCRIPT_FILENAME"],
+        'when' => time()
+    ];
+    do {
+        if (MCAdd('mchouselock_'.$house, $me, 30*60)) {
+            $MCHousesLocked[$house] = true;
+            if (!$registeredShutdown) {
+                $registeredShutdown = true;
+                register_shutdown_function('MCHouseUnlock');
+            }
+            return true;
+        }
+        usleep(500000);
+    } while ($giveUpAt > microtime(true));
+
+    $currentLock = MCGet('mchouselock_'.$house);
+    DebugMessage("Could not get house lock for $house, owned by ".$currentLock['pid'].' '.$currentLock['script'].' '.TimeDiff($currentLock['when']));
+
+    return false;
+}
+
+function MCHouseUnlock($house = null)
+{
+    global $MCHousesLocked;
+
+    if (is_null($house)) {
+        $locked = array_keys($MCHousesLocked);
+        foreach ($locked as $house) {
+            MCHouseUnlock($house);
+        }
+    } else {
+        MCDelete('mchouselock_'.$house);
+        unset($MCHousesLocked[$house]);
+    }
+}
+

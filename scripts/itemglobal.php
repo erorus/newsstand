@@ -20,6 +20,8 @@ if (APIMaintenance()) {
     exit;
 }
 
+$db->query('set session transaction isolation level read uncommitted');
+
 if (isset($argv[1]) && ($argv[1] == 'jsononly')) {
     UpdateGlobalDataJson();
     DebugMessage('Done! Started ' . TimeDiff($startTime));

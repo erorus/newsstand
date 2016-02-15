@@ -46,6 +46,10 @@ function CleanOldData()
         }
 
         $house = $houses[$hx];
+        if (!MCHouseLock($house)) {
+            continue;
+        }
+
         $ssDate = '';
         $cutoffDate = Date('Y-m-d H:i:s', strtotime('' . HISTORY_DAYS . ' days ago'));
 
@@ -59,6 +63,7 @@ function CleanOldData()
 
         if (!$gotDate || is_null($ssDate)) {
             DebugMessage("$house has no snapshots, skipping!");
+            MCHouseUnlock($house);
             continue;
         }
 
@@ -68,6 +73,7 @@ function CleanOldData()
 
         heartbeat();
         if ($caughtKill) {
+            MCHouseUnlock($house);
             return;
         }
 
@@ -101,6 +107,7 @@ function CleanOldData()
         }
 
         DebugMessage("$rowCount item history rows deleted from house $house since $cutoffDate");
+        MCHouseUnlock($house);
     }
 
     if ($caughtKill) {
@@ -116,6 +123,9 @@ function CleanOldData()
         }
 
         $house = $houses[$hx];
+        if (!MCHouseLock($house)) {
+            continue;
+        }
         $ssDate = '';
         $cutoffDate = Date('Y-m-d H:i:s', strtotime('' . HISTORY_DAYS . ' days ago'));
 
@@ -129,6 +139,7 @@ function CleanOldData()
 
         if (!$gotDate || is_null($ssDate)) {
             DebugMessage("$house has no snapshots, skipping!");
+            MCHouseUnlock($house);
             continue;
         }
 
@@ -138,6 +149,7 @@ function CleanOldData()
 
         heartbeat();
         if ($caughtKill) {
+            MCHouseUnlock($house);
             return;
         }
 
@@ -171,6 +183,7 @@ function CleanOldData()
         }
 
         DebugMessage("$rowCount pet history rows deleted from house $house since $cutoffDate");
+        MCHouseUnlock($house);
     }
 
     if ($caughtKill) {
@@ -184,12 +197,16 @@ function CleanOldData()
         }
 
         $house = $houses[$hx];
+        if (!MCHouseLock($house)) {
+            continue;
+        }
         $cutoffDate = Date('Y-m-d H:i:s', strtotime('' . ((HISTORY_DAYS * 2) + 3) . ' days ago'));
 
         $sql = sprintf('delete from tblItemExpired where house = %d and `when` < \'%s\'', $house, $cutoffDate);
         $db->query($sql);
 
         DebugMessage(sprintf('%d expired item rows removed from house %d since %s', $db->affected_rows, $house, $cutoffDate));
+        MCHouseUnlock($house);
     }
 
     if ($caughtKill) {
@@ -216,11 +233,15 @@ function CleanOldData()
         }
 
         $house = $houses[$hx];
+        if (!MCHouseLock($house)) {
+            continue;
+        }
         $cutoffDate = Date('Y-m-d H:i:s', strtotime('' . (HISTORY_DAYS + 3) . ' days ago'));
 
         $sql = sprintf('DELETE FROM tblSnapshot WHERE house = %d AND updated < \'%s\'', $house, $cutoffDate);
         $db->query($sql);
 
         DebugMessage(sprintf('%d snapshot rows removed from house %d since %s', $db->affected_rows, $house, $cutoffDate));
+        MCHouseUnlock($house);
     }
 }

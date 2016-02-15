@@ -97,6 +97,13 @@ function NextDataFile()
                 continue;
             }
 
+            $snapshot = intval($res[1], 10);
+            $house = intval($res[2], 10);
+
+            if (!MCHouseLock($house, 3)) {
+                continue;
+            }
+
             $gotFile = $fileName;
             break;
         }
@@ -106,9 +113,6 @@ function NextDataFile()
     if (!$gotFile) {
         return $lockFail ? 3 : 10;
     }
-
-    $snapshot = intval($res[1], 10);
-    $house = intval($res[2], 10);
 
     DebugMessage(
         "House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " data file from " . TimeDiff(
@@ -126,10 +130,12 @@ function NextDataFile()
 
     if (json_last_error() != JSON_ERROR_NONE) {
         DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " $snapshot data file corrupted! " . json_last_error_msg(), E_USER_WARNING);
+        MCHouseUnlock($house);
         return 0;
     }
 
     ParseAuctionData($house, $snapshot, $json);
+    MCHouseUnlock($house);
     return 0;
 }
 
