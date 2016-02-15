@@ -84,6 +84,10 @@ EOF;
             return;
         }
 
+        if (!MCHouseLock($house)) {
+            continue;
+        }
+
         $sql = sprintf($sqlPattern, $house, $houseRow['start'], $houseRow['end'], $house);
         $db->real_query($sql);
         $rowCount = $db->affected_rows;
@@ -94,5 +98,7 @@ EOF;
         $stmt->bind_param('is', $house, $houseRow['start']);
         $stmt->execute();
         $stmt->close();
+
+        MCHouseUnlock($house);
     }
 }

@@ -97,6 +97,13 @@ function NextDataFile()
                 continue;
             }
 
+            $snapshot = intval($res[1], 10);
+            $house = intval($res[2], 10);
+
+            if (!MCHouseLock($house, 3)) {
+                continue;
+            }
+
             $gotFile = $fileName;
             break;
         }
@@ -106,9 +113,6 @@ function NextDataFile()
     if (!$gotFile) {
         return $lockFail ? 3 : 10;
     }
-
-    $snapshot = intval($res[1], 10);
-    $house = intval($res[2], 10);
 
     DebugMessage(
         "House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " data file from " . TimeDiff(
@@ -126,10 +130,12 @@ function NextDataFile()
 
     if (json_last_error() != JSON_ERROR_NONE) {
         DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " $snapshot data file corrupted! " . json_last_error_msg(), E_USER_WARNING);
+        MCHouseUnlock($house);
         return 0;
     }
 
     ParseAuctionData($house, $snapshot, $json);
+    MCHouseUnlock($house);
     return 0;
 }
 
@@ -1085,20 +1091,7 @@ function MarketPriceSort($a, $b)
 
 function DBQueryWithError(&$db, $sql)
 {
-    $queryOk = false;
-    $retryCount = 0;
-
-    while (!($queryOk = $db->query($sql))) {
-        if ($db->errno == 1213) { // deadlock
-            if ($retryCount++ >= 3) {
-                break;
-            }
-            sleep($retryCount);
-        } else {
-            break;
-        }
-    }
-
+    $queryOk = $db->query($sql);
     if (!$queryOk) {
         DebugMessage("SQL error: " . $db->errno . ' ' . $db->error . " - " . substr(preg_replace('/[\r\n]/', ' ', $sql), 0, 500), E_USER_WARNING);
     }

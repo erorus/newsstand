@@ -21,6 +21,8 @@ ini_set('memory_limit','256M');
 if (!DBConnect())
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
 
+$db->query('set session transaction isolation level read uncommitted');
+
 $luaQuoteChange = [
     "\r" => '\\r',
     "\n" => '\\n',
