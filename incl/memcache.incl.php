@@ -97,6 +97,9 @@ function MCHouseLock($house, $waitSeconds = 30)
     static $registeredShutdown = false;
 
     if (isset($MCHousesLocked[$house])) {
+        if (PHP_SAPI == 'cli') {
+            DebugMessage("Already have house lock for $house");
+        }
         return true;
     }
 
@@ -108,6 +111,9 @@ function MCHouseLock($house, $waitSeconds = 30)
     ];
     do {
         if (MCAdd('mchouselock_'.$house, $me, 30*60)) {
+            if (PHP_SAPI == 'cli') {
+                DebugMessage("Obtained house lock for $house");
+            }
             $MCHousesLocked[$house] = true;
             if (!$registeredShutdown) {
                 $registeredShutdown = true;
@@ -134,6 +140,9 @@ function MCHouseUnlock($house = null)
             MCHouseUnlock($house);
         }
     } else {
+        if (PHP_SAPI == 'cli') {
+            DebugMessage("Releasing house lock for $house");
+        }
         MCDelete('mchouselock_'.$house);
         unset($MCHousesLocked[$house]);
     }
