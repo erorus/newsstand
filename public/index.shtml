@@ -154,8 +154,8 @@
                     </div>
                 </div>
                 <div class="page" id="subscription-page">
-                    <div id="subscription-login" class="news"></div>
-                    <div id="subscription-message" class="news"></div>
+                    <div id="subscription-login" class="center"></div>
+                    <div id="subscription-message" class="center"></div>
                     <div id="subscription-description">
                         Reasons to subscribe go here.
                     </div>

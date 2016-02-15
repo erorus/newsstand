@@ -29,6 +29,18 @@ if (isset($_POST['settings'])) {
         ]);
 }
 
+if (isset($_POST['getmessage'])) {
+    $loginState = GetLoginState();
+    if (!$loginState) {
+        json_return(false);
+    }
+    $message = GetSubMessage($loginState, intval($_POST['getmessage'], 10));
+    if (!$message) {
+        json_return(false);
+    }
+    json_return(['message' => $message]);
+}
+
 json_return([]);
 
 ///////////////////////////////
@@ -155,6 +167,8 @@ function GetUserByProvider($provider, $providerId, $userName) {
         return $userId;
     }
 
+    // new user
+
     $stmt = $db->prepare('INSERT INTO tblUser (name, firstseen, lastseen) VALUES (IFNULL(?, \'User\'), NOW(), NOW())');
     $stmt->bind_param('s', $userName);
     $stmt->execute();
@@ -166,6 +180,12 @@ function GetUserByProvider($provider, $providerId, $userName) {
     $stmt->bind_param('ssi', $provider, $providerId, $userId);
     $stmt->execute();
     $stmt->close();
+
+    $message = <<<'EOF'
+Welcome to your Subscription page at <nobr>The Undermine Journal</nobr>. Thanks for logging in.<br/><br/>
+On this page, you can find all the recent messages we've sent to you, along with your notifications and other site settings.
+EOF;
+    SendUserMessage($userId, 'Account', 'Enjoy your subscription!', $message);
 
     return $userId;
 }
@@ -265,4 +285,29 @@ function GetSubMessages($loginState)
     MCSet(SUBSCRIPTION_MESSAGES_CACHEKEY . $userId, $messages);
 
     return $messages;
+}
+
+function GetSubMessage($loginState, $seq)
+{
+
+    $userId = $loginState['id'];
+    $cacheKey = SUBSCRIPTION_MESSAGES_CACHEKEY . $userId . '_' . $seq;
+    $message = MCGet($cacheKey);
+    if ($message !== false) {
+        return $message;
+    }
+
+    $db = DBConnect();
+    $stmt = $db->prepare('SELECT message FROM tblUserMessages WHERE user=? and seq=?');
+    $stmt->bind_param('ii', $userId, $seq);
+    $stmt->execute();
+    $stmt->bind_result($message);
+    if (!$stmt->fetch()) {
+        $message = '';
+    }
+    $stmt->close();
+
+    MCSet($cacheKey, $message);
+
+    return $message;
 }

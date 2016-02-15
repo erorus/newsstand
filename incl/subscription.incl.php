@@ -119,6 +119,7 @@ function SendUserMessage($userId, $messageType, $subject, $message)
     }
 
     MCDelete(SUBSCRIPTION_MESSAGES_CACHEKEY . $userId);
+    MCDelete(SUBSCRIPTION_MESSAGES_CACHEKEY . $userId . '_' . $seq);
 
     // TODO: send mails, etc here
 

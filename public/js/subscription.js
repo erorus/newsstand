@@ -4,6 +4,8 @@ var TUJ_Subscription = function ()
     var formElements;
     var self;
 
+    var subData;
+
     this.load = function (inParams)
     {
         self = this;
@@ -37,21 +39,98 @@ var TUJ_Subscription = function ()
     function ShowSubscriptionMessage(id)
     {
         if (id && tuj.lang.SubscriptionErrors.hasOwnProperty(id)) {
-            $('#subscription-message').empty().html(tuj.lang.SubscriptionErrors[id]).show();
+            $('#subscription-alert').empty().html(tuj.lang.SubscriptionErrors[id]).show();
         } else {
-            $('#subscription-message').empty().hide();
+            $('#subscription-alert').empty().hide();
         }
     }
 
     function ShowSubscriptionSettings(dta)
     {
+        subData = dta;
+
         var settingsParent = $('#subscription-settings');
         settingsParent.empty().hide();
 
-
+        var settingsMessages = libtuj.ce('div');
+        settingsMessages.id = 'subscription-messages';
+        settingsParent.append(settingsMessages);
+        ShowMessages(settingsMessages);
 
 
         settingsParent.show();
+    }
+
+    function ShowMessages(container)
+    {
+        var listDiv = libtuj.ce('div');
+        listDiv.id = 'subscription-messages-list';
+        container.appendChild(listDiv);
+
+        var messageDiv = libtuj.ce('div');
+        messageDiv.id = 'subscription-messages-window';
+        container.appendChild(messageDiv);
+
+        subData.messages.sort(function(a,b){
+            return b.seq - a.seq;
+        });
+
+        var msgDiv, s;
+        for (var x = 0, msg; msg = subData.messages[x]; x++) {
+            msg.div = msgDiv = libtuj.ce('div');
+            msgDiv.className = 'messages-list-item';
+            listDiv.appendChild(msgDiv);
+
+            s = libtuj.ce('span');
+            s.className = 'message-subject';
+            $(s).text(msg.subject);
+            msgDiv.appendChild(s);
+
+            s = libtuj.FormatDate(msg.created);
+            s.className += ' message-date';
+            msgDiv.appendChild(s);
+
+            $(msgDiv).data('seq', msg.seq).click(ShowMessage.bind(self, x));
+        }
+        if (subData.messages.length) {
+            ShowMessage(0);
+        }
+    }
+
+    function ShowMessage(idx)
+    {
+        $('#subscription-messages-list .messages-list-item.selected').removeClass('selected');
+
+        var msg = subData.messages[idx];
+        $(msg.div).addClass('selected');
+
+        var d = libtuj.ce('div');
+        d.className = 'message-subject';
+        $(d).text(msg.subject);
+
+        var s = libtuj.FormatDate(msg.created);
+        s.className += ' message-date';
+        d.appendChild(s);
+
+        $('#subscription-messages-window').empty().append(d).append('<div class="message-text"></div>');
+
+        if (msg.hasOwnProperty('message')) {
+            $('#subscription-messages-window .message-text').html(msg.message);
+            return;
+        }
+
+        $.ajax({
+            data: {'getmessage': msg.seq},
+            type: 'POST',
+            success: function(dta) {
+                msg.message = dta.message;
+                ShowMessage(idx);
+            },
+            error: function() {
+                $('#subscription-messages-window .message-text').html(tuj.lang.subMessageFetchError);
+            },
+            url: 'api/subscription.php'
+        });
     }
 
     function ShowLoggedInAs(userName)
@@ -137,6 +216,7 @@ var TUJ_Subscription = function ()
 
     function FetchSubscriptionSettings()
     {
+        subData = {};
         $.ajax({
             data: {'settings': 1},
             type: 'POST',
