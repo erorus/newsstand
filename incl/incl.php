@@ -431,3 +431,97 @@ function APIMaintenance($when = -1, $expire = false) {
     return $when;
 }
 
+function NewsstandMail($address, $name, $subject, $message)
+{
+    $address = trim($address);
+    if ($address == '') {
+        return false;
+    }
+
+    $name = trim($name);
+    if ($name == '') {
+        $name = $address;
+    }
+
+    $db = DBConnect(true);
+    if ($db === false) {
+        DebugMessage("Could not connect to DB to send mail to $address");
+        return false;
+    }
+
+    $sha1address = sha1(strtolower($address), true);
+    $cnt = 0;
+    $stmt = $db->prepare('select count(*) from tblEmailBlocked where sha1address=?');
+    $stmt->bind_param('s', $sha1address);
+    $stmt->execute();
+    $stmt->bind_result($cnt);
+    $stmt->fetch();
+    $stmt->close();
+
+    if ($cnt > 0) {
+        DebugMessage("Could not send mail to $address, address is in tblEmailBlocked");
+        $db->close();
+        return false;
+    }
+
+    $sha1id = sha1('' . time() . '|' . $address . '|' . $subject . '|' . $message, true);
+    $mailId = rtrim(strtr(base64_encode($sha1id), '+/=', '-_,'), ',');
+
+    $headers = "From: The Undermine Journal <notifications@from.theunderminejournal.com>\n";
+    $headers .= "Reply-To: Remove My Address <notifications@from.theunderminejournal.com>\n";
+    $headers .= "Date: " . Date(DATE_RFC2822) . "\n";
+    $headers .= "X-Undermine-MailID: $mailId\n";
+
+    $headers .= "MIME-Version: 1.0\n";
+    $headers .= "Content-Type: multipart/alternative; boundary=\"next-MIME-part------\"\n";
+
+    $html = $message;
+    $html .= "<br><hr><br>This email was sent by request from <a href=\"https://theunderminejournal.com/\">The Undermine Journal</a> at theunderminejournal.com. ";
+    $html .= "If you reply to this email, your address ($address) will be removed from any and all accounts on our site.";
+    $html .= "<br><br>If you want never to receive email from The Undermine Journal again, you can ";
+    $txt = $html;
+
+    $html .= "<a href=\"https://theunderminejournal.com/emailremove.php?mailid=$mailId\">click here to be added to our blocklist</a>.<br><br>Message ID: $mailId";
+    $txt .= "visit https://theunderminejournal.com/emailremove.php and enter this message ID: $mailId.";
+
+    $full = "This is a multi-part message in MIME format.";
+
+    $full .= "\n--next-MIME-part------\nContent-Type: text/plain; charset=ISO-8859-1; format=flowed\n\n";
+    $full .= preg_replace_callback('/(?<=^|\n)([^\n]*)(?:\n|$)/',
+        function($m) {
+            return wordwrap($m[1], 66, " \n")."\n";
+        },
+        htmlspecialchars_decode(
+            strip_tags(
+                preg_replace('/\s*<br>/i', "\n",
+                    str_replace("\n", ' ', utf8_decode($txt))
+                )
+            ), ENT_COMPAT | ENT_HTML5
+        )
+    );
+
+    $full .= "\n--next-MIME-part------\nContent-Type: text/html; charset=UTF-8\nContent-Transfer-Encoding: base64\n\n";
+    $full .= wordwrap(base64_encode($html), 70, "\n", true);
+
+    $full .= "\n--next-MIME-part--------\n";
+
+    if (preg_match('/[\x80-\xFF]/', $subject)) {
+        $subject = '=?UTF-8?B?' . base64_encode($subject) . "?=";
+    }
+
+    $headers = trim($headers);
+
+    $tr = mail("$name <$address>", $subject, $full, $headers, '-fnotifications@from.theunderminejournal.com');
+
+    if ($tr) {
+        $stmt = $db->prepare('insert into tblEmailLog (sha1id, sent, recipient) values (?, NOW(), ?)');
+        $stmt->bind_param('ss', $sha1id, $address);
+        $stmt->execute();
+        $stmt->close();
+    } else {
+        DebugMessage("Some error sending mail to $address");
+    }
+
+    $db->close();
+    return $tr;
+}
