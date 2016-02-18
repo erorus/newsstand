@@ -20,6 +20,7 @@ function BuildRealmGuidHouse()
     $guids = GetRealmInfo();
     $hardCoded = [
         1302 => 139, // EU "stonemaul" old realm -> EU archimonde house
+        1396 => 147, // EU "molten core" old realm -> EU quel'thalas house
     ];
 
     $db->begin_transaction();
