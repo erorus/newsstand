@@ -346,6 +346,12 @@ local function onEvent(self,event,arg)
 
         local realmId = LibStub("LibRealmInfo"):GetRealmInfo(GetRealmName())
         if not realmId then
+            local guid = UnitGUID("player")
+            if guid then
+                realmId = tonumber(strmatch(guid, "^Player%-(%d+)"))
+            end
+        end
+        if not realmId then
             realmId = "nil"
         else
             for i=1,#addonTable.dataLoads,1 do
