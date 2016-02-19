@@ -182,12 +182,14 @@ var wowtoken = {
                 var o = document.createElement('option');
                 o.value = '0';
                 o.label = '(None)';
+                o.innerHTML = '(None)';
                 sup.appendChild(o);
                 target = sub.hasOwnProperty(sup.id) ? sub[sup.id] : 0;
                 for (var x = wowtoken.Notification.regionMinMax[region][0]; x <= wowtoken.Notification.regionMinMax[region][1]; x += wowtoken.Notification.regionMinMax[region][2]) {
                     var o = document.createElement('option');
                     o.value = x;
                     o.label = ''+wowtoken.NumberCommas(x)+'g';
+                    o.innerHTML = ''+wowtoken.NumberCommas(x)+'g';
                     sup.appendChild(o);
                     if (x == target) {
                         sup.selectedIndex = sup.options.length-1;
@@ -212,6 +214,7 @@ var wowtoken = {
                     var o = document.createElement('option');
                     o.value = x;
                     o.label = ''+wowtoken.NumberCommas(x)+'g';
+                    o.innerHTML = ''+wowtoken.NumberCommas(x)+'g';
                     sdn.appendChild(o);
                     if (x == target) {
                         sdn.selectedIndex = sdn.options.length-1;
