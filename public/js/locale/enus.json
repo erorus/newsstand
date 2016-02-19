@@ -368,7 +368,13 @@
         "missinguser": "Error: Battle.net returned an incomplete response when requesting your user ID with the access token. Please try again.",
         "nodata": "Error fetching subscription data, please try again."
     },
+    "EmailStatus": {
+        "unknown": "Unknown error, please try again.",
+        "success": "Your Email address is updated.",
+        "verify": "Check your mail, then enter here the verification code which we sent there."
+    },
     "subMessageFetchError": "Error fetching message, please try again.",
+    "emailAddress": "Email Address",
     "logIn": "Log in",
     "logOut": "Log out"
 }

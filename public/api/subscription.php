@@ -18,11 +18,14 @@ if (isset($_POST['logout'])) {
     json_return(GetLoginState(true));
 }
 
+// functions from now on require a logged-in user
+// TODO: CSRF check
+$loginState = GetLoginState();
+if (!$loginState) {
+    json_return(false);
+}
+
 if (isset($_POST['settings'])) {
-    $loginState = GetLoginState();
-    if (!$loginState) {
-        json_return(false);
-    }
     json_return([
         'email' => GetSubEmail($loginState),
         'messages' => GetSubMessages($loginState),
@@ -30,15 +33,15 @@ if (isset($_POST['settings'])) {
 }
 
 if (isset($_POST['getmessage'])) {
-    $loginState = GetLoginState();
-    if (!$loginState) {
-        json_return(false);
-    }
     $message = GetSubMessage($loginState, intval($_POST['getmessage'], 10));
     if (!$message) {
         json_return(false);
     }
     json_return(['message' => $message]);
+}
+
+if (isset($_POST['emailaddress'])) {
+    json_return(SetSubEmail($loginState, $_POST['emailaddress']));
 }
 
 json_return([]);
@@ -258,9 +261,90 @@ function LoginFinish($hash = '#subscription') {
     exit;
 }
 
+function SetSubEmail($loginState, $address)
+{
+    $userId = $loginState['id'];
+    $address = trim($address);
+    if ($address) {
+        $filtered = filter_var($address, FILTER_VALIDATE_EMAIL);
+        if ($filtered === false) {
+            return ['status' => 'invalid'];
+        }
+        $address = $filtered;
+    }
+
+    $db = DBConnect();
+    $stmt = $db->prepare('SELECT ifnull(email,\'\') address, unix_timestamp(emailset) emailset, emailverification from tblUser where id = ?');
+    $stmt->bind_param('i', $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $result->close();
+    $stmt->close();
+
+    if ($row === false) {
+        // could not find user
+        return ['status' => 'unknown'];
+    }
+
+    if ($address == $row['address']) {
+        // setting address we already have saved
+        return ['status' => is_null($row['emailverification']) ? 'success' : 'verify', 'address' => $row['address']];
+    }
+
+    if ($address && !is_null($row['emailverification']) && ($row['emailset'] > (time() - 15*60))) {
+        // setting a new address when we recently sent a notification email to another address
+        return ['status' => 'verify', 'address' => $row['address']];
+    }
+
+    if (!$address) {
+        // removing the address
+        $stmt = $db->prepare('update tblUser set email=null, emailverification=null where id = ?');
+        $stmt->bind_param('i', $userId);
+        $stmt->execute();
+        $stmt->close();
+        if ($db->affected_rows == 0) {
+            return ['status' => 'unknown'];
+        }
+        ClearLoginStateCache();
+
+        SendUserMessage($userId, 'Email', 'Email Address Removed', 'We removed your email address from our system per your request.');
+        return ['status' => 'success', 'address' => $address];
+    }
+
+    // setting a new address
+    $stmt = $db->prepare('update tblUser set email=null, emailverification=null where id = ?');
+    $stmt->bind_param('i', $userId);
+    $stmt->execute();
+    $stmt->close();
+    if ($db->affected_rows == 0) {
+        return ['status' => 'unknown'];
+    }
+    ClearLoginStateCache();
+
+    $verification = str_pad(mt_rand(1, 999999999), 9, '0', STR_PAD_BOTH);
+
+    NewsstandMail($address, $loginState['name'], 'Email Address Updated', 'We received your request for us to Email you at this address. Please <a href="https://theunderminejournal.com/#subscription">log in to The Undermine Journal</a> and enter this verification code:<br><br><b>'.implode(' ', str_split($verification, 3)).'</b>');
+    SendUserMessage($userId, 'Email', 'Email Address Updated', 'We updated your email address per your request.<br><br>Please check your mail at '.htmlspecialchars($address, ENT_COMPAT | ENT_HTML5).' and enter the verification code which we sent there.');
+
+    $stmt = $db->prepare('update tblUser set email=?, emailverification=?, emailset=NOW() where id = ?');
+    $stmt->bind_param('ssi', $address, $verification, $userId);
+    $stmt->execute();
+    $stmt->close();
+    if ($db->affected_rows == 0) {
+        SendUserMessage($userId, 'Email', 'Email Address Removed', 'We removed your old email address from our system, but failed to replace it with the new address you specified.');
+        return ['status' => 'unknown'];
+    }
+
+    return ['status' => 'verify', 'address' => $address];
+}
+
 function GetSubEmail($loginState)
 {
     $json = [];
+    $userId = $loginState['id'];
+
+    $db = DBConnect();
 
 
     return $json;

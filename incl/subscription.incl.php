@@ -34,7 +34,7 @@ function GetLoginState($logOut = false) {
         if ($userInfo === false) {
             $db = DBConnect();
 
-            $stmt = $db->prepare('SELECT u.id, u.name FROM tblUserSession us join tblUser u on us.user=u.id WHERE us.session=?');
+            $stmt = $db->prepare('SELECT u.id, u.name, u.email FROM tblUserSession us join tblUser u on us.user=u.id WHERE us.session=?');
             $stmt->bind_param('s', $stateBytes);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -75,10 +75,22 @@ function GetLoginState($logOut = false) {
     return $userInfo;
 }
 
+function ClearLoginStateCache()
+{
+    if (!isset($_COOKIE[SUBSCRIPTION_LOGIN_COOKIE])) {
+        return false;
+    }
+    $state = preg_replace('/[^a-zA-Z0-9_-]/', '', substr($_COOKIE[SUBSCRIPTION_LOGIN_COOKIE], 0, 24));
+    if (strlen($state) != 24) {
+        return false;
+    }
+
+    MCDelete('usersession_'.$state);
+    return true;
+}
+
 function SendUserMessage($userId, $messageType, $subject, $message)
 {
-    $db = DBConnect();
-
     $loops = 0;
     while (!MCAdd(SUBSCRIPTION_MESSAGES_CACHEKEY . "lock_$userId", 1, 15)) {
         usleep(250000);
@@ -87,6 +99,7 @@ function SendUserMessage($userId, $messageType, $subject, $message)
         }
     }
 
+    $db = DBConnect(true);
     $seq = 0;
     $cnt = 0;
     $stmt = $db->prepare('select ifnull(max(seq),0)+1, count(*) from tblUserMessages where user = ?');
@@ -115,23 +128,53 @@ function SendUserMessage($userId, $messageType, $subject, $message)
     MCDelete(SUBSCRIPTION_MESSAGES_CACHEKEY . "lock_$userId");
     if (!$success) {
         DebugMessage("Error adding user message: ".$db->error);
+        $db->close();
         return false;
     }
 
     MCDelete(SUBSCRIPTION_MESSAGES_CACHEKEY . $userId);
     MCDelete(SUBSCRIPTION_MESSAGES_CACHEKEY . $userId . '_' . $seq);
 
-    // TODO: send mails, etc here
+    $stmt = $db->prepare('select name, email from tblUser where id = ? and email is not null and emailverification is null');
+    $stmt->bind_param('i', $userId);
+    $stmt->execute();
+    $name = '';
+    $address = '';
+    $stmt->bind_result($name, $address);
+    if (!$stmt->fetch()) {
+        $address = false;
+    }
+    $stmt->close();
+    if ($address) {
+        NewsstandMail($address, $name, $subject, $message);
+    }
 
+    $db->close();
     return $seq;
 }
 
-function DisableEMailAddress($address) {
-    // TODO: remove/disable this email address from all users, and notify those affected
-    // so future messages will not be sent to this address
-
+function DisableEmailAddress($address) {
     // Note: this is not permanent, a user can re-add it later
 
+    $db = DBConnect(true);
+    $stmt = $db->prepare('select id from tblUser where email = ?');
+    $stmt->bind_param('s', $address);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $ids = DBMapArray($result);
+    $stmt->close();
+
+    $stmt = $db->prepare('update tblUser set email=null, emailverification=null where id = ?');
+    $userIdParam = 0;
+    $stmt->bind_param('i', $userIdParam);
+    foreach ($ids as $userId) {
+        $userIdParam = $userId;
+        $stmt->execute();
+        SendUserMessage($userId, 'Email', 'Email Address Removed', 'We have removed your email address '.htmlspecialchars($address, ENT_COMPAT | ENT_HTML5).' because we received a reply or bounceback from your mail server, or you have chosen to block your address from our system.');
+    }
+    $stmt->close();
+
+    $db->close();
     return true;
 }
 

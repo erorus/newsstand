@@ -19,9 +19,9 @@ var TUJ_Subscription = function ()
         $('#page-title').text(tuj.lang.subscription);
         tuj.SetTitle(tuj.lang.subscription);
 
-        var userName = tuj.LoggedInUserName();
-        if (userName) {
-            ShowLoggedInAs(userName);
+        var user = tuj.LoggedInUser();
+        if (user) {
+            ShowLoggedInAs(user.name);
             $('#subscription-description').hide();
             $('#subscription-settings').empty().hide();
             FetchSubscriptionSettings();
@@ -57,8 +57,30 @@ var TUJ_Subscription = function ()
         settingsParent.append(settingsMessages);
         ShowMessages(settingsMessages);
 
+        var settingsEmail = libtuj.ce('div');
+        settingsEmail.id = 'subscription-email';
+        settingsParent.append(settingsEmail);
+        ShowEmail(settingsEmail);
 
         settingsParent.show();
+    }
+
+    function ShowEmail(container)
+    {
+        var user = tuj.LoggedInUser();
+
+        var f = libtuj.ce('form');
+        container.appendChild(f);
+
+        var s = libtuj.ce('span');
+        $(s).text(tuj.lang.emailAddress + ': ');
+        f.appendChild(s);
+
+        var i = libtuj.ce('input');
+        i.type = 'text';
+        i.id = 'subscription-email-address';
+        i.value = (user && user.email) ? user.email : '';
+        f.appendChild(i);
     }
 
     function ShowMessages(container)

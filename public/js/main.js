@@ -774,8 +774,8 @@ var TUJ = function ()
         return (s2 << 8) | s1;
     }
 
-    this.LoggedInUserName = function() {
-        return !!(loggedInUser) ? loggedInUser.name : false;
+    this.LoggedInUser = function() {
+        return !!(loggedInUser) ? $.extend({}, loggedInUser) : false;
     };
 
     this.LogOut = function() {

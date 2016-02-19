@@ -15,7 +15,7 @@ ShowBlockConfirm($mailId, $status);
 function ShowBlockConfirm($mailId, $status) {
     echo '<!DOCTYPE html><html><head><title>The Undermine Journal</title></head><body style="text-align: center"><img src="/images/underminetitle.2000.png" style="width: 90%; max-width: 900px">';
 
-    echo "<h2>EMail Address Removal</h2>";
+    echo "<h2>Email Address Removal</h2>";
 
     if ($status) {
         echo "<b>$status</b><br><br>";
@@ -60,7 +60,7 @@ function BlockMailId($mailId) {
         return 'Error adding row to blocked table, please try again later.';
     }
 
-    DisableEMailAddress($address['address']);
+    DisableEmailAddress($address['address']);
 
     return $address[0] . ' will no longer receive any mail from The Undermine Journal.';
 }
