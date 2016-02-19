@@ -89,6 +89,10 @@ var wowtoken = {
                 return;
             }
 
+            if (navigator.userAgent.indexOf('Chrome') < 0) {
+                return;
+            }
+
             navigator.serviceWorker.register('/notification.worker.js').then(wowtoken.Notification.Init);
         },
 
