@@ -371,8 +371,9 @@ function MakeZip($zipPath = false)
     $tocFile = file_get_contents('../addon/TheUndermineJournal.toc');
     $tocFile = sprintf($tocFile, Date('D, F j'), Date('Ymd'));
 
-    $zip->addEmptyDir('TheUndermineJournal');
     $zip->addFromString("TheUndermineJournal/TheUndermineJournal.toc",$tocFile);
+    $zip->addFile('../addon/libs/LibStub.lua',"TheUndermineJournal/libs/LibStub.lua");
+    $zip->addFile('../addon/libs/LibRealmInfo.lua',"TheUndermineJournal/libs/LibRealmInfo.lua");
     $zip->addFile('../addon/BonusSets.lua',"TheUndermineJournal/BonusSets.lua");
     $zip->addFile('../addon/TheUndermineJournal.lua',"TheUndermineJournal/TheUndermineJournal.lua");
     $zip->addFile('../addon/MarketData-US.lua',"TheUndermineJournal/MarketData-US.lua");

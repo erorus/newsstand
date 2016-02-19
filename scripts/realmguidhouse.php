@@ -18,6 +18,10 @@ function BuildRealmGuidHouse()
     global $db;
 
     $guids = GetRealmInfo();
+    $hardCoded = [
+        1302 => 139, // EU "stonemaul" old realm -> EU archimonde house
+        1396 => 147, // EU "molten core" old realm -> EU quel'thalas house
+    ];
 
     $db->begin_transaction();
 
@@ -39,6 +43,7 @@ function BuildRealmGuidHouse()
         for ($x = 1; $x < count($realmInfo); $x++) {
             if (isset($houses[$realmInfo[0]][$realmInfo[$x]])) {
                 $found = true;
+                unset($hardCoded[$guid]);
                 $realmGuid = $guid;
                 $house = $houses[$realmInfo[0]][$realmInfo[$x]]['house'];
                 $stmt->execute();
@@ -47,6 +52,12 @@ function BuildRealmGuidHouse()
         if (!$found) {
             echo "Could not find house for ".implode(',', $realmInfo)."\n";
         }
+    }
+
+    foreach ($hardCoded as $guid => $forcedHouse) {
+        $realmGuid = $guid;
+        $house = $forcedHouse;
+        $stmt->execute();
     }
 
     $stmt->close();

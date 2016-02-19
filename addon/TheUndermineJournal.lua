@@ -1,6 +1,6 @@
 --[[
 
-TheUndermineJournal addon, v 3.6
+TheUndermineJournal addon, v 3.7
 https://theunderminejournal.com/
 
 You should be able to query this DB from other addons:
@@ -344,10 +344,12 @@ local function onEvent(self,event,arg)
     if event == "PLAYER_ENTERING_WORLD" then
         eventframe:UnregisterEvent("PLAYER_ENTERING_WORLD")
 
-        local realmId
-        local guid = UnitGUID("player")
-        if guid then
-            realmId = tonumber(strmatch(guid, "^Player%-(%d+)"))
+        local realmId = LibStub("LibRealmInfo"):GetRealmInfo(GetRealmName())
+        if not realmId then
+            local guid = UnitGUID("player")
+            if guid then
+                realmId = tonumber(strmatch(guid, "^Player%-(%d+)"))
+            end
         end
         if not realmId then
             realmId = "nil"

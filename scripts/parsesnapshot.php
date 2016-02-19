@@ -101,6 +101,7 @@ function NextDataFile()
             $house = intval($res[2], 10);
 
             if (!MCHouseLock($house, 3)) {
+                $lockFail = true;
                 continue;
             }
 
