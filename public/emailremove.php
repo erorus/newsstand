@@ -1,7 +1,7 @@
 <?php
 
 require_once('../incl/incl.php');
-require_once('../incl/user.incl.php');
+require_once('../incl/subscription.incl.php');
 
 $status = '';
 $mailId = isset($_GET['mailid']) ? preg_replace('/[^a-zA-Z0-9_-]/', '', substr(trim($_GET['mailid']), 0, 30)) : '';
