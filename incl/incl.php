@@ -449,10 +449,9 @@ function NewsstandMail($address, $name, $subject, $message)
         return false;
     }
 
-    $sha1address = sha1(strtolower($address), true);
     $cnt = 0;
-    $stmt = $db->prepare('select count(*) from tblEmailBlocked where sha1address=?');
-    $stmt->bind_param('s', $sha1address);
+    $stmt = $db->prepare('select count(*) from tblEmailBlocked where address=?');
+    $stmt->bind_param('s', $address);
     $stmt->execute();
     $stmt->bind_result($cnt);
     $stmt->fetch();
@@ -524,4 +523,23 @@ function NewsstandMail($address, $name, $subject, $message)
 
     $db->close();
     return $tr;
+}
+
+function GetAddressByMailID($mailId)
+{
+    $sha1Id = base64_decode(strtr($mailId, '-_,', '+/='));
+
+    $db = DBConnect();
+    $address = false;
+    $addDate = false;
+    $stmt = $db->prepare('select l.recipient, unix_timestamp(b.added) from tblEmailLog l left join tblEmailBlocked b on b.address = l.recipient where l.sha1id = ?');
+    $stmt->bind_param('s', $sha1Id);
+    $stmt->execute();
+    $stmt->bind_result($address, $addDate);
+    if (!$stmt->fetch()) {
+        $address = false;
+    }
+    $stmt->close();
+
+    return $address ? ['address' => $address, 'blocked' => $addDate] : false;
 }
