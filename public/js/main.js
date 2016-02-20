@@ -286,6 +286,12 @@ var libtuj = {
 
         return pop;
     },
+    AlsoHover: function(eventTarget, applyTarget)
+    {
+        $(eventTarget)
+            .on('mouseover', function(){ $(applyTarget).addClass('hover'); })
+            .on('mouseout', function(){ $(applyTarget).removeClass('hover'); });
+    },
     Ads: {
         addCount: 0,
         adsWillShow: true,
