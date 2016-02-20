@@ -354,9 +354,13 @@ var TUJ_Category = function ()
         return true;
     }
 
-    function ShowBreedRows(species)
+    function ShowBreedRows(species, tds)
     {
-        $('.category-battlepets .breed.species' + species).show();
+        var rows = $('.category-battlepets .breed.species' + species);
+        rows.show();
+        for (var x = 0; x < tds.length; x++) {
+            tds[x].rowSpan = (rows.length + 1);
+        }
         this.style.cursor = 'default';
     }
 
@@ -505,11 +509,13 @@ var TUJ_Category = function ()
 
             allSpecies.sort(speciesSort);
 
+            var curIconTd, curNameTd;
             for (x = 0; x < allSpecies.length; x++) {
                 tr = libtuj.ce('tr');
                 t.appendChild(tr);
 
-                td = libtuj.ce('td');
+                curIconTd = td = libtuj.ce('td');
+                td.rowSpan = 1;
                 td.className = 'icon';
                 tr.appendChild(td);
                 i = libtuj.ce('img');
@@ -517,7 +523,8 @@ var TUJ_Category = function ()
                 i.className = 'icon';
                 i.src = libtuj.IconURL(allSpecies[x].icon, 'medium');
 
-                td = libtuj.ce('td');
+                curNameTd = td = libtuj.ce('td');
+                td.rowSpan = 1;
                 td.className = 'name';
                 tr.appendChild(td);
                 a = libtuj.ce('a');
@@ -535,7 +542,7 @@ var TUJ_Category = function ()
                     a.style.cursor = 'pointer';
                     td.appendChild(a);
                     $(a).text('(' + tuj.lang.all + ')');
-                    $(a).click(ShowBreedRows.bind(a, allSpecies[x].id));
+                    $(a).click(ShowBreedRows.bind(a, allSpecies[x].id, [curIconTd, curNameTd]));
                 } else {
                     td.appendChild(document.createTextNode(tuj.lang.breedsLookup[allSpecies[x].firstBreed]));
                 }
@@ -585,10 +592,8 @@ var TUJ_Category = function ()
                         tr.className = 'breed species' + allSpecies[x].id;
                         t.appendChild(tr);
 
-                        td = libtuj.ce('td');
-                        td.className = 'name';
-                        td.colSpan = 2;
-                        tr.appendChild(td);
+                        libtuj.AlsoHover(tr, curIconTd);
+                        libtuj.AlsoHover(tr, curNameTd);
 
                         td = libtuj.ce('td');
                         td.className = 'breeds';
