@@ -780,8 +780,8 @@ var TUJ = function ()
         return (s2 << 8) | s1;
     }
 
-    this.LoggedInUser = function() {
-        return !!(loggedInUser) ? $.extend({}, loggedInUser) : false;
+    this.LoggedInUserName = function() {
+        return !!(loggedInUser) ? loggedInUser.name : false;
     };
 
     this.LogOut = function() {

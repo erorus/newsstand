@@ -34,7 +34,7 @@ function GetLoginState($logOut = false) {
         if ($userInfo === false) {
             $db = DBConnect();
 
-            $stmt = $db->prepare('SELECT u.id, u.name, u.email FROM tblUserSession us join tblUser u on us.user=u.id WHERE us.session=?');
+            $stmt = $db->prepare('SELECT u.id, u.name FROM tblUserSession us join tblUser u on us.user=u.id WHERE us.session=?');
             $stmt->bind_param('s', $stateBytes);
             $stmt->execute();
             $result = $stmt->get_result();

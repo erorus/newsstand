@@ -216,7 +216,9 @@ table.category-fish .price {border-left: 1px solid #CCC}
 
 #subscription-alert { color: red; margin-left: 1em; font-style: italic }
 
-#subscription-messages { position: relative; height: 320px; max-width: 900px; margin: 2em auto; line-height: 18px; border: 1px solid #999 }
+#subscription-settings > div { max-width: 900px; margin: 2em auto }
+
+#subscription-messages { position: relative; height: 320px; line-height: 18px; border: 1px solid #999 }
 #subscription-messages > div { overflow-y: auto; }
 #subscription-messages-list { position: absolute; top: 0; left: 0; width: 40%; height: 100% }
 .messages-list-item, #subscription-messages-window .message-subject
@@ -226,3 +228,7 @@ table.category-fish .price {border-left: 1px solid #CCC}
 #subscription-messages .message-date { position: absolute; bottom: 1px; right: 0.25em; font-size: 80% }
 #subscription-messages-window { position: absolute; top: 0; left: 40%; width: 60%; height: 100%; }
 #subscription-messages-window .message-text { padding: 5px; }
+
+#subscription-email { text-align: center }
+#subscription-email-verification { margin: 10px auto; display: none }
+#subscription-email.verify #subscription-email-verification { display: block }

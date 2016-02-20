@@ -375,6 +375,10 @@
     },
     "subMessageFetchError": "Error fetching message, please try again.",
     "emailAddress": "Email Address",
+    "setAddress": "Set Address",
+    "emailVerification": "Verification Code",
+    "verifyAddress": "Verify Address",
+
     "logIn": "Log in",
     "logOut": "Log out"
 }

@@ -19,9 +19,9 @@ var TUJ_Subscription = function ()
         $('#page-title').text(tuj.lang.subscription);
         tuj.SetTitle(tuj.lang.subscription);
 
-        var user = tuj.LoggedInUser();
-        if (user) {
-            ShowLoggedInAs(user.name);
+        var userName = tuj.LoggedInUserName();
+        if (userName) {
+            ShowLoggedInAs(userName);
             $('#subscription-description').hide();
             $('#subscription-settings').empty().hide();
             FetchSubscriptionSettings();
@@ -65,9 +65,81 @@ var TUJ_Subscription = function ()
         settingsParent.show();
     }
 
+    function SetEmailAddress()
+    {
+        var addressBox = document.getElementById('subscription-email-address');
+        if (addressBox.value == addressBox.defaultValue) {
+            return;
+        }
+
+        $.ajax({
+            data: {'emailaddress': addressBox.value},
+            type: 'POST',
+            success: function(dta) {
+                if (dta.hasOwnProperty('address')) {
+                    subData.email.address = addressBox.value = dta.address;
+                }
+                addressBox.defaultValue = addressBox.value;
+
+                if (dta.hasOwnProperty('status')) {
+                    if (dta.status == 'verify') {
+                        $('#subscription-email').addClass('verify');
+                    } else {
+                        $('#subscription-email').removeClass('verify');
+                    }
+                    if (tuj.lang.EmailStatus.hasOwnProperty(dta.status)) {
+                        alert(tuj.lang.EmailStatus[dta.status]);
+                    }
+                }
+            },
+            error: function() {
+                addressBox.value = addressBox.defaultValue;
+                alert(tuj.lang.EmailStatus.unknown);
+            },
+            url: 'api/subscription.php'
+        });
+    }
+
+    function VerifyEmailAddress()
+    {
+        var addressBox = document.getElementById('subscription-email-address');
+        var verifyBox = document.getElementById('subscription-email-verification-code');
+        if (verifyBox.value == '') {
+            return;
+        }
+
+        $.ajax({
+            data: {'verifyemail': verifyBox.value},
+            type: 'POST',
+            success: function(dta) {
+                verifyBox.value = '';
+                if (dta.hasOwnProperty('address')) {
+                    subData.email.address = addressBox.value = dta.address;
+                }
+                addressBox.defaultValue = addressBox.value;
+
+                if (dta.hasOwnProperty('status')) {
+                    if (dta.status == 'verify') {
+                        $('#subscription-email').addClass('verify');
+                    } else {
+                        $('#subscription-email').removeClass('verify');
+                    }
+                    if (tuj.lang.EmailStatus.hasOwnProperty(dta.status)) {
+                        alert(tuj.lang.EmailStatus[dta.status]);
+                    }
+                }
+            },
+            error: function() {
+                verifyBox.value = '';
+                alert(tuj.lang.EmailStatus.unknown);
+            },
+            url: 'api/subscription.php'
+        });
+    }
+
     function ShowEmail(container)
     {
-        var user = tuj.LoggedInUser();
+        var settings = subData.email;
 
         var f = libtuj.ce('form');
         container.appendChild(f);
@@ -77,10 +149,45 @@ var TUJ_Subscription = function ()
         f.appendChild(s);
 
         var i = libtuj.ce('input');
-        i.type = 'text';
+        i.type = 'email';
         i.id = 'subscription-email-address';
-        i.value = (user && user.email) ? user.email : '';
+        i.value = i.defaultValue = (settings && settings.address) ? settings.address : '';
         f.appendChild(i);
+
+        var i = libtuj.ce('input');
+        i.type = 'button';
+        i.id = 'subscription-email-set-button';
+        i.value = tuj.lang.setAddress;
+        $(i).on('click', SetEmailAddress);
+        f.appendChild(i);
+
+        var d = libtuj.ce('div');
+        d.id = 'subscription-email-verification';
+        f.appendChild(d);
+
+        var s = libtuj.ce('span');
+        $(s).text(tuj.lang.emailVerification + ': ');
+        d.appendChild(s);
+
+        var i = libtuj.ce('input');
+        i.type = 'number';
+        i.id = 'subscription-email-verification-code';
+        i.value = '';
+        i.maxLength = '16';
+        d.appendChild(i);
+
+        var i = libtuj.ce('input');
+        i.type = 'button';
+        i.id = 'subscription-email-verify-button';
+        i.value = tuj.lang.verifyAddress;
+        $(i).on('click', VerifyEmailAddress);
+        d.appendChild(i);
+
+        if (settings.needVerification) {
+            $('#subscription-email').addClass('verify');
+        } else {
+            $('#subscription-email').removeClass('verify');
+        }
     }
 
     function ShowMessages(container)

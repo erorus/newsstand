@@ -44,6 +44,10 @@ if (isset($_POST['emailaddress'])) {
     json_return(SetSubEmail($loginState, $_POST['emailaddress']));
 }
 
+if (isset($_POST['verifyemail'])) {
+    json_return(VerifySubEmail($loginState, $_POST['verifyemail']));
+}
+
 json_return([]);
 
 ///////////////////////////////
@@ -263,6 +267,8 @@ function LoginFinish($hash = '#subscription') {
 
 function SetSubEmail($loginState, $address)
 {
+    $verificationMsg = 'We received your request for us to Email you at this address. Please <a href="https://theunderminejournal.com/#subscription">log in to The Undermine Journal</a> and enter this verification code:<br><br><b>%s</b>';
+
     $userId = $loginState['id'];
     $address = trim($address);
     if ($address) {
@@ -274,6 +280,18 @@ function SetSubEmail($loginState, $address)
     }
 
     $db = DBConnect();
+
+    $cnt = 0;
+    $stmt = $db->prepare('select count(*) from tblEmailBlocked where address=?');
+    $stmt->bind_param('s', $address);
+    $stmt->execute();
+    $stmt->bind_result($cnt);
+    $stmt->fetch();
+    $stmt->close();
+    if ($cnt != 0) {
+        return ['status' => 'invalid'];
+    }
+
     $stmt = $db->prepare('SELECT ifnull(email,\'\') address, unix_timestamp(emailset) emailset, emailverification from tblUser where id = ?');
     $stmt->bind_param('i', $userId);
     $stmt->execute();
@@ -287,14 +305,19 @@ function SetSubEmail($loginState, $address)
         return ['status' => 'unknown'];
     }
 
-    if ($address == $row['address']) {
-        // setting address we already have saved
-        return ['status' => is_null($row['emailverification']) ? 'success' : 'verify', 'address' => $row['address']];
-    }
-
     if ($address && !is_null($row['emailverification']) && ($row['emailset'] > (time() - 15*60))) {
         // setting a new address when we recently sent a notification email to another address
         return ['status' => 'verify', 'address' => $row['address']];
+    }
+
+    if ($address == $row['address']) {
+        // setting address we already have saved
+        if (!is_null($row['emailverification'])) {
+            // resend notification email
+            NewsstandMail($address, $loginState['name'], 'Email Address Updated', sprintf($verificationMsg, implode(' ', str_split($row['emailverification'], 3))));
+            SendUserMessage($userId, 'Email', 'Email Verification Resent', 'We re-sent the verification code to your email per your request.<br><br>Please check your mail at '.htmlspecialchars($address, ENT_COMPAT | ENT_HTML5).' and enter the verification code which we sent there.');
+        }
+        return ['status' => is_null($row['emailverification']) ? 'success' : 'verify', 'address' => $row['address']];
     }
 
     if (!$address) {
@@ -324,7 +347,7 @@ function SetSubEmail($loginState, $address)
 
     $verification = str_pad(mt_rand(1, 999999999), 9, '0', STR_PAD_BOTH);
 
-    NewsstandMail($address, $loginState['name'], 'Email Address Updated', 'We received your request for us to Email you at this address. Please <a href="https://theunderminejournal.com/#subscription">log in to The Undermine Journal</a> and enter this verification code:<br><br><b>'.implode(' ', str_split($verification, 3)).'</b>');
+    NewsstandMail($address, $loginState['name'], 'Email Address Updated', sprintf($verificationMsg, implode(' ', str_split($verification, 3))));
     SendUserMessage($userId, 'Email', 'Email Address Updated', 'We updated your email address per your request.<br><br>Please check your mail at '.htmlspecialchars($address, ENT_COMPAT | ENT_HTML5).' and enter the verification code which we sent there.');
 
     $stmt = $db->prepare('update tblUser set email=?, emailverification=?, emailset=NOW() where id = ?');
@@ -339,13 +362,74 @@ function SetSubEmail($loginState, $address)
     return ['status' => 'verify', 'address' => $address];
 }
 
+function VerifySubEmail($loginState, $code)
+{
+    $userId = $loginState['id'];
+
+    $db = DBConnect();
+    $stmt = $db->prepare('SELECT ifnull(email,\'\') address, ifnull(emailverification,\'\') verification from tblUser where id = ?');
+    $stmt->bind_param('i', $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $result->close();
+    $stmt->close();
+
+    if ($row === false) {
+        // could not find user
+        return ['status' => 'unknown'];
+    }
+
+    if ($row['address'] == '') {
+        if ($row['verification']) {
+            // asking user to verify an empty address, shouldn't happen
+            $stmt = $db->prepare('update tblUser set emailverification=null where ifnull(email,\'\') =\'\' and id = ?');
+            $stmt->bind_param('i', $userId);
+            $stmt->execute();
+            $stmt->close();
+        }
+        return ['status' => 'unknown', 'address' => ''];
+    }
+
+    if (!$row['verification']) {
+        // trying to verify an already-verified address?
+        return ['status' => 'success', 'address' => $row['address']];
+    }
+
+    $code = preg_replace('/\D/', '', $code);
+    if ($row['verification'] == $code) {
+        $stmt = $db->prepare('update tblUser set emailverification=null, emailset=null where id = ?');
+        $stmt->bind_param('i', $userId);
+        $stmt->execute();
+        $stmt->close();
+
+        SendUserMessage($userId, 'Email', 'Email Address Verified', 'You successfully verified your control over the address '.$row['address'].', and The Undermine Journal will send all your future messages there.');
+        return ['status' => 'success', 'address' => $row['address']];
+    }
+
+    return ['status' => 'verify', 'address' => $row['address']];
+}
+
 function GetSubEmail($loginState)
 {
     $json = [];
     $userId = $loginState['id'];
 
     $db = DBConnect();
+    $stmt = $db->prepare('select ifnull(email,\'\'), ifnull(emailverification, \'\') from tblUser where id = ?');
+    $stmt->bind_param('i', $userId);
+    $stmt->execute();
+    $address = '';
+    $verification = '';
+    $stmt->bind_result($address, $verification);
+    if (!$stmt->fetch()) {
+        $address = '';
+        $verification = '';
+    }
+    $stmt->close();
 
+    $json['address'] = $address;
+    $json['needVerification'] = ($address != '') && ($verification != '');
 
     return $json;
 }
