@@ -175,6 +175,6 @@ function DisableEmailAddress($address) {
     $stmt->close();
 
     $db->close();
-    return true;
+    return count($ids);
 }
 
