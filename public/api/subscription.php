@@ -48,6 +48,28 @@ if (isset($_POST['verifyemail'])) {
     json_return(VerifySubEmail($loginState, $_POST['verifyemail']));
 }
 
+if (isset($_POST['getitem'])) {
+    json_return(GetItemWatch($loginState, $_POST['getitem']));
+}
+
+if (isset($_POST['getspecies'])) {
+    json_return(GetSpeciesWatch($loginState, $_POST['getspecies']));
+}
+
+if (isset($_POST['setwatch']) && isset($_POST['id'])) {
+    json_return(SetWatch($loginState, $_POST['setwatch'], $_POST['id'],
+            isset($_POST['subid']) ? $_POST['subid'] : -1,
+            isset($_POST['region']) ? $_POST['region'] : '',
+            isset($_POST['house']) ? $_POST['house'] : 0,
+            isset($_POST['direction']) ? $_POST['direction'] : '',
+            isset($_POST['quantity']) ? $_POST['quantity'] : 0,
+            isset($_POST['price']) ? $_POST['price'] : 0));
+}
+
+if (isset($_POST['deletewatch'])) {
+    json_return(DeleteWatch($loginState, $_POST['deletewatch']));
+}
+
 json_return([]);
 
 ///////////////////////////////
@@ -478,4 +500,189 @@ function GetSubMessage($loginState, $seq)
     MCSet($cacheKey, $message);
 
     return $message;
+}
+
+function GetItemWatch($loginState, $item)
+{
+    return GetWatch($loginState, 'item', $item);
+}
+
+function GetSpeciesWatch($loginState, $species)
+{
+    return GetWatch($loginState, 'species', $species);
+}
+
+function GetWatch($loginState, $type, $id)
+{
+    $userId = $loginState['id'];
+
+    $json = [];
+    $id = intval($id, 10);
+    if (!$id) {
+        return $json;
+    }
+
+    $cacheKeyPrefix = defined('SUBSCRIPTION_' . strtoupper($type) . '_CACHEKEY') ?
+        constant('SUBSCRIPTION_' . strtoupper($type) . '_CACHEKEY') :
+        'subunknown_'.substr($type, 0, 20);
+
+    $cacheKey = $cacheKeyPrefix . $userId . '_' . $id;
+    $json = MCGet($cacheKey);
+    if ($json !== false) {
+        return $json;
+    }
+
+    $db = DBConnect();
+    $stmt = $db->prepare('SELECT id, region, house, item, bonusset, species, breed, direction, quantity, price, unix_timestamp(observed) observed FROM tblUserWatch WHERE user=? and '.(($type == 'species') ? 'species' : 'item').'=? and deleted is null');
+    $stmt->bind_param('ii', $userId, $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $json = DBMapArray($result);
+    $stmt->close();
+
+    MCSet($cacheKey, $json);
+
+    return $json;
+}
+
+function SetWatch($loginState, $type, $item, $bonusSet, $region, $house, $direction, $quantity, $price)
+{
+    $userId = $loginState['id'];
+
+    $type = ($type == 'species') ? 'species' : 'item';
+    $subType = ($type == 'species') ? 'breed' : 'bonusset';
+
+    $item = intval($item, 10);
+    if (!$item) {
+        return false;
+    }
+    $bonusSet = intval($bonusSet, 10);
+    if ($bonusSet < 0) {
+        $bonusSet = null;
+    }
+
+    $house = intval($house, 10);
+    if ($house <= 0) {
+        if (!in_array($region, ['US','EU'])) {
+            return false;
+        }
+    } else {
+        $region = null;
+    }
+
+    if (!in_array($direction, ['Under','Over'])) {
+        return false;
+    }
+
+    $quantity = intval($quantity, 10);
+    if ($quantity < 0) {
+        $quantity = null;
+    }
+    $price = intval($price, 10);
+    if ($price < 0) {
+        $price = null;
+    }
+    if (!is_null($quantity)) {
+        if (is_null($price)) {
+            // qty available query
+            if ($quantity == 0 && $direction == 'Under') {
+                // qty never under 0
+                return false;
+            }
+        } else {
+            // cost to buy $quantity is $direction $price
+            if ($price == 0 && $direction == 'Under') {
+                // price never under 0
+                return false;
+            }
+        }
+    } else {
+        // market price queries
+        if (is_null($price)) {
+            // both qty and price null
+            return false;
+        }
+        if ($price == 0 && $direction == 'Under') {
+            // price never under 0
+            return false;
+        }
+    }
+
+    $db = DBConnect();
+    $db->begin_transaction();
+
+    $stmt = $db->prepare('select count(*) from tblUserWatch where user = ? and '.$type.' = ? and deleted is null for update');
+    $stmt->bind_param('ii', $userId, $item);
+    $stmt->execute();
+    $cnt = 0;
+    $stmt->bind_result($cnt);
+    $stmt->fetch();
+    $stmt->close();
+
+    if ($cnt > SUBSCRIPTION_WATCH_LIMIT_PER) {
+        $db->rollback();
+        return false;
+    }
+
+    $stmt = $db->prepare('insert into tblUserWatch (user, region, house, '.$type.', '.$subType.', direction, quantity, price, created) values (?,?,?,?,?,?,?,?,NOW())');
+    $stmt->bind_param('isiiisii', $userId, $region, $house, $item, $bonusSet, $direction, $quantity, $price);
+    $stmt->execute();
+    $stmt->close();
+    $cnt = $db->affected_rows;
+    $db->commit();
+
+    if ($cnt == 0) {
+        return false;
+    }
+
+    $cacheKeyPrefix = defined('SUBSCRIPTION_' . strtoupper($type) . '_CACHEKEY') ?
+        constant('SUBSCRIPTION_' . strtoupper($type) . '_CACHEKEY') :
+        'subunknown_'.substr($type, 0, 20);
+
+    $cacheKey = $cacheKeyPrefix . $userId . '_' . $item;
+    MCDelete($cacheKey);
+
+    return ['status' => 'success'];
+}
+
+function DeleteWatch($loginState, $watch)
+{
+    $userId = $loginState['id'];
+    $watch = intval($watch, 10);
+
+    $db = DBConnect();
+    $stmt = $db->prepare('SELECT id, item, species, unix_timestamp(created) created FROM tblUserWatch WHERE user=? and id=?');
+    $stmt->bind_param('ii', $userId, $watch);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $result->close();
+    $stmt->close();
+
+    if (!$row) {
+        return false;
+    }
+
+    $sql = 'update tblUserWatch set deleted=now() where id=?';
+    if ($row['created'] > (time() - 15 * 60)) {
+        $sql = 'delete from tblUserWatch where id=?';
+    }
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('i', $watch);
+    $stmt->execute();
+    $stmt->close();
+
+    $cnt = $db->affected_rows;
+    if ($cnt == 0) {
+        return false;
+    }
+
+    if (isset($row['item'])) {
+        MCDelete(SUBSCRIPTION_ITEM_CACHEKEY . $userId . '_' . $row['item']);
+    }
+    if (isset($row['species'])) {
+        MCDelete(SUBSCRIPTION_SPECIES_CACHEKEY . $userId . '_' . $row['species']);
+    }
+
+    return ['status' => 'success'];
 }
