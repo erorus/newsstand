@@ -378,6 +378,13 @@
     "setAddress": "Set Address",
     "emailVerification": "Verification Code",
     "verifyAddress": "Verify Address",
+    "marketNotifications": "Market Notifications",
+    "marketNotificationsDesc": "Tell us here how you want to be notified when the market changes.",
+    "notifyMeWhen": "Notify me when: ",
+    "priceToBuy": "Price to Buy #",
+    "under": "Under",
+    "over": "Over",
+    "add": "Add",
 
     "logIn": "Log in",
     "logOut": "Log out"

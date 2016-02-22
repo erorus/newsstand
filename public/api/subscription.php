@@ -57,13 +57,27 @@ if (isset($_POST['getspecies'])) {
 }
 
 if (isset($_POST['setwatch']) && isset($_POST['id'])) {
-    json_return(SetWatch($loginState, $_POST['setwatch'], $_POST['id'],
-            isset($_POST['subid']) ? $_POST['subid'] : -1,
-            isset($_POST['region']) ? $_POST['region'] : '',
-            isset($_POST['house']) ? $_POST['house'] : 0,
-            isset($_POST['direction']) ? $_POST['direction'] : '',
-            isset($_POST['quantity']) ? $_POST['quantity'] : 0,
-            isset($_POST['price']) ? $_POST['price'] : 0));
+    $result = SetWatch($loginState,
+        $_POST['setwatch'],
+        $_POST['id'],
+        isset($_POST['subid']) ? $_POST['subid'] : -1,
+        isset($_POST['region']) ? $_POST['region'] : '',
+        isset($_POST['house']) ? $_POST['house'] : 0,
+        isset($_POST['direction']) ? $_POST['direction'] : '',
+        isset($_POST['quantity']) ? $_POST['quantity'] : 0,
+        isset($_POST['price']) ? $_POST['price'] : 0);
+    if (!$result) {
+        json_return(false);
+    }
+    switch ($_POST['setwatch']) {
+        case 'item':
+            json_return(GetItemWatch($loginState, $_POST['id']));
+            break;
+        case 'species':
+            json_return(GetSpeciesWatch($loginState, $_POST['id']));
+            break;
+    }
+    json_return([]);
 }
 
 if (isset($_POST['deletewatch'])) {
@@ -642,7 +656,7 @@ function SetWatch($loginState, $type, $item, $bonusSet, $region, $house, $direct
     $cacheKey = $cacheKeyPrefix . $userId . '_' . $item;
     MCDelete($cacheKey);
 
-    return ['status' => 'success'];
+    return true;
 }
 
 function DeleteWatch($loginState, $watch)
