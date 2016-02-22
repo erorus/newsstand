@@ -81,7 +81,19 @@ if (isset($_POST['setwatch']) && isset($_POST['id'])) {
 }
 
 if (isset($_POST['deletewatch'])) {
-    json_return(DeleteWatch($loginState, $_POST['deletewatch']));
+    $result = DeleteWatch($loginState, $_POST['deletewatch']);
+    if ($result === false) {
+        json_return(false);
+    }
+    switch ($result['type']) {
+        case 'item':
+            json_return(GetItemWatch($loginState, $result['id']));
+            break;
+        case 'species':
+            json_return(GetSpeciesWatch($loginState, $result['id']));
+            break;
+    }
+    json_return([]);
 }
 
 json_return([]);
@@ -533,7 +545,7 @@ function GetWatch($loginState, $type, $id)
     $json = [];
     $id = intval($id, 10);
     if (!$id) {
-        return $json;
+        return ['maximum' => SUBSCRIPTION_WATCH_LIMIT_PER, 'watches' => $json];
     }
 
     $cacheKeyPrefix = defined('SUBSCRIPTION_' . strtoupper($type) . '_CACHEKEY') ?
@@ -543,7 +555,7 @@ function GetWatch($loginState, $type, $id)
     $cacheKey = $cacheKeyPrefix . $userId . '_' . $id;
     $json = MCGet($cacheKey);
     if ($json !== false) {
-        return $json;
+        return ['maximum' => SUBSCRIPTION_WATCH_LIMIT_PER, 'watches' => $json];
     }
 
     $db = DBConnect();
@@ -556,7 +568,7 @@ function GetWatch($loginState, $type, $id)
 
     MCSet($cacheKey, $json);
 
-    return $json;
+    return ['maximum' => SUBSCRIPTION_WATCH_LIMIT_PER, 'watches' => $json];
 }
 
 function SetWatch($loginState, $type, $item, $bonusSet, $region, $house, $direction, $quantity, $price)
@@ -580,6 +592,7 @@ function SetWatch($loginState, $type, $item, $bonusSet, $region, $house, $direct
         if (!in_array($region, ['US','EU'])) {
             return false;
         }
+        $house = null;
     } else {
         $region = null;
     }
@@ -616,7 +629,7 @@ function SetWatch($loginState, $type, $item, $bonusSet, $region, $house, $direct
             // both qty and price null
             return false;
         }
-        if ($price == 0 && $direction == 'Under') {
+        if ($price <= 0) {
             // price never under 0
             return false;
         }
@@ -625,8 +638,8 @@ function SetWatch($loginState, $type, $item, $bonusSet, $region, $house, $direct
     $db = DBConnect();
     $db->begin_transaction();
 
-    $stmt = $db->prepare('select count(*) from tblUserWatch where user = ? and '.$type.' = ? and deleted is null for update');
-    $stmt->bind_param('ii', $userId, $item);
+    $stmt = $db->prepare('select count(*) from tblUserWatch where user = ? and '.$type.' = ? and ifnull('.$subType.',0) = ifnull(?,0) and deleted is null for update');
+    $stmt->bind_param('iii', $userId, $item, $bonusSet);
     $stmt->execute();
     $cnt = 0;
     $stmt->bind_result($cnt);
@@ -691,12 +704,15 @@ function DeleteWatch($loginState, $watch)
         return false;
     }
 
+    $tr = true;
     if (isset($row['item'])) {
         MCDelete(SUBSCRIPTION_ITEM_CACHEKEY . $userId . '_' . $row['item']);
+        $tr = ['type' => 'item', 'id' => $row['item']];
     }
     if (isset($row['species'])) {
         MCDelete(SUBSCRIPTION_SPECIES_CACHEKEY . $userId . '_' . $row['species']);
+        $tr = ['type' => 'species', 'id' => $row['species']];
     }
 
-    return ['status' => 'success'];
+    return $tr;
 }

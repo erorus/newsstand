@@ -319,7 +319,7 @@ var TUJ_Item = function ()
             cht.className = 'notifications-insert';
             d.appendChild(cht);
             itemPage.append(d);
-            GetItemNotificationsList(itemId, bonusSet, d);
+            GetItemNotificationsList(itemId, bonusSets.length > 1 ? bonusSet : -1, d);
         }
 
         if (dta.auctions.hasOwnProperty(bonusSet) && dta.auctions[bonusSet].length) {
@@ -683,7 +683,7 @@ var TUJ_Item = function ()
     {
         var self = this;
         $.ajax({
-            data: {'getItem': itemId},
+            data: {'getitem': itemId},
             type: 'POST',
             success: ItemNotificationsList.bind(self, itemId, bonusSet, mainDiv),
             url: 'api/subscription.php'
@@ -696,7 +696,62 @@ var TUJ_Item = function ()
         dest.empty();
         dest = dest[0];
 
+        var ids = [];
+        for (var k in dta.watches) {
+            if (dta.watches.hasOwnProperty(k)) {
+                if (bonusSet == -1 || dta.watches[k].bonusset === null || bonusSet == dta.watches[k].bonusset) {
+                    ids.push(k);
+                }
+            }
+        }
+        if (ids.length) {
+            // show current notifications
+            var ul = libtuj.ce('ul');
+            dest.appendChild(ul);
+
+            for (var kx = 0, k; k = ids[kx]; kx++) {
+                var li = libtuj.ce('li');
+                ul.appendChild(li);
+
+                var n = dta.watches[k];
+
+                var btn = libtuj.ce('input');
+                btn.type = 'button';
+                btn.value = tuj.lang.delete;
+                $(btn).on('click', ItemNotificationsDel.bind(btn, mainDiv, itemId, bonusSet, n.id));
+                li.appendChild(btn);
+
+                if (n.house) {
+                    li.appendChild(document.createTextNode(libtuj.GetRealmsForHouse(n.house) + ': '));
+                } else if (n.region) {
+                    li.appendChild(document.createTextNode(tuj.lang['realms' + n.region] + ': '));
+                }
+                if (n.price === null) {
+                    li.appendChild(document.createTextNode(tuj.lang.availableQuantity + ' '));
+                } else {
+                    if (n.quantity === null) {
+                        li.appendChild(document.createTextNode(tuj.lang.marketPrice + ' '));
+                    } else {
+                        li.appendChild(document.createTextNode(tuj.lang.priceToBuy + ' ' + n.quantity + ' '));
+                    }
+                }
+                li.appendChild(document.createTextNode((n.direction == 'Over' ? tuj.lang.over : tuj.lang.under) + ' '));
+                if (n.price === null) {
+                    li.appendChild(document.createTextNode(n.quantity));
+                } else {
+                    li.appendChild(libtuj.FormatPrice(n.price));
+                }
+            }
+        }
+
+        if (ids.length >= dta.maximum) {
+            $(mainDiv).show();
+            return;
+        }
+
+        // add new notifications
         var newNotif = libtuj.ce('div');
+        newNotif.className = 'notifications-add';
         dest.appendChild(newNotif);
 
         newNotif.appendChild(document.createTextNode(tuj.lang.notifyMeWhen));
@@ -745,12 +800,14 @@ var TUJ_Item = function ()
         d.appendChild(underOver);
 
         var qty = libtuj.ce('input');
+        qty.className = 'input-quantity';
         qty.type = 'number';
         qty.min = 0;
         qty.max = 65000;
         qty.value = 0;
         qty.maxLength = 5;
         qty.size = "8";
+        qty.autocomplete = 'off';
         d.appendChild(qty);
 
         var btn = libtuj.ce('input');
@@ -779,15 +836,20 @@ var TUJ_Item = function ()
         d.appendChild(underOver);
 
         var price = libtuj.ce('input');
+        price.className = 'input-price';
         price.type = 'number';
         price.min = 0;
         price.max = 999999;
         price.value = 0;
         price.maxLength = 6;
         price.size = "10";
+        price.autocomplete = 'off';
         d.appendChild(price);
 
-        d.appendChild(document.createTextNode(tuj.lang.suffixGold));
+        var s = libtuj.ce('span');
+        s.className = 'input-price-unit';
+        s.appendChild(document.createTextNode(tuj.lang.suffixGold));
+        d.appendChild(s);
 
         var btn = libtuj.ce('input');
         btn.type = 'button';
@@ -802,12 +864,14 @@ var TUJ_Item = function ()
         newNotif.appendChild(d);
 
         var qty = libtuj.ce('input');
+        qty.className = 'input-quantity';
         qty.type = 'number';
         qty.min = 0;
         qty.max = 65000;
         qty.value = 0;
         qty.maxLength = 5;
         qty.size = "8";
+        qty.autocomplete = 'off';
         d.appendChild(qty);
 
         var underOver = libtuj.ce('select');
@@ -824,15 +888,20 @@ var TUJ_Item = function ()
         d.appendChild(underOver);
 
         var price = libtuj.ce('input');
+        price.className = 'input-price';
         price.type = 'number';
         price.min = 0;
         price.max = 999999;
         price.value = 0;
         price.maxLength = 6;
         price.size = "10";
+        price.autocomplete = 'off';
         d.appendChild(price);
 
-        d.appendChild(document.createTextNode(tuj.lang.suffixGold));
+        var s = libtuj.ce('span');
+        s.className = 'input-price-unit';
+        s.appendChild(document.createTextNode(tuj.lang.suffixGold));
+        d.appendChild(s);
 
         var btn = libtuj.ce('input');
         btn.type = 'button';
@@ -861,11 +930,51 @@ var TUJ_Item = function ()
             'house': regionBox.options[regionBox.selectedIndex].value == 'house' ? tuj.realms[params.realm].house : '',
             'direction': directionBox.options[directionBox.selectedIndex].value,
             'quantity': qtyBox ? parseInt(qtyBox.value, 10) : -1,
-            'price': priceBox ? parseInt(parseFloat(priceBox.value, 10) * 10000, 10) : -1,
+            'price': priceBox ? parseInt(parseFloat(priceBox.value, 10) * 10000, 10) : -1
         };
+        if (o.quantity < 0) {
+            o.quantity = -1;
+        }
+        if (o.price < 0) {
+            o.price = -1;
+        }
+
+        if (o.quantity >= 0) {
+            if (o.price < 0) {
+                // qty available query
+                if (o.quantity == 0 && o.direction == 'Under') {
+                    // qty never under 0
+                    alert(tuj.lang.quantityUnderZero);
+                    return;
+                }
+            } else {
+                // cost to buy $quantity is $direction $price
+                if (o.price == 0) {
+                    alert(tuj.lang.priceAboveZero);
+                    return;
+                }
+            }
+        } else {
+            // market price queries
+            if (o.price <= 0) {
+                alert(tuj.lang.priceAboveZero);
+                return;
+            }
+        }
 
         $.ajax({
             data: o,
+            type: 'POST',
+            success: ItemNotificationsList.bind(self, itemId, bonusSet, mainDiv),
+            url: 'api/subscription.php'
+        });
+    }
+
+    function ItemNotificationsDel(mainDiv, itemId, bonusSet, id)
+    {
+        var self = this;
+        $.ajax({
+            data: {'deletewatch': id},
             type: 'POST',
             success: ItemNotificationsList.bind(self, itemId, bonusSet, mainDiv),
             url: 'api/subscription.php'

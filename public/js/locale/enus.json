@@ -381,10 +381,13 @@
     "marketNotifications": "Market Notifications",
     "marketNotificationsDesc": "Tell us here how you want to be notified when the market changes.",
     "notifyMeWhen": "Notify me when: ",
-    "priceToBuy": "Price to Buy #",
+    "priceToBuy": "Price to Buy",
     "under": "Under",
     "over": "Over",
     "add": "Add",
+    "delete": "Delete",
+    "quantityUnderZero": "Quantity is never under zero.",
+    "priceAboveZero": "Price is always above zero.",
 
     "logIn": "Log in",
     "logOut": "Log out"

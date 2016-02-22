@@ -81,7 +81,7 @@ abbr:hover.full-date { border-bottom: 1px dotted }
 #realm-list.width-test .realms-column {display: inline-block}
 .realms-column a {display: block; margin: 0.2em 0}
 
-#front-page, #contact-page, #progress-page, #donate-page, #region-page { display: none }
+#front-page, #contact-page, #progress-page, #donate-page, #region-page, #subscription-page { display: none }
 
 #front-page {position: relative; padding-right: 2em}
 #front-page a {text-decoration: underline}
@@ -232,3 +232,16 @@ table.category-fish .price {border-left: 1px solid #CCC}
 #subscription-email { text-align: center }
 #subscription-email-verification { margin: 10px auto; display: none }
 #subscription-email.verify #subscription-email-verification { display: block }
+
+.notifications-insert { margin: 1em 0 }
+.notifications-insert ul { margin: 1em 0 }
+.notifications-insert ul li { list-style-type: none }
+.notifications-insert ul li input { margin-right: 1em }
+
+.notifications-add { margin: 1em 0 }
+.notifications-add input, .notifications-add select { margin-left: 0.5em }
+input.input-quantity { width: 5em; text-align: right }
+input.input-price { width: 6em; text-align: right; -moz-appearance:textfield }
+input.input-price::-webkit-outer-spin-button, input.input-price::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.notifications-add input.input-price { padding-right: 1em }
+.notifications-add .input-price-unit { position: relative; left: -1em; margin-right: -0.75em }
