@@ -116,13 +116,13 @@ ENDSQL;
     $modified = ceil(intval($fileInfo['lastModified'], 10) / 1000);
     if ($modified <= strtotime($lastDate)) {
         $delay = GetCheckDelay($modified);
-        DebugMessage("$region $slug still not updated since ".Date('H:m:s', $modified)." (" . (time() - $modified) . " seconds ago). Waiting $delay seconds.");
+        DebugMessage("$region $slug still not updated since $modified ".Date('H:i:s', $modified)." (" . (time() - $modified) . " seconds ago). Waiting $delay seconds.");
         SetHouseNextCheck($house, time() + $delay, $json);
 
         return 0;
     }
 
-    DebugMessage("$region $slug updated ".Date('H:m:s', $modified)." (" . (time() - $modified) . " seconds ago), fetching auction data file");
+    DebugMessage("$region $slug updated $modified ".Date('H:i:s', $modified)." (" . (time() - $modified) . " seconds ago), fetching auction data file");
     $dlStart = microtime(true);
     $data = FetchHTTP(preg_replace('/^http:/', 'https:', $fileInfo['url']), array(), $outHeaders);
     $dlDuration = microtime(true) - $dlStart;
