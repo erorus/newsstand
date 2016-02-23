@@ -251,8 +251,10 @@ function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
 function FetchHTTPError($errno, $errstr, $errfile, $errline, $errcontext)
 {
     global $fetchHTTPErrorCaught;
+    if (!$fetchHTTPErrorCaught) {
+        DebugMessage("HTTP Error: $errno $errstr", E_USER_WARNING);
+    }
     $fetchHTTPErrorCaught = true;
-    DebugMessage("HTTP Error: $errno $errstr $errfile $errline $errcontext");
     return true;
 }
 
