@@ -104,7 +104,6 @@ ENDSQL;
     if (!isset($dta['files'])) {
         $delay = GetCheckDelay(strtotime($lastDate));
         DebugMessage("$region $slug returned no files. Waiting ".SecondsOrMinutes($delay).".", E_USER_WARNING);
-        DebugMessage(print_r($outHeaders, true));
         SetHouseNextCheck($house, time() + $delay, $json);
         http_persistent_handles_clean();
         return 0;

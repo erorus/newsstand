@@ -252,6 +252,7 @@ function FetchHTTPError($errno, $errstr, $errfile, $errline, $errcontext)
 {
     global $fetchHTTPErrorCaught;
     $fetchHTTPErrorCaught = true;
+    DebugMessage("HTTP Error: $errno $errstr $errfile $errline $errcontext");
     return true;
 }
 
