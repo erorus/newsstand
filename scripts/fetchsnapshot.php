@@ -104,6 +104,7 @@ ENDSQL;
         $delay = GetCheckDelay(strtotime($lastDate));
         DebugMessage("$region $slug returned no files. Waiting " . floor($delay / 60) . " minutes.", E_USER_WARNING);
         SetHouseNextCheck($house, time() + $delay, $json);
+        http_persistent_handles_clean();
         return 0;
     }
 
