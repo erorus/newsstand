@@ -80,11 +80,11 @@ ENDSQL;
 
     if (strtotime($nextDate) > time() && (strtotime($nextDate) < (time() + 3.5 * 60 * 60))) {
         $delay = strtotime($nextDate) - time();
-        DebugMessage("No $region realms ready yet, waiting $delay seconds.");
+        DebugMessage("No $region realms ready yet, waiting ".SecondsOrMinutes($delay).".");
         return $delay;
     }
 
-    DebugMessage("$region $slug fetch for house $house to update $realmCount realms, due since " . (is_null($nextDate) ? 'unknown' : ((time() - strtotime($nextDate)).' seconds ago')));
+    DebugMessage("$region $slug fetch for house $house to update $realmCount realms, due since " . (is_null($nextDate) ? 'unknown' : (SecondsOrMinutes(time() - strtotime($nextDate)).' ago')));
 
     $url = GetBattleNetURL($region, "wow/auction/data/$slug");
 
@@ -103,7 +103,7 @@ ENDSQL;
     }
     if (!isset($dta['files'])) {
         $delay = GetCheckDelay(strtotime($lastDate));
-        DebugMessage("$region $slug returned no files. Waiting $delay seconds.", E_USER_WARNING);
+        DebugMessage("$region $slug returned no files. Waiting ".SecondsOrMinutes($delay).".", E_USER_WARNING);
         DebugMessage(print_r($outHeaders, true));
         SetHouseNextCheck($house, time() + $delay, $json);
         http_persistent_handles_clean();
@@ -116,13 +116,13 @@ ENDSQL;
     $modified = ceil(intval($fileInfo['lastModified'], 10) / 1000);
     if ($modified <= strtotime($lastDate)) {
         $delay = GetCheckDelay($modified);
-        DebugMessage("$region $slug still not updated since $modified ".Date('H:i:s', $modified)." (" . (time() - $modified) . " seconds ago). Waiting $delay seconds.");
+        DebugMessage("$region $slug still not updated since $modified ".Date('H:i:s', $modified)." (" . SecondsOrMinutes(time() - $modified) . " ago). Waiting ".SecondsOrMinutes($delay).".");
         SetHouseNextCheck($house, time() + $delay, $json);
 
         return 0;
     }
 
-    DebugMessage("$region $slug updated $modified ".Date('H:i:s', $modified)." (" . (time() - $modified) . " seconds ago), fetching auction data file");
+    DebugMessage("$region $slug updated $modified ".Date('H:i:s', $modified)." (" . SecondsOrMinutes(time() - $modified) . " ago), fetching auction data file");
     $dlStart = microtime(true);
     $data = FetchHTTP(preg_replace('/^http:/', 'https:', $fileInfo['url']), array(), $outHeaders);
     $dlDuration = microtime(true) - $dlStart;
@@ -147,7 +147,7 @@ ENDSQL;
     }
     if (substr($data, -4) != "]\r\n}") {
         $delay = GetCheckDelay($modified);
-        DebugMessage("$region $slug data file still probably malformed. Waiting $delay seconds.");
+        DebugMessage("$region $slug data file still probably malformed. Waiting ".SecondsOrMinutes($delay).".");
         SetHouseNextCheck($house, time() + $delay, $json);
 
         return 0;
@@ -179,6 +179,13 @@ ENDSQL;
     file_put_contents(SNAPSHOT_PATH . "$modified-" . str_pad($house, 5, '0', STR_PAD_LEFT) . ".json", $data, LOCK_EX);
 
     return 0;
+}
+
+function SecondsOrMinutes($sec) {
+    if ($sec >= 180) {
+        return round($sec/60,1).' minutes';
+    }
+    return "$sec seconds";
 }
 
 function GetCheckDelay($modified)
