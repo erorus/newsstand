@@ -239,24 +239,6 @@ var TUJ_Item = function ()
                 itemPage.append(d);
                 ItemQuantityHeatMap(dta, cht);
             }
-
-            doHeatMap = false;
-            for (var x = 0; !doHeatMap && (x < dta.history[bonusSet].length); x++) {
-                doHeatMap |= dta.history[bonusSet][x].age != 255;
-            }
-            if (doHeatMap) {
-                d = libtuj.ce();
-                d.className = 'chart-section';
-                h = libtuj.ce('h2');
-                d.appendChild(h);
-                $(h).text(tuj.lang.ageHeatMap);
-                d.appendChild(document.createTextNode(tuj.lang.ageHeatMapDesc));
-                cht = libtuj.ce();
-                cht.className = 'chart heatmap';
-                d.appendChild(cht);
-                itemPage.append(d);
-                ItemAgeHeatMap(dta, cht);
-            }
         }
 
         itemPage.append(libtuj.Ads.Add('3753400314'));
@@ -409,12 +391,11 @@ var TUJ_Item = function ()
             td.appendChild(libtuj.FormatPrice(data.stats[bonusSet].price * stack));
         }
 
-        var prices = [], ages = [], x;
+        var prices = [], x;
 
         if (data.history.hasOwnProperty(bonusSet) && data.history[bonusSet].length > 8) {
             for (x = 0; x < data.history[bonusSet].length; x++) {
                 prices.push(data.history[bonusSet][x].price);
-                ages.push(data.history[bonusSet][x].age);
             }
         }
 
@@ -498,39 +479,6 @@ var TUJ_Item = function ()
                     td.appendChild(libtuj.FormatPrice(data.stats[bonusSet].reagentprice * stack));
                 }
             }
-            tr = libtuj.ce('tr');
-            t.appendChild(tr);
-            tr.className = 'spacer';
-            td = libtuj.ce('td');
-            td.colSpan = spacerColSpan;
-            tr.appendChild(td);
-
-            tr = libtuj.ce('tr');
-            t.appendChild(tr);
-            tr.className = 'mean-age';
-            td = libtuj.ce('th');
-            tr.appendChild(td);
-            td.appendChild(document.createTextNode(tuj.lang.typicalAuctionAge));
-            td = libtuj.ce('td');
-            tr.appendChild(td);
-            td.colSpan = stack ? 2 : 1;
-            td.appendChild(libtuj.FormatAge(libtuj.Mean(ages)));
-
-            ages.sort(function (a, b)
-            {
-                return a - b;
-            });
-
-            tr = libtuj.ce('tr');
-            t.appendChild(tr);
-            tr.className = 'max-age';
-            td = libtuj.ce('th');
-            tr.appendChild(td);
-            td.appendChild(document.createTextNode(tuj.lang.maxAuctionAge));
-            td = libtuj.ce('td');
-            tr.appendChild(td);
-            td.colSpan = stack ? 2 : 1;
-            td.appendChild(libtuj.FormatAge(ages[ages.length - 1]));
         }
 
         if (data.globalnow.hasOwnProperty(bonusSet) && data.globalnow[bonusSet].length) {
@@ -1745,130 +1693,6 @@ var TUJ_Item = function ()
                         formatter: function ()
                         {
                             return '' + libtuj.FormatQuantity(this.point.value, true);
-                        }
-                    }
-                }
-            ]
-
-        });
-    }
-
-    function ItemAgeHeatMap(data, dest)
-    {
-        var hcdata = {minVal: undefined, maxVal: 0, days: {}, heat: [], categories: {
-            x: tuj.lang.heatMapTimes,
-            y: tuj.lang.heatMapDays
-        }};
-
-        var CalcAvg = function (a)
-        {
-            if (a.length == 0) {
-                return null;
-            }
-            var s = 0;
-            for (var x = 0; x < a.length; x++) {
-                s += a[x];
-            }
-            return s / a.length;
-        }
-
-        var d, wkdy, hr, lastqty;
-        for (wkdy = 0; wkdy <= 6; wkdy++) {
-            hcdata.days[wkdy] = {};
-            for (hr = 0; hr <= 7; hr++) {
-                hcdata.days[wkdy][hr] = [];
-            }
-        }
-
-        for (var x = 0; x < data.history[bonusSet].length; x++) {
-            if (typeof lastqty == 'undefined') {
-                lastqty = data.history[bonusSet][x].quantity;
-            }
-
-            var d = new Date(data.history[bonusSet][x].snapshot * 1000);
-            wkdy = 6 - d.getDay();
-            hr = Math.floor(d.getHours() / 3);
-            hcdata.days[wkdy][hr].push(data.history[bonusSet][x].age);
-        }
-
-        var p;
-        for (wkdy = 0; wkdy <= 6; wkdy++) {
-            for (hr = 0; hr <= 7; hr++) {
-                if (hcdata.days[wkdy][hr].length == 0) {
-                    p = lastqty;
-                }
-                else {
-                    p = Math.round(CalcAvg(hcdata.days[wkdy][hr]));
-                }
-
-                lastqty = p;
-                hcdata.heat.push([hr, wkdy, p]);
-                hcdata.minVal = (typeof hcdata.minVal == 'undefined' || hcdata.minVal > p) ? p : hcdata.minVal;
-                hcdata.maxVal = hcdata.maxVal < p ? p : hcdata.maxVal;
-            }
-        }
-
-        $(dest).highcharts({
-
-            chart: {
-                type: 'heatmap',
-                backgroundColor: tujConstants.siteColors[tuj.colorTheme].background
-            },
-
-            title: {
-                text: null
-            },
-
-            xAxis: {
-                categories: hcdata.categories.x,
-                labels: {
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].text
-                    }
-                }
-            },
-
-            yAxis: {
-                categories: hcdata.categories.y,
-                title: null,
-                labels: {
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].text
-                    }
-                }
-            },
-
-            colorAxis: {
-                min: hcdata.minVal,
-                max: hcdata.maxVal,
-                minColor: tujConstants.siteColors[tuj.colorTheme].background,
-                maxColor: tujConstants.siteColors[tuj.colorTheme].greenPriceBackground
-            },
-
-            legend: {
-                enabled: false
-            },
-
-            tooltip: {
-                enabled: false
-            },
-
-            series: [
-                {
-                    name: tuj.lang.age,
-                    borderWidth: 1,
-                    borderColor: tujConstants.siteColors[tuj.colorTheme].background,
-                    data: hcdata.heat,
-                    dataLabels: {
-                        enabled: true,
-                        color: tujConstants.siteColors[tuj.colorTheme].data,
-                        style: {
-                            textShadow: 'none',
-                            HcTextStroke: null
-                        },
-                        formatter: function ()
-                        {
-                            return '' + libtuj.FormatAge(this.point.value, true);
                         }
                     }
                 }

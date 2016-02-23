@@ -1635,7 +1635,7 @@ ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
 $bonusNames,
 $bonusTags
 from (
-    select i.id, $localizedItemNames, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice, s.age, round(avg(h.age)) avgage,
+    select i.id, $localizedItemNames, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice,
     ifnull(s.bonusset,0) bonusset, i.level, i.basebonus `basebonus` $cols
     from tblDBCItem i
     left join tblItemSummary s on s.house=? and s.item=i.id
