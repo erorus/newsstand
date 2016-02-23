@@ -192,10 +192,7 @@ function GetCheckDelay($modified)
     $now = time();
 
     $delayMinutes = 0.5;
-    if ($modified < ($now - 180)) { // over 3 minutes ago
-        $delayMinutes = 1;
-    }
-    if ($modified < ($now - 1200)) { // over 20 minutes ago
+    if ($modified < ($now - 4200)) { // over 70 minutes ago
         $delayMinutes = 2;
     }
     if ($modified < ($now - 10800)) { // over 3 hours ago
