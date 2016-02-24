@@ -173,7 +173,7 @@ var libtuj = {
         }
         return s;
     },
-    FormatDate: function (unix, justValue, stopAt)
+    FormatDate: function (unix, justValue, stopAt, noFormat)
     {
         var v = '', n, a;
         if (stopAt) {
@@ -191,7 +191,7 @@ var libtuj = {
 
             if (dt.getTime() > 978307200000) {
                 var diff = Math.floor((now.getTime() - dt.getTime()) / 1000);
-                var timeFormat = diff < 0 ? tuj.lang.timeFuture : tuj.lang.timePast;
+                var timeFormat = noFormat ? '{1}' : (diff < 0 ? tuj.lang.timeFuture : tuj.lang.timePast);
                 diff = Math.abs(diff);
 
                 if ((diff < 60) || (stopAt == 'second')) {
