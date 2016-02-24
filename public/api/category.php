@@ -129,7 +129,7 @@ function CategoryResult_deals($house)
                     'name'        => 'Dropped Rare and Epic Armor/Weapons',
                     'items'       => CategoryDealsItemList($house, 'i.class in (2,4) and i.quality > 2'),
                     'hiddenCols'  => ['lastseen' => true],
-                    'visibleCols' => ['globalmedian' => true],
+                    'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
                 ]
             ],
@@ -139,7 +139,7 @@ function CategoryResult_deals($house)
                     'name'        => 'Dropped Uncommon Armor/Weapons',
                     'items'       => CategoryDealsItemList($house, 'i.class in (2,4) and i.quality = 2'),
                     'hiddenCols'  => ['lastseen' => true],
-                    'visibleCols' => ['globalmedian' => true],
+                    'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
                 ]
             ],
@@ -149,7 +149,7 @@ function CategoryResult_deals($house)
                     'name'        => 'Crafted Armor/Weapons',
                     'items'       => CategoryDealsItemList($house, 'i.class in (2,4)', -1),
                     'hiddenCols'  => ['lastseen' => true],
-                    'visibleCols' => ['globalmedian' => true],
+                    'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
                 ]
             ],
@@ -159,7 +159,7 @@ function CategoryResult_deals($house)
                     'name'        => 'Armor/Weapons with Bonuses',
                     'items'       => CategoryDealsItemList($house, 'i.class in (2,4) and tis.bonusset != 0', 1),
                     'hiddenCols'  => ['lastseen' => true],
-                    'visibleCols' => ['globalmedian' => true],
+                    'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
                 ]
             ],
@@ -169,7 +169,7 @@ function CategoryResult_deals($house)
                     'name'        => 'Dropped Common/Junk Armor/Weapons',
                     'items'       => CategoryDealsItemList($house, 'i.class in (2,4) and i.quality < 2'),
                     'hiddenCols'  => ['lastseen' => true],
-                    'visibleCols' => ['globalmedian' => true],
+                    'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
                 ]
             ],
@@ -179,7 +179,7 @@ function CategoryResult_deals($house)
                     'name'        => 'Uncommon Recipes',
                     'items'       => CategoryDealsItemList($house, 'i.class = 9 and i.quality > 1'),
                     'hiddenCols'  => ['lastseen' => true],
-                    'visibleCols' => ['globalmedian' => true],
+                    'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
                 ]
             ],
@@ -189,7 +189,7 @@ function CategoryResult_deals($house)
                     'name'        => 'Common Recipes',
                     'items'       => CategoryDealsItemList($house, 'i.class = 9 and i.quality <= 1'),
                     'hiddenCols'  => ['lastseen' => true],
-                    'visibleCols' => ['globalmedian' => true],
+                    'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
                 ]
             ],
@@ -199,7 +199,7 @@ function CategoryResult_deals($house)
                     'name'        => 'Dropped Consumables',
                     'items'       => CategoryDealsItemList($house, 'i.class = 0'),
                     'hiddenCols'  => ['lastseen' => true],
-                    'visibleCols' => ['globalmedian' => true],
+                    'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
                 ]
             ],
@@ -209,7 +209,7 @@ function CategoryResult_deals($house)
                     'name'        => 'Trade Goods',
                     'items'       => CategoryDealsItemList($house, 'i.class = 7'),
                     'hiddenCols'  => ['lastseen' => true],
-                    'visibleCols' => ['globalmedian' => true],
+                    'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
                 ]
             ],
@@ -219,7 +219,7 @@ function CategoryResult_deals($house)
                     'name'        => 'Companion Deals',
                     'items'       => CategoryDealsItemList($house, 'i.class = 15 and i.subclass in (2,5)'),
                     'hiddenCols'  => ['lastseen' => true],
-                    'visibleCols' => ['globalmedian' => true],
+                    'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
                 ]
             ],
@@ -229,7 +229,7 @@ function CategoryResult_deals($house)
                     'name'        => 'Miscellaneous Items',
                     'items'       => CategoryDealsItemList($house, '(i.class in (12,13) or (i.class=15 and i.subclass not in (2,5)))'),
                     'hiddenCols'  => ['lastseen' => true],
-                    'visibleCols' => ['globalmedian' => true],
+                    'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
                 ]
             ],
@@ -1674,38 +1674,12 @@ function CategoryDealsItemList($house, $dealsSql, $allowCrafted = 0)
         -1 = crafted only
     */
 
-    $genArray = [
-        'cols' => 'g.median globalmedian', // , g.mean globalmean, g.stddev globalstddev
-    ];
-
     global $db, $canCache;
 
-    $key = 'category_did_' . md5($dealsSql) . '_' . $allowCrafted;
+    $key = 'category_di_' . md5($dealsSql) . '_' . $allowCrafted;
 
-    if ($canCache && (($tr = MCGetHouse($house, $key)) !== false)) {
-        if (count($tr) == 0) {
-            return [];
-        }
-
-        $sortBy = [];
-        $sql = '(';
-        foreach ($tr as $row) {
-            $sql .= (strlen($sql) == 1 ? '' : ' or ') . '(i.id = ' . $row['item'] . ' and s.bonusset = ' . $row['bonusset'] . ')';
-            $sortBy[] = $row['item'].':'.$row['bonusset'];
-        }
-        $sql .= ')';
-
-        $sortBy = array_flip($sortBy);
-
-        $tr = CategoryGenericItemList($house, array_merge($genArray, ['where' => $sql]));
-
-        usort(
-            $tr, function ($a, $b) use ($sortBy) {
-                return $sortBy[$a['id'].':'.$a['bonusset']] - $sortBy[$b['id'].':'.$b['bonusset']];
-            }
-        );
-
-        return $tr;
+    if ($canCache && (($iidList = MCGetHouse($house, $key)) !== false)) {
+        return CategoryDealsItemListCached($house, $iidList);
     }
 
     DBConnect();
@@ -1713,7 +1687,10 @@ function CategoryDealsItemList($house, $dealsSql, $allowCrafted = 0)
     $region = GetRegion($house);
 
     $fullSql = <<<EOF
-select aa.item, aa.bonusset
+select aa.item, aa.bonusset,
+    (select a.id from tblAuction a left join tblAuctionExtra ae on ae.house=a.house and ae.id = a.id
+    where a.buy > 0 and a.house=? and a.item=aa.item and ifnull(ae.bonusset,0) = aa.bonusset
+    order by a.buy/a.quantity limit 1) cheapestid
 from (
     select ac.item, ac.bonusset, ac.c_total, ac.c_over, ac.price, gs.median
     from (
@@ -1756,7 +1733,7 @@ EOF;
     if (!$stmt) {
         DebugMessage("Bad SQL: \n" . $fullSql, E_USER_ERROR);
     }
-    $stmt->bind_param('is', $house, $region);
+    $stmt->bind_param('iis', $house, $house, $region);
     $stmt->execute();
     $result = $stmt->get_result();
     $iidList = DBMapArray($result, null);
@@ -1764,15 +1741,29 @@ EOF;
 
     MCSetHouse($house, $key, $iidList);
 
+    return CategoryDealsItemListCached($house, $iidList);
+}
+
+function CategoryDealsItemListCached($house, $iidList)
+{
+    global $db;
+
     if (count($iidList) == 0) {
         return array();
     }
 
+    $genArray = [
+        'cols' => 'g.median globalmedian', // , g.mean globalmean, g.stddev globalstddev
+    ];
+
+    $auctionIds = [];
     $sortBy = [];
     $sql = '(';
     foreach ($iidList as $row) {
         $sql .= (strlen($sql) == 1 ? '' : ' or ') . '(i.id = ' . $row['item'] . ' and s.bonusset = ' . $row['bonusset'] . ')';
-        $sortBy[] = $row['item'].':'.$row['bonusset'];
+        $itemKey = $row['item'].':'.$row['bonusset'];
+        $sortBy[] = $itemKey;
+        $auctionIds[$itemKey] = $row['cheapestid'];
     }
     $sql .= ')';
 
@@ -1785,6 +1776,57 @@ EOF;
             return $sortBy[$a['id'].':'.$a['bonusset']] - $sortBy[$b['id'].':'.$b['bonusset']];
         }
     );
+
+    static $allRecentDates = [];
+    if (isset($allRecentDates[$house])) {
+        $recentDates = $allRecentDates[$house];
+    } else {
+        $recentDates = MCGetHouse($house, 'category_disnapshots');
+        if ($recentDates === false) {
+            $stmt = $db->prepare('SELECT unix_timestamp(updated) upd, maxid FROM `tblSnapshot` WHERE house=? and updated > timestampadd(hour, -60, now()) order by updated');
+            $stmt->bind_param('i', $house);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $recentDates = DBMapArray($result, null);
+            $stmt->close();
+
+            MCSetHouse($house, 'category_disnapshots', $recentDates);
+        }
+        $allRecentDates[$house] = $recentDates;
+    }
+
+    if (count($recentDates) < 2) {
+        return $tr;
+    }
+
+    $rolloverBump = 0;
+    if ($recentDates[count($recentDates) - 1]['maxid'] < $recentDates[0]['maxid']) {
+        $rolloverBump = 0x80000000;
+    }
+
+    foreach ($tr as &$row) {
+        $row['posted'] = null;
+        $itemKey = $row['id'].':'.$row['bonusset'];
+        if (!isset($auctionIds[$itemKey])) {
+            continue;
+        }
+        $myId = $auctionIds[$itemKey];
+        if ($myId < 0x20000000) {
+            $myId += $rolloverBump;
+        }
+        $x = count($recentDates) - 1;
+        do {
+            $maxId = $recentDates[$x]['maxid'];
+            if ($maxId < 0x20000000) {
+                $maxId += $rolloverBump;
+            }
+            if ($maxId < $myId) {
+                break;
+            }
+            $row['posted'] = $recentDates[$x]['upd'];
+        } while (--$x >= 0);
+    }
+    unset($row);
 
     return $tr;
 }

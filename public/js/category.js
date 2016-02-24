@@ -221,6 +221,14 @@ var TUJ_Category = function ()
             titleColSpan++;
         }
 
+        if (data.visibleCols.posted) {
+            td = libtuj.ce('th');
+            td.className = 'date';
+            tr.appendChild(td);
+            $(td).text(tuj.lang.age);
+            titleColSpan++;
+        }
+
         titleTd.colSpan = titleColSpan;
 
         switch (data['sort']) {
@@ -331,6 +339,13 @@ var TUJ_Category = function ()
                 td.className = 'date';
                 tr.appendChild(td);
                 td.appendChild(libtuj.FormatDate(item.lastseen));
+            }
+
+            if (data.visibleCols.posted) {
+                td = libtuj.ce('td');
+                td.className = 'date';
+                tr.appendChild(td);
+                td.appendChild(libtuj.FormatDate(item.posted));
             }
         }
 
