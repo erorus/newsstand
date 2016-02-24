@@ -345,7 +345,7 @@ var TUJ_Category = function ()
                 td = libtuj.ce('td');
                 td.className = 'date';
                 tr.appendChild(td);
-                td.appendChild(libtuj.FormatDate(item.posted, false, false, true));
+                td.appendChild(libtuj.FormatDate(item.posted, false, 'hour', true));
             }
         }
 
