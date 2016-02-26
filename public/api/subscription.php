@@ -29,6 +29,7 @@ if (isset($_POST['settings'])) {
     json_return([
         'email' => GetSubEmail($loginState),
         'messages' => GetSubMessages($loginState),
+        'watches' => GetWatches($loginState),
         ]);
 }
 
@@ -559,7 +560,7 @@ function GetWatch($loginState, $type, $id)
     }
 
     $db = DBConnect();
-    $stmt = $db->prepare('SELECT id, region, house, item, bonusset, species, breed, direction, quantity, price, unix_timestamp(observed) observed FROM tblUserWatch WHERE user=? and '.(($type == 'species') ? 'species' : 'item').'=? and deleted is null');
+    $stmt = $db->prepare('SELECT seq, region, house, item, bonusset, species, breed, direction, quantity, price, unix_timestamp(observed) observed FROM tblUserWatch WHERE user=? and '.(($type == 'species') ? 'species' : 'item').'=? and deleted is null');
     $stmt->bind_param('ii', $userId, $id);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -635,6 +636,14 @@ function SetWatch($loginState, $type, $item, $bonusSet, $region, $house, $direct
         }
     }
 
+    $loops = 0;
+    while (!MCAdd(SUBSCRIPTION_WATCH_CACHEKEY . "lock_$userId", 1, 15)) {
+        usleep(250000);
+        if ($loops++ >= 120) { // 30 seconds
+            return false;
+        }
+    }
+
     $db = DBConnect();
     $db->begin_transaction();
 
@@ -648,26 +657,52 @@ function SetWatch($loginState, $type, $item, $bonusSet, $region, $house, $direct
 
     if ($cnt > SUBSCRIPTION_WATCH_LIMIT_PER) {
         $db->rollback();
+        MCDelete(SUBSCRIPTION_WATCH_CACHEKEY . "lock_$userId");
         return false;
     }
 
-    $stmt = $db->prepare('insert into tblUserWatch (user, region, house, '.$type.', '.$subType.', direction, quantity, price, created) values (?,?,?,?,?,?,?,?,NOW())');
-    $stmt->bind_param('isiiisii', $userId, $region, $house, $item, $bonusSet, $direction, $quantity, $price);
+    $cnt = 0;
+    $stmt = $db->prepare('select count(*) from tblUserWatch where user = ? and deleted is null');
+    $stmt->bind_param('i', $userId);
+    $stmt->execute();
+    $stmt->bind_result($cnt);
+    $stmt->fetch();
+    $stmt->close();
+
+    if ($cnt > SUBSCRIPTION_WATCH_LIMIT_TOTAL) {
+        $db->rollback();
+        MCDelete(SUBSCRIPTION_WATCH_CACHEKEY . "lock_$userId");
+        return false;
+    }
+
+    $stmt = $db->prepare('update tblUser set watchsequence = last_insert_id(watchsequence+1) where id = ?');
+    $stmt->bind_param('i', $userId);
+    $stmt->execute();
+    $stmt->close();
+
+    $seq = $db->insert_id;
+
+    $stmt = $db->prepare('insert into tblUserWatch (user, seq, region, house, '.$type.', '.$subType.', direction, quantity, price, created) values (?,?,?,?,?,?,?,?,?,NOW())');
+    $stmt->bind_param('iisiiisii', $userId, $seq, $region, $house, $item, $bonusSet, $direction, $quantity, $price);
     $stmt->execute();
     $stmt->close();
     $cnt = $db->affected_rows;
-    $db->commit();
 
     if ($cnt == 0) {
+        $db->rollback();
+        MCDelete(SUBSCRIPTION_WATCH_CACHEKEY . "lock_$userId");
         return false;
     }
+
+    $db->commit();
+    MCDelete(SUBSCRIPTION_WATCH_CACHEKEY . "lock_$userId");
 
     $cacheKeyPrefix = defined('SUBSCRIPTION_' . strtoupper($type) . '_CACHEKEY') ?
         constant('SUBSCRIPTION_' . strtoupper($type) . '_CACHEKEY') :
         'subunknown_'.substr($type, 0, 20);
 
-    $cacheKey = $cacheKeyPrefix . $userId . '_' . $item;
-    MCDelete($cacheKey);
+    MCDelete($cacheKeyPrefix . $userId . '_' . $item);
+    MCDelete($cacheKeyPrefix . $userId);
 
     return true;
 }
@@ -678,7 +713,7 @@ function DeleteWatch($loginState, $watch)
     $watch = intval($watch, 10);
 
     $db = DBConnect();
-    $stmt = $db->prepare('SELECT id, item, species, unix_timestamp(created) created FROM tblUserWatch WHERE user=? and id=?');
+    $stmt = $db->prepare('SELECT item, species, unix_timestamp(created) created FROM tblUserWatch WHERE user=? and seq=?');
     $stmt->bind_param('ii', $userId, $watch);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -690,12 +725,12 @@ function DeleteWatch($loginState, $watch)
         return false;
     }
 
-    $sql = 'update tblUserWatch set deleted=now() where id=?';
+    $sql = 'update tblUserWatch set deleted=now() where user=? and seq=?';
     if ($row['created'] > (time() - 15 * 60)) {
-        $sql = 'delete from tblUserWatch where id=?';
+        $sql = 'delete from tblUserWatch where user=? and seq=?';
     }
     $stmt = $db->prepare($sql);
-    $stmt->bind_param('i', $watch);
+    $stmt->bind_param('ii', $userId, $watch);
     $stmt->execute();
     $stmt->close();
 
@@ -707,12 +742,69 @@ function DeleteWatch($loginState, $watch)
     $tr = true;
     if (isset($row['item'])) {
         MCDelete(SUBSCRIPTION_ITEM_CACHEKEY . $userId . '_' . $row['item']);
+        MCDelete(SUBSCRIPTION_ITEM_CACHEKEY . $userId);
         $tr = ['type' => 'item', 'id' => $row['item']];
     }
     if (isset($row['species'])) {
         MCDelete(SUBSCRIPTION_SPECIES_CACHEKEY . $userId . '_' . $row['species']);
+        MCDelete(SUBSCRIPTION_SPECIES_CACHEKEY . $userId);
         $tr = ['type' => 'species', 'id' => $row['species']];
     }
 
     return $tr;
 }
+
+function GetWatches($loginState)
+{
+    global $LANG_LEVEL;
+
+    $userId = $loginState['id'];
+
+    $cacheKey = SUBSCRIPTION_ITEM_CACHEKEY . $userId;
+    $items = MCGet($cacheKey);
+    if ($items === false) {
+        $itemNames = LocaleColumns('i.name');
+        $bonusTags = LocaleColumns('ifnull(group_concat(ib.`tag%1$s` order by ib.tagpriority separator \' \'), if(ifnull(bs.`set`,0)=0,\'\',concat(\'__LEVEL%1$s__ \', i.level+sum(ifnull(ib.level,0))))) bonustag%1$s', true);
+        $bonusTags = strtr($bonusTags, $LANG_LEVEL);
+
+        $sql = <<<EOF
+select uw.seq, uw.region, uw.house,
+    uw.item, uw.bonusset, ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
+    $itemNames, $bonusTags, i.icon, i.class, 
+    uw.direction, uw.quantity, uw.price, unix_timestamp(uw.observed) observed
+from tblUserWatch uw
+join tblDBCItem i on uw.item = i.id
+left join tblBonusSet bs on uw.bonusset = bs.`set`
+left join tblDBCItemBonus ib on ifnull(bs.bonus, i.basebonus) = ib.id
+where uw.user = ?
+and uw.deleted is null
+EOF;
+
+        $db = DBConnect();
+        $stmt = $db->prepare($sql);
+        echo $db->error;
+        $stmt->bind_param('i', $userId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $items = DBMapArray($result);
+        $stmt->close();
+
+        MCSet($cacheKey, $items);
+    }
+
+    $cacheKey = SUBSCRIPTION_SPECIES_CACHEKEY . $userId;
+    $battlePets = MCGet($cacheKey);
+    if ($battlePets === false) {
+        // TODO
+
+        $battlePets = [];
+        //MCSet($cacheKey, $battlePets);
+    }
+
+    $json = ['items' => $items, 'battlepets' => $battlePets];
+
+    MCSet($cacheKey, $json);
+
+    return $json;
+}
+

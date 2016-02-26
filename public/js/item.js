@@ -718,7 +718,7 @@ var TUJ_Item = function ()
                 var btn = libtuj.ce('input');
                 btn.type = 'button';
                 btn.value = tuj.lang.delete;
-                $(btn).on('click', ItemNotificationsDel.bind(btn, mainDiv, itemId, bonusSet, n.id));
+                $(btn).on('click', ItemNotificationsDel.bind(btn, mainDiv, itemId, bonusSet, n.seq));
                 li.appendChild(btn);
 
                 if (n.house) {

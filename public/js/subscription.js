@@ -62,6 +62,11 @@ var TUJ_Subscription = function ()
         settingsParent.append(settingsEmail);
         ShowEmail(settingsEmail);
 
+        var settingsWatches = libtuj.ce('div');
+        settingsWatches.id = 'subscription-watches';
+        settingsParent.append(settingsWatches);
+        ShowWatches(settingsWatches);
+
         settingsParent.show();
     }
 
@@ -188,6 +193,17 @@ var TUJ_Subscription = function ()
         } else {
             $('#subscription-email').removeClass('verify');
         }
+    }
+
+    function ShowWatches(container)
+    {
+        var watches = subData.watches;
+
+        if (!watches.length) {
+            return;
+        }
+
+        // TODO
     }
 
     function ShowMessages(container)
