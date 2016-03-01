@@ -11,7 +11,7 @@ RunMeNTimes(1);
 CatchKill();
 
 define('SNAPSHOT_PATH', '/var/newsstand/snapshots/');
-define('EARLY_CHECK_SECONDS', 90);
+define('EARLY_CHECK_SECONDS', 120);
 
 $regions = array('US', 'EU');
 
@@ -47,10 +47,10 @@ function FetchSnapshot()
     $earlyCheckSeconds = EARLY_CHECK_SECONDS;
 
     $nextRealmSql = <<<ENDSQL
-    select r.house, min(r.canonical), count(*) c, ifnull(hc.nextcheck, s.nextcheck) upd, s.lastupdate, if(hc.nextcheck is null, 1, 0)
+    select r.house, min(r.canonical), count(*) c, ifnull(hc.nextcheck, s.nextcheck) upd, s.lastupdate, s.mindelta
     from tblRealm r
     left join (
-        select deltas.house, timestampadd(second, least(ifnull(min(delta)-$earlyCheckSeconds, 45*60), 150*60), max(deltas.updated)) nextcheck, max(deltas.updated) lastupdate
+        select deltas.house, timestampadd(second, least(ifnull(min(delta)-$earlyCheckSeconds, 45*60), 150*60), max(deltas.updated)) nextcheck, max(deltas.updated) lastupdate, min(delta) mindelta
         from (
             select sn.updated,
             if(@prevhouse = sn.house and sn.updated > timestampadd(hour, -72, now()), unix_timestamp(sn.updated) - @prevdate, null) delta,
@@ -69,12 +69,12 @@ function FetchSnapshot()
     limit 1
 ENDSQL;
 
-    $house = $slug = $realmCount = $nextDate = $lastDate = $opportunistic = null;
+    $house = $slug = $realmCount = $nextDate = $lastDate = $minDelta = null;
 
     $stmt = $db->prepare($nextRealmSql);
     $stmt->bind_param('s', $region);
     $stmt->execute();
-    $stmt->bind_result($house, $slug, $realmCount, $nextDate, $lastDate, $opportunistic);
+    $stmt->bind_result($house, $slug, $realmCount, $nextDate, $lastDate, $minDelta);
     $gotRealm = $stmt->fetch() === true;
     $stmt->close();
 
@@ -118,10 +118,11 @@ ENDSQL;
     $fileInfo = array_pop($dta['files']);
 
     $modified = ceil(intval($fileInfo['lastModified'], 10) / 1000);
-    if ($modified <= strtotime($lastDate)) {
-        if ($opportunistic) {
+    $lastDateUnix = is_null($lastDate) ? ($modified - 1) : strtotime($lastDate);
+    if ($modified <= $lastDateUnix) {
+        if (!is_null($minDelta) && ($lastDateUnix + $minDelta) > time()) {
             // we checked for an earlier-than-expected snapshot, didn't see one
-            $delay = EARLY_CHECK_SECONDS + 15; // next check will be 15 seconds after expected update
+            $delay = ($lastDateUnix + $minDelta) - time() + 15; // next check will be 15 seconds after expected update
         } else {
             // we checked for a snapshot after one should've been generated, still didn't find it, wait a bit
             $delay = GetCheckDelay($modified);
