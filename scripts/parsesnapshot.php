@@ -857,7 +857,7 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $noHistory, $substitutePr
 
     if ($substitutePrices) {
         $sqlEnd = ' on duplicate key update quantity=values(quantity), price=values(price), lastseen=values(lastseen), age=values(age)';
-        $sqlDeepEnd = sprintf(' on duplicate key update mktslvr%1$s=ifnull(least(values(mktslvr%1$s), mktslvr%1$s), values(mktslvr%1$s))', $day);
+        $sqlDeepEnd = sprintf(' on duplicate key update mktslvr%1$s=ifnull(least(values(mktslvr%1$s), mktslvr%1$s), values(mktslvr%1$s)), qty%1$s=if(values(qty%1$s) >= ifnull(qty%1$s,0), values(qty%1$s), qty%1$s)', $day);
     }
 
     foreach ($itemInfo as $itemKey => &$info) {
