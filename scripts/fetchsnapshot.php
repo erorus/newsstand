@@ -119,12 +119,32 @@ ENDSQL;
 
     $modified = ceil(intval($fileInfo['lastModified'], 10) / 1000);
     $lastDateUnix = is_null($lastDate) ? ($modified - 1) : strtotime($lastDate);
-    if ($modified <= $lastDateUnix) {
-        if (!is_null($minDelta) && ($lastDateUnix + $minDelta) > time()) {
+    $delay = 0;
+    if (!is_null($minDelta) && ($modified <= $lastDateUnix)) {
+        if (($lastDateUnix + $minDelta) > time()) {
             // we checked for an earlier-than-expected snapshot, didn't see one
-            $delay = ($lastDateUnix + $minDelta) - time() + 15; // next check will be 15 seconds after expected update
-        } else {
-            // we checked for a snapshot after one should've been generated, still didn't find it, wait a bit
+            $delay = ($lastDateUnix + $minDelta) - time() + 8; // next check will be 8 seconds after expected update
+        } else if (($lastDateUnix + $minDelta + 45) > time()) {
+            // this is the first check after we expected a new snapshot, but didn't see one.
+            // don't trust api, assume data file URL won't change, and check last-modified time on data file
+            $headers = HeadHTTP(preg_replace('/^http:/', 'https:', $fileInfo['url']));
+            if (isset($headers['Last-Modified'])) {
+                $newModified = strtotime($headers['Last-Modified']);
+                if ($newModified > $modified) {
+                    DebugMessage("$region $slug data file indicates last modified $newModified ".Date('H:i:s', $newModified).", ignoring API result.");
+                    $modified = $newModified;
+                } else if ($newModified == $modified) {
+                    DebugMessage("$region $slug data file has last modified date matching API result.");
+                } else {
+                    DebugMessage("$region $slug data file has last modified date earlier than API result: $newModified ".Date('H:i:s', $newModified).".");
+                }
+            } else {
+                DebugMessage("$region $slug data file failed fetching last modified date via HEAD method.");
+            }
+        }
+    }
+    if ($modified <= $lastDateUnix) {
+        if ($delay <= 0) {
             $delay = GetCheckDelay($modified);
         }
         DebugMessage("$region $slug still not updated since $modified ".Date('H:i:s', $modified)." (" . SecondsOrMinutes(time() - $modified) . " ago). Waiting ".SecondsOrMinutes($delay).".");
