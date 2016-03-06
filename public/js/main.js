@@ -246,18 +246,30 @@ var libtuj = {
         }
         return s;
     },
-    GetRealmsForHouse: function (house, maxLineLength)
+    GetRealmsForHouse: function (house, maxLineLength, includeRegion)
     {
         var lineLength = 0;
-        var realmNames = '';
-        for (var x in tuj.realms) {
-            if (tuj.realms.hasOwnProperty(x) && tuj.realms[x].house == house) {
-                if (maxLineLength && lineLength > 0 && lineLength + tuj.realms[x].name.length > maxLineLength) {
-                    realmNames += '<br>';
-                    lineLength = 0;
+        var realmNames = '', realmName;
+
+        for (var regionId in tuj.validRegions) {
+            if (!tuj.validRegions.hasOwnProperty(regionId)) {
+                continue;
+            }
+
+            for (var x in tuj.allRealms[regionId]) {
+                if (tuj.allRealms[regionId].hasOwnProperty(x) && tuj.allRealms[regionId][x].house == house) {
+                    realmName = tuj.allRealms[regionId][x].name;
+                    if (includeRegion || (tuj.realms != tuj.allRealms[regionId])) {
+                        realmName = tuj.validRegions[regionId] + ' ' + realmName;
+                    }
+
+                    if (maxLineLength && lineLength > 0 && lineLength + realmName.length > maxLineLength) {
+                        realmNames += '<br>';
+                        lineLength = 0;
+                    }
+                    lineLength += 2 + realmName.length;
+                    realmNames += realmName + ', ';
                 }
-                lineLength += 2 + tuj.realms[x].name.length;
-                realmNames += tuj.realms[x].name + ', ';
             }
         }
 

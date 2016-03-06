@@ -560,7 +560,7 @@ function GetWatch($loginState, $type, $id)
     }
 
     $db = DBConnect();
-    $stmt = $db->prepare('SELECT seq, region, house, item, bonusset, species, breed, direction, quantity, price, unix_timestamp(observed) observed FROM tblUserWatch WHERE user=? and '.(($type == 'species') ? 'species' : 'item').'=? and deleted is null');
+    $stmt = $db->prepare('SELECT seq, region, house, item, bonusset, species, breed, direction, quantity, price FROM tblUserWatch WHERE user=? and '.(($type == 'species') ? 'species' : 'item').'=? and deleted is null');
     $stmt->bind_param('ii', $userId, $id);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -771,18 +771,18 @@ function GetWatches($loginState)
 select uw.seq, uw.region, uw.house,
     uw.item, uw.bonusset, ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
     $itemNames, $bonusTags, i.icon, i.class, 
-    uw.direction, uw.quantity, uw.price, unix_timestamp(uw.observed) observed
+    uw.direction, uw.quantity, uw.price
 from tblUserWatch uw
 join tblDBCItem i on uw.item = i.id
 left join tblBonusSet bs on uw.bonusset = bs.`set`
 left join tblDBCItemBonus ib on ifnull(bs.bonus, i.basebonus) = ib.id
 where uw.user = ?
 and uw.deleted is null
+group by uw.seq
 EOF;
 
         $db = DBConnect();
         $stmt = $db->prepare($sql);
-        echo $db->error;
         $stmt->bind_param('i', $userId);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -801,9 +801,7 @@ EOF;
         //MCSet($cacheKey, $battlePets);
     }
 
-    $json = ['items' => $items, 'battlepets' => $battlePets];
-
-    MCSet($cacheKey, $json);
+    $json = $items + $battlePets;
 
     return $json;
 }

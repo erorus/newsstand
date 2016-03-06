@@ -195,15 +195,246 @@ var TUJ_Subscription = function ()
         }
     }
 
-    function ShowWatches(container)
+    function ShowWatches(dest)
     {
-        var watches = subData.watches;
+        var w = subData.watches;
 
-        if (!watches.length) {
+        var hasWatches;
+        var byHouse = {};
+        var houseKey, classKey, houseKeys = [];
+        for (var k in w) {
+            if (!w.hasOwnProperty(k)) {
+                continue;
+            }
+            if (w[k].item) {
+                classKey = 'i' + w[k]['class'];
+            } else if (w[k].species) {
+                classKey = 'p' + w[k]['type'];
+            } else {
+                continue;
+            }
+
+            hasWatches = true;
+
+            houseKey = w[k].house || w[k].region;
+            if (!byHouse.hasOwnProperty(houseKey)) {
+                byHouse[houseKey] = {};
+                houseKeys.push(houseKey);
+            }
+
+            if (!byHouse[houseKey].hasOwnProperty(classKey)) {
+                byHouse[houseKey][classKey] = [];
+            }
+            byHouse[houseKey][classKey].push(w[k]);
+        }
+        if (!hasWatches) {
             return;
         }
 
-        // TODO
+        houseKeys.sort(function(a,b) {
+            if (isNaN(a)) {
+                if (isNaN(b)) {
+                    return a.localeCompare(b);
+                } else {
+                    return 1;
+                }
+            } else {
+                if (isNaN(b)) {
+                    return -1;
+                } else {
+                    return parseInt(a,10) - parseInt(b,10);
+                }
+            }
+        });
+
+        var petOrder = [];
+        for (var pt in tuj.lang.petTypes) {
+            if (!tuj.lang.petTypes.hasOwnProperty(pt)) {
+                continue;
+            }
+            petOrder.push(pt);
+        }
+        petOrder.sort(function(a,b) {
+            return tuj.lang.petTypes[a].localeCompare(tuj.lang.petTypes[b]);
+        });
+
+        for (var hx = 0; houseKey = houseKeys[hx]; hx++) {
+            var h = libtuj.ce('h3');
+            dest.appendChild(h);
+            $(h).text(tuj.lang.marketNotifications + ' - ' + (isNaN(houseKey) ? tuj.lang['realms' + houseKey] : libtuj.GetRealmsForHouse(houseKey, false, true)));
+
+            for (var x = 0, classId; classId = tujConstants.itemClassOrder[x]; x++) {
+                classKey = 'i' + classId;
+                if (!byHouse[houseKey].hasOwnProperty(classKey)) {
+                    continue;
+                }
+
+                var name = tuj.lang.itemClasses.hasOwnProperty(classId) ? tuj.lang.itemClasses[classId] : ('(Item Class ' + classId + ')');
+
+                dest.appendChild(BuildWatchesTable(name, byHouse[houseKey][classKey]));
+            }
+            for (x = 0; classId = petOrder[x]; x++) {
+                classKey = 'p' + classId;
+                if (!byHouse[houseKey].hasOwnProperty(classKey)) {
+                    continue;
+                }
+
+                var name = tuj.lang.petTypes.hasOwnProperty(classId) ? tuj.lang.petTypes[classId] : ('(Pet Type ' + classId + ')');
+
+                dest.appendChild(BuildWatchesTable(name, byHouse[houseKey][classKey]));
+            }
+        }
+    }
+
+    function BuildWatchesTable(name, watches)
+    {
+        var item, x, regionId, realmId, t, td, th, tr, a, btn, h;
+
+        if (watches.length == 0) {
+            return null;
+        }
+
+        t = libtuj.ce('table');
+        t.className = 'category category-items';
+
+        // header
+        tr = libtuj.ce('tr');
+        t.appendChild(tr);
+
+        td = libtuj.ce('th');
+        td.className = 'title';
+        td.colSpan = 6;
+        tr.appendChild(td);
+
+        $(td).text(name);
+
+        watches.sort(function (a, b) {
+            var aPrice = (a.price == null ? -1 : a.price);
+            var bPrice = (b.price == null ? -1 : b.price);
+            var aQty = (a.quantity == null ? -1 : a.quantity);
+            var bQty = (b.quantity == null ? -1 : b.quantity);
+
+            return a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]) ||
+                (aPrice - bPrice) ||
+                (aQty - bQty);
+        });
+
+        var hashRegion, hashRealm;
+
+        for (regionId in tuj.validRegions) {
+            if (!tuj.validRegions.hasOwnProperty(regionId)) {
+                continue;
+            }
+            if (watches[0].house) {
+                for (realmId in tuj.allRealms[regionId]) {
+                    if (!tuj.allRealms[regionId].hasOwnProperty(realmId)) {
+                        continue;
+                    }
+                    if (tuj.allRealms[regionId][realmId].house == watches[0].house) {
+                        hashRegion = regionId;
+                        hashRealm = realmId;
+                        break;
+                    }
+                }
+            } else {
+                if (watches[0].region == tuj.validRegions[regionId]) {
+                    hashRegion = regionId;
+                    break;
+                }
+            }
+        }
+        if (hashRealm && params.realm && (tuj.allRealms[hashRegion][hashRealm].house == tuj.allRealms[params.region][params.realm].house)) {
+            hashRealm = params.realm;
+        }
+
+        for (x = 0; item = watches[x]; x++) {
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+
+            td = libtuj.ce('td');
+            td.className = 'icon';
+            tr.appendChild(td);
+            i = libtuj.ce('img');
+            td.appendChild(i);
+            i.className = 'icon';
+            i.src = libtuj.IconURL(item.icon, 'medium');
+
+            td = libtuj.ce('td');
+            td.className = 'name';
+            tr.appendChild(td);
+            a = libtuj.ce('a');
+            td.appendChild(a);
+            a.rel = 'item=' + item.item + (item.bonusurl ? '&bonus=' + item.bonusurl : (item.basebonus ? '&bonus=' + item.basebonus : '')) + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
+            h = {page: 'item', id: item.item + (item.bonusurl ? ('.'+item.bonusurl).replace(':','.') : '')};
+            if (hashRealm) {
+                h.region = hashRegion;
+                h.realm = hashRealm;
+            } else if (hashRegion != params.region) {
+                h.region = hashRegion;
+                h.realm = undefined;
+            }
+            a.href = tuj.BuildHash(h);
+            $(a).text('[' + item['name_' + tuj.locale] + (item['bonusname_' + tuj.locale] ? ' ' + item['bonusname_' + tuj.locale].substr(0, item['bonusname_' + tuj.locale].indexOf('|') >= 0 ? item['bonusname_' + tuj.locale].indexOf('|') : item['bonusname_' + tuj.locale].length) : '') + ']' + (item['bonustag_' + tuj.locale] ? ' ' : ''));
+            if (item['bonustag_' + tuj.locale]) {
+                var tagspan = libtuj.ce('span');
+                tagspan.className = 'nowrap';
+                $(tagspan).text(item['bonustag_' + tuj.locale]);
+                a.appendChild(tagspan);
+            }
+
+            td = libtuj.ce('td');
+            td.className = 'quantity';
+            tr.appendChild(td);
+            if (item.price != null) {
+                if (item.quantity != null) {
+                    td.appendChild(document.createTextNode(tuj.lang.priceToBuy + ' ' + libtuj.FormatQuantity(item.quantity, true)));
+                } else {
+                    td.appendChild(document.createTextNode(tuj.lang.marketPrice));
+                }
+            } else {
+                td.appendChild(document.createTextNode(tuj.lang.availableQuantity));
+            }
+
+            td = libtuj.ce('td');
+            td.style.textAlign = 'right';
+            tr.appendChild(td);
+            td.appendChild(document.createTextNode(tuj.lang[item.direction.toLowerCase()]));
+
+            td = libtuj.ce('td');
+            td.className = 'quantity';
+            tr.appendChild(td);
+            if (item.price != null) {
+                td.appendChild(libtuj.FormatPrice(item.price));
+            } else {
+                td.appendChild(libtuj.FormatQuantity(item.quantity));
+            }
+
+            td = libtuj.ce('td');
+            td.className = 'quantity';
+            tr.appendChild(td);
+            btn = libtuj.ce('input');
+            btn.type = 'button';
+            btn.value = tuj.lang.delete;
+            $(btn).on('click', DeleteWatch.bind(self, item, tr));
+            td.appendChild(btn);
+        }
+
+        return t;
+    }
+
+    function DeleteWatch(watch, tr) {
+        $(tr).find('input').prop('disabled', true);
+        $.ajax({
+            data: {'deletewatch': watch.seq},
+            type: 'POST',
+            success: function() {
+                tr.parentNode.removeChild(tr);
+            },
+            error: function() {
+                $(tr).find('input').prop('disabled', false);
+            },
+            url: 'api/subscription.php'
+        });
     }
 
     function ShowMessages(container)
