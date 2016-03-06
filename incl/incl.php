@@ -27,7 +27,7 @@ function DebugMessage($message, $debugLevel = E_USER_NOTICE)
 
     if ($debugLevel != E_USER_NOTICE) {
         $bt = debug_backtrace();
-        $bt = isset($bt[1]) ? (' ' . $bt[1]['file'] . (isset($bt[1]['function']) ? (' ' . $bt[1]['function']) : '') . ' Line ' . $bt[1]['line']) : '';
+        $bt = (isset($bt[1]) && isset($bt[1]['file'])) ? (' ' . $bt[1]['file'] . (isset($bt[1]['function']) ? (' ' . $bt[1]['function']) : '') . ' Line ' . $bt[1]['line']) : '';
 
         $pth = realpath(__DIR__ . '/../logs/scripterrors.log');
         if ($pth) {
@@ -251,6 +251,9 @@ function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
 function FetchHTTPError($errno, $errstr, $errfile, $errline, $errcontext)
 {
     global $fetchHTTPErrorCaught;
+    if (!$fetchHTTPErrorCaught) {
+        DebugMessage("HTTP Error: $errno $errstr", E_USER_WARNING);
+    }
     $fetchHTTPErrorCaught = true;
     return true;
 }
@@ -302,6 +305,46 @@ function PostHTTP($url, $toPost, $inHeaders = array(), &$outHeaders = array())
     } else {
         return false;
     }
+}
+
+function HeadHTTP($url, $inHeaders = array())
+{
+    global $fetchHTTPErrorCaught;
+
+    $fetchHTTPErrorCaught = false;
+    $http_opt = array(
+        'timeout'        => 60,
+        'connecttimeout' => 6,
+        'headers'        => $inHeaders,
+        'compress'       => true,
+        'redirect'       => 2
+    );
+
+    $http_info = array();
+    $fetchHTTPErrorCaught = false;
+    $oldErrorReporting = error_reporting(error_reporting() | E_WARNING);
+    set_error_handler('FetchHTTPError', E_WARNING);
+    $data = http_parse_message(http_head($url, $http_opt, $http_info));
+    restore_error_handler();
+    error_reporting($oldErrorReporting);
+    unset($oldErrorReporting);
+
+    if (!$data) {
+        return false;
+    }
+
+    $outHeaders = array_merge(
+        array(
+            'httpVersion'    => $data->httpVersion,
+            'responseCode'   => $data->responseCode,
+            'responseStatus' => $data->responseStatus,
+        ), $data->headers
+    );
+
+    if ($fetchHTTPErrorCaught) {
+        return false;
+    }
+    return $outHeaders;
 }
 
 function TimeDiff($time, $opt = array())

@@ -325,7 +325,7 @@ function ParseAuctionData($house, $snapshot, &$json)
                     $itemInfo[$itemInfoKey]['a'][] = array(
                         'q'   => $auction['quantity'],
                         'p'   => $auction['buyout'],
-                        'age' => GetAuctionAge($auction['auc'], $snapshot, $snapshotList)
+                        'age' => min(254, max(0, floor(GetAuctionAge($auction['auc'], $snapshot, $snapshotList) / (48 * 60 * 60) * 255)))
                     );
                     $itemInfo[$itemInfoKey]['tq'] += $auction['quantity'];
                 }
@@ -343,14 +343,10 @@ function ParseAuctionData($house, $snapshot, &$json)
                 // new auction
                 if ($auction['buyout'] != 0) {
                     if ($itemInfoKey !== false) {
-                        if (isset($expiredItemInfo[$itemInfoKey])) {
-                            $expiredItemInfo[$itemInfoKey]['n']++;
-                        } else {
-                            $expiredItemInfo[$itemInfoKey] = [
-                                'n' => 1,
-                                'x' => 0,
-                            ];
+                        if (!isset($expiredItemInfo['n'][$itemInfoKey])) {
+                            $expiredItemInfo['n'][$itemInfoKey] = 0;
                         }
+                        $expiredItemInfo['n'][$itemInfoKey]++;
                     }
                 }
             }
@@ -462,14 +458,11 @@ EOF;
             // missing item auction
             if (($oldRow['buy'] > 0) && ($oldRow['timeleft'] > 0) && ($oldRow['timeleft'] <= $expiredLength)) {
                 // probably expired item with buyout
-                if (isset($expiredItemInfo[$oldRow['infokey']])) {
-                    $expiredItemInfo[$oldRow['infokey']]['x']++;
-                } else {
-                    $expiredItemInfo[$oldRow['infokey']] = [
-                        'n' => 0,
-                        'x' => 1,
-                    ];
+                $expiredPosted = Date('Y-m-d', $snapshot - GetAuctionAge($oldRow['id'], $snapshot, $snapshotList));
+                if (!isset($expiredItemInfo[$expiredPosted][$oldRow['infokey']])) {
+                    $expiredItemInfo[$expiredPosted][$oldRow['infokey']] = 0;
                 }
+                $expiredItemInfo[$expiredPosted][$oldRow['infokey']]++;
             }
         }
     }
@@ -499,22 +492,49 @@ EOF;
     UpdateSellerInfo($sellerInfo, $snapshot, $noHistory);
 
     if (count($expiredItemInfo) > 0) {
-        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating new/expired auctions for " . count($expiredItemInfo) . " items");
-
-        $expiredWhen = Date('Y-m-d', $snapshot);
         $sqlStart = 'INSERT INTO tblItemExpired (item, bonusset, house, `when`, created, expired) VALUES ';
         $sqlEnd = ' ON DUPLICATE KEY UPDATE created=created+values(created), expired=expired+values(expired)';
         $sql = '';
-        foreach ($expiredItemInfo as $infoKey => $expiredInfo) {
-            $keyParts = explode(':', $infoKey);
-            $sqlPart = sprintf('(%u, %u, %u, \'%s\', %u, %u)', $keyParts[0], $keyParts[1], $house, $expiredWhen, $expiredInfo['n'], $expiredInfo['x']);
 
-            if (strlen($sql) + 10 + strlen($sqlPart) + strlen($sqlEnd) > $maxPacketSize) {
-                DBQueryWithError($ourDb, $sql . $sqlEnd);
-                $sql = '';
+        if (isset($expiredItemInfo['n'])) {
+            DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " adding new auctions for ".count($expiredItemInfo['n'])." items");
+
+            $snapshotDay = Date('Y-m-d', $snapshot);
+            $expiredCount = 0;
+            foreach ($expiredItemInfo['n'] as $infoKey => $createdCount) {
+                $keyParts = explode(':', $infoKey);
+                $sqlPart = sprintf('(%u, %u, %u, \'%s\', %u, %u)', $keyParts[0], $keyParts[1], $house, $snapshotDay, $createdCount, $expiredCount);
+
+                if (strlen($sql) + 10 + strlen($sqlPart) + strlen($sqlEnd) > $maxPacketSize) {
+                    DBQueryWithError($ourDb, $sql . $sqlEnd);
+                    $sql = '';
+                }
+
+                $sql .= ($sql == '' ? $sqlStart : ',') . $sqlPart;
             }
+            unset($expiredItemInfo['n']);
+        }
 
-            $sql .= ($sql == '' ? $sqlStart : ',') . $sqlPart;
+        if ($sql != '') {
+            DBQueryWithError($ourDb, $sql . $sqlEnd);
+            $sql = '';
+        }
+
+        $createdCount = 0;
+        $snapshotDays = array_keys($expiredItemInfo);
+        foreach ($snapshotDays as $snapshotDay) {
+            DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " adding expired auctions from $snapshotDay for ".count($expiredItemInfo[$snapshotDay])." items");
+            foreach ($expiredItemInfo[$snapshotDay] as $infoKey => $expiredCount) {
+                $keyParts = explode(':', $infoKey);
+                $sqlPart = sprintf('(%u, %u, %u, \'%s\', %u, %u)', $keyParts[0], $keyParts[1], $house, $snapshotDay, $createdCount, $expiredCount);
+
+                if (strlen($sql) + 10 + strlen($sqlPart) + strlen($sqlEnd) > $maxPacketSize) {
+                    DBQueryWithError($ourDb, $sql . $sqlEnd);
+                    $sql = '';
+                }
+
+                $sql .= ($sql == '' ? $sqlStart : ',') . $sqlPart;
+            }
         }
 
         if ($sql != '') {
@@ -673,7 +693,7 @@ function GetAuctionAge($id, $now, &$snapshotList)
         );
     }
 
-    return min(254, max(0, floor($seconds / (48 * 60 * 60) * 255)));
+    return $seconds;
 }
 
 function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
@@ -857,7 +877,7 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $noHistory, $substitutePr
 
     if ($substitutePrices) {
         $sqlEnd = ' on duplicate key update quantity=values(quantity), price=values(price), lastseen=values(lastseen), age=values(age)';
-        $sqlDeepEnd = sprintf(' on duplicate key update mktslvr%1$s=least(values(mktslvr%1$s), mktslvr%1$s)', $day);
+        $sqlDeepEnd = sprintf(' on duplicate key update mktslvr%1$s=ifnull(least(values(mktslvr%1$s), mktslvr%1$s), values(mktslvr%1$s)), qty%1$s=if(values(qty%1$s) >= ifnull(qty%1$s,0), values(qty%1$s), qty%1$s)', $day);
     }
 
     foreach ($itemInfo as $itemKey => &$info) {

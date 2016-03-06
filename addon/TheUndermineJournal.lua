@@ -266,76 +266,90 @@ function TUJTooltip(...)
     return tooltipsEnabled
 end
 
-local _tooltipcallback, lasttooltip
+local lasttooltip
 local dataResults = {}
 
 local function ClearLastTip(...)
     lasttooltip = nil
 end
 
-local function GetCallback()
-    _tooltipcallback = _tooltipcallback or function(tooltip,...)
-        if not addonTable.marketData then return end
-        if not tooltipsEnabled then return end
-        if lasttooltip == tooltip then return end
-        lasttooltip = tooltip
+local function onTooltipSetItem(tooltip,...)
+    if not addonTable.marketData then return end
+    if not tooltipsEnabled then return end
+    if lasttooltip == tooltip then return end
+    lasttooltip = tooltip
 
-        local itemLink
-        local spellName, spellRank, spellID = GameTooltip:GetSpell()
-        if spellID then
-            return
-            --item = addonTable.spelltoitem[spellID]
-        else
-            local name, item = tooltip:GetItem()
-            if (not name) or (not item) then return end
-            itemLink = item
-        end
+    local itemLink
+    do
+        local name, item = tooltip:GetItem()
+        if (not name) or (not item) then return end
+        itemLink = item
 
-        if not itemLink then
-            return
-        end
-
-        TUJMarketInfo(itemLink, dataResults)
-
-        if dataResults['input'] and (dataResults['input'] == itemLink) then
-            local r,g,b = .9,.8,.5
-
-            tooltip:AddLine(" ")
-
-            if (dataResults['age'] > 3*24*60*60) then
-                tooltip:AddLine("As of "..SecondsToTime(dataResults['age'],dataResults['age']>60).." ago:",r,g,b)
+        local id = select(3, strfind(itemLink, "^|%x+|Hitem:(%-?%d+):(%d+):(%d+):(%d+):(%d+):(%d+):(%-?%d+):(%-?%d+)"))
+        if id == "0" and TradeSkillFrame ~= nil and TradeSkillFrame:IsVisible() then
+            if (GetMouseFocus():GetName()) == "TradeSkillSkillIcon" then
+                itemLink = GetTradeSkillItemLink(TradeSkillFrame.selectedSkill) or itemLink
+            else
+                for i = 1, 8 do
+                    if (GetMouseFocus():GetName()) == "TradeSkillReagent"..i then
+                        itemLink = GetTradeSkillReagentItemLink(TradeSkillFrame.selectedSkill, i) or itemLink
+                        break
+                    end
+                end
             end
-
-            if dataResults['recent'] then
-                tooltip:AddDoubleLine("3-Day Price",coins(dataResults['recent'],false),r,g,b)
-            end
-            if dataResults['market'] then
-                tooltip:AddDoubleLine("14-Day Price",coins(dataResults['market'],false),r,g,b)
-            end
-            if dataResults['market'] then
-                tooltip:AddDoubleLine("14-Day Std Dev",coins(dataResults['stddev'],false),r,g,b)
-            end
-            if dataResults['globalMedian'] then
-                tooltip:AddDoubleLine("Global Median",coins(dataResults['globalMedian'],false),r,g,b)
-            end
-            if dataResults['globalMean'] then
-                tooltip:AddDoubleLine("Global Mean",coins(dataResults['globalMean'],false),r,g,b)
-            end
-            if dataResults['globalStdDev'] then
-                tooltip:AddDoubleLine("Global Std Dev",coins(dataResults['globalStdDev'],false),r,g,b)
-            end
-
-            if dataResults['days'] == 255 then
-                tooltip:AddLine("Never seen since WoD",r,g,b)
-            elseif dataResults['days'] > 250 then
-                tooltip:AddLine("Last seen over 250 days ago",r,g,b)
-            elseif dataResults['days'] > 1 then
-                tooltip:AddLine("Last seen "..SecondsToTime(dataResults['days']*24*60*60).." ago",r,g,b)
-            end
-
         end
     end
-    return _tooltipcallback
+
+    if not itemLink then
+        return
+    end
+
+    TUJMarketInfo(itemLink, dataResults)
+
+    if dataResults['input'] and (dataResults['input'] == itemLink) then
+        local r,g,b = .9,.8,.5
+
+        tooltip:AddLine(" ")
+
+        if (dataResults['age'] > 3*24*60*60) then
+            tooltip:AddLine("As of "..SecondsToTime(dataResults['age'],dataResults['age']>60).." ago:",r,g,b)
+        end
+
+        if dataResults['recent'] then
+            tooltip:AddDoubleLine("3-Day Price",coins(dataResults['recent'],false),r,g,b)
+        end
+        if dataResults['market'] then
+            tooltip:AddDoubleLine("14-Day Price",coins(dataResults['market'],false),r,g,b)
+        end
+        if dataResults['market'] then
+            tooltip:AddDoubleLine("14-Day Std Dev",coins(dataResults['stddev'],false),r,g,b)
+        end
+        if dataResults['globalMedian'] then
+            tooltip:AddDoubleLine("Global Median",coins(dataResults['globalMedian'],false),r,g,b)
+        end
+        if dataResults['globalMean'] then
+            tooltip:AddDoubleLine("Global Mean",coins(dataResults['globalMean'],false),r,g,b)
+        end
+        if dataResults['globalStdDev'] then
+            tooltip:AddDoubleLine("Global Std Dev",coins(dataResults['globalStdDev'],false),r,g,b)
+        end
+
+        if dataResults['days'] == 255 then
+            tooltip:AddLine("Never seen since WoD",r,g,b)
+        elseif dataResults['days'] > 250 then
+            tooltip:AddLine("Last seen over 250 days ago",r,g,b)
+        elseif dataResults['days'] > 1 then
+            tooltip:AddLine("Last seen "..SecondsToTime(dataResults['days']*24*60*60).." ago",r,g,b)
+        end
+
+    end
+end
+
+local function onSetHyperlink(self, link)
+    local type = string.match(link, "^(%a+):")
+    if type == "item" then
+        onTooltipSetItem(self)
+    end
 end
 
 local eventframe = CreateFrame("FRAME",addonName.."Events");
@@ -367,11 +381,15 @@ local function onEvent(self,event,arg)
         elseif not addonTable.marketData then
             print("The Undermine Journal - Warning: no data loaded!")
         else
-            for _,frame in pairs{GameTooltip, ItemRefTooltip, ShoppingTooltip1, ShoppingTooltip2} do
-                frame:HookScript("OnTooltipSetItem", GetCallback())
-                --frame:HookScript("OnTooltipSetSpell", GetCallback())
-                frame:HookScript("OnTooltipCleared", ClearLastTip)
+            for _,frame in pairs{GameTooltip, ItemRefTooltip, ShoppingTooltip1, ShoppingTooltip2, ItemRefShoppingTooltip1, ItemRefShoppingTooltip2} do
+                if frame then
+                    frame:HookScript("OnTooltipSetItem", onTooltipSetItem)
+                    --frame:HookScript("OnTooltipSetSpell", GetCallback())
+                    frame:HookScript("OnTooltipCleared", ClearLastTip)
+                end
             end
+            hooksecurefunc(ItemRefTooltip, "SetHyperlink", onSetHyperlink)
+            hooksecurefunc(GameTooltip, "SetHyperlink", onSetHyperlink)
         end
     end
 end

@@ -107,7 +107,7 @@ function ItemHistory($house, $item)
 {
     global $db;
 
-    $key = 'item_historyy_' . $item;
+    $key = 'item_history_' . $item;
 
     if (($tr = MCGetHouse($house, $key)) !== false) {
         return $tr;
@@ -117,18 +117,16 @@ function ItemHistory($house, $item)
 
     if (ItemIsCrafted($item)) {
         $sql = <<<EOF
-select bonusset, snapshot, price, quantity, age, reagentprice
+select bonusset, snapshot, price, quantity, reagentprice
 from (select
     if(bonusset = @prevBonusSet, null, @price := null) resetprice,
-    if(bonusset = @prevBonusSet, null, @age := null) resetage,
     (@prevBonusSet := bonusset) as bonusset,
     unix_timestamp(updated) snapshot,
     cast(if(quantity is null, @price, @price := price) as decimal(11,0)) `price`,
     ifnull(quantity,0) as quantity,
-    if(age is null, @age, @age := age) as age,
     reagentprice
-    from (select @price := null, @age := null, @prevBonusSet := null) priceSetup,
-        (select `is`.bonusset, s.updated, ih.quantity, ih.price, ih.age, GetReagentPrice(s.house, `is`.item, s.updated) reagentprice
+    from (select @price := null, @prevBonusSet := null) priceSetup,
+        (select `is`.bonusset, s.updated, ih.quantity, ih.price, GetReagentPrice(s.house, `is`.item, s.updated) reagentprice
         from tblSnapshot s
         join tblItemSummary `is` on `is`.house = s.house
         left join tblItemHistory ih on s.updated = ih.snapshot and ih.house = `is`.house and ih.item = `is`.item and ih.bonusset = `is`.bonusset
@@ -140,17 +138,15 @@ from (select
 EOF;
     } else {
         $sql = <<<EOF
-select bonusset, snapshot, price, quantity, age
+select bonusset, snapshot, price, quantity
 from (select
     if(bonusset = @prevBonusSet, null, @price := null) resetprice,
-    if(bonusset = @prevBonusSet, null, @age := null) resetage,
     (@prevBonusSet := bonusset) as bonusset,
     unix_timestamp(updated) snapshot,
     cast(if(quantity is null, @price, @price := price) as decimal(11,0)) `price`,
-    ifnull(quantity,0) as quantity,
-    if(age is null, @age, @age := age) as age
-    from (select @price := null, @age := null, @prevBonusSet := null) priceSetup,
-        (select `is`.bonusset, s.updated, ih.quantity, ih.price, ih.age
+    ifnull(quantity,0) as quantity
+    from (select @price := null, @prevBonusSet := null) priceSetup,
+        (select `is`.bonusset, s.updated, ih.quantity, ih.price
         from tblSnapshot s
         join tblItemSummary `is` on `is`.house = s.house
         left join tblItemHistory ih on s.updated = ih.snapshot and ih.house = `is`.house and ih.item = `is`.item and ih.bonusset = `is`.bonusset

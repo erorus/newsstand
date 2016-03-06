@@ -213,19 +213,19 @@ var TUJ_Category = function ()
             titleColSpan++;
         }
 
-        if (!data.hiddenCols.age) {
-            td = libtuj.ce('th');
-            td.className = 'date';
-            tr.appendChild(td);
-            $(td).text(tuj.lang.age);
-            titleColSpan++;
-        }
-
         if (!data.hiddenCols.lastseen) {
             td = libtuj.ce('th');
             td.className = 'date';
             tr.appendChild(td);
             $(td).text(tuj.lang.lastSeen);
+            titleColSpan++;
+        }
+
+        if (data.visibleCols.posted) {
+            td = libtuj.ce('th');
+            td.className = 'date';
+            tr.appendChild(td);
+            $(td).text(tuj.lang.age);
             titleColSpan++;
         }
 
@@ -334,20 +334,18 @@ var TUJ_Category = function ()
                 td.appendChild(libtuj.FormatPrice(item.globalmedian));
             }
 
-            if (!data.hiddenCols.age) {
-                td = libtuj.ce('td');
-                td.className = 'date';
-                tr.appendChild(td);
-                if (item.quantity > 0) {
-                    td.appendChild(libtuj.FormatAge(item.age));
-                }
-            }
-
             if (!data.hiddenCols.lastseen) {
                 td = libtuj.ce('td');
                 td.className = 'date';
                 tr.appendChild(td);
                 td.appendChild(libtuj.FormatDate(item.lastseen));
+            }
+
+            if (data.visibleCols.posted) {
+                td = libtuj.ce('td');
+                td.className = 'date';
+                tr.appendChild(td);
+                td.appendChild(libtuj.FormatDate(item.posted, false, 'hour', true));
             }
         }
 
