@@ -224,6 +224,21 @@ var TUJ_BattlePet = function ()
             BattlePetGlobalNowScatter(dta, cht);
         }
 
+        if (tuj.LoggedInUserName()) {
+            d = libtuj.ce();
+            d.className = 'chart-section';
+            d.style.display = 'none';
+            h = libtuj.ce('h2');
+            d.appendChild(h);
+            $(h).text(tuj.lang.marketNotifications);
+            d.appendChild(document.createTextNode(tuj.lang.marketNotificationsDesc));
+            cht = libtuj.ce();
+            cht.className = 'notifications-insert';
+            d.appendChild(cht);
+            battlePetPage.append(d);
+            GetBattlePetNotificationsList(speciesId, breedId ? breedId : -1, d);
+        }
+
         if (dta.auctions.length) {
             d = libtuj.ce();
             d.className = 'chart-section';
@@ -592,6 +607,311 @@ var TUJ_BattlePet = function ()
         }
 
         dest.appendChild(libtuj.Ads.Add('2419927914', 'box'));
+    }
+
+    function GetBattlePetNotificationsList(speciesId, breedId, mainDiv)
+    {
+        var self = this;
+        $.ajax({
+            data: {'getspecies': speciesId},
+            type: 'POST',
+            success: BattlePetNotificationsList.bind(self, speciesId, breedId, mainDiv),
+            url: 'api/subscription.php'
+        });
+    }
+
+    function BattlePetNotificationsList(speciesId, breedId, mainDiv, dta)
+    {
+        var dest = $(mainDiv).find('.notifications-insert');
+        dest.empty();
+        dest = dest[0];
+
+        var ids = [];
+        for (var k in dta.watches) {
+            if (dta.watches.hasOwnProperty(k)) {
+                if (breedId == -1 || dta.watches[k].breed === null || breedId == dta.watches[k].breed) {
+                    ids.push(k);
+                }
+            }
+        }
+        if (ids.length) {
+            // show current notifications
+            var ul = libtuj.ce('ul');
+            dest.appendChild(ul);
+
+            for (var kx = 0, k; k = ids[kx]; kx++) {
+                var li = libtuj.ce('li');
+                ul.appendChild(li);
+
+                var n = dta.watches[k];
+
+                var breedText = '(' + (n.breed ? tuj.lang.breedsLookup[n.breed] : tuj.lang.breedsLookup[0]) + ')';
+
+                var btn = libtuj.ce('input');
+                btn.type = 'button';
+                btn.value = tuj.lang.delete;
+                $(btn).on('click', BattlePetNotificationsDel.bind(btn, mainDiv, speciesId, breedId, n.seq));
+                li.appendChild(btn);
+
+                if (n.house) {
+                    li.appendChild(document.createTextNode(libtuj.GetRealmsForHouse(n.house) + ': '));
+                } else if (n.region) {
+                    li.appendChild(document.createTextNode(tuj.lang['realms' + n.region] + ': '));
+                }
+                li.appendChild(document.createTextNode(breedText + ' '));
+                if (n.price === null) {
+                    li.appendChild(document.createTextNode(tuj.lang.availableQuantity + ' '));
+                } else {
+                    if (n.quantity === null) {
+                        li.appendChild(document.createTextNode(tuj.lang.marketPrice + ' '));
+                    } else {
+                        li.appendChild(document.createTextNode(tuj.lang.priceToBuy + ' ' + n.quantity + ' '));
+                    }
+                }
+                li.appendChild(document.createTextNode((n.direction == 'Over' ? tuj.lang.over : tuj.lang.under) + ' '));
+                if (n.price === null) {
+                    li.appendChild(document.createTextNode(n.quantity));
+                } else {
+                    li.appendChild(libtuj.FormatPrice(n.price));
+                }
+            }
+        }
+
+        if (ids.length >= dta.maximum) {
+            $(mainDiv).show();
+            return;
+        }
+
+        // add new notifications
+        var newNotif = libtuj.ce('div');
+        newNotif.className = 'notifications-add';
+        dest.appendChild(newNotif);
+
+        newNotif.appendChild(document.createTextNode(tuj.lang.notifyMeWhen));
+
+        var regionBox = libtuj.ce('select');
+        opt = libtuj.ce('option');
+        opt.value = 'house';
+        opt.label = tuj.validRegions[params.region] + ' ' + tuj.realms[params.realm].name;
+        opt.appendChild(document.createTextNode(tuj.validRegions[params.region] + ' ' + tuj.realms[params.realm].name));
+        regionBox.appendChild(opt);
+        opt = libtuj.ce('option');
+        opt.value = 'region';
+        opt.label = tuj.lang['realms' + tuj.validRegions[params.region]];
+        opt.appendChild(document.createTextNode(tuj.lang['realms' + tuj.validRegions[params.region]]));
+        regionBox.appendChild(opt);
+        newNotif.appendChild(regionBox);
+
+        var selBox = libtuj.ce('select');
+        var opt, optionList = [tuj.lang.availableQuantity, tuj.lang.marketPrice, tuj.lang.priceToBuy];
+        for (var x = 0; x < optionList.length; x++) {
+            opt = libtuj.ce('option');
+            opt.value = x;
+            opt.label = optionList[x];
+            opt.appendChild(document.createTextNode(optionList[x]));
+            selBox.appendChild(opt);
+        }
+        $(selBox).on('change', BattlePetNotificationsTypeChange);
+        newNotif.appendChild(selBox);
+
+        // available quantity
+        var d = libtuj.ce('span');
+        d.className = 'notification-type-form notification-type-form-0';
+        newNotif.appendChild(d);
+
+        var underOver = libtuj.ce('select');
+        opt = libtuj.ce('option');
+        opt.value = 'Over';
+        opt.label = tuj.lang.over;
+        opt.appendChild(document.createTextNode(tuj.lang.over));
+        underOver.appendChild(opt);
+        opt = libtuj.ce('option');
+        opt.value = 'Under';
+        opt.label = tuj.lang.under;
+        opt.appendChild(document.createTextNode(tuj.lang.under));
+        underOver.appendChild(opt);
+        d.appendChild(underOver);
+
+        var qty = libtuj.ce('input');
+        qty.className = 'input-quantity';
+        qty.type = 'number';
+        qty.min = 0;
+        qty.max = 65000;
+        qty.value = 0;
+        qty.maxLength = 5;
+        qty.size = "8";
+        qty.autocomplete = 'off';
+        d.appendChild(qty);
+
+        var btn = libtuj.ce('input');
+        btn.type = 'button';
+        btn.value = tuj.lang.add;
+        $(btn).on('click', BattlePetNotificationsAdd.bind(btn, mainDiv, speciesId, breedId, regionBox, underOver, qty, false));
+        d.appendChild(btn);
+
+        // market price
+        var d = libtuj.ce('span');
+        d.className = 'notification-type-form notification-type-form-1';
+        d.style.display = 'none';
+        newNotif.appendChild(d);
+
+        var underOver = libtuj.ce('select');
+        opt = libtuj.ce('option');
+        opt.value = 'Under';
+        opt.label = tuj.lang.under;
+        opt.appendChild(document.createTextNode(tuj.lang.under));
+        underOver.appendChild(opt);
+        opt = libtuj.ce('option');
+        opt.value = 'Over';
+        opt.label = tuj.lang.over;
+        opt.appendChild(document.createTextNode(tuj.lang.over));
+        underOver.appendChild(opt);
+        d.appendChild(underOver);
+
+        var price = libtuj.ce('input');
+        price.className = 'input-price';
+        price.type = 'number';
+        price.min = 0;
+        price.max = 999999;
+        price.value = 0;
+        price.maxLength = 6;
+        price.size = "10";
+        price.autocomplete = 'off';
+        d.appendChild(price);
+
+        var s = libtuj.ce('span');
+        s.className = 'input-price-unit';
+        s.appendChild(document.createTextNode(tuj.lang.suffixGold));
+        d.appendChild(s);
+
+        var btn = libtuj.ce('input');
+        btn.type = 'button';
+        btn.value = tuj.lang.add;
+        $(btn).on('click', BattlePetNotificationsAdd.bind(btn, mainDiv, speciesId, breedId, regionBox, underOver, null, price));
+        d.appendChild(btn);
+
+        // price to buy X
+        var d = libtuj.ce('span');
+        d.className = 'notification-type-form notification-type-form-2';
+        d.style.display = 'none';
+        newNotif.appendChild(d);
+
+        var qty = libtuj.ce('input');
+        qty.className = 'input-quantity';
+        qty.type = 'number';
+        qty.min = 0;
+        qty.max = 65000;
+        qty.value = 0;
+        qty.maxLength = 5;
+        qty.size = "8";
+        qty.autocomplete = 'off';
+        d.appendChild(qty);
+
+        var underOver = libtuj.ce('select');
+        opt = libtuj.ce('option');
+        opt.value = 'Under';
+        opt.label = tuj.lang.under;
+        opt.appendChild(document.createTextNode(tuj.lang.under));
+        underOver.appendChild(opt);
+        opt = libtuj.ce('option');
+        opt.value = 'Over';
+        opt.label = tuj.lang.over;
+        opt.appendChild(document.createTextNode(tuj.lang.over));
+        underOver.appendChild(opt);
+        d.appendChild(underOver);
+
+        var price = libtuj.ce('input');
+        price.className = 'input-price';
+        price.type = 'number';
+        price.min = 0;
+        price.max = 999999;
+        price.value = 0;
+        price.maxLength = 6;
+        price.size = "10";
+        price.autocomplete = 'off';
+        d.appendChild(price);
+
+        var s = libtuj.ce('span');
+        s.className = 'input-price-unit';
+        s.appendChild(document.createTextNode(tuj.lang.suffixGold));
+        d.appendChild(s);
+
+        var btn = libtuj.ce('input');
+        btn.type = 'button';
+        btn.value = tuj.lang.add;
+        $(btn).on('click', BattlePetNotificationsAdd.bind(btn, mainDiv, speciesId, breedId, regionBox, underOver, qty, price));
+        d.appendChild(btn);
+
+        $(mainDiv).show();
+    }
+
+    function BattlePetNotificationsTypeChange()
+    {
+        var $parent = $(this.parentNode);
+        $parent.find('.notification-type-form').hide();
+        $parent.find('.notification-type-form-'+this.options[this.selectedIndex].value).show();
+    }
+
+    function BattlePetNotificationsAdd(mainDiv, speciesId, breedId, regionBox, directionBox, qtyBox, priceBox)
+    {
+        var self = this;
+        var o = {
+            'setwatch': 'species',
+            'id': speciesId,
+            'subid': breedId,
+            'region': regionBox.options[regionBox.selectedIndex].value == 'region' ? tuj.validRegions[params.region] : '',
+            'house': regionBox.options[regionBox.selectedIndex].value == 'house' ? tuj.realms[params.realm].house : '',
+            'direction': directionBox.options[directionBox.selectedIndex].value,
+            'quantity': qtyBox ? parseInt(qtyBox.value, 10) : -1,
+            'price': priceBox ? parseInt(parseFloat(priceBox.value, 10) * 10000, 10) : -1
+        };
+        if (o.quantity < 0) {
+            o.quantity = -1;
+        }
+        if (o.price < 0) {
+            o.price = -1;
+        }
+
+        if (o.quantity >= 0) {
+            if (o.price < 0) {
+                // qty available query
+                if (o.quantity == 0 && o.direction == 'Under') {
+                    // qty never under 0
+                    alert(tuj.lang.quantityUnderZero);
+                    return;
+                }
+            } else {
+                // cost to buy $quantity is $direction $price
+                if (o.price == 0) {
+                    alert(tuj.lang.priceAboveZero);
+                    return;
+                }
+            }
+        } else {
+            // market price queries
+            if (o.price <= 0) {
+                alert(tuj.lang.priceAboveZero);
+                return;
+            }
+        }
+
+        $.ajax({
+            data: o,
+            type: 'POST',
+            success: BattlePetNotificationsList.bind(self, speciesId, breedId, mainDiv),
+            url: 'api/subscription.php'
+        });
+    }
+
+    function BattlePetNotificationsDel(mainDiv, speciesId, breedId, id)
+    {
+        var self = this;
+        $.ajax({
+            data: {'deletewatch': id},
+            type: 'POST',
+            success: BattlePetNotificationsList.bind(self, speciesId, breedId, mainDiv),
+            url: 'api/subscription.php'
+        });
     }
 
     function BattlePetHistoryChart(data, dest)

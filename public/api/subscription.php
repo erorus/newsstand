@@ -795,10 +795,28 @@ EOF;
     $cacheKey = SUBSCRIPTION_SPECIES_CACHEKEY . $userId;
     $battlePets = MCGet($cacheKey);
     if ($battlePets === false) {
-        // TODO
+        $petNames = LocaleColumns('p.name');
 
-        $battlePets = [];
-        //MCSet($cacheKey, $battlePets);
+        $sql = <<<EOF
+select uw.seq, uw.region, uw.house,
+    uw.species, uw.breed,
+    $petNames, p.icon, p.type, p.npc,
+    uw.direction, uw.quantity, uw.price
+from tblUserWatch uw
+JOIN tblDBCPet p on uw.species=p.id
+where uw.user = ?
+and uw.deleted is null
+EOF;
+
+        $db = DBConnect();
+        $stmt = $db->prepare($sql);
+        $stmt->bind_param('i', $userId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $battlePets = DBMapArray($result);
+        $stmt->close();
+
+        MCSet($cacheKey, $battlePets);
     }
 
     $json = $items + $battlePets;

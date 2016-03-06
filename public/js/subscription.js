@@ -364,8 +364,13 @@ var TUJ_Subscription = function ()
             tr.appendChild(td);
             a = libtuj.ce('a');
             td.appendChild(a);
-            a.rel = 'item=' + item.item + (item.bonusurl ? '&bonus=' + item.bonusurl : (item.basebonus ? '&bonus=' + item.basebonus : '')) + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
-            h = {page: 'item', id: item.item + (item.bonusurl ? ('.'+item.bonusurl).replace(':','.') : '')};
+            if (item.item) {
+                a.rel = 'item=' + item.item + (item.bonusurl ? '&bonus=' + item.bonusurl : (item.basebonus ? '&bonus=' + item.basebonus : '')) + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
+                h = {page: 'item', id: item.item + (item.bonusurl ? ('.'+item.bonusurl).replace(':','.') : '')};
+            } else if (item.species) {
+                a.rel = 'npc=' + item.npc + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
+                h = {page: 'battlepet', id: item.species + (item.breed ? ('.'+item.breed) : '')};
+            }
             if (hashRealm) {
                 h.region = hashRegion;
                 h.realm = hashRealm;
@@ -374,7 +379,12 @@ var TUJ_Subscription = function ()
                 h.realm = undefined;
             }
             a.href = tuj.BuildHash(h);
-            $(a).text('[' + item['name_' + tuj.locale] + (item['bonusname_' + tuj.locale] ? ' ' + item['bonusname_' + tuj.locale].substr(0, item['bonusname_' + tuj.locale].indexOf('|') >= 0 ? item['bonusname_' + tuj.locale].indexOf('|') : item['bonusname_' + tuj.locale].length) : '') + ']' + (item['bonustag_' + tuj.locale] ? ' ' : ''));
+            $(a).text('[' + item['name_' + tuj.locale]
+                + (item['bonusname_' + tuj.locale] ? ' ' + item['bonusname_' + tuj.locale].substr(0, item['bonusname_' + tuj.locale].indexOf('|') >= 0 ? item['bonusname_' + tuj.locale].indexOf('|') : item['bonusname_' + tuj.locale].length) : '')
+                + ']'
+                + (item['bonustag_' + tuj.locale] ? ' ' : '')
+                + (item.hasOwnProperty('breed') ? (tuj.lang.breedsLookup.hasOwnProperty(item.breed) ? ' ' + tuj.lang.breedsLookup[item.breed] : '') : '')
+            );
             if (item['bonustag_' + tuj.locale]) {
                 var tagspan = libtuj.ce('span');
                 tagspan.className = 'nowrap';

@@ -736,14 +736,14 @@ var TUJ_Item = function ()
 
         var underOver = libtuj.ce('select');
         opt = libtuj.ce('option');
-        opt.value = 'Under';
-        opt.label = tuj.lang.under;
-        opt.appendChild(document.createTextNode(tuj.lang.under));
-        underOver.appendChild(opt);
-        opt = libtuj.ce('option');
         opt.value = 'Over';
         opt.label = tuj.lang.over;
         opt.appendChild(document.createTextNode(tuj.lang.over));
+        underOver.appendChild(opt);
+        opt = libtuj.ce('option');
+        opt.value = 'Under';
+        opt.label = tuj.lang.under;
+        opt.appendChild(document.createTextNode(tuj.lang.under));
         underOver.appendChild(opt);
         d.appendChild(underOver);
 
