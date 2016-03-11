@@ -1676,7 +1676,7 @@ function CategoryDealsItemList($house, $dealsSql, $allowCrafted = 0)
 
     global $db, $canCache;
 
-    $key = 'category_di_' . md5($dealsSql) . '_' . $allowCrafted;
+    $key = 'category_di2_' . md5($dealsSql) . '_' . $allowCrafted;
 
     if ($canCache && (($iidList = MCGetHouse($house, $key)) !== false)) {
         return CategoryDealsItemListCached($house, $iidList);
