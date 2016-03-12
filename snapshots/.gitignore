@@ -1,2 +1,4 @@
 *
+!parse
+!watch
 !.gitignore

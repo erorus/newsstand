@@ -11,7 +11,7 @@ require_once('../incl/memcache.incl.php');
 RunMeNTimes(2);
 CatchKill();
 
-define('SNAPSHOT_PATH', '/var/newsstand/snapshots/');
+define('SNAPSHOT_PATH', '/var/newsstand/snapshots/parse/');
 define('MAX_BONUSES', 6); // is a count, 1 through N
 
 ini_set('memory_limit', '512M');
