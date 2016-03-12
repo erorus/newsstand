@@ -1542,7 +1542,7 @@ var TUJ = function ()
             } else {
                 darkSheet = libtuj.ce('link');
                 darkSheet.rel = 'stylesheet';
-                darkSheet.href = tujCDNPrefix + 'css/night.css';
+                darkSheet.href = tujCDNPrefix + 'css/night.css?2';
                 darkSheet.id = 'dark-sheet';
                 document.getElementsByTagName('head')[0].appendChild(darkSheet);
             }

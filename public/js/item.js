@@ -573,6 +573,35 @@ var TUJ_Item = function ()
         td.colSpan = spacerColSpan;
         tr.appendChild(td);
 
+        if (data.stats[bonusSet].vendorprice) {
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+            tr.className = 'vendor';
+            td = libtuj.ce('th');
+            tr.appendChild(td);
+            if (data.stats[bonusSet].vendornpccount) {
+                var a = libtuj.ce('a');
+                a.href = 'http://' + tuj.lang.wowheadDomain + '.wowhead.com/item=' + data.stats[bonusSet].id + '#sold-by';
+                a.rel = 'np';
+                if (data.stats[bonusSet].vendornpccount == 1) {
+                    a.appendChild(document.createTextNode(tuj.lang.soldByVendor));
+                } else {
+                    a.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.soldByVendorPlural, data.stats[bonusSet].vendornpccount)));
+                }
+                td.appendChild(a);
+            } else {
+                td.appendChild(document.createTextNode(tuj.lang.soldByVendor));
+            }
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.appendChild(libtuj.FormatPrice(data.stats[bonusSet].vendorprice));
+            if (stack) {
+                td = libtuj.ce('td');
+                tr.appendChild(td);
+                td.appendChild(libtuj.FormatPrice(data.stats[bonusSet].vendorprice * stack));
+            }
+        }
+
         tr = libtuj.ce('tr');
         t.appendChild(tr);
         tr.className = 'vendor';

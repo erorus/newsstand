@@ -148,6 +148,8 @@
     "craftingCost": "Herstellungskosten",
     "typicalAuctionAge": "Typische Aktionsdauer",
     "maxAuctionAge": "Maximale Auktionsdauer",
+    "soldByVendor": "Sold by Vendor",
+    "soldByVendorPlural": "Sold by {1} Vendors",
     "sellToVendor": "Verkauf an Händler",
     "cannot": "Nicht möglich",
     "listingFee": "48 Std. Auktionsgebühr",

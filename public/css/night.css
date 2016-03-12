@@ -9,7 +9,7 @@ a {color: white}
 
 #search-page table, table.auctionlist, table.category { border-color: #666 }
 #search-page table td, table.auctionlist td, table.category td { border-color: #444}
-#search-page tr:hover td, table.auctionlist tr:hover td, table.category tr:hover td {background-color: #444}
+#search-page tr:hover td, table.auctionlist tr:hover td, table.category tr:hover td, td.hover {background-color: #444}
 
 .battlepet-breeds a, .item-bonussets a, .transmog-slots a { color: white; background-color: #444; box-shadow: 0.2em 0.2em #222 }
 

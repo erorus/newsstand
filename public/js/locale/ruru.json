@@ -148,6 +148,8 @@
     "craftingCost": "Crafting Cost",
     "typicalAuctionAge": "Typical Auction Age",
     "maxAuctionAge": "Max Auction Age",
+    "soldByVendor": "Sold by Vendor",
+    "soldByVendorPlural": "Sold by {1} Vendors",
     "sellToVendor": "Sell to Vendor",
     "cannot": "Cannot",
     "listingFee": "48hr Listing Fee",

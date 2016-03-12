@@ -148,6 +148,8 @@
     "craftingCost": "Costo di Creazione",
     "typicalAuctionAge": "Durata tipica dell'Asta",
     "maxAuctionAge": "Massima Durata dell'Asta",
+    "soldByVendor": "Sold by Vendor",
+    "soldByVendorPlural": "Sold by {1} Vendors",
     "sellToVendor": "Vendi al Venditore",
     "cannot": "Non può",
     "listingFee": "Prezzo di Pubblicazione per 48h",

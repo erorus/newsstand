@@ -148,6 +148,8 @@
     "craftingCost": "Custo de criação",
     "typicalAuctionAge": "Duração Típica do Leilão",
     "maxAuctionAge": "Duração Máxima do Leilão",
+    "soldByVendor": "Sold by Vendor",
+    "soldByVendorPlural": "Sold by {1} Vendors",
     "sellToVendor": "Vender para o Comerciante",
     "cannot": "Não pode",
     "listingFee": "Taxa de Listagem de 48hrs",
