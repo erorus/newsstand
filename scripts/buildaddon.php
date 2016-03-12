@@ -112,10 +112,10 @@ EOF;
     $sql = <<<EOF
 SELECT tis.item, tis.bonusset,
 datediff(now(), tis.lastseen) since,
-round(least(ivc.copper,ifnull(avg(ih.price), tis.price))/100) price,
-round(least(ivc.copper,ifnull(avg(if(ih.snapshot > timestampadd(hour, -72, now()), ih.price, null)), tis.price))/100) pricerecent,
-round(if(ivc.copper,0,stddev(ih.price)/100)) pricestddev,
-if(ivc.item,1,0) vendorsold
+round(ifnull(avg(ih.price), tis.price)/100) price,
+round(ifnull(avg(if(ih.snapshot > timestampadd(hour, -72, now()), ih.price, null)), tis.price)/100) pricerecent,
+round(stddev(ih.price)/100) pricestddev,
+ceil(ivc.copper/100) vendorprice
 FROM tblItemSummary tis
 join tblDBCItem i on i.id = tis.item
 join tblHouseCheck hc on hc.house = tis.house
@@ -154,11 +154,15 @@ EOF;
             }
 
             $prc = intval($priceRow['price'], 10);
+            $usingVendor = $priceRow['vendorPrice'] && (intval($priceRow['vendorPrice'],10) < $prc) && ($priceRow['bonusset'] == '0');
+            if ($usingVendor) {
+                $prc = intval($priceRow['vendorPrice'],10);
+            }
 
             $item_avg[$item] .= str_repeat(chr(0), 4 * $hx  - strlen($item_avg[$item])) . pack('L', $prc);
-            $item_stddev[$item] .= str_repeat(chr(0), 4 * $hx - strlen($item_stddev[$item])) . pack('L', $priceRow['pricestddev'] ? intval($priceRow['pricestddev'],10) : 0);
-            $item_recent[$item] .= str_repeat(chr(0), 4 * $hx - strlen($item_recent[$item])) . pack('L', $priceRow['pricerecent'] ? intval($priceRow['pricerecent'],10) : $prc);
-            $item_days[$item] .= str_repeat(chr(255), $hx - strlen($item_days[$item])) . chr($priceRow['vendorsold'] ? 252 : min(251, intval($priceRow['since'],10)));
+            $item_stddev[$item] .= str_repeat(chr(0), 4 * $hx - strlen($item_stddev[$item])) . pack('L', (!$usingVendor && $priceRow['pricestddev']) ? intval($priceRow['pricestddev'],10) : 0);
+            $item_recent[$item] .= str_repeat(chr(0), 4 * $hx - strlen($item_recent[$item])) . pack('L', (!$usingVendor && $priceRow['pricerecent']) ? intval($priceRow['pricerecent'],10) : $prc);
+            $item_days[$item] .= str_repeat(chr(255), $hx - strlen($item_days[$item])) . chr($priceRow['vendorprice'] ? 252 : min(251, intval($priceRow['since'],10)));
         }
         $result->close();
         $stmt->close();
