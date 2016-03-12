@@ -148,6 +148,8 @@
     "craftingCost": "Coût de fabrication",
     "typicalAuctionAge": "Durée de vie moyenne de l'enchère",
     "maxAuctionAge": "Durée de vie maximum de l'enchère",
+    "buyFromVendor": "Buy from Vendor",
+    "buyFromVendorPlural": "Buy from {1} Vendors",
     "sellToVendor": "Prix de vente au marchand",
     "cannot": "Pas possible",
     "listingFee": "Frais de vente 48hrs",

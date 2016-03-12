@@ -38,7 +38,7 @@ function ItemStats($house, $item)
 {
     global $db, $LANG_LEVEL;
 
-    $cacheKey = 'item_stats_l2_' . $item;
+    $cacheKey = 'item_stats_' . $item;
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
@@ -54,11 +54,13 @@ select i.id, $localeCols, i.icon, i.display, i.class as classid, i.subclass, ifn
 s.price, s.quantity, s.lastseen,
 ifnull(s.bonusset,0) bonusset, ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
 $bonusTags,
+ivc.copper vendorprice, ivc.npc vendornpc, ivc.npccount vendornpccount,
 GetReagentPrice(s.house, i.id, null) reagentprice
 from tblDBCItem i
 left join tblItemSummary s on s.house = %d and s.item = i.id
 left join tblBonusSet bs on s.bonusset = bs.`set`
 left join tblDBCItemBonus ib on ifnull(bs.bonus, i.basebonus) = ib.id
+left join tblDBCItemVendorCost ivc on ivc.item = i.id
 where i.id = %d
 group by s.bonusset
 EOF;
