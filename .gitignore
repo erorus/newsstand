@@ -1,6 +1,5 @@
 .idea
 logs/
-snapshots/
 
 public/icon/
 public/models/

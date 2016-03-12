@@ -11,6 +11,7 @@ RunMeNTimes(1);
 CatchKill();
 
 define('SNAPSHOT_PATH', '/var/newsstand/snapshots/');
+define('SNAPSHOT_WATCH_PATH', '/var/newsstand/snapshots.watch/');
 define('EARLY_CHECK_SECONDS', 120);
 
 $regions = array('US', 'EU');

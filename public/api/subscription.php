@@ -560,7 +560,7 @@ function GetWatch($loginState, $type, $id)
     }
 
     $db = DBConnect();
-    $stmt = $db->prepare('SELECT seq, region, house, item, bonusset, species, breed, direction, quantity, price FROM tblUserWatch WHERE user=? and '.(($type == 'species') ? 'species' : 'item').'=? and deleted is null');
+    $stmt = $db->prepare('SELECT seq, region, if(region is null, house, null) house, item, bonusset, species, breed, direction, quantity, price FROM tblUserWatch WHERE user=? and '.(($type == 'species') ? 'species' : 'item').'=? and deleted is null');
     $stmt->bind_param('ii', $userId, $id);
     $stmt->execute();
     $result = $stmt->get_result();
