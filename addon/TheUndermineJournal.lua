@@ -1,6 +1,6 @@
 --[[
 
-TheUndermineJournal addon, v 3.7
+TheUndermineJournal addon, v 3.8
 https://theunderminejournal.com/
 
 You should be able to query this DB from other addons:
@@ -28,6 +28,7 @@ Prices are returned in copper, but accurate to the last *silver* (with coppers a
 
     o['days']           -> number of days since item was last seen on the auction house, when data was compiled. valid values 0 - 250.
      o['days'] = 251 means item was seen on this AH, but over 250 days ago
+     o['days'] = 252 means the item is sold by vendors in unlimited quantities
      o['days'] = 255 means item was never seen on this AH (since 6.0 patch)
 
 
@@ -336,6 +337,8 @@ local function onTooltipSetItem(tooltip,...)
 
         if dataResults['days'] == 255 then
             tooltip:AddLine("Never seen since WoD",r,g,b)
+        elseif dataResults['days'] == 252 then
+            tooltip:AddLine("Sold by Vendors",r,g,b)
         elseif dataResults['days'] > 250 then
             tooltip:AddLine("Last seen over 250 days ago",r,g,b)
         elseif dataResults['days'] > 1 then
