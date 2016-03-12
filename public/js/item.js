@@ -569,13 +569,13 @@ var TUJ_Item = function ()
                 a.href = 'http://' + tuj.lang.wowheadDomain + '.wowhead.com/item=' + data.stats[bonusSet].id + '#sold-by';
                 a.rel = 'np';
                 if (data.stats[bonusSet].vendornpccount == 1) {
-                    a.appendChild(document.createTextNode(tuj.lang.buyFromVendor));
+                    a.appendChild(document.createTextNode(tuj.lang.soldByVendor));
                 } else {
-                    a.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.buyFromVendorPlural, data.stats[bonusSet].vendornpccount)));
+                    a.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.soldByVendorPlural, data.stats[bonusSet].vendornpccount)));
                 }
                 td.appendChild(a);
             } else {
-                td.appendChild(document.createTextNode(tuj.lang.buyFromVendor));
+                td.appendChild(document.createTextNode(tuj.lang.soldByVendor));
             }
             td = libtuj.ce('td');
             tr.appendChild(td);
