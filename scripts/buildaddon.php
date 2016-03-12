@@ -154,9 +154,9 @@ EOF;
             }
 
             $prc = intval($priceRow['price'], 10);
-            $usingVendor = $priceRow['vendorPrice'] && (intval($priceRow['vendorPrice'],10) < $prc) && ($priceRow['bonusset'] == '0');
+            $usingVendor = $priceRow['vendorprice'] && (intval($priceRow['vendorprice'],10) < $prc) && ($priceRow['bonusset'] == '0');
             if ($usingVendor) {
-                $prc = intval($priceRow['vendorPrice'],10);
+                $prc = intval($priceRow['vendorprice'],10);
             }
 
             $item_avg[$item] .= str_repeat(chr(0), 4 * $hx  - strlen($item_avg[$item])) . pack('L', $prc);
