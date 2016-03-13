@@ -13,6 +13,11 @@ CatchKill();
 
 define('SNAPSHOT_PATH', '/var/newsstand/snapshots/watch/');
 define('MAX_BONUSES', 6); // is a count, 1 through N
+define('ARRAY_INDEX_BUYOUT', 1);
+define('ARRAY_INDEX_QUANTITY', 0);
+define('ARRAY_INDEX_AUCTIONS', 1);
+define('ARRAY_INDEX_MARKETPRICE', 2);
+define('ARRAY_INDEX_ALLBREEDS', -1);
 
 ini_set('memory_limit', '384M');
 
@@ -123,7 +128,7 @@ function NextDataFile()
 
     ftruncate($handle, 0);
     fclose($handle);
-    //unlink(SNAPSHOT_PATH . $fileName); // TODO: remove comment after testing
+    unlink(SNAPSHOT_PATH . $fileName);
 
     if (json_last_error() != JSON_ERROR_NONE) {
         DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " $snapshot data file corrupted! " . json_last_error_msg(), E_USER_WARNING);
@@ -132,29 +137,19 @@ function NextDataFile()
     }
 
     ParseAuctionData($house, $snapshot, $json);
-    exit; // TODO: remove after testing
     //MCHouseUnlock($house);
     return 0;
 }
 
 function ParseAuctionData($house, $snapshot, &$json)
 {
-    global $maxPacketSize;
     global $houseRegionCache;
     global $auctionExtraItemsCache;
-    global $TIMELEFT_ENUM;
 
     $snapshotString = Date('Y-m-d H:i:s', $snapshot);
     $startTimer = microtime(true);
 
-    $ourDb = DBConnect();
-
     $region = $houseRegionCache[$house]['region'];
-
-    $naiveMax = 0;
-    $lowMax = -1;
-    $highMax = -1;
-    $hasRollOver = false;
 
     $jsonAuctions = [];
     if (isset($json['auctions']['auctions'])) {
@@ -163,51 +158,15 @@ function ParseAuctionData($house, $snapshot, &$json)
         $jsonAuctions =& $json['auctions'];
     }
 
-    if ($jsonAuctions) {
-        $auctionCount = count($jsonAuctions);
-
-        for ($x = 0; $x < $auctionCount; $x++) {
-            $auctionId = $jsonAuctions[$x]['auc'];
-
-            $naiveMax = max($naiveMax, $auctionId);
-            if ($auctionId < 0x20000000) {
-                $lowMax = max($lowMax, $auctionId);
-            }
-            if ($auctionId > 0x60000000) {
-                $highMax = max($highMax, $auctionId);
-            }
-        }
-    }
-
-    if (($lowMax != -1) && ($highMax != -1)) {
-        $hasRollOver = true;
-        $max = $lowMax; // rolled over
-    } else {
-        $max = $naiveMax;
-    }
-
-    unset($naiveMax, $lowMax, $highMax);
-
-    // note: $lastMax is the max auction ID the last time we stored snapshot history
-    $stmt = $ourDb->prepare('SELECT ifnull(maxid,0), unix_timestamp(updated) FROM tblSnapshot s WHERE house = ? AND updated = (SELECT max(s2.updated) FROM tblSnapshot s2 WHERE s2.house = s.house AND s2.updated < ? AND s2.flags & 1 = 0)');
-    $stmt->bind_param('is', $house, $snapshotString);
-    $stmt->execute();
-    $stmt->bind_result($lastMax, $lastMaxUpdated);
-    if ($stmt->fetch() !== true) {
-        $lastMax = 0;
-        $lastMaxUpdated = 0;
-    }
-    $stmt->close();
-
-    $totalAuctions = 0;
-    $itemInfo = array();
-    $petInfo = array();
-    $expiredItemInfo = array();
+    $itemBuyouts = [];
+    $itemBids = [];
+    $petBuyouts = [];
+    $petBids = [];
+    $emptyItemInfo = [ARRAY_INDEX_QUANTITY => 0, ARRAY_INDEX_AUCTIONS => []];
 
     if ($jsonAuctions) {
         $auctionCount = count($jsonAuctions);
         DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " parsing $auctionCount auctions");
-        $ourDb->begin_transaction();
 
         for ($x = 0; $x < $auctionCount; $x++) {
             $auction =& $jsonAuctions[$x];
@@ -215,47 +174,205 @@ function ParseAuctionData($house, $snapshot, &$json)
             if (isset($auction['petBreedId'])) {
                 $auction['petBreedId'] = (($auction['petBreedId'] - 3) % 10) + 3; // squash gender
             }
-            $auction['timeLeft'] = isset($TIMELEFT_ENUM[$auction['timeLeft']]) ? $TIMELEFT_ENUM[$auction['timeLeft']] : 0;
+            $hasBuyout = ($auction['buyout'] != 0);
 
-            $totalAuctions++;
-            $itemInfoKey = false;
-            if ($auction['buyout'] != 0) {
-                if (isset($auction['petSpeciesId'])) {
-                    if (!isset($petInfo[$auction['petSpeciesId']][$auction['petBreedId']])) {
-                        $petInfo[$auction['petSpeciesId']][$auction['petBreedId']] = [0, []];
-                    }
-
-                    AuctionListInsert($petInfo[$auction['petSpeciesId']][$auction['petBreedId']][1], $auction['quantity'], $auction['buyout']);
-                    $petInfo[$auction['petSpeciesId']][$auction['petBreedId']][0] += $auction['quantity'];
+            if (isset($auction['petSpeciesId'])) {
+                if ($hasBuyout) {
+                    $aucList = &$petBuyouts;
                 } else {
-                    $bonusSet = 0;
-                    if (isset($auctionExtraItemsCache[$auction['item']]) && isset($auction['bonusLists'])) {
-                        $bonusSet = GetBonusSet($auction['bonusLists']);
-                    }
-                    $itemInfoKey = $auction['item'] . ":$bonusSet";
-                    if (!isset($itemInfo[$itemInfoKey])) {
-                        $itemInfo[$itemInfoKey] = [0, []];
-                    }
-
-                    AuctionListInsert($itemInfo[$itemInfoKey][1], $auction['quantity'], $auction['buyout']);
-                    $itemInfo[$itemInfoKey][0] += $auction['quantity'];
+                    $aucList = &$petBids;
                 }
+                if (!isset($aucList[$auction['petSpeciesId']][ARRAY_INDEX_ALLBREEDS])) {
+                    $aucList[$auction['petSpeciesId']][ARRAY_INDEX_ALLBREEDS] = $emptyItemInfo;
+                }
+                if ($hasBuyout) {
+                    AuctionListInsert($aucList[$auction['petSpeciesId']][ARRAY_INDEX_ALLBREEDS][ARRAY_INDEX_AUCTIONS], $auction['quantity'], $auction['buyout']);
+                }
+                $aucList[$auction['petSpeciesId']][ARRAY_INDEX_ALLBREEDS][ARRAY_INDEX_QUANTITY] += $auction['quantity'];
+
+                if (!isset($aucList[$auction['petSpeciesId']][$auction['petBreedId']])) {
+                    $aucList[$auction['petSpeciesId']][$auction['petBreedId']] = $emptyItemInfo;
+                }
+                if ($hasBuyout) {
+                    AuctionListInsert($aucList[$auction['petSpeciesId']][$auction['petBreedId']][ARRAY_INDEX_AUCTIONS], $auction['quantity'], $auction['buyout']);
+                }
+                $aucList[$auction['petSpeciesId']][$auction['petBreedId']][ARRAY_INDEX_QUANTITY] += $auction['quantity'];
+            } else {
+                if ($hasBuyout) {
+                    $aucList = &$itemBuyouts;
+                } else {
+                    $aucList = &$itemBids;
+                }
+                $bonusSet = 0;
+                if (isset($auctionExtraItemsCache[$auction['item']]) && isset($auction['bonusLists'])) {
+                    $bonusSet = GetBonusSet($auction['bonusLists']);
+                }
+                $itemInfoKey = $auction['item'] . ":$bonusSet";
+                if (!isset($aucList[$itemInfoKey])) {
+                    $aucList[$itemInfoKey] = $emptyItemInfo;
+                }
+
+                if ($hasBuyout) {
+                    AuctionListInsert($aucList[$itemInfoKey][ARRAY_INDEX_AUCTIONS], $auction['quantity'], $auction['buyout']);
+                }
+                $aucList[$itemInfoKey][ARRAY_INDEX_QUANTITY] += $auction['quantity'];
             }
         }
+    }
+    unset($json, $jsonAuctions);
 
-        $ourDb->commit();
+    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " found ".count($itemBuyouts)." distinct items, ".count($petBuyouts)." species");
+
+    $watchesSet = []; $watchesSetCount = 0;
+    $watchesUnset = []; $watchesUnsetCount = 0;
+    $updateObserved = [];
+    $watchesCount = 0;
+    $sql = <<<'EOF'
+select uw.`user`, uw.seq, uw.region, uw.item, uw.bonusset, uw.species, uw.breed, uw.direction, uw.quantity, uw.price, if(uw.observed is null, 0, 1) isset
+from tblUserWatch uw
+join tblUser u on uw.user = u.id
+where uw.deleted is null
+and (uw.region = ? or uw.house = ?)
+and (observed is null or observed < ?)
+order by item, species
+EOF;
+
+    $ourDb = DBConnect(true);
+    $ourDb->query('set transaction isolation level read uncommitted, read only');
+    $ourDb->begin_transaction();
+
+    $stmt = $ourDb->prepare($sql);
+    $stmt->bind_param('sis', $region, $house, $snapshotString);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($row = $result->fetch_assoc()) {
+        $watchSatisfied = false;
+        $watchesCount++;
+        if ($row['item']) {
+            $itemInfoKey = $row['item'] . ($row['bonusset'] ?: 0);
+            if (!isset($itemBuyouts[$itemInfoKey])) {
+                // none of this item for sale
+                if (is_null($row['quantity'])) {
+                    // market price notification, without quantity it does not change
+                    continue;
+                }
+                if (is_null($row['price']) && $row['direction'] == 'Over' && $row['quantity'] == 0 && isset($itemBids[$itemInfoKey])) {
+                    // when no quantity avail for buyout, and we're looking for any quantity over X, check bids too
+                    $watchSatisfied = $itemBids[$itemInfoKey][ARRAY_INDEX_QUANTITY];
+                } else {
+                    $watchSatisfied = WatchSatisfied($emptyItemInfo, $row['direction'], $row['quantity'], $row['price']);
+                }
+            } else {
+                $watchSatisfied = WatchSatisfied($itemBuyouts[$itemInfoKey], $row['direction'], $row['quantity'], $row['price']);
+            }
+        } else if ($row['species']) {
+            $breed = $row['breed'] ?: ARRAY_INDEX_ALLBREEDS;
+            if (!isset($petBuyouts[$row['species']][$breed])) {
+                // none of this pet for sale
+                if (is_null($row['quantity'])) {
+                    // market price notification, without quantity it does not change
+                    continue;
+                }
+                if (is_null($row['price']) && $row['direction'] == 'Over' && $row['quantity'] == 0 && isset($petBids[$row['species']][$breed])) {
+                    // when no quantity avail for buyout, and we're looking for any quantity over X, check bids too
+                    $watchSatisfied = $petBids[$row['species']][$breed][ARRAY_INDEX_QUANTITY];
+                } else {
+                    $watchSatisfied = WatchSatisfied($emptyItemInfo, $row['direction'], $row['quantity'], $row['price']);
+                }
+            } else {
+                $watchSatisfied = WatchSatisfied($petBuyouts[$row['species']][$breed], $row['direction'], $row['quantity'], $row['price']);
+            }
+        }
+        if ($watchSatisfied === false) {
+            if ($row['isset']) {
+                $watchesUnset[$row['user']][] = $row['seq'];
+                $watchesUnsetCount++;
+            }
+        } else {
+            $watchesSet[$row['user']][$row['seq']] = $watchSatisfied;
+            $watchesSetCount++;
+            if (!$row['isset']) {
+                $updateObserved[$row['user']] = true;
+            }
+        }
+    }
+    $result->close();
+    $stmt->close();
+
+    $ourDb->commit(); // end read-uncommitted transaction
+    unset($itemBuyouts, $itemBids, $petBuyouts, $petBids);
+
+    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " reviewed $watchesCount watches, $watchesSetCount set, $watchesUnsetCount unset");
+
+    $queryCount = 0;
+    $sql = 'update tblUserWatch set house = if(region is null, house, null), currently = null, observed = null where user = %d and seq in (%s)';
+    foreach ($watchesUnset as $user => $allSeqs) {
+        $chunks = array_chunk($allSeqs, 200);
+        foreach ($chunks as $seqs) {
+            DBQueryWithError($ourDb, sprintf($sql, $user, implode(',', $seqs)));
+            $queryCount++;
+        }
+    }
+
+    $sql = 'update tblUserWatch set house = ?, currently = ?, observed = ifnull(observed, ?) where user = ? and seq = ?';
+    if (count($watchesSet)) {
+        $stmt = $ourDb->prepare($sql);
+        $boundCurrently = $boundUser = $boundSeq = null;
+        $stmt->bind_param('issii', $house, $boundCurrently, $snapshotString, $boundUser, $boundSeq);
+        foreach ($watchesSet as $user => $allSeqs) {
+            foreach ($allSeqs as $seq => $currently) {
+                $boundCurrently = $currently;
+                $boundUser = $user;
+                $boundSeq = $seq;
+                $stmt->execute();
+                $queryCount++;
+            }
+        }
+        $stmt->close();
+    }
+
+    $observedUsers = array_chunk(array_keys($updateObserved), 200);
+    $sql = 'update tblUser set watchesobserved = \'%1$s\' where id in (%2$s) and ifnull(watchesobserved, \'2000-01-01\') < \'%1$s\'';
+    foreach ($observedUsers as $users) {
+        DBQueryWithError($ourDb, sprintf($sql, $snapshotString, implode(',', $users)));
+        $queryCount++;
     }
 
     $ourDb->close();
 
-    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " finished with $totalAuctions auctions in " . round(microtime(true) - $startTimer, 2) . " sec");
+    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " finished with $queryCount update queries in " . round(microtime(true) - $startTimer, 2) . " sec");
+}
+
+function WatchSatisfied(&$itemAuctions, $direction, $quantity, $price) {
+    if (is_null($price)) {
+        // qty notification
+        if (   (($direction == 'Over') && ($itemAuctions[ARRAY_INDEX_QUANTITY] > $quantity))
+            || (($direction != 'Over') && ($itemAuctions[ARRAY_INDEX_QUANTITY] < $quantity))) {
+            return $itemAuctions[ARRAY_INDEX_QUANTITY];
+        }
+    } else {
+        $curPrice = GetMarketPrice($itemAuctions, $quantity);
+        if (is_null($curPrice)) {
+            // fewer than $quantity are available
+            if ($direction == 'Over') {
+                return $curPrice; // watch is satisfied (price to buy $quantity is over $price) but $curPrice is infinite
+            } else {
+                return false; // watch is not satisfied (price to buy $quantity is not under $price)
+            }
+        }
+        if (   (($direction == 'Over') && ($curPrice > $price))
+            || (($direction != 'Over') && ($curPrice < $price))) {
+            return $curPrice;
+        }
+    }
+    return false;
 }
 
 function AuctionListInsert(&$list, $qty, $buyout) {
     $pricePer = $buyout;
     if ($qty != 1) {
         $pricePer =0| $buyout/$qty;
-        $auction = [$qty, $buyout];
+        $auction = [ARRAY_INDEX_QUANTITY => $qty, ARRAY_INDEX_BUYOUT => $buyout];
     } else {
         $auction = $pricePer;
     }
@@ -273,8 +390,8 @@ function AuctionListInsert(&$list, $qty, $buyout) {
         $midPrice = $list[$iMid];
         $midQty = 1;
         if (is_array($midPrice)) {
-            $midQty = $midPrice[0];
-            $midPrice = 0| $midPrice[1]/$midPrice[0];
+            $midQty = $midPrice[ARRAY_INDEX_QUANTITY];
+            $midPrice = 0| $midPrice[ARRAY_INDEX_BUYOUT]/$midPrice[ARRAY_INDEX_QUANTITY];
         }
         if ($midPrice == $pricePer) {
             if ($midQty == $qty) {
@@ -365,32 +482,35 @@ function GetBonusSet($bonusList)
     return $newSet;
 }
 
-function GetMarketPrice(&$info)
+function GetMarketPrice(&$info, $inBuyCount = 0)
 {
-    if ($info['tq'] == 0) {
-        return 0;
+    if (!$inBuyCount) {
+        if (isset($info[ARRAY_INDEX_MARKETPRICE])) {
+            return $info[ARRAY_INDEX_MARKETPRICE];
+        }
+    } elseif ($info[ARRAY_INDEX_QUANTITY] < $inBuyCount) {
+        return null;
     }
 
-    usort($info['a'], 'MarketPriceSort');
     $gq = 0;
     $gp = 0;
     $x = 0;
-    while ($gq < ceil($info['tq'] * 0.15)) {
-        $gq += $info['a'][$x]['q'];
-        $gp += $info['a'][$x]['p'];
-        $x++;
+    $buyCount = $inBuyCount ?: ceil($info[ARRAY_INDEX_QUANTITY] * 0.15);
+    while ($gq < $buyCount) {
+        $auc = $info[ARRAY_INDEX_AUCTIONS][$x++];
+        if (is_array($auc)) {
+            $gq += $auc[ARRAY_INDEX_QUANTITY];
+            $gp += $auc[ARRAY_INDEX_BUYOUT];
+        } else {
+            $gq++;
+            $gp += $auc;
+        }
     }
-    return ceil($gp / $gq);
-}
-
-function MarketPriceSort($a, $b)
-{
-    $ap = ceil($a['p'] / $a['q']);
-    $bp = ceil($b['p'] / $b['q']);
-    if ($ap - $bp != 0) {
-        return ($ap - $bp);
+    $price = ceil($gp / $gq);
+    if (!$inBuyCount) {
+        $info[ARRAY_INDEX_MARKETPRICE] = $price;
     }
-    return ($a['q'] - $b['q']);
+    return $price;
 }
 
 function DBQueryWithError(&$db, $sql)
