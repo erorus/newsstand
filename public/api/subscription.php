@@ -30,6 +30,7 @@ if (isset($_POST['settings'])) {
         'email' => GetSubEmail($loginState),
         'messages' => GetSubMessages($loginState),
         'watches' => GetWatches($loginState),
+        'reports' => GetReports($loginState),
         ]);
 }
 
@@ -47,6 +48,10 @@ if (isset($_POST['emailaddress'])) {
 
 if (isset($_POST['verifyemail'])) {
     json_return(VerifySubEmail($loginState, $_POST['verifyemail']));
+}
+
+if (isset($_POST['setperiod'])) {
+    json_return(SetWatchPeriod($loginState, $_POST['setperiod']));
 }
 
 if (isset($_POST['getitem'])) {
@@ -139,6 +144,7 @@ function MakeNewSession($provider, $providerId, $userName) {
     $userInfo = [ // all params here must also be created from the DB in GetLoginState
         'id' => 0,
         'name' => $userName,
+        'paiduntil' => null,
     ];
 
     $db = DBConnect();
@@ -177,6 +183,14 @@ function MakeNewSession($provider, $providerId, $userName) {
         $stmt->execute();
 
         $userInfo['id'] = $userId;
+
+        $stmt = $db->prepare('SELECT unix_timestamp(paiduntil) FROM tblUser WHERE id = ?');
+        $stmt->bind_param('i', $userId);
+        $stmt->execute();
+        $stmt->bind_result($userInfo['paiduntil']);
+        $stmt->fetch();
+        $stmt->close();
+
         MCSet('usersession_'.$state, $userInfo);
 
         break;
@@ -225,8 +239,9 @@ function GetUserByProvider($provider, $providerId, $userName) {
 
     // new user
 
-    $stmt = $db->prepare('INSERT INTO tblUser (name, firstseen, lastseen) VALUES (IFNULL(?, \'User\'), NOW(), NOW())');
-    $stmt->bind_param('s', $userName);
+    $period = SUBSCRIPTION_WATCH_DEFAULT_PERIOD;
+    $stmt = $db->prepare('INSERT INTO tblUser (name, firstseen, lastseen, watchperiod) VALUES (IFNULL(?, \'User\'), NOW(), NOW())');
+    $stmt->bind_param('si', $userName, $period);
     $stmt->execute();
     $stmt->close();
 
@@ -824,3 +839,54 @@ EOF;
     return $json;
 }
 
+function GetReports($loginState)
+{
+    $userId = $loginState['id'];
+    $isPaid = !is_null($loginState['paiduntil']) && $loginState['paiduntil'] > time();
+
+    $cacheKey = SUBSCRIPTION_REPORTS_CACHEKEY . $userId;
+    $reports = MCGet($cacheKey);
+    if ($reports === false) {
+        $reports = [
+            'period' => null,
+            'lastreport' => null,
+        ];
+
+        $db = DBConnect();
+        $stmt = $db->prepare('select watchperiod, unix_timestamp(watchesreported) from tblUser where id = ?');
+        $stmt->bind_param('i', $userId);
+        $stmt->execute();
+        $stmt->bind_result($reports['period'], $reports['lastreport']);
+        $stmt->fetch();
+        $stmt->close();
+
+        MCSet($cacheKey, $reports);
+    }
+
+    $reports['minperiod'] = $isPaid ? SUBSCRIPTION_WATCH_MIN_PERIOD : SUBSCRIPTION_WATCH_MIN_PERIOD_FREE;
+    $reports['maxperiod'] = SUBSCRIPTION_WATCH_MAX_PERIOD;
+
+    return $reports;
+}
+
+function SetWatchPeriod($loginState, $period)
+{
+    $userId = $loginState['id'];
+    $isPaid = !is_null($loginState['paiduntil']) && $loginState['paiduntil'] > time();
+
+    $period = intval($period, 10);
+    $period = max(min($period, SUBSCRIPTION_WATCH_MAX_PERIOD), SUBSCRIPTION_WATCH_MIN_PERIOD);
+    if (!$isPaid) {
+        $period = max($period, SUBSCRIPTION_WATCH_MIN_PERIOD_FREE);
+    }
+
+    $db = DBConnect();
+    $stmt = $db->prepare('update tblUser set watchperiod = ? where id = ?');
+    $stmt->bind_param('ii', $period, $userId);
+    $stmt->execute();
+    $stmt->close();
+
+    MCDelete(SUBSCRIPTION_REPORTS_CACHEKEY . $userId);
+
+    return GetReports($loginState);
+}

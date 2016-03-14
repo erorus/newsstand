@@ -7,6 +7,7 @@ $startTime = time();
 require_once('../incl/incl.php');
 require_once('../incl/heartbeat.incl.php');
 require_once('../incl/memcache.incl.php');
+require_once('../incl/subscription.incl.php');
 
 RunMeNTimes(2);
 CatchKill();
@@ -234,8 +235,9 @@ from tblUserWatch uw
 join tblUser u on uw.user = u.id
 where uw.deleted is null
 and (uw.region = ? or uw.house = ?)
-and (observed is null or observed < ?)
-order by item, species
+and (uw.observed is null or uw.observed < ?)
+and (u.paiduntil > now() or u.lastseen > timestampadd(day, ?, now()))
+order by uw.item, uw.species
 EOF;
 
     $ourDb = DBConnect(true);
@@ -243,7 +245,8 @@ EOF;
     $ourDb->begin_transaction();
 
     $stmt = $ourDb->prepare($sql);
-    $stmt->bind_param('sis', $region, $house, $snapshotString);
+    $freeDays = -1 * SUBSCRIPTION_WATCH_FREE_LAST_LOGIN_DAYS;
+    $stmt->bind_param('sisi', $region, $house, $snapshotString, $freeDays);
     $stmt->execute();
     $result = $stmt->get_result();
     while ($row = $result->fetch_assoc()) {

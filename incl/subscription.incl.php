@@ -12,8 +12,16 @@ define('SUBSCRIPTION_MESSAGES_MAX', 50);
 define('SUBSCRIPTION_ITEM_CACHEKEY', 'subitem_');
 define('SUBSCRIPTION_SPECIES_CACHEKEY', 'subspecies_');
 define('SUBSCRIPTION_WATCH_CACHEKEY', 'subwatch_');
+define('SUBSCRIPTION_REPORTS_CACHEKEY', 'subreports_');
+
 define('SUBSCRIPTION_WATCH_LIMIT_PER', 5);
 define('SUBSCRIPTION_WATCH_LIMIT_TOTAL', 1000);
+
+define('SUBSCRIPTION_WATCH_MAX_PERIOD', 1435); // minutes
+define('SUBSCRIPTION_WATCH_MIN_PERIOD', 2); // minutes
+define('SUBSCRIPTION_WATCH_MIN_PERIOD_FREE', 475); // lowest period for free subs
+define('SUBSCRIPTION_WATCH_DEFAULT_PERIOD', 715); // minutes
+define('SUBSCRIPTION_WATCH_FREE_LAST_LOGIN_DAYS', 30); // max number of days since we've seen this free sub and we still trigger notifications
 
 function GetLoginState($logOut = false) {
     $userInfo = [];
@@ -40,7 +48,8 @@ function GetLoginState($logOut = false) {
         if ($userInfo === false) {
             $db = DBConnect();
 
-            $stmt = $db->prepare('SELECT u.id, u.name FROM tblUserSession us join tblUser u on us.user=u.id WHERE us.session=?');
+            // see also MakeNewSession in api/subscription.php
+            $stmt = $db->prepare('SELECT u.id, u.name, unix_timestamp(u.paiduntil) paiduntil FROM tblUserSession us join tblUser u on us.user=u.id WHERE us.session=?');
             $stmt->bind_param('s', $stateBytes);
             $stmt->execute();
             $result = $stmt->get_result();
