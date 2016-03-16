@@ -255,6 +255,21 @@ function BuildIncludes($regions)
                 </table>
 EOF;
 
+    $htmlFormatWaiting = <<<EOF
+                <meta itemprop="price" content="##rawbuy##"><meta itemprop="priceCurrency" content="XAU">
+                <table class="results" itemprop="priceSpecification" itemscope itemtype="http://schema.org/PriceSpecification">
+                    <tbody>
+                        <tr>
+                            <td>API Result</td>
+                            <td id="##region##-result">Waiting for Battle.net API Support</td>
+                        </tr>
+                        <tr>
+                            <td>Updated</td>
+                            <td itemprop="validFrom" content="##rawupdatedISO8601##" id="##region##-updatedhtml">##updatedhtml##</td>
+                        </tr>
+                    </tbody>
+                </table>
+EOF;
     $json = [];
     $historyJson = [];
     $csv = "Region,UTC Date,Buy Price\r\n"; //,Time Left
@@ -333,6 +348,8 @@ EOF;
 
         $replacements = $json[$fileRegion];
 
+        $format = (strtotime($tokenData['when']) < strtotime('36 hours ago')) ? $htmlFormatWaiting : $htmlFormat;
+
         $html = preg_replace_callback('/##([a-zA-Z0-9]+)##/', function ($m) use ($replacements) {
                 if (substr($m[1], 0, 3) == 'raw') {
                     if (isset($replacements['raw'][substr($m[1], 3)])) {
@@ -343,7 +360,7 @@ EOF;
                     return $replacements['formatted'][$m[1]];
                 }
                 return $m[0];
-            }, $htmlFormat);
+            }, $format);
 
         AtomicFilePutContents($filenm, $html);
 
