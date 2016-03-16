@@ -261,7 +261,7 @@ EOF;
                     <tbody>
                         <tr>
                             <td>API Result</td>
-                            <td id="##region##-result">Waiting for Battle.net API Support</td>
+                            <td>Waiting for Battle.net API Support</td>
                         </tr>
                         <tr>
                             <td>Updated</td>
