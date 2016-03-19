@@ -74,6 +74,276 @@ function LocaleColumns($colName, $usesPattern = false)
     return $tr;
 }
 
+function GetItemNames($itemId, $renamedTo = false)
+{
+    static $fetchedNames = [];
+
+    $cacheKey = 'itemnames_'.$itemId;
+
+    if (isset($fetchedNames[$itemId])) {
+        $names = $fetchedNames[$itemId];
+    } else {
+        $names = $fetchedNames[$itemId] = MCGet($cacheKey);
+    }
+    if ($names === false) {
+        $db = DBConnect();
+
+        $sql = 'select '.LocaleColumns('name').' from tblDBCItem where id=?';
+        $stmt = $db->prepare($sql);
+        $stmt->bind_param('i', $itemId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $names = $result->fetch_assoc();
+        $result->close();
+        $stmt->close();
+
+        if ($names === false) {
+            $names = [];
+            global $VALID_LOCALES;
+            foreach ($VALID_LOCALES as $locId) {
+                $names['name_'.$locId] = 'Item #'.$itemId;
+            }
+            MCSet($cacheKey, $names, 1800);
+        } else {
+            MCSet($cacheKey, $names, 86400);
+        }
+        $fetchedNames[$itemId] = $names;
+    }
+
+    if ($renamedTo && $renamedTo != 'name') {
+        $keys = array_keys($names);
+        foreach ($keys as $key) {
+            $names[str_replace('name', $renamedTo, $key)] = $names[$key];
+            unset($names[$key]);
+        }
+    }
+
+    return $names;
+}
+
+function GetItemBonusNames($bonuses, $renamedTo = false)
+{
+    static $fetchedNames = [];
+
+    if (!is_array($bonuses)) {
+        $c = preg_match_all('/\d+/', $bonuses, $res);
+        $bonuses = [];
+        for ($x = 0; $x < $c; $x++) {
+            if ($res[0][$x]) {
+                $bonuses[] = $res[0][$x];
+            }
+        }
+    }
+
+    $bonuses = implode(',', array_filter($bonuses, 'is_numeric'));
+
+    $cacheKey = 'itembonusnames_'.$bonuses;
+
+    if (isset($fetchedNames[$bonuses])) {
+        $names = $fetchedNames[$bonuses];
+    } else {
+        $names = $fetchedNames[$bonuses] = MCGet($cacheKey);
+    }
+    if ($names === false) {
+        if ($bonuses) {
+            $db = DBConnect();
+
+            $sql = 'select '.LocaleColumns('ifnull(group_concat(distinct name%1$s order by namepriority desc separator \' \'), \'\') bonusname%1$s', true);
+            $sql .= ' from tblDBCItemBonus where id in ('.$bonuses.')';
+            $stmt = $db->prepare($sql);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $names = $result->fetch_assoc();
+            $result->close();
+            $stmt->close();
+        }
+        if ($names === false) {
+            $names = [];
+            global $VALID_LOCALES;
+            foreach ($VALID_LOCALES as $locId) {
+                $names['bonusname_'.$locId] = '';
+            }
+        }
+        MCSet($cacheKey, $names, 86400);
+        $fetchedNames[$bonuses] = $names;
+    }
+
+    if ($renamedTo && $renamedTo != 'bonusname') {
+        $keys = array_keys($names);
+        foreach ($keys as $key) {
+            $names[str_replace('bonusname', $renamedTo, $key)] = $names[$key];
+            unset($names[$key]);
+        }
+    }
+
+    return $names;
+}
+
+function GetItemBonusTags($bonuses, $renamedTo = false)
+{
+    static $fetchedNames = [];
+
+    if (!is_array($bonuses)) {
+        $c = preg_match_all('/\d+/', $bonuses, $res);
+        $bonuses = [];
+        for ($x = 0; $x < $c; $x++) {
+            if ($res[0][$x]) {
+                $bonuses[] = $res[0][$x];
+            }
+        }
+    }
+
+    $bonuses = implode(',', array_filter($bonuses, 'is_numeric'));
+
+    $cacheKey = 'itembonustags_'.$bonuses;
+
+    if (isset($fetchedNames[$bonuses])) {
+        $names = $fetchedNames[$bonuses];
+    } else {
+        $names = $fetchedNames[$bonuses] = MCGet($cacheKey);
+    }
+    if ($names === false) {
+        if ($bonuses) {
+            $db = DBConnect();
+
+            $sql = 'select '.LocaleColumns('ifnull(group_concat(distinct `tag%1$s` order by tagpriority separator \' \'), if(sum(ifnull(level,0))=0,\'\',sum(ifnull(level,0)))) bonustag%1$s', true);
+            $sql .= ' from tblDBCItemBonus where id in ('.$bonuses.')';
+            $stmt = $db->prepare($sql);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $names = $result->fetch_assoc();
+            $result->close();
+            $stmt->close();
+        }
+        if ($names === false) {
+            $names = [];
+            global $VALID_LOCALES;
+            foreach ($VALID_LOCALES as $locId) {
+                $names['bonustag_'.$locId] = '';
+            }
+        }
+        MCSet($cacheKey, $names, 86400);
+        $fetchedNames[$bonuses] = $names;
+    }
+
+    if ($renamedTo && $renamedTo != 'bonustag') {
+        $keys = array_keys($names);
+        foreach ($keys as $key) {
+            $names[str_replace('bonustag', $renamedTo, $key)] = $names[$key];
+            unset($names[$key]);
+        }
+    }
+
+    return $names;
+}
+
+function GetRandEnchantNames($randId, $renamedTo = false)
+{
+    static $fetchedNames = [];
+
+    $cacheKey = 'randenchantnames_'.$randId;
+
+    if (isset($fetchedNames[$randId])) {
+        $names = $fetchedNames[$randId];
+    } else {
+        $names = $fetchedNames[$randId] = MCGet($cacheKey);
+    }
+    if ($names === false) {
+        if ($randId) {
+            $db = DBConnect();
+
+            $sql = 'select '.LocaleColumns('name%1$s randname%1$s', true).' from tblDBCRandEnchants where id = ?';
+            $stmt = $db->prepare($sql);
+            $stmt->bind_param('i', $randId);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $names = $result->fetch_assoc();
+            $result->close();
+            $stmt->close();
+        }
+        if ($names === false) {
+            $names = [];
+            global $VALID_LOCALES;
+            foreach ($VALID_LOCALES as $locId) {
+                $names['randname_'.$locId] = '';
+            }
+        }
+        MCSet($cacheKey, $names, 86400);
+        $fetchedNames[$randId] = $names;
+    }
+
+    if ($renamedTo && $renamedTo != 'randname') {
+        $keys = array_keys($names);
+        foreach ($keys as $key) {
+            $names[str_replace('randname', $renamedTo, $key)] = $names[$key];
+            unset($names[$key]);
+        }
+    }
+
+    return $names;
+}
+
+function GetPetNames($species, $renamedTo = false)
+{
+    static $fetchedNames = [];
+
+    $cacheKey = 'petnames_'.$species;
+
+    if (isset($fetchedNames[$species])) {
+        $names = $fetchedNames[$species];
+    } else {
+        $names = $fetchedNames[$species] = MCGet($cacheKey);
+    }
+    if ($names === false) {
+        if ($species) {
+            $db = DBConnect();
+
+            $sql = 'select '.LocaleColumns('name').' from tblDBCPet where id = ?';
+            $stmt = $db->prepare($sql);
+            $stmt->bind_param('i', $species);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $names = $result->fetch_assoc();
+            $result->close();
+            $stmt->close();
+        }
+        if ($names === false) {
+            $names = [];
+            global $VALID_LOCALES;
+            foreach ($VALID_LOCALES as $locId) {
+                $names['name_'.$locId] = '';
+            }
+            MCSet($cacheKey, $names, 1800);
+        } else {
+            MCSet($cacheKey, $names, 86400);
+        }
+        $fetchedNames[$species] = $names;
+    }
+
+    if ($renamedTo && $renamedTo != 'name') {
+        $keys = array_keys($names);
+        foreach ($keys as $key) {
+            $names[str_replace('name', $renamedTo, $key)] = $names[$key];
+            unset($names[$key]);
+        }
+    }
+
+    return $names;
+}
+
+function PopulateLocaleCols(&$rows, $calls) {
+    $c = count($calls);
+    foreach ($rows as &$row) {
+        for ($x = 0; $x < $c; $x++) {
+            if (isset($row[$calls[$x]['key']])) {
+                $funcName = $calls[$x]['func'];
+                $row = array_merge($row, $funcName($row[$calls[$x]['key']], isset($calls[$x]['name']) ? $calls[$x]['name'] : false));
+            }
+        }
+    }
+    unset($row);
+}
+
 function GetSiteRegion()
 {
     return (isset($_SERVER['HTTP_HOST']) && (preg_match('/^eu./i', $_SERVER['HTTP_HOST']) > 0)) ? 'EU' : 'US';
