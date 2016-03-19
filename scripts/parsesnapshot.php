@@ -441,7 +441,8 @@ function ParseAuctionData($house, $snapshot, &$json)
 insert ignore into tblAuctionRare (house, id, prevseen) (
 select a.house, a.id, tis.lastseen
 from tblAuction a
-left join tblItemSummary tis on tis.house=a.house and tis.item=a.item
+left join tblAuctionExtra ae on ae.house=a.house and ae.id=a.id
+left join tblItemSummary tis on tis.house=a.house and tis.item=a.item and tis.bonusset=ifnull(ae.bonusset,0)
 where a.house = %d
 and a.id > %d
 and a.item not in (82800)

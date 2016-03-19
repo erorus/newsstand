@@ -106,43 +106,32 @@ EOF;
 
 function SellerAuctions($house, $seller)
 {
-    global $db, $LANG_LEVEL;
-
-    $cacheKey = 'seller_auctions_l_' . $seller;
+    $cacheKey = 'seller_auctions_' . $seller;
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
+        PopulateLocaleCols($tr, [
+                ['func' => 'GetItemNames',          'key' => 'item',    'name' => 'name'],
+                ['func' => 'GetItemBonusNames',     'key' => 'bonuses', 'name' => 'bonusname'],
+                ['func' => 'GetItemBonusTags',      'key' => 'bonuses', 'name' => 'bonustag'],
+                ['func' => 'GetRandEnchantNames',   'key' => 'rand',    'name' => 'randname'],
+            ]);
         return $tr;
     }
 
-    DBConnect();
-
-    $localizedItemNames = LocaleColumns('i.name');
-    $itemNamesOutside = str_replace('i.', '', $localizedItemNames);
-    $bonusNamesOutside = LocaleColumns('bonusname');
-    $bonusTagsOutside = LocaleColumns('bonustag');
-    $bonusNames = LocaleColumns('ifnull(group_concat(distinct ib.name%1$s order by ib.namepriority desc separator \'|\'), \'\') bonusname%1$s', true);
-    $bonusTags = LocaleColumns('ifnull(group_concat(distinct ib.`tag%1$s` order by ib.tagpriority separator \' \'), if(ifnull(bs.set,0)=0,\'\',concat(\'__LEVEL%1$s__ \', i.level+sum(ifnull(ib.level,0))))) bonustag%1$s', true);
-    $bonusTags = strtr($bonusTags, $LANG_LEVEL);
-    $randNames = LocaleColumns('re.name%1$s randname%1$s', true);
-    $randNamesOutside = LocaleColumns('randname');
+    $db = DBConnect();
 
     $sql = <<<EOF
-select item, $itemNamesOutside, quality, class, subclass, icon, stacksize, quantity, bid, buy, `rand`, seed, bonuses, bonusurl, $bonusNamesOutside, $bonusTagsOutside, $randNamesOutside,
+select item, level, quality, class, subclass, icon, stacksize, quantity, bid, buy, `rand`, seed, bonuses, bonusurl,
 (SELECT ifnull(sum(quantity),0) from tblAuction a2 left join tblAuctionExtra ae2 on a2.house=ae2.house and a2.id=ae2.id where a2.house=results.house and a2.item=results.item and ifnull(ae2.bonusset,0) = ifnull(results.bonusset,0) and a2.seller!=results.seller and
 ((results.buy > 0 and a2.buy > 0 and (a2.buy / a2.quantity < results.buy / results.quantity)) or (results.buy = 0 and (a2.bid / a2.quantity < results.bid / results.quantity)))) cheaper
 from (
-    SELECT a.item, $localizedItemNames, i.quality, i.class, i.subclass, i.icon, i.stacksize, a.quantity, a.bid, a.buy, ifnull(ae.`rand`, 0) `rand`, ifnull(ae.seed,0) seed,
+    SELECT a.item, i.level, i.quality, i.class, i.subclass, i.icon, i.stacksize, a.quantity, a.bid, a.buy, ifnull(ae.`rand`, 0) `rand`, ifnull(ae.seed,0) seed,
     concat_ws(':',ae.bonus1,ae.bonus2,ae.bonus3,ae.bonus4,ae.bonus5,ae.bonus6) bonuses,
     ifnull(GROUP_CONCAT(distinct bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
-    $bonusNames,
-    $bonusTags,
-    $randNames,
     a.house, a.seller, ae.bonusset
     FROM `tblAuction` a
     left join tblDBCItem i on a.item=i.id
     left join tblAuctionExtra ae on ae.house=a.house and ae.id=a.id
     left join tblBonusSet bs on ae.bonusset = bs.set
-    left join tblDBCItemBonus ib on ib.id in (ae.bonus1, ae.bonus2, ae.bonus3, ae.bonus4, ae.bonus5, ae.bonus6)
-    left join tblDBCRandEnchants re on re.id = ae.rand
     WHERE a.house = ? and a.seller = ?
     and a.item != 82800
     group by a.id
@@ -159,22 +148,29 @@ EOF;
 
     MCSetHouse($house, $cacheKey, $tr);
 
+    PopulateLocaleCols($tr, [
+            ['func' => 'GetItemNames',          'key' => 'item',    'name' => 'name'],
+            ['func' => 'GetItemBonusNames',     'key' => 'bonuses', 'name' => 'bonusname'],
+            ['func' => 'GetItemBonusTags',      'key' => 'bonuses', 'name' => 'bonustag'],
+            ['func' => 'GetRandEnchantNames',   'key' => 'rand',    'name' => 'randname'],
+        ]);
+
     return $tr;
 }
 
 function SellerPetAuctions($house, $seller)
 {
-    global $db;
+    $cacheKey = 'seller_petauctions_' . $seller;
 
-    if (($tr = MCGetHouse($house, 'seller_petauctions_l_' . $seller)) !== false) {
+    if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
+        PopulateLocaleCols($tr, [['func' => 'GetPetNames', 'key' => 'species', 'name' => 'name']]);
         return $tr;
     }
 
-    DBConnect();
+    $db = DBConnect();
 
-    $names = LocaleColumns('p.name');
     $sql = <<<EOF
-SELECT ap.species, ap.breed, quantity, bid, buy, ap.level, ap.quality, $names, p.icon, p.type, p.npc,
+SELECT ap.species, ap.breed, quantity, bid, buy, ap.level, ap.quality, p.icon, p.type, p.npc,
 (SELECT ifnull(sum(quantity),0)
 from tblAuction a2
 join tblAuctionPet ap2 on a2.house = ap2.house and a2.id = ap2.id
@@ -194,7 +190,9 @@ EOF;
     $result->close();
     $stmt->close();
 
-    MCSetHouse($house, 'seller_petauctions_' . $seller, $tr);
+    MCSetHouse($house, $cacheKey, $tr);
+
+    PopulateLocaleCols($tr, [['func' => 'GetPetNames', 'key' => 'species', 'name' => 'name']]);
 
     return $tr;
 }
