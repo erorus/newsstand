@@ -6,6 +6,8 @@ var TUJ_Subscription = function ()
 
     var subData;
 
+    var subPeriods = [2, 25, 55, 115, 175, 235, 355, 475, 715, 955, 1075, 1195, 1435];
+
     this.load = function (inParams)
     {
         self = this;
@@ -61,6 +63,11 @@ var TUJ_Subscription = function ()
         settingsEmail.id = 'subscription-email';
         settingsParent.append(settingsEmail);
         ShowEmail(settingsEmail);
+
+        var settingsSettings = libtuj.ce('div');
+        settingsSettings.id = 'subscription-settings';
+        settingsParent.append(settingsSettings);
+        ShowSettings(settingsSettings);
 
         var settingsWatches = libtuj.ce('div');
         settingsWatches.id = 'subscription-watches';
@@ -146,6 +153,15 @@ var TUJ_Subscription = function ()
     {
         var settings = subData.email;
 
+        var h = libtuj.ce('h3');
+        container.appendChild(h);
+        $(h).text(tuj.lang.contactInformation);
+
+        var d = libtuj.ce('div');
+        d.className = 'instruction';
+        container.appendChild(d);
+        $(d).html(tuj.lang.setAddressInstruction);
+
         var f = libtuj.ce('form');
         container.appendChild(f);
 
@@ -193,6 +209,73 @@ var TUJ_Subscription = function ()
         } else {
             $('#subscription-email').removeClass('verify');
         }
+    }
+
+    function ShowSettings(dest)
+    {
+        var h = libtuj.ce('h3');
+        dest.appendChild(h);
+        $(h).text(tuj.lang.settings);
+
+        var d = libtuj.ce('div');
+        d.className = 'instruction';
+        dest.appendChild(d);
+        $(d).text(tuj.lang.notificationPeriodDesc);
+
+        var s = libtuj.ce('span');
+        dest.appendChild(s);
+        $(s).text(tuj.lang.notificationPeriod + ': ');
+
+        var o, label, found, sel = libtuj.ce('select');
+        for (var x = 0; x < subPeriods.length; x++) {
+            var o = libtuj.ce('option');
+            o.value = subPeriods[x];
+            label = x == 0 ? tuj.lang.asap : libtuj.FormatDate(-1 * 60 * (subPeriods[x] + 5), true, 'hour', true);
+            if (subPeriods[x] < subData.reports.minperiod || subPeriods[x] > subData.reports.maxperiod) {
+                o.disabled = true;
+                label = tuj.lang.paidOnly + ': ' + label;
+            }
+            o.label = label;
+            o.appendChild(document.createTextNode(label));
+            sel.appendChild(o);
+            if (subPeriods[x] == subData.reports.period) {
+                sel.selectedIndex = sel.options.length - 1;
+                found = true;
+            }
+        }
+        if (!found) {
+            var o = libtuj.ce('option');
+            o.value = subData.reports.period;
+            label = libtuj.FormatDate(-1 * 60 * (subData.reports.period + 5), true, 'hour', true);
+            o.label = label;
+            o.appendChild(document.createTextNode(label));
+            sel.appendChild(o);
+            sel.selectedIndex = sel.options.length - 1;
+        }
+        $(sel).on('change', SetNotificationPeriod.bind(this, sel));
+        dest.appendChild(sel);
+    }
+
+    function SetNotificationPeriod(sel)
+    {
+        sel.disabled = true;
+        $.ajax({
+            data: {'setperiod': sel.options[sel.selectedIndex].value},
+            type: 'POST',
+            success: function(dta) {
+                for (var x = 0; x < sel.options.length; x++) {
+                    if (sel.options[x].value == dta.period) {
+                        sel.selectedIndex = x;
+                        break;
+                    }
+                }
+                sel.disabled = false;
+            },
+            error: function() {
+                sel.disabled = false;
+            },
+            url: 'api/subscription.php'
+        });
     }
 
     function ShowWatches(dest)

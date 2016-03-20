@@ -179,6 +179,9 @@ var libtuj = {
                 dt = new Date(unix.replace(/^(\d{4}-\d\d-\d\d) (\d\d:\d\d:\d\d)$/, '$1T$2.000Z'));
             }
             else {
+                if (unix <= 0) {
+                    unix = Math.abs(unix) + Math.floor(now.getTime() / 1000);
+                }
                 dt = new Date(unix * 1000);
             }
 

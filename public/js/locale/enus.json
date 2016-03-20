@@ -355,6 +355,7 @@
     },
 
     "subscription": "Subscription",
+    "settings": "Settings",
 
     "logInBattleNet": "Log in with Battle.net",
     "loggedInAs": "You are logged in as <b>{1}</b>.",
@@ -373,11 +374,13 @@
     "EmailStatus": {
         "unknown": "Unknown error, please try again.",
         "success": "Your Email address is updated.",
-        "verify": "Check your mail, then enter here the verification code which we sent there."
+        "verify": "Check your mail, and enter the verification code we sent to your address."
     },
     "subMessageFetchError": "Error fetching message, please try again.",
+    "contactInformation": "Contact Information",
     "emailAddress": "Email Address",
     "setAddress": "Set Address",
+    "setAddressInstruction": "All our messages and notifications to you will be shown in the section above.<br>You can also set your contact information here to have those messages sent to your address.",
     "emailVerification": "Verification Code",
     "verifyAddress": "Verify Address",
     "marketNotifications": "Market Notifications",
@@ -390,6 +393,11 @@
     "delete": "Delete",
     "quantityUnderZero": "Quantity is never under zero.",
     "priceAboveZero": "Price is always above zero.",
+
+    "notificationPeriod": "Notification Period",
+    "notificationPeriodDesc": "Select how much time you prefer between each Market Notifications message.",
+    "asap": "ASAP",
+    "paidOnly": "Paid Only",
 
     "logIn": "Log in",
     "logOut": "Log out"
