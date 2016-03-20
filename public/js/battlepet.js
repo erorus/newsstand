@@ -612,11 +612,9 @@ var TUJ_BattlePet = function ()
     function GetBattlePetNotificationsList(speciesId, breedId, mainDiv)
     {
         var self = this;
-        $.ajax({
+        tuj.SendCSRFProtectedRequest({
             data: {'getspecies': speciesId},
-            type: 'POST',
             success: BattlePetNotificationsList.bind(self, speciesId, breedId, mainDiv),
-            url: 'api/subscription.php'
         });
     }
 
@@ -895,22 +893,18 @@ var TUJ_BattlePet = function ()
             }
         }
 
-        $.ajax({
+        tuj.SendCSRFProtectedRequest({
             data: o,
-            type: 'POST',
             success: BattlePetNotificationsList.bind(self, speciesId, breedId, mainDiv),
-            url: 'api/subscription.php'
         });
     }
 
     function BattlePetNotificationsDel(mainDiv, speciesId, breedId, id)
     {
         var self = this;
-        $.ajax({
+        tuj.SendCSRFProtectedRequest({
             data: {'deletewatch': id},
-            type: 'POST',
             success: BattlePetNotificationsList.bind(self, speciesId, breedId, mainDiv),
-            url: 'api/subscription.php'
         });
     }
 

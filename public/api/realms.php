@@ -13,6 +13,7 @@ if (isset($_COOKIE['__cfduid'])) { // cloudflare
 
 $loginState = GetLoginState();
 unset($loginState['id']);
+$loginState['csrfCookie'] = SUBSCRIPTION_CSRF_COOKIE;
 
 json_return([
     'version' => API_VERSION,

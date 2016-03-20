@@ -19,9 +19,11 @@ if (isset($_POST['logout'])) {
 }
 
 // functions from now on require a logged-in user
-// TODO: CSRF check
 $loginState = GetLoginState();
 if (!$loginState) {
+    json_return(false);
+}
+if (!ValidateCSRFProtectedRequest()) {
     json_return(false);
 }
 

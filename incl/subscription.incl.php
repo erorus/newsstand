@@ -2,8 +2,10 @@
 
 require_once('incl.php');
 require_once('memcache.incl.php');
+require_once('subscription.credentials.php');
 
 define('SUBSCRIPTION_LOGIN_COOKIE', 'session');
+define('SUBSCRIPTION_CSRF_COOKIE', 'csrf');
 define('SUBSCRIPTION_SESSION_LENGTH', 1209600); // 2 weeks
 
 define('SUBSCRIPTION_MESSAGES_CACHEKEY', 'submessage_');
@@ -80,14 +82,41 @@ function GetLoginState($logOut = false) {
 
     if ($logOut) {
         setcookie(SUBSCRIPTION_LOGIN_COOKIE, '', time() - SUBSCRIPTION_SESSION_LENGTH, '/api/', '', true, true);
+        setcookie(SUBSCRIPTION_CSRF_COOKIE, '', 0, '/api/csrf.txt', '', true, false);
         return [];
     }
 
     if (!headers_sent()) {
         setcookie(SUBSCRIPTION_LOGIN_COOKIE, $state, time() + SUBSCRIPTION_SESSION_LENGTH, '/api/', '', true, true);
+        setcookie(SUBSCRIPTION_CSRF_COOKIE, strtr(base64_encode(hash_hmac('sha256', $stateBytes, SUBSCRIPTION_CSRF_HMAC_KEY, true)), '+/=', '-_.'), 0, '/api/csrf.txt', '', true, false);
     }
 
     return $userInfo;
+}
+
+function ValidateCSRFProtectedRequest()
+{
+    if (!isset($_SERVER['HTTP_X_CSRF_TOKEN'])) {
+        return false;
+    }
+    if (strlen($_SERVER['HTTP_X_CSRF_TOKEN']) > 100) {
+        return false;
+    }
+    if (!isset($_COOKIE[SUBSCRIPTION_LOGIN_COOKIE])) {
+        return false;
+    }
+    $state = preg_replace('/[^a-zA-Z0-9_-]/', '', substr($_COOKIE[SUBSCRIPTION_LOGIN_COOKIE], 0, 24));
+    if (strlen($state) != 24) {
+        return false;
+    }
+
+    $stateBytes = base64_decode(strtr($state, '-_', '+/'));
+    $correctToken = strtr(base64_encode(hash_hmac('sha256', $stateBytes, SUBSCRIPTION_CSRF_HMAC_KEY, true)), '+/=', '-_.');
+
+    if (function_exists('hash_equals')) {
+        return hash_equals($correctToken, $_SERVER['HTTP_X_CSRF_TOKEN']);
+    }
+    return (sha1($correctToken) === sha1($_SERVER['HTTP_X_CSRF_TOKEN'])); // sha1 on both sides to mitigate timing attacks
 }
 
 function ClearLoginStateCache()

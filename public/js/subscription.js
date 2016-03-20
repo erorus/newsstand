@@ -84,9 +84,8 @@ var TUJ_Subscription = function ()
             return;
         }
 
-        $.ajax({
+        tuj.SendCSRFProtectedRequest({
             data: {'emailaddress': addressBox.value},
-            type: 'POST',
             success: function(dta) {
                 if (dta.hasOwnProperty('address')) {
                     subData.email.address = addressBox.value = dta.address;
@@ -107,8 +106,7 @@ var TUJ_Subscription = function ()
             error: function() {
                 addressBox.value = addressBox.defaultValue;
                 alert(tuj.lang.EmailStatus.unknown);
-            },
-            url: 'api/subscription.php'
+            }
         });
     }
 
@@ -120,9 +118,8 @@ var TUJ_Subscription = function ()
             return;
         }
 
-        $.ajax({
+        tuj.SendCSRFProtectedRequest({
             data: {'verifyemail': verifyBox.value},
-            type: 'POST',
             success: function(dta) {
                 verifyBox.value = '';
                 if (dta.hasOwnProperty('address')) {
@@ -144,8 +141,7 @@ var TUJ_Subscription = function ()
             error: function() {
                 verifyBox.value = '';
                 alert(tuj.lang.EmailStatus.unknown);
-            },
-            url: 'api/subscription.php'
+            }
         });
     }
 
@@ -259,9 +255,8 @@ var TUJ_Subscription = function ()
     function SetNotificationPeriod(sel)
     {
         sel.disabled = true;
-        $.ajax({
+        tuj.SendCSRFProtectedRequest({
             data: {'setperiod': sel.options[sel.selectedIndex].value},
-            type: 'POST',
             success: function(dta) {
                 for (var x = 0; x < sel.options.length; x++) {
                     if (sel.options[x].value == dta.period) {
@@ -273,8 +268,7 @@ var TUJ_Subscription = function ()
             },
             error: function() {
                 sel.disabled = false;
-            },
-            url: 'api/subscription.php'
+            }
         });
     }
 
@@ -517,16 +511,14 @@ var TUJ_Subscription = function ()
 
     function DeleteWatch(watch, tr) {
         $(tr).find('input').prop('disabled', true);
-        $.ajax({
+        tuj.SendCSRFProtectedRequest({
             data: {'deletewatch': watch.seq},
-            type: 'POST',
             success: function() {
                 tr.parentNode.removeChild(tr);
             },
             error: function() {
                 $(tr).find('input').prop('disabled', false);
-            },
-            url: 'api/subscription.php'
+            }
         });
     }
 
@@ -588,17 +580,15 @@ var TUJ_Subscription = function ()
             return;
         }
 
-        $.ajax({
+        tuj.SendCSRFProtectedRequest({
             data: {'getmessage': msg.seq},
-            type: 'POST',
             success: function(dta) {
                 msg.message = dta.message;
                 ShowMessage(idx);
             },
             error: function() {
                 $('#subscription-messages-window .message-text').html(tuj.lang.subMessageFetchError);
-            },
-            url: 'api/subscription.php'
+            }
         });
     }
 
@@ -686,12 +676,10 @@ var TUJ_Subscription = function ()
     function FetchSubscriptionSettings()
     {
         subData = {};
-        $.ajax({
+        tuj.SendCSRFProtectedRequest({
             data: {'settings': 1},
-            type: 'POST',
             success: ShowSubscriptionSettings,
-            error: SettingsFail,
-            url: 'api/subscription.php'
+            error: SettingsFail
         });
     }
 

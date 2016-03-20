@@ -461,6 +461,7 @@ var TUJ = function ()
     var houseInfo = {};
     var drawnRegion = -1;
     var loggedInUser = false;
+    var pendingCSRFProtectedRequests = [];
     this.validRegions = validRegions;
     this.realms = undefined;
     this.allRealms = undefined;
@@ -563,8 +564,10 @@ var TUJ = function ()
                     if (dta.hasOwnProperty('user')) {
                         if (dta.user.name) {
                             loggedInUser = dta.user;
+                            FetchCSRFCookie();
                         } else {
                             loggedInUser = false;
+                            pendingCSRFProtectedRequests = [];
                         }
                     }
                     if (dta.hasOwnProperty('language') && checkLanguageHeader) {
@@ -613,6 +616,7 @@ var TUJ = function ()
                     }
                     self.allRealms = [];
                     loggedInUser = false;
+                    pendingCSRFProtectedRequests = [];
                 },
                 complete: function ()
                 {
@@ -807,6 +811,7 @@ var TUJ = function ()
             method: 'POST',
             success: function(dta) {
                 loggedInUser = false;
+                pendingCSRFProtectedRequests = [];
                 Main();
             },
             error: function() {
@@ -814,6 +819,53 @@ var TUJ = function ()
             },
             url: 'api/subscription.php'
         });
+    };
+
+    function FetchCSRFCookie() {
+        if (!loggedInUser.hasOwnProperty('csrfCookie')) {
+            return;
+        }
+        if (loggedInUser.hasOwnProperty('csrfToken')) {
+            return;
+        }
+        var i = libtuj.ce('iframe');
+        i.style.display = 'none';
+        $(i).on('load', function() {
+            var cookies = i.contentDocument.cookie.replace('; ', ';').split(';');
+            for (var x = 0; x < cookies.length; x++) {
+                if (cookies[x].substr(0, loggedInUser.csrfCookie.length + 1) == (loggedInUser.csrfCookie + '=')) {
+                    loggedInUser.csrfToken = cookies[x].substr(loggedInUser.csrfCookie.length + 1);
+                    break;
+                }
+            }
+            i.parentNode.removeChild(i);
+            if (loggedInUser.hasOwnProperty('csrfToken')) {
+                while (pendingCSRFProtectedRequests.length) {
+                    self.SendCSRFProtectedRequest(pendingCSRFProtectedRequests.shift());
+                }
+            }
+            pendingCSRFProtectedRequests = [];
+        });
+        i.src = '/api/csrf.txt';
+        document.body.appendChild(i);
+    }
+
+    this.SendCSRFProtectedRequest = function(ajaxParams) {
+        if (!loggedInUser.hasOwnProperty('csrfToken')) {
+            pendingCSRFProtectedRequests.push(ajaxParams);
+            return;
+        }
+
+        ajaxParams.url = 'api/subscription.php';
+        ajaxParams.type = 'POST';
+        ajaxParams.crossDomain = false;
+        ajaxParams.global = false;
+        if (!ajaxParams.hasOwnProperty('headers')) {
+            ajaxParams.headers = {};
+        }
+        $.extend(ajaxParams.headers, {'X-CSRF-Token': loggedInUser.csrfToken});
+        delete ajaxParams.beforeSend;
+        $.ajax(ajaxParams);
     };
 
     function ReadParams()

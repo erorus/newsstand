@@ -659,11 +659,9 @@ var TUJ_Item = function ()
     function GetItemNotificationsList(itemId, bonusSet, mainDiv)
     {
         var self = this;
-        $.ajax({
+        tuj.SendCSRFProtectedRequest({
             data: {'getitem': itemId},
-            type: 'POST',
             success: ItemNotificationsList.bind(self, itemId, bonusSet, mainDiv),
-            url: 'api/subscription.php'
         });
     }
 
@@ -939,22 +937,18 @@ var TUJ_Item = function ()
             }
         }
 
-        $.ajax({
+        tuj.SendCSRFProtectedRequest({
             data: o,
-            type: 'POST',
             success: ItemNotificationsList.bind(self, itemId, bonusSet, mainDiv),
-            url: 'api/subscription.php'
         });
     }
 
     function ItemNotificationsDel(mainDiv, itemId, bonusSet, id)
     {
         var self = this;
-        $.ajax({
+        tuj.SendCSRFProtectedRequest({
             data: {'deletewatch': id},
-            type: 'POST',
             success: ItemNotificationsList.bind(self, itemId, bonusSet, mainDiv),
-            url: 'api/subscription.php'
         });
     }
 
