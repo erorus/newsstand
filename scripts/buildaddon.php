@@ -378,8 +378,7 @@ function MakeZip($zipPath = false)
     $tocFile = sprintf($tocFile, Date('D, F j'), Date('Ymd'));
 
     $zip->addFromString("TheUndermineJournal/TheUndermineJournal.toc",$tocFile);
-    $zip->addFile('../addon/libs/LibStub.lua',"TheUndermineJournal/libs/LibStub.lua");
-    $zip->addFile('../addon/libs/LibRealmInfo.lua',"TheUndermineJournal/libs/LibRealmInfo.lua");
+    RecursiveAddToZip($zip, '../addon/libs/', 'TheUndermineJournal/libs/');
     $zip->addFile('../addon/BonusSets.lua',"TheUndermineJournal/BonusSets.lua");
     $zip->addFile('../addon/TheUndermineJournal.lua',"TheUndermineJournal/TheUndermineJournal.lua");
     $zip->addFile('../addon/MarketData-US.lua',"TheUndermineJournal/MarketData-US.lua");
@@ -391,6 +390,19 @@ function MakeZip($zipPath = false)
         $zipPath = '../addon/TheUndermineJournal.zip';
     }
     rename($zipFilename, $zipPath);
+}
+
+function RecursiveAddToZip(ZipArchive &$zip, $dirPath, $zipRoot) {
+    $paths = glob($dirPath.'*', GLOB_MARK | GLOB_NOESCAPE);
+    foreach ($paths as $path) {
+        if (substr($path, -1) == '/') {
+            // dir
+            RecursiveAddToZip($zip, $path, $zipRoot.basename(substr($path, 0, -1)).'/');
+        } else {
+            // file
+            $zip->addFile($path, $zipRoot.basename($path));
+        }
+    }
 }
 
 function luaQuote($s) {

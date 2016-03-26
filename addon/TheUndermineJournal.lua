@@ -1,6 +1,6 @@
 --[[
 
-TheUndermineJournal addon, v 3.8
+TheUndermineJournal addon, v 4.0
 https://theunderminejournal.com/
 
 You should be able to query this DB from other addons:
@@ -45,100 +45,25 @@ See http://tuj.me/TUJTooltip for more information/examples.
 
 ]]
 
---[[
-    This chunk from:
-
-    Norganna's Tooltip Helper class
-    Version: 1.0
-
-    License:
-        This program is free software; you can redistribute it and/or
-        modify it under the terms of the GNU General Public License
-        as published by the Free Software Foundation; either version 2
-        of the License, or (at your option) any later version.
-
-        This program is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
-
-        You should have received a copy of the GNU General Public License
-        along with this program(see GPL.txt); if not, write to the Free Software
-        Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
-    Note:
-        This source code is specifically designed to work with World of Warcraft's
-        interpreted AddOn system.
-        You have an implicit licence to use this code with these facilities
-        since that is its designated purpose as per:
-        http://www.fsf.org/licensing/licenses/gpl-faq.html#InterpreterIncompat
-
-        If you copy this code, please rename it to your own tastes, as this file is
-        liable to change without notice and could possibly destroy any code that relies
-        on it staying the same.
-        We will attempt to avoid this happening where possible (of course).
-]]
-
-local function coins(money, graphic)
+local function coins(money)
     local GOLD="ffd100"
     local SILVER="e6e6e6"
     local COPPER="c8602c"
 
-    local GSC_3 = "|cff%s%d|cff000000.|cff%s%02d|cff000000.|cff%s%02d|r"
-    local GSC_2 = "|cff%s%d|cff000000.|cff%s%02d|r"
-    local GSC_1 = "|cff%s%d|r"
-
-    local iconpath = "Interface\\MoneyFrame\\UI-"
-    local goldicon = "%d|T"..iconpath.."GoldIcon:0|t"
-    local silvericon = "%s|T"..iconpath.."SilverIcon:0|t"
-    local coppericon = "%s|T"..iconpath.."CopperIcon:0|t"
+    local GSC_3 = "|cff%s%d|cff999999.|cff%s%02d|cff999999.|cff%s%02d|r"
+    local GSC_2 = "|cff%s%d|cff999999.|cff%s%02d|r"
 
     money = math.floor(tonumber(money) or 0)
     local g = math.floor(money / 10000)
     local s = math.floor(money % 10000 / 100)
     local c = money % 100
 
-    if not graphic then
-        if g > 0 then
-            if (c > 0) then
-                return GSC_3:format(GOLD, g, SILVER, s, COPPER, c)
-            else
-                return GSC_2:format(GOLD, g, SILVER, s)
-            end
-        elseif s > 0 then
-            if (c > 0) then
-                return GSC_2:format(SILVER, s, COPPER, c)
-            else
-                return GSC_1:format(SILVER, s)
-            end
-        else
-            return GSC_1:format(COPPER, c)
-        end
+    if (c > 0) then
+        return GSC_3:format(GOLD, g, SILVER, s, COPPER, c)
     else
-        if g > 0 then
-            if (c > 0) then
-                return goldicon:format(g)..silvericon:format("%02d"):format(s)..coppericon:format("%02d"):format(c)
-            else
-                return goldicon:format(g)..silvericon:format("%02d"):format(s)
-            end
-        elseif s > 0  then
-            if (c > 0) then
-                return silvericon:format("%d"):format(s)..coppericon:format("%02d"):format(c)
-            else
-                return silvericon:format("%d"):format(s)
-            end
-        else
-            return coppericon:format("%d"):format(c)
-        end
+        return GSC_2:format(GOLD, g, SILVER, s)
     end
 end
-
---[[
-    End of chunk from 
-    
-    Norganna's Tooltip Helper class
-    Version: 1.0
-]]
 
 local function char2dec(s)
     local n, l = 0, string.len(s)
@@ -267,92 +192,59 @@ function TUJTooltip(...)
     return tooltipsEnabled
 end
 
-local lasttooltip
-local dataResults = {}
+local LibExtraTip = LibStub("LibExtraTip-1")
 
-local function ClearLastTip(...)
-    lasttooltip = nil
+local function buildExtraTip(tooltip, pricingData)
+    local r,g,b = .9,.8,.5
+
+    if (pricingData['age'] > 3*24*60*60) then
+        LibExtraTip:AddLine(tooltip,"As of "..SecondsToTime(pricingData['age'],pricingData['age']>60).." ago:",r,g,b)
+    end
+
+    if pricingData['recent'] then
+        LibExtraTip:AddDoubleLine(tooltip,"3-Day Price",coins(pricingData['recent']),r,g,b)
+    end
+    if pricingData['market'] then
+        LibExtraTip:AddDoubleLine(tooltip,"14-Day Price",coins(pricingData['market']),r,g,b)
+    end
+    if pricingData['market'] then
+        LibExtraTip:AddDoubleLine(tooltip,"14-Day Std Dev",coins(pricingData['stddev']),r,g,b)
+    end
+    if pricingData['globalMedian'] then
+        LibExtraTip:AddDoubleLine(tooltip,"Global Median",coins(pricingData['globalMedian']),r,g,b)
+    end
+    if pricingData['globalMean'] then
+        LibExtraTip:AddDoubleLine(tooltip,"Global Mean",coins(pricingData['globalMean']),r,g,b)
+    end
+    if pricingData['globalStdDev'] then
+        LibExtraTip:AddDoubleLine(tooltip,"Global Std Dev",coins(pricingData['globalStdDev']),r,g,b)
+    end
+
+    if pricingData['days'] == 255 then
+        LibExtraTip:AddLine(tooltip,"Never seen since WoD",r,g,b)
+    elseif pricingData['days'] == 252 then
+        LibExtraTip:AddLine(tooltip,"Sold by Vendors",r,g,b)
+    elseif pricingData['days'] > 250 then
+        LibExtraTip:AddLine(tooltip,"Last seen over 250 days ago",r,g,b)
+    elseif pricingData['days'] > 1 then
+        LibExtraTip:AddLine(tooltip,"Last seen "..SecondsToTime(pricingData['days']*24*60*60).." ago",r,g,b)
+    end
 end
 
-local function onTooltipSetItem(tooltip,...)
+local dataResults = {}
+
+local function onTooltipSetItem(tooltip, itemLink, quantity)
     if not addonTable.marketData then return end
     if not tooltipsEnabled then return end
-    if lasttooltip == tooltip then return end
-    lasttooltip = tooltip
-
-    local itemLink
-    do
-        local name, item = tooltip:GetItem()
-        if (not name) or (not item) then return end
-        itemLink = item
-
-        local id = select(3, strfind(itemLink, "^|%x+|Hitem:(%-?%d+):(%d+):(%d+):(%d+):(%d+):(%d+):(%-?%d+):(%-?%d+)"))
-        if id == "0" and TradeSkillFrame ~= nil and TradeSkillFrame:IsVisible() then
-            if (GetMouseFocus():GetName()) == "TradeSkillSkillIcon" then
-                itemLink = GetTradeSkillItemLink(TradeSkillFrame.selectedSkill) or itemLink
-            else
-                for i = 1, 8 do
-                    if (GetMouseFocus():GetName()) == "TradeSkillReagent"..i then
-                        itemLink = GetTradeSkillReagentItemLink(TradeSkillFrame.selectedSkill, i) or itemLink
-                        break
-                    end
-                end
-            end
-        end
-    end
-
-    if not itemLink then
-        return
-    end
+    if not itemLink then return end
 
     TUJMarketInfo(itemLink, dataResults)
 
-    if dataResults['input'] and (dataResults['input'] == itemLink) then
-        local r,g,b = .9,.8,.5
-
-        tooltip:AddLine(" ")
-
-        if (dataResults['age'] > 3*24*60*60) then
-            tooltip:AddLine("As of "..SecondsToTime(dataResults['age'],dataResults['age']>60).." ago:",r,g,b)
-        end
-
-        if dataResults['recent'] then
-            tooltip:AddDoubleLine("3-Day Price",coins(dataResults['recent'],false),r,g,b)
-        end
-        if dataResults['market'] then
-            tooltip:AddDoubleLine("14-Day Price",coins(dataResults['market'],false),r,g,b)
-        end
-        if dataResults['market'] then
-            tooltip:AddDoubleLine("14-Day Std Dev",coins(dataResults['stddev'],false),r,g,b)
-        end
-        if dataResults['globalMedian'] then
-            tooltip:AddDoubleLine("Global Median",coins(dataResults['globalMedian'],false),r,g,b)
-        end
-        if dataResults['globalMean'] then
-            tooltip:AddDoubleLine("Global Mean",coins(dataResults['globalMean'],false),r,g,b)
-        end
-        if dataResults['globalStdDev'] then
-            tooltip:AddDoubleLine("Global Std Dev",coins(dataResults['globalStdDev'],false),r,g,b)
-        end
-
-        if dataResults['days'] == 255 then
-            tooltip:AddLine("Never seen since WoD",r,g,b)
-        elseif dataResults['days'] == 252 then
-            tooltip:AddLine("Sold by Vendors",r,g,b)
-        elseif dataResults['days'] > 250 then
-            tooltip:AddLine("Last seen over 250 days ago",r,g,b)
-        elseif dataResults['days'] > 1 then
-            tooltip:AddLine("Last seen "..SecondsToTime(dataResults['days']*24*60*60).." ago",r,g,b)
-        end
-
+    if not (dataResults['input'] and (dataResults['input'] == itemLink)) then
+        return
     end
-end
 
-local function onSetHyperlink(self, link)
-    local type = string.match(link, "^(%a+):")
-    if type == "item" then
-        onTooltipSetItem(self)
-    end
+    buildExtraTip(tooltip, dataResults)
 end
 
 local eventframe = CreateFrame("FRAME",addonName.."Events");
@@ -384,15 +276,11 @@ local function onEvent(self,event,arg)
         elseif not addonTable.marketData then
             print("The Undermine Journal - Warning: no data loaded!")
         else
-            for _,frame in pairs{GameTooltip, ItemRefTooltip, ShoppingTooltip1, ShoppingTooltip2, ItemRefShoppingTooltip1, ItemRefShoppingTooltip2} do
-                if frame then
-                    frame:HookScript("OnTooltipSetItem", onTooltipSetItem)
-                    --frame:HookScript("OnTooltipSetSpell", GetCallback())
-                    frame:HookScript("OnTooltipCleared", ClearLastTip)
-                end
-            end
-            hooksecurefunc(ItemRefTooltip, "SetHyperlink", onSetHyperlink)
-            hooksecurefunc(GameTooltip, "SetHyperlink", onSetHyperlink)
+            LibExtraTip:AddCallback({type = "item", callback = onTooltipSetItem});
+            LibExtraTip:RegisterTooltip(GameTooltip)
+            LibExtraTip:RegisterTooltip(ItemRefTooltip)
+            --LibExtraTip:RegisterTooltip(BattlePetTooltip)
+            --LibExtraTip:RegisterTooltip(FloatingBattlePetTooltip)
         end
     end
 end
