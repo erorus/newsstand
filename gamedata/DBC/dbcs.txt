@@ -1,4 +1,5 @@
 DBFilesClient\BattlePetSpecies.db2
+DBFilesClient\BattlePetSpeciesState.db2
 DBFilesClient\Creature.db2
 DBFilesClient\FileData.dbc
 DBFilesClient\ItemAppearance.db2

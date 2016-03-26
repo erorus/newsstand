@@ -18,7 +18,7 @@ function run_sql($sql) {
 
     if (!($stmt = $db->prepare($sql))) {
         echo "\n";
-        DebugMessage("\nCould not parse SQL:\n$sql\n", E_USER_ERROR);
+        DebugMessage("\nCould not parse SQL, {$db->error}:\n$sql\n", E_USER_ERROR);
     }
 
     if (!$stmt->execute()) {

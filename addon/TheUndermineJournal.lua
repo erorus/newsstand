@@ -9,7 +9,8 @@ You should be able to query this DB from other addons:
     TUJMarketInfo(52719,o)
     print(o['market'])
 
-Prints the market price of Greater Celestial Essence. The item can be identified by anything GetItemInfo takes (itemid, itemstring, itemlink).
+Prints the market price of Greater Celestial Essence.
+The item can be identified by anything GetItemInfo takes (itemid, itemstring, itemlink) or a battlepet itemstring/itemlink.
 
 Prices are returned in copper, but accurate to the last *silver* (with coppers always 0).
 
@@ -103,38 +104,45 @@ function TUJMarketInfo(item,...)
 
     if not addonTable.marketData then return tr end
 
-    local _, link = GetItemInfo(item)
-    if not link then return tr end
-    local itemString = string.match(link, "item[%-?%d:]+")
-    local itemStringParts = { strsplit(":", itemString) }
-    local iid = itemStringParts[2]
+    local _, link, dataKey;
+    if (item.find('battlepet:')) then
+        link = item;
+        dataKey = nil; -- TODO
+    else
+        _, link = GetItemInfo(item)
+        if not link then return tr end
 
-    local numBonuses = tonumber(itemStringParts[14],10)
-    local bonusSet = 0
+        local itemString = string.match(link, "item[%-?%d:]+")
+        local itemStringParts = { strsplit(":", itemString) }
+        local iid = itemStringParts[2]
 
-    if numBonuses > 0 then
-        local matched = 0
+        local numBonuses = tonumber(itemStringParts[14],10)
+        local bonusSet = 0
 
-        for s,setBonuses in pairs(addonTable.bonusSets) do
-            local matches = 0
-            for x = 1,#setBonuses,1 do
-                for y = 1,numBonuses,1 do
-                    if itemStringParts[14+y] == setBonuses[x] then
-                        matches = matches + 1
-                        break
+        if numBonuses > 0 then
+            local matched = 0
+
+            for s,setBonuses in pairs(addonTable.bonusSets) do
+                local matches = 0
+                for x = 1,#setBonuses,1 do
+                    for y = 1,numBonuses,1 do
+                        if itemStringParts[14+y] == setBonuses[x] then
+                            matches = matches + 1
+                            break
+                        end
                     end
                 end
-            end
-            if (matches > matched) and (matches == #setBonuses) then
-                matched = matches
-                bonusSet = s
+                if (matches > matched) and (matches == #setBonuses) then
+                    matched = matches
+                    bonusSet = s
+                end
             end
         end
-    end
 
-    local dataKey = iid
-    if bonusSet > 0 then
-        dataKey = dataKey .. 'x' .. bonusSet
+        dataKey = iid
+        if bonusSet > 0 then
+            dataKey = dataKey .. 'x' .. bonusSet
+        end
     end
 
     if not addonTable.marketData[dataKey] then return tr end
