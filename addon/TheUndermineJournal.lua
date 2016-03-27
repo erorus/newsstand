@@ -47,7 +47,7 @@ See http://tuj.me/TUJTooltip for more information/examples.
 ]]
 
 local floor = math.floor
-local tonumber = tonumber
+local tinsert, tonumber = tinsert, tonumber
 
 local function coins(money)
     local GOLD="ffd100"
@@ -77,14 +77,7 @@ local function char2dec(s)
     return n
 end
 
-local function roundToOdd(num)
-    local floored = floor(num)
-    if floor((num - floored) * 1000000) == 500000 then
-        if floored % 2 == 0 then
-            return floored + 1
-        end
-        return floored
-    end
+local function round(num)
     return floor(num + 0.5)
 end
 
@@ -101,6 +94,15 @@ local breedPoints = {
     [11] = {0.4,0.4,0.9,["name"]="S/B"},
     [12] = {0.9,0.4,0.4,["name"]="H/B"},
 }
+local breedQualities = {
+    [0] = 0.5,
+    [1] = 0.550000011920929,
+    [2] = 0.600000023841858,
+    [3] = 0.649999976158142,
+    [4] = 0.699999988079071,
+    [5] = 0.75,
+}
+local breedCandidates = {}
 
 local function getBreedFromPetLink(link)
     local petString = string.match(link, "battlepet[%-?%d:]+")
@@ -114,18 +116,32 @@ local function getBreedFromPetLink(link)
     speed = tonumber(speed,10)
 
     local speciesStats = addonTable.speciesStats[speciesID] or addonTable.speciesStats[0]
+    local qualityFactor = breedQualities[quality] * 2 * level
+    wipe(breedCandidates)
 
     for breed, points in pairs(breedPoints) do
-        local breedHealth = roundToOdd((8 + speciesStats[1] / 200 + points[1]) * 5 * level * (1 + quality / 10) + 100)
-        local breedPower = roundToOdd((8 + speciesStats[2] / 200 + points[2]) * level * (1 + quality / 10))
-        local breedSpeed = roundToOdd((8 + speciesStats[3] / 200 + points[3]) * level * (1 + quality / 10))
+        local breedHealth = round((8 + speciesStats[1] / 200 + points[1]) * 5 * qualityFactor + 100)
+        local breedPower = round((8 + speciesStats[2] / 200 + points[2]) * qualityFactor)
+        local breedSpeed = round((8 + speciesStats[3] / 200 + points[3]) * qualityFactor)
 
         if (breedHealth == health) and (breedPower == power) and (breedSpeed == speed) then
-            return breed, speciesID, level, quality, health, power, speed
+            tinsert(breedCandidates, breed)
         end
     end
 
-    return nil, speciesID, level, quality, health, power, speed
+    local breed
+    if #breedCandidates == 1 then
+        breed = breedCandidates[1]
+    elseif #breedCandidates > 1 then
+        for i=1,#breedCandidates,1 do
+            local dataKey = speciesID.."b"..breedCandidates[i]
+            if addonTable.marketData[dataKey] then
+                breed = breedCandidates[i]
+            end
+        end
+    end
+
+    return breed, speciesID, level, quality, health, power, speed
 end
 
 local lastMarketInfo
@@ -285,7 +301,11 @@ local function buildExtraTip(tooltip, pricingData)
     local r,g,b = .9,.8,.5
 
     if (pricingData['breed'] and breedPoints[pricingData['breed']] and qualityRGB[pricingData['quality']]) then
-        LibExtraTip:AddLine(tooltip,"Breed " .. breedPoints[pricingData['breed']]["name"],qualityRGB[pricingData['quality']][1],qualityRGB[pricingData['quality']][2],qualityRGB[pricingData['quality']][3])
+        LibExtraTip:AddLine(tooltip,
+            "Breed " .. breedPoints[pricingData['breed']]["name"] .. " - Species " .. pricingData['species'],
+            qualityRGB[pricingData['quality']][1],
+            qualityRGB[pricingData['quality']][2],
+            qualityRGB[pricingData['quality']][3])
     end
 
     if (pricingData['age'] > 3*24*60*60) then
