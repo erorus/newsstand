@@ -54,6 +54,23 @@ function BuildBonusSets()
     }
 
     $lua .= "}\n";
+
+    $stmt = $db->prepare('select id, concat_ws(\',\', ifnull(stamina,0), ifnull(power,0), ifnull(speed,0)) stats from tblDBCPet');
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $sets = DBMapArray($result);
+    $stmt->close();
+
+    $lua .= "addonTable.speciesStats = {\n";
+    $lua .= "\t[0]={0,0,0},\n";
+
+    foreach ($sets as $row) {
+        if ($row['stats'] != '0,0,0') {
+            $lua .= "\t[" . $row['id'] . ']={' . $row['stats'] . "},\n";
+        }
+    }
+
+    $lua .= "}\n";
     return $lua;
 }
 
@@ -100,14 +117,22 @@ EOF;
     $stmt = $db->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();
-    $globalPrices = DBMapArray($result, null);
-    $stmt->close();
-
-    foreach ($globalPrices as $priceRow) {
+    while ($priceRow = $result->fetch_assoc()) {
         $item = ''.$priceRow['item'].($priceRow['bonusset'] != '0' ? ('x'.$priceRow['bonusset']) : '');
         $item_global[$item] = pack('LLL', round($priceRow['median']/100), round($priceRow['mean']/100), round($priceRow['stddev']/100));
     }
-    unset($globalPrices);
+    $result->close();
+    $stmt->close();
+
+    $stmt = $db->prepare('SELECT species, breed, avg(price) `mean`, stddev(price) `stddev` FROM tblPetSummary group by species, breed');
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($priceRow = $result->fetch_assoc()) {
+        $item = ''.$priceRow['species'].'b'.$priceRow['breed'];
+        $item_global[$item] = pack('LLL', 0, round($priceRow['mean']/100), round($priceRow['stddev']/100));
+    }
+    $result->close();
+    $stmt->close();
 
     $sql = <<<EOF
 SELECT tis.item, tis.bonusset,

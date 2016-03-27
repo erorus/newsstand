@@ -46,6 +46,9 @@ See http://tuj.me/TUJTooltip for more information/examples.
 
 ]]
 
+local floor = math.floor
+local tonumber = tonumber
+
 local function coins(money)
     local GOLD="ffd100"
     local SILVER="e6e6e6"
@@ -54,9 +57,9 @@ local function coins(money)
     local GSC_3 = "|cff%s%d|cff999999.|cff%s%02d|cff999999.|cff%s%02d|r"
     local GSC_2 = "|cff%s%d|cff999999.|cff%s%02d|r"
 
-    money = math.floor(tonumber(money) or 0)
-    local g = math.floor(money / 10000)
-    local s = math.floor(money % 10000 / 100)
+    money = floor(tonumber(money) or 0)
+    local g = floor(money / 10000)
+    local s = floor(money % 10000 / 100)
     local c = money % 100
 
     if (c > 0) then
@@ -74,12 +77,58 @@ local function char2dec(s)
     return n
 end
 
-local function round(num, idp)
-    local mult = 10^(idp or 0)
-    return math.floor(num * mult + 0.5) / mult
+local function roundToOdd(num)
+    local floored = floor(num)
+    if floor((num - floored) * 1000000) == 500000 then
+        if floored % 2 == 0 then
+            return floored + 1
+        end
+        return floored
+    end
+    return floor(num + 0.5)
 end
 
 local addonName, addonTable = ...
+local breedPoints = {
+    [3] = {0.5,0.5,0.5,["name"]="B/B"},
+    [4] = {0,2,0,["name"]="P/P"},
+    [5] = {0,0,2,["name"]="S/S"},
+    [6] = {2,0,0,["name"]="H/H"},
+    [7] = {0.9,0.9,0,["name"]="H/P"},
+    [8] = {0,0.9,0.9,["name"]="P/S"},
+    [9] = {0.9,0,0.9,["name"]="H/S"},
+    [10] = {0.4,0.9,0.4,["name"]="P/B"},
+    [11] = {0.4,0.4,0.9,["name"]="S/B"},
+    [12] = {0.9,0.4,0.4,["name"]="H/B"},
+}
+
+local function getBreedFromPetLink(link)
+    local petString = string.match(link, "battlepet[%-?%d:]+")
+    local _, speciesID, level, quality, health, power, speed = strsplit(":", petString)
+
+    speciesID = tonumber(speciesID,10)
+    level = tonumber(level,10)
+    quality = tonumber(quality,10)
+    health = tonumber(health,10)
+    power = tonumber(power,10)
+    speed = tonumber(speed,10)
+
+    local speciesStats = addonTable.speciesStats[speciesID] or addonTable.speciesStats[0]
+
+    for breed, points in pairs(breedPoints) do
+        local breedHealth = roundToOdd((8 + speciesStats[1] / 200 + points[1]) * 5 * level * (1 + quality / 10) + 100)
+        local breedPower = roundToOdd((8 + speciesStats[2] / 200 + points[2]) * level * (1 + quality / 10))
+        local breedSpeed = roundToOdd((8 + speciesStats[3] / 200 + points[3]) * level * (1 + quality / 10))
+
+        if (breedHealth == health) and (breedPower == power) and (breedSpeed == speed) then
+            return breed, speciesID, level, quality, health, power, speed
+        end
+    end
+
+    return nil, speciesID, level, quality, health, power, speed
+end
+
+local lastMarketInfo
 
 --[[
     pass a table as the second argument to wipe and reuse that table
@@ -104,20 +153,28 @@ function TUJMarketInfo(item,...)
 
     if not addonTable.marketData then return tr end
 
+    if lastMarketInfo and lastMarketInfo.input == item then
+        tr = lastMarketInfo
+        return tr
+    end
+
     local _, link, dataKey;
-    if (item.find('battlepet:')) then
-        link = item;
-        dataKey = nil; -- TODO
+    local iid, bonusSet, species, breed, quality
+
+    if (strfind(item, 'battlepet:')) then
+        breed, species, _, quality = getBreedFromPetLink(item)
+        if not breed then return tr end
+        dataKey = species..'b'..breed
     else
         _, link = GetItemInfo(item)
         if not link then return tr end
 
         local itemString = string.match(link, "item[%-?%d:]+")
         local itemStringParts = { strsplit(":", itemString) }
-        local iid = itemStringParts[2]
+        iid = itemStringParts[2]
 
         local numBonuses = tonumber(itemStringParts[14],10)
-        local bonusSet = 0
+        bonusSet = 0
 
         if numBonuses > 0 then
             local matched = 0
@@ -145,27 +202,34 @@ function TUJMarketInfo(item,...)
         end
     end
 
-    if not addonTable.marketData[dataKey] then return tr end
+    local dta = addonTable.marketData[dataKey]
+    if not dta then return tr end
 
     if not tr then tr = {} end
 
     tr['input'] = item
-    tr['itemid'] = tonumber(iid,10)
-    if bonusSet > 0 then
-        tr['bonuses'] = table.concat(addonTable.bonusSets[bonusSet], ':')
+    if (iid) then
+        tr['itemid'] = tonumber(iid,10)
+        if bonusSet > 0 then
+            tr['bonuses'] = table.concat(addonTable.bonusSets[bonusSet], ':')
+        end
+    end
+    if (species) then
+        tr['species'] = species
+        tr['breed'] = breed
+        tr['quality'] = quality
     end
 
     if addonTable.dataAge then
         tr['age'] = time() - addonTable.dataAge
     end
 
-    local dta = addonTable.marketData[dataKey]
-
     local priceSize = string.byte(dta, 1);
 
     local offset = 2
 
     tr['globalMedian'] = char2dec(string.sub(dta, offset, offset+priceSize-1))*100;
+    if tr['globalMedian'] == 0 then tr['globalMedian'] = nil end
     offset = offset + priceSize
 
     tr['globalMean'] = char2dec(string.sub(dta, offset, offset+priceSize-1))*100;
@@ -186,6 +250,8 @@ function TUJMarketInfo(item,...)
     tr['recent'] = char2dec(string.sub(dta, offset, offset+priceSize-1)) * 100
     --offset = offset + priceSize
 
+    lastMarketInfo = tr
+
     return tr
 end
 
@@ -200,10 +266,27 @@ function TUJTooltip(...)
     return tooltipsEnabled
 end
 
+local qualityRGB = {
+    [0] = {0.616,0.616,0.616},
+    [1] = {1,1,1},
+    [2] = {0.118,1,0},
+    [3] = {0,0.439,0.867},
+    [4] = {0.639,0.208,0.933},
+    [5] = {1,0.502,0},
+    [6] = {0.898,0.8,0.502},
+    [7] = {0.898,0.8,0.502},
+    [8] = {0,0.8,1},
+    [9] = {0.443,0.835,1},
+}
+
 local LibExtraTip = LibStub("LibExtraTip-1")
 
 local function buildExtraTip(tooltip, pricingData)
     local r,g,b = .9,.8,.5
+
+    if (pricingData['breed'] and breedPoints[pricingData['breed']] and qualityRGB[pricingData['quality']]) then
+        LibExtraTip:AddLine(tooltip,"Breed " .. breedPoints[pricingData['breed']]["name"],qualityRGB[pricingData['quality']][1],qualityRGB[pricingData['quality']][2],qualityRGB[pricingData['quality']][3])
+    end
 
     if (pricingData['age'] > 3*24*60*60) then
         LibExtraTip:AddLine(tooltip,"As of "..SecondsToTime(pricingData['age'],pricingData['age']>60).." ago:",r,g,b)
@@ -285,10 +368,11 @@ local function onEvent(self,event,arg)
             print("The Undermine Journal - Warning: no data loaded!")
         else
             LibExtraTip:AddCallback({type = "item", callback = onTooltipSetItem});
+            LibExtraTip:AddCallback({type = "battlepet", callback = onTooltipSetItem});
             LibExtraTip:RegisterTooltip(GameTooltip)
             LibExtraTip:RegisterTooltip(ItemRefTooltip)
-            --LibExtraTip:RegisterTooltip(BattlePetTooltip)
-            --LibExtraTip:RegisterTooltip(FloatingBattlePetTooltip)
+            LibExtraTip:RegisterTooltip(BattlePetTooltip)
+            LibExtraTip:RegisterTooltip(FloatingBattlePetTooltip)
         end
     end
 end
