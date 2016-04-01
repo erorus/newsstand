@@ -63,16 +63,13 @@
                     <div class="welcome">
                         <h2>Welcome to The Undermine Journal <sub>...your source for Auction House statistics and data in World of Warcraft.</sub></h2>
                     </div>
-                    <table>
-                        <tr>
-                            <td><a href="#us" class="region-us"><img src="images/flag.us.png"></a></td>
-                            <td><a href="#eu" class="region-eu"><img src="images/flag.eu.png"></a></td>
-                        </tr>
-                        <tr>
-                            <td><a href="#us" class="region-us text">US Realms</a></td>
-                            <td><a href="#eu" class="region-eu text">EU Realms</a></td>
-                        </tr>
-                    </table>
+                    <div class="directions">Choose your region below:</div>
+                    <img id="pixelmap" src="images/pixelmap.png" width="1471" height="908" usemap="#mapmap">
+                    <map name="mapmap">
+                        <area class="region-us" href="#us" shape="poly" coords="2,201,159,202,211,125,442,89,508,358,433,452,569,566,454,839,367,829,83,327,0,330">
+                        <area class="region-us" href="#us" shape="poly" coords="1131,640,1230,595,1316,619,1446,723,1406,785,1151,743">
+                        <area class="region-eu" href="#eu" shape="poly" coords="583,235,635,426,830,441,939,358,1243,396,1462,279,1462,193,1091,109,874,118">
+                    </map>
                 </div>
                 <div class="page" id="front-page">
                     <div class="sidebar" id="category-sidebar">
