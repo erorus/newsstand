@@ -1485,7 +1485,7 @@ var TUJ_Item = function ()
     function ItemPriceHeatMap(data, dest)
     {
         var hcdata = {minVal: undefined, maxVal: 0, days: {}, heat: [], categories: {
-            x: tuj.lang.heatMapTimes,
+            x: tuj.lang.heatMapHours,
             y: tuj.lang.heatMapDays
         }};
 
@@ -1502,9 +1502,9 @@ var TUJ_Item = function ()
         }
 
         var d, wkdy, hr, lastprice;
-        for (wkdy = 0; wkdy <= 6; wkdy++) {
+        for (wkdy = 0; wkdy < hcdata.categories.y.length; wkdy++) {
             hcdata.days[wkdy] = {};
-            for (hr = 0; hr <= 7; hr++) {
+            for (hr = 0; hr < hcdata.categories.x.length; hr++) {
                 hcdata.days[wkdy][hr] = [];
             }
         }
@@ -1516,13 +1516,13 @@ var TUJ_Item = function ()
 
             var d = new Date(data.history[bonusSet][x].snapshot * 1000);
             wkdy = 6 - d.getDay();
-            hr = Math.floor(d.getHours() / 3);
+            hr = Math.floor(d.getHours() * hcdata.categories.x.length / 24);
             hcdata.days[wkdy][hr].push(data.history[bonusSet][x].price);
         }
 
         var p;
-        for (wkdy = 0; wkdy <= 6; wkdy++) {
-            for (hr = 0; hr <= 7; hr++) {
+        for (wkdy = 0; wkdy < hcdata.categories.y.length; wkdy++) {
+            for (hr = 0; hr < hcdata.categories.x.length; hr++) {
                 if (hcdata.days[wkdy][hr].length == 0) {
                     p = lastprice;
                 }
@@ -1597,7 +1597,7 @@ var TUJ_Item = function ()
                         },
                         formatter: function ()
                         {
-                            return '' + libtuj.FormatPrice(this.point.value * 10000, true);
+                            return '' + libtuj.FormatPrice(this.point.value * 10000, true, true);
                         }
                     }
                 }
@@ -1609,7 +1609,7 @@ var TUJ_Item = function ()
     function ItemQuantityHeatMap(data, dest)
     {
         var hcdata = {minVal: undefined, maxVal: 0, days: {}, heat: [], categories: {
-            x: tuj.lang.heatMapTimes,
+            x: tuj.lang.heatMapHours,
             y: tuj.lang.heatMapDays
         }};
 
@@ -1626,9 +1626,9 @@ var TUJ_Item = function ()
         }
 
         var d, wkdy, hr, lastqty;
-        for (wkdy = 0; wkdy <= 6; wkdy++) {
+        for (wkdy = 0; wkdy < hcdata.categories.y.length; wkdy++) {
             hcdata.days[wkdy] = {};
-            for (hr = 0; hr <= 7; hr++) {
+            for (hr = 0; hr < hcdata.categories.x.length; hr++) {
                 hcdata.days[wkdy][hr] = [];
             }
         }
@@ -1640,13 +1640,13 @@ var TUJ_Item = function ()
 
             var d = new Date(data.history[bonusSet][x].snapshot * 1000);
             wkdy = 6 - d.getDay();
-            hr = Math.floor(d.getHours() / 3);
+            hr = Math.floor(d.getHours() * hcdata.categories.x.length / 24);
             hcdata.days[wkdy][hr].push(data.history[bonusSet][x].quantity);
         }
 
         var p;
-        for (wkdy = 0; wkdy <= 6; wkdy++) {
-            for (hr = 0; hr <= 7; hr++) {
+        for (wkdy = 0; wkdy < hcdata.categories.y.length; wkdy++) {
+            for (hr = 0; hr < hcdata.categories.x.length; hr++) {
                 if (hcdata.days[wkdy][hr].length == 0) {
                     p = lastqty;
                 }

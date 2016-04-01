@@ -86,13 +86,17 @@ var libtuj = {
         }
         return tujCDNPrefix + 'icon/' + size + '/' + nm.replace(' ', '-') + (size == 'tiny' ? '.png' : '.jpg');
     },
-    FormatPrice: function (amt, justValue)
+    FormatPrice: function (amt, justValue, shorter)
     {
         var v = '', g, c;
         if (typeof amt == 'number') {
             amt = Math.round(amt);
             if (amt >= 100) {// 1s
-                g = (amt / 10000).toFixed(2);
+                if (shorter && amt >= 10000000) { // 100g
+                    g = Math.round(amt / 10000);
+                } else {
+                    g = (amt / 10000).toFixed(2);
+                }
                 v = '' + g + tuj.lang.suffixGold;
             } else {
                 c = amt;
