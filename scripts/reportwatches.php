@@ -248,7 +248,7 @@ function FormatPrice($amt, &$LANG) {
         $v = '' . $g . $LANG['suffixGold'];
     } else {
         $c = $amt;
-        $v = '' + $c + $LANG['suffixCopper'];
+        $v = '' . $c . $LANG['suffixCopper'];
     }
     return $v;
 }
