@@ -10,17 +10,6 @@ define('BANLIST_CACHEKEY', 'banlist_cidrs4');
 define('BANLIST_FILENAME', __DIR__ . '/banlist.txt');
 define('BANLIST_USE_DNSBL', false);
 
-$VALID_LOCALES = ['enus','dede','eses','frfr','itit','ptbr','ruru'];
-$LANG_LEVEL = [
-    '__LEVEL_enus__' => 'Level',
-    '__LEVEL_dede__' => 'Stufe',
-    '__LEVEL_eses__' => 'Nivel',
-    '__LEVEL_frfr__' => 'Niveau',
-    '__LEVEL_itit__' => 'Livello',
-    '__LEVEL_ptbr__' => 'Nível',
-    '__LEVEL_ruru__' => 'Уровень',
-];
-
 if ((PHP_SAPI != 'cli') && (($inMaintenance = APIMaintenance()) !== false)) {
     header('HTTP/1.1 503 Service Unavailable');
     header('Content-type: application/json');

@@ -5,6 +5,8 @@
     "suffixGold": "g",
     "suffixSilver": "s",
     "suffixCopper": "c",
+    "decimalPoint": ".",
+    "thousandsSep": ",",
 
     "timeSecond": "secondo",
     "timeSeconds": "secondi",

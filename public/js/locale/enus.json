@@ -5,6 +5,8 @@
     "suffixGold": "g",
     "suffixSilver": "s",
     "suffixCopper": "c",
+    "decimalPoint": ".",
+    "thousandsSep": ",",
 
     "timeSecond": "second",
     "timeSeconds": "seconds",
@@ -418,11 +420,18 @@
     "over": "Over",
     "add": "Add",
     "delete": "Delete",
+    "now": "Now",
     "quantityUnderZero": "Quantity is never under zero.",
     "priceAboveZero": "Price is always above zero.",
 
+    "notificationsMessage": "The items above have reached thresholds that you've set. Notifications for these events will automatically reset when the market condition is no longer observed, and you will be notified when they happen again after that. To update your notifications or email preferences, please <a href=\"https://theunderminejournal.com/#subscription\">log in to your subscription</a>.",
+
+    "paidExpires": "Your account's paid subscription expires {1}.",
+    "freeSubscriptionAccount": "Your account is on the free subscription tier.",
+
     "notificationPeriod": "Notification Period",
     "notificationPeriodDesc": "Select how much time you prefer between each Market Notifications message.",
+    "notificationPeriodNext": "Your next message will be generated {1}.",
     "asap": "ASAP",
     "paidOnly": "Paid Only",
 
