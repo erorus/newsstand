@@ -204,6 +204,33 @@
     "zoomClickDrag": "Click and drag in the plot area to zoom in",
     "zoomPinch": "Pinch the chart to zoom in",
 
+    "heatMapHours": [
+        "Midnight",
+        "1am",
+        "2am",
+        "3am",
+        "4am",
+        "5am",
+        "6am",
+        "7am",
+        "8am",
+        "9am",
+        "10am",
+        "11am",
+        "Noon",
+        "1pm",
+        "2pm",
+        "3pm",
+        "4pm",
+        "5pm",
+        "6pm",
+        "7pm",
+        "8pm",
+        "9pm",
+        "10pm",
+        "11pm"
+    ],
+
     "heatMapTimes": [
         "Midnight - 3am",
         "3am - 6am",

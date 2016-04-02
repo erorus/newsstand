@@ -1,11 +1,13 @@
 ## Interface: 60200
 ## Title: The Undermine Journal
 ## Notes: %s
-## OptionalDeps: Auctionator, AuctionLite
-## Version: 3.7.%s
+## OptionalDeps: Auctionator, AuctionLite, LibExtraTip
+## Version: 4.0.%s
 
-libs/LibStub.lua
-libs/LibRealmInfo.lua
+libs\LibStub.lua
+libs\LibRealmInfo.lua
+libs\LibExtraTip\Load.xml
+
 BonusSets.lua
 MarketData-US.lua
 MarketData-EU.lua

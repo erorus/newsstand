@@ -41,6 +41,7 @@ function GetDataTables() {
         'tblAuctionRare' => 'house='.$house,
         'tblBonusSet' => '1=1',
         'tblHouseCheck' => '1=1',
+        'tblItemExpired' => 'house='.$house,
         'tblItemGlobal' => '1=1',
         'tblItemHistory' => 'house='.$house,
         'tblItemHistoryDaily' => 'item in (select id from tblDBCItem where auctionable=1) and house='.$house,

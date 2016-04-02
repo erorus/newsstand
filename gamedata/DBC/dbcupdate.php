@@ -14,6 +14,7 @@ dtecho(run_sql('set session max_heap_table_size='.(1024*1024*1024)));
 
 dtecho(dbcdecode('FileData', array(1=>'id', 2=>'name')));
 dtecho(dbcdecode('BattlePetSpecies', array(1=>'id', 2=>'npcid', 3=>'iconid', 5=>'type', 6=>'category', 7=>'flags')));
+dtecho(dbcdecode('BattlePetSpeciesState', array(1=>'id', 2=>'speciesid', 3=>'stateid', 4=>'amount')));
 dtecho(dbcdecode('Creature', array(1=>'id', 15=>'name')));
 
 dtecho(run_sql('truncate tblDBCPet'));
@@ -25,6 +26,10 @@ join ttblCreature c on bps.npcid = c.id
 join ttblFileData fd on bps.iconid = fd.id)
 EOF;
 dtecho(run_sql($sql));
+
+dtecho(run_sql('update tblDBCPet p set power=(select bpss.amount from ttblBattlePetSpeciesState bpss where bpss.speciesid=p.id and bpss.stateid=18)'));
+dtecho(run_sql('update tblDBCPet p set stamina=(select bpss.amount from ttblBattlePetSpeciesState bpss where bpss.speciesid=p.id and bpss.stateid=19)'));
+dtecho(run_sql('update tblDBCPet p set speed=(select bpss.amount from ttblBattlePetSpeciesState bpss where bpss.speciesid=p.id and bpss.stateid=20)'));
 
 dtecho(dbcdecode('ItemBonus', array(2=>'bonusid', 3=>'changetype', 4=>'param1', 5=>'param2', 6=>'prio')));;
 dtecho(dbcdecode('ItemNameDescription', array(1=>'id', 2=>'name')));

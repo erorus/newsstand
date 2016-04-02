@@ -1,6 +1,6 @@
 --[[
 
-TheUndermineJournal addon, v 3.8
+TheUndermineJournal addon, v 4.0
 https://theunderminejournal.com/
 
 You should be able to query this DB from other addons:
@@ -9,7 +9,8 @@ You should be able to query this DB from other addons:
     TUJMarketInfo(52719,o)
     print(o['market'])
 
-Prints the market price of Greater Celestial Essence. The item can be identified by anything GetItemInfo takes (itemid, itemstring, itemlink).
+Prints the market price of Greater Celestial Essence.
+The item can be identified by anything GetItemInfo takes (itemid, itemstring, itemlink) or a battlepet itemstring/itemlink.
 
 Prices are returned in copper, but accurate to the last *silver* (with coppers always 0).
 
@@ -45,100 +46,28 @@ See http://tuj.me/TUJTooltip for more information/examples.
 
 ]]
 
---[[
-    This chunk from:
+local floor = math.floor
+local tinsert, tonumber = tinsert, tonumber
 
-    Norganna's Tooltip Helper class
-    Version: 1.0
-
-    License:
-        This program is free software; you can redistribute it and/or
-        modify it under the terms of the GNU General Public License
-        as published by the Free Software Foundation; either version 2
-        of the License, or (at your option) any later version.
-
-        This program is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
-
-        You should have received a copy of the GNU General Public License
-        along with this program(see GPL.txt); if not, write to the Free Software
-        Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
-    Note:
-        This source code is specifically designed to work with World of Warcraft's
-        interpreted AddOn system.
-        You have an implicit licence to use this code with these facilities
-        since that is its designated purpose as per:
-        http://www.fsf.org/licensing/licenses/gpl-faq.html#InterpreterIncompat
-
-        If you copy this code, please rename it to your own tastes, as this file is
-        liable to change without notice and could possibly destroy any code that relies
-        on it staying the same.
-        We will attempt to avoid this happening where possible (of course).
-]]
-
-local function coins(money, graphic)
+local function coins(money)
     local GOLD="ffd100"
     local SILVER="e6e6e6"
     local COPPER="c8602c"
 
-    local GSC_3 = "|cff%s%d|cff000000.|cff%s%02d|cff000000.|cff%s%02d|r"
-    local GSC_2 = "|cff%s%d|cff000000.|cff%s%02d|r"
-    local GSC_1 = "|cff%s%d|r"
+    local GSC_3 = "|cff%s%d|cff999999.|cff%s%02d|cff999999.|cff%s%02d|r"
+    local GSC_2 = "|cff%s%d|cff999999.|cff%s%02d|r"
 
-    local iconpath = "Interface\\MoneyFrame\\UI-"
-    local goldicon = "%d|T"..iconpath.."GoldIcon:0|t"
-    local silvericon = "%s|T"..iconpath.."SilverIcon:0|t"
-    local coppericon = "%s|T"..iconpath.."CopperIcon:0|t"
-
-    money = math.floor(tonumber(money) or 0)
-    local g = math.floor(money / 10000)
-    local s = math.floor(money % 10000 / 100)
+    money = floor(tonumber(money) or 0)
+    local g = floor(money / 10000)
+    local s = floor(money % 10000 / 100)
     local c = money % 100
 
-    if not graphic then
-        if g > 0 then
-            if (c > 0) then
-                return GSC_3:format(GOLD, g, SILVER, s, COPPER, c)
-            else
-                return GSC_2:format(GOLD, g, SILVER, s)
-            end
-        elseif s > 0 then
-            if (c > 0) then
-                return GSC_2:format(SILVER, s, COPPER, c)
-            else
-                return GSC_1:format(SILVER, s)
-            end
-        else
-            return GSC_1:format(COPPER, c)
-        end
+    if (c > 0) then
+        return GSC_3:format(GOLD, g, SILVER, s, COPPER, c)
     else
-        if g > 0 then
-            if (c > 0) then
-                return goldicon:format(g)..silvericon:format("%02d"):format(s)..coppericon:format("%02d"):format(c)
-            else
-                return goldicon:format(g)..silvericon:format("%02d"):format(s)
-            end
-        elseif s > 0  then
-            if (c > 0) then
-                return silvericon:format("%d"):format(s)..coppericon:format("%02d"):format(c)
-            else
-                return silvericon:format("%d"):format(s)
-            end
-        else
-            return coppericon:format("%d"):format(c)
-        end
+        return GSC_2:format(GOLD, g, SILVER, s)
     end
 end
-
---[[
-    End of chunk from 
-    
-    Norganna's Tooltip Helper class
-    Version: 1.0
-]]
 
 local function char2dec(s)
     local n, l = 0, string.len(s)
@@ -148,12 +77,74 @@ local function char2dec(s)
     return n
 end
 
-local function round(num, idp)
-    local mult = 10^(idp or 0)
-    return math.floor(num * mult + 0.5) / mult
+local function round(num)
+    return floor(num + 0.5)
 end
 
 local addonName, addonTable = ...
+local breedPoints = {
+    [3] = {0.5,0.5,0.5,["name"]="B/B"},
+    [4] = {0,2,0,["name"]="P/P"},
+    [5] = {0,0,2,["name"]="S/S"},
+    [6] = {2,0,0,["name"]="H/H"},
+    [7] = {0.9,0.9,0,["name"]="H/P"},
+    [8] = {0,0.9,0.9,["name"]="P/S"},
+    [9] = {0.9,0,0.9,["name"]="H/S"},
+    [10] = {0.4,0.9,0.4,["name"]="P/B"},
+    [11] = {0.4,0.4,0.9,["name"]="S/B"},
+    [12] = {0.9,0.4,0.4,["name"]="H/B"},
+}
+local breedQualities = {
+    [0] = 0.5,
+    [1] = 0.550000011920929,
+    [2] = 0.600000023841858,
+    [3] = 0.649999976158142,
+    [4] = 0.699999988079071,
+    [5] = 0.75,
+}
+local breedCandidates = {}
+
+local function getBreedFromPetLink(link)
+    local petString = string.match(link, "battlepet[%-?%d:]+")
+    local _, speciesID, level, quality, health, power, speed = strsplit(":", petString)
+
+    speciesID = tonumber(speciesID,10)
+    level = tonumber(level,10)
+    quality = tonumber(quality,10)
+    health = tonumber(health,10)
+    power = tonumber(power,10)
+    speed = tonumber(speed,10)
+
+    local speciesStats = addonTable.speciesStats[speciesID] or addonTable.speciesStats[0]
+    local qualityFactor = breedQualities[quality] * 2 * level
+    wipe(breedCandidates)
+
+    for breed, points in pairs(breedPoints) do
+        local breedHealth = round((8 + speciesStats[1] / 200 + points[1]) * 5 * qualityFactor + 100)
+        local breedPower = round((8 + speciesStats[2] / 200 + points[2]) * qualityFactor)
+        local breedSpeed = round((8 + speciesStats[3] / 200 + points[3]) * qualityFactor)
+
+        if (breedHealth == health) and (breedPower == power) and (breedSpeed == speed) then
+            tinsert(breedCandidates, breed)
+        end
+    end
+
+    local breed
+    if #breedCandidates == 1 then
+        breed = breedCandidates[1]
+    elseif #breedCandidates > 1 then
+        for i=1,#breedCandidates,1 do
+            local dataKey = speciesID.."b"..breedCandidates[i]
+            if addonTable.marketData[dataKey] then
+                breed = breedCandidates[i]
+            end
+        end
+    end
+
+    return breed, speciesID, level, quality, health, power, speed
+end
+
+local lastMarketInfo
 
 --[[
     pass a table as the second argument to wipe and reuse that table
@@ -178,61 +169,83 @@ function TUJMarketInfo(item,...)
 
     if not addonTable.marketData then return tr end
 
-    local _, link = GetItemInfo(item)
-    if not link then return tr end
-    local itemString = string.match(link, "item[%-?%d:]+")
-    local itemStringParts = { strsplit(":", itemString) }
-    local iid = itemStringParts[2]
+    if lastMarketInfo and lastMarketInfo.input == item then
+        tr = lastMarketInfo
+        return tr
+    end
 
-    local numBonuses = tonumber(itemStringParts[14],10)
-    local bonusSet = 0
+    local _, link, dataKey;
+    local iid, bonusSet, species, breed, quality
 
-    if numBonuses > 0 then
-        local matched = 0
+    if (strfind(item, 'battlepet:')) then
+        breed, species, _, quality = getBreedFromPetLink(item)
+        if not breed then return tr end
+        dataKey = species..'b'..breed
+    else
+        _, link = GetItemInfo(item)
+        if not link then return tr end
 
-        for s,setBonuses in pairs(addonTable.bonusSets) do
-            local matches = 0
-            for x = 1,#setBonuses,1 do
-                for y = 1,numBonuses,1 do
-                    if itemStringParts[14+y] == setBonuses[x] then
-                        matches = matches + 1
-                        break
+        local itemString = string.match(link, "item[%-?%d:]+")
+        local itemStringParts = { strsplit(":", itemString) }
+        iid = itemStringParts[2]
+
+        local numBonuses = tonumber(itemStringParts[14],10)
+        bonusSet = 0
+
+        if numBonuses > 0 then
+            local matched = 0
+
+            for s,setBonuses in pairs(addonTable.bonusSets) do
+                local matches = 0
+                for x = 1,#setBonuses,1 do
+                    for y = 1,numBonuses,1 do
+                        if itemStringParts[14+y] == setBonuses[x] then
+                            matches = matches + 1
+                            break
+                        end
                     end
                 end
+                if (matches > matched) and (matches == #setBonuses) then
+                    matched = matches
+                    bonusSet = s
+                end
             end
-            if (matches > matched) and (matches == #setBonuses) then
-                matched = matches
-                bonusSet = s
-            end
+        end
+
+        dataKey = iid
+        if bonusSet > 0 then
+            dataKey = dataKey .. 'x' .. bonusSet
         end
     end
 
-    local dataKey = iid
-    if bonusSet > 0 then
-        dataKey = dataKey .. 'x' .. bonusSet
-    end
-
-    if not addonTable.marketData[dataKey] then return tr end
+    local dta = addonTable.marketData[dataKey]
+    if not dta then return tr end
 
     if not tr then tr = {} end
 
     tr['input'] = item
-    tr['itemid'] = tonumber(iid,10)
-    if bonusSet > 0 then
-        tr['bonuses'] = table.concat(addonTable.bonusSets[bonusSet], ':')
+    if (iid) then
+        tr['itemid'] = tonumber(iid,10)
+        if bonusSet > 0 then
+            tr['bonuses'] = table.concat(addonTable.bonusSets[bonusSet], ':')
+        end
+    end
+    if (species) then
+        tr['species'] = species
+        tr['breed'] = breed
+        tr['quality'] = quality
     end
 
     if addonTable.dataAge then
         tr['age'] = time() - addonTable.dataAge
     end
 
-    local dta = addonTable.marketData[dataKey]
-
     local priceSize = string.byte(dta, 1);
 
     local offset = 2
 
     tr['globalMedian'] = char2dec(string.sub(dta, offset, offset+priceSize-1))*100;
+    if tr['globalMedian'] == 0 then tr['globalMedian'] = nil end
     offset = offset + priceSize
 
     tr['globalMean'] = char2dec(string.sub(dta, offset, offset+priceSize-1))*100;
@@ -253,6 +266,8 @@ function TUJMarketInfo(item,...)
     tr['recent'] = char2dec(string.sub(dta, offset, offset+priceSize-1)) * 100
     --offset = offset + priceSize
 
+    lastMarketInfo = tr
+
     return tr
 end
 
@@ -267,92 +282,80 @@ function TUJTooltip(...)
     return tooltipsEnabled
 end
 
-local lasttooltip
-local dataResults = {}
+local qualityRGB = {
+    [0] = {0.616,0.616,0.616},
+    [1] = {1,1,1},
+    [2] = {0.118,1,0},
+    [3] = {0,0.439,0.867},
+    [4] = {0.639,0.208,0.933},
+    [5] = {1,0.502,0},
+    [6] = {0.898,0.8,0.502},
+    [7] = {0.898,0.8,0.502},
+    [8] = {0,0.8,1},
+    [9] = {0.443,0.835,1},
+}
 
-local function ClearLastTip(...)
-    lasttooltip = nil
+local LibExtraTip = LibStub("LibExtraTip-1")
+
+local function buildExtraTip(tooltip, pricingData)
+    local r,g,b = .9,.8,.5
+
+    if (pricingData['breed'] and breedPoints[pricingData['breed']] and qualityRGB[pricingData['quality']]) then
+        LibExtraTip:AddLine(tooltip,
+            "Breed " .. breedPoints[pricingData['breed']]["name"] .. " - Species " .. pricingData['species'],
+            qualityRGB[pricingData['quality']][1],
+            qualityRGB[pricingData['quality']][2],
+            qualityRGB[pricingData['quality']][3])
+    end
+
+    if (pricingData['age'] > 3*24*60*60) then
+        LibExtraTip:AddLine(tooltip,"As of "..SecondsToTime(pricingData['age'],pricingData['age']>60).." ago:",r,g,b)
+    end
+
+    if pricingData['recent'] then
+        LibExtraTip:AddDoubleLine(tooltip,"3-Day Price",coins(pricingData['recent']),r,g,b)
+    end
+    if pricingData['market'] then
+        LibExtraTip:AddDoubleLine(tooltip,"14-Day Price",coins(pricingData['market']),r,g,b)
+    end
+    if pricingData['market'] then
+        LibExtraTip:AddDoubleLine(tooltip,"14-Day Std Dev",coins(pricingData['stddev']),r,g,b)
+    end
+    if pricingData['globalMedian'] then
+        LibExtraTip:AddDoubleLine(tooltip,"Global Median",coins(pricingData['globalMedian']),r,g,b)
+    end
+    if pricingData['globalMean'] then
+        LibExtraTip:AddDoubleLine(tooltip,"Global Mean",coins(pricingData['globalMean']),r,g,b)
+    end
+    if pricingData['globalStdDev'] then
+        LibExtraTip:AddDoubleLine(tooltip,"Global Std Dev",coins(pricingData['globalStdDev']),r,g,b)
+    end
+
+    if pricingData['days'] == 255 then
+        LibExtraTip:AddLine(tooltip,"Never seen since WoD",r,g,b)
+    elseif pricingData['days'] == 252 then
+        LibExtraTip:AddLine(tooltip,"Sold by Vendors",r,g,b)
+    elseif pricingData['days'] > 250 then
+        LibExtraTip:AddLine(tooltip,"Last seen over 250 days ago",r,g,b)
+    elseif pricingData['days'] > 1 then
+        LibExtraTip:AddLine(tooltip,"Last seen "..SecondsToTime(pricingData['days']*24*60*60).." ago",r,g,b)
+    end
 end
 
-local function onTooltipSetItem(tooltip,...)
+local dataResults = {}
+
+local function onTooltipSetItem(tooltip, itemLink, quantity)
     if not addonTable.marketData then return end
     if not tooltipsEnabled then return end
-    if lasttooltip == tooltip then return end
-    lasttooltip = tooltip
-
-    local itemLink
-    do
-        local name, item = tooltip:GetItem()
-        if (not name) or (not item) then return end
-        itemLink = item
-
-        local id = select(3, strfind(itemLink, "^|%x+|Hitem:(%-?%d+):(%d+):(%d+):(%d+):(%d+):(%d+):(%-?%d+):(%-?%d+)"))
-        if id == "0" and TradeSkillFrame ~= nil and TradeSkillFrame:IsVisible() then
-            if (GetMouseFocus():GetName()) == "TradeSkillSkillIcon" then
-                itemLink = GetTradeSkillItemLink(TradeSkillFrame.selectedSkill) or itemLink
-            else
-                for i = 1, 8 do
-                    if (GetMouseFocus():GetName()) == "TradeSkillReagent"..i then
-                        itemLink = GetTradeSkillReagentItemLink(TradeSkillFrame.selectedSkill, i) or itemLink
-                        break
-                    end
-                end
-            end
-        end
-    end
-
-    if not itemLink then
-        return
-    end
+    if not itemLink then return end
 
     TUJMarketInfo(itemLink, dataResults)
 
-    if dataResults['input'] and (dataResults['input'] == itemLink) then
-        local r,g,b = .9,.8,.5
-
-        tooltip:AddLine(" ")
-
-        if (dataResults['age'] > 3*24*60*60) then
-            tooltip:AddLine("As of "..SecondsToTime(dataResults['age'],dataResults['age']>60).." ago:",r,g,b)
-        end
-
-        if dataResults['recent'] then
-            tooltip:AddDoubleLine("3-Day Price",coins(dataResults['recent'],false),r,g,b)
-        end
-        if dataResults['market'] then
-            tooltip:AddDoubleLine("14-Day Price",coins(dataResults['market'],false),r,g,b)
-        end
-        if dataResults['market'] then
-            tooltip:AddDoubleLine("14-Day Std Dev",coins(dataResults['stddev'],false),r,g,b)
-        end
-        if dataResults['globalMedian'] then
-            tooltip:AddDoubleLine("Global Median",coins(dataResults['globalMedian'],false),r,g,b)
-        end
-        if dataResults['globalMean'] then
-            tooltip:AddDoubleLine("Global Mean",coins(dataResults['globalMean'],false),r,g,b)
-        end
-        if dataResults['globalStdDev'] then
-            tooltip:AddDoubleLine("Global Std Dev",coins(dataResults['globalStdDev'],false),r,g,b)
-        end
-
-        if dataResults['days'] == 255 then
-            tooltip:AddLine("Never seen since WoD",r,g,b)
-        elseif dataResults['days'] == 252 then
-            tooltip:AddLine("Sold by Vendors",r,g,b)
-        elseif dataResults['days'] > 250 then
-            tooltip:AddLine("Last seen over 250 days ago",r,g,b)
-        elseif dataResults['days'] > 1 then
-            tooltip:AddLine("Last seen "..SecondsToTime(dataResults['days']*24*60*60).." ago",r,g,b)
-        end
-
+    if not (dataResults['input'] and (dataResults['input'] == itemLink)) then
+        return
     end
-end
 
-local function onSetHyperlink(self, link)
-    local type = string.match(link, "^(%a+):")
-    if type == "item" then
-        onTooltipSetItem(self)
-    end
+    buildExtraTip(tooltip, dataResults)
 end
 
 local eventframe = CreateFrame("FRAME",addonName.."Events");
@@ -384,15 +387,12 @@ local function onEvent(self,event,arg)
         elseif not addonTable.marketData then
             print("The Undermine Journal - Warning: no data loaded!")
         else
-            for _,frame in pairs{GameTooltip, ItemRefTooltip, ShoppingTooltip1, ShoppingTooltip2, ItemRefShoppingTooltip1, ItemRefShoppingTooltip2} do
-                if frame then
-                    frame:HookScript("OnTooltipSetItem", onTooltipSetItem)
-                    --frame:HookScript("OnTooltipSetSpell", GetCallback())
-                    frame:HookScript("OnTooltipCleared", ClearLastTip)
-                end
-            end
-            hooksecurefunc(ItemRefTooltip, "SetHyperlink", onSetHyperlink)
-            hooksecurefunc(GameTooltip, "SetHyperlink", onSetHyperlink)
+            LibExtraTip:AddCallback({type = "item", callback = onTooltipSetItem});
+            LibExtraTip:AddCallback({type = "battlepet", callback = onTooltipSetItem});
+            LibExtraTip:RegisterTooltip(GameTooltip)
+            LibExtraTip:RegisterTooltip(ItemRefTooltip)
+            LibExtraTip:RegisterTooltip(BattlePetTooltip)
+            LibExtraTip:RegisterTooltip(FloatingBattlePetTooltip)
         end
     end
 end

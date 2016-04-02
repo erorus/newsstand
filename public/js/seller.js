@@ -269,7 +269,7 @@ var TUJ_Seller = function ()
     function SellerPostingHeatMap(data, dest)
     {
         var hcdata = {minVal: undefined, maxVal: 0, days: {}, heat: [], categories: {
-            x: tuj.lang.heatMapTimes,
+            x: tuj.lang.heatMapHours,
             y: tuj.lang.heatMapDays
         }};
 
@@ -286,9 +286,9 @@ var TUJ_Seller = function ()
         }
 
         var d, wkdy, hr;
-        for (wkdy = 0; wkdy <= 6; wkdy++) {
+        for (wkdy = 0; wkdy < hcdata.categories.y.length; wkdy++) {
             hcdata.days[wkdy] = {};
-            for (hr = 0; hr <= 7; hr++) {
+            for (hr = 0; hr < hcdata.categories.x.length; hr++) {
                 hcdata.days[wkdy][hr] = [];
             }
         }
@@ -296,13 +296,13 @@ var TUJ_Seller = function ()
         for (var x = 0; x < data.history.length; x++) {
             var d = new Date(data.history[x].snapshot * 1000);
             wkdy = 6 - d.getDay();
-            hr = Math.floor(d.getHours() / 3);
+            hr = Math.floor(d.getHours() * hcdata.categories.x.length / 24);
             hcdata.days[wkdy][hr].push(data.history[x]['new']);
         }
 
         var p;
-        for (wkdy = 0; wkdy <= 6; wkdy++) {
-            for (hr = 0; hr <= 7; hr++) {
+        for (wkdy = 0; wkdy < hcdata.categories.y.length; wkdy++) {
+            for (hr = 0; hr < hcdata.categories.x.length; hr++) {
                 if (hcdata.days[wkdy][hr].length == 0) {
                     p = 0;
                 }

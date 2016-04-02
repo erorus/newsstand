@@ -54,6 +54,23 @@ function BuildBonusSets()
     }
 
     $lua .= "}\n";
+
+    $stmt = $db->prepare('select id, concat_ws(\',\', ifnull(stamina,0), ifnull(power,0), ifnull(speed,0)) stats from tblDBCPet');
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $sets = DBMapArray($result);
+    $stmt->close();
+
+    $lua .= "addonTable.speciesStats = {\n";
+    $lua .= "\t[0]={0,0,0},\n";
+
+    foreach ($sets as $row) {
+        if ($row['stats'] != '0,0,0') {
+            $lua .= "\t[" . $row['id'] . ']={' . $row['stats'] . "},\n";
+        }
+    }
+
+    $lua .= "}\n";
     return $lua;
 }
 
@@ -100,14 +117,22 @@ EOF;
     $stmt = $db->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();
-    $globalPrices = DBMapArray($result, null);
-    $stmt->close();
-
-    foreach ($globalPrices as $priceRow) {
+    while ($priceRow = $result->fetch_assoc()) {
         $item = ''.$priceRow['item'].($priceRow['bonusset'] != '0' ? ('x'.$priceRow['bonusset']) : '');
         $item_global[$item] = pack('LLL', round($priceRow['median']/100), round($priceRow['mean']/100), round($priceRow['stddev']/100));
     }
-    unset($globalPrices);
+    $result->close();
+    $stmt->close();
+
+    $stmt = $db->prepare('SELECT species, breed, avg(price) `mean`, stddev(price) `stddev` FROM tblPetSummary group by species, breed');
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($priceRow = $result->fetch_assoc()) {
+        $item = ''.$priceRow['species'].'b'.$priceRow['breed'];
+        $item_global[$item] = pack('LLL', 0, round($priceRow['mean']/100), round($priceRow['stddev']/100));
+    }
+    $result->close();
+    $stmt->close();
 
     $sql = <<<EOF
 SELECT tis.item, tis.bonusset,
@@ -131,7 +156,7 @@ EOF;
         if ($caughtKill)
             return;
 
-        DebugMessage('Finding prices in house '.$houses[$hx].' ('.round($hx/count($houses)*100).'%) '.round(memory_get_usage()/1048576));
+        DebugMessage('Finding item prices in house '.$houses[$hx].' ('.round($hx/count($houses)*100).'%) '.round(memory_get_usage()/1048576));
 
         $stmt = $db->prepare($sql);
         $stmt->bind_param('i', $houses[$hx]);
@@ -163,6 +188,57 @@ EOF;
             $item_stddev[$item] .= str_repeat(chr(0), 4 * $hx - strlen($item_stddev[$item])) . pack('L', (!$usingVendor && $priceRow['pricestddev']) ? intval($priceRow['pricestddev'],10) : 0);
             $item_recent[$item] .= str_repeat(chr(0), 4 * $hx - strlen($item_recent[$item])) . pack('L', (!$usingVendor && $priceRow['pricerecent']) ? intval($priceRow['pricerecent'],10) : $prc);
             $item_days[$item] .= str_repeat(chr(255), $hx - strlen($item_days[$item])) . chr($priceRow['vendorprice'] ? 252 : min(251, intval($priceRow['since'],10)));
+        }
+        $result->close();
+        $stmt->close();
+    }
+
+    $sql = <<<EOF
+SELECT tps.species, tps.breed,
+datediff(now(), tps.lastseen) since,
+round(ifnull(avg(ph.price), tps.price)/100) price,
+round(ifnull(avg(if(ph.snapshot > timestampadd(hour, -72, now()), ph.price, null)), tps.price)/100) pricerecent,
+round(stddev(ph.price)/100) pricestddev
+FROM tblPetSummary tps
+join tblHouseCheck hc on hc.house = tps.house
+left join tblPetHistory ph on ph.species=tps.species and ph.house = tps.house and ph.breed=tps.breed
+WHERE tps.house = ?
+group by tps.species, tps.breed
+EOF;
+
+    for ($hx = 0; $hx < count($houses); $hx++) {
+        heartbeat();
+        if ($caughtKill)
+            return;
+
+        DebugMessage('Finding pet prices in house '.$houses[$hx].' ('.round($hx/count($houses)*100).'%) '.round(memory_get_usage()/1048576));
+
+        $stmt = $db->prepare($sql);
+        $stmt->bind_param('i', $houses[$hx]);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        while ($priceRow = $result->fetch_assoc()) {
+            $item = ''.$priceRow['species'].'b'.$priceRow['breed'];
+
+            if (!isset($item_avg[$item])) {
+                $item_avg[$item] = '';
+            }
+            if (!isset($item_stddev[$item])) {
+                $item_stddev[$item] = '';
+            }
+            if (!isset($item_recent[$item])) {
+                $item_recent[$item] = '';
+            }
+            if (!isset($item_days[$item])) {
+                $item_days[$item] = '';
+            }
+
+            $prc = intval($priceRow['price'], 10);
+
+            $item_avg[$item] .= str_repeat(chr(0), 4 * $hx  - strlen($item_avg[$item])) . pack('L', $prc);
+            $item_stddev[$item] .= str_repeat(chr(0), 4 * $hx - strlen($item_stddev[$item])) . pack('L', $priceRow['pricestddev'] ? intval($priceRow['pricestddev'],10) : 0);
+            $item_recent[$item] .= str_repeat(chr(0), 4 * $hx - strlen($item_recent[$item])) . pack('L', $priceRow['pricerecent'] ? intval($priceRow['pricerecent'],10) : $prc);
+            $item_days[$item] .= str_repeat(chr(255), $hx - strlen($item_days[$item])) . chr(min(251, intval($priceRow['since'],10)));
         }
         $result->close();
         $stmt->close();
@@ -378,8 +454,7 @@ function MakeZip($zipPath = false)
     $tocFile = sprintf($tocFile, Date('D, F j'), Date('Ymd'));
 
     $zip->addFromString("TheUndermineJournal/TheUndermineJournal.toc",$tocFile);
-    $zip->addFile('../addon/libs/LibStub.lua',"TheUndermineJournal/libs/LibStub.lua");
-    $zip->addFile('../addon/libs/LibRealmInfo.lua',"TheUndermineJournal/libs/LibRealmInfo.lua");
+    RecursiveAddToZip($zip, '../addon/libs/', 'TheUndermineJournal/libs/');
     $zip->addFile('../addon/BonusSets.lua',"TheUndermineJournal/BonusSets.lua");
     $zip->addFile('../addon/TheUndermineJournal.lua',"TheUndermineJournal/TheUndermineJournal.lua");
     $zip->addFile('../addon/MarketData-US.lua',"TheUndermineJournal/MarketData-US.lua");
@@ -391,6 +466,19 @@ function MakeZip($zipPath = false)
         $zipPath = '../addon/TheUndermineJournal.zip';
     }
     rename($zipFilename, $zipPath);
+}
+
+function RecursiveAddToZip(ZipArchive &$zip, $dirPath, $zipRoot) {
+    $paths = glob($dirPath.'*', GLOB_MARK | GLOB_NOESCAPE);
+    foreach ($paths as $path) {
+        if (substr($path, -1) == '/') {
+            // dir
+            RecursiveAddToZip($zip, $path, $zipRoot.basename(substr($path, 0, -1)).'/');
+        } else {
+            // file
+            $zip->addFile($path, $zipRoot.basename($path));
+        }
+    }
 }
 
 function luaQuote($s) {
