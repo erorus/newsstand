@@ -104,7 +104,7 @@ function ReportUserWatches($now, $userRow)
 {
     global $LANG_LEVEL, $houseNameCache;
 
-    $locale = 'enus'; // todo: localize, pull from userRow
+    $locale = $userRow['locale'];
     $LANG = GetLang($locale);
 
     $message = '';

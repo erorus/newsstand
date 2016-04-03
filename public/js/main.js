@@ -569,6 +569,10 @@ var TUJ = function ()
                         if (dta.user.name) {
                             loggedInUser = dta.user;
                             FetchCSRFCookie();
+                            if (loggedInUser.locale && tujConstants.locales.hasOwnProperty(loggedInUser.locale) && self.locale != loggedInUser.locale) {
+                                checkLanguageHeader = false;
+                                LoadLocale(loggedInUser.locale, true);
+                            }
                         } else {
                             loggedInUser = false;
                             pendingCSRFProtectedRequests = [];
@@ -758,6 +762,16 @@ var TUJ = function ()
                 }
             }
             self.lang = $.extend(true, {}, self.locales.enus, self.locales[self.locale]);
+
+            if (!!(loggedInUser) && loggedInUser.locale != locName) {
+                tuj.SendCSRFProtectedRequest({
+                    data: {'newlocale': locName},
+                    success: function(dta) {
+                        loggedInUser = $.extend(loggedInUser, dta);
+                    }
+                });
+            }
+
             Main();
             return;
         }

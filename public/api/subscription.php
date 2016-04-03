@@ -7,7 +7,7 @@ require_once('../../incl/battlenet.credentials.php');
 require_once('../../incl/subscription.incl.php');
 
 if (isset($_POST['loginfrom']) && isset($_POST['region'])) {
-    json_return(GetLoginParams($_POST['loginfrom'], $_POST['region']));
+    json_return(GetLoginParams($_POST['loginfrom'], $_POST['region'], isset($_POST['locale']) ? $_POST['locale'] : null));
 }
 
 if (isset($_GET['state']) && isset($_GET['code'])) {
@@ -25,6 +25,10 @@ if (!$loginState) {
 }
 if (!ValidateCSRFProtectedRequest()) {
     json_return(false);
+}
+
+if (isset($_POST['newlocale'])) {
+    json_return(SetSubLocale($loginState, strtolower($_POST['newlocale'])));
 }
 
 if (isset($_POST['settings'])) {
@@ -108,7 +112,9 @@ json_return([]);
 
 ///////////////////////////////
 
-function GetLoginParams($loginFrom, $region) {
+function GetLoginParams($loginFrom, $region, $locale) {
+    global $VALID_LOCALES;
+
     if (GetLoginState()) {
         return [];
     }
@@ -118,12 +124,17 @@ function GetLoginParams($loginFrom, $region) {
         $region = 'US';
     }
 
+    if (!in_array($locale, $VALID_LOCALES)) {
+        $locale = $VALID_LOCALES[0];
+    }
+
     $json = [
         'clientId' => BATTLE_NET_KEY,
         'authUri' => BATTLE_NET_AUTH_URI,
         'redirectUri' => 'https://' . strtolower($_SERVER["HTTP_HOST"]) . $_SERVER["SCRIPT_NAME"],
         'state' => MakeNewState([
                 'from' => $loginFrom,
+                'locale' => $locale,
                 'region' => $region
             ]),
     ];
@@ -142,10 +153,11 @@ function MakeNewState($stateInfo) {
     return false;
 }
 
-function MakeNewSession($provider, $providerId, $userName) {
+function MakeNewSession($provider, $providerId, $userName, $locale) {
     $userInfo = [ // all params here must also be created from the DB in GetLoginState
         'id' => 0,
         'name' => $userName,
+        'locale' => $locale,
         'paiduntil' => null,
     ];
 
@@ -185,13 +197,23 @@ function MakeNewSession($provider, $providerId, $userName) {
         $stmt->execute();
 
         $userInfo['id'] = $userId;
+        $savedLocale = null;
 
-        $stmt = $db->prepare('SELECT unix_timestamp(paiduntil) FROM tblUser WHERE id = ?');
+        $stmt = $db->prepare('SELECT unix_timestamp(paiduntil), locale FROM tblUser WHERE id = ?');
         $stmt->bind_param('i', $userId);
         $stmt->execute();
-        $stmt->bind_result($userInfo['paiduntil']);
+        $stmt->bind_result($userInfo['paiduntil'], $savedLocale);
         $stmt->fetch();
         $stmt->close();
+
+        if (is_null($savedLocale)) { // usually only when account is created
+            $stmt = $db->prepare('UPDATE tblUser SET locale = ? WHERE id = ?');
+            $stmt->bind_param('si', $locale, $userId);
+            $stmt->execute();
+            $stmt->close();
+        } else { // switch client locale to what they last used when logged in
+            $userInfo['locale'] = $locale = $savedLocale;
+        }
 
         MCSet('usersession_'.$state, $userInfo);
 
@@ -242,7 +264,7 @@ function GetUserByProvider($provider, $providerId, $userName) {
     // new user
 
     $period = SUBSCRIPTION_WATCH_DEFAULT_PERIOD;
-    $stmt = $db->prepare('INSERT INTO tblUser (name, firstseen, lastseen, watchperiod) VALUES (IFNULL(?, \'User\'), NOW(), NOW())');
+    $stmt = $db->prepare('INSERT INTO tblUser (name, firstseen, lastseen, watchperiod) VALUES (IFNULL(?, \'User\'), NOW(), NOW(), ?)');
     $stmt->bind_param('si', $userName, $period);
     $stmt->execute();
     $stmt->close();
@@ -317,7 +339,7 @@ function ProcessAuthCode($state, $code) {
     }
 
     // at this point we have the battle.net user id and battletag in $userData
-    $session = MakeNewSession('Battle.net', $userData['id'], $userData['battletag']);
+    $session = MakeNewSession('Battle.net', $userData['id'], $userData['battletag'], $stateInfo['locale']);
     if ($session === false) {
         return '#subscription/nosession';
     }
@@ -891,4 +913,25 @@ function SetWatchPeriod($loginState, $period)
     MCDelete(SUBSCRIPTION_REPORTS_CACHEKEY . $userId);
 
     return GetReports($loginState);
+}
+
+function SetSubLocale($loginState, $locale)
+{
+    global $VALID_LOCALES;
+
+    $userId = $loginState['id'];
+    if (!in_array($locale, $VALID_LOCALES)) {
+        $locale = $VALID_LOCALES[0];
+    }
+
+    $db = DBConnect();
+
+    $stmt = $db->prepare('update tblUser set locale = ? where id = ?');
+    $stmt->bind_param('si', $locale, $userId);
+    $stmt->execute();
+    $stmt->close();
+
+    ClearLoginStateCache();
+
+    return GetLoginState();
 }

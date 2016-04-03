@@ -51,7 +51,7 @@ function GetLoginState($logOut = false) {
             $db = DBConnect();
 
             // see also MakeNewSession in api/subscription.php
-            $stmt = $db->prepare('SELECT u.id, u.name, unix_timestamp(u.paiduntil) paiduntil FROM tblUserSession us join tblUser u on us.user=u.id WHERE us.session=?');
+            $stmt = $db->prepare('SELECT u.id, u.name, u.locale, unix_timestamp(u.paiduntil) paiduntil FROM tblUserSession us join tblUser u on us.user=u.id WHERE us.session=?');
             $stmt->bind_param('s', $stateBytes);
             $stmt->execute();
             $result = $stmt->get_result();

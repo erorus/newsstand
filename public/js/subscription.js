@@ -644,16 +644,17 @@ var TUJ_Subscription = function ()
         i = formElements.submit = libtuj.ce('input');
         i.type = 'button';
         i.value = tuj.lang.logInBattleNet;
-        $(i).click(FetchStateAndSubmit.bind(self, formElements, region));
+        $(i).click(FetchStateAndSubmit.bind(self, formElements, region, tuj.locale));
         $(f).append(i);
     }
 
-    function FetchStateAndSubmit(formElements, region)
+    function FetchStateAndSubmit(formElements, region, locale)
     {
         $.ajax({
             data: {
                 'loginfrom': tuj.BuildHash({}),
                 'region': region,
+                'locale': locale
             },
             type: 'POST',
             success: function (d) {
