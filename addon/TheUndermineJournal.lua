@@ -1,6 +1,6 @@
 --[[
 
-TheUndermineJournal addon, v 4.0
+TheUndermineJournal addon, v 4.1
 https://theunderminejournal.com/
 
 You should be able to query this DB from other addons:
@@ -14,9 +14,15 @@ The item can be identified by anything GetItemInfo takes (itemid, itemstring, it
 
 Prices are returned in copper, but accurate to the last *silver* (with coppers always 0).
 
-    o['input']          -> the item parameter you just passed in, verbatim
+    o['input']          -> the item/battlepet parameter you just passed in, verbatim
+
     o['itemid']         -> the ID of the item you just passed in
     o['bonuses']        -> if present, a colon-separated list of bonus IDs that were considered as uniquely identifying the item for pricing
+
+    o['species']        -> the species of the battlepet you just passed in
+    o['breed']          -> the numeric breed ID of the battlepet
+    o['quality']        -> the numeric quality/rarity of the battlepet
+
     o['age']            -> number of seconds since data was compiled
 
     o['globalMedian']   -> median market price across all US and EU realms
@@ -144,7 +150,7 @@ local function getBreedFromPetLink(link)
     return breed, speciesID, level, quality, health, power, speed
 end
 
-local lastMarketInfo
+local lastMarketInfo = {}
 
 --[[
     pass a table as the second argument to wipe and reuse that table
@@ -169,8 +175,11 @@ function TUJMarketInfo(item,...)
 
     if not addonTable.marketData then return tr end
 
-    if lastMarketInfo and lastMarketInfo.input == item then
-        tr = lastMarketInfo
+    if lastMarketInfo.input == item then
+        if not tr then tr = {} end
+        for k,v in pairs(lastMarketInfo) do
+            tr[k] = v
+        end
         return tr
     end
 
@@ -266,7 +275,10 @@ function TUJMarketInfo(item,...)
     tr['recent'] = char2dec(string.sub(dta, offset, offset+priceSize-1)) * 100
     --offset = offset + priceSize
 
-    lastMarketInfo = tr
+    wipe(lastMarketInfo)
+    for k,v in pairs(tr) do
+        lastMarketInfo[k] = v
+    end
 
     return tr
 end
