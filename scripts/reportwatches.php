@@ -253,29 +253,6 @@ function FormatPrice($amt, &$LANG) {
     return $v;
 }
 
-function GetLang($lang) {
-    static $locales = [];
-    if (isset($locales[$lang])) {
-        return $locales[$lang];
-    }
-
-    $path = __DIR__.'/../public/js/locale/'.strtolower($lang).'.json';
-    if (!file_exists($path)) {
-        $locales[$lang] = false;
-        return $locales[$lang];
-    }
-
-    $json = json_decode(file_get_contents($path), true);
-    if ($lang != 'enus') {
-        $enus = GetLang('enus');
-        $json = array_replace_recursive($enus, $json);
-    }
-
-    $locales[$lang] = $json;
-
-    return $locales[$lang];
-}
-
 function DBQueryWithError(&$db, $sql)
 {
     $queryOk = $db->query($sql);

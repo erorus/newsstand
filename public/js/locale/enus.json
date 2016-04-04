@@ -384,6 +384,8 @@
     },
 
     "subscription": "Subscription",
+    "paidSubscription": "Paid Subscription",
+    "freeSubscription": "Free Subscription",
     "settings": "Settings",
 
     "logInBattleNet": "Log in with Battle.net",
@@ -425,6 +427,8 @@
     "priceAboveZero": "Price is always above zero.",
 
     "notificationsMessage": "The items above have reached thresholds that you've set. Notifications for these events will automatically reset when the market condition is no longer observed, and you will be notified when they happen again after that. To update your notifications or email preferences, please <a href=\"https://theunderminejournal.com/#subscription\">log in to your subscription</a>.",
+    "subscriptionTimeAddedMessage": "Your paid subscription has been extended.",
+    "subscriptionTimeRemovedMessage": "Your paid subscription time has been reduced, probably due to a refund or a transaction reversal. If this was not your intent, please <a href=\"https://theunderminejournal.com/#subscription\">log in to your subscription</a> and contact us via the Contact form.",
 
     "paidExpires": "Your account's paid subscription expires {1}.",
     "freeSubscriptionAccount": "Your account is on the free subscription tier.",

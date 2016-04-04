@@ -7,6 +7,7 @@ require_once('subscription.credentials.php');
 define('SUBSCRIPTION_LOGIN_COOKIE', 'session');
 define('SUBSCRIPTION_CSRF_COOKIE', 'csrf');
 define('SUBSCRIPTION_SESSION_LENGTH', 1209600); // 2 weeks
+define('SUBSCRIPTION_PAID_ADDS_SECONDS', 5184000); // 60 days
 
 define('SUBSCRIPTION_MESSAGES_CACHEKEY', 'submessage_');
 define('SUBSCRIPTION_MESSAGES_MAX', 50);
@@ -51,7 +52,7 @@ function GetLoginState($logOut = false) {
             $db = DBConnect();
 
             // see also MakeNewSession in api/subscription.php
-            $stmt = $db->prepare('SELECT u.id, u.name, u.locale, unix_timestamp(u.paiduntil) paiduntil FROM tblUserSession us join tblUser u on us.user=u.id WHERE us.session=?');
+            $stmt = $db->prepare('SELECT u.id, u.publicid, u.name, u.locale, unix_timestamp(u.paiduntil) paiduntil FROM tblUserSession us join tblUser u on us.user=u.id WHERE us.session=?');
             $stmt->bind_param('s', $stateBytes);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -222,3 +223,88 @@ function DisableEmailAddress($address) {
     return count($ids);
 }
 
+// seconds can be negative!
+function AddPaidTime($userId, $seconds) {
+    $db = DBConnect();
+
+    $db->begin_transaction();
+
+    $stmt = $db->prepare('select paiduntil from tblUser where id = ? for update');
+    $stmt->bind_param('i', $userId);
+    $stmt->execute();
+    $paidUntil = null;
+    $stmt->bind_result($paidUntil);
+    if (!$stmt->fetch()) {
+        $paidUntil = false;
+    }
+    $stmt->close();
+
+    if ($paidUntil === false) {
+        $db->rollback();
+        DebugMessage("Could not find $userId when adding $seconds paid time");
+        return false;
+    }
+
+    if (is_null($paidUntil)) {
+        $paidUntil = time();
+    } else {
+        $paidUntil = strtotime($paidUntil);
+        if ($paidUntil <= time()) {
+            $paidUntil = time();
+        }
+    }
+    $paidUntil += $seconds;
+
+    $stmt = $db->prepare('update tblUser set paiduntil = from_unixtime(?) where id = ?');
+    $stmt->bind_param('ii', $paidUntil, $userId);
+    $stmt->execute();
+    $affected = $db->affected_rows;
+    $stmt->close();
+
+    $db->commit();
+
+    if (!$affected) {
+        DebugMessage("0 rows affected when adding $seconds paid time to user $userId");
+        return false;
+    }
+
+    return $paidUntil;
+}
+
+function GeneratePublicUserHMAC($publicId) {
+    $msg = time().":$publicId";
+    $hmac = strtr(base64_encode(hash_hmac('sha256', $msg, SUBSCRIPTION_PUBLIC_ID_HMAC_KEY, true)), '+/=', '-_.');
+    return "$hmac:$msg";
+}
+
+function ValidatePublicUserHMAC($fullMsg) {
+    $parts = explode(":", $fullMsg);
+    if (count($parts) < 2) {
+        return false;
+    }
+    $givenHMAC = array_shift($parts);
+    $msg = implode(":", $parts);
+    $realHMAC = strtr(base64_encode(hash_hmac('sha256', $msg, SUBSCRIPTION_PUBLIC_ID_HMAC_KEY, true)), '+/=', '-_.');
+
+    if (function_exists('hash_equals')) {
+        $good = hash_equals($realHMAC, $givenHMAC);
+    } else {
+        $good = (sha1($realHMAC) === sha1($givenHMAC)); // sha1 on both sides to mitigate timing attack
+    }
+
+    if (!$good) {
+        return false;
+    }
+
+    $created = intval(array_shift($parts), 10);
+
+    $diff = time() - $created;
+    if ($diff < 0) {
+        return false;
+    }
+    if ($diff > 86400) {
+        return false;
+    }
+
+    return $parts;
+}

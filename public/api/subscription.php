@@ -156,6 +156,7 @@ function MakeNewState($stateInfo) {
 function MakeNewSession($provider, $providerId, $userName, $locale) {
     $userInfo = [ // all params here must also be created from the DB in GetLoginState
         'id' => 0,
+        'publicid' => 0,
         'name' => $userName,
         'locale' => $locale,
         'paiduntil' => null,
@@ -199,10 +200,10 @@ function MakeNewSession($provider, $providerId, $userName, $locale) {
         $userInfo['id'] = $userId;
         $savedLocale = null;
 
-        $stmt = $db->prepare('SELECT unix_timestamp(paiduntil), locale FROM tblUser WHERE id = ?');
+        $stmt = $db->prepare('SELECT unix_timestamp(paiduntil), locale, publicid FROM tblUser WHERE id = ?');
         $stmt->bind_param('i', $userId);
         $stmt->execute();
-        $stmt->bind_result($userInfo['paiduntil'], $savedLocale);
+        $stmt->bind_result($userInfo['paiduntil'], $savedLocale, $userInfo['publicid']);
         $stmt->fetch();
         $stmt->close();
 
@@ -220,9 +221,8 @@ function MakeNewSession($provider, $providerId, $userName, $locale) {
         break;
     }
 
-    $stmt->close();
-
     if ($tries >= 10) {
+        $stmt->close();
         return false;
     }
 
@@ -263,11 +263,29 @@ function GetUserByProvider($provider, $providerId, $userName) {
 
     // new user
 
-    $period = SUBSCRIPTION_WATCH_DEFAULT_PERIOD;
-    $stmt = $db->prepare('INSERT INTO tblUser (name, firstseen, lastseen, watchperiod) VALUES (IFNULL(?, \'User\'), NOW(), NOW(), ?)');
-    $stmt->bind_param('si', $userName, $period);
-    $stmt->execute();
-    $stmt->close();
+    $loops = 0;
+    do {
+        $stmt = $db->prepare('select count(*) from tblUser where publicid = ?');
+        $publicidParam = null;
+        $stmt->bind_param('i', $publicidParam);
+        do {
+            $publicidParam = $publicid = mt_rand(10000, 2147483648);
+            $stmt->execute();
+            $stmt->bind_result($c);
+            $stmt->fetch();
+        } while ($c != 0 && ++$loops < 10);
+        $stmt->close();
+
+        $period = SUBSCRIPTION_WATCH_DEFAULT_PERIOD;
+        $stmt = $db->prepare('INSERT INTO tblUser (name, publicid, firstseen, lastseen, watchperiod) VALUES (IFNULL(?, \'User\'), ?, NOW(), NOW(), ?)');
+        $stmt->bind_param('sii', $userName, $publicid, $period);
+        $success = $stmt->execute();
+        $stmt->close();
+    } while (!$success && ++$loops < 10);
+
+    if (!$success) {
+        DebugMessage("Could not insert new user row! Looped $loops times. $publicid", E_USER_ERROR);
+    }
 
     $userId = $db->insert_id;
 
