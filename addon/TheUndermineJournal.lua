@@ -305,40 +305,43 @@ local function buildExtraTip(tooltip, pricingData)
             "Breed " .. breedPoints[pricingData['breed']]["name"] .. " - Species " .. pricingData['species'],
             qualityRGB[pricingData['quality']][1],
             qualityRGB[pricingData['quality']][2],
-            qualityRGB[pricingData['quality']][3])
+            qualityRGB[pricingData['quality']][3],
+            true)
     end
 
+    LibExtraTip:AddLine(tooltip," ",r,g,b,true)
+
     if (pricingData['age'] > 3*24*60*60) then
-        LibExtraTip:AddLine(tooltip,"As of "..SecondsToTime(pricingData['age'],pricingData['age']>60).." ago:",r,g,b)
+        LibExtraTip:AddLine(tooltip,"As of "..SecondsToTime(pricingData['age'],pricingData['age']>60).." ago:",r,g,b,true)
     end
 
     if pricingData['recent'] then
-        LibExtraTip:AddDoubleLine(tooltip,"3-Day Price",coins(pricingData['recent']),r,g,b)
+        LibExtraTip:AddDoubleLine(tooltip,"3-Day Price",coins(pricingData['recent']),r,g,b,nil,nil,nil,true)
     end
     if pricingData['market'] then
-        LibExtraTip:AddDoubleLine(tooltip,"14-Day Price",coins(pricingData['market']),r,g,b)
+        LibExtraTip:AddDoubleLine(tooltip,"14-Day Price",coins(pricingData['market']),r,g,b,nil,nil,nil,true)
     end
-    if pricingData['market'] then
-        LibExtraTip:AddDoubleLine(tooltip,"14-Day Std Dev",coins(pricingData['stddev']),r,g,b)
+    if pricingData['stddev'] then
+        LibExtraTip:AddDoubleLine(tooltip,"14-Day Std Dev",coins(pricingData['stddev']),r,g,b,nil,nil,nil,true)
     end
     if pricingData['globalMedian'] then
-        LibExtraTip:AddDoubleLine(tooltip,"Global Median",coins(pricingData['globalMedian']),r,g,b)
+        LibExtraTip:AddDoubleLine(tooltip,"Global Median",coins(pricingData['globalMedian']),r,g,b,nil,nil,nil,true)
     end
     if pricingData['globalMean'] then
-        LibExtraTip:AddDoubleLine(tooltip,"Global Mean",coins(pricingData['globalMean']),r,g,b)
+        LibExtraTip:AddDoubleLine(tooltip,"Global Mean",coins(pricingData['globalMean']),r,g,b,nil,nil,nil,true)
     end
     if pricingData['globalStdDev'] then
-        LibExtraTip:AddDoubleLine(tooltip,"Global Std Dev",coins(pricingData['globalStdDev']),r,g,b)
+        LibExtraTip:AddDoubleLine(tooltip,"Global Std Dev",coins(pricingData['globalStdDev']),r,g,b,nil,nil,nil,true)
     end
 
     if pricingData['days'] == 255 then
-        LibExtraTip:AddLine(tooltip,"Never seen since WoD",r,g,b)
+        LibExtraTip:AddLine(tooltip,"Never seen since WoD",r,g,b,true)
     elseif pricingData['days'] == 252 then
-        LibExtraTip:AddLine(tooltip,"Sold by Vendors",r,g,b)
+        LibExtraTip:AddLine(tooltip,"Sold by Vendors",r,g,b,true)
     elseif pricingData['days'] > 250 then
-        LibExtraTip:AddLine(tooltip,"Last seen over 250 days ago",r,g,b)
+        LibExtraTip:AddLine(tooltip,"Last seen over 250 days ago",r,g,b,true)
     elseif pricingData['days'] > 1 then
-        LibExtraTip:AddLine(tooltip,"Last seen "..SecondsToTime(pricingData['days']*24*60*60).." ago",r,g,b)
+        LibExtraTip:AddLine(tooltip,"Last seen "..SecondsToTime(pricingData['days']*24*60*60).." ago",r,g,b,true)
     end
 end
 
