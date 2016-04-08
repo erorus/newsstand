@@ -1,0 +1,766 @@
+.wowhead-tooltip-screen {
+    background: rgba(0, 0, 0, .65);
+    bottom: 0;
+    box-shadow: inset 0 0 200px #000;
+    left: 0;
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 999999999
+}
+.wowhead-tooltip-screen-close,
+.wowhead-touch-tooltip-closer {
+    background: #933;
+    border-radius: 99px;
+    color: #fff;
+    font-weight: bold;
+    height: 39px;
+    line-height: 39px;
+    position: absolute;
+    right: 7px;
+    text-align: center;
+    top: 4px;
+    width: 39px;
+    z-index: 3
+}
+.wowhead-tooltip-screen-close:before,
+.wowhead-touch-tooltip-closer:before,
+.wowhead-tooltip-screen-close:after,
+.wowhead-touch-tooltip-closer:after {
+    background: #fff;
+    content: ' ';
+    display: block;
+    height: 3px;
+    left: 10px;
+    position: absolute;
+    top: 18px;
+    width: 19px
+}
+.wowhead-tooltip-screen-close:before,
+.wowhead-touch-tooltip-closer:before {
+    -ms-transform: rotate(45deg);
+    -moz-transform: rotate(45deg);
+    -webkit-transform: rotate(45deg);
+    transform: rotate(45deg)
+}
+.wowhead-tooltip-screen-close:after,
+.wowhead-touch-tooltip-closer:after {
+    -ms-transform: rotate(-45deg);
+    -moz-transform: rotate(-45deg);
+    -webkit-transform: rotate(-45deg);
+    transform: rotate(-45deg)
+}
+.wowhead-tooltip-screen-inner-wrapper {
+    bottom: 60px;
+    left: 0;
+    overflow-y: auto;
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 2
+}
+.wowhead-tooltip-screen-inner {
+    box-sizing: border-box;
+    min-height: 100%;
+    padding: 45px 5px 0;
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-box-direction: normal;
+    -moz-box-direction: normal;
+    -webkit-box-orient: vertical;
+    -moz-box-orient: vertical;
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    -webkit-flex-wrap: nowrap;
+    -ms-flex-wrap: nowrap;
+    flex-wrap: nowrap;
+    -webkit-box-pack: center;
+    -moz-box-pack: center;
+    -webkit-justify-content: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    -webkit-align-content: center;
+    -ms-flex-line-pack: center;
+    align-content: center;
+    -webkit-box-align: center;
+    -moz-box-align: center;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center
+}
+.wowhead-tooltip-screen-inner .wowhead-tooltip {
+    display: none;
+    margin: 0 auto;
+    max-width: 320px;
+    position: static !important;
+    width: auto !important
+}
+.wowhead-tooltip-screen-inner .wowhead-tooltip[data-visible="yes"] {
+    display: block
+}
+.wowhead-tooltip-screen-inner .wowhead-tooltip>table>tbody>tr>td>table {
+    white-space: normal !important
+}
+.wowhead-tooltip-screen-inner .wowhead-tooltip .screenshot {
+    background-position: center;
+    display: block;
+    height: 250px;
+    margin: 5px 2px;
+    position: static;
+    width: auto
+}
+.wowhead-tooltip-screen-inner-box {
+    position: relative
+}
+.wowhead-tooltip-screen-inner-box .wowhead-tooltip .wowhead-touch-tooltip-closer {
+    display: none
+}
+.wowhead-tooltip-screen-inner-box .wowhead-tooltip p {
+    left: -44px;
+    top: -1px
+}
+.wowhead-tooltip-screen-caption {
+    bottom: 5px;
+    font-size: 21px;
+    font-weight: 600;
+    left: 5px;
+    position: absolute;
+    right: 5px;
+    z-index: 1
+}
+.wowhead-tooltip-screen-caption a {
+    background: #333;
+    border-radius: 4px;
+    color: #fff;
+    display: block;
+    height: 50px;
+    line-height: 50px;
+    overflow: hidden;
+    text-align: center;
+    text-overflow: ellipsis
+}
+.wowhead-tooltip-screen-caption a.wowhead-tooltip-screen-second-closer {
+    background: #933;
+    color: #fff
+}
+.wowhead-tooltip-screen-caption a:first-child {
+    float: left;
+    width: 49%;
+    width: calc(50% - 2.5px)
+}
+.wowhead-tooltip-screen-caption a:last-child {
+    margin: 0 0 0 auto;
+    width: 49%;
+    width: calc(50% - 2.5px)
+}
+.wowhead-tooltip-screen-caption a:first-child:last-child {
+    box-shadow: 0 0 100px #000;
+    float: none;
+    margin: 0;
+    width: auto
+}
+.wowhead-tooltip-screen-caption a .fa {
+    margin-right: 5px
+}
+@media screen and (max-width: 320px) {
+    .wowhead-tooltip-screen-inner-wrapper {
+        bottom: 0
+    }
+    .wowhead-tooltip-screen-caption {
+        bottom: auto;
+        left: auto;
+        right: 53px;
+        top: 4px;
+        z-index: 3
+    }
+    .wowhead-tooltip-screen-caption a:first-child:last-child {
+        background: #393;
+        border-radius: 99px;
+        height: 0 !important;
+        line-height: 39px;
+        overflow: hidden;
+        padding: 39px 39px 0 0;
+        width: 0 !important
+    }
+    .wowhead-tooltip-screen-caption a .fa {
+        display: block;
+        left: 0;
+        margin-right: 0;
+        position: absolute;
+        right: 0;
+        top: 0
+    }
+}
+.wowhead-touch-tooltip-closer {
+    height: 26px;
+    right: 0;
+    top: -14px;
+    width: 26px
+}
+.wowhead-touch-tooltip-closer:before,
+.wowhead-touch-tooltip-closer:after {
+    height: 2px;
+    left: 7px;
+    top: 12px;
+    width: 12px
+}
+@media screen and (max-width: 407px) {
+    .wowhead-tooltip-screen-inner-box .wowhead-tooltip p {
+        left: -1px;
+        top: -44px
+    }
+}
+.wowhead-tooltip {
+    max-width: 100%;
+    overflow: visible !important;
+    visibility: hidden;
+    z-index: 100000006
+}
+.wowhead-tooltip a {
+    text-decoration: none
+}
+.wowhead-tooltip a:hover {
+    text-decoration: underline
+}
+.wowhead-tooltip table {
+    border-spacing: 0;
+    border-collapse: collapse;
+    margin: 0;
+    width: auto
+}
+@media screen and (max-width: 599px) {
+    .wowhead-tooltip table,
+    .wowhead-tooltip th,
+    .wowhead-tooltip td {
+        white-space: normal !important
+    }
+}
+.wowhead-tooltip table,
+.wowhead-tooltip td,
+.wowhead-tooltip th,
+.wowhead-tooltip tbody {
+    border: 0 !important
+}
+.wowhead-tooltip td table td table {
+    width: 100%
+}
+.wowhead-tooltip td,
+.wowhead-tooltip th {
+    background: url(/images/wowhead/wow/tooltip.png);
+    font-family: "Friz Quadrata", Verdana, "Open Sans", Arial, "Helvetica Neue", Helvetica, sans-serif;
+    font-size: 12px;
+    line-height: 17px;
+    color: white
+}
+.wowhead-tooltip th {
+    padding: 3px;
+    vertical-align: top
+}
+.wowhead-tooltip td {
+    padding: 8px 4px 1px 9px;
+    text-align: left;
+    vertical-align: top
+}
+.wowhead-tooltip b {
+    font-size: 14px;
+    line-height: 19px;
+    font-weight: normal
+}
+.wowhead-tooltip div.indent {
+    padding-left: .6em
+}
+.wowhead-tooltip td th,
+.wowhead-tooltip td td {
+    background: 0
+}
+.wowhead-tooltip td th {
+    padding: 0 0 0 4em;
+    text-align: right;
+    font-weight: normal
+}
+.wowhead-tooltip td td {
+    padding: 0;
+    text-align: left
+}
+.wowhead-tooltip p {
+    position: absolute;
+    left: -44px;
+    top: -1px;
+    width: 44px;
+    height: 44px;
+    background: 4px 4px no-repeat;
+    margin: 0;
+    padding: 0
+}
+.wowhead-tooltip p div {
+    width: 44px;
+    height: 44px;
+    background-image: url(/images/wowhead/Icon/medium/border/default.png)
+}
+.wowhead-tooltip table.shrink b {
+    font-size: 12px;
+    line-height: 15px
+}
+.wowhead-tooltip table.shrink td,
+.wowhead-tooltip table.shrink th {
+    font-size: 10px;
+    line-height: 14px
+}
+.wowhead-tooltip .mapper {
+    margin: 2px 0 3px 1px;
+    border: 0
+}
+.wowhead-tooltip ins {
+    color: #5df644;
+    text-decoration: none;
+    border-bottom: 1px dotted
+}
+.wowhead-tooltip del {
+    color: #ff8040;
+    text-decoration: none;
+    border-bottom: 1px dotted
+}
+.wowhead-tooltip .screenshot {
+    display: inline-block;
+    position: absolute;
+    right: -300px;
+    width: 300px;
+    top: 0;
+    height: 100%;
+    min-height: 250px;
+    background: no-repeat top left;
+    background-size: contain
+}
+@media screen and (max-width: 499px) {
+    .mobile-device #main .wowhead-tooltip b {
+        white-space: normal
+    }
+}
+@media screen and (max-width: 339px) {
+    .touch-device #main .wowhead-tooltip {
+        max-width: 100%
+    }
+}
+.wowhead-tooltip-powered {
+    width: 53px;
+    height: 33px;
+    position: absolute;
+    right: -56px;
+    top: 2px;
+    display: none
+}
+.wowhead-tooltip-inline .wowhead-tooltip {
+    display: inline-block;
+    position: relative
+}
+.wowhead-tooltip-inline-icon .wowhead-tooltip {
+    margin-left: 44px
+}
+.moneyitem,
+.moneygold,
+.moneysilver,
+.moneycopper,
+.moneyachievement,
+.moneysocketmeta,
+.moneysocketred,
+.moneysocketyellow,
+.moneysocketblue,
+.moneysocketprismatic {
+    background: no-repeat right center;
+    color: white;
+    display: inline-block
+}
+.moneyitem {
+    padding-right: 18px
+}
+.moneygold {
+    padding-right: 15px;
+    background-image: url(/images/wowhead/icons/money-gold.gif)
+}
+.moneysilver {
+    padding-right: 15px;
+    background-image: url(/images/wowhead/icons/money-silver.gif)
+}
+.moneycopper {
+    padding-right: 15px;
+    background-image: url(/images/wowhead/icons/money-copper.gif)
+}
+.moneyachievement {
+    padding-right: 13px;
+    background-image: url(/images/wowhead/icons/achievement.gif)
+}
+.moneysocketmeta {
+    padding-right: 18px;
+    background-image: url(/images/wowhead/icons/socket-meta.gif)
+}
+.moneysocketred {
+    padding-right: 18px;
+    background-image: url(/images/wowhead/icons/socket-red.gif)
+}
+.moneysocketyellow {
+    padding-right: 18px;
+    background-image: url(/images/wowhead/icons/socket-yellow.gif)
+}
+.moneysocketblue {
+    padding-right: 18px;
+    background-image: url(/images/wowhead/icons/socket-blue.gif)
+}
+.moneysocketprismatic {
+    padding-right: 18px;
+    background-image: url(/images/wowhead/icons/socket-prismatic.gif)
+}
+a.moneyitem,
+a.moneysocketmeta,
+a.moneysocketred,
+a.moneysocketyellow,
+a.moneysocketblue,
+a.moneysocketprismatic,
+a.moneyachievement {
+    text-decoration: none !important;
+    border-bottom: 1px solid transparent;
+    color: white !important
+}
+a.moneyitem:hover,
+a.moneysocketmeta:hover,
+a.moneysocketred:hover,
+a.moneysocketyellow:hover,
+a.moneysocketblue:hover,
+a.moneysocketprismatic:hover,
+a.moneyachievement:hover {
+    border-bottom: 1px solid white
+}
+a span.moneyitem,
+a span.moneysocketmeta,
+a span.moneysocketred,
+a span.moneysocketyellow,
+a span.moneysocketblue,
+a span.moneysocketprismatic,
+a span.moneyachievement {
+    color: white
+}
+.blizzard-blue {
+    color: #00c0ff !important
+}
+.q,
+.q a,
+.color-q,
+.wowhead-tooltip .q a {
+    color: #ffd100 !important
+}
+.q0,
+.q0 a,
+.color-q0,
+.wowhead-tooltip .q0 a {
+    color: #9d9d9d !important
+}
+.q1,
+.q1 a,
+.color-q1,
+.wowhead-tooltip .q1 a {
+    color: #fff !important
+}
+.q2,
+.q2 a,
+.color-q2,
+.wowhead-tooltip .q2 a {
+    color: #1eff00 !important
+}
+.q3,
+.q3 a,
+.color-q3,
+.wowhead-tooltip .q3 a {
+    color: #0070dd !important
+}
+.q4,
+.q4 a,
+.color-q4,
+.wowhead-tooltip .q4 a {
+    color: #a335ee !important
+}
+.q5,
+.q5 a,
+.color-q5,
+.wowhead-tooltip .q5 a {
+    color: #ff8000 !important
+}
+.q6,
+.q6 a,
+.color-q6,
+.wowhead-tooltip .q6 a {
+    color: #e5cc80 !important
+}
+.q7,
+.q7 a,
+.color-q7,
+.wowhead-tooltip .q7 a {
+    color: #e5cc80 !important
+}
+.q8,
+.q8 a,
+.color-q8,
+.wowhead-tooltip .q8 a {
+    color: #0cf !important
+}
+.q9,
+.q9 a,
+.color-q9,
+.wowhead-tooltip .q9 a {
+    color: #71d5ff !important
+}
+.q10,
+.q10 a,
+.color-q10,
+.wowhead-tooltip .q10 a {
+    color: #ff4040 !important
+}
+.q13,
+.q13 a,
+.color-q13,
+.wowhead-tooltip .q13 a {
+    color: #ffff98 !important
+}
+.r1 {
+    color: #ff8040 !important
+}
+.r2 {
+    color: #ff0 !important
+}
+.r3 {
+    color: #40bf40 !important
+}
+.r4 {
+    color: #808080 !important
+}
+.c1,
+.c1 a {
+    color: #c69b6d !important
+}
+.c2,
+.c2 a {
+    color: #f48cba !important
+}
+.c3,
+.c3 a {
+    color: #aad372 !important
+}
+.c4,
+.c4 a {
+    color: #fff468 !important
+}
+.c5,
+.c5 a {
+    color: #fff !important
+}
+.c6,
+.c6 a {
+    color: #c41e3b !important
+}
+.c7,
+.c7 a {
+    color: #2359ff !important
+}
+.c8,
+.c8 a {
+    color: #68ccef !important
+}
+.c9,
+.c9 a {
+    color: #9382c9 !important
+}
+.c10,
+.c10 a {
+    color: #008467 !important
+}
+.c11,
+.c11 a {
+    color: #ff7c0a !important
+}
+.c12,
+.c12 a {
+    color: #a330c9 !important
+}
+.gem1 {
+    color: #9d9d9d !important
+}
+.gem2 {
+    color: #e60c0b !important
+}
+.gem4 {
+    color: #ffff35 !important
+}
+.gem6 {
+    color: #f48905 !important
+}
+.gem8 {
+    color: #295df1 !important
+}
+.gem10 {
+    color: #b957fc !important
+}
+.gem12 {
+    color: #22c516 !important
+}
+.gem14 {
+    color: #fff !important
+}
+.s1 {
+    color: #ff3f40 !important
+}
+.s2 {
+    color: #fffb9f !important
+}
+.s3 {
+    color: #ffb2eb !important
+}
+.hs-cost {
+    color: #376bb8 !important
+}
+.hs-attack {
+    color: #edb517 !important
+}
+.hs-health {
+    color: #f53a2e !important
+}
+.hs-set-12 {
+    color: #9382c9
+}
+.hs-set-13 {
+    color: #ffc040
+}
+.hs-set-14 {
+    color: #ff8040
+}
+.socket-meta {
+    padding-left: 26px;
+    background: url(/images/wowhead/icons/socket-meta.gif) no-repeat left center
+}
+.socket-red {
+    padding-left: 26px;
+    background: url(/images/wowhead/icons/socket-red.gif) no-repeat left center
+}
+.socket-yellow {
+    padding-left: 26px;
+    background: url(/images/wowhead/icons/socket-yellow.gif) no-repeat left center
+}
+.socket-blue {
+    padding-left: 26px;
+    background: url(/images/wowhead/icons/socket-blue.gif) no-repeat left center
+}
+.socket-prismatic {
+    padding-left: 26px;
+    background: url(/images/wowhead/icons/socket-prismatic.gif) no-repeat left center
+}
+.socket-hydraulic {
+    padding-left: 26px;
+    background: url(/images/wowhead/icons/socket-hydraulic.gif) no-repeat left center
+}
+.socket-cogwheel {
+    padding-left: 26px;
+    background: url(/images/wowhead/icons/socket-cogwheel.gif) no-repeat left center
+}
+.socket-relic-blood {
+    padding-left: 26px;
+    background: url(/images/wowhead/icons/relic-blood.png) no-repeat left center
+}
+.socket-relic-arcane {
+    padding-left: 26px;
+    background: url(/images/wowhead/icons/relic-arcane.png) no-repeat left center
+}
+.socket-relic-fel {
+    padding-left: 26px;
+    background: url(/images/wowhead/icons/relic-fel.png) no-repeat left center
+}
+.socket-relic-iron {
+    padding-left: 26px;
+    background: url(/images/wowhead/icons/relic-iron.png) no-repeat left center
+}
+.socket-relic-shadow {
+    padding-left: 26px;
+    background: url(/images/wowhead/icons/relic-shadow.png) no-repeat left center
+}
+.socket-relic-frost {
+    padding-left: 26px;
+    background: url(/images/wowhead/icons/relic-frost.png) no-repeat left center
+}
+.socket-relic-fire {
+    padding-left: 26px;
+    background: url(/images/wowhead/icons/relic-fire.png) no-repeat left center
+}
+.socket-relic-water {
+    padding-left: 26px;
+    background: url(/images/wowhead/icons/relic-water.png) no-repeat left center
+}
+.socket-relic-life {
+    padding-left: 26px;
+    background: url(/images/wowhead/icons/relic-life.png) no-repeat left center
+}
+.socket-relic-wind {
+    padding-left: 26px;
+    background: url(/images/wowhead/icons/relic-wind.png) no-repeat left center
+}
+.socket-relic-holy {
+    padding-left: 26px;
+    background: url(/images/wowhead/icons/relic-holy.png) no-repeat left center
+}
+span.tooltip-pet-strongweak {
+    width: 32px;
+    height: 32px;
+    vertical-align: middle;
+    display: inline-block;
+    background-repeat: no-repeat;
+    background-image: url(/images/wowhead/wow/icons/battlepets/battlepetstrongweak.png)
+}
+hr.tooltip-pet-hr {
+    background: #2d2928 !important;
+    border: 0 !important;
+    height: 3px !important;
+    margin: 6px -7px 6px -6px !important;
+    position: relative;
+    width: calc(100% - -13px);
+    z-index: 1
+}
+td.tooltip-pet-header {
+    padding-bottom: 4px !important
+}
+div.tooltip-pettype-icon,
+span.tooltip-pettype-icon {
+    width: 39px;
+    height: 39px;
+    vertical-align: middle;
+    display: inline-block;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    background-size: contain !important
+}
+span.tooltip-pet-locationicons {
+    height: 15px;
+    width: 15px;
+    display: inline-block;
+    vertical-align: -24%;
+    margin-left: 3px
+}
+span.tooltip-pet-locationicons-money {
+    height: 13px;
+    width: 13px;
+    display: inline-block;
+    vertical-align: -25%;
+    margin-left: 3px
+}
+span.tooltip-multiskill-icon {
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+    display: inline-block;
+    background: url(/images/wowhead/icons/multiskill.png) no-repeat left center
+}
+span.tooltip-heroic-icon {
+    padding-left: 13px;
+    margin-left: 2px;
+    background: url(/images/wowhead/icons/heroic.gif) left center no-repeat;
+    background-size: 14px 17px;
+    vertical-align: middle
+}
