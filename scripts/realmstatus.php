@@ -83,12 +83,11 @@ function ShowMemcacheStats() {
     echo "<tr><td>Number of keys that have been requested and found present </td><td>".$status["get_hits"]." ($percCacheHit%)</td></tr>";
     echo "<tr><td>Number of items that have been requested and not found </td><td>".$status["get_misses"]." ($percCacheMiss%)</td></tr>";
 
-    $MBRead= (real)$status["bytes_read"]/(1024*1024);
-
+    $MBRead= round($status["bytes_read"]/(1024*1024));
     echo "<tr><td>Total number of bytes read by this server from network </td><td>".$MBRead."MB</td></tr>";
-    $MBWrite=(real) $status["bytes_written"]/(1024*1024) ;
+    $MBWrite=round($status["bytes_written"]/(1024*1024)) ;
     echo "<tr><td>Total number of bytes sent by this server to network </td><td>".$MBWrite."MB</td></tr>";
-    $MBSize=(real) $status["limit_maxbytes"]/(1024*1024) ;
+    $MBSize=round($status["limit_maxbytes"]/(1024*1024)) ;
     echo "<tr><td>Number of bytes this server is allowed to use for storage.</td><td>".$MBSize."MB</td></tr>";
     echo "<tr><td>Number of valid items removed from cache to free memory for new items.</td><td>".$status["evictions"]."</td></tr>";
 
