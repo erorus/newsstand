@@ -38,9 +38,15 @@ if (!in_array($domain, $wowheadDomains)) {
     returnCode();
 }
 
-$url = $domain.'.wowhead.com/'.$qs;
-$cacheKey = 'whpower_'.md5($url);
+$cacheKey = 'whpower:' . $domain . ':' . rawurlencode($qs);
+if (isset($_SERVER['MEMCACHED_KEY'])) {
+    // thanks for double-escaping this, nginx. grr.
+    $cacheKey = preg_replace_callback('/[\\x00-\\x1F %]/', function($m) {
+        return '%'.str_pad(dechex(ord($m[0])),2,'0',STR_PAD_LEFT);
+    }, $_SERVER['MEMCACHED_KEY']);
+}
 
+$url = $domain . '.wowhead.com/' . $qs;
 $js = MCGet($cacheKey);
 if ($js === false) {
     $js = FetchHTTP('http://' . $url);
@@ -59,7 +65,7 @@ if (!$js) {
 
 ini_set('zlib.output_compression', 1);
 
-header('Content-Type: application/x-javascript; charset=utf-8');
+header('Content-Type: application/javascript; charset=utf-8');
 header('Expires: ' . date(DATE_RFC1123, time() + 86400));
 echo $js;
 
