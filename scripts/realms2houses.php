@@ -30,7 +30,7 @@ foreach ($regions as $region) {
     }
     $url = GetBattleNetURL($region, 'wow/realm/status');
 
-    $json = FetchHTTP($url);
+    $json = \Newsstand\HTTP::Get($url);
     $realms = json_decode($json, true, 512, JSON_BIGINT_AS_STRING);
     if (json_last_error() != JSON_ERROR_NONE) {
         DebugMessage("$url did not return valid JSON");
@@ -60,7 +60,7 @@ foreach ($regions as $region) {
     }
     $stmt->close();
 
-    $challengeRealmsHtml = FetchHTTP(sprintf('http://%s.battle.net/wow/en/challenge/', $region));
+    $challengeRealmsHtml = \Newsstand\HTTP::Get(sprintf('http://%s.battle.net/wow/en/challenge/', $region));
     if (preg_match('/<select [^>]*\bid="realm-select"[^>]*>([\w\W]+?)<\/select>/', $challengeRealmsHtml, $res2)) {
         if (($c = preg_match_all('/<option [^>]*\bvalue="([^"]+)"[^>]*>([^<]+)<\/option>/', $res2[1], $res)) > 0) {
             $stmt = $db->prepare('INSERT IGNORE INTO tblRealm (id, region, slug, name) VALUES (?, ?, ?, ?)');
@@ -116,7 +116,7 @@ foreach ($regions as $region) {
         DebugMessage("Fetching $region $slug");
         $url = GetBattleNetURL($region, "wow/auction/data/$slug");
 
-        $json = FetchHTTP($url);
+        $json = \Newsstand\HTTP::Get($url);
         $dta = json_decode($json, true);
         if (!isset($dta['files'])) {
             DebugMessage("$region $slug returned no files.", E_USER_WARNING);
@@ -255,19 +255,19 @@ function GetDataRealms($region, $hash)
 
     $url = sprintf('http://%s.battle.net/auction-data/%s/auctions.json', $region, $hash);
     $outHeaders = array();
-    $json = FetchHTTP($url, [], $outHeaders);
+    $json = \Newsstand\HTTP::Get($url, [], $outHeaders);
     if (!$json) {
         DebugMessage("No data from $url, waiting 5 secs");
-        http_persistent_handles_clean();
+        \Newsstand\HTTP::AbandonConnections();
         sleep(5);
-        $json = FetchHTTP($url, [], $outHeaders);
+        $json = \Newsstand\HTTP::Get($url, [], $outHeaders);
     }
 
     if (!$json) {
         DebugMessage("No data from $url, waiting 15 secs");
-        http_persistent_handles_clean();
+        \Newsstand\HTTP::AbandonConnections();
         sleep(15);
-        $json = FetchHTTP($url, [], $outHeaders);
+        $json = \Newsstand\HTTP::Get($url, [], $outHeaders);
     }
 
     if (!$json) {
@@ -313,7 +313,7 @@ function GetRussianOwnerRealms($region)
 
         DebugMessage("Getting ownerrealm for russian slug $ruSlug");
         $url = GetBattleNetURL($region, 'wow/realm/status?realms=' . $ruSlug . '&locale=ru_RU');
-        $ruRealm = json_decode(FetchHTTP($url), true, 512, JSON_BIGINT_AS_STRING);
+        $ruRealm = json_decode(\Newsstand\HTTP::Get($url), true, 512, JSON_BIGINT_AS_STRING);
         if (json_last_error() != JSON_ERROR_NONE) {
             DebugMessage("$url did not return valid JSON");
             continue;
@@ -347,8 +347,8 @@ function GetRealmPopulation($region)
 {
     global $db, $caughtKill;
 
-    $json = FetchHTTP('https://realmpop.com/' . strtolower($region) . '.json');
-    if ($json == '') {
+    $json = \Newsstand\HTTP::Get('https://realmpop.com/' . strtolower($region) . '.json');
+    if (!$json) {
         DebugMessage('Could not get realmpop json for ' . $region, E_USER_WARNING);
         return;
     }

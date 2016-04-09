@@ -62,7 +62,7 @@ function GetReagents($spell) {
         return json_decode(file_get_contents($cacheFile), true);
     }
 
-    $power = FetchHTTP(sprintf('http://www.wowhead.com/spell=%d&power', $spell));
+    $power = \Newsstand\HTTP::Get(sprintf('http://www.wowhead.com/spell=%d&power', $spell));
     if (!$power) {
         DebugMessage("Spell $spell could not be fetched from Wowhead.", E_USER_NOTICE);
         return false;

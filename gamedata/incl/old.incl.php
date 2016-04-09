@@ -74,5 +74,5 @@ function sql_esc($str) {
 }
 
 function get_url_old($url) {
-    return FetchHTTP($url);
+    return \Newsstand\HTTP::Get($url);
 }

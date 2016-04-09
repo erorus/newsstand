@@ -47,7 +47,7 @@ EOF;
     DebugMessage("Fetching $region $slug");
     $url = GetBattleNetURL($region, "wow/auction/data/$slug");
 
-    $json = FetchHTTP($url);
+    $json = \Newsstand\HTTP::Get($url);
     $dta = json_decode($json, true);
     if (!isset($dta['files'])) {
         DebugMessage("$region $slug returned no files.", E_USER_WARNING);
@@ -55,21 +55,21 @@ EOF;
     }
 
     $url = $dta['files'][0]['url'];
-    $auctionJson = FetchHTTP($url, [], $outHeaders);
+    $auctionJson = \Newsstand\HTTP::Get($url, [], $outHeaders);
     if (!$auctionJson) {
         heartbeat();
         DebugMessage("No data from $url, waiting 5 secs");
-        http_persistent_handles_clean();
+        \Newsstand\HTTP::AbandonConnections();
         sleep(5);
-        $auctionJson = FetchHTTP($url, [], $outHeaders);
+        $auctionJson = \Newsstand\HTTP::Get($url, [], $outHeaders);
     }
 
     if (!$auctionJson) {
         heartbeat();
         DebugMessage("No data from $url, waiting 15 secs");
-        http_persistent_handles_clean();
+        \Newsstand\HTTP::AbandonConnections();
         sleep(15);
-        $auctionJson = FetchHTTP($url, [], $outHeaders);
+        $auctionJson = \Newsstand\HTTP::Get($url, [], $outHeaders);
     }
 
     if ($auctionJson) {
@@ -117,7 +117,7 @@ for ($x = 0; $x < count($auctionJson['auctions']['auctions']); $x++) {
     $tries++;
     DebugMessage("Fetching $region $slug $toon");
     $url = GetBattleNetURL($region, "wow/character/$slug/$toon?fields=guild");
-    $json = json_decode(FetchHTTP($url), true);
+    $json = json_decode(\Newsstand\HTTP::Get($url), true);
 
     if (!isset($json['guild'])) {
         continue;
@@ -128,7 +128,7 @@ for ($x = 0; $x < count($auctionJson['auctions']['auctions']); $x++) {
     $tries++;
     DebugMessage("Fetching $region $slug <$guild>");
     $url = GetBattleNetURL($region, "wow/guild/$slug/$guild?fields=members");
-    $json = json_decode(FetchHTTP($url), true);
+    $json = json_decode(\Newsstand\HTTP::Get($url), true);
 
     if (!isset($json['members'])) {
         continue;
@@ -148,7 +148,7 @@ for ($x = 0; $x < count($auctionJson['auctions']['auctions']); $x++) {
 
         DebugMessage("Fetching $region $slug $toon of <$guild>");
         $url = GetBattleNetURL($region, "wow/character/$slug/$toon?fields=appearance");
-        $cjson = json_decode(FetchHTTP($url), true);
+        $cjson = json_decode(\Newsstand\HTTP::Get($url), true);
 
         if (!isset($cjson['appearance'])) {
             continue;
@@ -156,9 +156,9 @@ for ($x = 0; $x < count($auctionJson['auctions']['auctions']); $x++) {
 
         $imgUrl = "http://$region.battle.net/static-render/$region/" . preg_replace('/-avatar\.jpg$/', '-inset.jpg', $cjson['thumbnail']);
         DebugMessage("Fetching $imgUrl");
-        $img = FetchHTTP($imgUrl);
+        $img = \Newsstand\HTTP::Get($imgUrl);
 
-        if ($img != '') {
+        if ($img) {
             $hits++;
 
             $id = MakeID();

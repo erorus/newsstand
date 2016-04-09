@@ -95,7 +95,7 @@ ENDSQL;
 
     $outHeaders = [];
     $dta = [];
-    $json = FetchHTTP($url, [], $outHeaders);
+    $json = \Newsstand\HTTP::Get($url, [], $outHeaders);
     if ($json !== false) {
         $dta = json_decode($json, true);
         if (json_last_error() != JSON_ERROR_NONE) {
@@ -110,7 +110,7 @@ ENDSQL;
         $delay = GetCheckDelay(strtotime($lastDate));
         DebugMessage("$region $slug returned no files. Waiting ".SecondsOrMinutes($delay).".", E_USER_WARNING);
         SetHouseNextCheck($house, time() + $delay, $json);
-        http_persistent_handles_clean();
+        \Newsstand\HTTP::AbandonConnections();
         return 0;
     }
 
@@ -127,7 +127,7 @@ ENDSQL;
         } else if (($lastDateUnix + $minDelta + 45) > time()) {
             // this is the first check after we expected a new snapshot, but didn't see one.
             // don't trust api, assume data file URL won't change, and check last-modified time on data file
-            $headers = HeadHTTP(preg_replace('/^http:/', 'https:', $fileInfo['url']));
+            $headers = \Newsstand\HTTP::Head(preg_replace('/^http:/', 'https:', $fileInfo['url']));
             if (isset($headers['Last-Modified'])) {
                 $newModified = strtotime($headers['Last-Modified']);
                 if ($newModified > $modified) {
@@ -155,7 +155,7 @@ ENDSQL;
 
     DebugMessage("$region $slug updated $modified ".Date('H:i:s', $modified)." (" . SecondsOrMinutes(time() - $modified) . " ago), fetching auction data file");
     $dlStart = microtime(true);
-    $data = FetchHTTP(preg_replace('/^http:/', 'https:', $fileInfo['url']), array(), $outHeaders);
+    $data = \Newsstand\HTTP::Get(preg_replace('/^http:/', 'https:', $fileInfo['url']), [], $outHeaders);
     $dlDuration = microtime(true) - $dlStart;
     if (!$data || (substr($data, -4) != "]\r\n}")) {
         if (!$data) {
@@ -166,13 +166,13 @@ ENDSQL;
             sleep(10);
         }
         $dlStart = microtime(true);
-        $data = FetchHTTP($fileInfo['url'] . (parse_url($fileInfo['url'], PHP_URL_QUERY) ? '&' : '?') . 'please', array(), $outHeaders);
+        $data = \Newsstand\HTTP::Get($fileInfo['url'] . (parse_url($fileInfo['url'], PHP_URL_QUERY) ? '&' : '?') . 'please', [], $outHeaders);
         $dlDuration = microtime(true) - $dlStart;
     }
     if (!$data) {
         DebugMessage("$region $slug data file empty. Will try again in 30 seconds.");
         SetHouseNextCheck($house, time() + 30, $json);
-        http_persistent_handles_clean();
+        \Newsstand\HTTP::AbandonConnections();
 
         return 10;
     }
@@ -192,7 +192,7 @@ ENDSQL;
 
     if ($xferBytes / 1000 / $dlDuration < 200) {
         DebugMessage("Speed under 200KBps, closing persistent connections");
-        http_persistent_handles_clean();
+        \Newsstand\HTTP::AbandonConnections();
     }
 
     $stmt = $db->prepare('INSERT INTO tblHouseCheck (house, nextcheck, lastcheck, lastcheckresult, lastchecksuccess, lastchecksuccessresult) VALUES (?, NULL, now(), ?, now(), ?) ON DUPLICATE KEY UPDATE nextcheck=values(nextcheck), lastcheck=values(lastcheck), lastcheckresult=values(lastcheckresult), lastchecksuccess=values(lastchecksuccess), lastchecksuccessresult=values(lastchecksuccessresult)');

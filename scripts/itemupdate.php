@@ -115,7 +115,7 @@ EOF;
         }
 
         DebugMessage('Fetching model ' . $displays[$x]);
-        file_put_contents($fileName, FetchHTTP('http://wow.zamimg.com/modelviewer/thumbs/item/' . $displays[$x] . '.png'));
+        file_put_contents($fileName, \Newsstand\HTTP::Get('http://wow.zamimg.com/modelviewer/thumbs/item/' . $displays[$x] . '.png'));
         $fetched++;
     }
 }
@@ -150,7 +150,7 @@ function FetchItems($items)
         heartbeat();
         DebugMessage('Fetching item ' . $id);
         $url = GetBattleNetURL('us', 'wow/item/' . $id);
-        $json = FetchHTTP($url);
+        $json = \Newsstand\HTTP::Get($url);
         $dta = json_decode($json, true);
         $jsonError = json_last_error();
         if (($jsonError == JSON_ERROR_NONE) && !isset($dta['name']) && isset($dta['availableContexts'])) {
@@ -159,7 +159,7 @@ function FetchItems($items)
                 unset($dta['id']);
             } else {
                 $url = GetBattleNetURL('us', 'wow/item/' . $id . '/' . array_pop($dta['availableContexts']));
-                $json = FetchHTTP($url);
+                $json = \Newsstand\HTTP::Get($url);
                 $dta = json_decode($json, true);
                 $jsonError = json_last_error();
             }
@@ -290,7 +290,7 @@ function GetItemsToReparse()
 function FetchWowheadItem($id)
 {
     $url = sprintf('http://www.wowhead.com/item=%d&xml', $id);
-    $xml = FetchHTTP($url);
+    $xml = \Newsstand\HTTP::Get($url);
     if ($xml == '') {
         return false;
     }
@@ -394,7 +394,7 @@ function FetchPets($pets)
         heartbeat();
         DebugMessage('Fetching pet ' . $id);
         $url = GetBattleNetURL('us', 'wow/battlePet/species/' . $id);
-        $json = FetchHTTP($url);
+        $json = \Newsstand\HTTP::Get($url);
         $dta = json_decode($json, true);
         if ((json_last_error() != JSON_ERROR_NONE) || (!isset($dta['speciesId']))) {
             DebugMessage('Error fetching pet ' . $id . ' from battle.net..');
