@@ -386,7 +386,6 @@
     "subscription": "Subscription",
     "paidSubscription": "Paid Subscription",
     "freeSubscription": "Free Subscription",
-    "settings": "Settings",
 
     "logInBattleNet": "Log in with Battle.net",
     "loggedInAs": "You are logged in as <b>{1}</b>.",
@@ -400,7 +399,9 @@
         "nouser": "Error: Battle.net returned no response when requesting your user ID with the access token. Please try again.",
         "baduser": "Error: Battle.net returned an invalid response when requesting your user ID with the access token. Please try again.",
         "missinguser": "Error: Battle.net returned an incomplete response when requesting your user ID with the access token. Please try again.",
-        "nodata": "Error fetching subscription data, please try again."
+        "nodata": "Error fetching subscription data, please try again.",
+        "paidcancel": "You've cancelled the payment process. No changes have been made to your subscription.",
+        "paidfinish": "Thank you for your payment. Your subscription should be updated momentarily."
     },
     "EmailStatus": {
         "unknown": "Unknown error, please try again.",

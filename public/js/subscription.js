@@ -41,9 +41,9 @@ var TUJ_Subscription = function ()
     function ShowSubscriptionMessage(id)
     {
         if (id && tuj.lang.SubscriptionErrors.hasOwnProperty(id)) {
-            $('#subscription-alert').empty().html(tuj.lang.SubscriptionErrors[id]).show();
+            $('#subscription-message').empty().html(tuj.lang.SubscriptionErrors[id]).show();
         } else {
-            $('#subscription-alert').empty().hide();
+            $('#subscription-message').empty().hide();
         }
     }
 
@@ -64,10 +64,15 @@ var TUJ_Subscription = function ()
         settingsParent.append(settingsEmail);
         ShowEmail(settingsEmail);
 
-        var settingsSettings = libtuj.ce('div');
-        settingsSettings.id = 'subscription-settings';
-        settingsParent.append(settingsSettings);
-        ShowSettings(settingsSettings);
+        var settingsPeriod = libtuj.ce('div');
+        settingsPeriod.id = 'subscription-period';
+        settingsParent.append(settingsPeriod);
+        ShowNotificationPeriod(settingsPeriod);
+
+        var settingsPaid = libtuj.ce('div');
+        settingsPaid.id = 'subscription-paidstatus';
+        settingsParent.append(settingsPaid);
+        ShowPaidSettings(settingsPaid);
 
         var settingsWatches = libtuj.ce('div');
         settingsWatches.id = 'subscription-watches';
@@ -207,11 +212,11 @@ var TUJ_Subscription = function ()
         }
     }
 
-    function ShowSettings(dest)
+    function ShowNotificationPeriod(dest)
     {
         var h = libtuj.ce('h3');
         dest.appendChild(h);
-        $(h).text(tuj.lang.settings);
+        $(h).text(tuj.lang.notificationPeriod);
 
         var d = libtuj.ce('div');
         d.className = 'instruction';
@@ -270,6 +275,26 @@ var TUJ_Subscription = function ()
                 sel.disabled = false;
             }
         });
+    }
+
+    function ShowPaidSettings(dest)
+    {
+        var pageTitle = subData.paid.until ? tuj.lang.paidSubscription : tuj.lang.freeSubscription;
+        $('#page-title').text(pageTitle);
+        tuj.SetTitle(pageTitle);
+
+        var h = libtuj.ce('h3');
+        dest.appendChild(h);
+        $(h).text(tuj.lang.paidSubscription);
+
+        var d = libtuj.ce('div');
+        d.className = 'instruction';
+        dest.appendChild(d);
+        if (subData.paid.until) {
+            $(d).text(libtuj.sprintf(tuj.lang.paidExpires, libtuj.FormatDate(subData.paid.until, true)));
+        } else {
+            $(d).text(tuj.lang.freeSubscriptionAccount);
+        }
     }
 
     function ShowWatches(dest)

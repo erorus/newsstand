@@ -8,6 +8,8 @@ define('SUBSCRIPTION_LOGIN_COOKIE', 'session');
 define('SUBSCRIPTION_CSRF_COOKIE', 'csrf');
 define('SUBSCRIPTION_SESSION_LENGTH', 1209600); // 2 weeks
 define('SUBSCRIPTION_PAID_ADDS_SECONDS', 5184000); // 60 days
+define('SUBSCRIPTION_PAID_RENEW_WINDOW_DAYS', 10); // when subscription has this or fewer days remaining, allow them to renew 
+define('SUBSCRIPTION_PAID_ACCEPT_PAYMENTS', true); // set to false to disable paypal
 
 define('SUBSCRIPTION_MESSAGES_CACHEKEY', 'submessage_');
 define('SUBSCRIPTION_MESSAGES_MAX', 50);

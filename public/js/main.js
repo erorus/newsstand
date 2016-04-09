@@ -630,7 +630,11 @@ var TUJ = function ()
                 {
                     $('#progress-page').hide();
                 },
-                url: 'api/realms.php?' + Date.now()
+                data: {
+                    'getuser': 1
+                },
+                method: 'POST',
+                url: 'api/realms.php'
             });
             return;
         }

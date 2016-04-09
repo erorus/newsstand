@@ -214,7 +214,7 @@ table.category-fish .price {border-left: 1px solid #CCC}
 #region-page #pixelmap {max-width: 1471px; width: 100%; height: auto; margin: -25px auto}
 area {outline: none}
 
-#subscription-alert { color: red; margin-left: 1em; font-style: italic }
+#subscription-message { color: red; margin-left: 1em; font-style: italic }
 
 #subscription-settings > div { max-width: 900px; margin: 2em auto }
 #subscription-settings .instruction { margin: 1em }

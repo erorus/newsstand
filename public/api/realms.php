@@ -11,12 +11,15 @@ if (isset($_COOKIE['__cfduid'])) { // cloudflare
     setcookie('__cfduid', '', strtotime('1 year ago'), '/', '.theunderminejournal.com', false, true);
 }
 
-$loginState = GetLoginState();
-if (isset($loginState['publicid'])) {
-    $loginState['publicHMAC'] = GeneratePublicUserHMAC($loginState['publicid']);
+$loginState = [];
+if (isset($_POST['getuser'])) {
+    $loginState = GetLoginState();
+    if (isset($loginState['publicid'])) {
+        $loginState['publicHMAC'] = GeneratePublicUserHMAC($loginState['publicid']);
+    }
+    unset($loginState['id'], $loginState['publicid'], $loginState['paiduntil']);
+    $loginState['csrfCookie'] = SUBSCRIPTION_CSRF_COOKIE;
 }
-unset($loginState['id'], $loginState['publicid']);
-$loginState['csrfCookie'] = SUBSCRIPTION_CSRF_COOKIE;
 
 json_return([
     'version' => API_VERSION,

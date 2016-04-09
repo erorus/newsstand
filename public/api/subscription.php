@@ -37,6 +37,7 @@ if (isset($_POST['settings'])) {
         'messages' => GetSubMessages($loginState),
         'watches' => GetWatches($loginState),
         'reports' => GetReports($loginState),
+        'paid' => GetIsPaid($loginState),
         ]);
 }
 
@@ -934,4 +935,20 @@ function SetSubLocale($loginState, $locale)
     ClearLoginStateCache();
 
     return GetLoginState();
+}
+
+function GetIsPaid($loginState)
+{
+    $json = [
+        'until' => $loginState['paiduntil']
+    ];
+
+    if (isset($json['until']) && ($json['until'] < time())) {
+        $json['until'] = null;
+    }
+
+    $json['accept'] = SUBSCRIPTION_PAID_ACCEPT_PAYMENTS &&
+        $json['until'] < (time() + SUBSCRIPTION_PAID_RENEW_WINDOW_DAYS);
+
+    return $json;
 }
