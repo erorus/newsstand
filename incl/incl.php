@@ -179,6 +179,9 @@ function FetchHTTP($url, $inHeaders = array(), &$outHeaders = array())
         'headers'        => $inHeaders,
         'compress'       => true,
         'redirect'       => 3,
+        'ssl' => [
+            'version' => 6, // tls v1.2, required for paypal sandbox
+        ]
     );
     //if ($eTag) $http_opt['etag'] = $eTag;
 
@@ -279,7 +282,10 @@ function PostHTTP($url, $toPost, $inHeaders = array(), &$outHeaders = array())
         'connecttimeout' => 6,
         'headers'        => $inHeaders,
         'compress'       => true,
-        'redirect'       => 2
+        'redirect'       => 2,
+        'ssl' => [
+            'version' => 6, // tls v1.2, required for paypal sandbox
+        ]
     );
 
     if (!is_string($toPost)) {
@@ -328,7 +334,10 @@ function HeadHTTP($url, $inHeaders = array())
         'connecttimeout' => 6,
         'headers'        => $inHeaders,
         'compress'       => true,
-        'redirect'       => 2
+        'redirect'       => 2,
+        'ssl' => [
+            'version' => 6, // tls v1.2, required for paypal sandbox
+        ]
     );
 
     $http_info = array();
