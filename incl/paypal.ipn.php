@@ -49,7 +49,7 @@ function CheckPaypalPost() {
         exit;
     }
 
-    if ($isSandbox && !(defined('DEV_SERVER_ADDR') && ($_SERVER["SERVER_ADDR"] == DEV_SERVER_ADDR))) {
+    if ($isSandbox) {
         DebugPaypalMessage('Ignored Paypal sandbox notification.');
         header('HTTP/1.0 420 Not Verified');
         exit;
@@ -118,7 +118,7 @@ function ProcessPaypalPost() {
     $affected = $db->affected_rows;
     $stmt->close();
 
-    if (!$affected) {
+    if (!$affected && $addPaidTime) {
         DebugPaypalMessage("Error updating Paypal transaction record");
         return false;
     }
@@ -185,7 +185,7 @@ EOF;
 function DebugPaypalMessage($message, $subject = 'Paypal IPN Issue') {
     global $argv;
 
-    $pth = realpath(__DIR__ . '/../logs/paypalerrors.log');
+    $pth = __DIR__ . '/../logs/paypalerrors.log';
     if ($pth) {
         $me = (PHP_SAPI == 'cli') ? ('CLI:' . realpath($argv[0])) : ('Web:' . $_SERVER['REQUEST_URI']);
         file_put_contents($pth, Date('Y-m-d H:i:s') . " $me $message\n".print_r($_POST, true), FILE_APPEND | LOCK_EX);
