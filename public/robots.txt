@@ -9,7 +9,6 @@ Disallow: /api/item.php
 Disallow: /api/search.php
 Disallow: /api/seller.php
 Disallow: /api/transmog.php
-Disallow: /api/wowhead-power.php
 Disallow: /item.php
 Disallow: /seller.php
 Disallow: /user.php
