@@ -52,7 +52,7 @@ function GetLoginState($logOut = false) {
             $db = DBConnect();
 
             // see also MakeNewSession in api/subscription.php
-            $stmt = $db->prepare('SELECT u.id, u.publicid, u.name, u.locale, unix_timestamp(u.paiduntil) paiduntil FROM tblUserSession us join tblUser u on us.user=u.id WHERE us.session=?');
+            $stmt = $db->prepare('SELECT u.id, concat_ws(\'|\', cast(ua.provider as unsigned), ua.providerid) as publicid, u.name, u.locale, unix_timestamp(u.paiduntil) paiduntil FROM tblUserSession us join tblUser u on us.user=u.id join tblUserAuth ua on ua.user=u.id WHERE us.session=? group by u.id');
             $stmt->bind_param('s', $stateBytes);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -307,4 +307,29 @@ function ValidatePublicUserHMAC($fullMsg) {
     }
 
     return $parts;
+}
+
+function GetUserFromPublicHMAC($msg) {
+    $result = ValidatePublicUserHMAC($msg);
+    if (!$result) {
+        return null;
+    }
+
+    $providerParts = explode('|', $result[0]);
+    if (count($providerParts) != 2) {
+        return null;
+    }
+
+    $db = DBConnect();
+    $stmt = $db->prepare('select user from tblUserAuth where provider = ? and providerid = ?');
+    $stmt->bind_param('is', $providerParts[0], $providerParts[1]);
+    $stmt->execute();
+    $user = null;
+    $stmt->bind_result($user);
+    if (!$stmt->fetch()) {
+        $user = null;
+    }
+    $stmt->close();
+
+    return $user;
 }

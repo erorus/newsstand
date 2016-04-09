@@ -94,7 +94,7 @@ function ProcessPaypalPost() {
 
     $addPaidTime &= $payment_status == 'Completed';
 
-    $user = isset($_POST['custom']) ? GetUserFromCustomHMAC($_POST['custom']) : null;
+    $user = isset($_POST['custom']) ? GetUserFromPublicHMAC($_POST['custom']) : null;
 
     $cols = ['test_ipn', 'txn_id',
         'txn_type', 'payment_date', 'parent_txn_id',
@@ -205,26 +205,6 @@ function ValidatePaypalNotification($rawPost, $useSandbox = false) {
 
     DebugPaypalMessage("Paypal validation returned \"$result\". IP: ".(isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown'));
     return false;
-}
-
-function GetUserFromCustomHMAC($custom) {
-    $result = ValidatePublicUserHMAC($custom);
-    if (!$result) {
-        return null;
-    }
-
-    $db = DBConnect();
-    $stmt = $db->prepare('select id from tblUser where publicid = ?');
-    $stmt->bind_param('i', $result[0]);
-    $stmt->execute();
-    $user = null;
-    $stmt->bind_result($user);
-    if (!$stmt->fetch()) {
-        $user = null;
-    }
-    $stmt->close();
-
-    return $user;
 }
 
 function PaypalResultForUser($user, $paidUntil, $removed) {

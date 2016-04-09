@@ -12,7 +12,9 @@ if (isset($_COOKIE['__cfduid'])) { // cloudflare
 }
 
 $loginState = GetLoginState();
-$loginState['publicHMAC'] = GeneratePublicUserHMAC($loginState['publicid']);
+if (isset($loginState['publicid'])) {
+    $loginState['publicHMAC'] = GeneratePublicUserHMAC($loginState['publicid']);
+}
 unset($loginState['id'], $loginState['publicid']);
 $loginState['csrfCookie'] = SUBSCRIPTION_CSRF_COOKIE;
 
