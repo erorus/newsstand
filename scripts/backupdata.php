@@ -24,6 +24,8 @@ $tables = [
         'tblWowToken'           => '1=1',
     ],
     'user' => [
+        'tblEmailBlocked'       => '1=1',
+        'tblEmailLog'           => '1=1',
         'tblPaypalTransactions' => '1=1',
         'tblUser'               => '1=1',
         'tblUserAuth'           => '1=1',
