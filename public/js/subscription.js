@@ -227,21 +227,24 @@ var TUJ_Subscription = function ()
         dest.appendChild(s);
         $(s).text(tuj.lang.notificationPeriod + ': ');
 
-        var o, label, found, sel = libtuj.ce('select');
+        var o, label, found, disabled, sel = libtuj.ce('select');
         for (var x = 0; x < subPeriods.length; x++) {
-            var o = libtuj.ce('option');
+            disabled = false;
+            o = libtuj.ce('option');
             o.value = subPeriods[x];
             label = x == 0 ? tuj.lang.asap : libtuj.FormatDate(-1 * 60 * (subPeriods[x] + 5), true, 'hour', true);
             if (subPeriods[x] < subData.reports.minperiod || subPeriods[x] > subData.reports.maxperiod) {
-                o.disabled = true;
+                o.disabled = disabled = true;
                 label = tuj.lang.paidOnly + ': ' + label;
             }
             o.label = label;
             o.appendChild(document.createTextNode(label));
             sel.appendChild(o);
             if (subPeriods[x] == subData.reports.period) {
-                sel.selectedIndex = sel.options.length - 1;
                 found = true;
+                if (!disabled) {
+                    sel.selectedIndex = sel.options.length - 1;
+                }
             }
         }
         if (!found) {
