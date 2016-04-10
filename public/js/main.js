@@ -334,6 +334,11 @@ var libtuj = {
         },
         Show: function ()
         {
+            if (!tuj.UserSeesAds()) {
+                libtuj.Ads.addCount = 0;
+                $('div.ad, div.adsubstitute').remove();
+                return;
+            }
             if (!libtuj.Ads.adsWillShow) {
                 libtuj.Ads.ShowSubstitutes();
                 return;
@@ -345,7 +350,7 @@ var libtuj = {
         },
         ShowSubstitutes: function ()
         {
-            var html = "<div>The Undermine Journal's servers cost at least $100 every month.</div><div>We rely on ads and donations to pay our bills.</div><div><br>If you won't view ads, please <a href=\"" + tuj.BuildHash({'page':'donate', 'id': ''}) + "\">consider a donation</a> to keep the site online. Thank you.</div>";
+            var html = "<div>The Undermine Journal's servers cost over $100 every month.</div><div>We rely on ads, donations, and paid subscriptions to pay our bills.</div><div><br>Please <a href=\"" + tuj.BuildHash({'page':'subscription', 'id': ''}) + "\">try a paid subscription</a> or <a href=\"" + tuj.BuildHash({'page':'donate', 'id': ''}) + "\">consider a donation</a> to keep the site online. Thank you.</div>";
             $('div.ad').removeClass('ad').addClass('adsubstitute').html(html);
         },
         onWindowLoad: function () {
@@ -828,6 +833,10 @@ var TUJ = function ()
 
     this.LoggedInUserName = function() {
         return !!(loggedInUser) ? loggedInUser.name : false;
+    };
+
+    this.UserSeesAds = function() {
+        return !(loggedInUser && loggedInUser.hasOwnProperty('ads') && !loggedInUser.ads);
     };
 
     this.LogOut = function() {
