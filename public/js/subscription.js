@@ -295,6 +295,46 @@ var TUJ_Subscription = function ()
         } else {
             $(d).text(tuj.lang.freeSubscriptionAccount);
         }
+
+        if (subData.paid.accept) {
+            var d = libtuj.ce('div');
+            d.className = 'instruction';
+            dest.appendChild(d);
+            $(d).text(libtuj.sprintf(tuj.lang.clickToExtendSubscription, subData.paid.accept.days, subData.paid.accept.price));
+
+            var f = libtuj.ce('form');
+            f.method = 'post';
+            f.action = 'https://www.paypal.com/cgi-bin/webscr';
+            f.target = '_top';
+
+            var i = libtuj.ce('input');
+            i.type = 'hidden';
+            i.name = 'cmd';
+            i.value = '_s-xclick';
+            f.appendChild(i);
+
+            i = libtuj.ce('input');
+            i.type = 'hidden';
+            i.name = 'hosted_button_id';
+            i.value = subData.paid.accept.button;
+            f.appendChild(i);
+
+            i = libtuj.ce('input');
+            i.type = 'hidden';
+            i.name = 'custom';
+            i.value = subData.paid.accept.custom;
+            f.appendChild(i);
+
+            i = libtuj.ce('input');
+            i.type = 'image';
+            i.src = 'images/btn_buynowCC_LG.gif';
+            i.border = '0';
+            i.name = 'submit';
+            i.alt = 'PayPal - The safer, easier way to pay online!';
+            f.appendChild(i);
+
+            dest.appendChild(f);
+        }
     }
 
     function ShowWatches(dest)

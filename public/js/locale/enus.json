@@ -401,7 +401,8 @@
         "missinguser": "Error: Battle.net returned an incomplete response when requesting your user ID with the access token. Please try again.",
         "nodata": "Error fetching subscription data, please try again.",
         "paidcancel": "You've cancelled the payment process. No changes have been made to your subscription.",
-        "paidfinish": "Thank you for your payment. Your subscription should be updated momentarily."
+        "paidfinish": "Thank you for your payment. Your subscription should be updated momentarily.",
+        "paiderror": "There was an issue processing your payment.<br>If your paid subscription is not extended soon, please contact us via the Contact link at the bottom of the page."
     },
     "EmailStatus": {
         "unknown": "Unknown error, please try again.",
@@ -433,6 +434,7 @@
 
     "paidExpires": "Your account's paid subscription expires {1}.",
     "freeSubscriptionAccount": "Your account is on the free subscription tier.",
+    "clickToExtendSubscription": "Click below to extend your paid subscription by {1} days for {2}.",
 
     "notificationPeriod": "Notification Period",
     "notificationPeriodDesc": "Select how much time you prefer between each Market Notifications message.",

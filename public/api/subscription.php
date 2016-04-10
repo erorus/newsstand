@@ -947,8 +947,16 @@ function GetIsPaid($loginState)
         $json['until'] = null;
     }
 
-    $json['accept'] = SUBSCRIPTION_PAID_ACCEPT_PAYMENTS &&
-        $json['until'] < (time() + SUBSCRIPTION_PAID_RENEW_WINDOW_DAYS);
+    $json['accept'] = false;
+
+    if (SUBSCRIPTION_PAID_ACCEPT_PAYMENTS && $json['until'] < (time() + SUBSCRIPTION_PAID_RENEW_WINDOW_DAYS)) {
+        $json['accept'] = [
+            'button' => SUBSCRIPTION_PAID_ACCEPT_BUTTON,
+            'price' => SUBSCRIPTION_PAID_PRICE,
+            'days' => round(SUBSCRIPTION_PAID_ADDS_SECONDS / 86400),
+            'custom' => GeneratePublicUserHMAC($loginState['publicid']),
+        ];
+    }
 
     return $json;
 }

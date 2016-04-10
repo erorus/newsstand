@@ -232,6 +232,8 @@ area {outline: none}
 #subscription-email-verification { margin: 10px auto; display: none }
 #subscription-email.verify #subscription-email-verification { display: block }
 
+#subscription-paidstatus form { display: inline-block; margin-left: 4em; }
+
 .notifications-insert { margin: 1em 0 }
 .notifications-insert ul { margin: 1em 0 }
 .notifications-insert ul li { list-style-type: none }

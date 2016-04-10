@@ -16,9 +16,6 @@ $showAds = true;
 if (isset($_POST['getuser'])) {
     $loginState = GetLoginState();
     $loginState['ads'] = (!isset($loginState['paiduntil'])) || ($loginState['paiduntil'] < time());
-    if (isset($loginState['publicid'])) {
-        $loginState['publicHMAC'] = GeneratePublicUserHMAC($loginState['publicid']);
-    }
     unset($loginState['id'], $loginState['publicid'], $loginState['paiduntil']);
     $loginState['csrfCookie'] = SUBSCRIPTION_CSRF_COOKIE;
 }

@@ -1,22 +1,38 @@
 <?php
 
-// symlinked in /
+// symlinked in / for IPN
 
-require_once '../incl/incl.php';
-require_once '../incl/subscription.incl.php';
+require_once __DIR__.'/../../incl/incl.php';
+require_once __DIR__.'/../../incl/subscription.incl.php';
 
 FullPaypalProcess();
 
 function FullPaypalProcess() {
-    if (!CheckPaypalPost()) { // expected to exit script on fail
-        header('HTTP/1.0 500 Internal Server Error');
+    $isIPN = $_SERVER["SCRIPT_NAME"] != '/api/paypal.php';
+
+    $postResult = CheckPaypalPost();
+    if ($postResult !== true) {
+        if (!$isIPN) {
+            header('Location: /#subscription/paiderror');
+        } else {
+            if (!is_string($postResult)) {
+                $postResult = 'HTTP/1.0 500 Internal Server Error';
+            }
+            header($postResult);
+        }
         exit;
     }
-    $operation = ProcessPaypalPost(); // expected to return false on fail
+
+    $operation = ProcessPaypalPost();
     if ($operation === false) {
-        header('HTTP/1.0 500 Internal Server Error');
+        if (!$isIPN) {
+            header('Location: /#subscription/paiderror');
+        } else {
+            header('HTTP/1.0 500 Internal Server Error');
+        }
         exit;
     }
+
     if (isset($operation['addTime'])) {
         $newPaidUntil = AddPaidTime($operation['addTime'], SUBSCRIPTION_PAID_ADDS_SECONDS);
         PaypalResultForUser($operation['addTime'], $newPaidUntil, false);
@@ -25,6 +41,9 @@ function FullPaypalProcess() {
         $newPaidUntil = AddPaidTime($operation['delTime'], -1 * SUBSCRIPTION_PAID_ADDS_SECONDS);
         PaypalResultForUser($operation['addTime'], $newPaidUntil, true);
     }
+    if (!$isIPN) {
+        header('Location: /#subscription/paidfinish');
+    }
 }
 
 function CheckPaypalPost() {
@@ -32,27 +51,23 @@ function CheckPaypalPost() {
 
     if (!isset($_POST['txn_id'])) {
         DebugPaypalMessage("Received request without txn_id at Paypal IPN. IP: ".(isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown'));
-        header('HTTP/1.0 404 Not Found');
-        exit;
+        return 'HTTP/1.0 404 Not Found';
     }
     if (!isset($_POST['business']) || !in_array(strtolower(trim($_POST['business'])), $PAYPAL_BUSINESSES)) {
         DebugPaypalMessage('Received invalid business from Paypal IPN: "'.(isset($_POST['business']) ? $_POST['business'] : '').'"');
-        header('HTTP/1.0 420 Not Verified');
-        exit;
+        return 'HTTP/1.0 420 Not Verified';
     }
 
     $rawPost = file_get_contents('php://input');
     $isSandbox = isset($_POST['test_ipn']);
 
     if (!ValidatePaypalNotification($rawPost, $isSandbox)) {
-        header('HTTP/1.0 420 Not Verified');
-        exit;
+        return 'HTTP/1.0 420 Not Verified';
     }
 
     if ($isSandbox) {
         DebugPaypalMessage('Ignored Paypal sandbox notification.');
-        header('HTTP/1.0 420 Not Verified');
-        exit;
+        return 'HTTP/1.0 420 Not Verified';
     }
 
     return true;
@@ -114,11 +129,10 @@ function ProcessPaypalPost() {
         $mc_currency, $mc_fee, $mc_gross,
         $payment_status, $user,
         $pending_reason, $reason_code);
-    $stmt->execute();
-    $affected = $db->affected_rows;
+    $success = $stmt->execute();
     $stmt->close();
 
-    if (!$affected && $addPaidTime) {
+    if (!$success) {
         DebugPaypalMessage("Error updating Paypal transaction record");
         return false;
     }
