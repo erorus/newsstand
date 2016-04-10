@@ -12,7 +12,6 @@ if (isset($_COOKIE['__cfduid'])) { // cloudflare
 }
 
 $loginState = ['ads' => true];
-$showAds = true;
 if (isset($_POST['getuser'])) {
     $loginState = GetLoginState();
     $loginState['ads'] = (!isset($loginState['paiduntil'])) || ($loginState['paiduntil'] < time());

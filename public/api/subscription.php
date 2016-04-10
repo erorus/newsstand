@@ -189,7 +189,7 @@ function MakeNewSession($provider, $providerId, $userName, $locale) {
 
         $stmt->close();
 
-        $userId = GetUserByProvider($provider, $providerId, $userName);
+        $userId = GetUserByProvider($provider, $providerId, $userName, $locale);
         $ip = substr($_SERVER['REMOTE_ADDR'], 0, 40);
         $ua = substr($_SERVER['HTTP_USER_AGENT'], 0, 250);
 
@@ -229,7 +229,7 @@ function MakeNewSession($provider, $providerId, $userName, $locale) {
     return $state;
 }
 
-function GetUserByProvider($provider, $providerId, $userName) {
+function GetUserByProvider($provider, $providerId, $userName, $locale = 'enus') {
     $db = DBConnect();
 
     $userName = substr(trim($userName ?: ''), 0, 32);
@@ -276,11 +276,8 @@ function GetUserByProvider($provider, $providerId, $userName) {
     $stmt->execute();
     $stmt->close();
 
-    $message = <<<'EOF'
-Welcome to your Subscription page at <nobr>The Undermine Journal</nobr>. Thanks for logging in.<br/><br/>
-On this page, you can find all the recent messages we've sent to you, along with your notifications and other site settings.
-EOF;
-    SendUserMessage($userId, 'Account', 'Enjoy your subscription!', $message);
+    $lang = GetLang($locale);
+    SendUserMessage($userId, 'Account', $lang['subscriptionWelcomeSubject'], $lang['subscriptionWelcomeMessage']);
 
     return $userId;
 }
@@ -355,9 +352,9 @@ function LoginFinish($hash = '#subscription') {
 
 function SetSubEmail($loginState, $address)
 {
-    $verificationMsg = 'We received your request for us to Email you at this address. Please <a href="https://theunderminejournal.com/#subscription">log in to The Undermine Journal</a> and enter this verification code:<br><br><b>%s</b>';
-
     $userId = $loginState['id'];
+    $lang = GetLang($loginState['locale']);
+
     $address = trim($address);
     if ($address) {
         $filtered = filter_var($address, FILTER_VALIDATE_EMAIL);
@@ -402,8 +399,8 @@ function SetSubEmail($loginState, $address)
         // setting address we already have saved
         if (!is_null($row['emailverification'])) {
             // resend notification email
-            NewsstandMail($address, $loginState['name'], 'Email Address Updated', sprintf($verificationMsg, implode(' ', str_split($row['emailverification'], 3))));
-            SendUserMessage($userId, 'Email', 'Email Verification Resent', 'We re-sent the verification code to your email per your request.<br><br>Please check your mail at '.htmlspecialchars($address, ENT_COMPAT | ENT_HTML5).' and enter the verification code which we sent there.');
+            NewsstandMail($address, $loginState['name'], $lang['emailAddressUpdated'], sprintf($lang['emailVerificationMessage'], implode(' ', str_split($row['emailverification'], 3))));
+            SendUserMessage($userId, 'Email', $lang['emailVerificationResent'], sprintf($lang['emailVerificationResentMessage'], htmlspecialchars($address, ENT_COMPAT | ENT_HTML5)));
         }
         return ['status' => is_null($row['emailverification']) ? 'success' : 'verify', 'address' => $row['address']];
     }
@@ -418,7 +415,7 @@ function SetSubEmail($loginState, $address)
             return ['status' => 'unknown'];
         }
 
-        SendUserMessage($userId, 'Email', 'Email Address Removed', 'We removed your email address from our system per your request.');
+        SendUserMessage($userId, 'Email', $lang['emailAddressRemoved'], $lang['emailAddressRemovedMessage']);
         return ['status' => 'success', 'address' => $address];
     }
 
@@ -433,15 +430,15 @@ function SetSubEmail($loginState, $address)
 
     $verification = str_pad(mt_rand(1, 999999999), 9, '0', STR_PAD_BOTH);
 
-    NewsstandMail($address, $loginState['name'], 'Email Address Updated', sprintf($verificationMsg, implode(' ', str_split($verification, 3))));
-    SendUserMessage($userId, 'Email', 'Email Address Updated', 'We updated your email address per your request.<br><br>Please check your mail at '.htmlspecialchars($address, ENT_COMPAT | ENT_HTML5).' and enter the verification code which we sent there.');
+    NewsstandMail($address, $loginState['name'], $lang['emailAddressUpdated'], sprintf($lang['emailVerificationMessage'], implode(' ', str_split($verification, 3))));
+    SendUserMessage($userId, 'Email', $lang['emailAddressUpdated'], sprintf($lang['emailAddressUpdatedMessage'], htmlspecialchars($address, ENT_COMPAT | ENT_HTML5)));
 
     $stmt = $db->prepare('update tblUser set email=?, emailverification=?, emailset=NOW() where id = ?');
     $stmt->bind_param('ssi', $address, $verification, $userId);
     $stmt->execute();
     $stmt->close();
     if ($db->affected_rows == 0) {
-        SendUserMessage($userId, 'Email', 'Email Address Removed', 'We removed your old email address from our system, but failed to replace it with the new address you specified.');
+        SendUserMessage($userId, 'Email', $lang['emailAddressRemoved'], $lang['emailAddressRemovedError']);
         return ['status' => 'unknown'];
     }
 
@@ -451,6 +448,7 @@ function SetSubEmail($loginState, $address)
 function VerifySubEmail($loginState, $code)
 {
     $userId = $loginState['id'];
+    $lang = GetLang($loginState['locale']);
 
     $db = DBConnect();
     $stmt = $db->prepare('SELECT ifnull(email,\'\') address, ifnull(emailverification,\'\') verification from tblUser where id = ?');
@@ -489,7 +487,7 @@ function VerifySubEmail($loginState, $code)
         $stmt->execute();
         $stmt->close();
 
-        SendUserMessage($userId, 'Email', 'Email Address Verified', 'You successfully verified your control over the address '.$row['address'].', and The Undermine Journal will send all your future messages there.');
+        SendUserMessage($userId, 'Email', $lang['emailAddressVerified'], sprintf($lang['emailAddressVerifiedMessage'], $row['address']));
         return ['status' => 'success', 'address' => $row['address']];
     }
 
