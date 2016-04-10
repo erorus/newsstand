@@ -65,13 +65,13 @@ input, select {
     padding: 0 20px;
 }
 
-body.realm #title-date, body.realm #classic-menus,
-body.region #title-date, body.region #classic-menus {
+body.page-realm #title-date, body.page-realm #classic-menus,
+body.page-region #title-date, body.page-region #classic-menus {
     display: none;
 }
 
-body.realm #topcorner,
-body.region #topcorner {
+body.page-realm #topcorner,
+body.page-region #topcorner {
     border-bottom: 0;
 }
 
@@ -178,17 +178,17 @@ h2, #page-title {
     display: none;
 }
 
-body.realm #title > div > a,
-body.region #title a {
+body.page-realm #title > div > a,
+body.page-region #title a {
     display: none;
 }
 
-body.realm #big-title,
-body.region #big-title {
+body.page-realm #big-title,
+body.page-region #big-title {
     display: inline;
 }
 
-body.realm #title.give-padding > div,
-body.region #title.give-padding > div {
+body.page-realm #title.give-padding > div,
+body.page-region #title.give-padding > div {
     padding: 0;
 }

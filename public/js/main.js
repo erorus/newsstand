@@ -512,7 +512,11 @@ var TUJ = function ()
         }, 1000);
         */
 
-        document.body.className = '';
+        var pageClasses = 'page-region page-realm page-front';
+        for (var x = 1; x < validPages.length; x++) {
+            pageClasses += ' page-' + validPages[x];
+        }
+        $(document.body).removeClass(pageClasses);
 
         if (self.colorTheme == '') {
             $('#bottom-bar .dark-only').click(SetDarkTheme.bind(self, false));
@@ -575,9 +579,11 @@ var TUJ = function ()
                             }
                         } else {
                             loggedInUser = false;
-                            pendingCSRFProtectedRequests = [];
                         }
+                    } else {
+                        loggedInUser = false;
                     }
+                    OnLoginStateChange();
                     if (dta.hasOwnProperty('language') && checkLanguageHeader) {
                         var l = dta.language.toLowerCase().replace(/[\s-]/, '').split(',');
                         var x, y, m, ls = [];
@@ -624,7 +630,7 @@ var TUJ = function ()
                     }
                     self.allRealms = [];
                     loggedInUser = false;
-                    pendingCSRFProtectedRequests = [];
+                    OnLoginStateChange();
                 },
                 complete: function ()
                 {
@@ -699,7 +705,7 @@ var TUJ = function ()
                 $('#region-page h2').html(libtuj.sprintf(self.lang.welcomeTo, 'The Undermine Journal') + ' <sub>' + self.lang.yourSource + '</sub>');
 
                 $('#region-page').show();
-                document.body.className = 'region';
+                $(document.body).addClass('page-region');
                 $('map').imageMapResize();
                 return;
             }
@@ -723,13 +729,13 @@ var TUJ = function ()
                 });
                 $('#realm-list .directions').text(libtuj.sprintf(self.lang.chooseRealm, validRegions[drawnRegion]));
                 $('#realm-list').addClass('show');
-                document.body.className = 'realm';
+                $(document.body).addClass('page-realm');
                 return;
             }
 
             if (!self.params.page || (pagesNeedRealm[self.params.page] && self.banned.isbanned)) {
                 inMain = false;
-                document.body.className = 'front';
+                $(document.body).addClass('page-front');
                 ShowRealmFrontPage();
                 return;
             }
@@ -740,7 +746,7 @@ var TUJ = function ()
 
         inMain = false;
 
-        document.body.className = validPages[self.params.page];
+        $(document.body).addClass('page-' + validPages[self.params.page]);
 
         if (typeof tuj['page_' + validPages[self.params.page]] == 'undefined') {
             var s = libtuj.ce('script');
@@ -832,7 +838,7 @@ var TUJ = function ()
             method: 'POST',
             success: function(dta) {
                 loggedInUser = false;
-                pendingCSRFProtectedRequests = [];
+                OnLoginStateChange();
                 Main();
             },
             error: function() {
@@ -888,6 +894,15 @@ var TUJ = function ()
         delete ajaxParams.beforeSend;
         $.ajax(ajaxParams);
     };
+
+    function OnLoginStateChange() {
+        if (!loggedInUser) {
+            pendingCSRFProtectedRequests = [];
+            $('body').removeClass('logged-in').addClass('logged-out');
+        } else {
+            $('body').removeClass('logged-out').addClass('logged-in');
+        }
+    }
 
     function ReadParams()
     {
