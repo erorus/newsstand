@@ -5,32 +5,46 @@ $startTime = time();
 require_once(__DIR__.'/../incl/incl.php');
 require_once(__DIR__.'/../incl/memcache.incl.php');
 
+$backupSet = (isset($argv[1]) && ($argv[1] == 'user')) ? 'user' : 'data';
+
+DebugMessage("Starting $backupSet backup");
+
 $tables = [
-    'tblBonusSet' => '1=1',
-    'tblHouseCheck' => '1=1',
-    'tblItemGlobal' => '1=1',
-    'tblItemHistoryDaily' => 'item in (select id from tblDBCItem where auctionable=1)',
-    'tblItemHistoryMonthly' => 'item in (select id from tblDBCItem where auctionable=1)',
-    'tblItemSummary' => '1=1',
-    'tblPet' => '1=1',
-    'tblPetSummary' => '1=1',
-    'tblRealm' => '1=1',
-    'tblSnapshot' => '1=1',
-    'tblWowToken' => '1=1',
+    'data' => [
+        'tblBonusSet'           => '1=1',
+        'tblHouseCheck'         => '1=1',
+        'tblItemGlobal'         => '1=1',
+        'tblItemHistoryDaily'   => 'item in (select id from tblDBCItem where auctionable=1)',
+        'tblItemHistoryMonthly' => 'item in (select id from tblDBCItem where auctionable=1)',
+        'tblItemSummary'        => '1=1',
+        'tblPet'                => '1=1',
+        'tblPetSummary'         => '1=1',
+        'tblRealm'              => '1=1',
+        'tblSnapshot'           => '1=1',
+        'tblWowToken'           => '1=1',
+    ],
+    'user' => [
+        'tblPaypalTransactions' => '1=1',
+        'tblUser'               => '1=1',
+        'tblUserAuth'           => '1=1',
+        'tblUserMessages'       => '1=1',
+        'tblUserSession'        => '1=1',
+        'tblUserWatch'          => '1=1',
+    ]
 ];
 
-$sqlFile = __DIR__.'/../backup/backupdata.'.Date('Ymd').'.sql.gz';
+$sqlFile = __DIR__.'/../backup/backup'.$backupSet.'.'.Date('Ymd').'.sql.gz';
 
 if (!(touch($sqlFile) && ($sqlFile = realpath($sqlFile)))) {
-    DebugMessage("Could not create backupdata.sql.gz", E_USER_ERROR);
+    DebugMessage("Could not create backup$backupSet.sql.gz", E_USER_ERROR);
     exit(1);
 }
 file_put_contents($sqlFile, '');
 
-APIMaintenance('+45 minutes');
+APIMaintenance($backupSet == 'data' ? '+45 minutes' : '+5 minutes');
 
 $cmd = 'mysqldump --verbose --skip-opt --quick --allow-keywords --create-options --add-drop-table --add-locks --extended-insert --single-transaction --user='.escapeshellarg(DATABASE_USERNAME_CLI).' --password='.escapeshellarg(DATABASE_PASSWORD_CLI).' --where=%s '.escapeshellarg(DATABASE_SCHEMA)." %s | gzip -c >> %s\n";
-foreach ($tables as $table => $where) {
+foreach ($tables[$backupSet] as $table => $where) {
     DebugMessage("Starting $table");
     $trash = [];
     $ret = 0;
@@ -41,6 +55,10 @@ foreach ($tables as $table => $where) {
     }
 }
 
-APIMaintenance('+5 minutes', '+5 minutes');
+if ($backupSet == 'data') {
+    APIMaintenance('+2 minutes', '+2 minutes');
+} else {
+    APIMaintenance(0);
+}
 
 DebugMessage('Done! Started ' . TimeDiff($startTime));
