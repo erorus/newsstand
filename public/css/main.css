@@ -73,10 +73,9 @@ abbr:hover.full-date { border-bottom: 1px dotted }
 
 #realm-list, #region-page {display: none; text-align: center}
 #realm-list .directions, #region-page .directions {font-size: 150%; margin: 0 auto 2rem }
-#realm-list.width-test, #realm-list.show {display: block}
-.realms-column {width: 15em; display: inline-block; vertical-align: top; text-align: left}
-#realm-list.width-test .realms-column {display: inline-block}
-.realms-column a {display: block; margin: 0.2em 0}
+#realm-list.show {display: block}
+.realms-column {-moz-column-width: 15em; -webkit-column-width: 15em; column-width: 15em; text-align: left}
+.realms-column a {display: block; margin: 0.3em 0}
 
 #front-page, #contact-page, #progress-page, #donate-page, #region-page { display: none }
 

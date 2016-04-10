@@ -1225,8 +1225,8 @@ var TUJ = function ()
             $('#realm-list').remove();
         }
 
-        var addResize = false;
         var realmList = $('#realm-list')[0];
+        var realmsColumn;
 
         if (!realmList) {
             realmList = libtuj.ce();
@@ -1238,58 +1238,15 @@ var TUJ = function ()
             realmList.appendChild(directions);
             $(directions).text(libtuj.sprintf(self.lang.chooseRealm, validRegions[drawnRegion]));
 
-            addResize = true;
-        }
-
-        $(realmList).addClass('width-test');
-        var maxWidth = realmList.clientWidth;
-        var oldColCount = realmList.getElementsByClassName('realms-column').length;
-
-        var cols = [];
-        var colWidth = 0;
-        if (oldColCount == 0) {
-            cols.push(libtuj.ce());
-            cols[0].className = 'realms-column';
-            $(realmList).append(cols[0]);
-
-            colWidth = cols[0].offsetWidth;
-        }
-        else {
-            colWidth = realmList.getElementsByClassName('realms-column')[0].offsetWidth;
-        }
-        $(realmList).removeClass('width-test');
-
-        var numCols = Math.floor(maxWidth / colWidth);
-        if (numCols == 0) {
-            numCols = 1;
-        }
-
-        if (numCols == oldColCount) {
-            return;
-        }
-
-        if (oldColCount > 0) {
-            $(realmList).children('.realms-column').remove();
-        }
-
-        for (var x = cols.length; x < numCols; x++) {
-            cols[x] = libtuj.ce();
-            cols[x].className = 'realms-column';
-            $(realmList).append(cols[x]);
-        }
-
-        var cnt = 0;
-
-        for (var x in self.realms) {
-            if (!self.realms.hasOwnProperty(x)) {
-                continue;
-            }
-
-            cnt++;
+            realmsColumn = libtuj.ce();
+            realmsColumn.className = 'realms-column';
+            realmList.appendChild(realmsColumn);
+        } else {
+            realmsColumn = realmList.getElementsByClassName('realms-column')[0];
+            $(realmsColumn).empty();
         }
 
         var a;
-        var c = 0;
         var allRealms = [];
 
         for (var x in self.realms) {
@@ -1310,11 +1267,7 @@ var TUJ = function ()
             a.rel = allRealms[x];
             $(a).text(self.realms[allRealms[x]].name);
 
-            $(cols[Math.min(cols.length - 1, Math.floor(c++ / cnt * numCols))]).append(a);
-        }
-
-        if (addResize) {
-            optimizedResize.add(DrawRealms);
+            $(realmsColumn).append(a);
         }
 
         Main();
@@ -1525,59 +1478,5 @@ $(document).ready(function ()
     tuj = new TUJ();
 });
 $(window).load(libtuj.Ads.onWindowLoad);
-
-var optimizedResize = (function ()
-{
-
-    var callbacks = [],
-        running = false;
-
-    // fired on resize event
-    function resize()
-    {
-
-        if (!running) {
-            running = true;
-
-            if (window.requestAnimationFrame) {
-                window.requestAnimationFrame(runCallbacks);
-            } else {
-                setTimeout(runCallbacks, 66);
-            }
-        }
-
-    }
-
-    // run the actual callbacks
-    function runCallbacks()
-    {
-
-        for (var x = 0; x < callbacks.length; x++) {
-            callbacks[x]();
-        }
-
-        running = false;
-    }
-
-    // adds callback to loop
-    function addCallback(callback)
-    {
-
-        if (callback) {
-            callbacks.push(callback);
-        }
-
-    }
-
-    return {
-        add: function (callback)
-        {
-            if (callbacks.length == 0) {
-                window.addEventListener('resize', resize);
-            }
-            addCallback(callback);
-        }
-    }
-}());
 
 var wowhead_tooltips = { "hide": { "droppedby": true, "dropchance": true, "reagents": true, "sellprice": true } };
