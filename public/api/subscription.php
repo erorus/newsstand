@@ -160,7 +160,6 @@ function MakeNewSession($provider, $providerId, $userName, $locale) {
         'publicid' => '',
         'name' => $userName,
         'locale' => $locale,
-        'paiduntil' => null,
     ];
 
     $db = DBConnect();
@@ -201,10 +200,10 @@ function MakeNewSession($provider, $providerId, $userName, $locale) {
         $userInfo['id'] = $userId;
         $savedLocale = null;
 
-        $stmt = $db->prepare('SELECT unix_timestamp(u.paiduntil), u.locale, concat_ws(\'|\', cast(ua.provider as unsigned), ua.providerid) FROM tblUser u join tblUserAuth ua on ua.user = u.id WHERE u.id = ? group by u.id');
+        $stmt = $db->prepare('SELECT u.locale, concat_ws(\'|\', cast(ua.provider as unsigned), ua.providerid) FROM tblUser u join tblUserAuth ua on ua.user = u.id WHERE u.id = ? group by u.id');
         $stmt->bind_param('i', $userId);
         $stmt->execute();
-        $stmt->bind_result($userInfo['paiduntil'], $savedLocale, $userInfo['publicid']);
+        $stmt->bind_result($savedLocale, $userInfo['publicid']);
         $stmt->fetch();
         $stmt->close();
 
@@ -418,7 +417,6 @@ function SetSubEmail($loginState, $address)
         if ($db->affected_rows == 0) {
             return ['status' => 'unknown'];
         }
-        ClearLoginStateCache();
 
         SendUserMessage($userId, 'Email', 'Email Address Removed', 'We removed your email address from our system per your request.');
         return ['status' => 'success', 'address' => $address];
@@ -432,7 +430,6 @@ function SetSubEmail($loginState, $address)
     if ($db->affected_rows == 0) {
         return ['status' => 'unknown'];
     }
-    ClearLoginStateCache();
 
     $verification = str_pad(mt_rand(1, 999999999), 9, '0', STR_PAD_BOTH);
 

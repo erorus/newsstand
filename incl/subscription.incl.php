@@ -7,6 +7,7 @@ require_once('subscription.credentials.php');
 define('SUBSCRIPTION_LOGIN_COOKIE', 'session');
 define('SUBSCRIPTION_CSRF_COOKIE', 'csrf');
 define('SUBSCRIPTION_SESSION_LENGTH', 1209600); // 2 weeks
+
 define('SUBSCRIPTION_PAID_ADDS_SECONDS', 5184000); // 60 days
 define('SUBSCRIPTION_PAID_RENEW_WINDOW_DAYS', 10); // when subscription has this or fewer days remaining, allow them to renew 
 define('SUBSCRIPTION_PAID_ACCEPT_PAYMENTS', true); // set to false to disable paypal
@@ -20,6 +21,8 @@ define('SUBSCRIPTION_ITEM_CACHEKEY', 'subitem_');
 define('SUBSCRIPTION_SPECIES_CACHEKEY', 'subspecies_');
 define('SUBSCRIPTION_WATCH_CACHEKEY', 'subwatch_');
 define('SUBSCRIPTION_REPORTS_CACHEKEY', 'subreports_');
+define('SUBSCRIPTION_PAID_CACHEKEY', 'subpaid_');
+define('SUBSCRIPTION_SESSION_CACHEKEY', 'usersession_');
 
 define('SUBSCRIPTION_WATCH_LIMIT_PER', 5);
 define('SUBSCRIPTION_WATCH_LIMIT_TOTAL', 1000);
@@ -41,9 +44,10 @@ function GetLoginState($logOut = false) {
     }
 
     $stateBytes = base64_decode(strtr($state, '-_', '+/'));
+    $cacheKey = SUBSCRIPTION_SESSION_CACHEKEY.$state;
 
     if ($logOut) {
-        MCDelete('usersession_'.$state);
+        MCDelete($cacheKey);
 
         $db = DBConnect();
         $stmt = $db->prepare('DELETE FROM tblUserSession WHERE session=?');
@@ -51,12 +55,12 @@ function GetLoginState($logOut = false) {
         $stmt->execute();
         $stmt->close();
     } else {
-        $userInfo = MCGet('usersession_'.$state);
+        $userInfo = MCGet($cacheKey);
         if ($userInfo === false) {
             $db = DBConnect();
 
             // see also MakeNewSession in api/subscription.php
-            $stmt = $db->prepare('SELECT u.id, concat_ws(\'|\', cast(ua.provider as unsigned), ua.providerid) as publicid, u.name, u.locale, unix_timestamp(u.paiduntil) paiduntil FROM tblUserSession us join tblUser u on us.user=u.id join tblUserAuth ua on ua.user=u.id WHERE us.session=? group by u.id');
+            $stmt = $db->prepare('SELECT u.id, concat_ws(\'|\', cast(ua.provider as unsigned), ua.providerid) as publicid, u.name, u.locale FROM tblUserSession us join tblUser u on us.user=u.id join tblUserAuth ua on ua.user=u.id WHERE us.session=? group by u.id');
             $stmt->bind_param('s', $stateBytes);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -67,7 +71,7 @@ function GetLoginState($logOut = false) {
                 $logOut = true;
             } else {
                 $userInfo = array_pop($userInfo);
-                MCSet('usersession_'.$state, $userInfo);
+                MCSet($cacheKey, $userInfo);
 
                 $ip = substr($_SERVER['REMOTE_ADDR'], 0, 40);
                 $ua = substr($_SERVER['HTTP_USER_AGENT'], 0, 250);
@@ -82,6 +86,9 @@ function GetLoginState($logOut = false) {
                 $stmt->execute();
                 $stmt->close();
             }
+        }
+        if (isset($userInfo['id'])) {
+            $userInfo['paiduntil'] = GetUserPaidUntil($userInfo['id']);
         }
     }
 
@@ -134,7 +141,7 @@ function ClearLoginStateCache()
         return false;
     }
 
-    MCDelete('usersession_'.$state);
+    MCDelete(SUBSCRIPTION_SESSION_CACHEKEY.$state);
     return true;
 }
 
@@ -267,12 +274,39 @@ function AddPaidTime($userId, $seconds) {
 
     $db->commit();
 
+    MCDelete(SUBSCRIPTION_PAID_CACHEKEY . $userId);
+
     if (!$affected) {
         DebugMessage("0 rows affected when adding $seconds paid time to user $userId");
         return false;
     }
 
     return $paidUntil;
+}
+
+function GetUserPaidUntil($userId) {
+    $cacheKey = SUBSCRIPTION_PAID_CACHEKEY . $userId;
+
+    $ts = MCGet($cacheKey);
+    if ($ts === false) {
+        $db = DBConnect();
+
+        $stmt = $db->prepare('SELECT ifnull(unix_timestamp(u.paiduntil),0) FROM tblUser u WHERE u.id=?');
+        $stmt->bind_param('i', $userId);
+        $stmt->execute();
+        $stmt->bind_result($ts);
+        if (!$stmt->fetch()) {
+            $ts = 0;
+        }
+        $stmt->close();
+        MCSet($cacheKey, $ts);
+    }
+
+    if (!$ts) {
+        $ts = null;
+    }
+
+    return $ts;
 }
 
 function GeneratePublicUserHMAC($publicId) {
