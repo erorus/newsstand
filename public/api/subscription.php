@@ -682,15 +682,24 @@ function SetWatch($loginState, $type, $item, $bonusSet, $region, $house, $direct
     $db = DBConnect();
     $db->begin_transaction();
 
-    $stmt = $db->prepare('select count(*) from tblUserWatch where user = ? and '.$type.' = ? and ifnull('.$subType.',0) = ifnull(?,0) and deleted is null for update');
+    $stmt = $db->prepare('select seq, region, house, direction, quantity, price from tblUserWatch where user = ? and '.$type.' = ? and ifnull('.$subType.',0) = ifnull(?,0) and deleted is null for update');
     $stmt->bind_param('iii', $userId, $item, $bonusSet);
     $stmt->execute();
-    $cnt = 0;
-    $stmt->bind_result($cnt);
-    $stmt->fetch();
+    $result = $stmt->get_result();
+    $curWatches = DBMapArray($result);
     $stmt->close();
 
-    if ($cnt > SUBSCRIPTION_WATCH_LIMIT_PER) {
+    $fail = false;
+
+    $cnt = count($curWatches);
+    $fail |= $cnt > SUBSCRIPTION_WATCH_LIMIT_PER;
+
+    foreach ($curWatches as $curWatch) {
+        $fail |= ($curWatch['region'] == $region) && ($curWatch['direction'] == $direction) && ($curWatch['quantity'] == $quantity) && ($curWatch['price'] == $price);
+        $fail |= is_null($curWatch['region']) && ($curWatch['house'] == $house) && ($curWatch['direction'] == $direction) && ($curWatch['quantity'] == $quantity) && ($curWatch['price'] == $price);
+    }
+
+    if ($fail) {
         $db->rollback();
         MCDelete(SUBSCRIPTION_WATCH_CACHEKEY . "lock_$userId");
         return false;
