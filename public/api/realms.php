@@ -13,10 +13,7 @@ if (isset($_COOKIE['__cfduid'])) { // cloudflare
 
 $loginState = ['ads' => true];
 if (isset($_POST['getuser'])) {
-    $loginState = GetLoginState();
-    $loginState['ads'] = (!isset($loginState['paiduntil'])) || ($loginState['paiduntil'] < time());
-    unset($loginState['id'], $loginState['publicid'], $loginState['paiduntil']);
-    $loginState['csrfCookie'] = SUBSCRIPTION_CSRF_COOKIE;
+    $loginState = RedactLoginState(GetLoginState());
 }
 
 json_return([

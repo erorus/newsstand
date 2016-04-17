@@ -125,7 +125,8 @@
                     <br clear="all"/>
                 </div>
                 <div class="page" id="policy-page">
-                    <div class="policy-section" id="policy-terms">
+                    <div id="policy-accept"></div>
+                    <div class="policy-section policy-scroller" id="policy-terms">
                         <h2>Terms of Service ("Terms")</h2>
                         <p>Last updated: April 17, 2016</p>
                         <p>Please read these Terms of Service ("Terms", "Terms of Service") carefully before using the https://theunderminejournal.com/ website (the "Service") operated by The Undermine Journal ("us", "we", or "our").</p>
@@ -171,8 +172,7 @@
                         <p><strong>Contact Us</strong></p>
                         <p>If you have any questions about these Terms, please contact us.</p>
                     </div>
-                    <hr>
-                    <div class="policy-section" id="policy-privacy">
+                    <div class="policy-section policy-scroller" id="policy-privacy">
                         <h2>Privacy Policy</h2>
                         <p>Last updated: April 17, 2016</p>
                         <p>The Undermine Journal ("us", "we", or "our") operates the https://theunderminejournal.com website (the "Service").</p>

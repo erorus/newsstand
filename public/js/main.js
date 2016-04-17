@@ -695,6 +695,12 @@ var TUJ = function ()
             }
         }
 
+        if (loggedInUser && !loggedInUser.acceptedterms && self.params.page != 10 && self.params.id != 'accept') { // policy
+            inMain = false;
+            self.SetParams({'page': 'policy', 'id': 'accept'});
+            return;
+        }
+
         UpdateSidebar();
 
         window.scrollTo(0, 0);
@@ -839,7 +845,21 @@ var TUJ = function ()
         return !(loggedInUser && loggedInUser.hasOwnProperty('ads') && !loggedInUser.ads);
     };
 
-    this.LogOut = function() {
+    this.UserAcceptsTerms = function() {
+        if (!loggedInUser) {
+            return false;
+        }
+
+        tuj.SendCSRFProtectedRequest({
+            data: {'acceptsterms': 1},
+            success: function(dta) {
+                loggedInUser = $.extend(loggedInUser, dta);
+                tuj.SetParams({'page': 'subscription', 'id': undefined});
+            }
+        });
+    };
+
+    this.LogOut = function(callback) {
         $.ajax({
             data: {
                 'logout': 1
@@ -849,6 +869,9 @@ var TUJ = function ()
                 loggedInUser = false;
                 OnLoginStateChange();
                 Main();
+                if (callback) {
+                    callback();
+                }
             },
             error: function() {
                 alert('Error logging out. Try again?');

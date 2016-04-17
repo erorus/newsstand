@@ -389,6 +389,10 @@
     "paidSubscription": "Paid Subscription",
     "freeSubscription": "Free Subscription",
 
+    "confirmPolicyAcceptance": "Please confirm your acceptance of our Terms of Service and Privacy Policy.",
+    "acceptPolicyCheckbox": "I accept the Terms of Service and Privacy Policy",
+    "acceptSupportEnglish": "I accept that support requests must be serviced in the English language.",
+
     "logInBattleNet": "Log in with Battle.net",
     "loggedInAs": "You are logged in as <b>{1}</b>.",
     "SubscriptionErrors": {
@@ -407,6 +411,7 @@
         "paidfinish": "Thank you for your payment. Your subscription should be updated momentarily.",
         "paiderror": "There was an issue processing your payment.<br>If your paid subscription is not extended soon, please contact us via the Contact link at the bottom of the page."
     },
+
     "EmailStatus": {
         "unknown": "Unknown error, please try again.",
         "success": "Your Email address is updated.",

@@ -8,6 +8,8 @@ define('SUBSCRIPTION_LOGIN_COOKIE', 'session');
 define('SUBSCRIPTION_CSRF_COOKIE', 'csrf');
 define('SUBSCRIPTION_SESSION_LENGTH', 1209600); // 2 weeks
 
+define('SUBSCRIPTION_TERMS_UPDATED', 1460851200); // timestamp of last material change to terms/policy
+
 define('SUBSCRIPTION_PAID_ADDS_SECONDS', 5184000); // 60 days
 define('SUBSCRIPTION_PAID_RENEW_WINDOW_DAYS', 10); // when subscription has this or fewer days remaining, allow them to renew 
 define('SUBSCRIPTION_PAID_ACCEPT_PAYMENTS', true); // set to false to disable paypal
@@ -60,7 +62,7 @@ function GetLoginState($logOut = false) {
             $db = DBConnect();
 
             // see also MakeNewSession in api/subscription.php
-            $stmt = $db->prepare('SELECT u.id, concat_ws(\'|\', cast(ua.provider as unsigned), ua.providerid) as publicid, u.name, u.locale FROM tblUserSession us join tblUser u on us.user=u.id join tblUserAuth ua on ua.user=u.id WHERE us.session=? group by u.id');
+            $stmt = $db->prepare('SELECT u.id, concat_ws(\'|\', cast(ua.provider as unsigned), ua.providerid) as publicid, u.name, u.locale, unix_timestamp(u.acceptedterms) acceptedterms FROM tblUserSession us join tblUser u on us.user=u.id join tblUserAuth ua on ua.user=u.id WHERE us.session=? group by u.id');
             $stmt->bind_param('s', $stateBytes);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -104,6 +106,15 @@ function GetLoginState($logOut = false) {
     }
 
     return $userInfo;
+}
+
+function RedactLoginState($loginState) {
+    $loginState['ads'] = (!isset($loginState['paiduntil'])) || ($loginState['paiduntil'] < time());
+    unset($loginState['id'], $loginState['publicid'], $loginState['paiduntil']);
+    $loginState['acceptedterms'] = isset($loginState['acceptedterms']) && ($loginState['acceptedterms'] > SUBSCRIPTION_TERMS_UPDATED);
+    $loginState['csrfCookie'] = SUBSCRIPTION_CSRF_COOKIE;
+
+    return $loginState;
 }
 
 function ValidateCSRFProtectedRequest()

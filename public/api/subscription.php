@@ -15,7 +15,7 @@ if (isset($_GET['state']) && isset($_GET['code'])) {
 }
 
 if (isset($_POST['logout'])) {
-    json_return(GetLoginState(true));
+    json_return(RedactLoginState(GetLoginState(true)));
 }
 
 // functions from now on require a logged-in user
@@ -29,6 +29,10 @@ if (!ValidateCSRFProtectedRequest()) {
 
 if (isset($_POST['newlocale'])) {
     json_return(SetSubLocale($loginState, strtolower($_POST['newlocale'])));
+}
+
+if (isset($_POST['acceptsterms'])) {
+    json_return(SetAcceptedTerms($loginState));
 }
 
 if (isset($_POST['settings'])) {
@@ -160,6 +164,7 @@ function MakeNewSession($provider, $providerId, $userName, $locale) {
         'publicid' => '',
         'name' => $userName,
         'locale' => $locale,
+        'acceptedterms' => null,
     ];
 
     $db = DBConnect();
@@ -200,10 +205,10 @@ function MakeNewSession($provider, $providerId, $userName, $locale) {
         $userInfo['id'] = $userId;
         $savedLocale = null;
 
-        $stmt = $db->prepare('SELECT u.locale, concat_ws(\'|\', cast(ua.provider as unsigned), ua.providerid) FROM tblUser u join tblUserAuth ua on ua.user = u.id WHERE u.id = ? group by u.id');
+        $stmt = $db->prepare('SELECT u.locale, concat_ws(\'|\', cast(ua.provider as unsigned), ua.providerid), unix_timestamp(u.acceptedterms) FROM tblUser u join tblUserAuth ua on ua.user = u.id WHERE u.id = ? group by u.id');
         $stmt->bind_param('i', $userId);
         $stmt->execute();
-        $stmt->bind_result($savedLocale, $userInfo['publicid']);
+        $stmt->bind_result($savedLocale, $userInfo['publicid'], $userInfo['acceptedterms']);
         $stmt->fetch();
         $stmt->close();
 
@@ -938,7 +943,23 @@ function SetSubLocale($loginState, $locale)
 
     ClearLoginStateCache();
 
-    return GetLoginState();
+    return RedactLoginState(GetLoginState());
+}
+
+function SetAcceptedTerms($loginState)
+{
+    $userId = $loginState['id'];
+
+    $db = DBConnect();
+
+    $stmt = $db->prepare('update tblUser set acceptedterms = now() where id = ?');
+    $stmt->bind_param('i', $userId);
+    $stmt->execute();
+    $stmt->close();
+
+    ClearLoginStateCache();
+
+    return RedactLoginState(GetLoginState());
 }
 
 function GetIsPaid($loginState)

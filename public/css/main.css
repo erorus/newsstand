@@ -246,3 +246,9 @@ input.input-price { width: 6em; text-align: right; -moz-appearance:textfield }
 input.input-price::-webkit-outer-spin-button, input.input-price::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .notifications-add input.input-price { padding-right: 1em }
 .notifications-add .input-price-unit { position: relative; left: -1em; margin-right: -0.75em }
+
+#policy-page .policy-section { margin: 2em 0 }
+.policy-scroller { padding: 0.5em; max-width: 60em; height: 25em; overflow-y: auto; resize: both; border: 1px solid #808080 }
+#policy-accept label { display: block; margin: 0.5em }
+#policy-accept label.highlight::after { content: " <-- Required"; color: red }
+#policy-accept input.button { margin: 0 0.5em }
