@@ -754,7 +754,7 @@ var TUJ_Subscription = function ()
 
     function LoginFail()
     {
-        $('#subscription-login').empty().html('Error setting up login, please try again later.');
+        $('#subscription-login').empty().html(tuj.lang.SubscriptionErrors.statesetup);
     }
 
     function SettingsFail()

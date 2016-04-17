@@ -390,6 +390,7 @@
     "logInBattleNet": "Log in with Battle.net",
     "loggedInAs": "You are logged in as <b>{1}</b>.",
     "SubscriptionErrors": {
+        "statesetup": "Error setting up login, please try again later.",
         "nohttps": "Error: We could not establish HTTPS connection.",
         "nosession": "Error: we could not make a new user session. Please try again.",
         "nostate": "Error: We could not find the state returned by Battle.net. Please try again.",
