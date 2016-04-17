@@ -22,6 +22,7 @@ var TUJ_Policy = function ()
             case 'terms':
             case 'privacy':
                 policyPage.children('.policy-section').hide();
+                policyPage.children('#policy-blizzard.policy-section').show();
                 policyPage.children('#policy-' + params.id + '.policy-section').show();
                 break;
             case 'accept':
