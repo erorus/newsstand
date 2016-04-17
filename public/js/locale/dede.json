@@ -47,6 +47,7 @@
     "category": "Kategorie",
     "transmog": "Transmog",
     "maintenance": "Wartung",
+    "policy": "Policy",
 
     "chooseRealm": "Wähle unten deinen {1} Realm:",
     "solveCaptcha": "Löse das Captcha",
@@ -61,6 +62,7 @@
     "noResults": "Keine Ergebnisse gefunden.",
     "contactTheEditor": "Contact The Editor",
     "donateTo": "Spende an {1}",
+    "termsAndPolicies": "Terms and Policies",
 
     "deals": "Schnäppchen",
     "unusuals": "Selten gesehen",

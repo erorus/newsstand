@@ -47,6 +47,7 @@
     "category": "Categoria",
     "transmog": "Transmogrificação",
     "maintenance": "Manutenção",
+    "policy": "Policy",
 
     "chooseRealm": "Escolha seu reino {1} abaixo:",
     "solveCaptcha": "Resolver Captcha",
@@ -61,6 +62,7 @@
     "noResults": "Nenhum resultado encontrado.",
     "contactTheEditor": "Entre em contato com o Editor",
     "donateTo": "Doar para {1}",
+    "termsAndPolicies": "Terms and Policies",
 
     "deals": "Pechinchas",
     "unusuals": "Incomuns",

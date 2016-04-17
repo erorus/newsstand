@@ -80,7 +80,7 @@ abbr:hover.full-date { border-bottom: 1px dotted }
 .realms-column {-moz-column-width: 15em; -webkit-column-width: 15em; column-width: 15em; text-align: left}
 .realms-column a {display: block; margin: 0.3em 0}
 
-#front-page, #contact-page, #progress-page, #donate-page, #region-page, #subscription-page { display: none }
+#main > .page { display: none }
 
 #front-page {position: relative; padding-right: 2em}
 #front-page a {text-decoration: underline}

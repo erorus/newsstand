@@ -465,8 +465,8 @@ if (!Date.now) {
 var TUJ = function ()
 {
     var validRegions = ['US','EU'];
-    var validPages = ['', 'search', 'item', 'seller', 'battlepet', 'contact', 'donate', 'category', 'transmog', 'subscription'];
-    var pagesNeedRealm = [true, true, true, true, true, false, false, true, true, false];
+    var validPages = ['', 'search', 'item', 'seller', 'battlepet', 'contact', 'donate', 'category', 'transmog', 'subscription', 'policy'];
+    var pagesNeedRealm = [true, true, true, true, true, false, false, true, true, false, false];
     var houseInfo = {};
     var drawnRegion = -1;
     var loggedInUser = false;
@@ -1105,6 +1105,10 @@ var TUJ = function ()
         var donateLink = $('#bottom-bar a.donate');
         donateLink[0].href = self.BuildHash({page: 'donate', id: undefined});
         donateLink.html(self.lang.donate);
+
+        var policyLink = $('#bottom-bar a.policy');
+        policyLink[0].href = self.BuildHash({page: 'policy', id: undefined});
+        policyLink.html(self.lang.policy);
 
         $('#bottom-bar a.dark-only').html(self.lang.lightTheme);
         $('#bottom-bar a.light-only').html(self.lang.darkTheme);
