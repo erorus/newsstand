@@ -422,6 +422,7 @@
     "emailAddressRemoved": "Email Address Removed",
     "emailAddressRemovedMessage": "We removed your email address from our system per your request.",
     "emailAddressRemovedError": "We removed your old email address from our system, but failed to replace it with the new address you specified.",
+    "emailAddressRemovedBounce": "We removed your email address %s from our system because we received a reply or bounce-back from your mail server, or because you have chosen to block your address from our system.",
     "emailVerificationResent": "Email Verification Resent",
     "emailVerificationResentMessage": "We re-sent the verification code to your email per your request.<br><br>Please check your mail at %s and enter the verification code which we sent there.",
     "emailAddressVerified": "Email Address Verified",

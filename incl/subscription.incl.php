@@ -212,7 +212,7 @@ function DisableEmailAddress($address) {
     // Note: this is not permanent, a user can re-add it later
 
     $db = DBConnect(true);
-    $stmt = $db->prepare('select id from tblUser where email = ?');
+    $stmt = $db->prepare('select id, locale from tblUser where email = ?');
     $stmt->bind_param('s', $address);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -222,10 +222,11 @@ function DisableEmailAddress($address) {
     $stmt = $db->prepare('update tblUser set email=null, emailverification=null where id = ?');
     $userIdParam = 0;
     $stmt->bind_param('i', $userIdParam);
-    foreach ($ids as $userId) {
+    foreach ($ids as $userId => $userRow) {
+        $lang = GetLang($userRow['locale']);
         $userIdParam = $userId;
         $stmt->execute();
-        SendUserMessage($userId, 'Email', 'Email Address Removed', 'We have removed your email address '.htmlspecialchars($address, ENT_COMPAT | ENT_HTML5).' because we received a reply or bounceback from your mail server, or you have chosen to block your address from our system.');
+        SendUserMessage($userId, 'Email', $lang['emailAddressRemoved'], sprintf($lang['emailAddressRemovedBounce'], htmlspecialchars($address, ENT_COMPAT | ENT_HTML5)));
     }
     $stmt->close();
 
