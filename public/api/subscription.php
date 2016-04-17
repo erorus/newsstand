@@ -399,7 +399,7 @@ function SetSubEmail($loginState, $address)
         // setting address we already have saved
         if (!is_null($row['emailverification'])) {
             // resend notification email
-            NewsstandMail($address, $loginState['name'], $lang['emailAddressUpdated'], sprintf($lang['emailVerificationMessage'], implode(' ', str_split($row['emailverification'], 3))));
+            NewsstandMail($address, $loginState['name'], $lang['emailAddressUpdated'], sprintf($lang['emailVerificationMessage'], implode(' ', str_split($row['emailverification'], 3))), $loginState['locale']);
             SendUserMessage($userId, 'Email', $lang['emailVerificationResent'], sprintf($lang['emailVerificationResentMessage'], htmlspecialchars($address, ENT_COMPAT | ENT_HTML5)));
         }
         return ['status' => is_null($row['emailverification']) ? 'success' : 'verify', 'address' => $row['address']];
@@ -430,7 +430,7 @@ function SetSubEmail($loginState, $address)
 
     $verification = str_pad(mt_rand(1, 999999999), 9, '0', STR_PAD_BOTH);
 
-    NewsstandMail($address, $loginState['name'], $lang['emailAddressUpdated'], sprintf($lang['emailVerificationMessage'], implode(' ', str_split($verification, 3))));
+    NewsstandMail($address, $loginState['name'], $lang['emailAddressUpdated'], sprintf($lang['emailVerificationMessage'], implode(' ', str_split($verification, 3))), $loginState['locale']);
     SendUserMessage($userId, 'Email', $lang['emailAddressUpdated'], sprintf($lang['emailAddressUpdatedMessage'], htmlspecialchars($address, ENT_COMPAT | ENT_HTML5)));
 
     $stmt = $db->prepare('update tblUser set email=?, emailverification=?, emailset=NOW() where id = ?');

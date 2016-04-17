@@ -494,7 +494,7 @@ function APIMaintenance($when = -1, $expire = false) {
     return $when;
 }
 
-function NewsstandMail($address, $name, $subject, $message)
+function NewsstandMail($address, $name, $subject, $message, $locale='enus')
 {
     $address = trim($address);
     if ($address == '') {
@@ -526,25 +526,28 @@ function NewsstandMail($address, $name, $subject, $message)
         return false;
     }
 
+    $lang = GetLang($locale);
+
     $sha1id = sha1('' . time() . '|' . $address . '|' . $subject . '|' . $message, true);
     $mailId = rtrim(strtr(base64_encode($sha1id), '+/=', '-_,'), ',');
 
     $headers = "From: The Undermine Journal <notifications@from.theunderminejournal.com>\n";
     $headers .= "Reply-To: Remove My Address <notifications@from.theunderminejournal.com>\n";
-    $headers .= "Date: " . Date(DATE_RFC2822) . "\n";
+    $headers .= "Date: " . date(DATE_RFC2822) . "\n";
     $headers .= "X-Undermine-MailID: $mailId\n";
 
     $headers .= "MIME-Version: 1.0\n";
     $headers .= "Content-Type: multipart/alternative; boundary=\"next-MIME-part------\"\n";
 
     $html = $message;
-    $html .= "<br><hr><br>This email was sent by request from <a href=\"https://theunderminejournal.com/\">The Undermine Journal</a> at theunderminejournal.com. ";
-    $html .= "If you reply to this email, your address ($address) will be removed from any and all accounts on our site.";
-    $html .= "<br><br>If you want never to receive email from The Undermine Journal again, you can ";
+    $html .= "<br><hr><br>" . sprintf($lang['emailFooter'], "https://theunderminejournal.com/", $address) . "<br><br>";
     $txt = $html;
 
-    $html .= "<a href=\"https://theunderminejournal.com/emailremove.php?mailid=$mailId\">click here to be added to our blocklist</a>.<br><br>Message ID: $mailId";
-    $txt .= "visit https://theunderminejournal.com/emailremove.php and enter this message ID: $mailId.";
+    $html .= sprintf($lang['emailBlocklistHTML'], "https://theunderminejournal.com/emailremove.php?mailid=$mailId");
+    $txt .= sprintf($lang['emailBlocklistText'], "https://theunderminejournal.com/emailremove.php", $mailId);
+
+    $html .= "<br><br>Message ID: $mailId";
+    $txt .= "<br><br>Message ID: $mailId";
 
     $full = "This is a multi-part message in MIME format.";
 
@@ -620,6 +623,9 @@ function GetLang($lang) {
     }
 
     $json = json_decode(file_get_contents($path), true);
+    if (json_last_error() != JSON_ERROR_NONE) {
+        DebugMessage("Error decoding JSON at $path: ".json_last_error_msg());
+    }
     if ($lang != 'enus') {
         $enus = GetLang('enus');
         $json = array_replace_recursive($enus, $json);

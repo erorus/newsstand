@@ -191,18 +191,17 @@ function SendUserMessage($userId, $messageType, $subject, $message)
     MCDelete(SUBSCRIPTION_MESSAGES_CACHEKEY . $userId);
     MCDelete(SUBSCRIPTION_MESSAGES_CACHEKEY . $userId . '_' . $seq);
 
-    $stmt = $db->prepare('select name, email from tblUser where id = ? and email is not null and emailverification is null');
+    $stmt = $db->prepare('select name, email, locale from tblUser where id = ? and email is not null and emailverification is null');
     $stmt->bind_param('i', $userId);
     $stmt->execute();
-    $name = '';
-    $address = '';
-    $stmt->bind_result($name, $address);
+    $name = $address = $locale = '';
+    $stmt->bind_result($name, $address, $locale);
     if (!$stmt->fetch()) {
         $address = false;
     }
     $stmt->close();
     if ($address) {
-        NewsstandMail($address, $name, $subject, $message);
+        NewsstandMail($address, $name, $subject, $message, $locale);
     }
 
     $db->close();

@@ -456,5 +456,9 @@
     "paidOnly": "Paid Only",
 
     "logIn": "Log in",
-    "logOut": "Log out"
+    "logOut": "Log out",
+
+    "emailFooter": "This email was sent by request from <a href=\"%s\">The Undermine Journal</a> at theunderminejournal.com. If you reply to this email, your address (%s) will be removed from any and all accounts on our site.",
+    "emailBlocklistHTML": "If you want never to receive email from The Undermine Journal again, you can <a href=\"%s\">click here to be added to our blocklist</a>.",
+    "emailBlocklistText": "If you want never to receive email from The Undermine Journal again, you can visit %s and enter this message ID: %s."
 }
