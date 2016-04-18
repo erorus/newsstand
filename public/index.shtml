@@ -222,7 +222,7 @@
                         <p>If you have any questions about this Privacy Policy, please contact us.</p>
                     </div>
                     <div class="policy-section" id="policy-blizzard">
-                        We are also bound by the <a href="https://dev.battle.net/policy">Battle.net API Terms of Use</a> for the information which we provide.
+                        We are also bound by the <a href="https://dev.battle.net/policy" class="highlight">Battle.net API Terms of Use</a> for the information which we provide.
                         You should also review those terms to better understand our limitations in providing services to you.
                     </div>
                 </div>

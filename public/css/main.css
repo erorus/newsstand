@@ -3,7 +3,7 @@ body {background-color: white; color: #333; margin: 0; overflow-y: scroll; font-
 
 a {text-decoration: none; color: black}
 a:active,a:focus { outline: none; }
-a:hover {text-decoration: underline}
+a:hover, a.highlight {text-decoration: underline ! important}
 a img {border: 0}
 
 abbr { cursor: default }
@@ -90,6 +90,7 @@ abbr:hover.full-date { border-bottom: 1px dotted }
 #front-page .banned { color: red; border: 2px solid red; padding: 2em; display: none }
 #front-page .top-list { float: left; margin: 2em 2em 2em 0; line-height: 1.4em }
 #front-page .top-list h3 { margin: 0 0 1em }
+#front-page .top-list a{text-decoration: none}
 
 #progress-page { padding: 3em; text-align: center; }
 #progress-page div { background-image: url("../images/progress.gif"); background-repeat: no-repeat; background-position: center; height: 20px; }
@@ -252,3 +253,7 @@ input.input-price::-webkit-outer-spin-button, input.input-price::-webkit-inner-s
 #policy-accept label { display: block; margin: 0.5em }
 #policy-accept label.highlight::after { content: " <-- Required"; color: red }
 #policy-accept input.button { margin: 0 0.5em }
+
+body.logged-out .logged-in-only { display: none }
+body.logged-in .logged-out-only { display: none }
+/* .logged-out-only { display: none } /* super sekrit */

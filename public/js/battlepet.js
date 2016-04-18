@@ -288,12 +288,11 @@ var TUJ_BattlePet = function ()
                 }
             }
 
-            var btn = libtuj.ce('input');
-            btn.type = 'button';
-            btn.value = tuj.lang.logIn;
-            $(btn).click(function(){ tuj.SetParams({page: 'subscription', id: ''}); });
-            d.appendChild(btn);
-            d.appendChild(document.createTextNode(' ' + tuj.lang.logInToFreeSub));
+            var a = libtuj.ce('a');
+            a.href = tuj.BuildHash({'page': 'subscription', 'id': undefined});
+            a.className = 'highlight';
+            a.appendChild(document.createTextNode(tuj.lang.logInToFreeSub));
+            d.appendChild(a);
         }
 
         return d;
