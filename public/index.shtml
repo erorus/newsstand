@@ -256,7 +256,43 @@
                     <div id="subscription-login" class="center"></div>
                     <div id="subscription-message" class="center"></div>
                     <div id="subscription-description">
-                        Reasons to subscribe go here.
+                        <h3>What is a Subscription to The Undermine Journal?</h3>
+                        A &quot;added subscription&quot; is your personal user account here at The Undermine Journal. There are free subscriptions and paid subscriptions, but we'll get into that later. The primary reason you would set up a subscription is for Market Notifications.
+
+                        <h3>What are Market Notifications?</h3>
+                        The Undermine Journal usually receives new data for every realm every hour. Market Notifications is a service we provide to let you know when the market changes in a way that you specify.
+                        <p>For example, if you wanted us to watch for a rare pattern, heroic item, or S/S battle pet, we can send you an email message as soon as we see it.</p>
+
+                        <h3>What kind of notifications do you send?</h3>
+                        Currently we can tell you when the quantity, market price, or price to buy any amount of an item or battle pet falls over or under a target value. Just visit the item's page and look for the "Market Notifications" section above the auctions listing.
+                        <p>In the future, we may offer rare item category notifications, and perhaps seller notifications, much like The Undermine Journal offered years ago, depending on user feedback.</p>
+
+                        <h3>How do I log in?</h3>
+                        We only accept Battle.net accounts, since everyone who visits the Auction House would have one. But don't worry, we never see your password, or even your Battle.net account address.
+                        <p>Battle.net has a login service that securely interfaces with third-party sites like The Undermine Journal. <a href="https://dev.battle.net/docs/read/log_in_with_bnet" class="highlight">You can read Blizzard's explanation of it here.</a> We don't get any account details, we can't see your billing information, and we don't even ask for your character names. All we get from Battle.net is a unique numeric identifier for your account, and your public <a href="http://us.battle.net/en/battletag/" class="highlight">BattleTag</a>.</p>
+
+                        <h3>What does a subscription cost?</h3>
+                        You can log in and get a free subscription right now. You can set your notifications and tell us your email address, and we will email you periodically with the latest events that happened since your last message and are still valid. We check the auction house for you with every data snapshot, but we will email you up to once every 8 hours.
+
+                        <h3>Only once every 8 hours? Can't you email me more often than that?</h3>
+                        We also offer a paid subscription tier, which lets you choose a frequency up to every 2 minutes. Plus, paid subscribers do not see ads (or ad substitutes) while logged in. Paid subscriptions are sold for $5.00 USD for 60 days.
+
+                        <h3>What's the full list of subscription benefits?</h3>
+                        <table class="category">
+                            <tr><th></th><th>Free Subscription</th><th>Paid Subscription</th></tr>
+                            <tr><td>Max Notifications Per Item/Pet</td><td>5</td><td>5</td></tr>
+                            <tr><td>Max Total Notifications</td><td>1,000</td><td>1,000</td></tr>
+                            <tr><td>Region-Wide Notifications</td><td>Yes</td><td>Yes</td></tr>
+                            <tr><td>Notification Periods</td><td>24, 20, 18, 16, 12 or 8 hours</td><td>Same, or 6, 4, 3, 2, 1, &frac12; hours, or ASAP</td></tr>
+                            <tr><td>Site Ads</td><td>Yes, AdSense</td><td>No Ads</td></tr>
+                            <tr><td>Cost</td><td>Free</td><td>$5.00 per 60 days</td></tr>
+                        </table>
+
+                        <h3>What about SMS notifications, or import/export strings, or other options?</h3>
+                        Just like the rest of this site, our services are always evolving, and we will consider offering more services as user demand and developer time align. <a href="http://stormspire.net/official-forum-undermine-journal/?referrerid=380" class="highlight">Please visit our forum</a> and let us know what you'd like to see!
+
+                        <h3>Anything else I should know?</h3>
+                        We offer no warranty for this service, and as always, we are reliant on the Battle.net API to obtain the data to send notifications. You should review our Terms and Privacy Policy, linked in the footer below, as you will need to confirm your acceptance of it when you log in for the first time. Finally, while the website and emails are localized in many languages, we can only offer customer support in English.
                     </div>
                     <div id="subscription-settings"></div>
                 </div>
