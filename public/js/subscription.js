@@ -710,6 +710,7 @@ var TUJ_Subscription = function ()
         $(f).append(i);
 
         i = formElements.submit = libtuj.ce('input');
+        i.className = 'battle-net';
         i.type = 'button';
         i.value = tuj.lang.logInBattleNet;
         $(i).click(FetchStateAndSubmit.bind(self, formElements, region, tuj.locale));

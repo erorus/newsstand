@@ -214,6 +214,16 @@ table.category-fish .price {border-left: 1px solid #CCC}
 #region-page #pixelmap {max-width: 1471px; width: 100%; height: auto; margin: -25px auto}
 area {outline: none}
 
+input.battle-net {
+    font-size: 125%;
+    padding: 1em;
+    padding-left: 3em;
+    background-image: url("../images/battlenet-logo.png");
+    background-repeat: no-repeat;
+    background-position: 0.25em center;
+    background-size: 2.5em;
+}
+
 #subscription-message { color: red; margin-left: 1em; font-style: italic }
 
 #subscription-settings > div { max-width: 900px; margin: 2em auto }
