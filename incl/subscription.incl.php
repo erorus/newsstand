@@ -9,6 +9,7 @@ define('SUBSCRIPTION_CSRF_COOKIE', 'csrf');
 define('SUBSCRIPTION_SESSION_LENGTH', 1209600); // 2 weeks
 
 define('SUBSCRIPTION_TERMS_UPDATED', 1460851200); // timestamp of last material change to terms/policy
+define('SUBSCRIPTION_NEW_USERS_PAID_UNTIL', 1462665600); // timestamp when new users are automatically considered paid until (May 8)
 
 define('SUBSCRIPTION_PAID_ADDS_SECONDS', 5184000); // 60 days
 define('SUBSCRIPTION_PAID_RENEW_WINDOW_DAYS', 10); // when subscription has this or fewer days remaining, allow them to renew 

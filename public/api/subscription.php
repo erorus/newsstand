@@ -269,8 +269,10 @@ function GetUserByProvider($provider, $providerId, $userName, $locale = 'enus') 
     // new user
 
     $period = SUBSCRIPTION_WATCH_DEFAULT_PERIOD;
-    $stmt = $db->prepare('INSERT INTO tblUser (name, firstseen, lastseen, watchperiod) VALUES (IFNULL(?, \'User\'), NOW(), NOW(), ?)');
-    $stmt->bind_param('si', $userName, $period);
+    $paidUntil = SUBSCRIPTION_NEW_USERS_PAID_UNTIL;
+    $paidUntil = ($paidUntil && $paidUntil > time()) ? $paidUntil : null;
+    $stmt = $db->prepare('INSERT INTO tblUser (name, firstseen, lastseen, watchperiod, paiduntil) VALUES (IFNULL(?, \'User\'), NOW(), NOW(), ?, FROM_UNIXTIME(?))');
+    $stmt->bind_param('sii', $userName, $period, $paidUntil);
     $stmt->execute();
     $stmt->close();
 
