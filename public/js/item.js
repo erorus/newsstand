@@ -132,6 +132,8 @@ var TUJ_Item = function ()
             return (dta.stats[a].level - dta.stats[b].level) || dta.stats[a]['bonustag_' + tuj.locale].localeCompare(dta.stats[b]['bonustag_' + tuj.locale]) || a - b;
         });
 
+        var fullItemName = '[' + dta.stats[bonusSet]['name_' + tuj.locale] + ']' + (dta.stats[bonusSet]['bonustag_' + tuj.locale] ? ' ' + dta.stats[bonusSet]['bonustag_' + tuj.locale] : '');
+
         var ta = libtuj.ce('a');
         ta.href = 'http://' + tuj.lang.wowheadDomain + '.wowhead.com/item=' + itemId + (bonusUrl ? '&bonus=' + bonusUrl.replace('.', ':') : '');
         ta.target = '_blank';
@@ -139,10 +141,10 @@ var TUJ_Item = function ()
         var timg = libtuj.ce('img');
         ta.appendChild(timg);
         timg.src = libtuj.IconURL(dta.stats[bonusSet].icon, 'large');
-        ta.appendChild(document.createTextNode('[' + dta.stats[bonusSet]['name_' + tuj.locale] + ']' + (dta.stats[bonusSet]['bonustag_' + tuj.locale] ? ' ' + dta.stats[bonusSet]['bonustag_' + tuj.locale] : '')));
+        ta.appendChild(document.createTextNode(fullItemName));
 
         $('#page-title').empty().append(ta);
-        tuj.SetTitle('[' + dta.stats[bonusSet]['name_' + tuj.locale] + ']' + (dta.stats[bonusSet]['bonustag_' + tuj.locale] ? ' ' + dta.stats[bonusSet]['bonustag_' + tuj.locale] : ''));
+        tuj.SetTitle(fullItemName);
 
         if (bonusSets.length > 1) {
             d = libtuj.ce();
@@ -289,20 +291,7 @@ var TUJ_Item = function ()
             ItemGlobalNowScatter(dta, cht);
         }
 
-        if (tuj.LoggedInUserName()) {
-            d = libtuj.ce();
-            d.className = 'chart-section';
-            d.style.display = 'none';
-            h = libtuj.ce('h2');
-            d.appendChild(h);
-            $(h).text(tuj.lang.marketNotifications);
-            d.appendChild(document.createTextNode(tuj.lang.marketNotificationsDesc));
-            cht = libtuj.ce();
-            cht.className = 'notifications-insert';
-            d.appendChild(cht);
-            itemPage.append(d);
-            GetItemNotificationsList(itemId, bonusSets.length > 1 ? bonusSet : -1, d);
-        }
+        itemPage.append(MakeNotificationsSection(dta, fullItemName));
 
         if (dta.auctions.hasOwnProperty(bonusSet) && dta.auctions[bonusSet].length) {
             d = libtuj.ce();
@@ -326,6 +315,60 @@ var TUJ_Item = function ()
         }
 
         libtuj.Ads.Show();
+    }
+
+    function MakeNotificationsSection(data, fullItemName)
+    {
+        var d = libtuj.ce();
+        d.className = 'chart-section';
+        var h = libtuj.ce('h2');
+        d.appendChild(h);
+        $(h).text(tuj.lang.marketNotifications);
+        if (tuj.LoggedInUserName()) {
+            d.style.display = 'none';
+            d.appendChild(document.createTextNode(tuj.lang.marketNotificationsDesc));
+            var cht = libtuj.ce();
+            cht.className = 'notifications-insert';
+            d.appendChild(cht);
+            GetItemNotificationsList(itemId, bonusSets.length > 1 ? bonusSet : -1, d);
+        } else {
+            d.className += ' logged-out-only';
+
+            var globalQty = 0;
+            if (data.globalnow.hasOwnProperty(bonusSet) && data.globalnow[bonusSet].length) {
+                for (var x = 0, row; row = data.globalnow[bonusSet][x]; x++) {
+                    globalQty += row.quantity;
+                }
+            }
+
+            if (globalQty < 200) {
+                d.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.wantToKnowAvailAnywhere, fullItemName) + ' '));
+            } else if (data.stats.hasOwnProperty(bonusSet)) {
+                if (data.stats[bonusSet].quantity < 5) {
+                    d.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.wantToKnowAvail, fullItemName) + ' '));
+                } else if (data.history.hasOwnProperty(bonusSet) && data.history[bonusSet].length > 8) {
+                    var prices = [];
+                    for (var x = 0; x < data.history[bonusSet].length; x++) {
+                        prices.push(data.history[bonusSet][x].price);
+                    }
+                    var priceMean = libtuj.Mean(prices);
+                    var priceStdDev = libtuj.StdDev(prices, priceMean);
+
+                    if (priceMean > 10000 && priceMean > (priceStdDev / 2)) {
+                        d.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.wantToKnowPrice, fullItemName, libtuj.FormatPrice(priceMean - (priceStdDev / 2), true, true)) + ' '));
+                    }
+                }
+            }
+
+            var btn = libtuj.ce('input');
+            btn.type = 'button';
+            btn.value = tuj.lang.logIn;
+            $(btn).click(function(){ tuj.SetParams({page: 'subscription', id: ''}); });
+            d.appendChild(btn);
+            d.appendChild(document.createTextNode(' ' + tuj.lang.logInToFreeSub));
+        }
+
+        return d;
     }
 
     function ItemStats(data, dest)

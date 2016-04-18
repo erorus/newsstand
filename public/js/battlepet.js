@@ -224,20 +224,7 @@ var TUJ_BattlePet = function ()
             BattlePetGlobalNowScatter(dta, cht);
         }
 
-        if (tuj.LoggedInUserName()) {
-            d = libtuj.ce();
-            d.className = 'chart-section';
-            d.style.display = 'none';
-            h = libtuj.ce('h2');
-            d.appendChild(h);
-            $(h).text(tuj.lang.marketNotifications);
-            d.appendChild(document.createTextNode(tuj.lang.marketNotificationsDesc));
-            cht = libtuj.ce();
-            cht.className = 'notifications-insert';
-            d.appendChild(cht);
-            battlePetPage.append(d);
-            GetBattlePetNotificationsList(speciesId, breedId ? breedId : -1, d);
-        }
+        battlePetPage.append(MakeNotificationsSection(dta, ttl));
 
         if (dta.auctions.length) {
             d = libtuj.ce();
@@ -256,6 +243,60 @@ var TUJ_BattlePet = function ()
         }
 
         libtuj.Ads.Show();
+    }
+
+    function MakeNotificationsSection(data, fullPetName)
+    {
+        var d = libtuj.ce();
+        d.className = 'chart-section';
+        var h = libtuj.ce('h2');
+        d.appendChild(h);
+        $(h).text(tuj.lang.marketNotifications);
+        if (tuj.LoggedInUserName()) {
+            d.style.display = 'none';
+            d.appendChild(document.createTextNode(tuj.lang.marketNotificationsDesc));
+            var cht = libtuj.ce();
+            cht.className = 'notifications-insert';
+            d.appendChild(cht);
+            GetBattlePetNotificationsList(speciesId, breedId ? breedId : -1, d);
+        } else {
+            d.className += ' logged-out-only';
+
+            var globalQty = 0;
+            if (data.globalnow.hasOwnProperty(breedId) && data.globalnow[breedId].length) {
+                for (var x = 0, row; row = data.globalnow[breedId][x]; x++) {
+                    globalQty += row.quantity;
+                }
+            }
+
+            if (globalQty < 100) {
+                d.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.wantToKnowAvailAnywhere, fullPetName) + ' '));
+            } else if (data.stats) {
+                if (data.stats.quantity < 5) {
+                    d.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.wantToKnowAvail, fullPetName) + ' '));
+                } else if (data.history.hasOwnProperty(breedId) && data.history.length > 8) {
+                    var prices = [];
+                    for (var x = 0; x < data.history.length; x++) {
+                        prices.push(data.history[x].price);
+                    }
+                    var priceMean = libtuj.Mean(prices);
+                    var priceStdDev = libtuj.StdDev(prices, priceMean);
+
+                    if (priceMean > 10000 && priceMean > (priceStdDev / 2)) {
+                        d.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.wantToKnowPrice, fullPetName, libtuj.FormatPrice(priceMean - (priceStdDev / 2), true, true)) + ' '));
+                    }
+                }
+            }
+
+            var btn = libtuj.ce('input');
+            btn.type = 'button';
+            btn.value = tuj.lang.logIn;
+            $(btn).click(function(){ tuj.SetParams({page: 'subscription', id: ''}); });
+            d.appendChild(btn);
+            d.appendChild(document.createTextNode(' ' + tuj.lang.logInToFreeSub));
+        }
+
+        return d;
     }
 
     function BattlePetBreedData(dtaAll, breeds)

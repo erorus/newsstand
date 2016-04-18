@@ -438,6 +438,10 @@
 
     "marketNotifications": "Market Notifications",
     "marketNotificationsDesc": "Tell us here how you want to be notified when the market changes.",
+    "wantToKnowAvailAnywhere": "Want to know when {1} is available on any realm?",
+    "wantToKnowAvail": "Want to know when {1} is available?",
+    "wantToKnowPrice": "Want to know when {1} costs less than {2}?",
+    "logInToFreeSub": "to a free subscription and set up some notifications!",
     "notifyMeWhen": "Notify me when: ",
     "priceToBuy": "Price to Buy",
     "under": "Under",

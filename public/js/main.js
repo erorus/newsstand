@@ -859,7 +859,12 @@ var TUJ = function ()
         });
     };
 
-    this.LogOut = function(callback) {
+    this.LogOut = function(callbackOrEvent) {
+        var callback;
+        if (typeof callbackOrEvent == 'function') {
+            callback = callbackOrEvent;
+        }
+        
         $.ajax({
             data: {
                 'logout': 1
@@ -1107,7 +1112,7 @@ var TUJ = function ()
             var loginLink = $('<a>');
             loginLink[0].href = self.BuildHash({page: 'subscription', id: ''});
             loginLink.text(self.lang.logIn);
-            $('#login-info').empty().append(loginLink);
+            $('#login-info').removeClass('logged-in-only').addClass('logged-out-only').empty().append(loginLink);
         } else {
             var logoutLink = libtuj.ce('input');
             logoutLink.type = 'button';
@@ -1118,7 +1123,7 @@ var TUJ = function ()
             subLink[0].href = self.BuildHash({page: 'subscription', id: ''});
             subLink.text(loggedInUser.name);
 
-            $('#login-info').empty().append(subLink).append(logoutLink);
+            $('#login-info').removeClass('logged-out-only').addClass('logged-in-only').empty().append(subLink).append(logoutLink);
         }
 
         var contactLink = $('#bottom-bar a.contact');
