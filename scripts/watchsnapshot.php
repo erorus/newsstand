@@ -229,7 +229,7 @@ function ParseAuctionData($house, $snapshot, &$json)
     $updateObserved = [];
     $watchesCount = 0;
     $sql = <<<'EOF'
-select uw.`user`, uw.seq, uw.item, uw.bonusset, uw.species, uw.breed, uw.direction, uw.quantity, uw.price,
+select uw.`user`, uw.seq, uw.house, uw.item, uw.bonusset, uw.species, uw.breed, uw.direction, uw.quantity, uw.price,
     if(uw.observed is null, 0, 1) isset, if(uw.reported > uw.observed, 1, 0) wasreported
 from tblUserWatch uw
 join tblUser u on uw.user = u.id
@@ -288,7 +288,7 @@ EOF;
             }
         }
         if ($watchSatisfied === false) {
-            if ($row['isset']) {
+            if ($row['isset'] && ($row['house'] == $house)) {
                 $watchesUnset[$row['user']][] = $row['seq'];
                 $watchesUnsetCount++;
             }
