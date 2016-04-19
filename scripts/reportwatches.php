@@ -150,6 +150,7 @@ EOF;
     $sql = sprintf($sql, $locale, $LANG_LEVEL['__LEVEL_'.$locale.'__'], $itemClassOrderSql);
 
     $prevHouse = false;
+    $houseCount = 0;
     $updateSeq = [];
     $lastItem = '';
 
@@ -161,6 +162,7 @@ EOF;
     while ($row = $result->fetch_assoc()) {
         $updateSeq[] = $row['seq'];
         if ($prevHouse !== $row['house']) {
+            $houseCount++;
             $prevHouse = $row['house'];
             $message .= '<br><b>' . $houseNameCache[$prevHouse]['names'] . '</b><br><br>';
         }
@@ -230,6 +232,9 @@ EOF;
         $subject = $lastItem;
     } else {
         $subject = '' . count($updateSeq) . ' ' . $LANG['marketNotifications'];
+    }
+    if ($houseCount == 1) {
+        $subject .= ' - ' . $houseNameCache[$prevHouse]['names'];
     }
 
     SendUserMessage($userId, 'marketnotification', $subject, $message);
