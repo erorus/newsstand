@@ -23,7 +23,7 @@ if (APIMaintenance()) {
     exit;
 }
 
-$stmt = $db->prepare('SELECT house, group_concat(concat_ws(\' \', region, name) order by 1 separator \', \') names, min(region) region, min(slug) slug from tblRealm group by house');
+$stmt = $db->prepare('SELECT house, group_concat(concat_ws(\' \', region, name) order by 1 separator \', \') names, min(region) region, min(slug) slug from tblRealm where locale is not null group by house');
 $stmt->execute();
 $result = $stmt->get_result();
 $houseNameCache = DBMapArray($result);
@@ -221,7 +221,7 @@ EOF;
         $hoursNext = round((max(intval($userRow['watchperiod'],10), SUBSCRIPTION_WATCH_MIN_PERIOD)+5)/60, 1);
     }
 
-    if ($hoursNext > 0) {
+    if ($hoursNext > 0.3) {
         $hoursNext = sprintf(preg_replace('/\{(\d+)\}/', '%$1$s', $LANG['timeFuture']), $hoursNext . ' ' . ($hoursNext == 1 ? $LANG['timeHour'] : $LANG['timeHours']));
         $message .= ' ' . sprintf(preg_replace('/\{(\d+)\}/', '%$1$s', $LANG['notificationPeriodNext']), $hoursNext);
     }
