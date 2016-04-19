@@ -510,11 +510,10 @@ function GetMarketPrice(&$info, $inBuyCount = 0)
             $gp += $auc;
         }
     }
-    $price = ceil($gp / $gq);
     if (!$inBuyCount) {
-        $info[ARRAY_INDEX_MARKETPRICE] = $price;
+        return $info[ARRAY_INDEX_MARKETPRICE] = ceil($gp / $gq);
     }
-    return $price;
+    return $gp; // returns full price to buy $gq
 }
 
 function DBQueryWithError(&$db, $sql)
