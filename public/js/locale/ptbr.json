@@ -383,5 +383,95 @@
         "5": "Mágico",
         "9": "Mecânico",
         "3": "Morto-vivo"
-    }
+    },
+
+    "subscription": "Subscription",
+    "paidSubscription": "Paid Subscription",
+    "freeSubscription": "Free Subscription",
+
+    "logIn": "Log in",
+    "logOut": "Log out",
+
+    "logInBattleNet": "Log in with Battle.net",
+    "loggedInAs": "You are logged in as <b>{1}</b>.",
+    "SubscriptionErrors": {
+        "statesetup": "Error setting up login, please try again later.",
+        "nohttps": "Error: We could not establish HTTPS connection.",
+        "nosession": "Error: we could not make a new user session. Please try again.",
+        "nostate": "Error: We could not find the state returned by Battle.net. Please try again.",
+        "notoken": "Error: Battle.net returned no access token response. Please try again.",
+        "badtoken": "Error: Battle.net returned an invalid access token response. Please try again.",
+        "missingtoken": "Error: Battle.net did not return an access token. Please try again.",
+        "nouser": "Error: Battle.net returned no response when requesting your user ID with the access token. Please try again.",
+        "baduser": "Error: Battle.net returned an invalid response when requesting your user ID with the access token. Please try again.",
+        "missinguser": "Error: Battle.net returned an incomplete response when requesting your user ID with the access token. Please try again.",
+        "nodata": "Error fetching subscription data, please try again.",
+        "paidcancel": "You've cancelled the payment process. No changes have been made to your subscription.",
+        "paidfinish": "Thank you for your payment. Your subscription should be updated momentarily.",
+        "paiderror": "There was an issue processing your payment.<br>If your paid subscription is not extended soon, please contact us via the Contact link at the bottom of the page."
+    },
+
+    "emailFooter": "This email was sent by request from <a href=\"%s\">The Undermine Journal</a> at theunderminejournal.com. If you reply to this email, your address (%s) will be removed from any and all accounts on our site.",
+    "emailBlocklistHTML": "If you want never to receive email from The Undermine Journal again, you can <a href=\"%s\">click here to be added to our blocklist</a>.",
+    "emailBlocklistText": "If you want never to receive email from The Undermine Journal again, you can visit %s and enter this message ID: %s.",
+
+    "confirmPolicyAcceptance": "Please confirm your acceptance of our Terms of Service and Privacy Policy.",
+    "acceptPolicyCheckbox": "I accept the Terms of Service and Privacy Policy",
+    "acceptSupportEnglish": "I accept that support requests must be serviced in the English language.",
+
+    "EmailStatus": {
+        "unknown": "Unknown error, please try again.",
+        "success": "Your Email address is updated.",
+        "verify": "Check your mail, and enter the verification code we sent to your address."
+    },
+    "subMessageFetchError": "Error fetching message, please try again.",
+    "contactInformation": "Contact Information",
+    "emailAddress": "Email Address",
+    "setAddress": "Set Address",
+    "setAddressInstruction": "All our messages and notifications to you will be shown in the section above.<br>You can also set your contact information here to have those messages sent to your address.",
+    "emailVerification": "Verification Code",
+    "verifyAddress": "Verify Address",
+    "emailVerificationMessage": "We received your request for us to Email you at this address. Please <a href=\"https://theunderminejournal.com/#subscription\">log in to The Undermine Journal</a> and enter this verification code:<br><br><b>%s</b>",
+    "emailAddressUpdated": "Email Address Updated",
+    "emailAddressUpdatedMessage": "We updated your email address per your request.<br><br>Please check your mail at %s and enter the verification code which we sent there.",
+    "emailAddressRemoved": "Email Address Removed",
+    "emailAddressRemovedMessage": "We removed your email address from our system per your request.",
+    "emailAddressRemovedError": "We removed your old email address from our system, but failed to replace it with the new address you specified.",
+    "emailAddressRemovedBounce": "We removed your email address %s from our system because we received a reply or bounce-back from your mail server, or because you have chosen to block your address from our system.",
+    "emailVerificationResent": "Email Verification Resent",
+    "emailVerificationResentMessage": "We re-sent the verification code to your email per your request.<br><br>Please check your mail at %s and enter the verification code which we sent there.",
+    "emailAddressVerified": "Email Address Verified",
+    "emailAddressVerifiedMessage": "You successfully verified your control over the address %s, and The Undermine Journal will send all your future messages there.",
+
+    "marketNotifications": "Market Notifications",
+    "marketNotificationsDesc": "Tell us here how you want to be notified when the market changes.",
+    "wantToKnowAvailAnywhere": "Want to know when {1} is available on any realm?",
+    "wantToKnowAvail": "Want to know when {1} is available?",
+    "wantToKnowPrice": "Want to know when {1} costs less than {2}?",
+    "logInToFreeSub": "Log in to a free subscription and set up some notifications!",
+    "notifyMeWhen": "Notify me when: ",
+    "priceToBuy": "Price to Buy",
+    "under": "Under",
+    "over": "Over",
+    "add": "Add",
+    "delete": "Delete",
+    "now": "Now",
+    "quantityUnderZero": "Quantity is never under zero.",
+    "priceAboveZero": "Price is always above zero.",
+
+    "subscriptionWelcomeSubject": "Enjoy your subscription!",
+    "subscriptionWelcomeMessage": "Welcome to your Subscription page at <nobr>The Undermine Journal</nobr>. Thanks for logging in.<br/><br/>On this page, you can find all the recent messages we've sent to you, along with your notifications and other site settings.",
+    "notificationsMessage": "The items above have reached thresholds that you've set. Notifications for these events will automatically reset when the market condition is no longer observed, and you will be notified when they happen again after that. To update your notifications or email preferences, please <a href=\"https://theunderminejournal.com/#subscription\">log in to your subscription</a>.",
+    "subscriptionTimeAddedMessage": "Your paid subscription has been extended.",
+    "subscriptionTimeRemovedMessage": "Your paid subscription time has been reduced, probably due to a refund or a transaction reversal. If this was not your intent, please <a href=\"https://theunderminejournal.com/#subscription\">log in to your subscription</a> and contact us via the Contact form.",
+
+    "paidExpires": "Your account's paid subscription expires {1}.",
+    "freeSubscriptionAccount": "Your account is on the free subscription tier.",
+    "clickToExtendSubscription": "Click below to extend your paid subscription by {1} days for {2}.",
+
+    "notificationPeriod": "Notification Period",
+    "notificationPeriodDesc": "Select how much time you prefer between each Market Notifications message.",
+    "notificationPeriodNext": "Your next message will be generated {1}.",
+    "asap": "ASAP",
+    "paidOnly": "Paid Only"
 }

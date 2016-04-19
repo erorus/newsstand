@@ -389,9 +389,8 @@
     "paidSubscription": "Paid Subscription",
     "freeSubscription": "Free Subscription",
 
-    "confirmPolicyAcceptance": "Please confirm your acceptance of our Terms of Service and Privacy Policy.",
-    "acceptPolicyCheckbox": "I accept the Terms of Service and Privacy Policy",
-    "acceptSupportEnglish": "I accept that support requests must be serviced in the English language.",
+    "logIn": "Log in",
+    "logOut": "Log out",
 
     "logInBattleNet": "Log in with Battle.net",
     "loggedInAs": "You are logged in as <b>{1}</b>.",
@@ -411,6 +410,14 @@
         "paidfinish": "Thank you for your payment. Your subscription should be updated momentarily.",
         "paiderror": "There was an issue processing your payment.<br>If your paid subscription is not extended soon, please contact us via the Contact link at the bottom of the page."
     },
+
+    "emailFooter": "This email was sent by request from <a href=\"%s\">The Undermine Journal</a> at theunderminejournal.com. If you reply to this email, your address (%s) will be removed from any and all accounts on our site.",
+    "emailBlocklistHTML": "If you want never to receive email from The Undermine Journal again, you can <a href=\"%s\">click here to be added to our blocklist</a>.",
+    "emailBlocklistText": "If you want never to receive email from The Undermine Journal again, you can visit %s and enter this message ID: %s.",
+
+    "confirmPolicyAcceptance": "Please confirm your acceptance of our Terms of Service and Privacy Policy.",
+    "acceptPolicyCheckbox": "I accept the Terms of Service and Privacy Policy",
+    "acceptSupportEnglish": "I accept that support requests must be serviced in the English language.",
 
     "EmailStatus": {
         "unknown": "Unknown error, please try again.",
@@ -466,12 +473,5 @@
     "notificationPeriodDesc": "Select how much time you prefer between each Market Notifications message.",
     "notificationPeriodNext": "Your next message will be generated {1}.",
     "asap": "ASAP",
-    "paidOnly": "Paid Only",
-
-    "logIn": "Log in",
-    "logOut": "Log out",
-
-    "emailFooter": "This email was sent by request from <a href=\"%s\">The Undermine Journal</a> at theunderminejournal.com. If you reply to this email, your address (%s) will be removed from any and all accounts on our site.",
-    "emailBlocklistHTML": "If you want never to receive email from The Undermine Journal again, you can <a href=\"%s\">click here to be added to our blocklist</a>.",
-    "emailBlocklistText": "If you want never to receive email from The Undermine Journal again, you can visit %s and enter this message ID: %s."
+    "paidOnly": "Paid Only"
 }
