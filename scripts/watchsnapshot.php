@@ -253,7 +253,7 @@ EOF;
         $watchSatisfied = false;
         $watchesCount++;
         if ($row['item']) {
-            $itemInfoKey = $row['item'] . ($row['bonusset'] ?: 0);
+            $itemInfoKey = $row['item'] . ':' . ($row['bonusset'] ?: 0);
             if (!isset($itemBuyouts[$itemInfoKey])) {
                 // none of this item for sale
                 if (is_null($row['quantity'])) {
