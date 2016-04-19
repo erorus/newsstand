@@ -661,6 +661,10 @@ function SetWatch($loginState, $type, $item, $bonusSet, $region, $house, $direct
             }
         } else {
             // cost to buy $quantity is $direction $price
+            if ($quantity == 0) {
+                // must buy at least 1
+                return false;
+            }
             if ($price == 0 && $direction == 'Under') {
                 // price never under 0
                 return false;

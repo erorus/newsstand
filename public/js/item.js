@@ -966,6 +966,10 @@ var TUJ_Item = function ()
                 }
             } else {
                 // cost to buy $quantity is $direction $price
+                if (o.quantity == 0) {
+                    alert(tuj.lang.buyMoreThanZero);
+                    return;
+                }
                 if (o.price == 0) {
                     alert(tuj.lang.priceAboveZero);
                     return;
