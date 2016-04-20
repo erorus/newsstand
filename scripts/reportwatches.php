@@ -31,7 +31,7 @@ $stmt->close();
 
 $loopStart = time();
 $toSleep = 0;
-while ((!$caughtKill) && (time() < ($loopStart + 60 * 30))) {
+while ((!$caughtKill) && (time() < ($loopStart + 60 * 30 - 25))) {
     heartbeat();
     sleep(min($toSleep, 20));
     if ($caughtKill || APIMaintenance()) {
