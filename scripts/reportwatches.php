@@ -249,7 +249,7 @@ EOF;
 function FormatPrice($amt, &$LANG) {
     $amt = round($amt);
     if ($amt >= 100) {// 1s
-        $g = number_format($amt / 10000, 2, $LANG['decimalPoint'], $LANG['thousandsSep']);
+        $g = number_format($amt / 10000, $amt % 10000 == 0 ? 0 : 2, $LANG['decimalPoint'], $LANG['thousandsSep']);
         $v = '' . $g . $LANG['suffixGold'];
     } else {
         $c = $amt;
