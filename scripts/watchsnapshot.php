@@ -358,11 +358,7 @@ function WatchSatisfied(&$itemAuctions, $direction, $quantity, $price) {
         $curPrice = GetMarketPrice($itemAuctions, $quantity);
         if (is_null($curPrice)) {
             // fewer than $quantity are available
-            if ($direction == 'Over') {
-                return $curPrice; // watch is satisfied (price to buy $quantity is over $price) but $curPrice is infinite
-            } else {
-                return false; // watch is not satisfied (price to buy $quantity is not under $price)
-            }
+            return false;
         }
         if (   (($direction == 'Over') && ($curPrice > $price))
             || (($direction != 'Over') && ($curPrice < $price))) {
@@ -491,6 +487,9 @@ function GetMarketPrice(&$info, $inBuyCount = 0)
     if (!$inBuyCount) {
         if (isset($info[ARRAY_INDEX_MARKETPRICE])) {
             return $info[ARRAY_INDEX_MARKETPRICE];
+        }
+        if ($info[ARRAY_INDEX_QUANTITY] == 0) {
+            return null;
         }
     } elseif ($info[ARRAY_INDEX_QUANTITY] < $inBuyCount) {
         return null;
