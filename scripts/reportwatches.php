@@ -86,9 +86,12 @@ EOF;
 
     $db->commit();
 
-    $overdue = is_null($row['watchesreported']) ? strtotime($row['watchesobserved']) : (strtotime($row['watchesreported']) + $row['watchperiod'] * 60);
+    $expectedReport = strtotime($row['watchesobserved']);
+    if (!is_null($row['watchesreported'])) {
+        $expectedReport = max($expectedReport, max((is_null($row['paiduntil']) || strtotime($row['paiduntil']) < time()) ? SUBSCRIPTION_WATCH_MIN_PERIOD_FREE : SUBSCRIPTION_WATCH_MIN_PERIOD, $row['watchperiod']) * 60 + strtotime($row['watchesreported']));
+    }
     DebugMessage("User " . str_pad($row['id'], 7, ' ', STR_PAD_LEFT) . " (" . $row['name'] . ') checking for new watches, overdue by ' . TimeDiff(
-            $overdue, array(
+            $expectedReport, array(
                 'parts'     => 2,
                 'precision' => 'second'
             )
