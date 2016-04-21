@@ -373,6 +373,14 @@ var TUJ_Subscription = function ()
             byHouse[houseKey][classKey].push(w[k]);
         }
         if (!hasWatches) {
+            var h = libtuj.ce('h3');
+            dest.appendChild(h);
+            $(h).text(tuj.lang.marketNotifications);
+
+            var d = libtuj.ce('div');
+            dest.appendChild(d);
+            d.className = 'instruction';
+            $(d).text(tuj.lang.visitItemPages);
             return;
         }
 
