@@ -172,6 +172,7 @@ function ParseAuctionData($house, $snapshot, &$json)
     $lowMax = -1;
     $highMax = -1;
     $hasRollOver = false;
+    $needsRareCheck = false;
 
     $jsonAuctions = [];
     if (isset($json['auctions']['auctions'])) {
@@ -450,7 +451,8 @@ and a.item not in (82800)
 and ifnull(tis.lastseen, '2000-01-01') < timestampadd(day,-14,'%s'))
 EOF;
         $sql = sprintf($sql, $house, $lastMax, $hasRollOver ? ' and a.id < 0x20000000 ' : '', $snapshotString);
-        DBQueryWithError($ourDb, $sql);
+        $needsRareCheck = DBQueryWithError($ourDb, $sql);
+        $needsRareCheck &= $ourDb->affected_rows > 0;
     }
 
     foreach ($existingIds as &$oldRow) {
@@ -561,6 +563,23 @@ EOF;
         if ($sql != '') {
             DBQueryWithError($ourDb, $sql . ')');
         }
+    }
+
+    if ($needsRareCheck) {
+        $sql = <<<'EOF'
+update tblUser
+set neededrarecheck = ?
+where ifnull(neededrarecheck, now()) > ?
+and id in (
+    select distinct user
+    from tblUserRare
+    where house = ?
+)
+EOF;
+        $stmt = $ourDb->prepare($sql);
+        $stmt->bind_param('ssi', $snapshotString, $snapshotString, $house);
+        $stmt->execute();
+        $stmt->close();
     }
 
     $ourDb->close();
