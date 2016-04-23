@@ -329,7 +329,7 @@ from (
 left join tblBonusSet bs on z.bonusset = bs.`set`
 left join tblDBCItemBonus ib on ifnull(bs.bonus, z.basebonus) = ib.id
 group by z.house, z.item, z.bonusset
-order by house, classorder, prevseen, name, bonustag;
+order by house, prevseen, classorder, name, bonustag;
 EOF;
 
     $sql = sprintf($sql, $locale, $LANG_LEVEL['__LEVEL_'.$locale.'__'], $itemClassOrderSql);

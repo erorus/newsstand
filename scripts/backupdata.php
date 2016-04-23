@@ -30,6 +30,7 @@ $tables = [
         'tblUser'               => '1=1',
         'tblUserAuth'           => '1=1',
         'tblUserMessages'       => '1=1',
+        'tblUserRare'           => '1=1',
         'tblUserSession'        => '1=1',
         'tblUserWatch'          => '1=1',
     ]
