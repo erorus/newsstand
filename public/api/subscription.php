@@ -113,6 +113,19 @@ if (isset($_POST['deletewatch'])) {
     json_return([]);
 }
 
+if (isset($_POST['setrare'])) {
+    json_return(SetRareWatch($loginState,
+        $_POST['setrare'],
+        isset($_POST['quality']) ? intval($_POST['quality'], 10) : 0,
+        isset($_POST['itemclass']) ? intval($_POST['itemclass'], 10) : null,
+        isset($_POST['minlevel']) ? intval($_POST['minlevel'], 10) : null,
+        isset($_POST['maxlevel']) ? intval($_POST['maxlevel'], 10) : null,
+        isset($_POST['crafted']) ? !!intval($_POST['crafted'], 10) : false,
+        isset($_POST['vendor']) ? !!intval($_POST['vendor'], 10) : false,
+        isset($_POST['days']) ? intval($_POST['days'], 10) : null
+        ));
+}
+
 if (isset($_POST['getrare'])) {
     json_return(GetRareWatches($loginState, $_POST['getrare']));
 }
@@ -1040,16 +1053,77 @@ function GetRareWatches($loginState, $house = 0)
     return ['maximum' => min($allWatches['maximum'], ($house ? SUBSCRIPTION_RARE_LIMIT_HOUSE : SUBSCRIPTION_RARE_LIMIT_TOTAL) - count($json)), 'watches' => $json];
 }
 
-function SetRareWatch($loginState, $house) {
+function SetRareWatch($loginState, $house, $quality, $itemClass, $minLevel, $maxLevel, $crafted, $vendor, $days) {
     $userId = $loginState['id'];
 
     $house = intval($house, 10);
 
+    $fail = false;
+    $fail |= $quality < 0;
+    $fail |= $quality > 5;
+    $fail |= $itemClass <= 0;
+    $fail |= $itemClass >= 30;
+    if ($maxLevel == 0 || $maxLevel == 999) {
+        $maxLevel = null;
+    }
+    if ($minLevel == 0) {
+        $minLevel = null;
+    }
+    if ($maxLevel < $minLevel) {
+        $maxLevel = $minLevel;
+    }
+    $fail |= $maxLevel < 0;
+    $fail |= $minLevel < 0;
+    $fail |= $maxLevel > 999;
+    $fail |= $minLevel > 999;
+    $fail |= $days < 1;
+    $fail |= $days > 730;
 
-    // TODO
+    if (!$fail) {
+        $sql = <<<'EOF'
+select max(s)
+from (
+    select min(seq) + 1 s
+    from tblUserRare ur
+    where ur.user = ?
+    and not exists (
+        select 1
+        from tblUserRare ur2
+        where ur2.user = ur.user
+        and ur2.seq = ur.seq + 1
+        )
+    union
+    select 1
+    from (select 1) r
+    where (select count(*) from tblUserRare where user = ?) = 0
+) x
+EOF;
 
-    MCDelete(SUBSCRIPTION_RARE_CACHEKEY . $userId . '_' . $house);
-    MCDelete(SUBSCRIPTION_RARE_CACHEKEY . $userId . '_0');
+        $db = DBConnect();
+        $db->begin_transaction();
+        $stmt = $db->prepare($sql);
+        $stmt->bind_param('ii', $userId, $userId);
+        $newId = null;
+        $stmt->execute();
+        $stmt->bind_result($newId);
+        if (!$stmt->fetch()) {
+            $newId = null;
+        }
+        $stmt->close();
+
+        if (!is_null($newId)) {
+            $stmt = $db->prepare('insert into tblUserRare (user, seq, house, itemclass, minquality, minlevel, maxlevel, flags, days) values (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+            $flags = ($crafted ? 1 : 0) | ($vendor ? 2 : 0);
+            $stmt->bind_param('iiiiiiiii', $userId, $newId, $house, $itemClass, $quality, $minLevel, $maxLevel, $flags, $days);
+            $stmt->execute();
+            $stmt->close();
+        }
+
+        $db->commit();
+
+        MCDelete(SUBSCRIPTION_RARE_CACHEKEY . $userId . '_' . $house);
+        MCDelete(SUBSCRIPTION_RARE_CACHEKEY . $userId . '_0');
+    }
 
     return GetRareWatches($loginState, $house);
 }

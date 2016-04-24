@@ -111,6 +111,48 @@ var TUJ_Category = function ()
         return t;
     }
 
+    function RareNotificationsAdd(house, mainDiv, qualityBox, classBox, minLevelBox, maxLevelBox, craftedCheck, vendorCheck, daysBox)
+    {
+        var self = this;
+        var quality = qualityBox.options[qualityBox.selectedIndex].value;
+        var itemClass = classBox.options[classBox.selectedIndex].value;
+
+        var minLevel = parseInt(minLevelBox.value,10);
+        if (isNaN(minLevel)) {
+            minLevel = '';
+        }
+        minLevelBox.value = minLevel;
+
+        var maxLevel = parseInt(maxLevelBox.value,10);
+        if (isNaN(maxLevel)) {
+            maxLevel = '';
+        }
+        maxLevelBox.value = maxLevel;
+
+        var crafted = craftedCheck.checked ? 1 : 0;
+        var vendor = vendorCheck.checked ? 1 : 0;
+
+        var days = parseInt(daysBox.value,10);
+        if (isNaN(days)) {
+            days = '14';
+        }
+        daysBox.value = days;
+
+        tuj.SendCSRFProtectedRequest({
+            data: {
+                'setrare': house,
+                'quality': quality,
+                'itemclass': itemClass,
+                'minlevel': minLevel,
+                'maxlevel': maxLevel,
+                'crafted': crafted,
+                'vendor': vendor,
+                'days': days,
+            },
+            success: RareNotificationsList.bind(self, house, mainDiv),
+        });
+    }
+
     function RareNotificationsDel(house, mainDiv, id)
     {
         var self = this;
@@ -192,13 +234,135 @@ var TUJ_Category = function ()
         }
 
         // add new notifications
-        /*
+        var newNotif = libtuj.ce('div');
+        newNotif.className = 'notifications-add';
+        dest.appendChild(newNotif);
+
+        newNotif.appendChild(document.createTextNode(tuj.lang.tellMeAboutNewAuctions));
+
+        var t = libtuj.ce('table');
+        newNotif.appendChild(t);
+
+        var tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        var td = libtuj.ce('td');
+        tr.appendChild(td);
+        td.appendChild(document.createTextNode(tuj.lang.quality + ': '));
+        td = libtuj.ce('td');
+        tr.appendChild(td);
+        var qualityBox = libtuj.ce('select');
+        for (var x = 0; x <= 5; x++) {
+            var opt = libtuj.ce('option');
+            opt.value = x;
+            opt.label = tuj.lang.qualities[x] + ' ' + tuj.lang.orBetter;
+            opt.appendChild(document.createTextNode(tuj.lang.qualities[x] + ' ' + tuj.lang.orBetter));
+            qualityBox.appendChild(opt);
+        }
+        td.appendChild(qualityBox);
+
+        var tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        var td = libtuj.ce('td');
+        tr.appendChild(td);
+        td.appendChild(document.createTextNode(tuj.lang['class'] + ': '));
+        td = libtuj.ce('td');
+        tr.appendChild(td);
+        var classBox = libtuj.ce('select');
+        td.appendChild(classBox);
+        var watchClasses = [2, 4, 9, 7, 0, 5, 3, 16, 1, 17, 12, 13]; // see tujConstants.itemClassOrder
+        for (var x = 0; x < watchClasses.length; x++) {
+            if (!tuj.lang.itemClasses.hasOwnProperty(watchClasses[x])) {
+                continue;
+            }
+            var opt = libtuj.ce('option');
+            opt.value = watchClasses[x];
+            opt.label = tuj.lang.itemClasses[watchClasses[x]];
+            opt.appendChild(document.createTextNode(tuj.lang.itemClasses[watchClasses[x]]));
+            classBox.appendChild(opt);
+        }
+
+        var tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        var td = libtuj.ce('td');
+        tr.appendChild(td);
+        td.appendChild(document.createTextNode(tuj.lang.minimumLevel + ': '));
+        td = libtuj.ce('td');
+        tr.appendChild(td);
+        var minLevelBox = libtuj.ce('input');
+        minLevelBox.className = 'input-quantity';
+        minLevelBox.type = 'number';
+        minLevelBox.min = 0;
+        minLevelBox.max = 999;
+        minLevelBox.size = 4;
+        minLevelBox.maxLength = 3;
+        minLevelBox.autocomplete = 'off';
+        td.appendChild(minLevelBox);
+
+        var tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        var td = libtuj.ce('td');
+        tr.appendChild(td);
+        td.appendChild(document.createTextNode(tuj.lang.maximumLevel + ': '));
+        td = libtuj.ce('td');
+        tr.appendChild(td);
+        var maxLevelBox = libtuj.ce('input');
+        maxLevelBox.className = 'input-quantity';
+        maxLevelBox.type = 'number';
+        maxLevelBox.min = 0;
+        maxLevelBox.max = 999;
+        maxLevelBox.size = 4;
+        maxLevelBox.maxLength = 3;
+        maxLevelBox.autocomplete = 'off';
+        td.appendChild(maxLevelBox);
+
+        var tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        var td = libtuj.ce('td');
+        tr.appendChild(td);
+        td.appendChild(document.createTextNode(tuj.lang.includingCrafted + ': '));
+        td = libtuj.ce('td');
+        tr.appendChild(td);
+        var craftedCheck = libtuj.ce('input');
+        craftedCheck.type = 'checkbox';
+        craftedCheck.value = '1';
+        td.appendChild(craftedCheck);
+
+        var tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        var td = libtuj.ce('td');
+        tr.appendChild(td);
+        td.appendChild(document.createTextNode(tuj.lang.includingVendor + ': '));
+        td = libtuj.ce('td');
+        tr.appendChild(td);
+        var vendorCheck = libtuj.ce('input');
+        vendorCheck.type = 'checkbox';
+        vendorCheck.value = '1';
+        td.appendChild(vendorCheck);
+
+        var tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        var td = libtuj.ce('td');
+        tr.appendChild(td);
+        td.appendChild(document.createTextNode(tuj.lang.notSeenForXDays + ': '));
+        td = libtuj.ce('td');
+        tr.appendChild(td);
+        var daysBox = libtuj.ce('input');
+        daysBox.className = 'input-quantity';
+        daysBox.type = 'number';
+        daysBox.min = 0;
+        daysBox.max = 730;
+        daysBox.size = 4;
+        daysBox.maxLength = 3;
+        daysBox.autocomplete = 'off';
+        daysBox.value = '14';
+        td.appendChild(daysBox)
+        td.appendChild(document.createTextNode(' ' + tuj.lang.timeDays));
+
         var btn = libtuj.ce('input');
         btn.type = 'button';
         btn.value = tuj.lang.add;
-        $(btn).on('click', ItemNotificationsAdd.bind(btn, mainDiv, itemId, bonusSet, regionBox, underOver, qty, price));
-        d.appendChild(btn);
-        */
+        $(btn).on('click', RareNotificationsAdd.bind(btn, house, mainDiv, qualityBox, classBox, minLevelBox, maxLevelBox, craftedCheck, vendorCheck, daysBox));
+        td.appendChild(btn);
 
         $(mainDiv).show();
     }

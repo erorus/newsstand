@@ -461,8 +461,13 @@
     "priceAboveZero": "Price is always above zero.",
     "buyMoreThanZero": "Must buy a quantity over zero.",
 
+    "tellMeAboutNewAuctions": "Tell me about new auctions with:",
+    "orBetter": "or better",
+    "minimumLevel": "Minimum level",
+    "maximumLevel": "Maximum level",
     "includingCrafted": "Including crafted items",
     "includingVendor": "Including vendor items",
+    "notSeenForXDays": "Not seen for",
 
     "subscriptionWelcomeSubject": "Enjoy your subscription!",
     "subscriptionWelcomeMessage": "Welcome to your Subscription page at <nobr>The Undermine Journal</nobr>. Thanks for logging in.<br/><br/>On this page, you can find all the recent messages we've sent to you, along with your notifications and other site settings.",
