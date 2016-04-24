@@ -224,7 +224,7 @@ var TUJ_Category = function ()
                 if (n.includevendor) {
                     li.appendChild(document.createTextNode(', ' + tuj.lang.includingVendor));
                 }
-                li.appendChild(document.createTextNode(': ' + libtuj.sprintf(tuj.lang.timePast, '>' + n.days + ' ' + tuj.lang.timeDays)));
+                li.appendChild(document.createTextNode(' ' + tuj.lang.notSeenForXDays + ' ' + n.days + ' ' + tuj.lang.timeDays));
             }
         }
 
