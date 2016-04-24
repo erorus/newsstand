@@ -68,6 +68,141 @@ var TUJ_Category = function ()
         });
     }
 
+    function MakeNotificationsSection(house)
+    {
+        var t = libtuj.ce('table');
+        t.className = 'category';
+
+        var tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        var td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.className = 'title';
+        $(td).text(tuj.lang.marketNotifications);
+
+        tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        td = libtuj.ce('td');
+        tr.appendChild(td);
+        var d = libtuj.ce();
+        d.style.textAlign = 'center';
+        td.appendChild(d);
+
+        if (tuj.LoggedInUserName()) {
+            t.className += ' logged-in-only';
+
+            d.style.display = 'none';
+            d.appendChild(document.createTextNode(tuj.lang.marketNotificationsDesc));
+            var cht = libtuj.ce();
+            cht.className = 'notifications-insert';
+            cht.style.textAlign = 'left';
+            d.appendChild(cht);
+            GetRareNotificationsList(house, d);
+        } else {
+            t.className += ' logged-out-only';
+
+            var a = libtuj.ce('a');
+            a.href = tuj.BuildHash({'page': 'subscription', 'id': undefined});
+            a.className = 'highlight';
+            a.appendChild(document.createTextNode(tuj.lang.logInToFreeSub));
+            d.appendChild(a);
+        }
+
+        return t;
+    }
+
+    function RareNotificationsDel(house, mainDiv, id)
+    {
+        var self = this;
+        tuj.SendCSRFProtectedRequest({
+            data: {'deleterare': id, 'house': house},
+            success: RareNotificationsList.bind(self, house, mainDiv),
+        });
+    }
+
+    function GetRareNotificationsList(house, mainDiv)
+    {
+        var self = this;
+        tuj.SendCSRFProtectedRequest({
+            data: {'getrare': house},
+            success: RareNotificationsList.bind(self, house, mainDiv),
+        });
+    }
+
+    function RareNotificationsList(house, mainDiv, dta)
+    {
+        var dest = $(mainDiv).find('.notifications-insert');
+        dest.empty();
+        dest = dest[0];
+
+        var ids = [];
+        for (var k in dta.watches) {
+            if (dta.watches.hasOwnProperty(k)) {
+                ids.push(k);
+            }
+        }
+        if (ids.length) {
+            // show current notifications
+            ids.sort(function(ax,bx){
+                var a = dta.watches[ax];
+                var b = dta.watches[bx];
+                return tujConstants.itemClassOrder[a.itemclass] - tujConstants.itemClassOrder[b.itemclass] ||
+                    a.minquality - b.minquality ||
+                    a.days - b.days;
+            });
+
+            var ul = libtuj.ce('ul');
+            dest.appendChild(ul);
+
+            for (var kx = 0, k; k = ids[kx]; kx++) {
+                var li = libtuj.ce('li');
+                ul.appendChild(li);
+
+                var n = dta.watches[k];
+
+                var btn = libtuj.ce('input');
+                btn.type = 'button';
+                btn.value = tuj.lang.delete;
+                $(btn).on('click', RareNotificationsDel.bind(btn, house, mainDiv, n.seq));
+                li.appendChild(btn);
+
+                li.appendChild(document.createTextNode(tuj.lang.itemClasses[n.itemclass]));
+                if (n.minquality) {
+                    li.appendChild(document.createTextNode(', ' + tuj.lang.qualities[n.minquality] + '+'));
+                }
+                if (n.minlevel) {
+                    li.appendChild(document.createTextNode(', ' + tuj.lang.level + ' >= ' + n.minlevel))
+                }
+                if (n.maxlevel) {
+                    li.appendChild(document.createTextNode(', ' + tuj.lang.level + ' <= ' + n.maxlevel))
+                }
+                if (n.includecrafted) {
+                    li.appendChild(document.createTextNode(', ' + tuj.lang.includingCrafted));
+                }
+                if (n.includevendor) {
+                    li.appendChild(document.createTextNode(', ' + tuj.lang.includingVendor));
+                }
+                li.appendChild(document.createTextNode(': ' + libtuj.sprintf(tuj.lang.timePast, '>' + n.days + ' ' + tuj.lang.timeDays)));
+            }
+        }
+
+        if (ids.length >= dta.maximum) {
+            $(mainDiv).show();
+            return;
+        }
+
+        // add new notifications
+        /*
+        var btn = libtuj.ce('input');
+        btn.type = 'button';
+        btn.value = tuj.lang.add;
+        $(btn).on('click', ItemNotificationsAdd.bind(btn, mainDiv, itemId, bonusSet, regionBox, underOver, qty, price));
+        d.appendChild(btn);
+        */
+
+        $(mainDiv).show();
+    }
+
     function CategoryResult(hash, dta)
     {
         if (hash) {
@@ -100,22 +235,24 @@ var TUJ_Category = function ()
         $('#page-title').empty().append(document.createTextNode(tuj.lang.category + ': ' + titleName));
         tuj.SetTitle(tuj.lang.category + ': ' + titleName);
 
-        if (!dta.hasOwnProperty('results')) {
-            return;
-        }
+        if (dta.hasOwnProperty('results')) {
+            categoryPage.append(libtuj.Ads.Add('8323200718'));
 
-        categoryPage.append(libtuj.Ads.Add('8323200718'));
-
-        var f, resultCount = 0;
-        for (var x = 0; f = dta.results[x]; x++) {
-            if (resultFunctions.hasOwnProperty(f.name)) {
-                d = libtuj.ce();
-                d.className = 'category-' + f.name.toLowerCase();
-                categoryPage.append(d);
-                if (resultFunctions[f.name](f.data, d) && (++resultCount == 5)) {
-                    categoryPage.append(libtuj.Ads.Add('2276667118'));
+            var f, resultCount = 0;
+            for (var x = 0; f = dta.results[x]; x++) {
+                if (resultFunctions.hasOwnProperty(f.name)) {
+                    d = libtuj.ce();
+                    d.className = 'category-' + f.name.toLowerCase();
+                    categoryPage.append(d);
+                    if (resultFunctions[f.name](f.data, d) && (++resultCount == 5)) {
+                        categoryPage.append(libtuj.Ads.Add('2276667118'));
+                    }
                 }
             }
+        }
+
+        if (dta.name == 'unusualItems') {
+            categoryPage.append(MakeNotificationsSection(tuj.realms[params.realm].house));
         }
 
         libtuj.Ads.Show();

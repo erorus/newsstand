@@ -3,7 +3,7 @@
 require_once('memcache.incl.php');
 require_once('incl.php');
 
-define('API_VERSION', 21);
+define('API_VERSION', 22);
 define('THROTTLE_PERIOD', 3600); // seconds
 define('THROTTLE_MAXHITS', 200);
 define('BANLIST_CACHEKEY', 'banlist_cidrs4');

@@ -23,12 +23,16 @@ define('SUBSCRIPTION_MESSAGES_MAX', 50);
 define('SUBSCRIPTION_ITEM_CACHEKEY', 'subitem_');
 define('SUBSCRIPTION_SPECIES_CACHEKEY', 'subspecies_');
 define('SUBSCRIPTION_WATCH_CACHEKEY', 'subwatch_');
+define('SUBSCRIPTION_RARE_CACHEKEY', 'subrare_');
 define('SUBSCRIPTION_REPORTS_CACHEKEY', 'subreports_');
 define('SUBSCRIPTION_PAID_CACHEKEY', 'subpaid_');
 define('SUBSCRIPTION_SESSION_CACHEKEY', 'usersession_');
 
 define('SUBSCRIPTION_WATCH_LIMIT_PER', 5);
 define('SUBSCRIPTION_WATCH_LIMIT_TOTAL', 1000);
+
+define('SUBSCRIPTION_RARE_LIMIT_HOUSE', 20); // max number of rare watches per house
+define('SUBSCRIPTION_RARE_LIMIT_TOTAL', 50); // max number of rare watches
 
 define('SUBSCRIPTION_WATCH_MAX_PERIOD', 1435); // minutes
 define('SUBSCRIPTION_WATCH_MIN_PERIOD', 2); // minutes

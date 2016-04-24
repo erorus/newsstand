@@ -113,6 +113,14 @@ if (isset($_POST['deletewatch'])) {
     json_return([]);
 }
 
+if (isset($_POST['getrare'])) {
+    json_return(GetRareWatches($loginState, $_POST['getrare']));
+}
+
+if (isset($_POST['deleterare'])) {
+    json_return(DeleteRareWatch($loginState, isset($_POST['house']) ? $_POST['house'] : 0, $_POST['deleterare']));
+}
+
 json_return([]);
 
 ///////////////////////////////
@@ -825,7 +833,7 @@ function GetWatches($loginState)
         $sql = <<<EOF
 select uw.seq, uw.region, uw.house,
     uw.item, uw.bonusset, ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
-    $itemNames, $bonusTags, i.icon, i.class, 
+    $itemNames, $bonusTags, i.icon, i.class,
     uw.direction, uw.quantity, uw.price
 from tblUserWatch uw
 join tblDBCItem i on uw.item = i.id
@@ -991,3 +999,78 @@ function GetIsPaid($loginState)
 
     return $json;
 }
+
+function GetRareWatches($loginState, $house = 0)
+{
+    $userId = $loginState['id'];
+
+    $house = intval($house, 10);
+
+    if ($house) {
+        $allWatches = GetRareWatches($loginState);
+    } else {
+        $allWatches = [];
+        $allWatches['maximum'] = SUBSCRIPTION_RARE_LIMIT_TOTAL;
+    }
+
+    $cacheKey = SUBSCRIPTION_RARE_CACHEKEY . $userId . '_' . $house;
+    $json = MCGet($cacheKey);
+    if ($json !== false) {
+        return ['maximum' => min($allWatches['maximum'], ($house ? SUBSCRIPTION_RARE_LIMIT_HOUSE : SUBSCRIPTION_RARE_LIMIT_TOTAL) - count($json)), 'watches' => $json];
+    }
+
+    $db = DBConnect();
+    $sql = 'SELECT seq, house, itemclass, minquality, minlevel, maxlevel, flags & 1 as includecrafted, flags & 2 as includevendor, days from tblUserRare where user = ?';
+    if ($house) {
+        $sql .= ' and house = ?';
+    }
+    $stmt = $db->prepare($sql);
+    if ($house) {
+        $stmt->bind_param('ii', $userId, $house);
+    } else {
+        $stmt->bind_param('i', $userId);
+    }
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $json = DBMapArray($result);
+    $stmt->close();
+
+    MCSet($cacheKey, $json);
+
+    return ['maximum' => min($allWatches['maximum'], ($house ? SUBSCRIPTION_RARE_LIMIT_HOUSE : SUBSCRIPTION_RARE_LIMIT_TOTAL) - count($json)), 'watches' => $json];
+}
+
+function SetRareWatch($loginState, $house) {
+    $userId = $loginState['id'];
+
+    $house = intval($house, 10);
+
+
+    // TODO
+
+    MCDelete(SUBSCRIPTION_RARE_CACHEKEY . $userId . '_' . $house);
+    MCDelete(SUBSCRIPTION_RARE_CACHEKEY . $userId . '_0');
+
+    return GetRareWatches($loginState, $house);
+}
+
+function DeleteRareWatch($loginState, $house, $seq)
+{
+    $userId = $loginState['id'];
+    $seq = intval($seq, 10);
+
+    $db = DBConnect();
+    $sql = 'delete from tblUserRare where user=? and seq=?';
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('ii', $userId, $seq);
+    $stmt->execute();
+    $stmt->close();
+
+    if ($house) {
+        MCDelete(SUBSCRIPTION_RARE_CACHEKEY . $userId . '_' . $house);
+    }
+    MCDelete(SUBSCRIPTION_RARE_CACHEKEY . $userId . '_0');
+
+    return GetRareWatches($loginState, $house);
+}
+

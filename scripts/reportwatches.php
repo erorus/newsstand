@@ -374,7 +374,7 @@ EOF;
             isset($LANG['itemClasses'][$row['class']]) ? $LANG['itemClasses'][$row['class']] : '');
         $message .= sprintf(' %s <b>%s</b>, %s <b>%s</b>.<br>',
             $LANG['lastSeen'],
-            sprintf(str_replace('{1}', '%s', $LANG['timePast']), round((time() - strtotime($row['prevseen'])) / 86400) . ' ' . $LANG['timeDays']),
+            is_null($row['prevseen']) ? '?' : sprintf(str_replace('{1}', '%s', $LANG['timePast']), round((time() - strtotime($row['prevseen'])) / 86400) . ' ' . $LANG['timeDays']),
             $LANG['now'],
             FormatPrice($row['price'], $LANG));
         $message .= sprintf('%s: %s, %s: %s, %s: %s<br><br>',

@@ -461,6 +461,9 @@
     "priceAboveZero": "Price is always above zero.",
     "buyMoreThanZero": "Must buy a quantity over zero.",
 
+    "includingCrafted": "Including crafted items",
+    "includingVendor": "Including vendor items",
+
     "subscriptionWelcomeSubject": "Enjoy your subscription!",
     "subscriptionWelcomeMessage": "Welcome to your Subscription page at <nobr>The Undermine Journal</nobr>. Thanks for logging in.<br/><br/>On this page, you can find all the recent messages we've sent to you, along with your notifications and other site settings.",
     "notificationsMessage": "The items above have reached thresholds that you've set. Notifications for these events will automatically reset when the market condition is no longer observed, and you will be notified when they happen again after that. To update your notifications or email preferences, please <a href=\"https://theunderminejournal.com/#subscription\">log in to your subscription</a>.",
