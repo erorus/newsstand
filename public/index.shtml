@@ -265,7 +265,8 @@
 
                         <h3>What kind of notifications do you send?</h3>
                         Currently we can tell you when the quantity, market price, or price to buy any amount of an item or battle pet falls over or under a target value. Just visit the item's page and look for the "Market Notifications" section above the auctions listing.
-                        <p>In the future, we may offer rare item category notifications, and perhaps seller notifications, much like The Undermine Journal offered years ago, depending on user feedback.</p>
+                        <p>On our Unusual Items category page, we can notify you when any items with certain properties (uncommon recipes, rare weapons over level 200, etc) are seen, after having been absent for the number of days of your choice.</p>
+                        <p>In the future, we may offer seller notifications, much like The Undermine Journal offered years ago, deals notifications, or others, depending on user feedback.</p>
 
                         <h3>How do I log in?</h3>
                         We only accept Battle.net accounts, since everyone who visits the Auction House would have one. But don't worry, we never see your password, or even your Battle.net account address.
@@ -280,9 +281,9 @@
                         <h3>What's the full list of subscription benefits?</h3>
                         <table class="category">
                             <tr><th></th><th>Free Subscription</th><th>Paid Subscription</th></tr>
-                            <tr><td>Max Notifications Per Item/Pet</td><td>5</td><td>5</td></tr>
-                            <tr><td>Max Total Notifications</td><td>1,000</td><td>1,000</td></tr>
+                            <tr><td>Item/Pet Market Notifications</td><td>Yes, 5/item, 1,000 total</td><td>Yes, 5/item, 1,000 total</td></tr>
                             <tr><td>Region-Wide Notifications</td><td>Yes</td><td>Yes</td></tr>
+                            <tr><td>Unusual Item Notifications</td><td>Yes, 20/realm, 50 total</td><td>Yes, 20/realm, 50 total</td></tr>
                             <tr><td>Notification Periods</td><td>24, 20, 18, 16, 12 or 8 hours</td><td>Same, or 6, 4, 3, 2, 1, &frac12; hours, or ASAP</td></tr>
                             <tr><td>Site Ads</td><td>Yes, AdSense</td><td>No Ads</td></tr>
                             <tr><td>Cost</td><td>Free</td><td>$5.00 per 60 days</td></tr>
@@ -292,7 +293,7 @@
                         Just like the rest of this site, our services are always evolving, and we will consider offering more services as user demand and developer time align. <a href="http://stormspire.net/official-forum-undermine-journal/?referrerid=380" class="highlight">Please visit our forum</a> and let us know what you'd like to see!
 
                         <h3>Anything else I should know?</h3>
-                        We offer no warranty for this service, and as always, we are reliant on the Battle.net API to obtain the data to send notifications. You should review our Terms and Privacy Policy, linked in the footer below, as you will need to confirm your acceptance of it when you log in for the first time. Finally, while the website and emails are localized in many languages, we can only offer customer support in English.
+                        We offer no warranty for this service, and as always, we rely on the Battle.net API to obtain the data to send notifications. You should review our Terms and Privacy Policy, linked in the footer below, as you will need to confirm your acceptance of it when you log in for the first time. Finally, while the website and emails are localized in many languages, we can only offer customer support in English.
                     </div>
                     <div id="subscription-settings"></div>
                 </div>
