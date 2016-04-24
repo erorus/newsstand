@@ -40,6 +40,7 @@ if (isset($_POST['settings'])) {
         'email' => GetSubEmail($loginState),
         'messages' => GetSubMessages($loginState),
         'watches' => GetWatches($loginState),
+        'rares' => GetRareWatches($loginState),
         'reports' => GetReports($loginState),
         'paid' => GetIsPaid($loginState),
         ]);
@@ -1069,7 +1070,7 @@ function SetRareWatch($loginState, $house, $quality, $itemClass, $minLevel, $max
     if ($minLevel == 0) {
         $minLevel = null;
     }
-    if ($maxLevel < $minLevel) {
+    if ($maxLevel < $minLevel && !is_null($maxLevel)) {
         $maxLevel = $minLevel;
     }
     $fail |= $maxLevel < 0;

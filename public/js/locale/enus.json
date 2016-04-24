@@ -468,6 +468,7 @@
     "includingCrafted": "Including crafted items",
     "includingVendor": "Including vendor items",
     "notSeenForXDays": "Not seen for",
+    "visitUnusualCategory": "Visit <a href=\"{1}\">the Unusual Items category</a> to watch for rare items!",
 
     "subscriptionWelcomeSubject": "Enjoy your subscription!",
     "subscriptionWelcomeMessage": "Welcome to your Subscription page at <nobr>The Undermine Journal</nobr>. Thanks for logging in.<br/><br/>On this page, you can find all the recent messages we've sent to you, along with your notifications and other site settings.",

@@ -79,6 +79,11 @@ var TUJ_Subscription = function ()
         settingsParent.append(settingsWatches);
         ShowWatches(settingsWatches);
 
+        var settingsRares = libtuj.ce('div');
+        settingsRares.id = 'subscription-rares';
+        settingsParent.append(settingsRares);
+        ShowRares(settingsRares);
+
         settingsParent.show();
     }
 
@@ -594,6 +599,132 @@ var TUJ_Subscription = function ()
             },
             error: function() {
                 $(tr).find('input').prop('disabled', false);
+            }
+        });
+    }
+
+    function ShowRares(dest)
+    {
+        var w = subData.rares.watches;
+
+        $(dest).addClass('notifications-insert');
+
+        var hasWatches;
+        var byHouse = {};
+        var houseKey, houseKeys = [];
+        for (var k in w) {
+            if (!w.hasOwnProperty(k)) {
+                continue;
+            }
+
+            hasWatches = true;
+
+            houseKey = w[k].house;
+            if (!byHouse.hasOwnProperty(houseKey)) {
+                byHouse[houseKey] = [];
+                houseKeys.push(houseKey);
+            }
+
+            byHouse[houseKey].push(w[k]);
+        }
+        if (!hasWatches) {
+            var h = libtuj.ce('h3');
+            dest.appendChild(h);
+            $(h).text(tuj.lang.unusualItems);
+
+            var d = libtuj.ce('div');
+            dest.appendChild(d);
+            d.className = 'instruction';
+            $(d).html(libtuj.sprintf(tuj.lang.visitUnusualCategory, tuj.BuildHash({'page': 'category', 'id': 'unusuals'})));
+            return;
+        }
+
+        houseKeys.sort(function(a,b) {
+            return parseInt(a,10) - parseInt(b,10);
+        });
+
+        for (var hx = 0; houseKey = houseKeys[hx]; hx++) {
+            var realmId = 0;
+            var regionId = 0;
+            for (var rlm in tuj.realms) {
+                if (!tuj.realms.hasOwnProperty(rlm)) {
+                    continue;
+                }
+                if (tuj.realms[rlm].house == houseKey) {
+                    realmId = rlm;
+                    break;
+                }
+            }
+            for (var rx = 0; rx < tuj.validRegions.length; rx++) {
+                if (tuj.validRegions[rx] == tuj.realms[realmId].region) {
+                    regionId = rx;
+                    break;
+                }
+            }
+
+            var h = libtuj.ce('h3');
+            dest.appendChild(h);
+
+            var a = libtuj.ce('a');
+            h.appendChild(a);
+            a.href = tuj.BuildHash({'page': 'category', 'id': 'unusuals', 'region': regionId, 'realm': realmId});
+            $(a).text(tuj.lang.unusualItems + ' - ' + libtuj.GetRealmsForHouse(houseKey, false, true));
+
+            var objs = byHouse[houseKey];
+
+            objs.sort(function(a,b){
+                return tujConstants.itemClassOrder[a.itemclass] - tujConstants.itemClassOrder[b.itemclass] ||
+                    a.minquality - b.minquality ||
+                    a.days - b.days;
+            });
+
+            var ul = libtuj.ce('ul');
+            dest.appendChild(ul);
+
+            for (var seq in objs) {
+                if (!objs.hasOwnProperty(seq)) {
+                    continue;
+                }
+
+                var n = objs[seq];
+
+                var li = libtuj.ce('li');
+                ul.appendChild(li);
+
+                var btn = libtuj.ce('input');
+                btn.type = 'button';
+                btn.value = tuj.lang.delete;
+                $(btn).on('click', RareNotificationsDel.bind(btn, li, houseKey, n.seq));
+                li.appendChild(btn);
+
+                li.appendChild(document.createTextNode(tuj.lang.itemClasses[n.itemclass]));
+                if (n.minquality) {
+                    li.appendChild(document.createTextNode(', ' + tuj.lang.qualities[n.minquality] + '+'));
+                }
+                if (n.minlevel) {
+                    li.appendChild(document.createTextNode(', ' + tuj.lang.level + ' >= ' + n.minlevel))
+                }
+                if (n.maxlevel) {
+                    li.appendChild(document.createTextNode(', ' + tuj.lang.level + ' <= ' + n.maxlevel))
+                }
+                if (n.includecrafted) {
+                    li.appendChild(document.createTextNode(', ' + tuj.lang.includingCrafted));
+                }
+                if (n.includevendor) {
+                    li.appendChild(document.createTextNode(', ' + tuj.lang.includingVendor));
+                }
+                li.appendChild(document.createTextNode(': ' + libtuj.sprintf(tuj.lang.timePast, '>' + n.days + ' ' + tuj.lang.timeDays)));
+            }
+        }
+    }
+
+    function RareNotificationsDel(li, house, id)
+    {
+        var self = this;
+        tuj.SendCSRFProtectedRequest({
+            data: {'deleterare': id, 'house': house},
+            success: function() {
+                li.parentNode.removeChild(li);
             }
         });
     }
