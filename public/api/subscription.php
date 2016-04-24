@@ -1020,17 +1020,22 @@ function GetRareWatches($loginState, $house = 0)
 
     $house = intval($house, 10);
 
+    $limit = SUBSCRIPTION_RARE_LIMIT_TOTAL;
     if ($house) {
         $allWatches = GetRareWatches($loginState);
-    } else {
-        $allWatches = [];
-        $allWatches['maximum'] = SUBSCRIPTION_RARE_LIMIT_TOTAL;
+        $otherHouseCount = 0;
+        foreach ($allWatches['watches'] as $watch) {
+            if ($watch['house'] != $house) {
+                $otherHouseCount++;
+            }
+        }
+        $limit = min(SUBSCRIPTION_RARE_LIMIT_HOUSE, SUBSCRIPTION_RARE_LIMIT_TOTAL - $otherHouseCount);
     }
 
     $cacheKey = SUBSCRIPTION_RARE_CACHEKEY . $userId . '_' . $house;
     $json = MCGet($cacheKey);
     if ($json !== false) {
-        return ['maximum' => min($allWatches['maximum'], ($house ? SUBSCRIPTION_RARE_LIMIT_HOUSE : SUBSCRIPTION_RARE_LIMIT_TOTAL) - count($json)), 'watches' => $json];
+        return ['maximum' => $limit, 'watches' => $json];
     }
 
     $db = DBConnect();
@@ -1051,7 +1056,7 @@ function GetRareWatches($loginState, $house = 0)
 
     MCSet($cacheKey, $json);
 
-    return ['maximum' => min($allWatches['maximum'], ($house ? SUBSCRIPTION_RARE_LIMIT_HOUSE : SUBSCRIPTION_RARE_LIMIT_TOTAL) - count($json)), 'watches' => $json];
+    return ['maximum' => $limit, 'watches' => $json];
 }
 
 function SetRareWatch($loginState, $house, $quality, $itemClass, $minLevel, $maxLevel, $crafted, $vendor, $days) {
@@ -1079,6 +1084,21 @@ function SetRareWatch($loginState, $house, $quality, $itemClass, $minLevel, $max
     $fail |= $minLevel > 999;
     $fail |= $days < 1;
     $fail |= $days > 730;
+
+    if (!$fail) {
+        $curWatches = GetRareWatches($loginState);
+        $curWatches = $curWatches['watches'];
+        $fail |= count($curWatches) >= SUBSCRIPTION_RARE_LIMIT_TOTAL;
+    }
+    if (!$fail) {
+        $existingHouse = 0;
+        foreach ($curWatches as $watch) {
+            if ($watch['house'] == $house) {
+                $existingHouse++;
+            }
+        }
+        $fail |= $existingHouse >= SUBSCRIPTION_RARE_LIMIT_HOUSE;
+    }
 
     if (!$fail) {
         $sql = <<<'EOF'
