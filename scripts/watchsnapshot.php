@@ -426,7 +426,7 @@ replace into tblUserRareReport (user, house, item, bonusset, prevseen, price, sn
     left join tblDBCItemVendorCost ivc on ivc.item = rs.item
     where (ur.flags & 2 > 0 or ivc.item is null)
     and (ur.flags & 1 > 0 or (select count(*) from tblDBCSpell sc where sc.crafteditem = rs.item) = 0)
-    and datediff(?, rs.lastseen) >= ur.days
+    and (datediff(?, rs.lastseen) >= ur.days or rs.lastseen is null)
     and ur.house = ?
     group by rs.item, rs.bonusset
 )
