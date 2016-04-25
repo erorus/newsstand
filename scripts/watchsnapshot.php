@@ -236,9 +236,7 @@ function ParseAuctionData($house, $snapshot, &$json)
                     $aucList[$itemInfoKey] = $emptyItemInfo;
                 }
 
-                if ($hasBuyout) {
-                    AuctionListInsert($aucList[$itemInfoKey][ARRAY_INDEX_AUCTIONS], $auction['quantity'], $auction['buyout']);
-                }
+                AuctionListInsert($aucList[$itemInfoKey][ARRAY_INDEX_AUCTIONS], $auction['quantity'], $hasBuyout ? $auction['buyout'] : $auction['bid']);
                 $aucList[$itemInfoKey][ARRAY_INDEX_QUANTITY] += $auction['quantity'];
 
                 if ($isNewAuction) {
@@ -374,7 +372,10 @@ EOF;
             $thisSql = sprintf('(%d,%d,%s)', $itemId, $bonusSet,
                 isset($itemBuyouts[$itemInfoKey]) ?
                     GetMarketPrice($itemBuyouts[$itemInfoKey]) :
-                    GetMarketPrice($itemBids[$itemInfoKey], 1));
+                    ceil(
+                        $itemBids[$itemInfoKey][ARRAY_INDEX_AUCTIONS][0][ARRAY_INDEX_BUYOUT] /
+                        $itemBids[$itemInfoKey][ARRAY_INDEX_AUCTIONS][0][ARRAY_INDEX_QUANTITY])
+                    );
 
             if (strlen($sql) + 5 + strlen($thisSql) > $maxPacketSize) {
                 DBQueryWithError($ourDb, $sql);
@@ -388,18 +389,18 @@ EOF;
 
         $sql = <<<'EOF'
 update ttblRareStage
-set lastseen = (select min(lastseen) from (
-	select lastseen from tblItemSummary where house = ? and item = ttblRareStage.item and bonusset = ttblRareStage.bonusset
+set lastseen = (select min(z.lastseen) from (
+	select s.lastseen from tblItemSummary s where s.house = ? and s.item = item and s.bonusset = bonusset
 	union
 	select ar.prevseen
 	from tblAuctionRare ar
 	join tblAuction a on ar.house = a.house and ar.id = a.id
 	left join tblAuctionExtra ae on ar.house = ae.house and ar.id = ae.id
-	where ar.house = ? and a.item = ttblRareStage.item and ifnull(ae.bonusset, 0) = ttblRareStage.bonusset
+	where ar.house = ? and a.item = item and ifnull(ae.bonusset, 0) = bonusset
 	) z)
 EOF;
         $stmt = $ourDb->prepare($sql);
-        $stmt->bind_params('ii', $house, $house);
+        $stmt->bind_param('ii', $house, $house);
         $stmt->execute();
         $stmt->close();
 
@@ -417,7 +418,7 @@ replace into tblUserRareReport (user, house, item, bonusset, prevseen, price) (
 )
 EOF;
         $stmt = $ourDb->prepare($sql);
-        $stmt->bind_params('i', $house);
+        $stmt->bind_param('i', $house);
         $stmt->execute();
         $stmt->close();
 
