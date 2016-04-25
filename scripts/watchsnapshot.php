@@ -386,16 +386,21 @@ EOF;
         }
 
         $sql = <<<'EOF'
-update ttblRareStage
-set lastseen = (select min(z.lastseen) from (
-	select s.lastseen from tblItemSummary s where s.house = ? and s.item = item and s.bonusset = bonusset
-	union
-	select ar.prevseen
-	from tblAuctionRare ar
-	join tblAuction a on ar.house = a.house and ar.id = a.id
-	left join tblAuctionExtra ae on ar.house = ae.house and ar.id = ae.id
-	where ar.house = ? and a.item = item and ifnull(ae.bonusset, 0) = bonusset
-	) z)
+update ttblRareStage rs
+inner join (
+    select min(z.lastseen) lastseen, item, bonusset
+    from (
+        select lastseen, item, bonusset from tblItemSummary where house = ?
+        union
+        select ar.prevseen, a.item, ifnull(ae.bonusset, 0)
+        from tblAuctionRare ar
+        join tblAuction a on ar.house = a.house and ar.id = a.id
+        left join tblAuctionExtra ae on ar.house = ae.house and ar.id = ae.id
+        where ar.house = ?
+        ) z
+    group by item, bonusset
+    ) ls on rs.item = ls.item and rs.bonusset = ls.bonusset
+set rs.lastseen = ls.lastseen
 EOF;
         $stmt = $ourDb->prepare($sql);
         $stmt->bind_param('ii', $house, $house);
