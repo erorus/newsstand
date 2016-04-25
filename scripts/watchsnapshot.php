@@ -385,6 +385,8 @@ EOF;
             DBQueryWithError($ourDb, $sql);
         }
 
+        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " priced ".count($newAuctionItems)." new unusual items");
+
         $sql = <<<'EOF'
 update ttblRareStage rs
 join tblItemSummary s on rs.item = s.item and rs.bonusset = s.bonusset
@@ -429,6 +431,8 @@ EOF;
         $stmt->bind_param('si', $snapshotString, $house);
         $stmt->execute();
         $stmt->close();
+
+        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " added ".$ourDb->affected_rows." new unusual item reports");
 
         $stmt = $ourDb->prepare('select distinct user from tblUserRareReport where house = ? and snapshot = ?');
         $stmt->bind_param('is', $house, $snapshotString);
