@@ -385,7 +385,8 @@ EOF;
             DBQueryWithError($ourDb, $sql);
         }
 
-        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " priced ".count($newAuctionItems)." new unusual items");
+        $ourDb->query('set transaction isolation level read uncommitted, read only');
+        $ourDb->begin_transaction();
 
         $sql = <<<'EOF'
 update ttblRareStage rs
@@ -414,6 +415,8 @@ EOF;
         $stmt->execute();
         $stmt->close();
 
+        $ourDb->commit(); // end read-uncommitted
+
         $sql = <<<'EOF'
 replace into tblUserRareReport (user, house, item, bonusset, prevseen, price, snapshot) (
     SELECT ur.user, ur.house, rs.item, rs.bonusset, rs.lastseen, rs.price, ?
@@ -423,16 +426,15 @@ replace into tblUserRareReport (user, house, item, bonusset, prevseen, price, sn
     left join tblDBCItemVendorCost ivc on ivc.item = rs.item
     where (ur.flags & 2 > 0 or ivc.item is null)
     and (ur.flags & 1 > 0 or (select count(*) from tblDBCSpell sc where sc.crafteditem = rs.item) = 0)
+    and datediff(?, rs.lastseen) >= ur.days
     and ur.house = ?
     group by rs.item, rs.bonusset
 )
 EOF;
         $stmt = $ourDb->prepare($sql);
-        $stmt->bind_param('si', $snapshotString, $house);
+        $stmt->bind_param('ssi', $snapshotString, $snapshotString, $house);
         $stmt->execute();
         $stmt->close();
-
-        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " added ".$ourDb->affected_rows." new unusual item reports");
 
         $stmt = $ourDb->prepare('select distinct user from tblUserRareReport where house = ? and snapshot = ?');
         $stmt->bind_param('is', $house, $snapshotString);
