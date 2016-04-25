@@ -372,9 +372,7 @@ EOF;
             $thisSql = sprintf('(%d,%d,%s)', $itemId, $bonusSet,
                 isset($itemBuyouts[$itemInfoKey]) ?
                     GetMarketPrice($itemBuyouts[$itemInfoKey]) :
-                    ceil(
-                        $itemBids[$itemInfoKey][ARRAY_INDEX_AUCTIONS][0][ARRAY_INDEX_BUYOUT] /
-                        $itemBids[$itemInfoKey][ARRAY_INDEX_AUCTIONS][0][ARRAY_INDEX_QUANTITY])
+                    GetMarketPrice($itemBids[$itemInfoKey], 1)
                     );
 
             if (strlen($sql) + 5 + strlen($thisSql) > $maxPacketSize) {
