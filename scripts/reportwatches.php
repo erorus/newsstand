@@ -294,9 +294,10 @@ function ReportUserRares($now, $userRow)
     $message = '';
 
     $db = DBConnect();
+    $db->begin_transaction();
 
     $sql = <<<'EOF'
-select z.house, z.item, z.bonusset,
+select z.house, z.item, z.bonusset, max(z.snapshot) snapshot,
     ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR '.'), '') bonusurl,
     z.name, z.class, z.level, z.quality,
     ifnull(group_concat(ib.`tag_%1$s` order by ib.tagpriority separator ' '), if(ifnull(bs.`set`,0)=0,'',concat('%2$s ', z.level+sum(ifnull(ib.level,0))))) bonustag,
@@ -304,7 +305,7 @@ select z.house, z.item, z.bonusset,
     z.price, z.median, z.mean, z.stddev,
     case z.class %3$s else 999 end classorder
 from (
-    SELECT rr.house, rr.item, rr.bonusset, rr.prevseen, rr.price,
+    SELECT rr.house, rr.item, rr.bonusset, rr.prevseen, rr.price, unix_timestamp(rr.snapshot) snapshot,
     i.name_%1$s name, i.class, i.basebonus, i.level, i.quality,
     ig.median, ig.mean, ig.stddev
     FROM tblUserRareReport rr
@@ -324,6 +325,7 @@ EOF;
     $houseCount = 0;
     $rowCount = 0;
     $lastItem = '';
+    $maxSnapshot = 0;
 
     $userId = $userRow['id'];
     $stmt = $db->prepare($sql);
@@ -332,6 +334,7 @@ EOF;
     $result = $stmt->get_result();
     while ($row = $result->fetch_assoc()) {
         $rowCount++;
+        $maxSnapshot = max($maxSnapshot, $row['snapshot']);
         if ($prevHouse !== $row['house']) {
             $houseCount++;
             $prevHouse = $row['house'];
@@ -374,6 +377,14 @@ EOF;
     if (!$rowCount) {
         return false;
     }
+
+    $maxSnapshot = Date('Y-m-d H:i:s', $maxSnapshot);
+    $stmt = $db->prepare('delete from tblUserRareReport where user = ? and snapshot <= ?');
+    $stmt->bind_param('is', $userId, $maxSnapshot);
+    $stmt->execute();
+    $stmt->close();
+
+    $db->commit();
 
     if ($rowCount == 1) {
         $subject = $LANG['unusuals'] . ': ' . $lastItem;

@@ -408,8 +408,8 @@ EOF;
         $stmt->close();
 
         $sql = <<<'EOF'
-replace into tblUserRareReport (user, house, item, bonusset, prevseen, price) (
-    SELECT ur.user, ur.house, rs.item, rs.bonusset, rs.lastseen, rs.price
+replace into tblUserRareReport (user, house, item, bonusset, prevseen, price, snapshot) (
+    SELECT ur.user, ur.house, rs.item, rs.bonusset, rs.lastseen, rs.price, ?
     FROM ttblRareStage rs
     join tblUserRare ur
     join tblDBCItem i on i.id = rs.item and i.class = ur.itemclass and i.quality >= ur.minquality and i.level between ifnull(ur.minlevel, i.level) and ifnull(ur.maxlevel, i.level)
@@ -421,12 +421,12 @@ replace into tblUserRareReport (user, house, item, bonusset, prevseen, price) (
 )
 EOF;
         $stmt = $ourDb->prepare($sql);
-        $stmt->bind_param('i', $house);
+        $stmt->bind_param('si', $snapshotString, $house);
         $stmt->execute();
         $stmt->close();
 
-        $stmt = $ourDb->prepare('select distinct user from tblUserRareReport where house = ?');
-        $stmt->bind_param('i', $house);
+        $stmt = $ourDb->prepare('select distinct user from tblUserRareReport where house = ? and snapshot = ?');
+        $stmt->bind_param('is', $house, $snapshotString);
         $stmt->execute();
         $result = $stmt->get_result();
         while ($row = $result->fetch_assoc()) {
