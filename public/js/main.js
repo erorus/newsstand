@@ -1134,6 +1134,10 @@ var TUJ = function ()
         donateLink[0].href = self.BuildHash({page: 'donate', id: undefined});
         donateLink.html(self.lang.donate);
 
+        var subscriptionLink = $('#bottom-bar a.subscription');
+        subscriptionLink[0].href = self.BuildHash({page: 'subscription', id: undefined});
+        subscriptionLink.html(self.lang.subscription);
+
         var policyLink = $('#bottom-bar a.policy');
         policyLink[0].href = self.BuildHash({page: 'policy', id: undefined});
         policyLink.html(self.lang.policy);

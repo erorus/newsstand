@@ -312,6 +312,7 @@
                             <li>Battle pet support, with separate pricing for different breeds</li>
                             <li>Localized item and pet names, and site text, in 7 languages</li>
                             <li>Transmog buying gallery</li>
+                            <li>List of rarely-seen items for sale</li>
                             <li>Seller posting patterns</li>
                             <li><a href="http://stormspire.net/official-forum-undermine-journal/15527-undermine-journal-addon.html?referrerid=380">Simple pricing addon</a></li>
                             <li><a href="https://newswire.theunderminejournal.com">Raw database access</a> for developers</li>
@@ -324,17 +325,21 @@
                             <input type="hidden" name="hosted_button_id" value="RH5C3YCJVGEU6">
                             <input type="image" src="images/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
                         </form>
+
+                        Note: This donate link is not related to any paid subscription on this site. You should log in to your subscription to renew it on your subscription page.
                     </div>
                 </div>
             </div>
         </div>
         <div id="bottom-bar">
             <a class="dark-only">Light Theme</a><a class="light-only">Dark Theme</a> -
+            <a class="subscription">Subscription</a> -
             <a class="donate">Donate</a> -
             <a class="contact">Contact</a> -
             <a href="http://stormspire.net/official-forum-undermine-journal/?referrerid=380">Forum</a> -
             <a href="http://stormspire.net/official-forum-undermine-journal/18138-localization-tuj.html?referrerid=380">Localization</a> -
             <a href="http://stormspire.net/official-forum-undermine-journal/15527-undermine-journal-addon.html?referrerid=380">Addon</a> -
+            <a href="https://newswire.theunderminejournal.com/">Newswire API</a> -
             <a class="policy">Policy</a>
 
             <div class="disclaimer">World of Warcraft, Warcraft, Battle.net and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc. in the U.S. and/or other countries.</div>
