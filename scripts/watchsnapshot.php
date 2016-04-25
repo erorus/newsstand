@@ -387,23 +387,28 @@ EOF;
 
         $sql = <<<'EOF'
 update ttblRareStage rs
-inner join (
-    select min(z.lastseen) lastseen, item, bonusset
-    from (
-        select lastseen, item, bonusset from tblItemSummary where house = ?
-        union
-        select ar.prevseen, a.item, ifnull(ae.bonusset, 0)
-        from tblAuctionRare ar
-        join tblAuction a on ar.house = a.house and ar.id = a.id
-        left join tblAuctionExtra ae on ar.house = ae.house and ar.id = ae.id
-        where ar.house = ?
-        ) z
-    group by item, bonusset
-    ) ls on rs.item = ls.item and rs.bonusset = ls.bonusset
-set rs.lastseen = ls.lastseen
+join tblItemSummary s on rs.item = s.item and rs.bonusset = s.bonusset
+set rs.lastseen = s.lastseen
+where s.house = ?
 EOF;
+
         $stmt = $ourDb->prepare($sql);
-        $stmt->bind_param('ii', $house, $house);
+        $stmt->bind_param('i', $house);
+        $stmt->execute();
+        $stmt->close();
+
+        $sql = <<<'EOF'
+update ttblRareStage rs
+join tblAuction a on a.item = rs.item
+join tblAuctionRare ar on ar.house = a.house and ar.id = a.id
+left join tblAuctionExtra ae on ae.house = a.house and ae.id = a.id
+set rs.lastseen = if(rs.lastseen is null, ar.prevseen, least(rs.lastseen, ar.prevseen))
+where ifnull(ae.bonusset, 0) = rs.bonusset
+and a.house = ?
+EOF;
+
+        $stmt = $ourDb->prepare($sql);
+        $stmt->bind_param('i', $house);
         $stmt->execute();
         $stmt->close();
 
