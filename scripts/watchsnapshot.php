@@ -144,6 +144,7 @@ function NextDataFile()
 
 function ParseAuctionData($house, $snapshot, &$json)
 {
+    global $maxPacketSize;
     global $houseRegionCache;
     global $auctionExtraItemsCache;
 
@@ -152,6 +153,9 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     $region = $houseRegionCache[$house]['region'];
 
+    $lastMax = 0;
+    $lastMaxUpdated = 0;
+
     $jsonAuctions = [];
     if (isset($json['auctions']['auctions'])) {
         $jsonAuctions =& $json['auctions']['auctions'];
@@ -159,10 +163,26 @@ function ParseAuctionData($house, $snapshot, &$json)
         $jsonAuctions =& $json['auctions'];
     }
 
+    $ourDb = DBConnect(true);
+    $ourDb->query('set transaction isolation level read uncommitted, read only');
+    $ourDb->begin_transaction();
+
+    $stmt = $ourDb->prepare('SELECT ifnull(maxid,0), unix_timestamp(updated) FROM tblSnapshot s WHERE house = ? AND updated = (SELECT max(s2.updated) FROM tblSnapshot s2 WHERE s2.house = s.house AND s2.updated < ?)');
+    $stmt->bind_param('is', $house, $snapshotString);
+    $stmt->execute();
+    $stmt->bind_result($lastMax, $lastMaxUpdated);
+    if ($stmt->fetch() !== true) {
+        $lastMax = 0;
+        $lastMaxUpdated = 0;
+    }
+    $stmt->close();
+
     $itemBuyouts = [];
     $itemBids = [];
     $petBuyouts = [];
     $petBids = [];
+    $newAuctionItems = [];
+    $oldAuctionItems = [];
     $emptyItemInfo = [ARRAY_INDEX_QUANTITY => 0, ARRAY_INDEX_AUCTIONS => []];
 
     if ($jsonAuctions) {
@@ -171,6 +191,9 @@ function ParseAuctionData($house, $snapshot, &$json)
 
         for ($x = 0; $x < $auctionCount; $x++) {
             $auction =& $jsonAuctions[$x];
+
+            $isNewAuction = ($auction['auc'] - $lastMax);
+            $isNewAuction = ($isNewAuction > 0) || ($isNewAuction < -0x20000000);
 
             if (isset($auction['petBreedId'])) {
                 $auction['petBreedId'] = (($auction['petBreedId'] - 3) % 10) + 3; // squash gender
@@ -217,12 +240,22 @@ function ParseAuctionData($house, $snapshot, &$json)
                     AuctionListInsert($aucList[$itemInfoKey][ARRAY_INDEX_AUCTIONS], $auction['quantity'], $auction['buyout']);
                 }
                 $aucList[$itemInfoKey][ARRAY_INDEX_QUANTITY] += $auction['quantity'];
+
+                if ($isNewAuction) {
+                    if (!isset($oldAuctionItems[$itemInfoKey])) {
+                        $newAuctionItems[$itemInfoKey] = true;
+                    }
+                } else {
+                    $oldAuctionItems[$itemInfoKey] = true;
+                    unset($newAuctionItems[$itemInfoKey]);
+                }
             }
         }
     }
-    unset($json, $jsonAuctions);
+    unset($json, $jsonAuctions, $oldAuctionItems);
+    $newAuctionItems = array_keys($newAuctionItems);
 
-    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " found ".count($itemBuyouts)." distinct items, ".count($petBuyouts)." species");
+    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " found ".count($itemBuyouts)." distinct items, ".count($petBuyouts)." species, ".count($newAuctionItems)." new items");
 
     $watchesSet = []; $watchesSetCount = 0;
     $watchesUnset = []; $watchesUnsetCount = 0;
@@ -239,10 +272,6 @@ and (uw.observed is null or uw.observed < ?)
 and (u.paiduntil > now() or u.lastseen > timestampadd(day, ?, now()))
 order by uw.item, uw.species
 EOF;
-
-    $ourDb = DBConnect(true);
-    $ourDb->query('set transaction isolation level read uncommitted, read only');
-    $ourDb->begin_transaction();
 
     $stmt = $ourDb->prepare($sql);
     $freeDays = -1 * SUBSCRIPTION_WATCH_FREE_LAST_LOGIN_DAYS;
@@ -304,7 +333,6 @@ EOF;
     $stmt->close();
 
     $ourDb->commit(); // end read-uncommitted transaction
-    unset($itemBuyouts, $itemBids, $petBuyouts, $petBids);
 
     DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " reviewed $watchesCount watches, $watchesSetCount set, $watchesUnsetCount unset");
 
@@ -333,6 +361,77 @@ EOF;
             }
         }
         $stmt->close();
+    }
+
+    // check unusual items
+    $ok = DBQueryWithError($ourDb, 'create temporary table ttblRareStage like ttblRareStageTemplate');
+    if ($ok) {
+        $sqlStart = 'insert into ttblRareStage (item, bonusset, price) values ';
+        $sql = '';
+        foreach ($newAuctionItems as $itemInfoKey) {
+            list($itemId, $bonusSet) = explode(':', $itemInfoKey);
+
+            $thisSql = sprintf('(%d,%d,%s)', $itemId, $bonusSet,
+                isset($itemBuyouts[$itemInfoKey]) ?
+                    GetMarketPrice($itemBuyouts[$itemInfoKey]) :
+                    GetMarketPrice($itemBids[$itemInfoKey], 1));
+
+            if (strlen($sql) + 5 + strlen($thisSql) > $maxPacketSize) {
+                DBQueryWithError($ourDb, $sql);
+                $sql = '';
+            }
+            $sql .= ($sql == '' ? $sqlStart : ',') . $thisSql;
+        }
+        if ($sql != '') {
+            DBQueryWithError($ourDb, $sql);
+        }
+
+        $sql = <<<'EOF'
+update ttblRareStage
+set lastseen = (select min(lastseen) from (
+	select lastseen from tblItemSummary where house = ? and item = ttblRareStage.item and bonusset = ttblRareStage.bonusset
+	union
+	select ar.prevseen
+	from tblAuctionRare ar
+	join tblAuction a on ar.house = a.house and ar.id = a.id
+	left join tblAuctionExtra ae on ar.house = ae.house and ar.id = ae.id
+	where ar.house = ? and a.item = ttblRareStage.item and ifnull(ae.bonusset, 0) = ttblRareStage.bonusset
+	) z)
+EOF;
+        $stmt = $ourDb->prepare($sql);
+        $stmt->bind_params('ii', $house, $house);
+        $stmt->execute();
+        $stmt->close();
+
+        $sql = <<<'EOF'
+replace into tblUserRareReport (user, house, item, bonusset, prevseen, price) (
+    SELECT ur.user, ur.house, rs.item, rs.bonusset, rs.lastseen, rs.price
+    FROM ttblRareStage rs
+    join tblUserRare ur
+    join tblDBCItem i on i.id = rs.item and i.class = ur.itemclass and i.quality >= ur.minquality and i.level between ifnull(ur.minlevel, i.level) and ifnull(ur.maxlevel, i.level)
+    left join tblDBCItemVendorCost ivc on ivc.item = rs.item
+    where (ur.flags & 2 > 0 or ivc.item is null)
+    and (ur.flags & 1 > 0 or (select count(*) from tblDBCSpell sc where sc.crafteditem = rs.item) = 0)
+    and ur.house = ?
+    group by rs.item, rs.bonusset
+)
+EOF;
+        $stmt = $ourDb->prepare($sql);
+        $stmt->bind_params('i', $house);
+        $stmt->execute();
+        $stmt->close();
+
+        $stmt = $ourDb->prepare('select distinct user from tblUserRareReport where house = ?');
+        $stmt->bind_param('i', $house);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        while ($row = $result->fetch_assoc()) {
+            $updateObserved[$row['user']] = true;
+        }
+        $result->close();
+        $stmt->close();
+
+        DBQueryWithError($ourDb, 'drop temporary table ttblRareStage');
     }
 
     $observedUsers = array_chunk(array_keys($updateObserved), 200);

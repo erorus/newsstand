@@ -133,8 +133,8 @@ var TUJ_Category = function ()
         var vendor = vendorCheck.checked ? 1 : 0;
 
         var days = parseInt(daysBox.value,10);
-        if (isNaN(days)) {
-            days = '14';
+        if (isNaN(days) || days < 14) {
+            days = 14;
         }
         daysBox.value = days;
 
@@ -349,7 +349,7 @@ var TUJ_Category = function ()
         var daysBox = libtuj.ce('input');
         daysBox.className = 'input-quantity';
         daysBox.type = 'number';
-        daysBox.min = 0;
+        daysBox.min = 14;
         daysBox.max = 730;
         daysBox.size = 4;
         daysBox.maxLength = 3;

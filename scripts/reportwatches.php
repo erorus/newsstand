@@ -57,11 +57,11 @@ function CheckNextUser()
     $db = DBConnect();
 
     $sql = <<<'EOF'
-select u.*, if(watchesobserved > ifnull(watchesreported, '2000-01-01'), 1, null) neededwatchcheck
+select *
 from tblUser u
-where (watchesobserved > ifnull(watchesreported, '2000-01-01') or neededrarecheck is not null)
+where watchesobserved > ifnull(watchesreported, '2000-01-01')
 and timestampadd(minute, greatest(if(paiduntil is null or paiduntil < now(), ?, ?), watchperiod), ifnull(watchesreported, '2000-01-01')) < now()
-order by ifnull(watchesreported, '2000-01-01'), ifnull(neededrarecheck, watchesobserved)
+order by ifnull(watchesreported, '2000-01-01'), watchesobserved
 limit 1
 for update
 EOF;
@@ -83,7 +83,7 @@ EOF;
         return 10;
     }
 
-    $stmt = $db->prepare('update tblUser set watchesreported = ?, neededrarecheck = null where id = ?');
+    $stmt = $db->prepare('update tblUser set watchesreported = ? where id = ?');
     $userId = $row['id'];
     $now = date('Y-m-d H:i:s');
     $stmt->bind_param('si', $now, $userId);
@@ -107,24 +107,20 @@ EOF;
     $subjects = [];
     $messages = [];
     $houseSubjects = [];
-    if (!is_null($row['neededwatchcheck'])) {
-        $ret = ReportUserWatches($now, $row);
-        if ($ret !== false) {
-            $subjects[] = $ret[0];
-            $messages[] = $ret[1];
-            if ($ret[2]) {
-                $houseSubjects[] = $ret[2];
-            }
+    $ret = ReportUserWatches($now, $row);
+    if ($ret !== false) {
+        $subjects[] = $ret[0];
+        $messages[] = $ret[1];
+        if ($ret[2]) {
+            $houseSubjects[] = $ret[2];
         }
     }
-    if (!is_null($row['neededrarecheck'])) {
-        $ret = ReportUserRares($now, $row);
-        if ($ret !== false) {
-            $subjects[] = $ret[0];
-            $messages[] = $ret[1];
-            if ($ret[2]) {
-                $houseSubjects[] = $ret[2];
-            }
+    $ret = ReportUserRares($now, $row);
+    if ($ret !== false) {
+        $subjects[] = $ret[0];
+        $messages[] = $ret[1];
+        if ($ret[2]) {
+            $houseSubjects[] = $ret[2];
         }
     }
 
@@ -305,27 +301,17 @@ select z.house, z.item, z.bonusset,
     z.name, z.class, z.level, z.quality,
     ifnull(group_concat(ib.`tag_%1$s` order by ib.tagpriority separator ' '), if(ifnull(bs.`set`,0)=0,'',concat('%2$s ', z.level+sum(ifnull(ib.level,0))))) bonustag,
     z.prevseen,
-    z.price, z.quantity, z.median, z.mean, z.stddev,
+    z.price, z.median, z.mean, z.stddev,
     case z.class %3$s else 999 end classorder
 from (
-    SELECT a.house, a.item, ifnull(ae.bonusset, 0) bonusset,
+    SELECT rr.house, rr.item, rr.bonusset, rr.prevseen, rr.price,
     i.name_%1$s name, i.class, i.basebonus, i.level, i.quality,
-    ar.prevseen,
-    min(if(a.buy = 0, a.bid, a.buy)) price,
-    sum(a.quantity) quantity,
     ig.median, ig.mean, ig.stddev
-    FROM `tblUserRare` ur
-    join tblAuctionRare ar on ar.house = ur.house and ar.prevseen < timestampadd(day, -1 * cast(ur.days as signed), now())
-    join tblAuction a on a.id = ar.id and a.house = ar.house
-    left join tblAuctionExtra ae on ae.house = a.house and ae.id = a.id
-    join tblDBCItem i on i.id = a.item and i.class = ur.itemclass and i.quality >= ur.minquality and i.level between ifnull(ur.minlevel, i.level) and ifnull(ur.maxlevel, i.level)
-    left join tblDBCItemVendorCost ivc on ivc.item = a.item
-    left join tblItemGlobal ig on ig.item = a.item and ig.bonusset = ifnull(ae.bonusset, 0)
-    where (ur.flags & 2 > 0 or ivc.item is null)
-    and (ur.flags & 1 > 0 or (select count(*) from tblDBCSpell sc where sc.crafteditem = a.item) = 0)
-    and ur.user = ?
-    and not (cast(a.id as signed) - (select cast(maxid as signed) from tblSnapshot sn where sn.house = a.house and sn.updated < ? order by updated desc limit 1)) between -0x20000000 and 0
-    group by a.house, a.item, ifnull(ae.bonusset, 0)) z
+    FROM tblUserRareReport rr
+    join tblDBCItem i on i.id = rr.item
+    left join tblItemGlobal ig on ig.item = rr.item and ig.bonusset = rr.bonusset
+    where rr.user = ?
+    ) z
 left join tblBonusSet bs on z.bonusset = bs.`set`
 left join tblDBCItemBonus ib on ifnull(bs.bonus, z.basebonus) = ib.id
 group by z.house, z.item, z.bonusset
@@ -340,9 +326,8 @@ EOF;
     $lastItem = '';
 
     $userId = $userRow['id'];
-    $neededRareCheck = $userRow['neededrarecheck'];
     $stmt = $db->prepare($sql);
-    $stmt->bind_param('is', $userId, $neededRareCheck);
+    $stmt->bind_param('i', $userId);
     $stmt->execute();
     $result = $stmt->get_result();
     while ($row = $result->fetch_assoc()) {

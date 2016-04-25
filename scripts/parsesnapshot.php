@@ -172,7 +172,6 @@ function ParseAuctionData($house, $snapshot, &$json)
     $lowMax = -1;
     $highMax = -1;
     $hasRollOver = false;
-    $needsRareCheck = false;
 
     $jsonAuctions = [];
     if (isset($json['auctions']['auctions'])) {
@@ -451,8 +450,7 @@ and a.item not in (82800)
 and ifnull(tis.lastseen, '2000-01-01') < timestampadd(day,-14,'%s'))
 EOF;
         $sql = sprintf($sql, $house, $lastMax, $hasRollOver ? ' and a.id < 0x20000000 ' : '', $snapshotString);
-        $needsRareCheck = DBQueryWithError($ourDb, $sql);
-        $needsRareCheck &= $ourDb->affected_rows > 0;
+        DBQueryWithError($ourDb, $sql);
     }
 
     foreach ($existingIds as &$oldRow) {
@@ -471,15 +469,27 @@ EOF;
     }
     unset($oldRow);
 
+    $rareDeletes = [];
+
     $preDeleted = count($itemInfo);
     foreach ($existingIds as &$oldRow) {
         if ((!isset($existingPetIds[$oldRow['id']])) && (!isset($itemInfo[$oldRow['infokey']]))) {
+            list($itemId, $bonusSet) = explode(':', $oldRow['infokey']);
+            $rareDeletes[$bonusSet][] = $itemId;
             $itemInfo[$oldRow['infokey']] = array('tq' => 0, 'a' => array());
         }
     }
     unset($oldRow);
     DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating " . count($itemInfo) . " item info (including " . (count($itemInfo) - $preDeleted) . " no longer available)");
     UpdateItemInfo($house, $itemInfo, $snapshot, $noHistory);
+
+    $sql = 'delete from tblUserRareReport where house = %d and bonusset = %d and item in (%s)';
+    foreach ($rareDeletes as $bonusSet => $itemIds) {
+        $chunked = array_chunk($itemIds, 200);
+        foreach ($chunked as $chunk) {
+            DBQueryWithError($ourDb, sprintf($sql, $house, $bonusSet, implode(',', $chunk)));
+        }
+    }
 
     $preDeleted = count($petInfo);
     foreach ($existingPetIds as &$oldRow) {
@@ -563,23 +573,6 @@ EOF;
         if ($sql != '') {
             DBQueryWithError($ourDb, $sql . ')');
         }
-    }
-
-    if ($needsRareCheck) {
-        $sql = <<<'EOF'
-update tblUser
-set neededrarecheck = ?
-where ifnull(neededrarecheck, now()) > ?
-and id in (
-    select distinct user
-    from tblUserRare
-    where house = ?
-)
-EOF;
-        $stmt = $ourDb->prepare($sql);
-        $stmt->bind_param('ssi', $snapshotString, $snapshotString, $house);
-        $stmt->execute();
-        $stmt->close();
     }
 
     $ourDb->close();

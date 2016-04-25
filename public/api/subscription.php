@@ -1082,7 +1082,7 @@ function SetRareWatch($loginState, $house, $quality, $itemClass, $minLevel, $max
     $fail |= $minLevel < 0;
     $fail |= $maxLevel > 999;
     $fail |= $minLevel > 999;
-    $fail |= $days < 1;
+    $fail |= $days < 14;
     $fail |= $days > 730;
 
     if (!$fail) {
