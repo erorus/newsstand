@@ -337,7 +337,7 @@ function ProcessAuthCode($state, $code) {
         'client_secret' => BATTLE_NET_SECRET,
     ];
     $outHeaders = [];
-    $tokenData = PostHTTP($url, $toPost, [], $outHeaders);
+    $tokenData = \Newsstand\HTTP::Post($url, $toPost, [], $outHeaders);
     if ($tokenData === false) {
         return '#subscription/notoken';
     }
@@ -352,7 +352,7 @@ function ProcessAuthCode($state, $code) {
 
     // get user id and battle.net tag
     $url = sprintf('https://%s.api.battle.net/account/user?access_token=%s', strtolower($stateInfo['region']), $token);
-    $userData = FetchHTTP($url);
+    $userData = \Newsstand\HTTP::Get($url);
     if ($userData === false) {
         return '#subscription/nouser';
     }

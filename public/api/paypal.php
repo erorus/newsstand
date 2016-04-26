@@ -212,7 +212,7 @@ function DebugPaypalMessage($message, $subject = 'Paypal IPN Issue') {
 function ValidatePaypalNotification($rawPost, $useSandbox = false) {
     $url = sprintf('https://www%s.paypal.com/cgi-bin/webscr', $useSandbox ? '.sandbox' : '');
 
-    $result = PostHTTP($url, 'cmd=_notify-validate&'.$rawPost);
+    $result = \Newsstand\HTTP::Post($url, 'cmd=_notify-validate&'.$rawPost);
     if (trim($result) == 'VERIFIED') {
         return true;
     }
