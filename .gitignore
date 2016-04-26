@@ -1,6 +1,5 @@
 .idea
 logs/
-snapshots/
 
 public/icon/
 public/models/
@@ -11,6 +10,7 @@ backup/
 incl/*.credentials.php
 incl/banlist.txt
 public/index.scripts.inc
+public/paypal.*.php
 scripts/realms2houses_cache/*
 scripts/zopfli
 compress/*

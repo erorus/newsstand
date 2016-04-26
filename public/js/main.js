@@ -16,13 +16,6 @@ var libtuj = {
                 ;
         });
     },
-    AddScript: function (url)
-    {
-        var s = libtuj.ce('script');
-        s.type = 'text/javascript';
-        s.src = url;
-        document.getElementsByTagName('head')[0].appendChild(s);
-    },
     Mean: function (a)
     {
         if (a.length < 1) {
@@ -190,6 +183,9 @@ var libtuj = {
                 dt = new Date(unix.replace(/^(\d{4}-\d\d-\d\d) (\d\d:\d\d:\d\d)$/, '$1T$2.000Z'));
             }
             else {
+                if (unix <= 0) {
+                    unix = Math.abs(unix) + Math.floor(now.getTime() / 1000);
+                }
                 dt = new Date(unix * 1000);
             }
 
@@ -257,18 +253,30 @@ var libtuj = {
         }
         return s;
     },
-    GetRealmsForHouse: function (house, maxLineLength)
+    GetRealmsForHouse: function (house, maxLineLength, includeRegion)
     {
         var lineLength = 0;
-        var realmNames = '';
-        for (var x in tuj.realms) {
-            if (tuj.realms.hasOwnProperty(x) && tuj.realms[x].house == house) {
-                if (maxLineLength && lineLength > 0 && lineLength + tuj.realms[x].name.length > maxLineLength) {
-                    realmNames += '<br>';
-                    lineLength = 0;
+        var realmNames = '', realmName;
+
+        for (var regionId in tuj.validRegions) {
+            if (!tuj.validRegions.hasOwnProperty(regionId)) {
+                continue;
+            }
+
+            for (var x in tuj.allRealms[regionId]) {
+                if (tuj.allRealms[regionId].hasOwnProperty(x) && tuj.allRealms[regionId][x].house == house) {
+                    realmName = tuj.allRealms[regionId][x].name;
+                    if (includeRegion || (tuj.realms != tuj.allRealms[regionId])) {
+                        realmName = tuj.validRegions[regionId] + ' ' + realmName;
+                    }
+
+                    if (maxLineLength && lineLength > 0 && lineLength + realmName.length > maxLineLength) {
+                        realmNames += '<br>';
+                        lineLength = 0;
+                    }
+                    lineLength += 2 + realmName.length;
+                    realmNames += realmName + ', ';
                 }
-                lineLength += 2 + tuj.realms[x].name.length;
-                realmNames += tuj.realms[x].name + ', ';
             }
         }
 
@@ -326,6 +334,11 @@ var libtuj = {
         },
         Show: function ()
         {
+            if (!tuj.UserSeesAds()) {
+                libtuj.Ads.addCount = 0;
+                $('div.ad, div.adsubstitute').remove();
+                return;
+            }
             if (!libtuj.Ads.adsWillShow) {
                 libtuj.Ads.ShowSubstitutes();
                 return;
@@ -337,7 +350,7 @@ var libtuj = {
         },
         ShowSubstitutes: function ()
         {
-            var html = "<div>The Undermine Journal's servers cost at least $100 every month.</div><div>We rely on ads and donations to pay our bills.</div><div><br>If you won't view ads, please <a href=\"" + tuj.BuildHash({'page':'donate', 'id': ''}) + "\">consider a donation</a> to keep the site online. Thank you.</div>";
+            var html = "<div>The Undermine Journal's servers cost over $100 every month.</div><div>We rely on ads, donations, and paid subscriptions to pay our bills.</div><div><br>Please <a href=\"" + tuj.BuildHash({'page':'subscription', 'id': ''}) + "\">try a paid subscription</a> or <a href=\"" + tuj.BuildHash({'page':'donate', 'id': ''}) + "\">consider a donation</a> to keep the site online. Thank you.</div>";
             $('div.ad').removeClass('ad').addClass('adsubstitute').html(html);
         },
         onWindowLoad: function () {
@@ -376,6 +389,7 @@ var libtuj = {
             }
 
             window.localStorage.setItem(key, JSON.stringify(val));
+            return true;
         },
         Remove: function (key, val)
         {
@@ -388,6 +402,7 @@ var libtuj = {
             }
 
             window.localStorage.removeItem(key);
+            return true;
         }
     }
 };
@@ -441,13 +456,21 @@ var tujConstants = {
     }
 }
 
+if (!Date.now) {
+    Date.now = function now() {
+        return new Date().getTime();
+    };
+}
+
 var TUJ = function ()
 {
     var validRegions = ['US','EU'];
-    var validPages = ['', 'search', 'item', 'seller', 'battlepet', 'contact', 'donate', 'category', 'transmog'];
-    var pagesNeedRealm = [true, true, true, true, true, false, false, true, true];
+    var validPages = ['', 'search', 'item', 'seller', 'battlepet', 'contact', 'donate', 'category', 'transmog', 'subscription', 'policy'];
+    var pagesNeedRealm = [true, true, true, true, true, false, false, true, true, false, false];
     var houseInfo = {};
     var drawnRegion = -1;
+    var loggedInUser = false;
+    var pendingCSRFProtectedRequests = [];
     this.validRegions = validRegions;
     this.realms = undefined;
     this.allRealms = undefined;
@@ -494,7 +517,11 @@ var TUJ = function ()
         }, 1000);
         */
 
-        document.body.className = '';
+        var pageClasses = 'page-region page-realm page-front';
+        for (var x = 1; x < validPages.length; x++) {
+            pageClasses += ' page-' + validPages[x];
+        }
+        $(document.body).removeClass(pageClasses);
 
         if (self.colorTheme == '') {
             $('#bottom-bar .dark-only').click(SetDarkTheme.bind(self, false));
@@ -518,7 +545,7 @@ var TUJ = function ()
                 o.text = tujConstants.locales[loc];
                 locSel.appendChild(o);
             }
-            document.body.insertBefore(locSel, document.body.firstChild);
+            $('#super-bar').append(locSel);
 
             var savedLocale = libtuj.Storage.Get('locale');
             inMain = false;
@@ -547,6 +574,21 @@ var TUJ = function ()
                     if (dta.hasOwnProperty('banned')) {
                         self.banned = dta.banned;
                     }
+                    if (dta.hasOwnProperty('user')) {
+                        if (dta.user.name) {
+                            loggedInUser = dta.user;
+                            FetchCSRFCookie();
+                            if (loggedInUser.locale && tujConstants.locales.hasOwnProperty(loggedInUser.locale) && self.locale != loggedInUser.locale) {
+                                checkLanguageHeader = false;
+                                LoadLocale(loggedInUser.locale, true);
+                            }
+                        } else {
+                            loggedInUser = false;
+                        }
+                    } else {
+                        loggedInUser = false;
+                    }
+                    OnLoginStateChange();
                     if (dta.hasOwnProperty('language') && checkLanguageHeader) {
                         var l = dta.language.toLowerCase().replace(/[\s-]/, '').split(',');
                         var x, y, m, ls = [];
@@ -592,11 +634,17 @@ var TUJ = function ()
                         alert('Error getting realms: ' + stat + ' ' + er);
                     }
                     self.allRealms = [];
+                    loggedInUser = false;
+                    OnLoginStateChange();
                 },
                 complete: function ()
                 {
                     $('#progress-page').hide();
                 },
+                data: {
+                    'getuser': 1
+                },
+                method: 'POST',
                 url: 'api/realms.php'
             });
             return;
@@ -605,6 +653,13 @@ var TUJ = function ()
         var ls, firstRun = !hash.watching;
         CheckForProxy();
         ReadParams();
+
+        if (self.params.realm) {
+            $('#topcorner').addClass('with-realm');
+        } else {
+            $('#topcorner').removeClass('with-realm');
+        }
+
         if (firstRun) {
             if (!self.params.realm) {
                 var searchRealm;
@@ -640,61 +695,75 @@ var TUJ = function ()
             }
         }
 
+        if (loggedInUser && !loggedInUser.acceptedterms && self.params.page != 10 && self.params.id != 'accept') { // policy
+            inMain = false;
+            self.SetParams({'page': 'policy', 'id': 'accept'});
+            return;
+        }
+
         UpdateSidebar();
 
         window.scrollTo(0, 0);
 
-        if (self.params.region == undefined) {
-            inMain = false;
+        if (!self.params.page || pagesNeedRealm[self.params.page]) {
+            if (self.params.region == undefined) {
+                inMain = false;
+                $('#main .page').hide();
+                $('#realm-list').removeClass('show');
+                $('#region-page area.region-us').attr('href', tuj.BuildHash({region:0}));
+                $('#region-page area.region-eu').attr('href', tuj.BuildHash({region:1}));
+
+                $('#region-page h2').html(libtuj.sprintf(self.lang.welcomeTo, 'The Undermine Journal') + ' <sub>' + self.lang.yourSource + '</sub>');
+
+                $('#region-page').show();
+                $(document.body).addClass('page-region');
+                $('map').imageMapResize();
+                return;
+            }
+
+            if ($('#realm-list').length == 0) {
+                inMain = false;
+                DrawRealms();
+                return;
+            }
+
             $('#main .page').hide();
             $('#realm-list').removeClass('show');
-            $('#region-page area.region-us').attr('href', tuj.BuildHash({region:0}));
-            $('#region-page area.region-eu').attr('href', tuj.BuildHash({region:1}));
-
-            $('#region-page h2').html(libtuj.sprintf(self.lang.welcomeTo, 'The Undermine Journal') + ' <sub>' + self.lang.yourSource + '</sub>');
-
-            $('#region-page').show();
-            document.body.className = 'region';
-            $('map').imageMapResize();
-            return;
-        }
-
-        if ($('#realm-list').length == 0) {
-            inMain = false;
-            DrawRealms();
-            return;
-        }
-
-        $('#main .page').hide();
-        $('#realm-list').removeClass('show');
-        if (!self.params.realm && (!self.params.page || pagesNeedRealm[self.params.page])) {
-            inMain = false;
-            libtuj.Storage.Remove('defaultRealm');
-            if (drawnRegion != self.params.region) {
-                DrawRealms();
+            if (!self.params.realm) {
+                inMain = false;
+                libtuj.Storage.Remove('defaultRealm');
+                if (drawnRegion != self.params.region) {
+                    DrawRealms();
+                }
+                $('#realm-list .realms-column a').each(function () {
+                    this.href = self.BuildHash({realm: this.rel});
+                });
+                $('#realm-list .directions').text(libtuj.sprintf(self.lang.chooseRealm, validRegions[drawnRegion]));
+                $('#realm-list').addClass('show');
+                $(document.body).addClass('page-realm');
+                return;
             }
-            $('#realm-list .realms-column a').each(function () {
-                this.href = self.BuildHash({realm: this.rel});
-            });
-            $('#realm-list .directions').text(libtuj.sprintf(self.lang.chooseRealm, validRegions[drawnRegion]));
-            $('#realm-list').addClass('show');
-            document.body.className = 'realm';
-            return;
-        }
 
-        if (!self.params.page || (pagesNeedRealm[self.params.page] && self.banned.isbanned)) {
-            inMain = false;
-            document.body.className = 'front';
-            ShowRealmFrontPage();
-            return;
+            if (!self.params.page || (pagesNeedRealm[self.params.page] && self.banned.isbanned)) {
+                inMain = false;
+                $(document.body).addClass('page-front');
+                ShowRealmFrontPage();
+                return;
+            }
+        } else {
+            $('#main .page').hide();
+            $('#realm-list').removeClass('show');
         }
 
         inMain = false;
 
-        document.body.className = validPages[self.params.page];
+        $(document.body).addClass('page-' + validPages[self.params.page]);
 
         if (typeof tuj['page_' + validPages[self.params.page]] == 'undefined') {
-            libtuj.AddScript(tujCDNPrefix + 'js/' + validPages[self.params.page] + '.js?' + self.apiVersion);
+            var s = libtuj.ce('script');
+            s.type = 'text/javascript';
+            s.src = tujCDNPrefix + 'js/' + validPages[self.params.page] + '.js?' + self.apiVersion;
+            document.getElementsByTagName('head')[0].appendChild(s);
         }
         else {
             tuj['page_' + validPages[self.params.page]].load(self.params);
@@ -714,6 +783,16 @@ var TUJ = function ()
                 }
             }
             self.lang = $.extend(true, {}, self.locales.enus, self.locales[self.locale]);
+
+            if (!!(loggedInUser) && loggedInUser.locale != locName) {
+                tuj.SendCSRFProtectedRequest({
+                    data: {'newlocale': locName},
+                    success: function(dta) {
+                        loggedInUser = $.extend(loggedInUser, dta);
+                    }
+                });
+            }
+
             Main();
             return;
         }
@@ -756,6 +835,110 @@ var TUJ = function ()
             s2 = (s2 + s1) % 255;
         }
         return (s2 << 8) | s1;
+    }
+
+    this.LoggedInUserName = function() {
+        return !!(loggedInUser) ? loggedInUser.name : false;
+    };
+
+    this.UserSeesAds = function() {
+        return !(loggedInUser && loggedInUser.hasOwnProperty('ads') && !loggedInUser.ads);
+    };
+
+    this.UserAcceptsTerms = function() {
+        if (!loggedInUser) {
+            return false;
+        }
+
+        tuj.SendCSRFProtectedRequest({
+            data: {'acceptsterms': 1},
+            success: function(dta) {
+                loggedInUser = $.extend(loggedInUser, dta);
+                tuj.SetParams({'page': 'subscription', 'id': undefined});
+            }
+        });
+    };
+
+    this.LogOut = function(callbackOrEvent) {
+        var callback;
+        if (typeof callbackOrEvent == 'function') {
+            callback = callbackOrEvent;
+        }
+        
+        $.ajax({
+            data: {
+                'logout': 1
+            },
+            method: 'POST',
+            success: function(dta) {
+                loggedInUser = false;
+                OnLoginStateChange();
+                Main();
+                if (callback) {
+                    callback();
+                }
+            },
+            error: function() {
+                alert('Error logging out. Try again?');
+            },
+            url: 'api/subscription.php'
+        });
+    };
+
+    function FetchCSRFCookie() {
+        if (!loggedInUser.hasOwnProperty('csrfCookie')) {
+            return;
+        }
+        if (loggedInUser.hasOwnProperty('csrfToken')) {
+            return;
+        }
+        var i = libtuj.ce('iframe');
+        i.style.display = 'none';
+        $(i).on('load', function() {
+            var cookies = i.contentDocument.cookie.replace('; ', ';').split(';');
+            for (var x = 0; x < cookies.length; x++) {
+                if (cookies[x].substr(0, loggedInUser.csrfCookie.length + 1) == (loggedInUser.csrfCookie + '=')) {
+                    loggedInUser.csrfToken = cookies[x].substr(loggedInUser.csrfCookie.length + 1);
+                    break;
+                }
+            }
+            i.parentNode.removeChild(i);
+            if (loggedInUser.hasOwnProperty('csrfToken')) {
+                while (pendingCSRFProtectedRequests.length) {
+                    self.SendCSRFProtectedRequest(pendingCSRFProtectedRequests.shift());
+                }
+            }
+            pendingCSRFProtectedRequests = [];
+        });
+        i.src = '/api/csrf.txt';
+        document.body.appendChild(i);
+    }
+
+    this.SendCSRFProtectedRequest = function(ajaxParams) {
+        if (!loggedInUser.hasOwnProperty('csrfToken')) {
+            pendingCSRFProtectedRequests.push(ajaxParams);
+            return;
+        }
+
+        ajaxParams.url = 'api/subscription.php';
+        ajaxParams.type = 'POST';
+        ajaxParams.crossDomain = false;
+        ajaxParams.global = false;
+        if (!ajaxParams.hasOwnProperty('headers')) {
+            ajaxParams.headers = {};
+        }
+        $.extend(ajaxParams.headers, {'X-CSRF-Token': loggedInUser.csrfToken});
+        delete ajaxParams.beforeSend;
+        $.ajax(ajaxParams);
+    };
+
+    function OnLoginStateChange() {
+        if (!loggedInUser) {
+            pendingCSRFProtectedRequests = [];
+            $('body').removeClass('logged-in').addClass('logged-out');
+        } else {
+            $('body').removeClass('logged-out').addClass('logged-in');
+        }
     }
 
     function ReadParams()
@@ -925,6 +1108,24 @@ var TUJ = function ()
             $('#topcorner > div').hide();
         }
 
+        if (!loggedInUser) {
+            var loginLink = $('<a>');
+            loginLink[0].href = self.BuildHash({page: 'subscription', id: ''});
+            loginLink.text(self.lang.logIn);
+            $('#login-info').removeClass('logged-in-only').addClass('logged-out-only').empty().append(loginLink);
+        } else {
+            var logoutLink = libtuj.ce('input');
+            logoutLink.type = 'button';
+            logoutLink.value = self.lang.logOut;
+            $(logoutLink).click(self.LogOut);
+
+            var subLink = $('<a>');
+            subLink[0].href = self.BuildHash({page: 'subscription', id: ''});
+            subLink.text(loggedInUser.name);
+
+            $('#login-info').removeClass('logged-out-only').addClass('logged-in-only').empty().append(subLink).append(logoutLink);
+        }
+
         var contactLink = $('#bottom-bar a.contact');
         contactLink[0].href = self.BuildHash({page: 'contact', id: undefined});
         contactLink.html(self.lang.contact);
@@ -932,6 +1133,14 @@ var TUJ = function ()
         var donateLink = $('#bottom-bar a.donate');
         donateLink[0].href = self.BuildHash({page: 'donate', id: undefined});
         donateLink.html(self.lang.donate);
+
+        var subscriptionLink = $('#bottom-bar a.subscription');
+        subscriptionLink[0].href = self.BuildHash({page: 'subscription', id: undefined});
+        subscriptionLink.html(self.lang.subscription);
+
+        var policyLink = $('#bottom-bar a.policy');
+        policyLink[0].href = self.BuildHash({page: 'policy', id: undefined});
+        policyLink.html(self.lang.policy);
 
         $('#bottom-bar a.dark-only').html(self.lang.lightTheme);
         $('#bottom-bar a.light-only').html(self.lang.darkTheme);
@@ -956,6 +1165,9 @@ var TUJ = function ()
 
             var d = libtuj.ce('div');
             d.id = 'realm-updated';
+
+            d.className = 'no-realm-hide';
+            form.className = 'no-realm-hide';
 
             $('#topcorner .region-realm').after(d).after(form);
         } else {
@@ -1225,8 +1437,8 @@ var TUJ = function ()
             $('#realm-list').remove();
         }
 
-        var addResize = false;
         var realmList = $('#realm-list')[0];
+        var realmsColumn;
 
         if (!realmList) {
             realmList = libtuj.ce();
@@ -1238,58 +1450,15 @@ var TUJ = function ()
             realmList.appendChild(directions);
             $(directions).text(libtuj.sprintf(self.lang.chooseRealm, validRegions[drawnRegion]));
 
-            addResize = true;
-        }
-
-        $(realmList).addClass('width-test');
-        var maxWidth = realmList.clientWidth;
-        var oldColCount = realmList.getElementsByClassName('realms-column').length;
-
-        var cols = [];
-        var colWidth = 0;
-        if (oldColCount == 0) {
-            cols.push(libtuj.ce());
-            cols[0].className = 'realms-column';
-            $(realmList).append(cols[0]);
-
-            colWidth = cols[0].offsetWidth;
-        }
-        else {
-            colWidth = realmList.getElementsByClassName('realms-column')[0].offsetWidth;
-        }
-        $(realmList).removeClass('width-test');
-
-        var numCols = Math.floor(maxWidth / colWidth);
-        if (numCols == 0) {
-            numCols = 1;
-        }
-
-        if (numCols == oldColCount) {
-            return;
-        }
-
-        if (oldColCount > 0) {
-            $(realmList).children('.realms-column').remove();
-        }
-
-        for (var x = cols.length; x < numCols; x++) {
-            cols[x] = libtuj.ce();
-            cols[x].className = 'realms-column';
-            $(realmList).append(cols[x]);
-        }
-
-        var cnt = 0;
-
-        for (var x in self.realms) {
-            if (!self.realms.hasOwnProperty(x)) {
-                continue;
-            }
-
-            cnt++;
+            realmsColumn = libtuj.ce();
+            realmsColumn.className = 'realms-column';
+            realmList.appendChild(realmsColumn);
+        } else {
+            realmsColumn = realmList.getElementsByClassName('realms-column')[0];
+            $(realmsColumn).empty();
         }
 
         var a;
-        var c = 0;
         var allRealms = [];
 
         for (var x in self.realms) {
@@ -1310,11 +1479,7 @@ var TUJ = function ()
             a.rel = allRealms[x];
             $(a).text(self.realms[allRealms[x]].name);
 
-            $(cols[Math.min(cols.length - 1, Math.floor(c++ / cnt * numCols))]).append(a);
-        }
-
-        if (addResize) {
-            optimizedResize.add(DrawRealms);
+            $(realmsColumn).append(a);
         }
 
         Main();
@@ -1525,59 +1690,5 @@ $(document).ready(function ()
     tuj = new TUJ();
 });
 $(window).load(libtuj.Ads.onWindowLoad);
-
-var optimizedResize = (function ()
-{
-
-    var callbacks = [],
-        running = false;
-
-    // fired on resize event
-    function resize()
-    {
-
-        if (!running) {
-            running = true;
-
-            if (window.requestAnimationFrame) {
-                window.requestAnimationFrame(runCallbacks);
-            } else {
-                setTimeout(runCallbacks, 66);
-            }
-        }
-
-    }
-
-    // run the actual callbacks
-    function runCallbacks()
-    {
-
-        for (var x = 0; x < callbacks.length; x++) {
-            callbacks[x]();
-        }
-
-        running = false;
-    }
-
-    // adds callback to loop
-    function addCallback(callback)
-    {
-
-        if (callback) {
-            callbacks.push(callback);
-        }
-
-    }
-
-    return {
-        add: function (callback)
-        {
-            if (callbacks.length == 0) {
-                window.addEventListener('resize', resize);
-            }
-            addCallback(callback);
-        }
-    }
-}());
 
 var wowhead_tooltips = { "hide": { "droppedby": true, "dropchance": true, "reagents": true, "sellprice": true } };

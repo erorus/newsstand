@@ -27,11 +27,12 @@
         <title>The Undermine Journal</title>
 <!--#include virtual="index.scripts.inc" -->    </head>
     <body>
+        <div id="super-bar"><span id="login-info"></span></div>
         <div id="page">
             <div id="topbar">
                 <div id="topcorner" class="give-padding">
                     <div>
-                        <div class="region-realm">
+                        <div class="region-realm no-realm-hide">
                             <a class="region"></a>
                             <a class="realm"></a>
                         </div>
@@ -123,6 +124,108 @@
                     <div id="front-page-deals" class="top-list"></div>
                     <br clear="all"/>
                 </div>
+                <div class="page" id="policy-page">
+                    <div id="policy-accept"></div>
+                    <div class="policy-section policy-scroller" id="policy-terms">
+                        <h2>Terms of Service ("Terms")</h2>
+                        <p>Last updated: April 17, 2016</p>
+                        <p>Please read these Terms of Service ("Terms", "Terms of Service") carefully before using the https://theunderminejournal.com/ website (the "Service") operated by The Undermine Journal ("us", "we", or "our").</p>
+                        <p>Your access to and use of the Service is conditioned upon your acceptance of and compliance with these Terms. These Terms apply to all visitors, users and others who wish to access or use the Service.</p>
+                        <p>By accessing or using the Service you agree to be bound by these Terms. If you disagree with any part of the terms then you do not have permission to access the Service.</p>
+                        <p><strong>Purchases</strong></p>
+                        <p>If you wish to purchase any product or service made available through the Service ("Purchase"), you may be asked to supply certain information relevant to your Purchase including, without limitation, your credit card number, the expiration date of your credit card, your billing address, and your shipping information.</p>
+                        <p>You represent and warrant that: (i) you have the legal right to use any credit card(s) or other payment method(s) in connection with any Purchase; and that (ii) the information you supply to us is true, correct and complete.</p>
+                        <p>The service may employ the use of third party services for the purpose of facilitating payment and the completion of Purchases. By submitting your information, you grant us the right to provide the information to these third parties subject to our Privacy Policy.</p>
+                        <p>We reserve the right to refuse or cancel your order at any time for reasons including but not limited to: product or service availability, errors in the description or price of the product or service, error in your order or other reasons.</p>
+                        <p>We reserve the right to refuse or cancel your order if fraud or an unauthorized or illegal transaction is suspected.</p>
+                        <p><strong>Availability, Errors and Inaccuracies</strong></p>
+                        <p>We are constantly updating product and service offerings on the Service. We may experience delays in updating information on the Service and in our advertising on other web sites. The information found on the Service may contain errors or inaccuracies and may not be complete or current. Products or services may be mispriced, described inaccurately, or unavailable on the Service and we cannot guarantee the accuracy or completeness of any information found on the Service.</p>
+                        <p>We therefore reserve the right to change or update information and to correct errors, inaccuracies, or omissions at any time without prior notice.</p>
+                        <p><strong>Accounts</strong></p>
+                        <p>When you create an account with us, you guarantee that you are above the age of 18, and that the information you provide us is accurate, complete, and current at all times. Inaccurate, incomplete, or obsolete information may result in the immediate termination of your account on the Service.</p>
+                        <p>You are responsible for maintaining the confidentiality of your account and password, including but not limited to the restriction of access to your computer and/or account. You agree to accept responsibility for any and all activities or actions that occur under your account and/or password, whether your password is with our Service or a third-party service. You must notify us immediately upon becoming aware of any breach of security or unauthorized use of your account.</p>
+                        <p>We reserve the right to refuse service, terminate accounts, remove or edit content, or cancel orders in our sole discretion.</p>
+                        <p><strong>Links To Other Web Sites</strong></p>
+                        <p>Our Service may contain links to third party web sites or services that are not owned or controlled by The Undermine Journal.</p>
+                        <p>The Undermine Journal has no control over, and assumes no responsibility for the content, privacy policies, or practices of any third party web sites or services. We do not warrant the offerings of any of these entities/individuals or their websites.</p>
+                        <p>You acknowledge and agree that The Undermine Journal shall not be responsible or liable, directly or indirectly, for any damage or loss caused or alleged to be caused by or in connection with use of or reliance on any such content, goods or services available on or through any such third party web sites or services.</p>
+                        <p>We strongly advise you to read the terms and conditions and privacy policies of any third party web sites or services that you visit.</p>
+                        <p><strong>Termination</strong></p>
+                        <p>We may terminate or suspend your account and bar access to the Service immediately, without prior notice or liability, under our sole discretion, for any reason whatsoever and without limitation, including but not limited to a breach of the Terms.</p>
+                        <p>If you wish to terminate your account, you may simply discontinue using the Service.</p>
+                        <p>All provisions of the Terms which by their nature should survive termination shall survive termination, including, without limitation, ownership provisions, warranty disclaimers, indemnity and limitations of liability.</p>
+                        <p><strong>Indemnification</strong></p>
+                        <p>You agree to defend, indemnify and hold harmless The Undermine Journal and its licensee and licensors, and their employees, contractors, agents, officers and directors, from and against any and all claims, damages, obligations, losses, liabilities, costs or debt, and expenses (including but not limited to attorney's fees), resulting from or arising out of a) your use and access of the Service, by you or any person using your account and password, or b) a breach of these Terms.</p>
+                        <p><strong>Limitation Of Liability</strong></p>
+                        <p>In no event shall The Undermine Journal, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from (i) your access to or use of or inability to access or use the Service; (ii) any conduct or content of any third party on the Service; (iii) any content obtained from the Service; and (iv) unauthorized access, use or alteration of your transmissions or content, whether based on warranty, contract, tort (including negligence) or any other legal theory, whether or not we have been informed of the possibility of such damage, and even if a remedy set forth herein is found to have failed of its essential purpose.</p>
+                        <p><strong>Disclaimer</strong></p>
+                        <p>Your use of the Service is at your sole risk. The Service is provided on an "AS IS" and "AS AVAILABLE" basis. The Service is provided without warranties of any kind, whether express or implied, including, but not limited to, implied warranties of merchantability, fitness for a particular purpose, non-infringement or course of performance.</p>
+                        <p>The Undermine Journal its subsidiaries, affiliates, and its licensors do not warrant that a) the Service will function uninterrupted, secure or available at any particular time or location; b) any errors or defects will be corrected; c) the Service is free of viruses or other harmful components; or d) the results of using the Service will meet your requirements.</p>
+                        <p><strong>Exclusions</strong></p>
+                        <p>Some jurisdictions do not allow the exclusion of certain warranties or the exclusion or limitation of liability for consequential or incidental damages, so the limitations above may not apply to you.</p>
+                        <p><strong>Governing Law</strong></p>
+                        <p>These Terms shall be governed and construed in accordance with the laws of Pennsylvania, United States, without regard to its conflict of law provisions.</p>
+                        <p>Our failure to enforce any right or provision of these Terms will not be considered a waiver of those rights. If any provision of these Terms is held to be invalid or unenforceable by a court, the remaining provisions of these Terms will remain in effect. These Terms constitute the entire agreement between us regarding our Service, and supersede and replace any prior agreements we might have had between us regarding the Service.</p>
+                        <p><strong>Changes</strong></p>
+                        <p>We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material we will provide at least 30 days notice prior to any new terms taking effect. What constitutes a material change will be determined at our sole discretion.</p>
+                        <p>By continuing to access or use our Service after any revisions become effective, you agree to be bound by the revised terms. If you do not agree to the new terms, you are no longer authorized to use the Service.</p>
+                        <p><strong>Contact Us</strong></p>
+                        <p>If you have any questions about these Terms, please contact us.</p>
+                    </div>
+                    <div class="policy-section policy-scroller" id="policy-privacy">
+                        <h2>Privacy Policy</h2>
+                        <p>Last updated: April 17, 2016</p>
+                        <p>The Undermine Journal ("us", "we", or "our") operates the https://theunderminejournal.com website (the "Service").</p>
+                        <p>This page informs you of our policies regarding the collection, use and disclosure of Personal Information when you use our Service.</p>
+                        <p>We will not use or share your information with anyone except as described in this Privacy Policy.</p>
+                        <p>We use your Personal Information for providing and improving the Service. By using the Service, you agree to the collection and use of information in accordance with this policy. Unless otherwise defined in this Privacy Policy, terms used in this Privacy Policy have the same meanings as in our Terms and Conditions, accessible at https://theunderminejournal.com</p>
+                        <p><strong>Information Collection And Use</strong></p>
+                        <p>While using our Service, we may ask you to provide us with certain personally identifiable information that can be used to contact or identify you. Personally identifiable information may include, but is not limited to, your email address, other information ("Personal Information").
+                            We collect this information for the purpose of providing the Service, identifying and communicating with you, responding to your requests/inquiries, servicing your purchase orders, and improving our services.</p>
+                        <p><strong>Log Data</strong></p>
+                        <p>We may also collect information that your browser sends whenever you visit our Service ("Log Data"). This Log Data may include information such as your computer's Internet Protocol ("IP") address, browser type, browser version, the pages of our Service that you visit, the time and date of your visit, the time spent on those pages and other statistics.</p>
+                        <p><strong>Cookies</strong></p>
+                        <p>Cookies are files with a small amount of data, which may include an anonymous unique identifier. Cookies are sent to your browser from a web site and transferred to your device. We use cookies to collect information in order to improve our services for you.</p>
+                        <p>You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent. The Help feature on most browsers provide information on how to accept cookies, disable cookies or to notify you when receiving a new cookie.</p>
+                        <p>If you do not accept cookies, you may not be able to use some features of our Service and we recommend that you leave them turned on.</p>
+                        <p><strong>DoubleClick Cookie</strong></p>
+                        <p>Google, as a third party vendor, uses cookies to serve ads on our Service. Google's use of the DoubleClick cookie enables it and its partners to serve ads to our users based on their visit to our Service or other web sites on the Internet.</p>
+                        <p>You may opt out of the use of the DoubleClick Cookie for interest-based advertising by visiting the Google Ads Settings web page: http://www.google.com/ads/preferences/</p>
+                        <p><strong>Do Not Track Disclosure</strong></p>
+                        <p>We do not support Do Not Track ("DNT"). Do Not Track is a preference you can set in your web browser to inform websites that you do not want to be tracked.</p>
+                        <p>You can enable or disable Do Not Track by visiting the Preferences or Settings page of your web browser.</p>
+                        <p><strong>Service Providers</strong></p>
+                        <p>We may employ third party companies and individuals to facilitate our Service, to provide the Service on our behalf, to perform Service-related services and/or to assist us in analyzing how our Service is used.</p>
+                        <p>These third parties have access to your Personal Information only to perform specific tasks on our behalf and are obligated not to disclose or use your information for any other purpose.</p>
+                        <p><strong>Communications</strong></p>
+                        <p>We may use your Personal Information to contact you with information you requested to receive upon certain events or intervals. You may opt out of receiving any, or all, of these communications from us by following the unsubscribe link or instructions provided in any email we send.</p>
+                        <p><strong>Compliance With Laws</strong></p>
+                        <p>We will disclose your Personal Information where required to do so by law or subpoena or if we believe that such action is necessary to comply with the law and the reasonable requests of law enforcement or to protect the security or integrity of our Service.</p>
+                        <p><strong>Security</strong></p>
+                        <p>The security of your Personal Information is important to us, and we strive to implement and maintain reasonable, commercially acceptable security procedures and practices appropriate to the nature of the information we store, in order to protect it from unauthorized access, destruction, use, modification, or disclosure.</p>
+                        <p>However, please be aware that no method of transmission over the internet, or method of electronic storage is 100% secure and we are unable to guarantee the absolute security of the Personal Information we have collected from you.</p>
+                        <p><strong>International Transfer</strong></p>
+                        <p>Your information, including Personal Information, may be transferred to — and maintained on — computers located outside of your state, province, country or other governmental jurisdiction where the data protection laws may differ than those from your jurisdiction.</p>
+                        <p>If you are located outside United States and choose to provide information to us, please note that we transfer the information, including Personal Information, to United States and process it there.</p>
+                        <p>Your consent to this Privacy Policy followed by your submission of such information represents your agreement to that transfer.</p>
+                        <p><strong>Links To Other Sites</strong></p>
+                        <p>Our Service may contain links to other sites that are not operated by us. If you click on a third party link, you will be directed to that third party's site. We strongly advise you to review the Privacy Policy of every site you visit.</p>
+                        <p>We have no control over, and assume no responsibility for the content, privacy policies or practices of any third party sites or services.</p>
+                        <p><strong>Children's Privacy</strong></p>
+                        <p>Only persons age 18 or older have permission to access our Service. Our Service does not address anyone under the age of 13 ("Children").</p>
+                        <p>We do not knowingly collect personally identifiable information from children under 13. If you are a parent or guardian and you learn that your Children have provided us with Personal Information, please contact us. If we become aware that we have collected Personal Information from a children under age 13 without verification of parental consent, we take steps to remove that information from our servers.</p>
+                        <p><strong>Changes To This Privacy Policy</strong></p>
+                        <p>This Privacy Policy is effective as of April 17, 2016 and will remain in effect except with respect to any changes in its provisions in the future, which will be in effect immediately after being posted on this page.</p>
+                        <p>We reserve the right to update or change our Privacy Policy at any time and you should check this Privacy Policy periodically. Your continued use of the Service after we post any modifications to the Privacy Policy on this page will constitute your acknowledgment of the modifications and your consent to abide and be bound by the modified Privacy Policy.</p>
+                        <p>If we make any material changes to this Privacy Policy, we will notify you either through the email address you have provided us, or by placing a prominent notice on our website.</p>
+                        <p><strong>Contact Us</strong></p>
+                        <p>If you have any questions about this Privacy Policy, please contact us.</p>
+                    </div>
+                    <div class="policy-section" id="policy-blizzard">
+                        We are also bound by the <a href="https://dev.battle.net/policy" class="highlight">Battle.net API Terms of Use</a> for the information which we provide.
+                        You should also review those terms to better understand our limitations in providing services to you.
+                    </div>
+                </div>
                 <div class="page" id="contact-page">
                     <div class="form">
                         Please <a href="http://stormspire.net/official-forum-undermine-journal/?referrerid=380">use our official forum</a> for your questions, comments, and suggestions.<p>
@@ -149,6 +252,51 @@
                         Thanks for your comments. We read all messages we receive, but replies may be delayed by a few days.
                     </div>
                 </div>
+                <div class="page" id="subscription-page">
+                    <div id="subscription-login" class="center"></div>
+                    <div id="subscription-message" class="center"></div>
+                    <div id="subscription-description">
+                        <h3>What is a Subscription to The Undermine Journal?</h3>
+                        A &quot;subscription&quot; is your personal user account here at The Undermine Journal. There are free subscriptions and paid subscriptions, but we'll get into that later. The primary reason you would set up a subscription is for Market Notifications.
+
+                        <h3>What are Market Notifications?</h3>
+                        The Undermine Journal usually receives new data for every realm every hour. Market Notifications is a service we provide to let you know when the market changes in a way that you specify.
+                        <p>For example, if you wanted us to watch for a rare pattern, heroic item, or S/S battle pet, we can send you an email message as soon as we see it.</p>
+
+                        <h3>What kind of notifications do you send?</h3>
+                        Currently we can tell you when the quantity, market price, or price to buy any amount of an item or battle pet falls over or under a target value. Just visit the item's page and look for the "Market Notifications" section above the auctions listing.
+                        <p>On our Unusual Items category page, we can notify you when any items with certain properties (uncommon recipes, rare weapons over level 200, etc) are seen, after having been absent for the number of days of your choice.</p>
+                        <p>In the future, we may offer seller notifications, much like The Undermine Journal offered years ago, deals notifications, or others, depending on user feedback.</p>
+
+                        <h3>How do I log in?</h3>
+                        We only accept Battle.net accounts, since everyone who visits the Auction House would have one. But don't worry, we never see your password, or even your Battle.net account address.
+                        <p>Battle.net has a login service that securely interfaces with third-party sites like The Undermine Journal. <a href="https://dev.battle.net/docs/read/log_in_with_bnet" class="highlight">You can read Blizzard's explanation of it here.</a> We don't get any account details, we can't see your billing information, and we don't even ask for your character names. All we get from Battle.net is a unique numeric identifier for your account, and your public <a href="http://us.battle.net/en/battletag/" class="highlight">BattleTag</a>.</p>
+
+                        <h3>What does a subscription cost?</h3>
+                        You can log in and get a free subscription right now. You can set your notifications and tell us your email address, and we will email you periodically with the latest events that happened since your last message and are still valid. We check the auction house for you with every data snapshot, but we will email you up to once every 8 hours.
+
+                        <h3>Only once every 8 hours? Can't you email me more often than that?</h3>
+                        We also offer a paid subscription tier, which lets you choose a frequency up to every 2 minutes. Plus, paid subscribers do not see ads (or ad substitutes) while logged in. Paid subscriptions are sold for $5.00 USD for 60 days.
+
+                        <h3>What's the full list of subscription benefits?</h3>
+                        <table class="category">
+                            <tr><th></th><th>Free Subscription</th><th>Paid Subscription</th></tr>
+                            <tr><td>Item/Pet Market Notifications</td><td>Yes, 5/item, 1,000 total</td><td>Yes, 5/item, 1,000 total</td></tr>
+                            <tr><td>Region-Wide Notifications</td><td>Yes</td><td>Yes</td></tr>
+                            <tr><td>Unusual Item Notifications</td><td>Yes, 20/realm, 50 total</td><td>Yes, 20/realm, 50 total</td></tr>
+                            <tr><td>Notification Periods</td><td>24, 20, 18, 16, 12 or 8 hours</td><td>Same, or 6, 4, 3, 2, 1, &frac12; hours, or ASAP</td></tr>
+                            <tr><td>Site Ads</td><td>Yes, AdSense</td><td>No Ads</td></tr>
+                            <tr><td>Cost</td><td>Free</td><td>$5.00 per 60 days</td></tr>
+                        </table>
+
+                        <h3>What about SMS notifications, or import/export strings, or other options?</h3>
+                        Just like the rest of this site, our services are always evolving, and we will consider offering more services as user demand and developer time align. <a href="http://stormspire.net/official-forum-undermine-journal/?referrerid=380" class="highlight">Please visit our forum</a> and let us know what you'd like to see!
+
+                        <h3>Anything else I should know?</h3>
+                        We offer no warranty for this service, and as always, we rely on the Battle.net API to obtain the data to send notifications. You should review our Terms and Privacy Policy, linked in the footer below, as you will need to confirm your acceptance of it when you log in for the first time. Finally, while the website and emails are localized in many languages, we can only offer customer support in English.
+                    </div>
+                    <div id="subscription-settings"></div>
+                </div>
                 <div class="page" id="donate-page">
                     <div class="news" id="donate-thanks">
                         Thank you so much for your generous contribution!<p>We're glad we could provide a valuable service to you,<br>and we will do our best to sustain and improve The Undermine Journal.
@@ -164,8 +312,10 @@
                             <li>Battle pet support, with separate pricing for different breeds</li>
                             <li>Localized item and pet names, and site text, in 7 languages</li>
                             <li>Transmog buying gallery</li>
+                            <li>List of rarely-seen items for sale</li>
                             <li>Seller posting patterns</li>
                             <li><a href="http://stormspire.net/official-forum-undermine-journal/15527-undermine-journal-addon.html?referrerid=380">Simple pricing addon</a></li>
+                            <li><a href="https://newswire.theunderminejournal.com">Raw database access</a> for developers</li>
                         </ul>
 
                         We strive to provide a valuable service, and we would appreciate any contribution you make towards the continued operation of this site.<p>
@@ -175,13 +325,24 @@
                             <input type="hidden" name="hosted_button_id" value="RH5C3YCJVGEU6">
                             <input type="image" src="images/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
                         </form>
+
+                        Note: This donate link is not related to any paid subscription on this site. You should log in to your subscription to renew it on your subscription page.
                     </div>
                 </div>
             </div>
         </div>
         <div id="bottom-bar">
-            <a class="dark-only">Light Theme</a><a class="light-only">Dark Theme</a> - <a class="donate">Donate</a> - <a class="contact">Contact</a> - <a href="http://stormspire.net/official-forum-undermine-journal/?referrerid=380">Forum</a> - <a href="http://stormspire.net/official-forum-undermine-journal/18138-localization-tuj.html?referrerid=380">Localization</a> - <a href="http://stormspire.net/official-forum-undermine-journal/15527-undermine-journal-addon.html?referrerid=380">Addon</a>
-            <div class="disclaimer">World of Warcraft, Warcraft and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc. in the U.S. and/or other countries.</div>
+            <a class="dark-only">Light Theme</a><a class="light-only">Dark Theme</a> -
+            <a class="subscription">Subscription</a> -
+            <a class="donate">Donate</a> -
+            <a class="contact">Contact</a> -
+            <a href="http://stormspire.net/official-forum-undermine-journal/?referrerid=380">Forum</a> -
+            <a href="http://stormspire.net/official-forum-undermine-journal/18138-localization-tuj.html?referrerid=380">Localization</a> -
+            <a href="http://stormspire.net/official-forum-undermine-journal/15527-undermine-journal-addon.html?referrerid=380">Addon</a> -
+            <a href="https://newswire.theunderminejournal.com/">Newswire API</a> -
+            <a class="policy">Policy</a>
+
+            <div class="disclaimer">World of Warcraft, Warcraft, Battle.net and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc. in the U.S. and/or other countries.</div>
         </div>
     </body>
 </html>

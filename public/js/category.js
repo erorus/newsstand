@@ -68,6 +68,305 @@ var TUJ_Category = function ()
         });
     }
 
+    function MakeNotificationsSection(house)
+    {
+        var t = libtuj.ce('table');
+        t.className = 'category';
+
+        var tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        var td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.className = 'title';
+        $(td).text(tuj.lang.marketNotifications);
+
+        tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        td = libtuj.ce('td');
+        tr.appendChild(td);
+        var d = libtuj.ce();
+        d.style.textAlign = 'center';
+        td.appendChild(d);
+
+        if (tuj.LoggedInUserName()) {
+            t.className += ' logged-in-only';
+
+            d.style.display = 'none';
+            d.appendChild(document.createTextNode(tuj.lang.marketNotificationsDesc));
+            var cht = libtuj.ce();
+            cht.className = 'notifications-insert';
+            cht.style.textAlign = 'left';
+            d.appendChild(cht);
+            GetRareNotificationsList(house, d);
+        } else {
+            t.className += ' logged-out-only';
+
+            var a = libtuj.ce('a');
+            a.href = tuj.BuildHash({'page': 'subscription', 'id': undefined});
+            a.className = 'highlight';
+            a.appendChild(document.createTextNode(tuj.lang.logInToFreeSub));
+            d.appendChild(a);
+        }
+
+        return t;
+    }
+
+    function RareNotificationsAdd(house, mainDiv, qualityBox, classBox, minLevelBox, maxLevelBox, craftedCheck, vendorCheck, daysBox)
+    {
+        var self = this;
+        var quality = qualityBox.options[qualityBox.selectedIndex].value;
+        var itemClass = classBox.options[classBox.selectedIndex].value;
+
+        var minLevel = parseInt(minLevelBox.value,10);
+        if (isNaN(minLevel)) {
+            minLevel = '';
+        }
+        minLevelBox.value = minLevel;
+
+        var maxLevel = parseInt(maxLevelBox.value,10);
+        if (isNaN(maxLevel)) {
+            maxLevel = '';
+        }
+        maxLevelBox.value = maxLevel;
+
+        var crafted = craftedCheck.checked ? 1 : 0;
+        var vendor = vendorCheck.checked ? 1 : 0;
+
+        var days = parseInt(daysBox.value,10);
+        if (isNaN(days) || days < 14) {
+            days = 14;
+        }
+        daysBox.value = days;
+
+        tuj.SendCSRFProtectedRequest({
+            data: {
+                'setrare': house,
+                'quality': quality,
+                'itemclass': itemClass,
+                'minlevel': minLevel,
+                'maxlevel': maxLevel,
+                'crafted': crafted,
+                'vendor': vendor,
+                'days': days,
+            },
+            success: RareNotificationsList.bind(self, house, mainDiv),
+        });
+    }
+
+    function RareNotificationsDel(house, mainDiv, id)
+    {
+        var self = this;
+        tuj.SendCSRFProtectedRequest({
+            data: {'deleterare': id, 'house': house},
+            success: RareNotificationsList.bind(self, house, mainDiv),
+        });
+    }
+
+    function GetRareNotificationsList(house, mainDiv)
+    {
+        var self = this;
+        tuj.SendCSRFProtectedRequest({
+            data: {'getrare': house},
+            success: RareNotificationsList.bind(self, house, mainDiv),
+        });
+    }
+
+    function RareNotificationsList(house, mainDiv, dta)
+    {
+        var dest = $(mainDiv).find('.notifications-insert');
+        dest.empty();
+        dest = dest[0];
+
+        var ids = [];
+        for (var k in dta.watches) {
+            if (dta.watches.hasOwnProperty(k)) {
+                ids.push(k);
+            }
+        }
+        if (ids.length) {
+            // show current notifications
+            ids.sort(function(ax,bx){
+                var a = dta.watches[ax];
+                var b = dta.watches[bx];
+                return tujConstants.itemClassOrder[a.itemclass] - tujConstants.itemClassOrder[b.itemclass] ||
+                    a.minquality - b.minquality ||
+                    a.days - b.days;
+            });
+
+            var ul = libtuj.ce('ul');
+            dest.appendChild(ul);
+
+            for (var kx = 0, k; k = ids[kx]; kx++) {
+                var li = libtuj.ce('li');
+                ul.appendChild(li);
+
+                var n = dta.watches[k];
+
+                var btn = libtuj.ce('input');
+                btn.type = 'button';
+                btn.value = tuj.lang.delete;
+                $(btn).on('click', RareNotificationsDel.bind(btn, house, mainDiv, n.seq));
+                li.appendChild(btn);
+
+                li.appendChild(document.createTextNode(tuj.lang.itemClasses[n.itemclass]));
+                if (n.minquality) {
+                    li.appendChild(document.createTextNode(', ' + tuj.lang.qualities[n.minquality] + '+'));
+                }
+                if (n.minlevel) {
+                    li.appendChild(document.createTextNode(', ' + tuj.lang.level + ' >= ' + n.minlevel))
+                }
+                if (n.maxlevel) {
+                    li.appendChild(document.createTextNode(', ' + tuj.lang.level + ' <= ' + n.maxlevel))
+                }
+                if (n.includecrafted) {
+                    li.appendChild(document.createTextNode(', ' + tuj.lang.includingCrafted));
+                }
+                if (n.includevendor) {
+                    li.appendChild(document.createTextNode(', ' + tuj.lang.includingVendor));
+                }
+                li.appendChild(document.createTextNode(' ' + tuj.lang.notSeenForXDays + ' ' + n.days + ' ' + tuj.lang.timeDays));
+            }
+        }
+
+        if (ids.length >= dta.maximum) {
+            $(mainDiv).show();
+            return;
+        }
+
+        // add new notifications
+        var newNotif = libtuj.ce('div');
+        newNotif.className = 'notifications-add';
+        dest.appendChild(newNotif);
+
+        newNotif.appendChild(document.createTextNode(tuj.lang.tellMeAboutNewAuctions));
+
+        var t = libtuj.ce('table');
+        newNotif.appendChild(t);
+
+        var tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        var td = libtuj.ce('td');
+        tr.appendChild(td);
+        td.appendChild(document.createTextNode(tuj.lang.quality + ': '));
+        td = libtuj.ce('td');
+        tr.appendChild(td);
+        var qualityBox = libtuj.ce('select');
+        for (var x = 0; x <= 5; x++) {
+            var opt = libtuj.ce('option');
+            opt.value = x;
+            opt.label = tuj.lang.qualities[x] + ' ' + tuj.lang.orBetter;
+            opt.appendChild(document.createTextNode(tuj.lang.qualities[x] + ' ' + tuj.lang.orBetter));
+            qualityBox.appendChild(opt);
+        }
+        td.appendChild(qualityBox);
+
+        var tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        var td = libtuj.ce('td');
+        tr.appendChild(td);
+        td.appendChild(document.createTextNode(tuj.lang['class'] + ': '));
+        td = libtuj.ce('td');
+        tr.appendChild(td);
+        var classBox = libtuj.ce('select');
+        td.appendChild(classBox);
+        var watchClasses = [2, 4, 9, 7, 0, 5, 3, 16, 1, 17, 12, 13]; // see tujConstants.itemClassOrder
+        for (var x = 0; x < watchClasses.length; x++) {
+            if (!tuj.lang.itemClasses.hasOwnProperty(watchClasses[x])) {
+                continue;
+            }
+            var opt = libtuj.ce('option');
+            opt.value = watchClasses[x];
+            opt.label = tuj.lang.itemClasses[watchClasses[x]];
+            opt.appendChild(document.createTextNode(tuj.lang.itemClasses[watchClasses[x]]));
+            classBox.appendChild(opt);
+        }
+
+        var tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        var td = libtuj.ce('td');
+        tr.appendChild(td);
+        td.appendChild(document.createTextNode(tuj.lang.minimumLevel + ': '));
+        td = libtuj.ce('td');
+        tr.appendChild(td);
+        var minLevelBox = libtuj.ce('input');
+        minLevelBox.className = 'input-quantity';
+        minLevelBox.type = 'number';
+        minLevelBox.min = 0;
+        minLevelBox.max = 999;
+        minLevelBox.size = 4;
+        minLevelBox.maxLength = 3;
+        minLevelBox.autocomplete = 'off';
+        td.appendChild(minLevelBox);
+
+        var tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        var td = libtuj.ce('td');
+        tr.appendChild(td);
+        td.appendChild(document.createTextNode(tuj.lang.maximumLevel + ': '));
+        td = libtuj.ce('td');
+        tr.appendChild(td);
+        var maxLevelBox = libtuj.ce('input');
+        maxLevelBox.className = 'input-quantity';
+        maxLevelBox.type = 'number';
+        maxLevelBox.min = 0;
+        maxLevelBox.max = 999;
+        maxLevelBox.size = 4;
+        maxLevelBox.maxLength = 3;
+        maxLevelBox.autocomplete = 'off';
+        td.appendChild(maxLevelBox);
+
+        var tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        var td = libtuj.ce('td');
+        tr.appendChild(td);
+        td.appendChild(document.createTextNode(tuj.lang.includingCrafted + ': '));
+        td = libtuj.ce('td');
+        tr.appendChild(td);
+        var craftedCheck = libtuj.ce('input');
+        craftedCheck.type = 'checkbox';
+        craftedCheck.value = '1';
+        td.appendChild(craftedCheck);
+
+        var tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        var td = libtuj.ce('td');
+        tr.appendChild(td);
+        td.appendChild(document.createTextNode(tuj.lang.includingVendor + ': '));
+        td = libtuj.ce('td');
+        tr.appendChild(td);
+        var vendorCheck = libtuj.ce('input');
+        vendorCheck.type = 'checkbox';
+        vendorCheck.value = '1';
+        td.appendChild(vendorCheck);
+
+        var tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        var td = libtuj.ce('td');
+        tr.appendChild(td);
+        td.appendChild(document.createTextNode(tuj.lang.notSeenForXDays + ': '));
+        td = libtuj.ce('td');
+        tr.appendChild(td);
+        var daysBox = libtuj.ce('input');
+        daysBox.className = 'input-quantity';
+        daysBox.type = 'number';
+        daysBox.min = 14;
+        daysBox.max = 730;
+        daysBox.size = 4;
+        daysBox.maxLength = 3;
+        daysBox.autocomplete = 'off';
+        daysBox.value = '14';
+        td.appendChild(daysBox)
+        td.appendChild(document.createTextNode(' ' + tuj.lang.timeDays));
+
+        var btn = libtuj.ce('input');
+        btn.type = 'button';
+        btn.value = tuj.lang.add;
+        $(btn).on('click', RareNotificationsAdd.bind(btn, house, mainDiv, qualityBox, classBox, minLevelBox, maxLevelBox, craftedCheck, vendorCheck, daysBox));
+        td.appendChild(btn);
+
+        $(mainDiv).show();
+    }
+
     function CategoryResult(hash, dta)
     {
         if (hash) {
@@ -100,22 +399,24 @@ var TUJ_Category = function ()
         $('#page-title').empty().append(document.createTextNode(tuj.lang.category + ': ' + titleName));
         tuj.SetTitle(tuj.lang.category + ': ' + titleName);
 
-        if (!dta.hasOwnProperty('results')) {
-            return;
-        }
+        if (dta.hasOwnProperty('results')) {
+            categoryPage.append(libtuj.Ads.Add('8323200718'));
 
-        categoryPage.append(libtuj.Ads.Add('8323200718'));
-
-        var f, resultCount = 0;
-        for (var x = 0; f = dta.results[x]; x++) {
-            if (resultFunctions.hasOwnProperty(f.name)) {
-                d = libtuj.ce();
-                d.className = 'category-' + f.name.toLowerCase();
-                categoryPage.append(d);
-                if (resultFunctions[f.name](f.data, d) && (++resultCount == 5)) {
-                    categoryPage.append(libtuj.Ads.Add('2276667118'));
+            var f, resultCount = 0;
+            for (var x = 0; f = dta.results[x]; x++) {
+                if (resultFunctions.hasOwnProperty(f.name)) {
+                    d = libtuj.ce();
+                    d.className = 'category-' + f.name.toLowerCase();
+                    categoryPage.append(d);
+                    if (resultFunctions[f.name](f.data, d) && (++resultCount == 5)) {
+                        categoryPage.append(libtuj.Ads.Add('2276667118'));
+                    }
                 }
             }
+        }
+
+        if (dta.name == 'unusualItems') {
+            categoryPage.append(MakeNotificationsSection(tuj.realms[params.realm].house));
         }
 
         libtuj.Ads.Show();

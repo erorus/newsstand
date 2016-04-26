@@ -22,6 +22,17 @@ $TIMELEFT_ENUM = [
     'VERY_LONG' => 4,
 ];
 
+$VALID_LOCALES = ['enus','dede','eses','frfr','itit','ptbr','ruru'];
+$LANG_LEVEL = [
+    '__LEVEL_enus__' => 'Level',
+    '__LEVEL_dede__' => 'Stufe',
+    '__LEVEL_eses__' => 'Nivel',
+    '__LEVEL_frfr__' => 'Niveau',
+    '__LEVEL_itit__' => 'Livello',
+    '__LEVEL_ptbr__' => 'Nível',
+    '__LEVEL_ruru__' => 'Уровень',
+];
+
 function DebugMessage($message, $debugLevel = E_USER_NOTICE)
 {
     global $argv;
@@ -278,3 +289,144 @@ function APIMaintenance($when = -1, $expire = false) {
     return $when;
 }
 
+function NewsstandMail($address, $name, $subject, $message, $locale='enus')
+{
+    $address = trim($address);
+    if ($address == '') {
+        return false;
+    }
+
+    $name = trim($name);
+    if ($name == '') {
+        $name = $address;
+    }
+
+    $db = DBConnect(true);
+    if ($db === false) {
+        DebugMessage("Could not connect to DB to send mail to $address");
+        return false;
+    }
+
+    $cnt = 0;
+    $stmt = $db->prepare('select count(*) from tblEmailBlocked where address=?');
+    $stmt->bind_param('s', $address);
+    $stmt->execute();
+    $stmt->bind_result($cnt);
+    $stmt->fetch();
+    $stmt->close();
+
+    if ($cnt > 0) {
+        DebugMessage("Could not send mail to $address, address is in tblEmailBlocked");
+        $db->close();
+        return false;
+    }
+
+    $lang = GetLang($locale);
+
+    $sha1id = sha1('' . time() . '|' . $address . '|' . $subject . '|' . $message, true);
+    $mailId = rtrim(strtr(base64_encode($sha1id), '+/=', '-_,'), ',');
+
+    $headers = "From: The Undermine Journal <notifications@from.theunderminejournal.com>\n";
+    $headers .= "Reply-To: Remove My Address <notifications@from.theunderminejournal.com>\n";
+    $headers .= "Date: " . date(DATE_RFC2822) . "\n";
+    $headers .= "X-Undermine-MailID: $mailId\n";
+
+    $headers .= "MIME-Version: 1.0\n";
+    $headers .= "Content-Type: multipart/alternative; boundary=\"next-MIME-part------\"\n";
+
+    $html = $message;
+    $html .= "<br><hr><br>" . sprintf($lang['emailFooter'], "https://theunderminejournal.com/", $address) . "<br><br>";
+    $txt = $html;
+
+    $html .= sprintf($lang['emailBlocklistHTML'], "https://theunderminejournal.com/emailremove.php?mailid=$mailId");
+    $txt .= sprintf($lang['emailBlocklistText'], "https://theunderminejournal.com/emailremove.php", $mailId);
+
+    $html .= "<br><br>Message ID: $mailId";
+    $txt .= "<br><br>Message ID: $mailId";
+
+    $full = "This is a multi-part message in MIME format.";
+
+    $full .= "\n--next-MIME-part------\nContent-Type: text/plain; charset=ISO-8859-1; format=flowed\n\n";
+    $full .= preg_replace_callback('/(?<=^|\n)([^\n]*)(?:\n|$)/',
+        function($m) {
+            return wordwrap($m[1], 66, " \n")."\n";
+        },
+        htmlspecialchars_decode(
+            strip_tags(
+                preg_replace('/\s*<br>/i', "\n",
+                    str_replace("\n", ' ', utf8_decode($txt))
+                )
+            ), ENT_COMPAT | ENT_HTML5
+        )
+    );
+
+    $full .= "\n--next-MIME-part------\nContent-Type: text/html; charset=UTF-8\nContent-Transfer-Encoding: base64\n\n";
+    $full .= wordwrap(base64_encode($html), 70, "\n", true);
+
+    $full .= "\n--next-MIME-part--------\n";
+
+    if (preg_match('/[\x80-\xFF]/', $subject)) {
+        $subject = '=?UTF-8?B?' . base64_encode($subject) . "?=";
+    }
+
+    $headers = trim($headers);
+
+    $tr = mail("$name <$address>", $subject, $full, $headers, '-fnotifications@from.theunderminejournal.com');
+
+    if ($tr) {
+        $stmt = $db->prepare('insert into tblEmailLog (sha1id, sent, recipient) values (?, NOW(), ?)');
+        $stmt->bind_param('ss', $sha1id, $address);
+        $stmt->execute();
+        $stmt->close();
+    } else {
+        DebugMessage("Some error sending mail to $address");
+    }
+
+    $db->close();
+    return $tr;
+}
+
+function GetAddressByMailID($mailId)
+{
+    $sha1Id = base64_decode(strtr($mailId, '-_,', '+/='));
+
+    $db = DBConnect();
+    $address = false;
+    $addDate = false;
+    $stmt = $db->prepare('select l.recipient, unix_timestamp(b.added) from tblEmailLog l left join tblEmailBlocked b on b.address = l.recipient where l.sha1id = ?');
+    $stmt->bind_param('s', $sha1Id);
+    $stmt->execute();
+    $stmt->bind_result($address, $addDate);
+    if (!$stmt->fetch()) {
+        $address = false;
+    }
+    $stmt->close();
+
+    return $address ? ['address' => $address, 'blocked' => $addDate] : false;
+}
+
+function GetLang($lang) {
+    static $locales = [];
+    if (isset($locales[$lang])) {
+        return $locales[$lang];
+    }
+
+    $path = __DIR__.'/../public/js/locale/'.strtolower($lang).'.json';
+    if (!file_exists($path)) {
+        $locales[$lang] = false;
+        return $locales[$lang];
+    }
+
+    $json = json_decode(file_get_contents($path), true);
+    if (json_last_error() != JSON_ERROR_NONE) {
+        DebugMessage("Error decoding JSON at $path: ".json_last_error_msg());
+    }
+    if ($lang != 'enus') {
+        $enus = GetLang('enus');
+        $json = array_replace_recursive($enus, $json);
+    }
+
+    $locales[$lang] = $json;
+
+    return $locales[$lang];
+}

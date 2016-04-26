@@ -30,3 +30,7 @@ table.category-fish .price {border-left-color: #444}
     color: #CCC;
     background-image: url("../images/caret_down_grey.png");
 }
+
+#subscription-messages { border-color: #666 }
+.messages-list-item, #subscription-messages-window .message-subject { border-bottom-color: #666 }
+.messages-list-item.selected { background-color: #222 }

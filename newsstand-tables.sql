@@ -864,6 +864,182 @@ ADD CONSTRAINT `tblAuctionPet_ibfk_1` FOREIGN KEY (`house`, `id`) REFERENCES `tb
 ALTER TABLE `tblAuctionRare`
 ADD CONSTRAINT `tblAuctionRare_ibfk_1` FOREIGN KEY (`house`, `id`) REFERENCES `tblAuction` (`house`, `id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
+--
+-- Table structure for table `tblEmailBlocked`
+--
+
+CREATE TABLE IF NOT EXISTS `tblEmailBlocked` (
+  `address` varchar(250) COLLATE utf8_unicode_ci NOT NULL,
+  `added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`address`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tblEmailLog`
+--
+
+CREATE TABLE IF NOT EXISTS `tblEmailLog` (
+  `sha1id` binary(20) NOT NULL,
+  `sent` datetime NOT NULL,
+  `recipient` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`sha1id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tblPaypalTransactions`
+--
+
+CREATE TABLE IF NOT EXISTS `tblPaypalTransactions` (
+  `test_ipn` tinyint(1) NOT NULL DEFAULT '0',
+  `txn_id` char(30) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+  `txn_type` char(50) COLLATE utf8_unicode_ci NOT NULL,
+  `payment_date` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `parent_txn_id` char(30) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
+  `mc_currency` char(3) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `mc_fee` decimal(6,2) DEFAULT NULL,
+  `mc_gross` decimal(6,2) DEFAULT NULL,
+  `payment_status` char(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `user` mediumint(8) unsigned DEFAULT NULL,
+  `pending_reason` char(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `reason_code` char(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`test_ipn`,`txn_id`),
+  KEY `txn_type` (`txn_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tblUser`
+--
+
+CREATE TABLE IF NOT EXISTS `tblUser` (
+  `id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
+  `locale` char(4) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `firstseen` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `lastseen` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `acceptedterms` timestamp NULL DEFAULT NULL,
+  `paiduntil` timestamp NULL DEFAULT NULL,
+  `email` varchar(250) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `emailset` timestamp NULL DEFAULT NULL,
+  `emailverification` varchar(12) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `watchsequence` int(10) unsigned NOT NULL DEFAULT '0',
+  `watchperiod` smallint(5) unsigned NOT NULL DEFAULT '715',
+  `watchesobserved` timestamp NULL DEFAULT NULL,
+  `watchesreported` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=21113 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tblUserAuth`
+--
+
+CREATE TABLE IF NOT EXISTS `tblUserAuth` (
+  `provider` enum('Battle.net') COLLATE utf8_unicode_ci NOT NULL,
+  `providerid` bigint(20) unsigned NOT NULL,
+  `user` mediumint(8) unsigned NOT NULL,
+  `firstseen` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `lastseen` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  PRIMARY KEY (`provider`,`providerid`),
+  KEY `user` (`user`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tblUserMessages`
+--
+
+CREATE TABLE IF NOT EXISTS `tblUserMessages` (
+  `user` mediumint(8) unsigned NOT NULL,
+  `seq` mediumint(8) unsigned NOT NULL,
+  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `type` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
+  `subject` varchar(250) COLLATE utf8_unicode_ci NOT NULL,
+  `message` mediumtext COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`user`,`seq`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tblUserSession`
+--
+
+CREATE TABLE IF NOT EXISTS `tblUserSession` (
+  `session` binary(18) NOT NULL,
+  `user` mediumint(8) unsigned NOT NULL,
+  `firstseen` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `lastseen` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `ip` varchar(40) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `useragent` varchar(250) COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`session`),
+  KEY `user` (`user`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tblUserWatch`
+--
+
+CREATE TABLE IF NOT EXISTS `tblUserWatch` (
+  `user` mediumint(8) unsigned NOT NULL,
+  `seq` int(10) unsigned NOT NULL,
+  `region` enum('US','EU') COLLATE utf8_unicode_ci DEFAULT NULL,
+  `house` smallint(5) unsigned DEFAULT NULL,
+  `item` mediumint(8) unsigned DEFAULT NULL,
+  `bonusset` tinyint(3) unsigned DEFAULT NULL,
+  `species` smallint(5) unsigned DEFAULT NULL,
+  `breed` tinyint(3) unsigned DEFAULT NULL,
+  `direction` enum('Under','Over') COLLATE utf8_unicode_ci NOT NULL,
+  `quantity` mediumint(8) unsigned DEFAULT NULL,
+  `price` decimal(11,0) unsigned DEFAULT NULL,
+  `currently` decimal(11,0) unsigned DEFAULT NULL,
+  `created` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `observed` timestamp NULL DEFAULT NULL,
+  `reported` timestamp NULL DEFAULT NULL,
+  `deleted` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`user`,`seq`),
+  KEY `house` (`house`),
+  KEY `item` (`item`),
+  KEY `region` (`region`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `tblUserAuth`
+--
+ALTER TABLE `tblUserAuth`
+ADD CONSTRAINT `tblUserAuth_ibfk_1` FOREIGN KEY (`user`) REFERENCES `tblUser` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `tblUserMessages`
+--
+ALTER TABLE `tblUserMessages`
+ADD CONSTRAINT `tblUserMessages_ibfk_1` FOREIGN KEY (`user`) REFERENCES `tblUser` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `tblUserSession`
+--
+ALTER TABLE `tblUserSession`
+ADD CONSTRAINT `tblUserSession_ibfk_1` FOREIGN KEY (`user`) REFERENCES `tblUser` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `tblUserWatch`
+--
+ALTER TABLE `tblUserWatch`
+ADD CONSTRAINT `tblUserWatch_ibfk_1` FOREIGN KEY (`user`) REFERENCES `tblUser` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

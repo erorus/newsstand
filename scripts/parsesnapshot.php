@@ -11,7 +11,7 @@ require_once('../incl/memcache.incl.php');
 RunMeNTimes(2);
 CatchKill();
 
-define('SNAPSHOT_PATH', '/var/newsstand/snapshots/');
+define('SNAPSHOT_PATH', '/var/newsstand/snapshots/parse/');
 define('MAX_BONUSES', 6); // is a count, 1 through N
 
 ini_set('memory_limit', '512M');
@@ -469,15 +469,27 @@ EOF;
     }
     unset($oldRow);
 
+    $rareDeletes = [];
+
     $preDeleted = count($itemInfo);
     foreach ($existingIds as &$oldRow) {
         if ((!isset($existingPetIds[$oldRow['id']])) && (!isset($itemInfo[$oldRow['infokey']]))) {
+            list($itemId, $bonusSet) = explode(':', $oldRow['infokey']);
+            $rareDeletes[$bonusSet][] = $itemId;
             $itemInfo[$oldRow['infokey']] = array('tq' => 0, 'a' => array());
         }
     }
     unset($oldRow);
     DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating " . count($itemInfo) . " item info (including " . (count($itemInfo) - $preDeleted) . " no longer available)");
     UpdateItemInfo($house, $itemInfo, $snapshot, $noHistory);
+
+    $sql = 'delete from tblUserRareReport where house = %d and bonusset = %d and item in (%s)';
+    foreach ($rareDeletes as $bonusSet => $itemIds) {
+        $chunked = array_chunk($itemIds, 200);
+        foreach ($chunked as $chunk) {
+            DBQueryWithError($ourDb, sprintf($sql, $house, $bonusSet, implode(',', $chunk)));
+        }
+    }
 
     $preDeleted = count($petInfo);
     foreach ($existingPetIds as &$oldRow) {

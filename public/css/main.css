@@ -3,7 +3,7 @@ body {background-color: white; color: #333; margin: 0; overflow-y: scroll; font-
 
 a {text-decoration: none; color: black}
 a:active,a:focus { outline: none; }
-a:hover {text-decoration: underline}
+a:hover, a.highlight {text-decoration: underline ! important}
 a img {border: 0}
 
 abbr { cursor: default }
@@ -15,6 +15,10 @@ h2 sub { display: block; font-weight: normal; font-size: 66%; margin-left: 2em }
 #bottom-bar { position: relative; font-size: 85%; margin-top: -3em; height: 3em; overflow: hidden; text-align: center }
 #bottom-bar .disclaimer { font-size: 75%; position: absolute; width: 100%; bottom: 0; }
 #bottom-bar a { cursor: pointer }
+
+#super-bar { position: absolute; top: 5px; right: 5px; left: 5px; font-size: 85%; text-align: right; line-height: 0; z-index: 20; }
+#super-bar select, #super-bar input { font-size: 10px; border: 1px solid #444; background-color: white; color: #333; margin-left: 12px; }
+#super-bar select { -webkit-appearance: none; -moz-appearance: none; appearance: none; padding-right: 12px; background-image: url("../images/caret_down_black.png"); background-repeat: no-repeat; background-position: right; background-size: 15px; }
 
 #topbar { position: relative; width: 100%; }
 #topcorner { position: absolute; top: 0; right: 0; width: 22em; height: 100% }
@@ -40,9 +44,8 @@ h2 sub { display: block; font-weight: normal; font-size: 66%; margin-left: 2em }
 
 #topcorner #realm-updated { margin-top: 1em; font-size: 75% }
 
-body.realm #topcorner .region-realm { display: none }
-body.realm #topcorner form { display: none }
-body.realm #topcorner #realm-updated { display: none }
+#topcorner .no-realm-hide { display: none }
+#topcorner.with-realm .no-realm-hide { display: block }
 
 .ad, .adsubstitute { width: 728px; height: 90px; margin: 1em auto }
 .ad.box, .adsubstitute.box { width: 336px; height: 280px; display: inline-block; margin: 1em 0 }
@@ -73,20 +76,21 @@ abbr:hover.full-date { border-bottom: 1px dotted }
 
 #realm-list, #region-page {display: none; text-align: center}
 #realm-list .directions, #region-page .directions {font-size: 150%; margin: 0 auto 2rem }
-#realm-list.width-test, #realm-list.show {display: block}
-.realms-column {width: 15em; display: inline-block; vertical-align: top; text-align: left}
-#realm-list.width-test .realms-column {display: inline-block}
-.realms-column a {display: block; margin: 0.2em 0}
+#realm-list.show {display: block}
+.realms-column {-moz-column-width: 15em; -webkit-column-width: 15em; column-width: 15em; text-align: left}
+.realms-column a {display: block; margin: 0.3em 0}
 
-#front-page, #contact-page, #progress-page, #donate-page, #region-page { display: none }
+#main > .page { display: none }
 
 #front-page {position: relative; padding-right: 2em}
 #front-page a {text-decoration: underline}
-#front-page .news, #donate-page .news { max-width: 55em; margin: 2em 0 }
-.news hr { margin: 30px 0 }
+.news { max-width: 55em; margin: 2em 0; line-height: 1.5em }
+.center { margin: 2em auto; text-align: center }
+.news hr, .center hr { margin: 30px 0 }
 #front-page .banned { color: red; border: 2px solid red; padding: 2em; display: none }
 #front-page .top-list { float: left; margin: 2em 2em 2em 0; line-height: 1.4em }
 #front-page .top-list h3 { margin: 0 0 1em }
+#front-page .top-list a{text-decoration: none}
 
 #progress-page { padding: 3em; text-align: center; }
 #progress-page div { background-image: url("../images/progress.gif"); background-repeat: no-repeat; background-position: center; height: 20px; }
@@ -210,21 +214,57 @@ table.category-fish .price {border-left: 1px solid #CCC}
 #region-page #pixelmap {max-width: 1471px; width: 100%; height: auto; margin: -25px auto}
 area {outline: none}
 
-#choose-locale {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    font-size: 10px;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    border: 1px solid #444;
-    background-color: white;
-    color: #333;
-    padding-right: 12px;
-    background-image: url("../images/caret_down_black.png");
+input.battle-net {
+    font-size: 125%;
+    padding: 1em;
+    padding-left: 3em;
+    background-image: url("../images/battlenet-logo.png");
     background-repeat: no-repeat;
-    background-position: right;
-    background-size: 15px;
-    z-index: 20;
+    background-position: 0.25em center;
+    background-size: 2.5em;
 }
+
+#subscription-message { color: red; margin-left: 1em; font-style: italic }
+
+#subscription-description { line-height: 1.5em }
+#subscription-settings > div, #subscription-description { max-width: 900px; margin: 2em auto }
+#subscription-settings .instruction { margin: 1em }
+
+#subscription-messages { position: relative; height: 320px; line-height: 18px; border: 1px solid #999 }
+#subscription-messages > div { overflow-y: auto; }
+#subscription-messages-list { position: absolute; top: 0; left: 0; width: 40%; height: 100% }
+.messages-list-item, #subscription-messages-window .message-subject
+    { border-bottom: 1px solid #999; padding: 0.5em 0.25em 1em; position: relative }
+.messages-list-item { cursor: pointer; }
+.messages-list-item.selected { background-color: #ccc }
+#subscription-messages .message-date { position: absolute; bottom: 1px; right: 0.25em; font-size: 80% }
+#subscription-messages-window { position: absolute; top: 0; left: 40%; width: 60%; height: 100%; }
+#subscription-messages-window .message-text { padding: 5px; }
+
+#subscription-email-verification { margin: 10px auto; display: none }
+#subscription-email.verify #subscription-email-verification { display: block }
+
+#subscription-paidstatus form { display: inline-block; margin-left: 4em; }
+
+.notifications-insert { margin: 1em 0 }
+.notifications-insert ul { margin: 1em 0 }
+.notifications-insert ul li { list-style-type: none }
+.notifications-insert ul li input { margin-right: 1em }
+table.category .notifications-insert ul li, #subscription-rares ul li { margin: 0.75em 0 }
+
+.notifications-add { margin: 1em 0 }
+.notifications-add input, .notifications-add select { margin-left: 0.5em }
+input.input-quantity { width: 5em; text-align: right }
+input.input-price { width: 6em; text-align: right; -moz-appearance:textfield }
+input.input-price::-webkit-outer-spin-button, input.input-price::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.notifications-add input.input-price { padding-right: 1em }
+.notifications-add .input-price-unit { position: relative; left: -1em; margin-right: -0.75em }
+
+#policy-page .policy-section { margin: 2em 0; max-width: 55em }
+.policy-scroller { padding: 0.5em; height: 25em; overflow-y: auto; resize: both; border: 1px solid #808080 }
+#policy-accept label { display: block; margin: 0.5em }
+#policy-accept label.highlight::after { content: " <-- Required"; color: red }
+#policy-accept input.button { margin: 0 0.5em }
+
+body.logged-out .logged-in-only { display: none }
+body.logged-in .logged-out-only { display: none }

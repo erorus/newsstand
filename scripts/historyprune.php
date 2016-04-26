@@ -7,6 +7,7 @@ $startTime = time();
 require_once('../incl/incl.php');
 require_once('../incl/heartbeat.incl.php');
 require_once('../incl/memcache.incl.php');
+require_once('../incl/subscription.incl.php');
 
 RunMeNTimes(1);
 CatchKill();
@@ -225,6 +226,20 @@ function CleanOldData()
         $rowCount += $db->affected_rows;
     }
     DebugMessage("$rowCount seller history rows deleted in total");
+
+    $rowCount = 0;
+    $old = Date('Y-m-d H:i:s', time() - SUBSCRIPTION_SESSION_LENGTH - 172800); // 2 days older than oldest cookie age
+    DebugMessage('Clearing out user sessions older than ' . $old);
+    $sql = 'delete from tblUserSession where lastseen < ' . $old . ' limit 500';
+    while (!$caughtKill) {
+        heartbeat();
+        $ok = $db->real_query($sql);
+        if (!$ok || $db->affected_rows == 0) {
+            break;
+        }
+        $rowCount += $db->affected_rows;
+    }
+    DebugMessage("$rowCount user session rows deleted in total");
 
     for ($hx = 0; $hx < count($houses); $hx++) {
         heartbeat();

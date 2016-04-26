@@ -132,6 +132,8 @@ var TUJ_Item = function ()
             return (dta.stats[a].level - dta.stats[b].level) || dta.stats[a]['bonustag_' + tuj.locale].localeCompare(dta.stats[b]['bonustag_' + tuj.locale]) || a - b;
         });
 
+        var fullItemName = '[' + dta.stats[bonusSet]['name_' + tuj.locale] + ']' + (dta.stats[bonusSet]['bonustag_' + tuj.locale] ? ' ' + dta.stats[bonusSet]['bonustag_' + tuj.locale] : '');
+
         var ta = libtuj.ce('a');
         ta.href = 'http://' + tuj.lang.wowheadDomain + '.wowhead.com/item=' + itemId + (bonusUrl ? '&bonus=' + bonusUrl.replace('.', ':') : '');
         ta.target = '_blank';
@@ -139,10 +141,10 @@ var TUJ_Item = function ()
         var timg = libtuj.ce('img');
         ta.appendChild(timg);
         timg.src = libtuj.IconURL(dta.stats[bonusSet].icon, 'large');
-        ta.appendChild(document.createTextNode('[' + dta.stats[bonusSet]['name_' + tuj.locale] + ']' + (dta.stats[bonusSet]['bonustag_' + tuj.locale] ? ' ' + dta.stats[bonusSet]['bonustag_' + tuj.locale] : '')));
+        ta.appendChild(document.createTextNode(fullItemName));
 
         $('#page-title').empty().append(ta);
-        tuj.SetTitle('[' + dta.stats[bonusSet]['name_' + tuj.locale] + ']' + (dta.stats[bonusSet]['bonustag_' + tuj.locale] ? ' ' + dta.stats[bonusSet]['bonustag_' + tuj.locale] : ''));
+        tuj.SetTitle(fullItemName);
 
         if (bonusSets.length > 1) {
             d = libtuj.ce();
@@ -289,6 +291,8 @@ var TUJ_Item = function ()
             ItemGlobalNowScatter(dta, cht);
         }
 
+        itemPage.append(MakeNotificationsSection(dta, fullItemName));
+
         if (dta.auctions.hasOwnProperty(bonusSet) && dta.auctions[bonusSet].length) {
             d = libtuj.ce();
             d.className = 'chart-section';
@@ -311,6 +315,59 @@ var TUJ_Item = function ()
         }
 
         libtuj.Ads.Show();
+    }
+
+    function MakeNotificationsSection(data, fullItemName)
+    {
+        var d = libtuj.ce();
+        d.className = 'chart-section';
+        var h = libtuj.ce('h2');
+        d.appendChild(h);
+        $(h).text(tuj.lang.marketNotifications);
+        if (tuj.LoggedInUserName()) {
+            d.style.display = 'none';
+            d.appendChild(document.createTextNode(tuj.lang.marketNotificationsDesc));
+            var cht = libtuj.ce();
+            cht.className = 'notifications-insert';
+            d.appendChild(cht);
+            GetItemNotificationsList(itemId, bonusSets.length > 1 ? bonusSet : -1, d);
+        } else {
+            d.className += ' logged-out-only';
+
+            var globalQty = 0;
+            if (data.globalnow.hasOwnProperty(bonusSet) && data.globalnow[bonusSet].length) {
+                for (var x = 0, row; row = data.globalnow[bonusSet][x]; x++) {
+                    globalQty += row.quantity;
+                }
+            }
+
+            if (globalQty < 200) {
+                d.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.wantToKnowAvailAnywhere, fullItemName) + ' '));
+            } else if (data.stats.hasOwnProperty(bonusSet)) {
+                if (data.stats[bonusSet].quantity < 5) {
+                    d.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.wantToKnowAvail, fullItemName) + ' '));
+                } else if (data.history.hasOwnProperty(bonusSet) && data.history[bonusSet].length > 8) {
+                    var prices = [];
+                    for (var x = 0; x < data.history[bonusSet].length; x++) {
+                        prices.push(data.history[bonusSet][x].price);
+                    }
+                    var priceMean = libtuj.Mean(prices);
+                    var priceStdDev = libtuj.StdDev(prices, priceMean);
+
+                    if (priceMean > 10000 && priceMean > (priceStdDev / 2)) {
+                        d.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.wantToKnowPrice, fullItemName, libtuj.FormatPrice(priceMean - (priceStdDev / 2), true, true)) + ' '));
+                    }
+                }
+            }
+
+            var a = libtuj.ce('a');
+            a.href = tuj.BuildHash({'page': 'subscription', 'id': undefined});
+            a.className = 'highlight';
+            a.appendChild(document.createTextNode(tuj.lang.logInToFreeSub));
+            d.appendChild(a);
+        }
+
+        return d;
     }
 
     function ItemStats(data, dest)
@@ -639,6 +696,306 @@ var TUJ_Item = function ()
         }
 
         dest.appendChild(libtuj.Ads.Add('9943194718', 'box'));
+    }
+
+    function GetItemNotificationsList(itemId, bonusSet, mainDiv)
+    {
+        var self = this;
+        tuj.SendCSRFProtectedRequest({
+            data: {'getitem': itemId},
+            success: ItemNotificationsList.bind(self, itemId, bonusSet, mainDiv),
+        });
+    }
+
+    function ItemNotificationsList(itemId, bonusSet, mainDiv, dta)
+    {
+        var dest = $(mainDiv).find('.notifications-insert');
+        dest.empty();
+        dest = dest[0];
+
+        var ids = [];
+        for (var k in dta.watches) {
+            if (dta.watches.hasOwnProperty(k)) {
+                if (bonusSet == -1 || dta.watches[k].bonusset === null || bonusSet == dta.watches[k].bonusset) {
+                    ids.push(k);
+                }
+            }
+        }
+        if (ids.length) {
+            // show current notifications
+            var ul = libtuj.ce('ul');
+            dest.appendChild(ul);
+
+            for (var kx = 0, k; k = ids[kx]; kx++) {
+                var li = libtuj.ce('li');
+                ul.appendChild(li);
+
+                var n = dta.watches[k];
+
+                var btn = libtuj.ce('input');
+                btn.type = 'button';
+                btn.value = tuj.lang.delete;
+                $(btn).on('click', ItemNotificationsDel.bind(btn, mainDiv, itemId, bonusSet, n.seq));
+                li.appendChild(btn);
+
+                if (n.house) {
+                    li.appendChild(document.createTextNode(libtuj.GetRealmsForHouse(n.house) + ': '));
+                } else if (n.region) {
+                    li.appendChild(document.createTextNode(tuj.lang['realms' + n.region] + ': '));
+                }
+                if (n.price === null) {
+                    li.appendChild(document.createTextNode(tuj.lang.availableQuantity + ' '));
+                } else {
+                    if (n.quantity === null) {
+                        li.appendChild(document.createTextNode(tuj.lang.marketPrice + ' '));
+                    } else {
+                        li.appendChild(document.createTextNode(tuj.lang.priceToBuy + ' ' + n.quantity + ' '));
+                    }
+                }
+                li.appendChild(document.createTextNode((n.direction == 'Over' ? tuj.lang.over : tuj.lang.under) + ' '));
+                if (n.price === null) {
+                    li.appendChild(document.createTextNode(n.quantity));
+                } else {
+                    li.appendChild(libtuj.FormatPrice(n.price));
+                }
+            }
+        }
+
+        if (ids.length >= dta.maximum) {
+            $(mainDiv).show();
+            return;
+        }
+
+        // add new notifications
+        var newNotif = libtuj.ce('div');
+        newNotif.className = 'notifications-add';
+        dest.appendChild(newNotif);
+
+        newNotif.appendChild(document.createTextNode(tuj.lang.notifyMeWhen));
+
+        var regionBox = libtuj.ce('select');
+        opt = libtuj.ce('option');
+        opt.value = 'house';
+        opt.label = tuj.validRegions[params.region] + ' ' + tuj.realms[params.realm].name;
+        opt.appendChild(document.createTextNode(tuj.validRegions[params.region] + ' ' + tuj.realms[params.realm].name));
+        regionBox.appendChild(opt);
+        opt = libtuj.ce('option');
+        opt.value = 'region';
+        opt.label = tuj.lang['realms' + tuj.validRegions[params.region]];
+        opt.appendChild(document.createTextNode(tuj.lang['realms' + tuj.validRegions[params.region]]));
+        regionBox.appendChild(opt);
+        newNotif.appendChild(regionBox);
+
+        var selBox = libtuj.ce('select');
+        var opt, optionList = [tuj.lang.availableQuantity, tuj.lang.marketPrice, tuj.lang.priceToBuy];
+        for (var x = 0; x < optionList.length; x++) {
+            opt = libtuj.ce('option');
+            opt.value = x;
+            opt.label = optionList[x];
+            opt.appendChild(document.createTextNode(optionList[x]));
+            selBox.appendChild(opt);
+        }
+        $(selBox).on('change', ItemNotificationsTypeChange);
+        newNotif.appendChild(selBox);
+
+        // available quantity
+        var d = libtuj.ce('span');
+        d.className = 'notification-type-form notification-type-form-0';
+        newNotif.appendChild(d);
+
+        var underOver = libtuj.ce('select');
+        opt = libtuj.ce('option');
+        opt.value = 'Over';
+        opt.label = tuj.lang.over;
+        opt.appendChild(document.createTextNode(tuj.lang.over));
+        underOver.appendChild(opt);
+        opt = libtuj.ce('option');
+        opt.value = 'Under';
+        opt.label = tuj.lang.under;
+        opt.appendChild(document.createTextNode(tuj.lang.under));
+        underOver.appendChild(opt);
+        d.appendChild(underOver);
+
+        var qty = libtuj.ce('input');
+        qty.className = 'input-quantity';
+        qty.type = 'number';
+        qty.min = 0;
+        qty.max = 65000;
+        qty.value = 0;
+        qty.maxLength = 5;
+        qty.size = "8";
+        qty.autocomplete = 'off';
+        d.appendChild(qty);
+
+        var btn = libtuj.ce('input');
+        btn.type = 'button';
+        btn.value = tuj.lang.add;
+        $(btn).on('click', ItemNotificationsAdd.bind(btn, mainDiv, itemId, bonusSet, regionBox, underOver, qty, false));
+        d.appendChild(btn);
+
+        // market price
+        var d = libtuj.ce('span');
+        d.className = 'notification-type-form notification-type-form-1';
+        d.style.display = 'none';
+        newNotif.appendChild(d);
+
+        var underOver = libtuj.ce('select');
+        opt = libtuj.ce('option');
+        opt.value = 'Under';
+        opt.label = tuj.lang.under;
+        opt.appendChild(document.createTextNode(tuj.lang.under));
+        underOver.appendChild(opt);
+        opt = libtuj.ce('option');
+        opt.value = 'Over';
+        opt.label = tuj.lang.over;
+        opt.appendChild(document.createTextNode(tuj.lang.over));
+        underOver.appendChild(opt);
+        d.appendChild(underOver);
+
+        var price = libtuj.ce('input');
+        price.className = 'input-price';
+        price.type = 'number';
+        price.min = 0;
+        price.max = 999999;
+        price.value = 0;
+        price.maxLength = 6;
+        price.size = "10";
+        price.autocomplete = 'off';
+        d.appendChild(price);
+
+        var s = libtuj.ce('span');
+        s.className = 'input-price-unit';
+        s.appendChild(document.createTextNode(tuj.lang.suffixGold));
+        d.appendChild(s);
+
+        var btn = libtuj.ce('input');
+        btn.type = 'button';
+        btn.value = tuj.lang.add;
+        $(btn).on('click', ItemNotificationsAdd.bind(btn, mainDiv, itemId, bonusSet, regionBox, underOver, null, price));
+        d.appendChild(btn);
+
+        // price to buy X
+        var d = libtuj.ce('span');
+        d.className = 'notification-type-form notification-type-form-2';
+        d.style.display = 'none';
+        newNotif.appendChild(d);
+
+        var qty = libtuj.ce('input');
+        qty.className = 'input-quantity';
+        qty.type = 'number';
+        qty.min = 0;
+        qty.max = 65000;
+        qty.value = 0;
+        qty.maxLength = 5;
+        qty.size = "8";
+        qty.autocomplete = 'off';
+        d.appendChild(qty);
+
+        var underOver = libtuj.ce('select');
+        opt = libtuj.ce('option');
+        opt.value = 'Under';
+        opt.label = tuj.lang.under;
+        opt.appendChild(document.createTextNode(tuj.lang.under));
+        underOver.appendChild(opt);
+        opt = libtuj.ce('option');
+        opt.value = 'Over';
+        opt.label = tuj.lang.over;
+        opt.appendChild(document.createTextNode(tuj.lang.over));
+        underOver.appendChild(opt);
+        d.appendChild(underOver);
+
+        var price = libtuj.ce('input');
+        price.className = 'input-price';
+        price.type = 'number';
+        price.min = 0;
+        price.max = 999999;
+        price.value = 0;
+        price.maxLength = 6;
+        price.size = "10";
+        price.autocomplete = 'off';
+        d.appendChild(price);
+
+        var s = libtuj.ce('span');
+        s.className = 'input-price-unit';
+        s.appendChild(document.createTextNode(tuj.lang.suffixGold));
+        d.appendChild(s);
+
+        var btn = libtuj.ce('input');
+        btn.type = 'button';
+        btn.value = tuj.lang.add;
+        $(btn).on('click', ItemNotificationsAdd.bind(btn, mainDiv, itemId, bonusSet, regionBox, underOver, qty, price));
+        d.appendChild(btn);
+
+        $(mainDiv).show();
+    }
+
+    function ItemNotificationsTypeChange()
+    {
+        var $parent = $(this.parentNode);
+        $parent.find('.notification-type-form').hide();
+        $parent.find('.notification-type-form-'+this.options[this.selectedIndex].value).show();
+    }
+
+    function ItemNotificationsAdd(mainDiv, itemId, bonusSet, regionBox, directionBox, qtyBox, priceBox)
+    {
+        var self = this;
+        var o = {
+            'setwatch': 'item',
+            'id': itemId,
+            'subid': bonusSet,
+            'region': regionBox.options[regionBox.selectedIndex].value == 'region' ? tuj.validRegions[params.region] : '',
+            'house': regionBox.options[regionBox.selectedIndex].value == 'house' ? tuj.realms[params.realm].house : '',
+            'direction': directionBox.options[directionBox.selectedIndex].value,
+            'quantity': qtyBox ? parseInt(qtyBox.value, 10) : -1,
+            'price': priceBox ? parseInt(parseFloat(priceBox.value, 10) * 10000, 10) : -1
+        };
+        if (o.quantity < 0) {
+            o.quantity = -1;
+        }
+        if (o.price < 0) {
+            o.price = -1;
+        }
+
+        if (o.quantity >= 0) {
+            if (o.price < 0) {
+                // qty available query
+                if (o.quantity == 0 && o.direction == 'Under') {
+                    // qty never under 0
+                    alert(tuj.lang.quantityUnderZero);
+                    return;
+                }
+            } else {
+                // cost to buy $quantity is $direction $price
+                if (o.quantity == 0) {
+                    alert(tuj.lang.buyMoreThanZero);
+                    return;
+                }
+                if (o.price == 0) {
+                    alert(tuj.lang.priceAboveZero);
+                    return;
+                }
+            }
+        } else {
+            // market price queries
+            if (o.price <= 0) {
+                alert(tuj.lang.priceAboveZero);
+                return;
+            }
+        }
+
+        tuj.SendCSRFProtectedRequest({
+            data: o,
+            success: ItemNotificationsList.bind(self, itemId, bonusSet, mainDiv),
+        });
+    }
+
+    function ItemNotificationsDel(mainDiv, itemId, bonusSet, id)
+    {
+        var self = this;
+        tuj.SendCSRFProtectedRequest({
+            data: {'deletewatch': id},
+            success: ItemNotificationsList.bind(self, itemId, bonusSet, mainDiv),
+        });
     }
 
     function ItemHistoryChart(data, dest)
