@@ -124,6 +124,7 @@ class HTTP
         }
 
         $responseCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $downloadSize = curl_getinfo($ch, CURLINFO_SIZE_DOWNLOAD);
         $data = explode("\r\n\r\n", $data, 2);
         $header = $data[0];
         $data = isset($data[1]) ? $data[1] : '';
@@ -134,7 +135,7 @@ class HTTP
                 $headers[$headerLineParts[1]] = $headerLineParts[2];
             }
         }
-        $outHeaders = array_merge(['responseCode' => $responseCode], $headers);
+        $outHeaders = array_merge(['responseCode' => $responseCode, 'X-Original-Content-Length' => $downloadSize], $headers);
 
         if (preg_match('/^2\d\d$/', $responseCode) > 0) {
             return $data;
