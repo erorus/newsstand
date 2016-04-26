@@ -68,6 +68,13 @@ class HTTP
     }
 
     public static function Post($url, $toPost, $inHeaders = [], &$outHeaders = []) {
+        if (is_array($toPost)) {
+            $postStr = '';
+            foreach ($toPost as $k => $v) {
+                $postStr .= ($postStr == '' ? '' : '&') . sprintf('%s=%s', urlencode($k), urlencode($v));
+            }
+            $toPost = $postStr;
+        }
         return static::SendRequest($url, 'POST', $toPost, $inHeaders, $outHeaders);
     }
 
