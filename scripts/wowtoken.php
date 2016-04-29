@@ -881,7 +881,7 @@ function UploadTweetMedia($mediaUrl) {
 
     $requestHeader = $oauth->getRequestHeader('POST',$url);
 
-    $inHeaders = ['Authorization' => $requestHeader, 'Content-Type' => 'multipart/form-data; boundary=' . $boundary];
+    $inHeaders = ["Authorization: $requestHeader", 'Content-Type: multipart/form-data; boundary=' . $boundary];
     $outHeaders = [];
 
     $ret = \Newsstand\HTTP::Post($url, $mime, $inHeaders, $outHeaders);
@@ -1012,8 +1012,8 @@ EOF;
                 'time_to_live' => 4 * 60 * 60
             ]);
             $headers = [
-                'Authorization' => 'key='.ANDROID_GCM_KEY,
-                'Content-Type' => 'application/json',
+                'Authorization: key='.ANDROID_GCM_KEY,
+                'Content-Type: application/json',
             ];
             $outHeaders = [];
             $ret = \Newsstand\HTTP::Post($AndroidEndpoint, $toSend, $headers, $outHeaders);
