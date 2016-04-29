@@ -527,7 +527,7 @@ var TUJ = function ()
             $('#bottom-bar .dark-only').click(SetDarkTheme.bind(self, false));
             $('#bottom-bar .light-only').click(SetDarkTheme.bind(self, true));
 
-            SetDarkTheme(!window.TUJClassic && libtuj.Storage.Get('colorTheme') == 'dark');
+            SetDarkTheme(libtuj.Storage.Get('colorTheme') == 'dark');
         }
 
         if (self.locale == false) {
@@ -1201,10 +1201,6 @@ var TUJ = function ()
         } else {
             $('#realm-updated').empty();
         }
-
-        if (window.TUJClassic) {
-            TUJClassic.UpdateSidebar();
-        }
     }
 
     function SetHouseInfo(house, dta)
@@ -1272,7 +1268,7 @@ var TUJ = function ()
             }
         }
 
-        if (!self.params.page || window.TUJClassic) {
+        if (!self.params.page) {
             $('#front-page-sellers').empty();
             $('#front-page-most-available').empty();
             $('#front-page-deals').empty();
@@ -1347,10 +1343,6 @@ var TUJ = function ()
 
                 $('#front-page-banned').html(banHTML).show();
             }
-        }
-
-        if (window.TUJClassic) {
-            TUJClassic.SetHouseInfo();
         }
     }
 
