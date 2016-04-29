@@ -228,6 +228,19 @@ function CleanOldData()
     DebugMessage("$rowCount seller history rows deleted in total");
 
     $rowCount = 0;
+    DebugMessage('Clearing out old seller item history');
+    $sql = 'delete from tblSellerItemHistory where snapshot < timestampadd(day, -' . HISTORY_DAYS . ', now()) limit 5000';
+    while (!$caughtKill) {
+        heartbeat();
+        $ok = $db->real_query($sql);
+        if (!$ok || $db->affected_rows == 0) {
+            break;
+        }
+        $rowCount += $db->affected_rows;
+    }
+    DebugMessage("$rowCount seller item history rows deleted in total");
+
+    $rowCount = 0;
     $old = Date('Y-m-d H:i:s', time() - SUBSCRIPTION_SESSION_LENGTH - 172800); // 2 days older than oldest cookie age
     DebugMessage('Clearing out user sessions older than ' . $old);
     $sql = 'delete from tblUserSession where lastseen < ' . $old . ' limit 500';

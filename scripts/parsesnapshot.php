@@ -278,11 +278,20 @@ function ParseAuctionData($house, $snapshot, &$json)
                     'new'   => 0,
                     'total' => 0,
                     'id'    => 0,
+                    'items' => [],
                 );
             }
             $sellerInfo[$auction['ownerRealm']][$auction['owner']]['total']++;
             if ((!$hasRollOver || $auction['auc'] < 0x20000000) && ($auction['auc'] > $lastMax)) {
                 $sellerInfo[$auction['ownerRealm']][$auction['owner']]['new']++;
+                if (!$noHistory) {
+                    $itemId = intval($auction['item'], 10);
+                    if (!isset($sellerInfo[$auction['ownerRealm']][$auction['owner']]['items'][$itemId])) {
+                        $sellerInfo[$auction['ownerRealm']][$auction['owner']]['items'][$itemId] = [0,0];
+                    }
+                    $sellerInfo[$auction['ownerRealm']][$auction['owner']]['items'][$itemId][0]++;
+                    $sellerInfo[$auction['ownerRealm']][$auction['owner']]['items'][$itemId][1] += $auction['quantity'];
+                }
             }
         }
 
@@ -846,7 +855,9 @@ function UpdateSellerInfo(&$sellerInfo, $snapshot, $noHistory)
     $realms = array_keys($sellerInfo);
 
     $sqlStart = 'INSERT IGNORE INTO tblSellerHistory (seller, snapshot, `new`, `total`) VALUES ';
+    $sqlItemStart = 'INSERT IGNORE INTO tblSellerItemHistory (seller, snapshot, item, auctions, quantity) VALUES ';
     $sql = '';
+    $sqlItem = '';
 
     for ($r = 0; $r < count($realms); $r++) {
         foreach ($sellerInfo[$realms[$r]] as &$info) {
@@ -860,12 +871,24 @@ function UpdateSellerInfo(&$sellerInfo, $snapshot, $noHistory)
                 $sql = '';
             }
             $sql .= ($sql == '' ? $sqlStart : ',') . $sqlBit;
+
+            foreach ($info['items'] as $item => $details) {
+                $sqlBit = sprintf('(%d,\'%s\',%d,%d,%d)', $info['id'], $snapshotString, $item, $details[0], $details[1]);
+                if (strlen($sqlItem) + strlen($sqlBit) + 5 > $maxPacketSize) {
+                    DBQueryWithError($db, $sqlItem);
+                    $sqlItem = '';
+                }
+                $sqlItem .= ($sqlItem == '' ? $sqlItemStart : ',') . $sqlBit;
+            }
         }
         unset($info);
     }
 
     if ($sql != '') {
         DBQueryWithError($db, $sql);
+    }
+    if ($sqlItem != '') {
+        DBQueryWithError($db, $sqlItem);
     }
 }
 
