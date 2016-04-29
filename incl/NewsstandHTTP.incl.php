@@ -125,10 +125,18 @@ class HTTP
 
         $responseCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $downloadSize = curl_getinfo($ch, CURLINFO_SIZE_DOWNLOAD);
-        $data = explode("\r\n\r\n", $data, 2);
-        $header = $data[0];
-        $data = isset($data[1]) ? $data[1] : '';
-        $headerLines = explode("\n", $header);
+        $headerLines = [];
+        do {
+            $pos = strpos($data, "\r\n\r\n");
+            if ($pos === false) {
+                break;
+            }
+            $headerLines = explode("\r\n", substr($data, 0, $pos));
+            $data = substr($data, $pos + 4);
+        } while ($data &&
+            preg_match('/^HTTP\/\d+\.\d+ (\d+)/', $headerLines[0], $res) &&
+            ($res[1] != $responseCode)); // mostly to handle 100 Continue, maybe 30x redirects too
+
         $headers = [];
         foreach ($headerLines as $headerLine) {
             if (preg_match('/^([^:]+):\s*([\w\W]+)/', $headerLine, $headerLineParts)) {
