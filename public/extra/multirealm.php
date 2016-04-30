@@ -40,7 +40,7 @@
     }
 
     function GetSellerList() {
-        $cacheKey = 'extra:multirealm:sellers';
+        $cacheKey = 'extra:multirealm:sellers2';
 
         $sellers = MCGet($cacheKey);
         if ($sellers !== false) {
@@ -66,6 +66,7 @@
         join tblRealm r on s.realm = r.id
         where h.seller is null
         and r.region = 'US'
+        and s.firstseen > '2016-04-01'
         order by r.house, s.firstseen, z2.cnt desc, s.lastseen desc
 EOF;
 
@@ -80,6 +81,8 @@ EOF;
         $stmt->close();
 
         MCSet($cacheKey, $sellers);
+
+        return $sellers;
     }
 
     function GenerateList() {
@@ -90,7 +93,7 @@ EOF;
             $canonicalId = isset($realms['house'][$row['house']]) ? $realms['house'][$row['house']] : $id;
             echo '<a name="', $row['slug'], '"></a><h3>', $row['name'], '</h3>';
             if ($canonicalId != $id) {
-                echo 'See <a href="#', $realms['id'][$canonicalId]['slug'], '">', $realms['id'][$canonicalId]['name'], '</a>';
+                echo '<i>See <a href="#', $realms['id'][$canonicalId]['slug'], '">', $realms['id'][$canonicalId]['name'], '</a></i><br>';
             } else {
                 if (!isset($sellers[$row['house']])) {
                     echo 'None detected!';
@@ -102,9 +105,9 @@ EOF;
                         echo '<td>', FormatDate($sellerRow['firstseen']), '</td>';
                         echo '<td>', FormatDate($sellerRow['lastseen']), '</td>';
                         echo '<td>';
-                        if ($row['cnt'] < 3) {
+                        if ($sellerRow['cnt'] < 3) {
                             echo 'Low';
-                        } elseif ($row['cnt'] < 8) {
+                        } elseif ($sellerRow['cnt'] < 8) {
                             echo 'Medium';
                         } else {
                             echo 'High';
@@ -114,7 +117,7 @@ EOF;
                     echo '</table>';
                 }
             }
-            echo '<br><br>';
+            echo '<br>';
         }
     }
 
@@ -122,6 +125,10 @@ EOF;
         $dt = strtotime($dt);
         if ($dt < strtotime('Jan 1 2016')) {
             return date('M j, Y', $dt);
+        }
+        if ($dt > (time() - 86400)) {
+            $hours = round((time() - $dt) / 3600);
+            return "$hours hour".($hours == 1 ? '' : 's')." ago";
         }
         return date('M j', $dt);
     }
@@ -143,6 +150,10 @@ EOF;
         .story {line-height:1.6;max-width: 45em;font-size:16px;text-align:justify}
         h1,h2,h3{line-height:1.2;margin-top:0;margin-bottom:0.75em}
         h1{font-size: 150%}
+        table { width: 100%; border-spacing: 0 }
+        table th {padding: 0.4em 0.2em 0; border-bottom: 1px solid #CCC; font-weight: normal}
+        table td {padding: 0.2em 0.4em}
+        tr:hover td {background-color: #EEE}
     </style>
 </head>
 <body>
