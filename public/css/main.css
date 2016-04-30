@@ -191,6 +191,7 @@ img.captcha-button.selected { border-color: #006600 }
 
 .dark-only { display: none }
 .float-right { float: right; margin-left: 2em }
+#addon-page .float-right { max-width: 30% }
 
 .category-battlepets tr.breed { display: none }
 .category-battlepets tr.breed td { border-top: 0; }
