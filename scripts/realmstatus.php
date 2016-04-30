@@ -195,6 +195,7 @@ function ShowLogs()
                 passthru('grep -v '.escapeshellarg('SSL:').' '.escapeshellarg($path).' | tail -n 20');
                 break;
             case 'private.access.log':
+            case 'error.undermine.log':
                 passthru('grep -v '.escapeshellarg('^'.$_SERVER['REMOTE_ADDR'].' ').' '.escapeshellarg($path).' | tail -n 20');
                 break;
             default:
