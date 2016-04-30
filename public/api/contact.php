@@ -1,8 +1,9 @@
 <?php
 
-require_once('../../incl/incl.php');
-require_once('../../incl/memcache.incl.php');
-require_once('../../incl/api.incl.php');
+require_once '../../incl/incl.php';
+require_once '../../incl/memcache.incl.php';
+require_once '../../incl/api.incl.php';
+require_once '../../incl/subscription.incl.php';
 
 $fields = array('from', 'subject', 'message');
 foreach ($fields as $field) {
@@ -32,6 +33,9 @@ $body = "Date: " . Date('Y-m-d H:i:s') . "\nFrom: " . $_POST['from'] . "\nIP: " 
 
 $banned = BotCheck(true);
 $body .= "Banned: " . ($banned['isbanned'] ? 'yes: ' . $banned['reason'] . ' ' . $banned['ip'] : 'no') . "\n";
+
+$loginState = GetLoginState();
+$body .= "User: ".(isset($loginState['id']) ? ($loginState['id'] . ' ' . $loginState['name']) : 'none') . "\n";
 
 if (isset($_POST['region'])) {
     $body .= "Region: " . $_POST['region'] . "\n";
