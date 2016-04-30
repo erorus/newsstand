@@ -34,10 +34,10 @@ define('SUBSCRIPTION_WATCH_LIMIT_TOTAL', 1000);
 define('SUBSCRIPTION_RARE_LIMIT_HOUSE', 20); // max number of rare watches per house
 define('SUBSCRIPTION_RARE_LIMIT_TOTAL', 50); // max number of rare watches
 
-define('SUBSCRIPTION_WATCH_MAX_PERIOD', 1435); // minutes
+define('SUBSCRIPTION_WATCH_MAX_PERIOD', 1440); // minutes
 define('SUBSCRIPTION_WATCH_MIN_PERIOD', 2); // minutes
-define('SUBSCRIPTION_WATCH_MIN_PERIOD_FREE', 475); // lowest period for free subs
-define('SUBSCRIPTION_WATCH_DEFAULT_PERIOD', 715); // minutes
+define('SUBSCRIPTION_WATCH_MIN_PERIOD_FREE', 480); // lowest period for free subs
+define('SUBSCRIPTION_WATCH_DEFAULT_PERIOD', 720); // minutes
 define('SUBSCRIPTION_WATCH_FREE_LAST_LOGIN_DAYS', 30); // max number of days since we've seen this free sub and we still trigger notifications
 
 function GetLoginState($logOut = false) {

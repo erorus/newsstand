@@ -60,7 +60,7 @@ function CheckNextUser()
 select *
 from tblUser u
 where watchesobserved > ifnull(watchesreported, '2000-01-01')
-and timestampadd(minute, greatest(if(paiduntil is null or paiduntil < now(), ?, ?), watchperiod), ifnull(watchesreported, '2000-01-01')) < now()
+and timestampadd(minute, greatest(if(paiduntil is null or paiduntil < now(), ?, ?), watchperiod), ifnull(watchesreported, '2000-01-01')) < greatest(timestampadd(minute, -5, now()), ifnull(watchesreported, '2000-01-01'))
 order by ifnull(watchesreported, '2000-01-01'), watchesobserved
 limit 1
 for update

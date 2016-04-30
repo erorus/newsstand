@@ -6,7 +6,7 @@ var TUJ_Subscription = function ()
 
     var subData;
 
-    var subPeriods = [2, 25, 55, 115, 175, 235, 355, 475, 715, 955, 1075, 1195, 1435];
+    var subPeriods = [2, 30, 60, 120, 180, 240, 360, 480, 720, 960, 1080, 1200, 1440];
 
     this.load = function (inParams)
     {
@@ -237,7 +237,7 @@ var TUJ_Subscription = function ()
             disabled = false;
             o = libtuj.ce('option');
             o.value = subPeriods[x];
-            label = x == 0 ? tuj.lang.asap : libtuj.FormatDate(-1 * 60 * (subPeriods[x] + 5), true, 'hour', true);
+            label = x == 0 ? tuj.lang.asap : libtuj.FormatDate(-1 * 60 * subPeriods[x], true, 'hour', true);
             if (subPeriods[x] < subData.reports.minperiod || subPeriods[x] > subData.reports.maxperiod) {
                 o.disabled = disabled = true;
                 label = tuj.lang.paidOnly + ': ' + label;
