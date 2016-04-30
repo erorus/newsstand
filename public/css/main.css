@@ -85,6 +85,7 @@ abbr:hover.full-date { border-bottom: 1px dotted }
 #front-page {position: relative; padding-right: 2em}
 #front-page a {text-decoration: underline}
 .news { max-width: 55em; margin: 2em 0; line-height: 1.5em }
+.news.no-margin { margin: 0 }
 .center { margin: 2em auto; text-align: center }
 .news hr, .center hr { margin: 30px 0 }
 #front-page .banned { color: red; border: 2px solid red; padding: 2em; display: none }
@@ -189,6 +190,7 @@ img.captcha-button.selected { border-color: #006600 }
 #category-sidebar a small { font-style: italic }
 
 .dark-only { display: none }
+.float-right { float: right; margin-left: 2em }
 
 .category-battlepets tr.breed { display: none }
 .category-battlepets tr.breed td { border-top: 0; }

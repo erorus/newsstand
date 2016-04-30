@@ -1126,21 +1126,12 @@ var TUJ = function ()
             $('#login-info').removeClass('logged-out-only').addClass('logged-in-only').empty().append(subLink).append(logoutLink);
         }
 
-        var contactLink = $('#bottom-bar a.contact');
-        contactLink[0].href = self.BuildHash({page: 'contact', id: undefined});
-        contactLink.html(self.lang.contact);
-
-        var donateLink = $('#bottom-bar a.donate');
-        donateLink[0].href = self.BuildHash({page: 'donate', id: undefined});
-        donateLink.html(self.lang.donate);
-
-        var subscriptionLink = $('#bottom-bar a.subscription');
-        subscriptionLink[0].href = self.BuildHash({page: 'subscription', id: undefined});
-        subscriptionLink.html(self.lang.subscription);
-
-        var policyLink = $('#bottom-bar a.policy');
-        policyLink[0].href = self.BuildHash({page: 'policy', id: undefined});
-        policyLink.html(self.lang.policy);
+        var bottomBarLink, bottomBarLinks = ['contact','donate','subscription','policy','addon'];
+        for (var x = 0, linkName; linkName = bottomBarLinks[x]; x++) {
+            bottomBarLink = $('#bottom-bar a.' + linkName);
+            bottomBarLink[0].href = self.BuildHash({page: linkName, id: undefined});
+            bottomBarLink.html(self.lang[linkName]);
+        }
 
         $('#bottom-bar a.dark-only').html(self.lang.lightTheme);
         $('#bottom-bar a.light-only').html(self.lang.darkTheme);
@@ -1349,9 +1340,11 @@ var TUJ = function ()
     this.SetTitle = function (titlePart)
     {
         var title = '';
+        var titleToReturn = '';
 
         if (titlePart) {
             title += titlePart + ' - '
+            titleToReturn += titlePart;
         }
         else {
             if (self.params.page) {
@@ -1363,6 +1356,7 @@ var TUJ = function ()
                 if (self.params.id) {
                     title += ': ' + self.params.id;
                 }
+                titleToReturn += title;
                 title += ' - ';
             }
         }
@@ -1372,7 +1366,8 @@ var TUJ = function ()
         }
 
         document.title = title + 'The Undermine Journal';
-    }
+        return titleToReturn;
+    };
 
     this.BuildHash = function (p)
     {
@@ -1664,8 +1659,36 @@ var TUJ = function ()
         $(maintenancePage).show();
     };
 
+    function Start() {
+        var GenericPage = function (me, pageName) {
+            this.load = function (inParams) {
+                var page = $('#' + pageName + '-page');
+                page.find('.lazy-image').each(function(){
+                    var $t = $(this);
+                    $t.removeClass('lazy-image');
+                    var i = libtuj.ce('img');
+                    i.src = $t.data('src');
+                    i.className = this.className;
+                    $t.replaceWith(i);
+                });
 
-    Main();
+                $('#page-title').text(me.SetTitle(me.lang[pageName]));
+                page.show();
+            }
+        };
+
+        var pageName, divs = document.getElementsByClassName('page-generic');
+        for (var x = 0; x < divs.length; x++) {
+            pageName = divs[x].id.substr(0, divs[x].id.length - 5);
+            self['page_' + pageName] = new GenericPage(self, pageName);
+            validPages.push(pageName);
+            pagesNeedRealm.push(false);
+        }
+
+        Main();
+    }
+
+    Start();
 };
 
 /**
