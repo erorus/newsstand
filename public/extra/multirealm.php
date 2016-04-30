@@ -96,7 +96,7 @@ EOF;
                 echo '<i>See <a href="#', $realms['id'][$canonicalId]['slug'], '">', $realms['id'][$canonicalId]['name'], '</a></i><br>';
             } else {
                 if (!isset($sellers[$row['house']])) {
-                    echo 'None detected!';
+                    echo 'None detected!<br>';
                 } else {
                     echo '<table><tr><th>Seller</th><th>First Seen</th><th>Last Seen</th><th>Confidence</th></tr>';
                     foreach ($sellers[$row['house']] as $sellerRow) {
