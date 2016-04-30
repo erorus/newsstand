@@ -137,7 +137,7 @@ EOF;
 <html>
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=560">
     <title>Extra: The Undermine Journal</title>
 
     <link rel="stylesheet" href="https://theunderminejournal.com/css/wowhead/basic.css?1">
