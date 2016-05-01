@@ -11,10 +11,10 @@ WoW Token Info was added later as a small site on the same backend server, thoug
 
 Newsstand is currently hosted on a dedicated server with 16GB of memory, a quad core CPU, and a 256GB SSD for the database. It runs:
  - CentOS 6.6
- - Lighttpd 1.4.35
+ - nginx 1.9
  - MySQL 5.5
  - Memcached 1.4.4
- - PHP 5.5
+ - PHP 5.6
 
 ## How It Works
 
