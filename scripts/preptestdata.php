@@ -54,6 +54,7 @@ function GetDataTables() {
         'tblRealmGuidHouse' => '1=1',
         'tblSeller' => 'realm in ('.implode(',',$realms).')',
         'tblSellerHistory' => 'seller in ('.implode(',',$sellers).')',
+        'tblSellerItemHistory' => 'seller in ('.implode(',',$sellers).')',
         'tblSnapshot' => 'house='.$house,
         'tblWowToken' => '1=1',
     ];
