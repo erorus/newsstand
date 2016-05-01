@@ -2,7 +2,7 @@
 
 require_once('../incl/old.incl.php');
 
-$dirnm = 'current';
+$dirnm = 'current/enUS';
 
 function printprogresspercent($px) {
 	static $lastpct = 100;

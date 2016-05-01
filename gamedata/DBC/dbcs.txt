@@ -11,6 +11,7 @@ DBFilesClient\ItemModifiedAppearance.db2
 DBFilesClient\ItemNameDescription.dbc
 DBFilesClient\ItemRandomProperties.db2
 DBFilesClient\ItemRandomSuffix.db2
+DBFilesClient\ItemSubClass.dbc
 DBFilesClient\Item-sparse.db2
 DBFilesClient\ItemXBonusTree.db2
 DBFilesClient\SkillLineAbility.dbc

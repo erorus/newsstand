@@ -24,6 +24,10 @@ foreach ($LOCALES as $locale) {
 
     /* */
 
+    // DBCItemSubClass
+    dtecho(dbcdecode('ItemSubClass', array(1=>'id', 2=>'class', 3=>'subclass', 12=>'name', 13=>'plural')));
+    dtecho(run_sql("insert ignore into tblDBCItemSubClass (class, subclass, name_$locale) (select class, subclass, if(ifnull(plural,'')='',name,plural) from ttblItemSubClass) on duplicate key update tblDBCItemSubClass.name_$locale=ifnull(values(name_$locale),tblDBCItemSubClass.name_$locale)"));
+
     // DBCItem
     dtecho(dbcdecode('Item-sparse', array(1=>'id',71=>'name')));
     dtecho(run_sql('delete from `ttblItem-sparse` where id not in (select id from tblDBCItem)'));

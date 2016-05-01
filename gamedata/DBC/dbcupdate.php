@@ -12,6 +12,10 @@ DBConnect();
 $tables = array();
 dtecho(run_sql('set session max_heap_table_size='.(1024*1024*1024)));
 
+dtecho(dbcdecode('ItemSubClass', array(1=>'id', 2=>'class', 3=>'subclass', 12=>'name', 13=>'plural')));
+dtecho(run_sql('truncate tblDBCItemSubClass'));
+dtecho(run_sql('insert ignore into tblDBCItemSubClass (class, subclass, name_enus) (select class, subclass, if(ifnull(plural,\'\')=\'\',name,plural) from ttblItemSubClass)'));
+
 dtecho(dbcdecode('FileData', array(1=>'id', 2=>'name')));
 dtecho(dbcdecode('BattlePetSpecies', array(1=>'id', 2=>'npcid', 3=>'iconid', 5=>'type', 6=>'category', 7=>'flags')));
 dtecho(dbcdecode('BattlePetSpeciesState', array(1=>'id', 2=>'speciesid', 3=>'stateid', 4=>'amount')));
