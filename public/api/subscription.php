@@ -1002,7 +1002,7 @@ function GetIsPaid($loginState)
 
     $json['accept'] = false;
 
-    if (SUBSCRIPTION_PAID_ACCEPT_PAYMENTS && $json['until'] < (time() + SUBSCRIPTION_PAID_RENEW_WINDOW_DAYS)) {
+    if (SUBSCRIPTION_PAID_ACCEPT_PAYMENTS && ($json['until'] < (time() + SUBSCRIPTION_PAID_RENEW_WINDOW_DAYS))) {
         $json['accept'] = [
             'button' => SUBSCRIPTION_PAID_ACCEPT_BUTTON,
             'price' => SUBSCRIPTION_PAID_PRICE,
