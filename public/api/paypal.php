@@ -199,7 +199,7 @@ EOF;
 function DebugPaypalMessage($message, $subject = 'Paypal IPN Issue') {
     global $argv;
 
-    $pth = __DIR__ . '/../logs/paypalerrors.log';
+    $pth = __DIR__ . '/../../logs/paypalerrors.log';
     if ($pth) {
         $me = (PHP_SAPI == 'cli') ? ('CLI:' . realpath($argv[0])) : ('Web:' . $_SERVER['REQUEST_URI']);
         file_put_contents($pth, Date('Y-m-d H:i:s') . " $me $message\n".print_r($_POST, true), FILE_APPEND | LOCK_EX);
