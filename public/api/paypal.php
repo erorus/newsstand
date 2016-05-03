@@ -11,7 +11,12 @@ function FullPaypalProcess() {
     $isIPN = $_SERVER["SCRIPT_NAME"] != '/api/paypal.php';
 
     $postResult = CheckPaypalPost();
-    if ($postResult !== true) {
+    if ($postResult == 'Duplicate') {
+        if (!$isIPN) {
+            header('Location: /#subscription/paidfinish');
+        }
+        return;
+    } elseif ($postResult !== true) {
         if (!$isIPN) {
             header('Location: /#subscription/paiderror');
         } else {
@@ -88,7 +93,7 @@ function CheckPaypalPost() {
             (!isset($_POST['payment_date']) || $txnRow['payment_date'] == date('Y-m-d H:i:s', strtotime($_POST['payment_date']))) &&
             (!isset($_POST['payment_status']) || $txnRow['payment_status'] == $_POST['payment_status'])) {
             // just a duplicate, probably received from post and IPN
-            return true;
+            return 'Duplicate';
         }
 
         DebugPaypalMessage("Paypal validation returned \"$result\". IP: ".(isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown'));
