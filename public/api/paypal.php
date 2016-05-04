@@ -66,8 +66,8 @@ function CheckPaypalPost() {
     $rawPost = file_get_contents('php://input');
     $isSandbox = isset($_POST['test_ipn']);
 
-    $result = ValidatePaypalNotification($rawPost, $isSandbox);
-    if ($result !== true) {
+    $validationResult = ValidatePaypalNotification($rawPost, $isSandbox);
+    if ($validationResult !== true) {
         $db = DBConnect();
 
         $test_ipn = isset($_POST['test_ipn']) ? 1 : 0;
@@ -96,7 +96,7 @@ function CheckPaypalPost() {
             return 'Duplicate';
         }
 
-        DebugPaypalMessage("Paypal validation returned \"$result\". IP: ".(isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown'));
+        DebugPaypalMessage("Paypal validation returned \"$validationResult\". IP: ".(isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown'));
         return 'HTTP/1.0 420 Not Verified';
     }
 
