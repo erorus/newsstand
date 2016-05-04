@@ -17,7 +17,8 @@ $json = array(
     'sellers'       => HouseTopSellers($house),
     'mostAvailable' => HouseMostAvailable($house),
     'deals'         => HouseDeals($house),
-    'sellerbots'    => HouseBotSellers($house),
+    'sellerbots'    => [],
+    'maybebots'     => HouseBotSellers($house),
 );
 
 $json = json_encode($json, JSON_NUMERIC_CHECK);
