@@ -1308,7 +1308,6 @@ var TUJ = function ()
                         d.appendChild(libtuj.ce('br'));
                     }
                 }
-                info.sellerbots = [];
                 if (info.hasOwnProperty('sellerbots') && info.sellerbots.length) {
                     var d = document.getElementById('front-page-sellerbots');
                     var h = libtuj.ce('h3');
@@ -1319,8 +1318,8 @@ var TUJ = function ()
                     $(a).addClass('highlight').text('Probable Bots');
                     for (var x = 0; x < info.sellerbots.length; x++) {
                         var a = libtuj.ce('a');
-                        a.href = tuj.BuildHash({page: 'seller', realm: info.sellers[x].realm, id: info.sellers[x].name});
-                        a.appendChild(document.createTextNode(info.sellers[x].name + (info.sellers[x].realm == self.params.realm ? '' : (' - ' + tuj.realms[info.sellers[x].realm].name))));
+                        a.href = tuj.BuildHash({page: 'seller', realm: info.sellerbots[x].realm, id: info.sellerbots[x].name});
+                        a.appendChild(document.createTextNode(info.sellerbots[x].name + (info.sellerbots[x].realm == self.params.realm ? '' : (' - ' + tuj.realms[info.sellerbots[x].realm].name))));
                         d.appendChild(a);
                         d.appendChild(libtuj.ce('br'));
                     }
