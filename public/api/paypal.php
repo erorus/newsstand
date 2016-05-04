@@ -11,7 +11,12 @@ function FullPaypalProcess() {
     $isIPN = $_SERVER["SCRIPT_NAME"] != '/api/paypal.php';
 
     $postResult = CheckPaypalPost();
-    if ($postResult !== true) {
+    if ($postResult == 'Duplicate') {
+        if (!$isIPN) {
+            header('Location: /#subscription/paidfinish');
+        }
+        return;
+    } elseif ($postResult !== true) {
         if (!$isIPN) {
             header('Location: /#subscription/paiderror');
         } else {
@@ -61,7 +66,37 @@ function CheckPaypalPost() {
     $rawPost = file_get_contents('php://input');
     $isSandbox = isset($_POST['test_ipn']);
 
-    if (!ValidatePaypalNotification($rawPost, $isSandbox)) {
+    $result = ValidatePaypalNotification($rawPost, $isSandbox);
+    if ($result !== true) {
+        $db = DBConnect();
+
+        $test_ipn = isset($_POST['test_ipn']) ? 1 : 0;
+        $txn_id = $_POST['txn_id'];
+
+        $stmt = $db->prepare('select * from tblPaypalTransactions where test_ipn = ? and txn_id = ?');
+        $stmt->bind_param('is', $test_ipn, $txn_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $txnRow = $result->fetch_assoc();
+        $result->close();
+        $stmt->close();
+
+        $txn_type = null;
+        if (isset($_POST['txn_type'])) {
+            $txn_type = $_POST['txn_type'];
+        } elseif (isset($_POST['payment_status'])) {
+            $txn_type = $_POST['payment_status'];
+        }
+
+        if ($txnRow &&
+            (is_null($txn_type) || $txnRow['txn_type'] == $txn_type) &&
+            (!isset($_POST['payment_date']) || $txnRow['payment_date'] == date('Y-m-d H:i:s', strtotime($_POST['payment_date']))) &&
+            (!isset($_POST['payment_status']) || $txnRow['payment_status'] == $_POST['payment_status'])) {
+            // just a duplicate, probably received from post and IPN
+            return 'Duplicate';
+        }
+
+        DebugPaypalMessage("Paypal validation returned \"$result\". IP: ".(isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown'));
         return 'HTTP/1.0 420 Not Verified';
     }
 
@@ -199,7 +234,7 @@ EOF;
 function DebugPaypalMessage($message, $subject = 'Paypal IPN Issue') {
     global $argv;
 
-    $pth = __DIR__ . '/../logs/paypalerrors.log';
+    $pth = __DIR__ . '/../../logs/paypalerrors.log';
     if ($pth) {
         $me = (PHP_SAPI == 'cli') ? ('CLI:' . realpath($argv[0])) : ('Web:' . $_SERVER['REQUEST_URI']);
         file_put_contents($pth, Date('Y-m-d H:i:s') . " $me $message\n".print_r($_POST, true), FILE_APPEND | LOCK_EX);
@@ -217,8 +252,7 @@ function ValidatePaypalNotification($rawPost, $useSandbox = false) {
         return true;
     }
 
-    DebugPaypalMessage("Paypal validation returned \"$result\". IP: ".(isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown'));
-    return false;
+    return $result;
 }
 
 function PaypalResultForUser($user, $paidUntil, $removed) {
