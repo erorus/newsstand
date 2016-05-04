@@ -1308,6 +1308,7 @@ var TUJ = function ()
                         d.appendChild(libtuj.ce('br'));
                     }
                 }
+                info.sellerbots = [];
                 if (info.hasOwnProperty('sellerbots') && info.sellerbots.length) {
                     var d = document.getElementById('front-page-sellerbots');
                     var h = libtuj.ce('h3');
