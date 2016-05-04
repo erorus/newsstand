@@ -17,6 +17,7 @@ $json = array(
     'sellers'       => HouseTopSellers($house),
     'mostAvailable' => HouseMostAvailable($house),
     'deals'         => HouseDeals($house),
+    'sellerbots'    => HouseBotSellers($house),
 );
 
 $json = json_encode($json, JSON_NUMERIC_CHECK);
@@ -212,3 +213,36 @@ EOF;
     return $tr;
 }
 
+function HouseBotSellers($house)
+{
+    global $db;
+
+    $cacheKey = 'house_botsellers';
+    if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
+        return $tr;
+    }
+
+    DBConnect();
+
+    $sql = <<<EOF
+SELECT s.realm, s.name
+FROM tblSellerBot sb
+join tblSeller s on sb.seller = s.id
+where sb.house = ?
+and sb.snapshots > 15
+and s.lastseen > timestampadd(hour, -48, now())
+order by sb.snapshots desc
+limit 20;
+EOF;
+
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('i', $house);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $tr = DBMapArray($result, null);
+    $stmt->close();
+
+    MCSetHouse($house, $cacheKey, $tr);
+
+    return $tr;
+}
