@@ -11,7 +11,7 @@ function FullPaypalProcess() {
     $isIPN = $_SERVER["SCRIPT_NAME"] != '/api/paypal.php';
 
     $postResult = CheckPaypalPost();
-    if ($postResult == 'Duplicate') {
+    if ($postResult === 'Duplicate') {
         if (!$isIPN) {
             header('Location: /#subscription/paidfinish');
         }
@@ -65,8 +65,8 @@ function CheckPaypalPost() {
 
     $rawPost = file_get_contents('php://input');
     $isSandbox = isset($_POST['test_ipn']);
-    $isIPN = $_SERVER["SCRIPT_NAME"] != '/api/paypal.php';
-    file_put_contents(__DIR__.'/../../logs/paypalinput.log', "IPN: " . ($isIPN ? 'yes' : 'no') . "\tSandbox: " . ($isSandbox ? 'yes' : 'no') . "\t$rawPost\n", FILE_APPEND | LOCK_EX);
+    //$isIPN = $_SERVER["SCRIPT_NAME"] != '/api/paypal.php';
+    //file_put_contents(__DIR__.'/../../logs/paypalinput.log', "IPN: " . ($isIPN ? 'yes' : 'no') . "\tSandbox: " . ($isSandbox ? 'yes' : 'no') . "\t$rawPost\n", FILE_APPEND | LOCK_EX);
 
     $validationResult = ValidatePaypalNotification($rawPost, $isSandbox);
     if ($validationResult !== true) {
