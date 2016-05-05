@@ -111,6 +111,7 @@ var TUJ_BattlePet = function ()
         var ta = libtuj.ce('a');
         ta.href = 'http://' + tuj.lang.wowheadDomain + '.wowhead.com/npc=' + dta.stats.npc;
         ta.target = '_blank';
+        ta.rel = 'noopener noreferrer';
         ta.className = 'battlepet'
         var timg = libtuj.ce('img');
         ta.appendChild(timg);

@@ -137,6 +137,7 @@ var TUJ_Item = function ()
         var ta = libtuj.ce('a');
         ta.href = 'http://' + tuj.lang.wowheadDomain + '.wowhead.com/item=' + itemId + (bonusUrl ? '&bonus=' + bonusUrl.replace('.', ':') : '');
         ta.target = '_blank';
+        ta.rel = 'noopener noreferrer';
         ta.className = 'item'
         var timg = libtuj.ce('img');
         ta.appendChild(timg);
