@@ -376,29 +376,22 @@ EOF;
                     );
 
             if (strlen($sql) + 5 + strlen($thisSql) > $maxPacketSize) {
-                DBQueryWithError($ourDb, $sql);
+                $ok &= DBQueryWithError($ourDb, $sql);
                 $sql = '';
             }
             $sql .= ($sql == '' ? $sqlStart : ',') . $thisSql;
         }
         if ($sql != '') {
-            DBQueryWithError($ourDb, $sql);
+            $ok &= DBQueryWithError($ourDb, $sql);
         }
-
-        $ourDb->query('set transaction isolation level read uncommitted, read only');
-        $ourDb->begin_transaction();
 
         $sql = <<<'EOF'
 update ttblRareStage rs
 join tblItemSummary s on rs.item = s.item and rs.bonusset = s.bonusset
 set rs.lastseen = s.lastseen
-where s.house = ?
+where s.house = %d
 EOF;
-
-        $stmt = $ourDb->prepare($sql);
-        $stmt->bind_param('i', $house);
-        $stmt->execute();
-        $stmt->close();
+        $ok &= DBQueryRetryDeadlocks($ourDb, sprintf($sql, $house));
 
         $sql = <<<'EOF'
 update ttblRareStage rs
@@ -407,16 +400,12 @@ join tblAuctionRare ar on ar.house = a.house and ar.id = a.id
 left join tblAuctionExtra ae on ae.house = a.house and ae.id = a.id
 set rs.lastseen = if(rs.lastseen is null, ar.prevseen, least(rs.lastseen, ar.prevseen))
 where ifnull(ae.bonusset, 0) = rs.bonusset
-and a.house = ?
+and a.house = %d
 EOF;
 
-        $stmt = $ourDb->prepare($sql);
-        $stmt->bind_param('i', $house);
-        $stmt->execute();
-        $stmt->close();
-
-        $ourDb->commit(); // end read-uncommitted
-
+        $ok &= DBQueryRetryDeadlocks($ourDb, sprintf($sql, $house));
+    }
+    if ($ok) {
         $sql = <<<'EOF'
 replace into tblUserRareReport (user, house, item, bonusset, prevseen, price, snapshot) (
     SELECT ur.user, ur.house, rs.item, rs.bonusset, rs.lastseen, rs.price, ?
@@ -445,9 +434,8 @@ EOF;
         }
         $result->close();
         $stmt->close();
-
-        DBQueryWithError($ourDb, 'drop temporary table ttblRareStage');
     }
+    DBQueryWithError($ourDb, 'drop temporary table if exists ttblRareStage');
 
     $observedUsers = array_chunk(array_keys($updateObserved), 200);
     $sql = 'update tblUser set watchesobserved = \'%1$s\' where id in (%2$s) and ifnull(watchesobserved, \'2000-01-01\') < \'%1$s\'';
@@ -636,5 +624,21 @@ function DBQueryWithError(&$db, $sql)
         DebugMessage("SQL error: " . $db->errno . ' ' . $db->error . " - " . substr(preg_replace('/[\r\n]/', ' ', $sql), 0, 500), E_USER_WARNING);
     }
 
+    return $queryOk;
+}
+
+function DBQueryRetryDeadlocks(&$db, $sql)
+{
+    $retries = 0;
+    do {
+        $queryOk = $db->query($sql);
+        if ($queryOk) {
+            break;
+        }
+        if ($db->errno != 1213) { // deadlock
+            break;
+        }
+        sleep(1 + pow(2, $retries));
+    } while ($retries++ < 3);
     return $queryOk;
 }

@@ -263,7 +263,6 @@ function ParseAuctionData($house, $snapshot, &$json)
     if ($jsonAuctions) {
         $auctionCount = count($jsonAuctions);
         DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " parsing $auctionCount auctions");
-        $ourDb->begin_transaction();
 
         for ($x = 0; $x < $auctionCount; $x++) {
             $auction =& $jsonAuctions[$x];
@@ -443,8 +442,6 @@ function ParseAuctionData($house, $snapshot, &$json)
         while (count($delayedAuctionSql)) {
             DBQueryWithError($ourDb, array_pop($delayedAuctionSql));
         }
-
-        $ourDb->commit();
 
         $sql = <<<EOF
 insert ignore into tblAuctionRare (house, id, prevseen) (
