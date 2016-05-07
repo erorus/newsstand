@@ -27,6 +27,7 @@ $json = array(
     'history'       => ItemHistory($house, $item),
     'daily'         => ItemHistoryDaily($house, $item),
     'monthly'       => ItemHistoryMonthly($house, $item),
+    'expired'       => ItemExpired($house, $item),
     'auctions'      => ItemAuctions($house, $item),
     'globalnow'     => ItemGlobalNow(GetRegion($house), $item),
     'globalmonthly' => ItemGlobalMonthly(GetRegion($house), $item),
@@ -273,6 +274,37 @@ EOF;
         }
     }
     unset($rows);
+
+    MCSet($cacheKey, $tr, 60 * 60 * 8);
+
+    return $tr;
+}
+
+function ItemExpired($house, $item)
+{
+    global $db;
+
+    $cacheKey = 'item_expired2_' . $house . '_' . $item;
+
+    if (($tr = MCGet($cacheKey)) !== false) {
+        return $tr;
+    }
+
+    DBConnect();
+
+    $sql = <<<EOF
+select bonusset, `when` as `date`, `created`, `expired`
+from tblItemExpired
+where house = ? and item = ? and `when` < timestampadd(day, -3, now())
+order by `bonusset`, `when`
+EOF;
+
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('ii', $house, $item);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $tr = DBMapArray($result, ['bonusset', null]);
+    $stmt->close();
 
     MCSet($cacheKey, $tr, 60 * 60 * 8);
 

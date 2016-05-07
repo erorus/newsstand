@@ -119,6 +119,8 @@
     "dailySummaryDesc": "Aqui está a quantidade máxima disponível e o preço de mercado na época, para o item a cada dia. O preço médio regional para cada dia está incluído para comparação.",
     "dailyDetails": "Detalhes Diários",
     "dailyDetailsDesc": "Este gráfico é semelhante ao Resumo Diário, mas inclui o \"OHLC\" preços de mercado para o item a cada dia, juntamente com a quantidade mínima, média e máxima disponível.",
+    "auctionCount": "Auction Count",
+    "auctionCountDesc": "This chart counts the number of new auctions posted on each day, along with an estimate of how many of them ended up expired.",
     "postingHeatMap": "Mapa de Variação de Postagem",
     "pricingHeatMap": "Mapa de Variação de Preço",
     "pricingHeatMapDesc": "Este mapa de variação ajuda a identificar se os preços mantém um padrão baseado em determinada hora do dia.",
@@ -162,6 +164,7 @@
     "population": "População",
     "numberOfAuctions": "Número de Leilões",
     "newAuctions": "Novos Leilões",
+    "expired": "Expired",
 
     "species": "Espécies",
     "breed": "Raça",

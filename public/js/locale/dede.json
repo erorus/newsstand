@@ -119,6 +119,8 @@
     "dailySummaryDesc": "Hier wird die maximal verfügbare Menge und der Marktpreis zu dieser Zeit für diesen Gegenstand für jeden Tag angezeigt. Der regionale Durchschnittspreis für jeden Tag wird zum Vergleich angezeigt.",
     "dailyDetails": "Tägliche Details",
     "dailyDetailsDesc": "Dieses Diagramm ist ähnlich der täglichen Zusammenfassung, zeigt aber zuätzlich die Preisspanne des Gegenstands für jeden Tag an, zusammen mit der minimalen, druchschnittlichen und maximal verfügbaren Menge.",
+    "auctionCount": "Auction Count",
+    "auctionCountDesc": "This chart counts the number of new auctions posted on each day, along with an estimate of how many of them ended up expired.",
     "postingHeatMap": "Einstell-Heatmap",
     "pricingHeatMap": "Preis-Heatmap",
     "pricingHeatMapDesc": "Diese Heatmap hilft zu erkennen ob es einen Zusammenhang gibt zwischen Preis und Tageszeit.",
@@ -162,6 +164,7 @@
     "population": "Population",
     "numberOfAuctions": "Anzahl an Auktionen",
     "newAuctions": "Neue Auktionen",
+    "expired": "Expired",
 
     "species": "Art",
     "breed": "Züchtung",

@@ -119,6 +119,8 @@
     "dailySummaryDesc": "Here is the maximum available quantity, and the market price at that time, for the item each day. The regional average price for each day is included for comparison.",
     "dailyDetails": "Daily Details",
     "dailyDetailsDesc": "This chart is similar to the Daily Summary, but includes the \"OHLC\" market prices for the item each day, along with the minimum, average, and maximum available quantity.",
+    "auctionCount": "Auction Count",
+    "auctionCountDesc": "This chart counts the number of new auctions posted on each day, along with an estimate of how many of them ended up expired.",
     "postingHeatMap": "Posting Heat Map",
     "pricingHeatMap": "Pricing Heat Map",
     "pricingHeatMapDesc": "This heat map helps to identify if prices have a pattern based on the time of day.",
@@ -162,6 +164,7 @@
     "population": "Population",
     "numberOfAuctions": "Number of Auctions",
     "newAuctions": "New Auctions",
+    "expired": "Expired",
 
     "species": "Species",
     "breed": "Raza",
