@@ -714,10 +714,22 @@ var TUJ = function ()
                 $('#region-page area.region-eu').attr('href', tuj.BuildHash({region:1}));
 
                 $('#region-page h2').html(libtuj.sprintf(self.lang.welcomeTo, 'The Undermine Journal') + ' <sub>' + self.lang.yourSource + '</sub>');
+                var pixelmap = document.getElementById('pixelmap');
+                if (!pixelmap) {
+                    pixelmap = libtuj.ce('img');
+                    pixelmap.id = 'pixelmap';
+                    pixelmap.src = 'images/compressed/pixelmap.png';
+                    pixelmap.width = '1471';
+                    pixelmap.height = '908';
+                    pixelmap.useMap = '#mapmap';
+                    $(pixelmap).on('load', function() {
+                        $('map').imageMapResize();
+                    });
+                    document.getElementById('region-page').appendChild(pixelmap);
+                }
 
                 $('#region-page').show();
                 $(document.body).addClass('page-region');
-                $('map').imageMapResize();
                 return;
             }
 
@@ -1652,7 +1664,7 @@ var TUJ = function ()
             } else {
                 darkSheet = libtuj.ce('link');
                 darkSheet.rel = 'stylesheet';
-                darkSheet.href = tujCDNPrefix + 'css/night.css?2';
+                darkSheet.href = tujCDNPrefix + 'css/night.css?3';
                 darkSheet.id = 'dark-sheet';
                 document.getElementsByTagName('head')[0].appendChild(darkSheet);
             }

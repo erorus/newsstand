@@ -1,5 +1,5 @@
 body {background-color: #333; color: #CCC}
-#title > div > a img { background-image: url("../images/underminetitle.2000.dark.png"); }
+#title > div > a img { background-image: url("../images/compressed/underminetitle.2000.dark.png"); }
 
 a {color: white}
 
@@ -28,7 +28,7 @@ table.category-fish .price {border-left-color: #444}
     border: 1px solid #AAA;
     background-color: #333;
     color: #CCC;
-    background-image: url("../images/caret_down_grey.png");
+    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAAJFBMVEUAAADNzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc0nT/0nAAAAC3RSTlMAVfWRPUzmsohCERd2JO8AAABDSURBVCjPYxhSgCtQEAImQAXYd0PBRqgAB0xABabHGsLf5AATYIYrgCuBKYArgSlAKIEqQCiBKUAogSpAKEllGPIAALC/JRBH8djtAAAAAElFTkSuQmCC");
 }
 
 #subscription-messages { border-color: #666 }

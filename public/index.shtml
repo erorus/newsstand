@@ -48,7 +48,7 @@
                 </div>
                 <div id="title" class="give-padding">
                     <div>
-                        <a><img src="images/underminetitle.2000.trans.png"></a>
+                        <a><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB9AAAACsAQMAAAAZsaUOAAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAAEBJREFUeNrtwTEBAAAAwiD7pzbFPmAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEDiqKQAAYV6d/kAAAAASUVORK5CYII="></a>
                         <div id="page-title"></div>
                     </div>
                 </div>
@@ -65,7 +65,6 @@
                         <h2>Welcome to The Undermine Journal <sub>...your source for Auction House statistics and data in World of Warcraft.</sub></h2>
                     </div>
                     <div class="directions">Choose your region below:</div>
-                    <img id="pixelmap" src="images/pixelmap.png?2" width="1471" height="908" usemap="#mapmap">
                     <map name="mapmap">
                         <area class="region-us" href="#us" shape="poly" coords="2,201,159,202,211,125,442,89,508,358,433,452,569,566,454,839,367,829,83,327,0,330">
                         <area class="region-us" href="#us" shape="poly" coords="1131,640,1230,595,1316,619,1446,723,1406,785,1151,743">
@@ -324,14 +323,13 @@
                         <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
                             <input type="hidden" name="cmd" value="_s-xclick">
                             <input type="hidden" name="hosted_button_id" value="RH5C3YCJVGEU6">
-                            <input type="image" src="images/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
                         </form>
 
                         Note: This donate link is not related to any paid subscription on this site. You should log in to your subscription to renew it on your subscription page.
                     </div>
                 </div>
                 <div class="page page-generic" id="addon-page">
-                    <div class="lazy-image float-right" data-src="images/addon.png"></div>
+                    <div class="lazy-image float-right" data-src="images/compressed/addon.png"></div>
                     <div class="news no-margin">
                         The Undermine Journal in-game addon shows realm-specific pricing in tooltips for all items and battle pets on all US and EU realms. Data includes:
                         <ul>
