@@ -40,7 +40,7 @@
     }
 
     function GetSellerList() {
-        $cacheKey = 'extra:multirealm:sellers2';
+        $cacheKey = 'extra:multirealm:sellers3';
 
         $sellers = MCGet($cacheKey);
         if ($sellers !== false) {
@@ -67,6 +67,7 @@
         where h.seller is null
         and r.region = 'US'
         and s.firstseen > '2016-04-01'
+        and s.lastseen > timestampadd(hour, -36, now())
         order by r.house, s.firstseen, z2.cnt desc, s.lastseen desc
 EOF;
 

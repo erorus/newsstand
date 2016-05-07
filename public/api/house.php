@@ -217,7 +217,7 @@ function HouseBotSellers($house)
 {
     global $db;
 
-    $cacheKey = 'house_botsellers';
+    $cacheKey = 'house_botsellers2';
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
     }
@@ -229,9 +229,9 @@ SELECT s.realm, s.name
 FROM tblSellerBot sb
 join tblSeller s on sb.seller = s.id
 where sb.house = ?
-and sb.snapshots > 15
-and s.lastseen > timestampadd(hour, -48, now())
-order by sb.snapshots desc
+and sb.snapshots > 7
+and s.lastseen > timestampadd(hour, -24, now())
+order by 2 asc
 limit 20;
 EOF;
 
