@@ -72,6 +72,8 @@
 EOF;
 
         $db = DBConnect();
+        $db->query('set transaction isolation level read uncommitted, read only');
+        $db->begin_transaction();
         $stmt = $db->prepare($sql);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -80,6 +82,7 @@ EOF;
         }
         $result->close();
         $stmt->close();
+        $db->commit(); // end transaction
 
         MCSet($cacheKey, $sellers);
 
