@@ -510,45 +510,6 @@ EOF;
     DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating seller history");
     UpdateSellerInfo($sellerInfo, $snapshot, $noHistory);
 
-    if (!$noHistory && ($region == 'US')) {
-        $ourDb->begin_transaction();
-
-        $stmt = $ourDb->prepare('delete from tblSellerBot where house = ?');
-        $stmt->bind_param('i', $house);
-        $stmt->execute();
-        $stmt->close();
-
-        $sql = <<<'EOF'
-        insert into tblSellerBot (seller, house, snapshots)
-        (select z2.seller, r.house, z2.cnt
-        from (
-            select seller, count(distinct `snapshot`) cnt
-            from (
-                SELECT sih.seller, sih.item, sih.`snapshot`
-                FROM `tblSellerItemHistory` sih
-                join tblSeller s on sih.seller = s.id
-                join tblRealm r on s.realm = r.id
-                where r.house = ?
-                and sih.item in (128159, 127736, 127738, 127732, 127731, 127737, 127735, 127730, 127734, 127733, 127718, 128158, 127720, 127714, 127713, 127719, 127717, 127712, 127716, 127715)
-            ) z1
-            group by seller
-            having count(distinct item) = 2
-        ) z2
-        left join tblSellerItemHistory h on h.seller = z2.seller and h.item not in (128159, 127736, 127738, 127732, 127731, 127737, 127735, 127730, 127734, 127733, 127718, 128158, 127720, 127714, 127713, 127719, 127717, 127712, 127716, 127715)
-        join tblSeller s on s.id = z2.seller
-        join tblRealm r on s.realm = r.id
-        where h.seller is null
-        and r.house = ?
-        and s.firstseen > '2016-04-01')
-EOF;
-        $stmt = $ourDb->prepare($sql);
-        $stmt->bind_param('ii', $house, $house);
-        $stmt->execute();
-        $stmt->close();
-
-        $ourDb->commit();
-    }
-
     if (count($expiredItemInfo) > 0) {
         $sqlStart = 'INSERT INTO tblItemExpired (item, bonusset, house, `when`, created, expired) VALUES ';
         $sqlEnd = ' ON DUPLICATE KEY UPDATE created=created+values(created), expired=expired+values(expired)';
