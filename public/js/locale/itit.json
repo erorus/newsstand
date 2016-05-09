@@ -137,6 +137,8 @@
     "currentPetAuctions": "Aste Correnti di Mascotte",
     "currentAuctions": "Aste Correnti",
     "currentAuctionsDesc": "Qui c'è la lista completa di aste per questo {1} dall'ultima rilevazione. Clicca sul nome del venditore per avere dettagli a riguardo.",
+    "recentSellers": "Recent Sellers",
+    "recentSellersDesc": "These sellers posted the greatest quantity of {1} recently.",
 
     "availableQuantity": "Quantità Disponibile",
     "availableAbbrev": "Disp",

@@ -306,6 +306,20 @@ var TUJ_Item = function ()
             ItemGlobalNowScatter(dta, cht);
         }
 
+        if (dta.hasOwnProperty('sellers') && dta.sellers.length > 2) {
+            d = libtuj.ce();
+            d.className = 'chart-section';
+            h = libtuj.ce('h2');
+            d.appendChild(h);
+            $(h).text(tuj.lang.recentSellers);
+            d.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.recentSellersDesc, '[' + dta.stats[bonusSet]['name_' + tuj.locale] + ']')));
+            cht = libtuj.ce();
+            cht.className = 'chart columns';
+            d.appendChild(cht);
+            itemPage.append(d);
+            ItemRecentSellersColumns(dta, cht);
+        }
+
         itemPage.append(MakeNotificationsSection(dta, fullItemName));
 
         if (dta.auctions.hasOwnProperty(bonusSet) && dta.auctions[bonusSet].length) {
@@ -2566,6 +2580,128 @@ var TUJ_Item = function ()
                     yAxis: 0,
                     zIndex: 2
                 }
+            ]
+        });
+    }
+
+    function ItemRecentSellersColumns(data, dest)
+    {
+        var hcdata = {'categories': [], 'quantity': [], 'recentQuantity': [], 'links': []};
+        data.sellers.sort(function (a, b) {
+            return (b.quantity - a.quantity) || a.sellername.localeCompare(b.sellername);
+        });
+
+        var sellerName;
+        for (var x = 0, slr; slr = data.sellers[x]; x++) {
+            sellerName = slr.sellername + (slr.sellerrealm && slr.sellerrealm != params.realm ? (' - ' + tuj.realms[slr.sellerrealm].name) : '');
+
+            hcdata.links.push({realm: slr.sellerrealm, page: 'seller', id: slr.sellername});
+            hcdata.categories.push(sellerName);
+            hcdata.quantity.push(slr.quantity);
+            hcdata.recentQuantity.push(slr.recentquantity);
+        }
+
+        var SellerClick = function (links, evt) {
+            tuj.SetParams(links[evt.point.x]);
+        };
+
+        Highcharts.setOptions({
+            global: {
+                useUTC: false
+            }
+        });
+
+        $(dest).highcharts({
+            chart: {
+                backgroundColor: tujConstants.siteColors[tuj.colorTheme].background
+            },
+            title: {
+                text: null
+            },
+            subtitle: {
+                text: null
+            },
+            xAxis: {
+                categories: hcdata.categories
+            },
+            yAxis: [
+                {
+                    title: {
+                        text: tuj.lang.quantity,
+                        style: {
+                            color: tujConstants.siteColors[tuj.colorTheme].redQuantity
+                        }
+                    },
+                    min: 0,
+                    labels: {
+                        enabled: true,
+                        formatter: function ()
+                        {
+                            return '' + libtuj.FormatQuantity(this.value, true);
+                        },
+                        style: {
+                            color: tujConstants.siteColors[tuj.colorTheme].text
+                        }
+                    }
+                }
+            ],
+            legend: {
+                enabled: false
+            },
+            tooltip: {
+                shared: true,
+                formatter: function () {
+                    var tr = '', x = this.points[0].point.x;
+                    tr += '<b>' + this.points[0].x + '</b>';
+                    tr += '<br>' + tuj.lang.lastSeen + ' ' + libtuj.FormatDate(data.sellers[x].lastseen, true) + '<br>';
+                    tr += '<br><span style="color: #990000">' + libtuj.sprintf(tuj.lang.timePast, ' 0-4 ' + tuj.lang.timeDays) + ': ' + libtuj.FormatQuantity(this.points[1].y, true) + '</span>';
+                    tr += '<br><span style="color: #990000">' + libtuj.sprintf(tuj.lang.timePast, '0-14 ' + tuj.lang.timeDays) + ': ' + libtuj.FormatQuantity(this.points[0].y, true) + '</span>';
+                    return tr;
+                },
+                useHTML: true
+            },
+            plotOptions: {
+                column: {
+                    stacking: 'normal',
+                },
+                series: {
+                    lineWidth: 2,
+                    marker: {
+                        enabled: false,
+                        radius: 1,
+                        states: {
+                            hover: {
+                                enabled: true
+                            }
+                        }
+                    },
+                    states: {
+                        hover: {
+                            lineWidth: 2
+                        }
+                    }
+                }
+            },
+            series: [
+                {
+                    type: 'column',
+                    color: tujConstants.siteColors[tuj.colorTheme].redQuantityFillLight,
+                    borderColor: tujConstants.siteColors[tuj.colorTheme].background,
+                    data: hcdata.quantity,
+                    events: {
+                        click: SellerClick.bind(null, hcdata.links)
+                    }
+                },
+                {
+                    type: 'column',
+                    color: tujConstants.siteColors[tuj.colorTheme].redQuantityFill,
+                    borderColor: tujConstants.siteColors[tuj.colorTheme].background,
+                    data: hcdata.recentQuantity,
+                    events: {
+                        click: SellerClick.bind(null, hcdata.links)
+                    }
+                }
+
             ]
         });
     }

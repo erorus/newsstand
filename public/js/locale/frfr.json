@@ -137,6 +137,8 @@
     "currentPetAuctions": "Enchères actuelles mascotte",
     "currentAuctions": "Enchères actuelles",
     "currentAuctionsDesc": "Voici la liste complète des enchères pour ce {1} depuis la dernière capture. Cliquez sur le nom d'un vendeur pour plus de détails sur celui-ci.",
+    "recentSellers": "Recent Sellers",
+    "recentSellersDesc": "These sellers posted the greatest quantity of {1} recently.",
 
     "availableQuantity": "Quantité disponible",
     "availableAbbrev": "Dispo",

@@ -137,6 +137,8 @@
     "currentPetAuctions": "Aktuelle Haustier-Auktionen",
     "currentAuctions": "Aktuelle Auktionen",
     "currentAuctionsDesc": "Dies ist eine komplette Liste der Auktionen für diesen {1}, basierend auf der letzten Momentaufnahme. Klick auf den Verkäufernamen für weitere Informationen zu diesem Verkäufer.",
+    "recentSellers": "Recent Sellers",
+    "recentSellersDesc": "These sellers posted the greatest quantity of {1} recently.",
 
     "availableQuantity": "Verfügbare Menge",
     "availableAbbrev": "Verfügb.",

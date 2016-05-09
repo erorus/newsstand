@@ -28,6 +28,7 @@ $json = array(
     'daily'         => ItemHistoryDaily($house, $item),
     'monthly'       => ItemHistoryMonthly($house, $item),
     'expired'       => ItemExpired($house, $item),
+    'sellers'       => ItemSellers($house, $item),
     'auctions'      => ItemAuctions($house, $item),
     'globalnow'     => ItemGlobalNow(GetRegion($house), $item),
     'globalmonthly' => ItemGlobalMonthly(GetRegion($house), $item),
@@ -311,6 +312,43 @@ EOF;
     return $tr;
 }
 
+function ItemSellers($house, $item)
+{
+    global $db;
+
+    $cacheKey = 'item_sellers3_' . $item;
+
+    if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
+        return $tr;
+    }
+
+    DBConnect();
+
+    $sql = <<<'EOF'
+select sum(sih.quantity) quantity, sum(if(sih.snapshot > timestampadd(hour, -97, now()), sih.quantity, 0)) recentquantity,
+unix_timestamp(max(sih.snapshot)) lastseen, s.realm sellerrealm, ifnull(s.name, '???') sellername
+from tblSellerItemHistory sih
+join tblSeller s on sih.seller = s.id
+join tblRealm r on s.realm = r.id
+where r.house = ?
+and sih.item = ?
+group by sih.seller
+order by 1 desc
+limit 10
+EOF;
+
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('ii', $house, $item);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $tr = $result->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+
+    MCSetHouse($house, $cacheKey, $tr);
+
+    return $tr;
+}
+
 function ItemAuctions($house, $item)
 {
     global $db, $LANG_LEVEL;
@@ -390,7 +428,6 @@ EOF;
 
     return $tr;
 }
-
 
 function ItemGlobalMonthly($region, $item)
 {
