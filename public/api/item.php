@@ -329,8 +329,7 @@ select sum(sih.quantity) quantity, sum(if(sih.snapshot > timestampadd(hour, -97,
 unix_timestamp(max(sih.snapshot)) lastseen, s.realm sellerrealm, ifnull(s.name, '???') sellername
 from tblSellerItemHistory sih
 join tblSeller s on sih.seller = s.id
-join tblRealm r on s.realm = r.id
-where r.house = ?
+where sih.house = ?
 and sih.item = ?
 group by sih.seller
 order by 1 desc

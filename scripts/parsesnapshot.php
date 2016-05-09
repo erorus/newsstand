@@ -508,7 +508,7 @@ EOF;
     UpdatePetInfo($house, $petInfo, $snapshot, $noHistory);
 
     DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating seller history");
-    UpdateSellerInfo($sellerInfo, $snapshot, $noHistory);
+    UpdateSellerInfo($sellerInfo, $house, $snapshot, $noHistory);
 
     if (count($expiredItemInfo) > 0) {
         $sqlStart = 'INSERT INTO tblItemExpired (item, bonusset, house, `when`, created, expired) VALUES ';
@@ -840,7 +840,7 @@ function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
 
 }
 
-function UpdateSellerInfo(&$sellerInfo, $snapshot, $noHistory)
+function UpdateSellerInfo(&$sellerInfo, $house, $snapshot, $noHistory)
 {
     if ($noHistory) {
         return;
@@ -852,7 +852,7 @@ function UpdateSellerInfo(&$sellerInfo, $snapshot, $noHistory)
     $realms = array_keys($sellerInfo);
 
     $sqlStart = 'INSERT IGNORE INTO tblSellerHistory (seller, snapshot, `new`, `total`) VALUES ';
-    $sqlItemStart = 'INSERT IGNORE INTO tblSellerItemHistory (seller, snapshot, item, auctions, quantity) VALUES ';
+    $sqlItemStart = 'INSERT IGNORE INTO tblSellerItemHistory (item, seller, snapshot, house, auctions, quantity) VALUES ';
     $sql = '';
     $sqlItem = '';
 
@@ -870,7 +870,7 @@ function UpdateSellerInfo(&$sellerInfo, $snapshot, $noHistory)
             $sql .= ($sql == '' ? $sqlStart : ',') . $sqlBit;
 
             foreach ($info['items'] as $item => $details) {
-                $sqlBit = sprintf('(%d,\'%s\',%d,%d,%d)', $info['id'], $snapshotString, $item, $details[0], $details[1]);
+                $sqlBit = sprintf('(%d,%d,\'%s\',%d,%d,%d)', $item, $info['id'], $snapshotString, $house, $details[0], $details[1]);
                 if (strlen($sqlItem) + strlen($sqlBit) + 5 > $maxPacketSize) {
                     DBQueryWithError($db, $sqlItem);
                     $sqlItem = '';
