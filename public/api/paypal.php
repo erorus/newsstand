@@ -5,48 +5,61 @@
 require_once __DIR__.'/../../incl/incl.php';
 require_once __DIR__.'/../../incl/subscription.incl.php';
 
+LogPaypalMessage("Starting");
 FullPaypalProcess();
+LogPaypalMessage("Done");
 
 function FullPaypalProcess() {
     $isIPN = $_SERVER["SCRIPT_NAME"] != '/api/paypal.php';
 
+    $txnId = isset($_POST['txn_id']) ? $_POST['txn_id'] : 'unknown';
+    LogPaypalMessage("Received ".($isIPN ? "IPN" : "API")." txn: $txnId");
+
     $postResult = CheckPaypalPost();
     if ($postResult === 'Duplicate') {
         if (!$isIPN) {
+            LogPaypalMessage("Forwarding duplicate post to paidfinish");
             header('Location: /#subscription/paidfinish');
         }
         return;
     } elseif ($postResult !== true) {
         if (!$isIPN) {
+            LogPaypalMessage("Forwarding errored post to paiderror");
             header('Location: /#subscription/paiderror');
         } else {
             if (!is_string($postResult)) {
                 $postResult = 'HTTP/1.0 500 Internal Server Error';
             }
+            LogPaypalMessage("Setting errored post header: $postResult");
             header($postResult);
         }
-        exit;
+        return;
     }
 
     $operation = ProcessPaypalPost();
     if ($operation === false) {
         if (!$isIPN) {
+            LogPaypalMessage("Forwarding errored process to paiderror");
             header('Location: /#subscription/paiderror');
         } else {
+            LogPaypalMessage("Returning errored process header HTTP 500");
             header('HTTP/1.0 500 Internal Server Error');
         }
-        exit;
+        return;
     }
 
     if (isset($operation['addTime'])) {
         $newPaidUntil = AddPaidTime($operation['addTime'], SUBSCRIPTION_PAID_ADDS_SECONDS);
+        LogPaypalMessage("Added time, paid until: $newPaidUntil");
         PaypalResultForUser($operation['addTime'], $newPaidUntil, false);
     }
     if (isset($operation['delTime'])) {
         $newPaidUntil = AddPaidTime($operation['delTime'], -1 * SUBSCRIPTION_PAID_ADDS_SECONDS);
+        LogPaypalMessage("Removed time, paid until: $newPaidUntil");
         PaypalResultForUser($operation['addTime'], $newPaidUntil, true);
     }
     if (!$isIPN) {
+        LogPaypalMessage("Forwarding to paidfinish");
         header('Location: /#subscription/paidfinish');
     }
 }
@@ -70,6 +83,7 @@ function CheckPaypalPost() {
 
     $validationResult = ValidatePaypalNotification($rawPost, $isSandbox);
     if ($validationResult !== true) {
+        LogPaypalMessage("Validation failed: $validationResult");
         $db = DBConnect();
 
         $test_ipn = isset($_POST['test_ipn']) ? 1 : 0;
@@ -95,12 +109,15 @@ function CheckPaypalPost() {
             (!isset($_POST['payment_date']) || $txnRow['payment_date'] == date('Y-m-d H:i:s', strtotime($_POST['payment_date']))) &&
             (!isset($_POST['payment_status']) || $txnRow['payment_status'] == $_POST['payment_status'])) {
             // just a duplicate, probably received from post and IPN
+            LogPaypalMessage("Found duplicate row, last updated: ".$txnRow['lastupdate']);
             return 'Duplicate';
         }
 
         DebugPaypalMessage("Paypal validation returned \"$validationResult\". IP: ".(isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown'));
         return 'HTTP/1.0 420 Not Verified';
     }
+
+    LogPaypalMessage("Validation successful");
 
     if ($isSandbox) {
         DebugPaypalMessage('Ignored Paypal sandbox notification.');
@@ -124,6 +141,8 @@ function ProcessPaypalPost() {
     $result->close();
     $stmt->close();
 
+    LogPaypalMessage("Existing transaction row: ".(isset($txnRow['lastupdate']) ? $txnRow['lastupdate'] : 'no'));
+
     $addPaidTime = (!$txnRow) || ($txnRow['payment_status'] != 'Completed');
 
     $txn_type = null;
@@ -146,7 +165,11 @@ function ProcessPaypalPost() {
 
     $addPaidTime &= $payment_status == 'Completed';
 
+    LogPaypalMessage("Adding paid time: ".($addPaidTime ? 'yes' : 'no'));
+
     $user = isset($_POST['custom']) ? GetUserFromPublicHMAC($_POST['custom']) : null;
+
+    LogPaypalMessage("User: $user");
 
     $cols = ['test_ipn', 'txn_id',
         'txn_type', 'payment_date', 'parent_txn_id',
@@ -233,17 +256,26 @@ EOF;
     return [];
 }
 
+function LogPaypalMessage($message) {
+    //  return;
+    DebugPaypalMessage((isset($_SERVER['REMOTE_ADDR']) ? ($_SERVER['REMOTE_ADDR'] . " ") : '') . $message, false);
+}
+
 function DebugPaypalMessage($message, $subject = 'Paypal IPN Issue') {
     global $argv;
 
     $pth = __DIR__ . '/../../logs/paypalerrors.log';
     if ($pth) {
         $me = (PHP_SAPI == 'cli') ? ('CLI:' . realpath($argv[0])) : ('Web:' . $_SERVER['REQUEST_URI']);
-        file_put_contents($pth, Date('Y-m-d H:i:s') . " $me $message\n".print_r($_POST, true), FILE_APPEND | LOCK_EX);
+        file_put_contents($pth, date('Y-m-d H:i:s') . " $me $message\n".($subject === false ? '' : print_r($_POST, true)), FILE_APPEND | LOCK_EX);
     }
 
-    NewsstandMail(SUBSCRIPTION_ERRORS_EMAIL_ADDRESS, 'Paypal Manager',
-        $subject, $message . "<br><br>" . str_replace("\n", '<br>', print_r($_POST, true)));
+    if ($subject !== false) {
+        NewsstandMail(
+            SUBSCRIPTION_ERRORS_EMAIL_ADDRESS, 'Paypal Manager',
+            $subject, $message . "<br><br>" . str_replace("\n", '<br>', print_r($_POST, true))
+        );
+    }
 }
 
 function ValidatePaypalNotification($rawPost, $useSandbox = false) {
