@@ -24,8 +24,8 @@ function FullPaypalProcess() {
         return;
     } elseif ($postResult !== true) {
         if (!$isIPN) {
-            LogPaypalMessage("Forwarding errored post to paiderror");
-            header('Location: /#subscription/paiderror');
+            LogPaypalMessage("Forwarding errored post to paidpending");
+            header('Location: /#subscription/paidpending');
         } else {
             if (!is_string($postResult)) {
                 $postResult = 'HTTP/1.0 500 Internal Server Error';
@@ -113,7 +113,13 @@ function CheckPaypalPost() {
             return 'Duplicate';
         }
 
-        DebugPaypalMessage("Paypal validation returned \"$validationResult\". IP: ".(isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown'));
+        $msg = "Paypal validation returned \"$validationResult\". IP: ".(isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown');
+        $isIPN = $_SERVER["SCRIPT_NAME"] != '/api/paypal.php';
+        if ($isIPN) {
+            DebugPaypalMessage($msg);
+        } else {
+            LogPaypalMessage($msg);
+        }
         return 'HTTP/1.0 420 Not Verified';
     }
 
@@ -280,6 +286,8 @@ function DebugPaypalMessage($message, $subject = 'Paypal IPN Issue') {
 
 function ValidatePaypalNotification($rawPost, $useSandbox = false) {
     $url = sprintf('https://www%s.paypal.com/cgi-bin/webscr', $useSandbox ? '.sandbox' : '');
+
+    LogPaypalMessage("Validating $rawPost");
 
     $result = \Newsstand\HTTP::Post($url, 'cmd=_notify-validate&'.$rawPost);
     if (trim($result) == 'VERIFIED') {
