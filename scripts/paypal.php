@@ -2,8 +2,8 @@
 
 // symlinked in / for IPN
 
-require_once __DIR__.'/../../incl/incl.php';
-require_once __DIR__.'/../../incl/subscription.incl.php';
+require_once __DIR__.'/../incl/incl.php';
+require_once __DIR__.'/../incl/subscription.incl.php';
 
 LogPaypalMessage("Starting");
 FullPaypalProcess();
@@ -270,7 +270,7 @@ function LogPaypalMessage($message) {
 function DebugPaypalMessage($message, $subject = 'Paypal IPN Issue') {
     global $argv;
 
-    $pth = __DIR__ . '/../../logs/paypalerrors.log';
+    $pth = __DIR__ . '/../logs/paypalerrors.log';
     if ($pth) {
         $me = (PHP_SAPI == 'cli') ? ('CLI:' . realpath($argv[0])) : ('Web:' . $_SERVER['REQUEST_URI']);
         file_put_contents($pth, date('Y-m-d H:i:s') . " $me $message\n".($subject === false ? '' : print_r($_POST, true)), FILE_APPEND | LOCK_EX);
