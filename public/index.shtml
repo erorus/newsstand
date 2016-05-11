@@ -278,9 +278,9 @@
                         We also offer a paid subscription tier, which lets you choose a frequency up to every 2 minutes. Plus, paid subscribers do not see ads (or ad substitutes) while logged in. Paid subscriptions are sold for $5.00 USD for 60 days.
 
                         <h3>How do you send notifications more often than hourly, if you use the Battle.net API?</h3>
-                        It's true that <b>we get data for each realm only about once per hour</b>, but if you watch multiple realms, you could benefit from sub-hourly notification frequency, since those updates are staggered. For example:
+                        <p>It's true that <b>we get data for each realm only about once per hour</b>, but if you watch multiple realms, you could benefit from sub-hourly notification frequency, since those updates are staggered. For example:</p>
                         <table class="category">
-                            <tr><th>Event</th><th>Hourly Frequency</th><th>ASAP Frequency</th></tr>
+                            <tr><th>Event</th><th>ASAP Frequency</th><th>Hourly Frequency</th></tr>
                             <tr><td>1:00 - Aegwynn Update</td><td>Sends 1:00 Notification</td><td>Sends 1:00 Notification</td></tr>
                             <tr><td>1:23 - Medivh Update</td><td>Sends 1:23 Notification</td><td>Queued</td></tr>
                             <tr><td>1:42 - Zuluhed Update</td><td>Sends 1:42 Notification</td><td>Queued</td></tr>
