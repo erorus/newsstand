@@ -47,7 +47,7 @@
     "category": "Kategorie",
     "transmog": "Transmog",
     "maintenance": "Wartung",
-    "policy": "Policy",
+    "policy": "Richtlinie",
 
     "chooseRealm": "Wähle unten deinen {1} Realm:",
     "solveCaptcha": "Löse das Captcha",
@@ -62,7 +62,7 @@
     "noResults": "Keine Ergebnisse gefunden.",
     "contactTheEditor": "Contact The Editor",
     "donateTo": "Spende an {1}",
-    "termsAndPolicies": "Terms and Policies",
+    "termsAndPolicies": "Bedingungen und Richtlinien",
 
     "deals": "Schnäppchen",
     "unusuals": "Selten gesehen",
@@ -119,8 +119,8 @@
     "dailySummaryDesc": "Hier wird die maximal verfügbare Menge und der Marktpreis zu dieser Zeit für diesen Gegenstand für jeden Tag angezeigt. Der regionale Durchschnittspreis für jeden Tag wird zum Vergleich angezeigt.",
     "dailyDetails": "Tägliche Details",
     "dailyDetailsDesc": "Dieses Diagramm ist ähnlich der täglichen Zusammenfassung, zeigt aber zuätzlich die Preisspanne des Gegenstands für jeden Tag an, zusammen mit der minimalen, druchschnittlichen und maximal verfügbaren Menge.",
-    "auctionCount": "Auction Count",
-    "auctionCountDesc": "This chart counts the number of new auctions posted on each day, along with an estimate of how many of them ended up expired.",
+    "auctionCount": "Auktionenzahlen",
+    "auctionCountDesc": "Dieses Diagramm zeigt die Anzahl von neuen Auktionen an jedem Tag, nebst einer Schätzung wie viele von ihnen ausgelaufen sind.",
     "postingHeatMap": "Einstell-Heatmap",
     "pricingHeatMap": "Preis-Heatmap",
     "pricingHeatMapDesc": "Diese Heatmap hilft zu erkennen ob es einen Zusammenhang gibt zwischen Preis und Tageszeit.",
@@ -137,7 +137,8 @@
     "currentPetAuctions": "Aktuelle Haustier-Auktionen",
     "currentAuctions": "Aktuelle Auktionen",
     "currentAuctionsDesc": "Dies ist eine komplette Liste der Auktionen für diesen {1}, basierend auf der letzten Momentaufnahme. Klick auf den Verkäufernamen für weitere Informationen zu diesem Verkäufer.",
-    "recentSellers": "Recent Sellers",
+    "recentSellers": "Kürzliche Verkäufer",
+    "recentSellersDesc": "Diese Verkäufer haben kürzlich die größte Menge an {1} ins Auktionshaus gestellt.",
     "recentSellersDesc": "These sellers posted the greatest quantity of {1} recently.",
 
     "availableQuantity": "Verfügbare Menge",
@@ -166,7 +167,7 @@
     "population": "Population",
     "numberOfAuctions": "Anzahl an Auktionen",
     "newAuctions": "Neue Auktionen",
-    "expired": "Expired",
+    "expired": "Ausgelaufen",
 
     "species": "Art",
     "breed": "Züchtung",
