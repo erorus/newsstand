@@ -10,7 +10,7 @@ if (count($argv) < 4) {
 
 $user = intval($argv[1], 10);
 $seconds = strtotime($argv[2]) - time();
-if ($seconds <= time()) {
+if ($seconds <= 0) {
     fwrite(STDERR, "can only add time, will not add $seconds seconds\n");
     exit(2);
 }
@@ -32,3 +32,5 @@ if ($paidUntil > time()) {
 }
 
 SendUserMessage($user, 'Subscription', $LANG['paidSubscription'], $message);
+
+echo "$message\n";
