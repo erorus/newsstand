@@ -68,11 +68,11 @@ function CheckPaypalPost() {
     global $PAYPAL_BUSINESSES;
 
     if (!isset($_POST['txn_id'])) {
-        DebugPaypalMessage("Received request without txn_id at Paypal IPN. IP: ".(isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown'));
+        LogPaypalError("Received request without txn_id at Paypal IPN. IP: ".(isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown'));
         return 'HTTP/1.0 404 Not Found';
     }
     if (!isset($_POST['business']) || !in_array(strtolower(trim($_POST['business'])), $PAYPAL_BUSINESSES)) {
-        DebugPaypalMessage('Received invalid business from Paypal IPN: "'.(isset($_POST['business']) ? $_POST['business'] : '').'"');
+        LogPaypalError('Received invalid business from Paypal IPN: "'.(isset($_POST['business']) ? $_POST['business'] : '').'"');
         return 'HTTP/1.0 420 Not Verified';
     }
 
@@ -116,7 +116,7 @@ function CheckPaypalPost() {
         $msg = "Paypal validation returned \"$validationResult\". IP: ".(isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown');
         $isIPN = $_SERVER["SCRIPT_NAME"] != '/api/paypal.php';
         if ($isIPN) {
-            DebugPaypalMessage($msg);
+            LogPaypalError($msg);
         } else {
             LogPaypalMessage($msg);
         }
@@ -126,7 +126,7 @@ function CheckPaypalPost() {
     LogPaypalMessage("Validation successful");
 
     if ($isSandbox) {
-        DebugPaypalMessage('Ignored Paypal sandbox notification.');
+        LogPaypalError('Ignored Paypal sandbox notification.');
         return 'HTTP/1.0 420 Not Verified';
     }
 
@@ -199,7 +199,7 @@ function ProcessPaypalPost() {
     $stmt->close();
 
     if (!$success) {
-        DebugPaypalMessage("Error updating Paypal transaction record");
+        LogPaypalError("Error updating Paypal transaction record");
         return false;
     }
 
@@ -229,7 +229,7 @@ EOF;
 
             if ($c != 0) {
                 $skipReverse = true;
-                DebugPaypalMessage("Already had a reversal on $dt", "Paypal Payment Reversal Skipped - $user");
+                LogPaypalError("Already had a reversal on $dt", "Paypal Payment Reversal Skipped - $user");
                 // not fatal, already processed
             }
         }
@@ -245,16 +245,16 @@ EOF;
             $stmt->close();
 
             if ($paidUntil === false) {
-                DebugPaypalMessage("Could not process reversal for missing user $user", "Paypal Payment Reversal Failed - $user");
+                LogPaypalError("Could not process reversal for missing user $user", "Paypal Payment Reversal Failed - $user");
                 return false;
             }
 
             $paidUntil = is_null($paidUntil) ? 0 : strtotime($paidUntil);
             if ($paidUntil > time()) {
-                DebugPaypalMessage("", "Paypal Payment Reversed - $user");
+                LogPaypalError("", "Paypal Payment Reversed - $user");
                 return ['delTime' => $user];
             } else {
-                DebugPaypalMessage("", "Redundant Paypal Payment Reversal - $user");
+                LogPaypalError("", "Redundant Paypal Payment Reversal - $user");
             }
         }
     }
@@ -263,11 +263,11 @@ EOF;
 }
 
 function LogPaypalMessage($message) {
-    //  return;
-    DebugPaypalMessage((isset($_SERVER['REMOTE_ADDR']) ? ($_SERVER['REMOTE_ADDR'] . " ") : '') . $message, false);
+    return;
+    //LogPaypalError((isset($_SERVER['REMOTE_ADDR']) ? ($_SERVER['REMOTE_ADDR'] . " ") : '') . $message, false);
 }
 
-function DebugPaypalMessage($message, $subject = 'Paypal IPN Issue') {
+function LogPaypalError($message, $subject = 'Paypal IPN Issue') {
     global $argv;
 
     $pth = __DIR__ . '/../logs/paypalerrors.log';
@@ -311,7 +311,7 @@ function PaypalResultForUser($user, $paidUntil, $removed) {
     $stmt->close();
 
     if ($locale === false) {
-        DebugPaypalMessage("Could not find user $user to send result message");
+        LogPaypalError("Could not find user $user to send result message");
         return false;
     }
 
