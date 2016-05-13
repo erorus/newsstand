@@ -1035,14 +1035,33 @@ function GetRss($loginState)
         if (is_null($rss)) { // usually only when account is created
             $randomPool = '0123456789bcdfghjklmnpqrstvwxyz';
             $poolMaxIdx = strlen($randomPool) - 1;
+            $tries = 0;
             $rss = '';
-            for ($x = 0; $x < 24; $x++) {
-                $rss .= substr($randomPool, mt_rand(0, $poolMaxIdx), 1);
+            while (!$rss && ($tries++ < 10)) {
+                for ($x = 0; $x < 24; $x++) {
+                    $rss .= substr($randomPool, mt_rand(0, $poolMaxIdx), 1);
+                }
+
+                $stmt = $db->prepare('select count(*) from tblUser WHERE rss = ?');
+                $rssCheck = $rss;
+                $stmt->bind_param('i', $rssCheck);
+                $stmt->execute();
+                $c = 0;
+                $stmt->bind_result($c);
+                $stmt->fetch();
+                $stmt->close();
+                if ($c > 0) {
+                    $rss = ''; // try again
+                }
             }
-            $stmt = $db->prepare('UPDATE tblUser SET rss = ? WHERE id = ?');
-            $stmt->bind_param('si', $rss, $loginState['id']);
-            $stmt->execute();
-            $stmt->close();
+            if ($rss) {
+                $stmt = $db->prepare('UPDATE tblUser SET rss = ? WHERE id = ?');
+                $stmt->bind_param('si', $rss, $loginState['id']);
+                $stmt->execute();
+                $stmt->close();
+            } else {
+                $rss = 'a';
+            }
         }
 
         MCSet($cacheKey, $rss);
