@@ -19,6 +19,7 @@ define('SUBSCRIPTION_PAID_PRICE', '$5.00 USD');
 
 define('SUBSCRIPTION_MESSAGES_CACHEKEY', 'submessage_');
 define('SUBSCRIPTION_MESSAGES_MAX', 50);
+define('SUBSCRIPTION_RSS_PATH', __DIR__.'/../rss');
 
 define('SUBSCRIPTION_ITEM_CACHEKEY', 'subitem_');
 define('SUBSCRIPTION_SPECIES_CACHEKEY', 'subspecies_');
@@ -207,21 +208,68 @@ function SendUserMessage($userId, $messageType, $subject, $message)
     MCDelete(SUBSCRIPTION_MESSAGES_CACHEKEY . $userId);
     MCDelete(SUBSCRIPTION_MESSAGES_CACHEKEY . $userId . '_' . $seq);
 
-    $stmt = $db->prepare('select name, email, locale from tblUser where id = ? and email is not null and emailverification is null');
+    $stmt = $db->prepare('select name, if(emailverification is null, email, null), locale, rss from tblUser where id = ?');
     $stmt->bind_param('i', $userId);
     $stmt->execute();
-    $name = $address = $locale = '';
-    $stmt->bind_result($name, $address, $locale);
+    $name = $address = $locale = $rssKey = '';
+    $stmt->bind_result($name, $address, $locale, $rssKey);
     if (!$stmt->fetch()) {
-        $address = false;
+        $address = $rssKey = false;
     }
     $stmt->close();
+
     if ($address) {
         NewsstandMail($address, $name, $subject, $message, $locale);
     }
 
+    if ($rssKey && is_writable(SUBSCRIPTION_RSS_PATH)) {
+        $dt = date(DATE_RSS);
+
+        $rss = <<<EOF
+<?xml version="1.0"?>
+<rss version="2.0">
+    <channel>
+        <title>The Undermine Journal - $name</title>
+        <link>https://theunderminejournal.com/#subscription</link>
+        <description>Subscription messages for $name</description>
+        <pubDate>$dt</pubDate>
+        <lastBuildDate>$dt</lastBuildDate>
+        <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+EOF;
+
+        $stmt = $db->prepare('select seq, unix_timestamp(created) as created, subject, message from tblUserMessages where user = ? order by seq desc limit 15');
+        $stmt->bind_param('i', $userId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        while ($row = $result->fetch_assoc()) {
+            $guid = md5($row['seq'] . 'x' . $row['created']);
+
+            $rss .= "\n        <item>";
+            $rss .= "\n            <title>" . MakeCData($row['subject']) . '</title>';
+            $rss .= "\n            <link>https://theunderminejournal.com/#subscription</link>";
+            $rss .= "\n            <guid isPermaLink=\"false\">$guid</guid>";
+            $rss .= "\n            <description>" . MakeCData($row['message']) . '</description>';
+            $rss .= "\n            <pubDate>" . date(DATE_RSS, $row['created']) . '</pubDate>';
+            $rss .= "\n        </item>";
+        }
+        $result->close();
+        $stmt->close();
+
+        $rss .= <<<EOF
+
+    </channel>
+</rss>
+EOF;
+
+        file_put_contents(SUBSCRIPTION_RSS_PATH . "/$rssKey.rss", $rss, LOCK_EX);
+    }
+
     $db->close();
     return $seq;
+}
+
+function MakeCData($text) {
+    return '<![CDATA[' . str_replace(']]', ']]>]]<![CDATA[', $text) . ']]>';
 }
 
 function DisableEmailAddress($address) {

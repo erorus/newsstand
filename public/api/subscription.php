@@ -43,6 +43,7 @@ if (isset($_POST['settings'])) {
         'rares' => GetRareWatches($loginState),
         'reports' => GetReports($loginState),
         'paid' => GetIsPaid($loginState),
+        'rss' => GetRss($loginState),
         ]);
 }
 
@@ -1012,6 +1013,46 @@ function GetIsPaid($loginState)
     }
 
     return $json;
+}
+
+function GetRss($loginState)
+{
+    $cacheKey = 'subrss_' . $loginState['id'];
+
+    $rss = MCGet($cacheKey);
+    if ($rss === false) {
+        $db = DBConnect();
+
+        $stmt = $db->prepare('select rss from tblUser WHERE id = ?');
+        $stmt->bind_param('i', $loginState['id']);
+        $stmt->execute();
+        $stmt->bind_result($rss);
+        if (!$stmt->fetch()) {
+            $rss = 'a'; // user not found, or some other error?
+        }
+        $stmt->close();
+
+        if (is_null($rss)) { // usually only when account is created
+            $randomPool = '0123456789bcdfghjklmnpqrstvwxyz';
+            $poolMaxIdx = strlen($randomPool) - 1;
+            $rss = '';
+            for ($x = 0; $x < 24; $x++) {
+                $rss .= substr($randomPool, mt_rand(0, $poolMaxIdx), 1);
+            }
+            $stmt = $db->prepare('UPDATE tblUser SET rss = ? WHERE id = ?');
+            $stmt->bind_param('si', $rss, $loginState['id']);
+            $stmt->execute();
+            $stmt->close();
+        }
+
+        MCSet($cacheKey, $rss);
+    }
+
+    if ($rss == 'a') {
+        $rss = false;
+    }
+
+    return $rss;
 }
 
 function GetRareWatches($loginState, $house = 0)
