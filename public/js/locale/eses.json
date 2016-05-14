@@ -531,6 +531,7 @@
 
     "EmailStatus": {
         "unknown": "Unknown error, please try again.",
+        "invalid": "The Email address you supplied is invalid. Please fix it and try again.",
         "success": "Your Email address is updated.",
         "verify": "Check your mail, and enter the verification code we sent to your address."
     },
