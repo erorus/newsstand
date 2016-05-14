@@ -19,7 +19,7 @@ define('SUBSCRIPTION_PAID_PRICE', '$5.00 USD');
 
 define('SUBSCRIPTION_MESSAGES_CACHEKEY', 'submessage_');
 define('SUBSCRIPTION_MESSAGES_MAX', 50);
-define('SUBSCRIPTION_RSS_PATH', __DIR__.'/../rss');
+define('SUBSCRIPTION_RSS_PATH', __DIR__.'/../rss/rss');
 
 define('SUBSCRIPTION_ITEM_CACHEKEY', 'subitem_');
 define('SUBSCRIPTION_SPECIES_CACHEKEY', 'subspecies_');
@@ -208,26 +208,97 @@ function SendUserMessage($userId, $messageType, $subject, $message)
     MCDelete(SUBSCRIPTION_MESSAGES_CACHEKEY . $userId);
     MCDelete(SUBSCRIPTION_MESSAGES_CACHEKEY . $userId . '_' . $seq);
 
-    $stmt = $db->prepare('select name, if(emailverification is null, email, null), locale, rss from tblUser where id = ?');
+    $stmt = $db->prepare('select name, email, locale from tblUser where id = ? and email is not null and emailverification is null');
     $stmt->bind_param('i', $userId);
     $stmt->execute();
-    $name = $address = $locale = $rssKey = '';
-    $stmt->bind_result($name, $address, $locale, $rssKey);
+    $name = $address = $locale = '';
+    $stmt->bind_result($name, $address, $locale);
     if (!$stmt->fetch()) {
-        $address = $rssKey = false;
+        $address = false;
     }
     $stmt->close();
-
     if ($address) {
         NewsstandMail($address, $name, $subject, $message, $locale);
     }
 
-    if ($rssKey && is_writable(SUBSCRIPTION_RSS_PATH)) {
-        $dt = date(DATE_RSS);
+    UpdateUserRss($userId, $db);
 
-        $rss = <<<EOF
+    $db->close();
+    return $seq;
+}
+
+function UpdateUserRss($userId, &$db) {
+    $stmt = $db->prepare('select rss, name from tblUser where id = ?');
+    $stmt->bind_param('i', $userId);
+    $stmt->execute();
+    $name = $rss = '';
+    $stmt->bind_result($rss, $name);
+    if (!$stmt->fetch()) {
+        $rss = false;
+    }
+    $stmt->close();
+    if ($rss === false) {
+        DebugMessage("Asked to update RSS for user $userId which could not be found.", E_USER_WARNING);
+        return false;
+    }
+
+    if (is_null($rss)) {
+        $randomPool = '0123456789bcdfghjklmnpqrstvwxyz';
+        $poolMaxIdx = strlen($randomPool) - 1;
+        $tries = 0;
+        $rss = '';
+
+        while (!$rss && ($tries++ < 10)) {
+            for ($x = 0; $x < 24; $x++) {
+                $rss .= substr($randomPool, mt_rand(0, $poolMaxIdx), 1);
+            }
+
+            $stmt = $db->prepare('select count(*) from tblUser WHERE rss = ?');
+            $rssCheck = $rss;
+            $stmt->bind_param('i', $rssCheck);
+            $stmt->execute();
+            $c = 0;
+            $stmt->bind_result($c);
+            $stmt->fetch();
+            $stmt->close();
+            if ($c > 0) {
+                $rss = ''; // try again
+            }
+        }
+        $success = false;
+        if ($rss) {
+            $stmt = $db->prepare('UPDATE tblUser SET rss = ? WHERE id = ?');
+            $stmt->bind_param('si', $rss, $userId);
+            $success = $stmt->execute();
+            $stmt->close();
+        }
+        if (!$success) {
+            DebugMessage("Could not set RSS key \"$rss\" for $userId", E_USER_WARNING);
+            return false;
+        }
+    }
+
+    $rssTempNam = tempnam(SUBSCRIPTION_RSS_PATH, 'rssworking');
+    if ($rssTempNam === false) {
+        DebugMessage("Could not create temp rss file in ".SUBSCRIPTION_RSS_PATH, E_USER_WARNING);
+        return false;
+    }
+    $rssFile = fopen($rssTempNam, 'w');
+    if ($rssFile === false) {
+        DebugMessage("Could not open temp rss file $rssTempNam", E_USER_WARNING);
+        unlink($rssTempNam);
+        return false;
+    }
+
+    $MakeCData = function($text) {
+        return '<![CDATA[' . str_replace(']]', ']]>]]<![CDATA[', $text) . ']]>';
+    };
+    $dt = date(DATE_RSS);
+    $rssSubDir = substr($rss,0,1) . '/' . substr($rss,1,1);
+
+    $rssXml = <<<EOF
 <?xml version="1.0"?>
-<rss version="2.0">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
     <channel>
         <title>The Undermine Journal - $name</title>
         <link>https://theunderminejournal.com/#subscription</link>
@@ -235,41 +306,70 @@ function SendUserMessage($userId, $messageType, $subject, $message)
         <pubDate>$dt</pubDate>
         <lastBuildDate>$dt</lastBuildDate>
         <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+        <atom:link href="https://sub.theunderminejournal.com/rss/$rssSubDir/$rss.rss" rel="self" type="application/rss+xml" />
+EOF;
+    fwrite($rssFile, $rssXml);
+
+    $itemFormat = <<<'EOF'
+
+        <item>
+            <title>%s</title>
+            <link>https://theunderminejournal.com/#subscription</link>
+            <guid isPermaLink="false">%s</guid>
+            <description>%s</description>
+            <pubDate>%s</pubDate>
+        </item>
 EOF;
 
-        $stmt = $db->prepare('select seq, unix_timestamp(created) as created, subject, message from tblUserMessages where user = ? order by seq desc limit 15');
-        $stmt->bind_param('i', $userId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        while ($row = $result->fetch_assoc()) {
-            $guid = md5($row['seq'] . 'x' . $row['created']);
+    $stmt = $db->prepare('select seq, unix_timestamp(created) as created, subject, message from tblUserMessages where user = ? order by seq desc limit 15');
+    $stmt->bind_param('i', $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($row = $result->fetch_assoc()) {
+        fwrite($rssFile, sprintf($itemFormat,
+            $MakeCData($row['subject']),
+            md5($name . 'x' . $row['seq'] . 'x' . $row['created']),
+            $MakeCData($row['message']),
+            date(DATE_RSS, $row['created'])));
+    }
+    $result->close();
+    $stmt->close();
 
-            $rss .= "\n        <item>";
-            $rss .= "\n            <title>" . MakeCData($row['subject']) . '</title>';
-            $rss .= "\n            <link>https://theunderminejournal.com/#subscription</link>";
-            $rss .= "\n            <guid isPermaLink=\"false\">$guid</guid>";
-            $rss .= "\n            <description>" . MakeCData($row['message']) . '</description>';
-            $rss .= "\n            <pubDate>" . date(DATE_RSS, $row['created']) . '</pubDate>';
-            $rss .= "\n        </item>";
-        }
-        $result->close();
-        $stmt->close();
-
-        $rss .= <<<EOF
+    $rssXml = <<<EOF
 
     </channel>
 </rss>
 EOF;
+    fwrite($rssFile, $rssXml);
+    fclose($rssFile);
 
-        file_put_contents(SUBSCRIPTION_RSS_PATH . "/$rssKey.rss", $rss, LOCK_EX);
+    $rssSubParts = explode('/', $rssSubDir);
+    $rssPath = SUBSCRIPTION_RSS_PATH;
+    for ($x = 0; $x < count($rssSubParts); $x++) {
+        $rssPath .= "/" . $rssSubParts[$x];
+        if (!is_dir($rssPath)) {
+            $success = mkdir($rssPath, 0777);
+            if (!$success) {
+                DebugMessage("Could not create rss path $rssPath", E_USER_WARNING);
+                unlink($rssTempNam);
+                return false;
+            }
+            chmod($rssPath, 0777);
+        }
     }
 
-    $db->close();
-    return $seq;
-}
+    chmod($rssTempNam, 0644);
+    $rssFileName = $rssPath . "/$rss.rss";
+    $success = rename($rssTempNam, $rssFileName);
+    if ($success === false) {
+        DebugMessage("Could not rename temp rss file $rssTempNam to $rssFileName", E_USER_WARNING);
+        if (file_exists($rssTempNam)) {
+            unlink($rssTempNam);
+        }
+        return false;
+    }
 
-function MakeCData($text) {
-    return '<![CDATA[' . str_replace(']]', ']]>]]<![CDATA[', $text) . ']]>';
+    return $rss;
 }
 
 function DisableEmailAddress($address) {

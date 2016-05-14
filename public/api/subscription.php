@@ -1017,7 +1017,7 @@ function GetIsPaid($loginState)
 
 function GetRss($loginState)
 {
-    $cacheKey = 'subrss_' . $loginState['id'];
+    $cacheKey = 'subrss2_' . $loginState['id'];
 
     $rss = MCGet($cacheKey);
     if ($rss === false) {
@@ -1028,47 +1028,22 @@ function GetRss($loginState)
         $stmt->execute();
         $stmt->bind_result($rss);
         if (!$stmt->fetch()) {
-            $rss = 'a'; // user not found, or some other error?
+            $rss = ''; // user not found, or some other error?
         }
         $stmt->close();
 
         if (is_null($rss)) { // usually only when account is created
-            $randomPool = '0123456789bcdfghjklmnpqrstvwxyz';
-            $poolMaxIdx = strlen($randomPool) - 1;
-            $tries = 0;
-            $rss = '';
-            while (!$rss && ($tries++ < 10)) {
-                for ($x = 0; $x < 24; $x++) {
-                    $rss .= substr($randomPool, mt_rand(0, $poolMaxIdx), 1);
-                }
-
-                $stmt = $db->prepare('select count(*) from tblUser WHERE rss = ?');
-                $rssCheck = $rss;
-                $stmt->bind_param('i', $rssCheck);
-                $stmt->execute();
-                $c = 0;
-                $stmt->bind_result($c);
-                $stmt->fetch();
-                $stmt->close();
-                if ($c > 0) {
-                    $rss = ''; // try again
-                }
-            }
-            if ($rss) {
-                $stmt = $db->prepare('UPDATE tblUser SET rss = ? WHERE id = ?');
-                $stmt->bind_param('si', $rss, $loginState['id']);
-                $stmt->execute();
-                $stmt->close();
-            } else {
-                $rss = 'a';
-            }
+            $rss = UpdateUserRss($loginState['id'], $db);
+        }
+        if (!$rss) {
+            $rss = ''; // can't store boolean false in memcache
         }
 
         MCSet($cacheKey, $rss);
     }
 
-    if ($rss == 'a') {
-        $rss = false;
+    if (!$rss) { // i.e. empty string
+        $rss = false; 
     }
 
     return $rss;
