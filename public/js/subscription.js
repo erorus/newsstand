@@ -161,12 +161,19 @@ var TUJ_Subscription = function ()
 
         var h = libtuj.ce('h3');
         container.appendChild(h);
-        $(h).text(tuj.lang.contactInformation);
+        $(h).text(tuj.lang.messageDelivery);
 
         var d = libtuj.ce('div');
         d.className = 'instruction';
         container.appendChild(d);
-        $(d).html(tuj.lang.setAddressInstruction);
+        $(d).html(tuj.lang.messageDeliveryDesc);
+
+        if (subData.rss) {
+            var rssUrl = 'https://sub.theunderminejournal.com/rss/' + subData.rss.charAt(0) + '/' + subData.rss.charAt(1) + '/' + subData.rss + '.rss';
+            $(d).append('<br>' + libtuj.sprintf(tuj.lang.rssDesc, rssUrl)).children('a').addClass('highlight rss-icon');
+        }
+
+        $(d).append('<br><br>' + tuj.lang.setAddressInstruction);
 
         var f = libtuj.ce('form');
         container.appendChild(f);

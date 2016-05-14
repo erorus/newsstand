@@ -227,11 +227,13 @@ input.battle-net {
     background-size: 2.5em;
 }
 
+.rss-icon { padding-left: 1.25em; background-position: 0 center; background-repeat: no-repeat; background-size: 1em; background-image: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDggOCIgd2lkdGg9IjI1NiIgaGVpZ2h0PSIyNTYiPjxzdHlsZSB0eXBlPSJ0ZXh0L2NzcyI+LmJ7c3Ryb2tlOm5vbmU7ZmlsbDpvcmFuZ2V9LnN7c3Ryb2tlOm5vbmU7ZmlsbDp3aGl0ZX08L3N0eWxlPjxyZWN0IGNsYXNzPSJiIiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiByeD0iMS41Ii8+PGNpcmNsZSBjbGFzcz0icyIgY3g9IjIiIGN5PSI2IiByPSIxIi8+PHBhdGggY2xhc3M9InMiIGQ9Im0gMSw0IGEgMywzIDAgMCAxIDMsMyBoIDEgYSA0LDQgMCAwIDAgLTQsLTQgeiIvPjxwYXRoIGNsYXNzPSJzIiBkPSJtIDEsMiBhIDUsNSAwIDAgMSA1LDUgaCAxIGEgNiw2IDAgMCAwIC02LC02IHoiLz48L3N2Zz4="); }
+
 #subscription-message { color: red; margin-left: 1em; font-style: italic }
 
 #subscription-description { line-height: 1.5em }
 #subscription-settings > div, #subscription-description { max-width: 900px; margin: 2em auto }
-#subscription-settings .instruction { margin: 1em }
+#subscription-settings .instruction { margin: 1em; line-height: 1.4em }
 
 #subscription-messages { position: relative; height: 320px; line-height: 18px; border: 1px solid #999 }
 #subscription-messages > div { overflow-y: auto; }
