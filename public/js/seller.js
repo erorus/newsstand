@@ -93,6 +93,21 @@ var TUJ_Seller = function ()
 
         sellerPage.append(libtuj.Ads.Add('3896661119'));
 
+        if (tuj.SellerIsBot(dta.stats.realm, dta.stats.name)) {
+            d = libtuj.ce();
+            d.className = 'news';
+            h = libtuj.ce('h2');
+            d.appendChild(h);
+            $(h).text('Probable Bot');
+            d.appendChild(document.createTextNode('This seller is probably an auto-undercutting bot. Be aware if you decide to undercut his prices, because you will probably be undercut yourself in less than an hour. '));
+            h = libtuj.ce('a');
+            h.href = '/extra/multirealm.php';
+            h.className = 'highlight';
+            d.appendChild(h);
+            $(h).text('See this page for more info.');
+            sellerPage.append(d);
+        }
+
         d = libtuj.ce();
         d.className = 'chart-section';
         h = libtuj.ce('h2');
