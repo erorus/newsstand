@@ -350,28 +350,28 @@ EOF;
 
 function ItemAuctions($house, $item)
 {
-    global $db, $LANG_LEVEL;
+    global $db;
 
-    $cacheKey = 'item_auctions_l_' . $item;
+    $cacheKey = 'item_auctions_l2_' . $item;
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
+        foreach ($tr as &$rows) {
+            PopulateLocaleCols($rows, [
+                ['func' => 'GetItemBonusNames', 'key' => 'bonuses', 'name' => 'bonusname'],
+                ['func' => 'GetItemBonusTags', 'key' => 'bonuses', 'name' => 'bonustag'],
+                ['func' => 'GetRandEnchantNames', 'key' => 'rand', 'name' => 'randname'],
+            ]);
+        }
+        unset($rows);
         return $tr;
     }
 
     DBConnect();
 
-    $bonusNames = LocaleColumns('ifnull(group_concat(distinct ib.name%1$s order by ib.namepriority desc separator \'|\'), \'\') bonusname%1$s', true);
-    $bonusTags = LocaleColumns('ifnull(group_concat(distinct ib.`tag%1$s` order by ib.tagpriority separator \' \'), if(ifnull(bs.set,0)=0,\'\',concat(\'__LEVEL%1$s__ \', i.level+sum(ifnull(ib.level,0))))) bonustag%1$s', true);
-    $bonusTags = strtr($bonusTags, $LANG_LEVEL);
-    $randNames = LocaleColumns('re.name%1$s randname%1$s', true);
-
     $sql = <<<EOF
 SELECT ifnull(ae.bonusset,0) bonusset, a.quantity, a.bid, a.buy, ifnull(ae.`rand`,0) `rand`, ifnull(ae.seed,0) `seed`, s.realm sellerrealm, ifnull(s.name, '???') sellername,
 concat_ws(':',ae.bonus1,ae.bonus2,ae.bonus3,ae.bonus4,ae.bonus5,ae.bonus6) bonuses,
-ifnull(GROUP_CONCAT(distinct bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
-$bonusNames,
-$bonusTags,
-$randNames
+ifnull(GROUP_CONCAT(distinct bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl
 FROM `tblAuction` a
 join tblDBCItem i on a.item=i.id
 left join tblSeller s on a.seller=s.id
@@ -394,6 +394,14 @@ EOF;
 
     MCSetHouse($house, $cacheKey, $tr);
 
+    foreach ($tr as &$rows) {
+        PopulateLocaleCols($rows, [
+            ['func' => 'GetItemBonusNames', 'key' => 'bonuses', 'name' => 'bonusname'],
+            ['func' => 'GetItemBonusTags', 'key' => 'bonuses', 'name' => 'bonustag'],
+            ['func' => 'GetRandEnchantNames', 'key' => 'rand', 'name' => 'randname'],
+        ]);
+    }
+    unset($rows);
     return $tr;
 }
 
