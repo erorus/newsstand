@@ -121,7 +121,7 @@ function SellerAuctions($house, $seller)
 
     $sql = <<<EOF
 select item, level, quality, class, subclass, icon, stacksize, quantity, bid, buy, `rand`, seed, bonuses, bonusurl,
-(SELECT ifnull(sum(quantity),0) from tblAuction a2 left join tblAuctionExtra ae2 on a2.house=ae2.house and a2.id=ae2.id where a2.house=results.house and a2.item=results.item and ifnull(ae2.bonusset,0) = ifnull(results.bonusset,0) and a2.seller!=results.seller and
+(SELECT ifnull(sum(quantity),0) from tblAuction a2 left join tblAuctionExtra ae2 on a2.house=ae2.house and a2.id=ae2.id where a2.house=results.house and a2.item=results.item and ifnull(ae2.bonusset,0) = ifnull(results.bonusset,0) and
 ((results.buy > 0 and a2.buy > 0 and (a2.buy / a2.quantity < results.buy / results.quantity)) or (results.buy = 0 and (a2.bid / a2.quantity < results.bid / results.quantity)))) cheaper
 from (
     SELECT a.item, i.level, i.quality, i.class, i.subclass, i.icon, i.stacksize, a.quantity, a.bid, a.buy, ifnull(ae.`rand`, 0) `rand`, ifnull(ae.seed,0) seed,
@@ -172,9 +172,9 @@ function SellerPetAuctions($house, $seller)
     $sql = <<<EOF
 SELECT ap.species, ap.breed, quantity, bid, buy, ap.level, ap.quality, p.icon, p.type, p.npc,
 (SELECT ifnull(sum(quantity),0)
-from tblAuction a2
-join tblAuctionPet ap2 on a2.house = ap2.house and a2.id = ap2.id
-where a2.house=a.house and a2.item=a.item and ap2.species = ap.species and ap2.level >= ap.level and a2.seller!=a.seller and
+from tblAuctionPet ap2
+join tblAuction a2 on a2.house = ap2.house and a2.id = ap2.id
+where ap2.house=a.house and ap2.species = ap.species and ap2.level >= ap.level and
 ((a.buy > 0 and a2.buy > 0 and (a2.buy / a2.quantity < a.buy / a.quantity)) or (a.buy = 0 and (a2.bid / a2.quantity < a.bid / a.quantity)))) cheaper
 FROM `tblAuction` a
 JOIN `tblAuctionPet` ap on a.house = ap.house and a.id = ap.id
