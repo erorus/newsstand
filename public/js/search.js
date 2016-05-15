@@ -82,8 +82,10 @@ var TUJ_Search = function ()
         var t, tr, td, i, a, x;
 
         if (dta.items) {
-            dta.items.sort(function (a, b)
-            {
+            for (x = 0; item = dta.items[x]; x++) {
+                item.sortlevel = item.level + (isNaN(item['bonustag_' + tuj.locale]) ? 0 : parseInt(item['bonustag_' + tuj.locale], 10));
+            }
+            dta.items.sort(function (a, b) {
                 return tujConstants.itemClassOrder[a.classid] - tujConstants.itemClassOrder[b.classid] ||
                     a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]) ||
                     a.sortlevel - b.sortlevel;
@@ -172,7 +174,11 @@ var TUJ_Search = function ()
                 if (item['bonustag_' + tuj.locale]) {
                     var tagspan = libtuj.ce('span');
                     tagspan.className = 'nowrap';
-                    $(tagspan).text(item['bonustag_' + tuj.locale]);
+                    var bonusTag = item['bonustag_' + tuj.locale];
+                    if (!isNaN(bonusTag)) {
+                        bonusTag = tuj.lang.level + ' ' + (item.level + parseInt(bonusTag, 10));
+                    }
+                    $(tagspan).text(bonusTag);
                     a.appendChild(tagspan);
                 }
 

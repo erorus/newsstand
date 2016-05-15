@@ -321,6 +321,9 @@ function GetPetNames($species, $renamedTo = false)
 }
 
 function PopulateLocaleCols(&$rows, $calls) {
+    if (!is_array($rows)) {
+        return;
+    }
     $c = count($calls);
     foreach ($rows as &$row) {
         for ($x = 0; $x < $c; $x++) {

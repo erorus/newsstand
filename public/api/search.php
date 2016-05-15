@@ -19,9 +19,16 @@ BotCheck();
 HouseETag($house);
 
 $locale = GetLocale();
-$searchCacheKey = 'search_' . $locale . '_' . md5($search);
+$searchCacheKey = 'search2_' . $locale . '_' . md5($search);
 
 if ($json = MCGetHouse($house, $searchCacheKey)) {
+    PopulateLocaleCols($json['battlepets'], [['func' => 'GetPetNames', 'key' => 'id', 'name' => 'name']]);
+    PopulateLocaleCols($json['items'], [
+        ['func' => 'GetItemNames',      'key' => 'id',      'name' => 'name'],
+        ['func' => 'GetItemBonusNames', 'key' => 'bonuses', 'name' => 'bonusname'],
+        ['func' => 'GetItemBonusTags',  'key' => 'bonuses', 'name' => 'bonustag'],
+    ]);
+
     json_return($json);
 }
 
@@ -40,15 +47,20 @@ foreach ($ak as $k) {
     }
 }
 
-$json = json_encode($json, JSON_NUMERIC_CHECK);
-
 MCSetHouse($house, $searchCacheKey, $json);
+
+PopulateLocaleCols($json['battlepets'], [['func' => 'GetPetNames', 'key' => 'id', 'name' => 'name']]);
+PopulateLocaleCols($json['items'], [
+    ['func' => 'GetItemNames',      'key' => 'id',      'name' => 'name'],
+    ['func' => 'GetItemBonusNames', 'key' => 'bonuses', 'name' => 'bonusname'],
+    ['func' => 'GetItemBonusTags',  'key' => 'bonuses', 'name' => 'bonustag'],
+]);
 
 json_return($json);
 
 function SearchItems($house, $search, $locale)
 {
-    global $db, $LANG_LEVEL;
+    global $db;
 
     $suffixes = MCGet('search_itemsuffixes_' . $locale);
     if ($suffixes === false) {
@@ -75,19 +87,12 @@ function SearchItems($house, $search, $locale)
         }
     }
 
-    $localizedItemNames = LocaleColumns('i.name');
-    $bonusNames = LocaleColumns('ifnull(group_concat(distinct ib.name%1$s order by ib.namepriority desc separator \'|\'), \'\') bonusname%1$s', true);
-    $bonusTags = LocaleColumns('ifnull(group_concat(distinct ib.`tag%1$s` order by ib.tagpriority separator \' \'), if(results.bonusset=0,\'\',concat(\'__LEVEL%1$s__ \', results.level+sum(ifnull(ib.level,0))))) bonustag%1$s', true);
-    $bonusTags = strtr($bonusTags, $LANG_LEVEL);
-
     $sql = <<<EOF
 select results.*,
 ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
-$bonusNames,
-$bonusTags,
-results.level+sum(ifnull(ib.level,0)) sortlevel
+ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), ifnull(results.basebonus, '')) bonuses
 from (
-    select i.id, $localizedItemNames, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice,
+    select i.id, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice,
     ifnull(s.bonusset,0) bonusset, i.level, i.basebonus
     from tblDBCItem i
     left join tblItemSummary s on s.house=? and s.item=i.id
@@ -111,7 +116,7 @@ EOF;
     }
     $stmt->execute();
     $result = $stmt->get_result();
-    $tr = DBMapArray($result, null);
+    $tr = $result->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
     return $tr;
 }
@@ -134,7 +139,7 @@ EOF;
     $stmt->bind_param('is', $house, $terms);
     $stmt->execute();
     $result = $stmt->get_result();
-    $tr = DBMapArray($result, null);
+    $tr = $result->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
     return $tr;
 }
@@ -145,9 +150,8 @@ function SearchBattlePets($house, $search, $locale)
 
     $terms = preg_replace('/\s+/', '%', " $search ");
 
-    $names = LocaleColumns('i.name');
     $sql = <<<EOF
-select i.id, $names, i.icon, i.type, i.npc,
+select i.id, i.icon, i.type, i.npc,
 min(if(s.quantity>0,s.price,null)) price, sum(s.quantity) quantity, unix_timestamp(max(s.lastseen)) lastseen,
 (select round(avg(h.price)) from tblPetHistory h where h.house=? and h.species=i.id group by h.breed order by 1 asc limit 1) avgprice
 from tblDBCPet i
@@ -163,7 +167,7 @@ EOF;
     $stmt->bind_param('iisi', $house, $house, $terms, $limit);
     $stmt->execute();
     $result = $stmt->get_result();
-    $tr = DBMapArray($result, null);
+    $tr = $result->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
     return $tr;
 }
