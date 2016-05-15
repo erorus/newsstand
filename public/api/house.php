@@ -132,7 +132,7 @@ EOF;
     $stmt->bind_param('i', $house);
     $stmt->execute();
     $result = $stmt->get_result();
-    $tr = DBMapArray($result, null);
+    $tr = $result->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
 
     MCSetHouse($house, $cacheKey, $tr);
@@ -144,17 +144,17 @@ function HouseMostAvailable($house)
 {
     global $db;
 
-    $cacheKey = 'house_mostavailable_l';
+    $cacheKey = 'house_mostavailable_l2';
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
+        PopulateLocaleCols($tr, [['func' => 'GetItemNames', 'key' => 'id', 'name' => 'name']]);
         return $tr;
     }
 
     DBConnect();
 
-    $localizedItemNames = LocaleColumns('i.name');
     $sql = <<<EOF
-SELECT i.id, $localizedItemNames
+SELECT i.id
 FROM `tblItemSummary` tis
 join tblDBCItem i on tis.item = i.id
 WHERE house = ?
@@ -167,11 +167,12 @@ EOF;
     $stmt->bind_param('i', $house);
     $stmt->execute();
     $result = $stmt->get_result();
-    $tr = DBMapArray($result, null);
+    $tr = $result->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
 
     MCSetHouse($house, $cacheKey, $tr);
 
+    PopulateLocaleCols($tr, [['func' => 'GetItemNames', 'key' => 'id', 'name' => 'name']]);
     return $tr;
 }
 
@@ -179,17 +180,17 @@ function HouseDeals($house)
 {
     global $db;
 
-    $cacheKey = 'house_deals_l';
+    $cacheKey = 'house_deals_l2';
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
+        PopulateLocaleCols($tr, [['func' => 'GetItemNames', 'key' => 'id', 'name' => 'name']]);
         return $tr;
     }
 
     DBConnect();
 
-    $localizedItemNames = LocaleColumns('i.name');
     $sql = <<<EOF
-SELECT i.id, $localizedItemNames
+SELECT i.id
 FROM `tblItemSummary` tis
 join tblDBCItem i on tis.item = i.id
 join tblItemGlobal g on g.item = tis.item and g.bonusset = tis.bonusset
@@ -205,11 +206,12 @@ EOF;
     $stmt->bind_param('i', $house);
     $stmt->execute();
     $result = $stmt->get_result();
-    $tr = DBMapArray($result, null);
+    $tr = $result->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
 
     MCSetHouse($house, $cacheKey, $tr);
 
+    PopulateLocaleCols($tr, [['func' => 'GetItemNames', 'key' => 'id', 'name' => 'name']]);
     return $tr;
 }
 
@@ -255,7 +257,7 @@ EOF;
     $stmt->bind_param('i', $house);
     $stmt->execute();
     $result = $stmt->get_result();
-    $tr = DBMapArray($result, null);
+    $tr = $result->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
 
     MCSetHouse($house, $cacheKey, $tr);
