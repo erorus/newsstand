@@ -37,18 +37,23 @@ function CategoryResult_battlepets($house)
 {
     global $db, $canCache;
 
-    $key = 'category_bpets_l';
+    $key = 'category_bpets_l2';
 
     if ($canCache && (($tr = MCGetHouse($house, $key)) !== false)) {
+        foreach ($tr as &$species) {
+            foreach ($species as &$breeds) {
+                PopulateLocaleCols($breeds, [['func' => 'GetPetNames', 'key' => 'species', 'name' => 'name']]);
+            }
+            unset($breeds);
+        }
+        unset($species);
         return ['name' => 'battlepets', 'results' => [['name' => 'BattlePetList', 'data' => $tr]]];
     }
 
     DBConnect();
 
-    $names = LocaleColumns('p.name');
-
     $sql = <<<EOF
-SELECT ps.species, ps.breed, ps.price, ps.quantity, ps.lastseen, round(avg(ph.price)) avgprice, $names, p.type, p.icon, p.npc, 0 regionavgprice
+SELECT ps.species, ps.breed, ps.price, ps.quantity, ps.lastseen, round(avg(ph.price)) avgprice, p.type, p.icon, p.npc, 0 regionavgprice
 FROM tblPetSummary ps
 JOIN tblDBCPet p on ps.species=p.id
 LEFT JOIN tblPetHistory ph on ph.house = ps.house and ph.species = ps.species and ph.breed = ps.breed
@@ -82,6 +87,13 @@ EOF;
 
     MCSetHouse($house, $key, $tr);
 
+    foreach ($tr as &$species) {
+        foreach ($species as &$breeds) {
+            PopulateLocaleCols($breeds, [['func' => 'GetPetNames', 'key' => 'species', 'name' => 'name']]);
+        }
+        unset($breeds);
+    }
+    unset($species);
     return ['name' => 'battlepets', 'results' => [['name' => 'BattlePetList', 'data' => $tr]]];
 }
 
@@ -1604,9 +1616,14 @@ function CategoryGenericItemList($house, $params)
 {
     global $db, $canCache, $LANG_LEVEL;
 
-    $key = 'category_gil_' . md5(json_encode($params));
+    $key = 'category_gil2_' . md5(json_encode($params));
 
     if ($canCache && (($tr = MCGetHouse($house, $key)) !== false)) {
+        PopulateLocaleCols($tr, [
+            ['func' => 'GetItemNames',      'key' => 'id',      'name' => 'name'],
+            ['func' => 'GetItemBonusNames', 'key' => 'bonuses', 'name' => 'bonusname'],
+            ['func' => 'GetItemBonusTags',  'key' => 'bonuses', 'name' => 'bonustag'],
+        ]);
         return $tr;
     }
 
@@ -1624,18 +1641,12 @@ function CategoryGenericItemList($house, $params)
         $outside = '';
     }
 
-    $localizedItemNames = LocaleColumns('i.name');
-    $bonusNames = LocaleColumns('ifnull(group_concat(distinct ib.name%1$s order by ib.namepriority desc separator \'|\'), \'\') bonusname%1$s', true);
-    $bonusTags = LocaleColumns('ifnull(group_concat(distinct ib.`tag%1$s` order by ib.tagpriority separator \' \'), if(results.bonusset=0,\'\',concat(\'__LEVEL%1$s__ \', results.level+sum(ifnull(ib.level,0))))) bonustag%1$s', true);
-    $bonusTags = strtr($bonusTags, $LANG_LEVEL);
-
     $sql = <<<EOF
 select results.*, $outside
 ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
-$bonusNames,
-$bonusTags
+ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), ifnull(results.basebonus, '')) bonuses
 from (
-    select i.id, $localizedItemNames, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice,
+    select i.id, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice,
     ifnull(s.bonusset,0) bonusset, i.level, i.basebonus `basebonus` $cols
     from tblDBCItem i
     left join tblItemSummary s on s.house=? and s.item=i.id
@@ -1647,7 +1658,6 @@ from (
     group by i.id, ifnull(s.bonusset,0)
 ) results
 left join tblBonusSet bs on results.bonusset = bs.`set`
-left join tblDBCItemBonus ib on ifnull(bs.bonus, results.basebonus) = ib.id
 group by results.id, results.bonusset
 EOF;
 
@@ -1662,6 +1672,12 @@ EOF;
     $stmt->close();
 
     MCSetHouse($house, $key, $tr);
+
+    PopulateLocaleCols($tr, [
+        ['func' => 'GetItemNames',      'key' => 'id',      'name' => 'name'],
+        ['func' => 'GetItemBonusNames', 'key' => 'bonuses', 'name' => 'bonusname'],
+        ['func' => 'GetItemBonusTags',  'key' => 'bonuses', 'name' => 'bonustag'],
+    ]);
 
     return $tr;
 }
