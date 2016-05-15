@@ -834,26 +834,21 @@ function DeleteWatch($loginState, $watch)
 
 function GetWatches($loginState)
 {
-    global $LANG_LEVEL;
-
     $userId = $loginState['id'];
 
     $cacheKey = SUBSCRIPTION_ITEM_CACHEKEY . $userId;
     $items = MCGet($cacheKey);
     if ($items === false) {
-        $itemNames = LocaleColumns('i.name');
-        $bonusTags = LocaleColumns('ifnull(group_concat(ib.`tag%1$s` order by ib.tagpriority separator \' \'), if(ifnull(bs.`set`,0)=0,\'\',concat(\'__LEVEL%1$s__ \', i.level+sum(ifnull(ib.level,0))))) bonustag%1$s', true);
-        $bonusTags = strtr($bonusTags, $LANG_LEVEL);
-
         $sql = <<<EOF
 select uw.seq, uw.region, uw.house,
-    uw.item, uw.bonusset, ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
-    $itemNames, $bonusTags, i.icon, i.class,
+    uw.item, uw.bonusset,
+        ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
+        ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), ifnull(i.basebonus, '')) bonuses,
+    i.level, i.icon, i.class,
     uw.direction, uw.quantity, uw.price
 from tblUserWatch uw
 join tblDBCItem i on uw.item = i.id
 left join tblBonusSet bs on uw.bonusset = bs.`set`
-left join tblDBCItemBonus ib on ifnull(bs.bonus, i.basebonus) = ib.id
 where uw.user = ?
 and uw.deleted is null
 group by uw.seq
@@ -870,15 +865,19 @@ EOF;
         MCSet($cacheKey, $items);
     }
 
+    PopulateLocaleCols($items, [
+        ['func' => 'GetItemNames',      'key' => 'item',    'name' => 'name'],
+        ['func' => 'GetItemBonusNames', 'key' => 'bonuses', 'name' => 'bonusname'],
+        ['func' => 'GetItemBonusTags',  'key' => 'bonuses', 'name' => 'bonustag'],
+    ]);
+
     $cacheKey = SUBSCRIPTION_SPECIES_CACHEKEY . $userId;
     $battlePets = MCGet($cacheKey);
     if ($battlePets === false) {
-        $petNames = LocaleColumns('p.name');
-
         $sql = <<<EOF
 select uw.seq, uw.region, uw.house,
     uw.species, uw.breed,
-    $petNames, p.icon, p.type, p.npc,
+    p.icon, p.type, p.npc,
     uw.direction, uw.quantity, uw.price
 from tblUserWatch uw
 JOIN tblDBCPet p on uw.species=p.id
@@ -896,6 +895,8 @@ EOF;
 
         MCSet($cacheKey, $battlePets);
     }
+
+    PopulateLocaleCols($battlePets, [['func' => 'GetPetNames', 'key' => 'species', 'name' => 'name']]);
 
     $json = $items + $battlePets;
 

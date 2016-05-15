@@ -482,11 +482,11 @@ var TUJ_Seller = function ()
             if (auc['bonustag_' + tuj.locale]) {
                 var tagspan = libtuj.ce('span');
                 tagspan.className = 'nowrap';
-                if (!isNaN(auc['bonustag_' + tuj.locale])) {
-                    $(tagspan).text(tuj.lang.level + ' ' + (auc.level + parseInt(auc['bonustag_' + tuj.locale], 10)));
-                } else {
-                    $(tagspan).text(auc['bonustag_' + tuj.locale]);
+                var bonusTag = auc['bonustag_' + tuj.locale];
+                if (!isNaN(bonusTag)) {
+                    bonusTag = tuj.lang.level + ' ' + (auc.level + parseInt(bonusTag, 10));
                 }
+                $(tagspan).text(bonusTag);
                 a.appendChild(tagspan);
             }
 

@@ -21,8 +21,8 @@ define('SUBSCRIPTION_MESSAGES_CACHEKEY', 'submessage_');
 define('SUBSCRIPTION_MESSAGES_MAX', 50);
 define('SUBSCRIPTION_RSS_PATH', __DIR__.'/../rss/rss');
 
-define('SUBSCRIPTION_ITEM_CACHEKEY', 'subitem_');
-define('SUBSCRIPTION_SPECIES_CACHEKEY', 'subspecies_');
+define('SUBSCRIPTION_ITEM_CACHEKEY', 'subitem2_');
+define('SUBSCRIPTION_SPECIES_CACHEKEY', 'subspecies2_');
 define('SUBSCRIPTION_WATCH_CACHEKEY', 'subwatch_');
 define('SUBSCRIPTION_RARE_CACHEKEY', 'subrare_');
 define('SUBSCRIPTION_REPORTS_CACHEKEY', 'subreports_');
