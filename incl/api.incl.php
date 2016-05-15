@@ -53,6 +53,12 @@ function GetLocale()
 
 function LocaleColumns($colName, $usesPattern = false)
 {
+    static $cols = [];
+    $key = ($usesPattern ? 1 : 0) . $colName;
+    if (isset($cols[$key])) {
+        return $cols[$key];
+    }
+
     global $VALID_LOCALES;
 
     $tr = '';
@@ -60,205 +66,259 @@ function LocaleColumns($colName, $usesPattern = false)
         $tr .= ($tr == '' ? '' : ', ') . ($usesPattern ? sprintf($colName, '_' . $locId) : ($colName . '_' . $locId));
     }
 
+    $cols[$key] = $tr;
     return $tr;
 }
 
-function GetItemNames($itemId, $renamedTo = false)
+function GetItemNames($itemIds, $renamedTo = false)
 {
-    static $fetchedNames = [];
+    global $VALID_LOCALES;
 
-    $cacheKey = 'itemnames_'.$itemId;
+    $cacheKeyPrefix = 'itemnames_';
+    $cacheKeyPrefixLen = strlen($cacheKeyPrefix);
 
-    if (isset($fetchedNames[$itemId])) {
-        $names = $fetchedNames[$itemId];
-    } else {
-        $names = $fetchedNames[$itemId] = MCGet($cacheKey);
+    // assemble memcache keys, and fetch into $names
+    $keys = [];
+    foreach ($itemIds as $itemId) { // assumes $itemIds are unique
+        $keys[] = $cacheKeyPrefix.intval($itemId, 10);
     }
-    if ($names === false) {
-        $db = DBConnect();
+    $names = MCGet($keys);
 
-        $sql = 'select '.LocaleColumns('name').' from tblDBCItem where id=?';
-        $stmt = $db->prepare($sql);
-        $stmt->bind_param('i', $itemId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $names = $result->fetch_assoc();
-        $result->close();
-        $stmt->close();
+    // find which keys didn't come back, and fix $names so its keys are bare item IDs
+    $keyNames = array_keys($names);
+    $missingKeys = array_diff($keys, $keyNames);
+    foreach ($keyNames as $keyName) {
+        $names[substr($keyName, $cacheKeyPrefixLen)] = $names[$keyName];
+        unset($names[$keyName]);
+    }
+    unset($keyNames);
 
-        if ($names === false) {
-            $names = [];
-            global $VALID_LOCALES;
-            foreach ($VALID_LOCALES as $locId) {
-                $names['name_'.$locId] = 'Item #'.$itemId;
+    if (count($missingKeys)) {
+        // split up missing keys into chunks of bare item IDs
+        $missingIds = [];
+        $chunk = 0;
+        $chunkCount = 0;
+        foreach ($missingKeys as $missingKey) {
+            $missingIds[$chunk][] = substr($missingKey, $cacheKeyPrefixLen);
+            if (++$chunkCount >= 100) {
+                $chunk++;
+                $chunkCount = 0;
             }
-            MCSet($cacheKey, $names, 1800);
-        } else {
-            MCSet($cacheKey, $names, 86400);
         }
-        $fetchedNames[$itemId] = $names;
+        unset($missingKeys, $chunk, $chunkCount);
+
+        // fetch missing IDs, and store them into memcache
+        $db = DBConnect();
+        $sql = 'select id, '.LocaleColumns('name').' from tblDBCItem where id in (%s)';
+        foreach ($missingIds as $missingChunk) {
+            $stmt = $db->prepare(sprintf($sql, implode(',', $missingChunk)));
+            $stmt->execute();
+            $result = $stmt->get_result();
+            while ($row = $result->fetch_assoc()) {
+                $id = array_shift($row);
+                $names[$id] = $row;
+                MCSet($cacheKeyPrefix.$id, $names[$id], 86400);
+            }
+            $result->close();
+            $stmt->close();
+
+            foreach ($missingChunk as $id) {
+                if (!isset($names[$id])) { // if this id didn't come back from the db
+                    foreach ($VALID_LOCALES as $locId) {
+                        $names[$id]['name_'.$locId] = 'Item #'.$id;
+                    }
+                    MCSet($cacheKeyPrefix.$id, $names[$id], 1800);
+                }
+            }
+        }
     }
 
     if ($renamedTo && $renamedTo != 'name') {
-        $keys = array_keys($names);
-        foreach ($keys as $key) {
-            $names[str_replace('name', $renamedTo, $key)] = $names[$key];
-            unset($names[$key]);
+        foreach ($names as &$row) {
+            $keys = array_keys($row);
+            foreach ($keys as $key) {
+                $row[str_replace('name', $renamedTo, $key)] = $row[$key];
+                unset($row[$key]);
+            }
         }
     }
 
     return $names;
 }
 
-function GetItemBonusNames($bonuses, $renamedTo = false)
+function GetItemBonusNames($bonusGroups, $renamedTo = false)
 {
-    static $fetchedNames = [];
+    global $VALID_LOCALES;
 
-    if (!is_array($bonuses)) {
-        $c = preg_match_all('/\d+/', $bonuses, $res);
+    $results = [];
+    foreach ($bonusGroups as $bonusesKey) {
+        $c = preg_match_all('/\d+/', $bonusesKey, $res);
         $bonuses = [];
         for ($x = 0; $x < $c; $x++) {
             if ($res[0][$x]) {
                 $bonuses[] = $res[0][$x];
             }
         }
-    }
 
-    $bonuses = implode(',', array_filter($bonuses, 'is_numeric'));
+        $bonuses = implode(',', array_filter($bonuses, 'is_numeric'));
 
-    $cacheKey = 'itembonusnames_'.$bonuses;
+        $cacheKey = 'itembonusnames_' . $bonuses;
 
-    if (isset($fetchedNames[$bonuses])) {
-        $names = $fetchedNames[$bonuses];
-    } else {
-        $names = $fetchedNames[$bonuses] = MCGet($cacheKey);
-    }
-    if ($names === false) {
-        if ($bonuses) {
-            $db = DBConnect();
+        $names = MCGet($cacheKey);
 
-            $sql = 'select '.LocaleColumns('ifnull(group_concat(distinct name%1$s order by namepriority desc separator \' \'), \'\') bonusname%1$s', true);
-            $sql .= ' from tblDBCItemBonus where id in ('.$bonuses.')';
-            $stmt = $db->prepare($sql);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $names = $result->fetch_assoc();
-            $result->close();
-            $stmt->close();
-        }
         if ($names === false) {
-            $names = [];
-            global $VALID_LOCALES;
-            foreach ($VALID_LOCALES as $locId) {
-                $names['bonusname_'.$locId] = '';
+            if ($bonuses) {
+                $db = DBConnect();
+
+                $sql = 'select ' . LocaleColumns('ifnull(group_concat(distinct name%1$s order by namepriority desc separator \' \'), \'\') bonusname%1$s', true);
+                $sql .= ' from tblDBCItemBonus where id in (' . $bonuses . ')';
+                $stmt = $db->prepare($sql);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                $names = $result->fetch_assoc();
+                $result->close();
+                $stmt->close();
+            }
+            if ($names === false) {
+                $names = [];
+                foreach ($VALID_LOCALES as $locId) {
+                    $names['bonusname_' . $locId] = '';
+                }
+            }
+            MCSet($cacheKey, $names, 86400);
+        }
+
+        if ($renamedTo && $renamedTo != 'bonusname') {
+            $keys = array_keys($names);
+            foreach ($keys as $key) {
+                $names[str_replace('bonusname', $renamedTo, $key)] = $names[$key];
+                unset($names[$key]);
             }
         }
-        MCSet($cacheKey, $names, 86400);
-        $fetchedNames[$bonuses] = $names;
+
+        $results[$bonusesKey] = $names;
     }
 
-    if ($renamedTo && $renamedTo != 'bonusname') {
-        $keys = array_keys($names);
-        foreach ($keys as $key) {
-            $names[str_replace('bonusname', $renamedTo, $key)] = $names[$key];
-            unset($names[$key]);
-        }
-    }
-
-    return $names;
+    return $results;
 }
 
-function GetItemBonusTags($bonuses, $renamedTo = false)
+function GetItemBonusTags($bonusGroups, $renamedTo = false)
 {
-    static $fetchedNames = [];
+    global $VALID_LOCALES;
 
-    if (!is_array($bonuses)) {
-        $c = preg_match_all('/\d+/', $bonuses, $res);
+    $results = [];
+    foreach ($bonusGroups as $bonusesKey) {
+        $c = preg_match_all('/\d+/', $bonusesKey, $res);
         $bonuses = [];
         for ($x = 0; $x < $c; $x++) {
             if ($res[0][$x]) {
                 $bonuses[] = $res[0][$x];
             }
         }
-    }
 
-    $bonuses = implode(',', array_filter($bonuses, 'is_numeric'));
+        $bonuses = implode(',', array_filter($bonuses, 'is_numeric'));
 
-    $cacheKey = 'itembonustags_'.$bonuses;
+        $cacheKey = 'itembonustags_' . $bonuses;
 
-    if (isset($fetchedNames[$bonuses])) {
-        $names = $fetchedNames[$bonuses];
-    } else {
-        $names = $fetchedNames[$bonuses] = MCGet($cacheKey);
-    }
-    if ($names === false) {
-        if ($bonuses) {
-            $db = DBConnect();
+        $names = MCGet($cacheKey);
 
-            $sql = 'select '.LocaleColumns('ifnull(group_concat(distinct `tag%1$s` order by tagpriority separator \' \'), if(sum(ifnull(level,0))=0,\'\',sum(ifnull(level,0)))) bonustag%1$s', true);
-            $sql .= ' from tblDBCItemBonus where id in ('.$bonuses.')';
-            $stmt = $db->prepare($sql);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $names = $result->fetch_assoc();
-            $result->close();
-            $stmt->close();
-        }
         if ($names === false) {
-            $names = [];
-            global $VALID_LOCALES;
-            foreach ($VALID_LOCALES as $locId) {
-                $names['bonustag_'.$locId] = '';
+            if ($bonuses) {
+                $db = DBConnect();
+
+                $sql = 'select ' . LocaleColumns('ifnull(group_concat(distinct `tag%1$s` order by tagpriority separator \' \'), if(sum(ifnull(level,0))=0,\'\',sum(ifnull(level,0)))) bonustag%1$s', true);
+                $sql .= ' from tblDBCItemBonus where id in (' . $bonuses . ')';
+                $stmt = $db->prepare($sql);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                $names = $result->fetch_assoc();
+                $result->close();
+                $stmt->close();
+            }
+            if ($names === false) {
+                $names = [];
+                foreach ($VALID_LOCALES as $locId) {
+                    $names['bonustag_' . $locId] = '';
+                }
+            }
+            MCSet($cacheKey, $names, 86400);
+        }
+
+        if ($renamedTo && $renamedTo != 'bonustag') {
+            $keys = array_keys($names);
+            foreach ($keys as $key) {
+                $names[str_replace('bonustag', $renamedTo, $key)] = $names[$key];
+                unset($names[$key]);
             }
         }
-        MCSet($cacheKey, $names, 86400);
-        $fetchedNames[$bonuses] = $names;
+
+        $results[$bonusesKey] = $names;
     }
 
-    if ($renamedTo && $renamedTo != 'bonustag') {
-        $keys = array_keys($names);
-        foreach ($keys as $key) {
-            $names[str_replace('bonustag', $renamedTo, $key)] = $names[$key];
-            unset($names[$key]);
-        }
-    }
-
-    return $names;
+    return $results;
 }
 
-function GetRandEnchantNames($randId, $renamedTo = false)
+function GetRandEnchantNames($randIds, $renamedTo = false)
 {
-    static $fetchedNames = [];
+    global $VALID_LOCALES;
 
-    $cacheKey = 'randenchantnames_'.$randId;
+    $cacheKeyPrefix = 'randenchantnames_';
+    $cacheKeyPrefixLen = strlen($cacheKeyPrefix);
 
-    if (isset($fetchedNames[$randId])) {
-        $names = $fetchedNames[$randId];
-    } else {
-        $names = $fetchedNames[$randId] = MCGet($cacheKey);
+    // assemble memcache keys, and fetch into $names
+    $keys = [];
+    foreach ($randIds as $randId) { // assumes $randIds are unique
+        $keys[] = $cacheKeyPrefix.intval($randId, 10);
     }
-    if ($names === false) {
-        if ($randId) {
-            $db = DBConnect();
+    $names = MCGet($keys);
 
-            $sql = 'select '.LocaleColumns('name%1$s randname%1$s', true).' from tblDBCRandEnchants where id = ?';
-            $stmt = $db->prepare($sql);
-            $stmt->bind_param('i', $randId);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $names = $result->fetch_assoc();
-            $result->close();
-            $stmt->close();
-        }
-        if ($names === false) {
-            $names = [];
-            global $VALID_LOCALES;
-            foreach ($VALID_LOCALES as $locId) {
-                $names['randname_'.$locId] = '';
+    // find which keys didn't come back, and fix $names so its keys are bare item IDs
+    $keyNames = array_keys($names);
+    $missingKeys = array_diff($keys, $keyNames);
+    foreach ($keyNames as $keyName) {
+        $names[substr($keyName, $cacheKeyPrefixLen)] = $names[$keyName];
+        unset($names[$keyName]);
+    }
+    unset($keyNames);
+
+    if (count($missingKeys)) {
+        // split up missing keys into chunks of bare rand IDs
+        $missingIds = [];
+        $chunk = 0;
+        $chunkCount = 0;
+        foreach ($missingKeys as $missingKey) {
+            $missingIds[$chunk][] = substr($missingKey, $cacheKeyPrefixLen);
+            if (++$chunkCount >= 100) {
+                $chunk++;
+                $chunkCount = 0;
             }
         }
-        MCSet($cacheKey, $names, 86400);
-        $fetchedNames[$randId] = $names;
+        unset($missingKeys, $chunk, $chunkCount);
+
+        // fetch missing IDs, and store them into memcache
+        $db = DBConnect();
+        $sql = 'select id, '.LocaleColumns('name%1$s randname%1$s', true).' from tblDBCRandEnchants where id in (%s)';
+        foreach ($missingIds as $missingChunk) {
+            $stmt = $db->prepare(sprintf($sql, implode(',', $missingChunk)));
+            $stmt->execute();
+            $result = $stmt->get_result();
+            while ($row = $result->fetch_assoc()) {
+                $id = array_shift($row);
+                $names[$id] = $row;
+                MCSet($cacheKeyPrefix.$id, $names[$id], 86400);
+            }
+            $result->close();
+            $stmt->close();
+
+            foreach ($missingChunk as $id) {
+                if (!isset($names[$id])) { // if this id didn't come back from the db
+                    foreach ($VALID_LOCALES as $locId) {
+                        $names[$id]['randname_'.$locId] = '';
+                    }
+                    MCSet($cacheKeyPrefix.$id, $names[$id], 1800);
+                }
+            }
+        }
     }
 
     if ($renamedTo && $renamedTo != 'randname') {
@@ -272,41 +332,67 @@ function GetRandEnchantNames($randId, $renamedTo = false)
     return $names;
 }
 
-function GetPetNames($species, $renamedTo = false)
+function GetPetNames($speciesIds, $renamedTo = false)
 {
-    static $fetchedNames = [];
+    global $VALID_LOCALES;
 
-    $cacheKey = 'petnames_'.$species;
+    $cacheKeyPrefix = 'petnames_';
+    $cacheKeyPrefixLen = strlen($cacheKeyPrefix);
 
-    if (isset($fetchedNames[$species])) {
-        $names = $fetchedNames[$species];
-    } else {
-        $names = $fetchedNames[$species] = MCGet($cacheKey);
+    // assemble memcache keys, and fetch into $names
+    $keys = [];
+    foreach ($speciesIds as $species) { // assumes $speciesIds are unique
+        $keys[] = $cacheKeyPrefix.intval($species, 10);
     }
-    if ($names === false) {
-        if ($species) {
-            $db = DBConnect();
+    $names = MCGet($keys);
 
-            $sql = 'select '.LocaleColumns('name').' from tblDBCPet where id = ?';
-            $stmt = $db->prepare($sql);
-            $stmt->bind_param('i', $species);
+    // find which keys didn't come back, and fix $names so its keys are bare item IDs
+    $keyNames = array_keys($names);
+    $missingKeys = array_diff($keys, $keyNames);
+    foreach ($keyNames as $keyName) {
+        $names[substr($keyName, $cacheKeyPrefixLen)] = $names[$keyName];
+        unset($names[$keyName]);
+    }
+    unset($keyNames);
+
+    if (count($missingKeys)) {
+        // split up missing keys into chunks of bare species IDs
+        $missingIds = [];
+        $chunk = 0;
+        $chunkCount = 0;
+        foreach ($missingKeys as $missingKey) {
+            $missingIds[$chunk][] = substr($missingKey, $cacheKeyPrefixLen);
+            if (++$chunkCount >= 100) {
+                $chunk++;
+                $chunkCount = 0;
+            }
+        }
+        unset($missingKeys, $chunk, $chunkCount);
+
+        // fetch missing IDs, and store them into memcache
+        $db = DBConnect();
+        $sql = 'select id, '.LocaleColumns('name').' from tblDBCPet where id in (%s)';
+        foreach ($missingIds as $missingChunk) {
+            $stmt = $db->prepare(sprintf($sql, implode(',', $missingChunk)));
             $stmt->execute();
             $result = $stmt->get_result();
-            $names = $result->fetch_assoc();
+            while ($row = $result->fetch_assoc()) {
+                $id = array_shift($row);
+                $names[$id] = $row;
+                MCSet($cacheKeyPrefix.$id, $names[$id], 86400);
+            }
             $result->close();
             $stmt->close();
-        }
-        if ($names === false) {
-            $names = [];
-            global $VALID_LOCALES;
-            foreach ($VALID_LOCALES as $locId) {
-                $names['name_'.$locId] = '';
+
+            foreach ($missingChunk as $id) {
+                if (!isset($names[$id])) { // if this id didn't come back from the db
+                    foreach ($VALID_LOCALES as $locId) {
+                        $names[$id]['name_'.$locId] = 'Species #'.$id;
+                    }
+                    MCSet($cacheKeyPrefix.$id, $names[$id], 1800);
+                }
             }
-            MCSet($cacheKey, $names, 1800);
-        } else {
-            MCSet($cacheKey, $names, 86400);
         }
-        $fetchedNames[$species] = $names;
     }
 
     if ($renamedTo && $renamedTo != 'name') {
@@ -324,12 +410,47 @@ function PopulateLocaleCols(&$rows, $calls) {
     if (!is_array($rows)) {
         return;
     }
+
     $c = count($calls);
-    foreach ($rows as &$row) {
+    if ($c == 0) {
+        return;
+    }
+    $keys = [];
+    $vals = [];
+    for ($x = 0; $x < $c; $x++) {
+        $keys[$x] = [];
+        $vals[$x] = [];
+    }
+
+    foreach ($rows as $row) {
         for ($x = 0; $x < $c; $x++) {
             if (isset($row[$calls[$x]['key']])) {
-                $funcName = $calls[$x]['func'];
-                $row = array_merge($row, $funcName($row[$calls[$x]['key']], isset($calls[$x]['name']) ? $calls[$x]['name'] : false));
+                $keys[$x][$row[$calls[$x]['key']]] = true;
+            }
+        }
+    }
+
+    for ($x = 0; $x < $c; $x++) {
+        $keys[$x] = array_keys($keys[$x]);
+        $funcName = $calls[$x]['func'];
+        $vals[$x] = $funcName($keys[$x], isset($calls[$x]['name']) ? $calls[$x]['name'] : false);
+        unset($keys[$x]);
+    }
+
+    foreach ($rows as &$row) {
+        if ($c <= 4) {
+            $row = array_merge(
+                $row,
+                (          isset($row[$calls[0]['key']]) && isset($vals[0][$row[$calls[0]['key']]])) ? $vals[0][$row[$calls[0]['key']]] : [],
+                ($c > 1 && isset($row[$calls[1]['key']]) && isset($vals[1][$row[$calls[1]['key']]])) ? $vals[1][$row[$calls[1]['key']]] : [],
+                ($c > 2 && isset($row[$calls[2]['key']]) && isset($vals[2][$row[$calls[2]['key']]])) ? $vals[2][$row[$calls[2]['key']]] : [],
+                ($c > 3 && isset($row[$calls[3]['key']]) && isset($vals[3][$row[$calls[3]['key']]])) ? $vals[3][$row[$calls[3]['key']]] : []
+            );
+        } else {
+            for ($x = 0; $x < $c; $x++) {
+                if (isset($row[$calls[$x]['key']]) && isset($vals[$x][$row[$calls[$x]['key']]])) {
+                    $row = array_merge($row, $vals[$x][$row[$calls[$x]['key']]]);
+                }
             }
         }
     }
