@@ -395,7 +395,7 @@ EOF;
 
         $sql = <<<'EOF'
 update ttblRareStage rs
-join tblAuction a on a.item = rs.item
+join tblAuction a on a.item = rs.item + 0
 join tblAuctionRare ar on ar.house = a.house and ar.id = a.id
 left join tblAuctionExtra ae on ae.house = a.house and ae.id = a.id
 set rs.lastseen = if(rs.lastseen is null, ar.prevseen, least(rs.lastseen, ar.prevseen))
