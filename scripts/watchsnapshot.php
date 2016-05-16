@@ -413,7 +413,7 @@ join tblAuctionRare ar on ar.house = a.house and ar.id = a.id
 left join tblAuctionExtra ae on ae.house = a.house and ae.id = a.id
 where ifnull(ae.bonusset, 0) = rs.bonusset
 and a.house = %d
-) on duplicate key update lastseen = if(lastseen is null, values(lastseen), least(lastseen, values(lastseen)))
+) on duplicate key update ttblRareStageSeen.lastseen = if(ttblRareStageSeen.lastseen is null, values(lastseen), least(ttblRareStageSeen.lastseen, values(lastseen)))
 EOF;
 
         $ok &= DBQueryWithError($ourDb, sprintf($sql, $house));
