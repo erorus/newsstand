@@ -362,9 +362,9 @@ EOF;
     }
 
     // check unusual items
-    $ok = DBQueryWithError($ourDb, 'create temporary table ttblRareStage like ttblRareStageTemplate');
+    $ok = DBQueryWithError($ourDb, 'create temporary table ttblRareStageBase like ttblRareStageTemplate');
     if ($ok) {
-        $sqlStart = 'insert into ttblRareStage (item, bonusset, price) values ';
+        $sqlStart = 'insert into ttblRareStageBase (item, bonusset, price) values ';
         $sql = '';
         foreach ($newAuctionItems as $itemInfoKey) {
             list($itemId, $bonusSet) = explode(':', $itemInfoKey);
@@ -385,31 +385,75 @@ EOF;
             $ok &= DBQueryWithError($ourDb, $sql);
         }
 
-        $sql = <<<'EOF'
-update ttblRareStage rs
-join tblItemSummary s on rs.item = s.item and rs.bonusset = s.bonusset
-set rs.lastseen = s.lastseen
-where s.house = %d
-EOF;
-        $ok &= DBQueryRetryDeadlocks($ourDb, sprintf($sql, $house));
+        $ok &= DBQueryWithError($ourDb, 'create temporary table ttblRareStageSeen like ttblRareStageTemplate');
 
         $sql = <<<'EOF'
-update ttblRareStage rs
+insert into ttblRareStageSeen (item, bonusset, price, lastseen) (
+select rs.item, rs.bonusset, rs.price, s.lastseen
+from ttblRareStageBase rs
+join tblItemSummary s on rs.item = s.item and rs.bonusset = s.bonusset
+where s.house = %d
+)
+EOF;
+        $ok &= DBQueryWithError($ourDb, sprintf($sql, $house));
+
+        $summaryRows = 0;
+        $stmt = $ourDb->prepare('select count(*) from ttblRareStageSeen');
+        $stmt->execute();
+        $stmt->bind_result($summaryRows);
+        $stmt->fetch();
+        $stmt->close();
+
+        $sql = <<<'EOF'
+insert into ttblRareStageSeen (item, bonusset, price, lastseen) (
+select rs.item, rs.bonusset, rs.price, ar.prevseen
+from ttblRareStageBase rs
 join tblAuction a on a.item = rs.item + 0
 join tblAuctionRare ar on ar.house = a.house and ar.id = a.id
 left join tblAuctionExtra ae on ae.house = a.house and ae.id = a.id
-set rs.lastseen = if(rs.lastseen is null, ar.prevseen, least(rs.lastseen, ar.prevseen))
 where ifnull(ae.bonusset, 0) = rs.bonusset
 and a.house = %d
+) on duplicate key update lastseen = if(lastseen is null, values(lastseen), least(lastseen, values(lastseen)))
 EOF;
 
-        $ok &= DBQueryRetryDeadlocks($ourDb, sprintf($sql, $house));
+        $ok &= DBQueryWithError($ourDb, sprintf($sql, $house));
+
+        $updatedRows = $addedRows = 0;
+        if ($ok) {
+            $affectedRows = $ourDb->affected_rows;
+            $auctionRareRows = 0;
+
+            $stmt = $ourDb->prepare('select count(*) from ttblRareStageSeen');
+            $stmt->execute();
+            $stmt->bind_result($auctionRareRows);
+            $stmt->fetch();
+            $stmt->close();
+
+            $addedRows = $auctionRareRows - $summaryRows;
+            $updatedRows = floor(($affectedRows - $addedRows) / 2);
+        }
+
+        $ok &= DBQueryWithError($ourDb, 'insert ignore into ttblRareStageSeen (select * from ttblRareStageBase)');
+
+        $totalRows = 0;
+        $stmt = $ourDb->prepare('select count(*) from ttblRareStageSeen');
+        $stmt->execute();
+        $stmt->bind_result($totalRows);
+        $stmt->fetch();
+        $stmt->close();
+
+        $rowsWithoutDates = $totalRows - $addedRows - $summaryRows;
+
+        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " rares: $summaryRows tblItemSummary, added $addedRows & updated $updatedRows tblAuctionRare, $rowsWithoutDates without dates, $totalRows total");
+        if (!$ok) {
+            DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " failed while populating ttblRareStageBase");
+        }
     }
     if ($ok) {
         $sql = <<<'EOF'
 replace into tblUserRareReport (user, house, item, bonusset, prevseen, price, snapshot) (
     SELECT ur.user, ur.house, rs.item, rs.bonusset, rs.lastseen, rs.price, ?
-    FROM ttblRareStage rs
+    FROM ttblRareStageSeen rs
     join tblUserRare ur
     join tblDBCItem i on i.id = rs.item and i.class = ur.itemclass and i.quality >= ur.minquality and i.level between ifnull(ur.minlevel, i.level) and ifnull(ur.maxlevel, i.level)
     left join tblDBCItemVendorCost ivc on ivc.item = rs.item
@@ -435,7 +479,8 @@ EOF;
         $result->close();
         $stmt->close();
     }
-    DBQueryWithError($ourDb, 'drop temporary table if exists ttblRareStage');
+    DBQueryWithError($ourDb, 'drop temporary table if exists ttblRareStageBase');
+    DBQueryWithError($ourDb, 'drop temporary table if exists ttblRareStageSeen');
 
     $observedUsers = array_chunk(array_keys($updateObserved), 200);
     $sql = 'update tblUser set watchesobserved = \'%1$s\' where id in (%2$s) and ifnull(watchesobserved, \'2000-01-01\') < \'%1$s\'';
@@ -624,21 +669,5 @@ function DBQueryWithError(&$db, $sql)
         DebugMessage("SQL error: " . $db->errno . ' ' . $db->error . " - " . substr(preg_replace('/[\r\n]/', ' ', $sql), 0, 500), E_USER_WARNING);
     }
 
-    return $queryOk;
-}
-
-function DBQueryRetryDeadlocks(&$db, $sql)
-{
-    $retries = 0;
-    do {
-        $queryOk = $db->query($sql);
-        if ($queryOk) {
-            break;
-        }
-        if ($db->errno != 1213) { // deadlock
-            break;
-        }
-        sleep(1 + pow(2, $retries));
-    } while ($retries++ < 3);
     return $queryOk;
 }
