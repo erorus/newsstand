@@ -132,14 +132,14 @@ from (
     left join tblDBCItem i on a.item=i.id
     left join tblAuctionExtra ae on ae.house=a.house and ae.id=a.id
     left join tblBonusSet bs on ae.bonusset = bs.set
-    WHERE a.house = ? and a.seller = ?
+    WHERE a.seller = ?
     and a.item != 82800
     group by a.id
 ) results
 EOF;
 
     $stmt = $db->prepare($sql);
-    $stmt->bind_param('ii', $house, $seller);
+    $stmt->bind_param('i', $seller);
     $stmt->execute();
     $result = $stmt->get_result();
     $tr = $result->fetch_all(MYSQLI_ASSOC);
