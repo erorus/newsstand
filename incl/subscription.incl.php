@@ -255,7 +255,7 @@ function UpdateUserRss($userId, &$db) {
 
             $stmt = $db->prepare('select count(*) from tblUser WHERE rss = ?');
             $rssCheck = $rss;
-            $stmt->bind_param('i', $rssCheck);
+            $stmt->bind_param('s', $rssCheck);
             $stmt->execute();
             $c = 0;
             $stmt->bind_result($c);
