@@ -413,7 +413,6 @@ EOF;
             $stmt = $ourDb->prepare($sqls[$x]);
             $stmt->bind_param('i', $house);
             $stmt->execute();
-            $queryCount++;
             $item = $bonusSet = $lastSeen = null;
             $stmt->bind_result($item, $bonusSet, $lastSeen);
             while ($stmt->fetch()) {
@@ -426,6 +425,7 @@ EOF;
                     }
                     $dated[$k] = $lastSeen;
                 } elseif ($dated[$k] > $lastSeen) {
+                    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " rares: $k was ".date('Y-m-d H:i:s', $dated[$k]).", now ".date('Y-m-d H:i:s', $lastSeen));
                     $updatedRows++;
                     $dated[$k] = $lastSeen;
                 }
