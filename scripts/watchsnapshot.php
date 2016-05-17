@@ -462,16 +462,15 @@ EOF;
         $ok &= $stmt->execute();
         $stmt->close();
 
-        $removed = 0;
-        $stmt = $ourDb->prepare('select count(*) from ttblRareStage');
+        $removed = $rowsWithoutDates = 0;
+        $stmt = $ourDb->prepare('select count(*), sum(if(lastseen is null, 1, 0)) from ttblRareStage');
         $stmt->execute();
-        $stmt->bind_result($removed);
+        $stmt->bind_result($removed, $rowsWithoutDates);
         $stmt->fetch();
         $stmt->close();
 
         $totalRows = count($newAuctionItems);
         $removed = $totalRows - $removed;
-        $rowsWithoutDates = $totalRows - $addedRows - $summaryRows;
 
         DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " rares: $summaryRows ($summaryLate late, $removed removed) tblItemSummary, added $addedRows & updated $updatedRows tblAuctionRare, $rowsWithoutDates without dates, $totalRows total");
         if (!$ok) {
