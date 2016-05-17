@@ -428,13 +428,10 @@ EOF;
                         $addedRows++;
                     }
                     $dated[$k] = $lastSeen;
-                } elseif ($dated[$k] > $lastSeen) {
-                    if ($dated[$k] != $snapshot) {
-                        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " rares: $k was ".date('Y-m-d H:i:s', $dated[$k]).", now ".date('Y-m-d H:i:s', $lastSeen).", snapshot $snapshotString");
-                    }
+                } elseif ($dated[$k] == $snapshot) {
                     $updatedRows++;
                     $dated[$k] = $lastSeen;
-                } else {
+                } elseif ($dated[$k] != $lastSeen) {
                     DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " rares: $k was ".date('Y-m-d H:i:s', $dated[$k]).", then ".date('Y-m-d H:i:s', $lastSeen).", snapshot $snapshotString");
                 }
             }
@@ -465,9 +462,15 @@ EOF;
         $ok &= $stmt->execute();
         $stmt->close();
 
-        $removed = $ourDb->affected_rows;
+        $removed = 0;
+        $stmt = $ourDb->prepare('select count(*) from ttblRareStage');
+        $stmt->execute();
+        $stmt->bind_result($removed);
+        $stmt->fetch();
+        $stmt->close();
 
         $totalRows = count($newAuctionItems);
+        $removed = $totalRows - $removed;
         $rowsWithoutDates = $totalRows - $addedRows - $summaryRows;
 
         DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " rares: $summaryRows ($summaryLate late, $removed removed) tblItemSummary, added $addedRows & updated $updatedRows tblAuctionRare, $rowsWithoutDates without dates, $totalRows total");
