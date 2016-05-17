@@ -447,6 +447,22 @@ function CategoryResult_auction($house)
     ];
 }
 
+function CategoryResult_archaeology($house)
+{
+    return [
+        'name'    => 'archaeology',
+        'results' => [
+            [
+                'name' => 'ItemList',
+                'data' => [
+                    'name'  => 'Keystones',
+                    'items' => CategoryGenericItemList($house, 'i.id in (108439, 109584, 109585, 79868, 79869, 95373, 64397, 64395, 64396, 64392, 64394, 52843, 63127, 63128)')
+                ]
+            ],
+        ]
+    ];
+}
+
 function CategoryResult_mining($house)
 {
     return [
@@ -1449,8 +1465,37 @@ function CategoryResult_cooking($house)
 {
     $tr = ['name' => 'cooking', 'results' => []];
 
+    // flesh, small, regular, enormous
+    $fish = [
+        [109143, 111659, 111664, 111671], // abyssal gulper eel
+        [109144, 111662, 111663, 111670], // blackwater whiptail
+        [109140, 111652, 111667, 111674], // blind lake sturgeon
+        [109137, 111589, 111595, 111601], // crescent saberfish
+        [109139, 111651, 111668, 111675], // fat sleeper
+        [109141, 111656, 111666, 111673], // fire ammonite
+        [109138, 111650, 111669, 111676], // jawless skulker
+        [109142, 111658, 111665, 111672], // sea scorpion
+        //[118512, 118564, 118565, 118566], // savage piranha
+    ];
+
+    $fishIds = [];
+    foreach ($fish as $f) {
+        $fishIds = array_merge($fishIds, $f);
+    }
+    sort($fishIds);
+    $fishPricesList = CategoryGenericItemList($house, 'i.id in (' . implode(',', $fishIds) . ')');
+    $fishPrices = [];
+    foreach ($fishPricesList as $p) {
+        $fishPrices[$p['id']] = $p;
+    }
+
+    $tr['results'][] = [
+        'name' => 'FishTable',
+        'data' => ['name' => 'Draenor Fish', 'fish' => $fish, 'prices' => $fishPrices]
+    ];
+
     $foods = [
-        'Draenor Fish' => implode(',',range(109137,109143)),
+        //'Draenor Fish' => implode(',',range(109137,109143)),
         'Draenor Meat' => implode(',',range(109131,109136)),
         '+75 Stat Food' => '111433,111441,111437,111445,111434,111442,111438,111446,111436,111444,111431,111439',
         '+100 Stat Food' => '111449,111453,111450,111454,111452,111447',
@@ -1550,42 +1595,6 @@ EOF;
         ]
     ];
     */
-
-    return $tr;
-}
-
-function CategoryResult_fishing($house)
-{
-    // flesh, small, regular, enormous
-    $fish = [
-        [109143, 111659, 111664, 111671], // abyssal gulper eel
-        [109144, 111662, 111663, 111670], // blackwater whiptail
-        [109140, 111652, 111667, 111674], // blind lake sturgeon
-        [109137, 111589, 111595, 111601], // crescent saberfish
-        [109139, 111651, 111668, 111675], // fat sleeper
-        [109141, 111656, 111666, 111673], // fire ammonite
-        [109138, 111650, 111669, 111676], // jawless skulker
-        [109142, 111658, 111665, 111672], // sea scorpion
-        //[118512, 118564, 118565, 118566], // savage piranha
-    ];
-
-    $tr = ['name' => 'fishing', 'results' => []];
-
-    $fishIds = [];
-    foreach ($fish as $f) {
-        $fishIds = array_merge($fishIds, $f);
-    }
-    sort($fishIds);
-    $fishPricesList = CategoryGenericItemList($house, 'i.id in (' . implode(',', $fishIds) . ')');
-    $fishPrices = [];
-    foreach ($fishPricesList as $p) {
-        $fishPrices[$p['id']] = $p;
-    }
-
-    $tr['results'][] = [
-        'name' => 'FishTable',
-        'data' => ['name' => 'Draenor Fish', 'fish' => $fish, 'prices' => $fishPrices]
-    ];
 
     return $tr;
 }
