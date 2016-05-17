@@ -398,17 +398,18 @@ join tblItemSummary s on rs.item = s.item and rs.bonusset = s.bonusset
 where s.house = ?
 EOF;
         $sqls[] = <<<'EOF'
-select rs.item, rs.bonusset, unix_timestamp(ar.prevseen)
+select rs.item, rs.bonusset, max(unix_timestamp(ar.prevseen))
 from ttblRareStage rs
 join tblAuction a on a.item = rs.item + 0
 join tblAuctionRare ar on ar.house = a.house and ar.id = a.id
 left join tblAuctionExtra ae on ae.house = a.house and ae.id = a.id
 where ifnull(ae.bonusset, 0) = rs.bonusset
 and a.house = ?
+group by rs.item, rs.bonusset
 EOF;
 
         $dated = [];
-        $summaryRows = $addedRows = $updatedRows = 0;
+        $summaryLate = $summaryRows = $addedRows = $updatedRows = 0;
         for($x = 0; $x < count($sqls); $x++) {
             $stmt = $ourDb->prepare($sqls[$x]);
             $stmt->bind_param('i', $house);
@@ -420,14 +421,21 @@ EOF;
                 if (!isset($dated[$k])) {
                     if ($x == 0) {
                         $summaryRows++;
+                        if ($lastSeen == $snapshot) {
+                            $summaryLate++;
+                        }
                     } else {
                         $addedRows++;
                     }
                     $dated[$k] = $lastSeen;
                 } elseif ($dated[$k] > $lastSeen) {
-                    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " rares: $k was ".date('Y-m-d H:i:s', $dated[$k]).", now ".date('Y-m-d H:i:s', $lastSeen));
+                    if ($dated[$k] != $snapshot) {
+                        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " rares: $k was ".date('Y-m-d H:i:s', $dated[$k]).", now ".date('Y-m-d H:i:s', $lastSeen).", snapshot $snapshotString");
+                    }
                     $updatedRows++;
                     $dated[$k] = $lastSeen;
+                } else {
+                    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " rares: $k was ".date('Y-m-d H:i:s', $dated[$k]).", then ".date('Y-m-d H:i:s', $lastSeen).", snapshot $snapshotString");
                 }
             }
             $stmt->close();
@@ -452,10 +460,17 @@ EOF;
         $stmt->close();
         unset($dated);
 
+        $stmt = $ourDb->prepare('delete from ttblRareStage where lastseen = ?');
+        $stmt->bind_param('s', $snapshotString);
+        $ok &= $stmt->execute();
+        $stmt->close();
+
+        $removed = $ourDb->affected_rows;
+
         $totalRows = count($newAuctionItems);
         $rowsWithoutDates = $totalRows - $addedRows - $summaryRows;
 
-        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " rares: $summaryRows tblItemSummary, added $addedRows & updated $updatedRows tblAuctionRare, $rowsWithoutDates without dates, $totalRows total");
+        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " rares: $summaryRows ($summaryLate late, $removed removed) tblItemSummary, added $addedRows & updated $updatedRows tblAuctionRare, $rowsWithoutDates without dates, $totalRows total");
         if (!$ok) {
             DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " failed while populating ttblRareStage");
         }
