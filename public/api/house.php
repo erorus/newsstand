@@ -17,7 +17,6 @@ $json = array(
     'sellers'       => HouseTopSellers($house),
     'mostAvailable' => HouseMostAvailable($house),
     'deals'         => HouseDeals($house),
-    'sellerbots'    => HouseBotSellers($house),
 );
 
 $json = json_encode($json, JSON_NUMERIC_CHECK);
@@ -212,55 +211,5 @@ EOF;
     MCSetHouse($house, $cacheKey, $tr);
 
     PopulateLocaleCols($tr, [['func' => 'GetItemNames', 'key' => 'id', 'name' => 'name']]);
-    return $tr;
-}
-
-function HouseBotSellers($house)
-{
-    global $db;
-
-    $cacheKey = 'house_botsellers2';
-    if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
-        return $tr;
-    }
-
-    DBConnect();
-
-    $items = '128159, 127736, 127738, 127732, 127731, 127737, 127735, 127730, 127734, 127733, 127718, 128158, 127720, 127714, 127713, 127719, 127717, 127712, 127716, 127715';
-
-    $sql = <<<'EOF'
-select s.realm, s.name
-from (
-    select seller, count(distinct `snapshot`) cnt
-    from (
-        SELECT sih.seller, sih.item, sih.`snapshot`
-        FROM `tblSellerItemHistory` sih
-        join tblSeller s on sih.seller = s.id
-        join tblRealm r on s.realm = r.id
-        where r.house = ?
-        and sih.item in (%1$s)
-        and s.firstseen > timestampadd(day, -14, now())
-    ) z1
-    group by seller
-    having count(distinct item) = 2
-) z2
-join tblSeller s on s.id = z2.seller
-left join tblSellerItemHistory h on h.seller = z2.seller and h.item not in (%1$s)
-where h.seller is null
-and z2.cnt > 7
-and s.lastseen > timestampadd(hour, -48, now())
-order by s.lastseen desc
-limit 20
-EOF;
-
-    $stmt = $db->prepare(sprintf($sql, $items));
-    $stmt->bind_param('i', $house);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $tr = $result->fetch_all(MYSQLI_ASSOC);
-    $stmt->close();
-
-    MCSetHouse($house, $cacheKey, $tr);
-
     return $tr;
 }
