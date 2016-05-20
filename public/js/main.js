@@ -101,7 +101,7 @@ var libtuj = {
         }
 
         var s = libtuj.ce('span');
-        s.class = 'price';
+        s.className = 'price';
         if (v) {
             if (g) {
                 s.appendChild(document.createTextNode(g));
@@ -135,7 +135,7 @@ var libtuj = {
         }
 
         var sp = libtuj.ce('span');
-        sp.class = 'price full';
+        sp.className = 'price full';
         if (v) {
             var s2 = libtuj.ce('span');
             if (g) {
