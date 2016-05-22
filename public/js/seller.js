@@ -118,6 +118,19 @@ var TUJ_Seller = function ()
             SellerPostingHeatMap(dta, cht);
         }
 
+        if (dta.byClass && dta.byClass.length > 2) {
+            d = libtuj.ce();
+            d.className = 'chart-section';
+            h = libtuj.ce('h2');
+            d.appendChild(h);
+            $(h).text('Items By Class [PH]');
+            cht = libtuj.ce();
+            cht.className = 'chart byclass';
+            d.appendChild(cht);
+            sellerPage.append(d);
+            SellerByItemClass(dta, cht);
+        }
+
         if (dta.auctions.length) {
             d = libtuj.ce();
             d.className = 'chart-section';
@@ -387,6 +400,99 @@ var TUJ_Seller = function ()
                 }
             ]
 
+        });
+    }
+
+    function SellerByItemClass(data, dest)
+    {
+        var hcdata = {
+            byClass: [],
+            bySubClass: [],
+            classLookup: {},
+            grouped: {},
+            groupOrder: [],
+            totalAucs: 0,
+        };
+
+        data.byClass.sort(function(a,b) {
+            return b.aucs - a.aucs;
+        });
+
+        var colorArray = Highcharts.getOptions().colors;
+
+        for (var i = 0, row; row = data.byClass[i]; i++) {
+            if (!hcdata.classLookup.hasOwnProperty(row['class'])) {
+                hcdata.classLookup[row['class']] = hcdata.byClass.length;
+                hcdata.byClass.push({
+                    name: tuj.lang.itemClasses[row['class']],
+                    y: 0,
+                    color: colorArray[hcdata.byClass.length]
+                });
+                hcdata.grouped[row['class']] = [];
+                hcdata.groupOrder.push(row['class']);
+            }
+            hcdata.byClass[hcdata.classLookup[row['class']]].y += row.aucs;
+
+            hcdata.grouped[row['class']].push({
+                name: tuj.lang.itemClasses[row['class']] + ': ' + tuj.lang.itemSubClasses['' + row['class'] + '-' + row.subclass],
+                y: row.aucs,
+                color: Highcharts.Color(hcdata.byClass[hcdata.classLookup[row['class']]].color).brighten(0.1).get()
+            });
+
+            hcdata.totalAucs += row.aucs;
+        }
+
+        for (var i = 0; i < hcdata.groupOrder.length; i++) {
+            hcdata.bySubClass = hcdata.bySubClass.concat(hcdata.grouped[hcdata.groupOrder[i]]);
+        }
+
+        $(dest).highcharts({
+            chart: {
+                type: 'pie',
+                backgroundColor: tujConstants.siteColors[tuj.colorTheme].background
+            },
+
+            title: {
+                text: null
+            },
+
+            yAxis: {
+                title: null,
+            },
+
+            tooltip: {
+                formatter: function () {
+                    var tr = '<b>' + this.point.name + '</b>';
+                    tr += '<br>' + this.point.y + ' (' + Math.round(this.point.y / hcdata.totalAucs * 100) + '%)';
+                    return tr;
+                }
+            },
+
+            plotOptions: {
+                pie: {
+                    shadow: false,
+                    center: ['50%','100%'],
+                    startAngle: -90,
+                    endAngle: 90,
+                }
+            },
+
+            series: [{
+                data: hcdata.byClass,
+                size: '125%',
+                dataLabels: {
+                    formatter: function() {
+                        return this.y > hcdata.totalAucs * 0.02 ? this.point.name : null
+                    }
+                }
+            }, {
+                data: hcdata.bySubClass,
+                size: '175%',
+                innerSize: '125%',
+                dataLabels: {
+                    enabled: false,
+                }
+            }]
         });
     }
 
