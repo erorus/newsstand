@@ -35,7 +35,7 @@ json_return($resultFunc($house));
 
 function CategoryResult_battlepets($house)
 {
-    global $db, $canCache;
+    global $canCache;
 
     $key = 'category_bpets_l2';
 
@@ -50,7 +50,7 @@ function CategoryResult_battlepets($house)
         return ['name' => 'battlepets', 'results' => [['name' => 'BattlePetList', 'data' => $tr]]];
     }
 
-    DBConnect();
+    $db = DBConnect();
 
     $sql = <<<EOF
 SELECT ps.species, ps.breed, ps.price, ps.quantity, ps.lastseen, round(avg(ph.price)) avgprice, p.type, p.icon, p.npc, 0 regionavgprice
@@ -99,14 +99,14 @@ EOF;
 
 function CategoryBattlePetRegion($region)
 {
-    global $db, $canCache;
+    global $canCache;
 
     $key = 'category_bpets_regional_'.$region;
     if ($canCache && (($tr = MCGet($key)) !== false)) {
         return $tr;
     }
 
-    DBConnect();
+    $db = DBConnect();
 
     $sql = <<<EOF
 select i.species, i.breed, round(avg(i.price)) price
@@ -1623,7 +1623,7 @@ function CategoryResult_companions($house)
 
 function CategoryGenericItemList($house, $params)
 {
-    global $db, $canCache, $LANG_LEVEL;
+    global $canCache, $LANG_LEVEL;
 
     $key = 'category_gil2_' . md5(json_encode($params));
 
@@ -1636,7 +1636,7 @@ function CategoryGenericItemList($house, $params)
         return $tr;
     }
 
-    DBConnect();
+    $db = DBConnect();
 
     if (is_array($params)) {
         $joins = isset($params['joins']) ? $params['joins'] : '';
@@ -1699,7 +1699,7 @@ function CategoryDealsItemList($house, $dealsSql, $allowCrafted = 0)
         -1 = crafted only
     */
 
-    global $db, $canCache;
+    global $canCache;
 
     $key = 'category_di2_' . md5($dealsSql) . '_' . $allowCrafted;
 
@@ -1707,7 +1707,7 @@ function CategoryDealsItemList($house, $dealsSql, $allowCrafted = 0)
         return CategoryDealsItemListCached($house, $iidList);
     }
 
-    DBConnect();
+    $db = DBConnect();
 
     $region = GetRegion($house);
 
@@ -1771,8 +1771,6 @@ EOF;
 
 function CategoryDealsItemListCached($house, $iidList)
 {
-    global $db;
-
     if (count($iidList) == 0) {
         return array();
     }
@@ -1808,6 +1806,7 @@ function CategoryDealsItemListCached($house, $iidList)
     } else {
         $recentDates = MCGetHouse($house, 'category_disnapshots');
         if ($recentDates === false) {
+            $db = DBConnect();
             $stmt = $db->prepare('SELECT unix_timestamp(updated) upd, maxid FROM `tblSnapshot` WHERE house=? and updated > timestampadd(hour, -60, now()) order by updated');
             $stmt->bind_param('i', $house);
             $stmt->execute();
