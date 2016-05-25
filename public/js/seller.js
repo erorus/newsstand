@@ -125,7 +125,7 @@ var TUJ_Seller = function ()
             d.appendChild(h);
             $(h).text('Items By Class [PH]');
             cht = libtuj.ce();
-            cht.className = 'chart byclass';
+            cht.className = 'chart treemap';
             d.appendChild(cht);
             sellerPage.append(d);
             SellerByItemClass(dta, cht);
@@ -406,49 +406,50 @@ var TUJ_Seller = function ()
     function SellerByItemClass(data, dest)
     {
         var hcdata = {
-            byClass: [],
-            bySubClass: [],
+            data: [],
             classLookup: {},
-            grouped: {},
-            groupOrder: [],
             totalAucs: 0,
+            classCount: {},
+            totalClasses: 0,
         };
 
-        data.byClass.sort(function(a,b) {
-            return b.aucs - a.aucs;
-        });
-
-        var colorArray = Highcharts.getOptions().colors;
-
         for (var i = 0, row; row = data.byClass[i]; i++) {
-            if (!hcdata.classLookup.hasOwnProperty(row['class'])) {
-                hcdata.classLookup[row['class']] = hcdata.byClass.length;
-                hcdata.byClass.push({
-                    name: tuj.lang.itemClasses[row['class']],
-                    y: 0,
-                    color: colorArray[hcdata.byClass.length]
-                });
-                hcdata.grouped[row['class']] = [];
-                hcdata.groupOrder.push(row['class']);
+            if (!hcdata.classCount.hasOwnProperty(row['class'])) {
+                hcdata.classCount[row['class']] = 0;
+                hcdata.totalClasses++;
             }
-            hcdata.byClass[hcdata.classLookup[row['class']]].y += row.aucs;
-
-            hcdata.grouped[row['class']].push({
-                name: tuj.lang.itemClasses[row['class']] + ': ' + tuj.lang.itemSubClasses['' + row['class'] + '-' + row.subclass],
-                y: row.aucs,
-                color: Highcharts.Color(hcdata.byClass[hcdata.classLookup[row['class']]].color).brighten(0.1).get()
-            });
-
-            hcdata.totalAucs += row.aucs;
+            hcdata.classCount[row['class']] += row.aucs;
         }
 
-        for (var i = 0; i < hcdata.groupOrder.length; i++) {
-            hcdata.bySubClass = hcdata.bySubClass.concat(hcdata.grouped[hcdata.groupOrder[i]]);
+        data.byClass.sort(function(a,b) {
+            return hcdata.classCount[b['class']] - hcdata.classCount[a['class']]
+                || b.aucs - a.aucs;
+        });
+
+        var classesSeen = 0;
+        if (hcdata.totalClasses > 4) {
+            classesSeen = -1 * Math.floor(hcdata.totalClasses / 4);
+        }
+
+        for (i = 0, row; row = data.byClass[i]; i++) {
+            if (!hcdata.classLookup.hasOwnProperty(row['class'])) {
+                hcdata.classLookup[row['class']] = true;
+                hcdata.data.push({
+                    id: 'c' + row['class'],
+                    name: tuj.lang.itemClasses[row['class']],
+                    color: Highcharts.Color(tujConstants.siteColors[tuj.colorTheme].redQuantityBackground).brighten(classesSeen++ / (hcdata.totalClasses * 1.5)).get(),
+                });
+            }
+            hcdata.data.push({
+                name: tuj.lang.itemSubClasses[''+row['class']+'-'+row['subclass']],
+                parent: 'c' + row['class'],
+                value: row.aucs
+            });
+            hcdata.totalAucs += row.aucs;
         }
 
         $(dest).highcharts({
             chart: {
-                type: 'pie',
                 backgroundColor: tujConstants.siteColors[tuj.colorTheme].background
             },
 
@@ -462,8 +463,18 @@ var TUJ_Seller = function ()
 
             tooltip: {
                 formatter: function () {
-                    var tr = '<b>' + this.point.name + '</b>';
-                    tr += '<br>' + this.point.y + ' (' + Math.round(this.point.y / hcdata.totalAucs * 100) + '%)';
+                    var className = '';
+                    if (this.point.parent) {
+                        var classId = this.point.parent.substr(1);
+                        className = tuj.lang.itemClasses[classId] + ' - ';
+                    }
+
+                    var tr = '<b>' + className + this.point.name + '</b>';
+                    tr += '<br>' + tuj.lang.numberOfAuctions + ': <b>' + this.point.node.val + '</b>';
+                    if (this.point.parent) {
+                        tr += '<br><b>' + Math.round(this.point.node.val / hcdata.classCount[classId] * 100) + '%</b> \u2286 ' + tuj.lang.itemClasses[classId];
+                    }
+                    tr += '<br><b>' + Math.round(this.point.node.val / hcdata.totalAucs * 100) + '%</b> \u2286 ' + tuj.lang.all;
                     return tr;
                 }
             },
@@ -478,20 +489,20 @@ var TUJ_Seller = function ()
             },
 
             series: [{
-                data: hcdata.byClass,
-                size: '125%',
-                dataLabels: {
-                    formatter: function() {
-                        return this.y > hcdata.totalAucs * 0.02 ? this.point.name : null
+                type: 'treemap',
+                layoutAlgorithm: 'squarified',
+                alternateStartingDirection: true,
+                allowDrillToNode: true,
+                levels: [{
+                    level: 1,
+                    layoutAlgorithm: 'stripes',
+                    dataLabels: {
+                        enabled: true,
+                        align: 'left',
+                        verticalAlign: 'top',
                     }
-                }
-            }, {
-                data: hcdata.bySubClass,
-                size: '175%',
-                innerSize: '125%',
-                dataLabels: {
-                    enabled: false,
-                }
+                }],
+                data: hcdata.data,
             }]
         });
     }
