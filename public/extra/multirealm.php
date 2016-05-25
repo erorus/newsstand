@@ -68,7 +68,7 @@
         and r.region = 'US'
         and s.firstseen > timestampadd(day, -14, now())
         and s.lastseen > timestampadd(hour, -36, now())
-        order by r.house, s.firstseen, z2.cnt desc, s.lastseen desc
+        order by r.house, s.firstseen, z2.sscnt desc, s.lastseen desc
 EOF;
 
         $db = DBConnect();
