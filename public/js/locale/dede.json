@@ -141,6 +141,8 @@
     "recentSellers": "Kürzliche Verkäufer",
     "recentSellersDesc": "Diese Verkäufer haben kürzlich die größte Menge an {1} ins Auktionshaus gestellt.",
     "recentSellersDesc": "These sellers posted the greatest quantity of {1} recently.",
+    "auctionsByItemClass": "Auctions by Item Class",
+    "auctionsByItemClassDesc": "This shows the relative count of auctions recently posted by this seller, grouped by item class and subclass.",
 
     "availableQuantity": "Verfügbare Menge",
     "availableAbbrev": "Verfügb.",

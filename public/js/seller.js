@@ -123,7 +123,8 @@ var TUJ_Seller = function ()
             d.className = 'chart-section';
             h = libtuj.ce('h2');
             d.appendChild(h);
-            $(h).text('Items By Class [PH]');
+            $(h).text(tuj.lang.auctionsByItemClass);
+            d.appendChild(document.createTextNode(tuj.lang.auctionsByItemClassDesc))
             cht = libtuj.ce();
             cht.className = 'chart treemap';
             d.appendChild(cht);
