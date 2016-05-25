@@ -22,15 +22,44 @@ if (!$message) {
     $message = $LANG['subscriptionTimeAddedMessage'];
 }
 
-$paidUntil = AddPaidTime($user, $seconds);
-if ($paidUntil === false) {
-    exit(3);
+if ($user > 0) {
+    AddTheTime($user, $seconds, $message);
+} elseif ($user == -1) {
+    AddToCurrentSubs($seconds, $message);
 }
 
-if ($paidUntil > time()) {
-    $message .= "<br><br>" . sprintf(preg_replace('/\{(\d+)\}/', '%$1$s', $LANG['paidExpires']), date('Y-m-d H:i:s e', $paidUntil));
+function AddToCurrentSubs($seconds, $message) {
+    $allGood = true;
+
+    $db = DBConnect(true);
+    $stmt = $db->prepare('select id from tblUser where paiduntil > now()');
+    $stmt->execute();
+    $user = null;
+    $stmt->bind_result($user);
+    while ($stmt->fetch()) {
+        $allGood &= AddTheTime($user, $seconds, $message);
+    }
+    $stmt->close();
+    $db->close();
+
+    return $allGood;
 }
 
-SendUserMessage($user, 'Subscription', $LANG['paidSubscription'], $message);
+function AddTheTime($user, $seconds, $message) {
+    global $LANG;
 
-echo "$message\n";
+    $paidUntil = AddPaidTime($user, $seconds);
+    if ($paidUntil === false) {
+        echo "Error adding $seconds to $user\n";
+        return false;
+    }
+
+    if ($paidUntil > time()) {
+        $message .= "<br><br>" . sprintf(preg_replace('/\{(\d+)\}/', '%$1$s', $LANG['paidExpires']), date('Y-m-d H:i:s e', $paidUntil));
+    }
+
+    SendUserMessage($user, 'Subscription', $LANG['paidSubscription'], $message);
+
+    echo "$user: $message\n";
+    return true;
+}
