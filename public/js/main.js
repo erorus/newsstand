@@ -1275,6 +1275,7 @@ var TUJ = function ()
             $('#front-page-sellers').empty();
             $('#front-page-most-available').empty();
             $('#front-page-deals').empty();
+            $('#front-page-sellerbots').empty();
 
             if (houseInfo.hasOwnProperty(tuj.realms[self.params.realm].house)) {
                 var info = houseInfo[tuj.realms[self.params.realm].house];
@@ -1319,6 +1320,22 @@ var TUJ = function ()
                         d.appendChild(libtuj.ce('br'));
                     }
                 }
+                if (info.hasOwnProperty('sellerbots') && info.sellerbots.length) {
+                    var d = document.getElementById('front-page-sellerbots');
+                    var h = libtuj.ce('h3');
+                    d.appendChild(h);
+                    var a = libtuj.ce('a');
+                    h.appendChild(a);
+                    a.href = '/extra/multirealm.php';
+                    $(a).addClass('highlight').text('Probable Bots');
+                    for (var x = 0; x < info.sellerbots.length; x++) {
+                        var a = libtuj.ce('a');
+                        a.href = tuj.BuildHash({page: 'seller', realm: info.sellerbots[x].realm, id: info.sellerbots[x].name});
+                        a.appendChild(document.createTextNode(info.sellerbots[x].name + (info.sellerbots[x].realm == self.params.realm ? '' : (' - ' + tuj.realms[info.sellerbots[x].realm].name))));
+                        d.appendChild(a);
+                        d.appendChild(libtuj.ce('br'));
+                    }
+                }
             }
 
             $('#front-page-banned').hide();
@@ -1348,6 +1365,23 @@ var TUJ = function ()
             }
         }
     }
+
+    this.SellerIsBot = function (realm, name)
+    {
+        var house = tuj.realms[realm].house;
+        if (!houseInfo.hasOwnProperty(house)) {
+            return false;
+        }
+        if (!houseInfo[house].hasOwnProperty('sellerbots')) {
+            return false;
+        }
+        for (var x = 0, bot; bot = houseInfo[house].sellerbots[x]; x++) {
+            if (bot.realm == realm && bot.name == name) {
+                return true;
+            }
+        }
+        return false;
+    };
 
     this.SetTitle = function (titlePart)
     {

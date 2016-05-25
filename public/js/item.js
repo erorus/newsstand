@@ -2782,6 +2782,9 @@ var TUJ_Item = function ()
                 if (auc.sellerrealm) {
                     a = libtuj.ce('a');
                     a.href = tuj.BuildHash({realm: auc.sellerrealm, page: 'seller', id: auc.sellername});
+                    if (tuj.SellerIsBot(auc.sellerrealm, auc.sellername)) {
+                        a.className = 'sellerbot';
+                    }
                 }
                 else {
                     a = libtuj.ce('span');
