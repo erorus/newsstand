@@ -28,6 +28,7 @@ if (!$sellerRow) {
 $json = array(
     'stats'       => $sellerRow,
     'history'     => SellerHistory($house, $sellerRow['id']),
+    'byClass'     => SellerByClass($house, $sellerRow['id']),
     'auctions'    => SellerAuctions($house, $sellerRow['id']),
     'petAuctions' => SellerPetAuctions($house, $sellerRow['id']),
 );
@@ -36,8 +37,6 @@ json_return($json);
 
 function SellerStats($house, $realm, $seller)
 {
-    global $db;
-
     $seller = mb_ereg_replace(' ', '', $seller);
     $seller = mb_strtoupper(mb_substr($seller, 0, 1)) . mb_strtolower(mb_substr($seller, 1));
 
@@ -47,7 +46,7 @@ function SellerStats($house, $realm, $seller)
         return $tr;
     }
 
-    DBConnect();
+    $db = DBConnect();
 
     $sql = 'SELECT * FROM tblSeller s WHERE realm = ? AND name = ?';
     $stmt = $db->prepare($sql);
@@ -67,15 +66,13 @@ function SellerStats($house, $realm, $seller)
 
 function SellerHistory($house, $seller)
 {
-    global $db;
-
     $key = 'seller_history2_' . $seller;
 
     if (($tr = MCGetHouse($house, $key)) !== false) {
         return $tr;
     }
 
-    DBConnect();
+    $db = DBConnect();
 
     $historyDays = HISTORY_DAYS;
 
@@ -98,6 +95,40 @@ EOF;
     while (count($tr) > 0 && is_null($tr[0]['total'])) {
         array_shift($tr);
     }
+
+    MCSetHouse($house, $key, $tr);
+
+    return $tr;
+}
+
+function SellerByClass($house, $seller)
+{
+    $key = 'seller_byclass_' . $seller;
+
+    if (($tr = MCGetHouse($house, $key)) !== false) {
+        return $tr;
+    }
+
+    $db = DBConnect();
+
+    $historyDays = HISTORY_DAYS;
+
+    $sql = <<<EOF
+select i.class, i.subclass, sum(sih.auctions) aucs
+from tblSellerItemHistory sih
+join tblDBCItem i on i.id = sih.item
+where sih.seller = ?
+and sih.snapshot >= timestampadd(day,-$historyDays,now())
+group by i.class, i.subclass
+EOF;
+
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('i', $seller);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $tr = $result->fetch_all(MYSQLI_ASSOC);
+    $result->close();
+    $stmt->close();
 
     MCSetHouse($house, $key, $tr);
 

@@ -140,6 +140,8 @@
     "currentAuctionsDesc": "Qui c'è la lista completa di aste per questo {1} dall'ultima rilevazione. Clicca sul nome del venditore per avere dettagli a riguardo.",
     "recentSellers": "Recent Sellers",
     "recentSellersDesc": "These sellers posted the greatest quantity of {1} recently.",
+    "auctionsByItemClass": "Auctions by Item Class",
+    "auctionsByItemClassDesc": "This shows the relative count of auctions recently posted by this seller, grouped by item class and subclass.",
 
     "availableQuantity": "Quantità Disponibile",
     "availableAbbrev": "Disp",

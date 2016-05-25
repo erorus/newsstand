@@ -133,6 +133,20 @@ var TUJ_Seller = function ()
             SellerPostingHeatMap(dta, cht);
         }
 
+        if (dta.byClass && dta.byClass.length > 2) {
+            d = libtuj.ce();
+            d.className = 'chart-section';
+            h = libtuj.ce('h2');
+            d.appendChild(h);
+            $(h).text(tuj.lang.auctionsByItemClass);
+            d.appendChild(document.createTextNode(tuj.lang.auctionsByItemClassDesc))
+            cht = libtuj.ce();
+            cht.className = 'chart treemap';
+            d.appendChild(cht);
+            sellerPage.append(d);
+            SellerByItemClass(dta, cht);
+        }
+
         if (dta.auctions.length) {
             d = libtuj.ce();
             d.className = 'chart-section';
@@ -402,6 +416,110 @@ var TUJ_Seller = function ()
                 }
             ]
 
+        });
+    }
+
+    function SellerByItemClass(data, dest)
+    {
+        var hcdata = {
+            data: [],
+            classLookup: {},
+            totalAucs: 0,
+            classCount: {},
+            totalClasses: 0,
+        };
+
+        for (var i = 0, row; row = data.byClass[i]; i++) {
+            if (!hcdata.classCount.hasOwnProperty(row['class'])) {
+                hcdata.classCount[row['class']] = 0;
+                hcdata.totalClasses++;
+            }
+            hcdata.classCount[row['class']] += row.aucs;
+        }
+
+        data.byClass.sort(function(a,b) {
+            return hcdata.classCount[b['class']] - hcdata.classCount[a['class']]
+                || b.aucs - a.aucs;
+        });
+
+        var classesSeen = 0;
+        if (hcdata.totalClasses > 4) {
+            classesSeen = -1 * Math.floor(hcdata.totalClasses / 4);
+        }
+
+        for (i = 0, row; row = data.byClass[i]; i++) {
+            if (!hcdata.classLookup.hasOwnProperty(row['class'])) {
+                hcdata.classLookup[row['class']] = true;
+                hcdata.data.push({
+                    id: 'c' + row['class'],
+                    name: tuj.lang.itemClasses[row['class']],
+                    color: Highcharts.Color(tujConstants.siteColors[tuj.colorTheme].redQuantityBackground).brighten(classesSeen++ / (hcdata.totalClasses * 1.5)).get(),
+                });
+            }
+            hcdata.data.push({
+                name: tuj.lang.itemSubClasses[''+row['class']+'-'+row['subclass']],
+                parent: 'c' + row['class'],
+                value: row.aucs
+            });
+            hcdata.totalAucs += row.aucs;
+        }
+
+        $(dest).highcharts({
+            chart: {
+                backgroundColor: tujConstants.siteColors[tuj.colorTheme].background
+            },
+
+            title: {
+                text: null
+            },
+
+            yAxis: {
+                title: null,
+            },
+
+            tooltip: {
+                formatter: function () {
+                    var className = '';
+                    if (this.point.parent) {
+                        var classId = this.point.parent.substr(1);
+                        className = tuj.lang.itemClasses[classId] + ' - ';
+                    }
+
+                    var tr = '<b>' + className + this.point.name + '</b>';
+                    tr += '<br>' + tuj.lang.numberOfAuctions + ': <b>' + this.point.node.val + '</b>';
+                    if (this.point.parent) {
+                        tr += '<br><b>' + Math.round(this.point.node.val / hcdata.classCount[classId] * 100) + '%</b> \u2286 ' + tuj.lang.itemClasses[classId];
+                    }
+                    tr += '<br><b>' + Math.round(this.point.node.val / hcdata.totalAucs * 100) + '%</b> \u2286 ' + tuj.lang.all;
+                    return tr;
+                }
+            },
+
+            plotOptions: {
+                pie: {
+                    shadow: false,
+                    center: ['50%','100%'],
+                    startAngle: -90,
+                    endAngle: 90,
+                }
+            },
+
+            series: [{
+                type: 'treemap',
+                layoutAlgorithm: 'squarified',
+                alternateStartingDirection: true,
+                allowDrillToNode: true,
+                levels: [{
+                    level: 1,
+                    layoutAlgorithm: 'stripes',
+                    dataLabels: {
+                        enabled: true,
+                        align: 'left',
+                        verticalAlign: 'top',
+                    }
+                }],
+                data: hcdata.data,
+            }]
         });
     }
 

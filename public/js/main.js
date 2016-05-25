@@ -809,6 +809,10 @@ var TUJ = function ()
             return;
         }
 
+        if (typeof window.tujLocaleVersion == 'undefined') {
+            window.tujLocaleVersion = 0;
+        }
+
         $.ajax({
             success: function(dta) {
                 if (dta.hasOwnProperty('localeCode')) {
@@ -825,7 +829,7 @@ var TUJ = function ()
                     LoadLocale('enus', true);
                 }
             },
-            url: 'js/locale/' + locName + '.json'
+            url: 'js/locale/' + locName + '.json?' + window.tujLocaleVersion
         });
     }
 
