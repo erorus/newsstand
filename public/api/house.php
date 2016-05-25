@@ -242,12 +242,12 @@ from (
         and s.firstseen > timestampadd(day, -14, now())
     ) z1
     group by seller
-    having count(distinct item) = 2
+    having count(distinct item) >= 14
 ) z2
 join tblSeller s on s.id = z2.seller
 left join tblSellerItemHistory h on h.seller = z2.seller and h.item not in (%1$s)
 where h.seller is null
-and z2.cnt > 7
+and z2.cnt >= 3
 and s.lastseen > timestampadd(hour, -48, now())
 order by s.lastseen desc
 limit 20

@@ -40,7 +40,7 @@
     }
 
     function GetSellerList() {
-        $cacheKey = 'extra:multirealm:sellers3';
+        $cacheKey = 'extra:multirealm:sellers4';
 
         $sellers = MCGet($cacheKey);
         if ($sellers !== false) {
@@ -50,23 +50,23 @@
         $sellers = [];
 
         $sql = <<<'EOF'
-        select z2.cnt, s.name sellername, r.name realmname, s.firstseen, s.lastseen, r.house, r.slug
+        select z2.sscnt, z2.itemcnt, s.name sellername, r.name realmname, s.firstseen, s.lastseen, r.house, r.slug
         from (
-            select seller, count(distinct `snapshot`) cnt
+            select seller, count(distinct `snapshot`) sscnt, count(distinct item) itemcnt
             from (
                 SELECT seller, item, `snapshot`
                 FROM `tblSellerItemHistory` 
                 where item in (128159, 127736, 127738, 127732, 127731, 127737, 127735, 127730, 127734, 127733, 127718, 128158, 127720, 127714, 127713, 127719, 127717, 127712, 127716, 127715)
             ) z1
             group by seller
-            having count(distinct item) = 2
+            having (count(distinct item) = 2 or count(distinct item) > 14)
         ) z2
         left join tblSellerItemHistory h on h.seller = z2.seller and h.item not in (128159, 127736, 127738, 127732, 127731, 127737, 127735, 127730, 127734, 127733, 127718, 128158, 127720, 127714, 127713, 127719, 127717, 127712, 127716, 127715)
         join tblSeller s on s.id = z2.seller
         join tblRealm r on s.realm = r.id
         where h.seller is null
         and r.region = 'US'
-        and s.firstseen > '2016-04-01'
+        and s.firstseen > timestampadd(day, -14, now())
         and s.lastseen > timestampadd(hour, -36, now())
         order by r.house, s.firstseen, z2.cnt desc, s.lastseen desc
 EOF;
@@ -109,12 +109,22 @@ EOF;
                         echo '<td>', FormatDate($sellerRow['firstseen']), '</td>';
                         echo '<td>', FormatDate($sellerRow['lastseen']), '</td>';
                         echo '<td>';
-                        if ($sellerRow['cnt'] < 3) {
-                            echo 'Low';
-                        } elseif ($sellerRow['cnt'] < 8) {
-                            echo 'Medium';
+                        if ($sellerRow['itemcnt'] < 10) {
+                            if ($sellerRow['sscnt'] < 4) {
+                                echo 'Low';
+                            } elseif ($sellerRow['sscnt'] < 8) {
+                                echo 'Medium';
+                            } else {
+                                echo 'High';
+                            }
                         } else {
-                            echo 'High';
+                            if ($sellerRow['sscnt'] < 3) {
+                                echo 'Low';
+                            } elseif ($sellerRow['sscnt'] < 6) {
+                                echo 'Medium';
+                            } else {
+                                echo 'High';
+                            }
                         }
                         echo '</td></tr>';
                     }
@@ -189,6 +199,9 @@ EOF;
             <li><a href="http://www.wowhead.com/item=127733">Savage Hexweave Essence</a> + <a href="http://www.wowhead.com/item=127734">Savage Taladite Amplifier</a></li>
             <li><a href="http://www.wowhead.com/item=127731">Savage Steelforged Essence</a> + <a href="http://www.wowhead.com/item=127737">Taladite Firing Pin</a></li>
         </ul></p>
+
+        <p><b>Update: May 25, 2016</b></p>
+        <p>The corporation has changed to a pattern of selling most/all of the above 20 items on one seller per auction house, changing to a new seller name about once per day.</p>
 
         <p>We credit <a href="https://www.reddit.com/r/woweconomy/comments/4fd5l6/notice_the_multiserver_bot_army_has_now_moved_to/"><b>Sweetblingz</b> on Reddit</a> for first calling our attention to this phenomenon. Visit that Reddit thread for more information and discussion.</p>
 
