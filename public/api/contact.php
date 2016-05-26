@@ -18,9 +18,21 @@ if ($_POST['subject'] != "Subject") {
 
 unset($_POST['subject']);
 
+if (isset($_SERVER['CONTENT_TYPE'])) {
+    if (preg_match('/;\s*charset=([^;]+)/i', $_SERVER['CONTENT_TYPE'], $m)) {
+        if ($m[1] != 'UTF-8' && in_array($m[1], mb_list_encodings())) {
+            foreach ($_POST as &$value) {
+                $value = mb_convert_encoding($value, 'UTF-8', $m[1]);
+            }
+            unset($value);
+        }
+    }
+}
+
 $headers = array();
 $headers['Date'] = Date(DATE_RFC2822);
-$headers['Content-Type'] = 'text/plain; charset=ISO-8859-1; format=flowed';
+$headers['Content-Type'] = 'text/plain; charset=UTF-8; format="flowed"';
+$headers['Content-Transfer-Encoding'] = 'base64';
 $headers['From'] = 'Contact Form <contactform@from.theunderminejournal.com>';
 
 if (preg_match('/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/i', $_POST['from'], $res) > 0) {
@@ -52,7 +64,7 @@ if (isset($_POST['house'])) {
 
 $body .= "\n---------------\n" . $_POST['message'];
 
-$body = preg_replace_callback('/(?<=^|\n)([^\n]+)(?:\n|$)/', create_function('$m', 'return ((strlen(trim($m[1]))>0)?wordwrap($m[1],66," \n"):"")."\n";'), strip_8bit_chars(utf8_decode(strip_tags(str_replace('&amp;', '&', str_replace('&quot;', '"', str_replace('&lt;', '<', $body)))))));
+$body = wordwrap(base64_encode($body), 70, "\n", true);
 
 $headerString = '';
 foreach ($headers as $k => $v) {
@@ -62,13 +74,3 @@ $result = mail('The Editor <editor@theunderminejournal.com>','Letter to the Edit
 
 json_return($result ? array() : false);
 
-function strip_8bit_chars($str)
-{
-    $l = strlen($str);
-    for ($x = 0; $x < $l; $x++) {
-        if (ord(substr($str, $x, 1)) > 127) {
-            $str = substr($str, 0, $x) . '?' . substr($str, $x + 1);
-        }
-    }
-    return $str;
-}
