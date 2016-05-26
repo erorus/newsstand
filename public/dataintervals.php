@@ -24,12 +24,12 @@ echo '</body></html>';
 
 function DataIntervalsData()
 {
-    global $db;
+    $cacheKey = 'dataintervalstable2';
 
-    if (($tr = MCGet('dataintervalstable')) !== false)
+    if (($tr = MCGet($cacheKey)) !== false)
         return $tr;
 
-    DBConnect();
+    $db = DBConnect();
 
     $sql = <<<EOF
 select t.house, t.lastupdate, t.mindelta * 60 mindelta, t.avgdelta * 60 avgdelta, t.maxdelta * 60 maxdelta, r.region, group_concat(r.name order by 1 separator ', ') nms from (
@@ -42,7 +42,7 @@ if(@prevhouse = sn.house and sn.updated > timestampadd(hour, -72, now()), unix_t
 from (select @prevhouse := null, @prevdate := null) setup, tblSnapshot sn
 order by sn.house, sn.updated) deltas
 group by deltas.house) t
-join tblRealm r on r.house = t.house
+join tblRealm r on r.house = t.house and r.locale is not null
 group by r.house
 order by 3 asc, 4 asc, region asc, nms asc
 EOF;
@@ -53,7 +53,7 @@ EOF;
     $tr = DBMapArray($result, null);
     $stmt->close();
 
-    MCSet('dataintervalstable', $tr, 60);
+    MCSet($cacheKey, $tr, 60);
 
     return $tr;
 }
