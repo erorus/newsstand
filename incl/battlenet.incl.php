@@ -3,7 +3,7 @@
 require_once(__DIR__ . '/memcache.incl.php');
 require_once(__DIR__ . '/battlenet.credentials.php');
 
-define('BATTLE_NET_REQUEST_LIMIT', 8); // per period
+define('BATTLE_NET_REQUEST_LIMIT', 50); // per period
 define('BATTLE_NET_REQUEST_PERIOD', 1); // seconds
 
 function GetBattleNetURL($region, $path)

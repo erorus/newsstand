@@ -1,1 +1,132 @@
-No
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Does the API work?</title>
+    <style type="text/css">
+        body{margin:40px auto;max-width:650px;line-height:1.6;font-size:18px;color:#444;padding:0 10px}
+        h1,h2,h3{line-height:1.2}
+        #result {
+            font-size: 500%; font-family: sans-serif; text-align: center; font-weight: bold; margin: 75px 0
+        }
+        .yes { color: green }
+        .no { color: red }
+    </style>
+</head>
+<body>
+    <h1>Does the API work?</h1>
+
+    <noscript>You'll need Javascript for this one, sorry.</noscript>
+
+    <div id="result"></div>
+    <div id="failures"></div>
+    <div id="lastupdate"></div>
+
+    <h2>(for the <a href="https://dev.battle.net">Battle.net Auction House API</a>)</h2>
+
+    <h3>Brought to you by <a href="https://theunderminejournal.com">The Undermine Journal</a></h3>
+
+<script type="text/javascript">
+    function PrettySeconds(s) {
+        s = parseInt(s, 10);
+
+        if (s <= 0) {
+            return 'Immediately';
+        }
+        if (s <= 90) {
+            return '' + s + " seconds";
+        }
+        var m = Math.round(s/60);
+        if (m <= 90) {
+            return '' + m + ' minutes';
+        }
+        var h = Math.floor(m/60);
+        m = m % 60;
+        return '' + h + ' hours, ' + m + ' minutes';
+    }
+
+    function FetchJson() {
+        var req = new XMLHttpRequest();
+        if (!req) return;
+        req.open('GET','times.json',true);
+        req.setRequestHeader('User-Agent','XMLHTTP/1.0');
+        req.onreadystatechange = function () {
+            if (req.readyState != 4) return;
+            if (req.status != 200 && req.status != 304) {
+                return;
+            }
+            ReadJson(req.response);
+        };
+        if (req.readyState == 4) return;
+        req.send();
+    }
+
+    function ReadJson(response) {
+        if (typeof response != 'object') {
+            response = JSON.parse(response);
+        }
+
+        document.getElementById('lastupdate').innerHTML = 'Last updated: ' + PrettySeconds(Math.floor((Date.now() - response.finished) / 1000)) + ' ago (' + (new Date(response.finished)).toLocaleString() + ')';
+
+        var resultDiv = document.getElementById('result');
+
+        if (!response.hasOwnProperty('regions') || response.finished < (Date.now() - 20 * 60 * 1000)) {
+            resultDiv.appendChild(document.createTextNode('Unknown!'));
+            return;
+        }
+
+        var failures = [];
+        var failPrefix;
+        var row;
+        var slugCount;
+        for (var region in response.regions) {
+            if (!response.regions.hasOwnProperty(region)) {
+                continue;
+            }
+            slugCount = 0;
+            for (var slug in response.regions[region]) {
+                if (!response.regions[region].hasOwnProperty(slug)) {
+                    continue;
+                }
+                slugCount++;
+                row = response.regions[region][slug];
+                failPrefix = '<b>' + region.toUpperCase() + ' ' + (row.name ? row.name : slug) + '</b>: ';
+                if (!row.modified) {
+                    failures.push(failPrefix + ' did not respond.');
+                    continue;
+                }
+                if (row.checked - row.modified > 90 * 60 * 1000) {
+                    failures.push(failPrefix + ' modified ' + PrettySeconds(Math.floor((row.checked - row.modified) / 1000)) + ' ago.');
+                }
+            }
+            if (slugCount == 0) {
+                failures.push('<b>' + region.toUpperCase() + '</b> realm list did not respond.');
+            }
+        }
+        failures.sort(function(a,b) { return a.localeCompare(b); });
+        if (failures.length == 0) {
+            resultDiv.appendChild(document.createTextNode('Yes'));
+            resultDiv.className = 'yes';
+        } else {
+            resultDiv.appendChild(document.createTextNode('NO'));
+            resultDiv.className = 'no';
+
+            var li, ul = document.createElement('ol');
+            for (var x = 0; x < failures.length; x++) {
+                li = document.createElement('li');
+                li.innerHTML = failures[x];
+                ul.appendChild(li);
+            }
+
+            document.getElementById('failures').appendChild(ul);
+        }
+
+
+    }
+
+    FetchJson();
+</script>
+
+</body>
+</html>
