@@ -79,9 +79,9 @@ EOF;
         $tr .= '<tr>';
         $tr .= '<td>'.$row['region'].'</td>';
         $tr .= '<td>'.$row['nms'].'</td>';
-        $tr .= '<td align="right">'.TimeDiff(time() - $row['mindelta'], $opt).'</td>';
-        $tr .= '<td align="right">'.TimeDiff(time() - $row['avgdelta'], $opt).'</td>';
-        $tr .= '<td align="right">'.TimeDiff(time() - $row['maxdelta'], $opt).'</td>';
+        $tr .= '<td align="right">'.(is_null($row['mindelta']) ? '' : TimeDiff(time() - $row['mindelta'], $opt)).'</td>';
+        $tr .= '<td align="right">'.(is_null($row['avgdelta']) ? '' : TimeDiff(time() - $row['avgdelta'], $opt)).'</td>';
+        $tr .= '<td align="right">'.(is_null($row['maxdelta']) ? '' : TimeDiff(time() - $row['maxdelta'], $opt)).'</td>';
         $tr .= '<td align="right">'.TimeDiff(strtotime($row['lastupdate'])).'</td>';
         $tr .= '</tr>';
     }
