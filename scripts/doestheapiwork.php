@@ -10,11 +10,6 @@ CatchKill();
 
 $startTime = time();
 
-if (!isset($argv[1])) {
-    DebugMessage("Put json filename to write as first arg.", E_USER_ERROR);
-    exit(1);
-}
-
 $file = [];
 $file['note'] = 'Brought to you by https://does.theapi.work/';
 $file['started'] = JSNow();
@@ -27,7 +22,7 @@ foreach (['us','eu'] as $region) {
 $file['finished'] = JSNow();
 
 if (!$caughtKill) {
-    $fn = $argv[1];
+    $fn = isset($argv[1]) ? $argv[1] : __DIR__.'/../theapi.work/times.json';
     $pth = dirname($fn);
 
     $fnTmp = tempnam($pth, 'doestheapiwork-writing');
@@ -87,6 +82,7 @@ function FetchRegionData($region) {
 
         $resultRow = [
             'name' => $realmRow['name'],
+            'canonical' => 1,
         ];
 
         $results[$slug] = $resultRow;

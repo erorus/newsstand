@@ -5,10 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Does the API work?</title>
     <style type="text/css">
-        body{margin:40px auto;max-width:650px;line-height:1.6;font-size:18px;color:#444;padding:0 10px}
+        body{font-family: sans-serif; margin:40px auto;max-width:650px;line-height:1.6;font-size:18px;color:#444;padding:0 10px}
         h1,h2,h3{line-height:1.2}
         #result {
-            font-size: 500%; font-family: sans-serif; text-align: center; font-weight: bold; margin: 75px 0
+            font-size: 500%; text-align: center; font-weight: bold; margin: 75px 0
+        }
+        #percentages {
+            text-align: center; font-weight: bold;
         }
         .yes { color: green }
         .no { color: red }
@@ -20,6 +23,7 @@
     <noscript>You'll need Javascript for this one, sorry.</noscript>
 
     <div id="result"></div>
+    <div id="percentages"></div>
     <div id="failures"></div>
     <div id="lastupdate"></div>
 
@@ -80,17 +84,25 @@
         var failPrefix;
         var row;
         var slugCount;
+        var percentages = [];
+        var successful, total;
         for (var region in response.regions) {
             if (!response.regions.hasOwnProperty(region)) {
                 continue;
             }
             slugCount = 0;
+            total = 0;
+            successful = 0;
+
             for (var slug in response.regions[region]) {
                 if (!response.regions[region].hasOwnProperty(slug)) {
                     continue;
                 }
                 slugCount++;
                 row = response.regions[region][slug];
+                if (row.canonical) {
+                    total++;
+                }
                 failPrefix = '<b>' + region.toUpperCase() + ' ' + (row.name ? row.name : slug) + '</b>: ';
                 if (!row.modified) {
                     failures.push(failPrefix + ' did not respond.');
@@ -98,13 +110,23 @@
                 }
                 if (row.checked - row.modified > 90 * 60 * 1000) {
                     failures.push(failPrefix + ' modified ' + PrettySeconds(Math.floor((row.checked - row.modified) / 1000)) + ' ago.');
+                    continue;
+                }
+                if (row.canonical) {
+                    successful++;
                 }
             }
             if (slugCount == 0) {
                 failures.push('<b>' + region.toUpperCase() + '</b> realm list did not respond.');
+                percentages.push('<b>' + region.toUpperCase() + '</b>: 0% working');
+            } else {
+                percentages.push('<b>' + region.toUpperCase() + '</b>: ' + Math.round(successful / total * 100) + '% working');
             }
         }
-        failures.sort(function(a,b) { return a.localeCompare(b); });
+        var srt = function(a,b) { return a.localeCompare(b); };
+        failures.sort(srt);
+        percentages.sort(srt);
+
         if (failures.length == 0) {
             resultDiv.appendChild(document.createTextNode('Yes'));
             resultDiv.className = 'yes';
@@ -122,6 +144,11 @@
             document.getElementById('failures').appendChild(ul);
         }
 
+        for (var x = 0; x < percentages.length; x++) {
+            var d = document.createElement('div');
+            d.innerHTML = percentages[x];
+            document.getElementById('percentages').appendChild(d);
+        }
 
     }
 
