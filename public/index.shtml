@@ -241,8 +241,8 @@
                         </form>
 
                         <p>
-                            Note: we will not entertain any raw auction data requests.<br>
-                            Visit <a href="https://dev.battle.net/">the Battle.net API</a> for raw auction data.
+                            Note: we will not entertain any auction data requests.<br>
+                            Visit <a href="https://dev.battle.net/">the Battle.net API</a> for live auction data, or the <a href="https://newswire.theunderminejournal.com">Newswire API</a> for historical data.
                         </p>
                     </div>
                     <div class="error">
