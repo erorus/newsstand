@@ -112,7 +112,7 @@
                     continue;
                 }
                 if (row.checked - row.modified > 90 * 60 * 1000) {
-                    failures.push(failPrefix + ' modified ' + PrettySeconds(Math.floor((row.checked - row.modified) / 1000)) + ' ago.');
+                    failures.push(failPrefix + ' ' + PrettySeconds(Math.floor((row.checked - row.modified) / 1000)) + ' old.');
                     continue;
                 }
                 if (row.canonical) {
