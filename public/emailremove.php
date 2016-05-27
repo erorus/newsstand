@@ -62,5 +62,5 @@ function BlockMailId($mailId) {
 
     DisableEmailAddress($address['address']);
 
-    return $address[0] . ' will no longer receive any mail from The Undermine Journal.';
+    return $address['address'] . ' will no longer receive any mail from The Undermine Journal.';
 }
