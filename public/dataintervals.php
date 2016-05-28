@@ -1,5 +1,10 @@
 <?php
 
+if (strtotime('June 30, 2016') > time()) {
+    header('Location: https://does.theapi.work/');
+    exit;
+}
+
 require_once('../incl/incl.php');
 require_once('../incl/memcache.incl.php');
 
