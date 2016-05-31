@@ -191,11 +191,18 @@ function ShowLogs()
     foreach ($files as $path) {
         ob_start();
         switch (basename($path)) {
-            case 'error.log':
+            case 'backupdata.log':
+            case 'backupuser.log':
+                passthru('grep -v '.escapeshellarg('^--').' '.escapeshellarg($path).' | tail -n 20');
+                break;
+            case 'error.undermine.log':
+            case 'error.wowtoken.log':
                 passthru('grep -v '.escapeshellarg('SSL:').' '.escapeshellarg($path).' | tail -n 20');
                 break;
+            case 'scripterrors.log':
+                passthru('grep -v '.escapeshellarg('worldofwarcraft.com/auction-data/').' '.escapeshellarg($path).' | tail -n 20');
+                break;
             case 'private.access.log':
-            case 'error.undermine.log':
                 passthru('grep -v '.escapeshellarg('^'.$_SERVER['REMOTE_ADDR'].' ').' '.escapeshellarg($path).' | tail -n 20');
                 break;
             default:
