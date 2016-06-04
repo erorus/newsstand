@@ -2655,7 +2655,7 @@ var TUJ_Item = function ()
                     tr += '<b>' + this.points[0].x + '</b>';
                     tr += '<br>' + tuj.lang.lastSeen + ' ' + libtuj.FormatDate(data.sellers[x].lastseen, true) + '<br>';
                     tr += '<br><span style="color: #990000">' + libtuj.sprintf(tuj.lang.timePast, ' 0-4 ' + tuj.lang.timeDays) + ': ' + libtuj.FormatQuantity(this.points[1].y, true) + '</span>';
-                    tr += '<br><span style="color: #990000">' + libtuj.sprintf(tuj.lang.timePast, '0-14 ' + tuj.lang.timeDays) + ': ' + libtuj.FormatQuantity(this.points[0].y, true) + '</span>';
+                    tr += '<br><span style="color: #990000">' + libtuj.sprintf(tuj.lang.timePast, '0-14 ' + tuj.lang.timeDays) + ': ' + libtuj.FormatQuantity(this.points[1].y + this.points[0].y, true) + '</span>';
                     return tr;
                 },
                 useHTML: true
