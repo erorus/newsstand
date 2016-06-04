@@ -2597,7 +2597,7 @@ var TUJ_Item = function ()
 
             hcdata.links.push({realm: slr.sellerrealm, page: 'seller', id: slr.sellername});
             hcdata.categories.push(sellerName);
-            hcdata.quantity.push(slr.quantity);
+            hcdata.quantity.push(slr.quantity - slr.recentquantity);
             hcdata.recentQuantity.push(slr.recentquantity);
         }
 
