@@ -30,8 +30,8 @@ h2 sub { display: block; font-weight: normal; font-size: 66%; margin-left: 2em }
 #page-title a.battlepet img { vertical-align: middle; height: 1.2em; width: 1.2em; border-radius: 5px; border: 1px solid #333 }
 #page-title a:hover { text-decoration: none }
 
-.give-padding > div, .get-padding { padding: 2em }
 #main { padding: 2em 4em 4em}
+#topbar > div > div { padding: 2em }
 
 #topcorner div.region-pick { font-size: 125%; display: none }
 #topcorner .region-realm { font-size: 125% }

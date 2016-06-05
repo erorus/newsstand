@@ -30,26 +30,26 @@
         <div id="super-bar"><span id="login-info"></span></div>
         <div id="page">
             <div id="topbar">
-                <div id="topcorner" class="give-padding">
+                <div id="title">
+                    <div>
+                        <a><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB9AAAACsAQMAAAAZsaUOAAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAAEBJREFUeNrtwTEBAAAAwiD7pzbFPmAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEDiqKQAAYV6d/kAAAAASUVORK5CYII="></a>
+                        <div id="page-title"></div>
+                    </div>
+                </div>
+                <div id="topcorner">
                     <div>
                         <div class="region-realm no-realm-hide">
                             <a class="region"></a>
                             <a class="realm"></a>
                         </div>
                         <div id="region-pick-US" class="region-pick">
-                            US Region
+                            <span>US Region</span>
                             <a href="#eu">Looking for EU realms?</a>
                         </div>
                         <div id="region-pick-EU" class="region-pick">
-                            EU Region
+                            <span>EU Region</span>
                             <a href="#us">Looking for US realms?</a>
                         </div>
-                    </div>
-                </div>
-                <div id="title" class="give-padding">
-                    <div>
-                        <a><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB9AAAACsAQMAAAAZsaUOAAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAAEBJREFUeNrtwTEBAAAAwiD7pzbFPmAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEDiqKQAAYV6d/kAAAAASUVORK5CYII="></a>
-                        <div id="page-title"></div>
                     </div>
                 </div>
             </div>

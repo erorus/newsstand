@@ -1,0 +1,50 @@
+body {min-width: 18em}
+
+#super-bar {top: 1em; right: 1em; left: 1em}
+#login-info.logged-out-only {padding: 1em 2em}
+
+#title {margin-right: 0; min-height: 0}
+#topbar > div#title > div {padding: 3.5em 1em 0}
+
+#topcorner {position: relative; top: auto; right: auto; width: auto; height: auto}
+.region-pick span {display: none}
+
+#main {padding: 0 1em 7em}
+#main a {padding: 0.5em}
+#main a.rss-icon {padding-left: 1.25em}
+
+#region-page h2 {display: none}
+#region-page .directions {margin-bottom: 2em}
+#region-page .directions, #realm-list .directions {font-size: 125%}
+
+.realms-column {-moz-column-width: unset; -webkit-column-width: unset; column-width: unset}
+
+#front-page {padding-right: 0}
+#category-sidebar {right: auto; width: auto; float: none}
+
+#front-welcome {display: none}
+#front-page .top-list {float: none; margin: 2em 0}
+.top-list a {display: block}
+.top-list br {display: none}
+
+#page-title {font-size:125%; padding-left: 0.5em}
+
+#item-page .item-stats table {max-width: none; width: 100%; float: none}
+
+.ad.box, .adsubstitute.box {width:100%; max-width: 336px; height: auto}
+.ad, .adsubstitute {width: 100%; max-width: 728px; height: auto}
+.adsubstitute div {margin: 1em 0}
+
+#subscription-messages,
+#search-page table, table.auctionlist, table.category {font-size:75%}
+
+#search-page table, table.auctionlist, table.category,
+#item-page .chart {width:100%;width:calc(100% + 2em);margin-left:-1em;margin-right:-1em}
+
+#bottom-bar {height:7em;margin-top:-7em;line-height:2em}
+#bottom-bar .disclaimer {display:none}
+#bottom-bar a {padding:0 1em 1em}
+
+.notifications-insert ul {margin-left: -3em}
+input[type="button"] {margin:1em}
+th.quantity:first-child {font-size: 0}

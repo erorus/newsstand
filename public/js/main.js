@@ -1102,8 +1102,8 @@ var TUJ = function ()
 
     function UpdateSidebar()
     {
-        $('#region-pick-US').html(self.lang.regionUS + ' <a href="#eu">' + self.lang.lookingEU + '</a>');
-        $('#region-pick-EU').html(self.lang.regionEU + ' <a href="#us">' + self.lang.lookingUS + '</a>');
+        $('#region-pick-US').html('<span>' + self.lang.regionUS + '</span> <a href="#eu">' + self.lang.lookingEU + '</a>');
+        $('#region-pick-EU').html('<span>' + self.lang.regionEU + '</span> <a href="#us">' + self.lang.lookingUS + '</a>');
 
         if (self.params.region != undefined) {
             $('#topcorner > div').show();
