@@ -20,7 +20,7 @@ define('ARRAY_INDEX_AUCTIONS', 1);
 define('ARRAY_INDEX_MARKETPRICE', 2);
 define('ARRAY_INDEX_ALLBREEDS', -1);
 
-ini_set('memory_limit', '384M');
+ini_set('memory_limit', '512M');
 
 if (!DBConnect()) {
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
