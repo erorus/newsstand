@@ -17,7 +17,7 @@ function Main() {
     }
 
     if ($alert == GetLastAlert()) {
-        //return 0;
+        return 0;
     }
 
     file_put_contents(LAST_ALERT_PATH, $alert);
@@ -28,6 +28,8 @@ function Main() {
     $pngImage = GetTextImage($alert);
 
     SendTweet($tweet, $pngImage);
+
+    return 0;
 }
 
 function ConvertToText($html) {
@@ -42,12 +44,7 @@ function ConvertToText($html) {
 }
 
 function GetCurrentAlert() {
-    $example = <<<'EOF'
-SERVERALERT:
-<html><body><p>On Tuesday, June 7th we will perform rolling restarts beginning at 05:00 (PDT), running until 06:00 (PDT). An in-game notice will be given 15 minutes prior to the restarts. Thank you for your patience.<br /><br />There will be an additional maintenance for the Oceanic realms beginning on Tuesday, June 7th, 07:00 (PDT) and we expect the service to be available again at approximately 11:00 (PDT). During this time the game will be unavailable for play.<br /><br />Please follow @BlizzardCS on Twitter for further updates.</p></body></html> 
-EOF;
-
-    $html = $example; // \Newsstand\HTTP::Get(ALERT_URL);
+    $html = \Newsstand\HTTP::Get(ALERT_URL);
 
     return ConvertToText(preg_replace('/^SERVERALERT:\s*/', '', $html));
 }
@@ -186,4 +183,4 @@ function UploadTweetMedia($data) {
     }
 }
 
-Main();
+exit(Main());
