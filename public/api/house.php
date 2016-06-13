@@ -242,7 +242,7 @@ from (
         and s.firstseen > timestampadd(day, -14, now())
     ) z1
     group by seller
-    having count(distinct item) >= 14
+    having count(distinct item) >= 4
 ) z2
 join tblSeller s on s.id = z2.seller
 left join tblSellerItemHistory h on h.seller = z2.seller and h.item not in (%1$s)

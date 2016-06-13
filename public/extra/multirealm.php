@@ -59,7 +59,7 @@
                 where item in (128159, 127736, 127738, 127732, 127731, 127737, 127735, 127730, 127734, 127733, 127718, 128158, 127720, 127714, 127713, 127719, 127717, 127712, 127716, 127715)
             ) z1
             group by seller
-            having (count(distinct item) = 2 or count(distinct item) > 14)
+            having (count(distinct item) = 2 or count(distinct item) > 3)
         ) z2
         left join tblSellerItemHistory h on h.seller = z2.seller and h.item not in (128159, 127736, 127738, 127732, 127731, 127737, 127735, 127730, 127734, 127733, 127718, 128158, 127720, 127714, 127713, 127719, 127717, 127712, 127716, 127715)
         join tblSeller s on s.id = z2.seller
