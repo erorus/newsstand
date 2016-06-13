@@ -219,7 +219,7 @@ function HouseBotSellers($house)
 {
     global $db;
 
-    $cacheKey = 'house_botsellers2';
+    $cacheKey = 'house_botsellers';
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
     }

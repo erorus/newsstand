@@ -40,7 +40,7 @@
     }
 
     function GetSellerList() {
-        $cacheKey = 'extra:multirealm:sellers4';
+        $cacheKey = 'extra:multirealm:sellers';
 
         $sellers = MCGet($cacheKey);
         if ($sellers !== false) {
