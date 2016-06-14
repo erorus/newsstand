@@ -165,7 +165,7 @@ function ParseAuctionData($house, $snapshot, &$json)
     $stmt->bind_param('i', $house);
     $stmt->execute();
     $id = $bid = $buy = $timeLeft = $infoKey = null;
-    $stmt->bind_result($bid, $buy, $timeLeft, $infoKey);
+    $stmt->bind_result($id, $bid, $buy, $timeLeft, $infoKey);
     while ($stmt->fetch()) {
         $existingIds[$id] = [$bid, $buy, $timeLeft, $infoKey];
     }
