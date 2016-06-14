@@ -20,7 +20,7 @@ define('EXISTING_COL_BUY', 1);
 define('EXISTING_COL_TIMELEFT', 2);
 define('EXISTING_COL_INFOKEY', 3);
 
-ini_set('memory_limit', '512M');
+ini_set('memory_limit', '768M');
 
 if (!DBConnect()) {
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
