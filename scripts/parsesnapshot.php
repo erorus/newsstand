@@ -14,6 +14,12 @@ CatchKill();
 define('SNAPSHOT_PATH', '/var/newsstand/snapshots/parse/');
 define('MAX_BONUSES', 6); // is a count, 1 through N
 
+define('EXISTING_SQL', 'SELECT a.id, a.bid, a.buy, a.timeleft+0 timeleft, concat_ws(\':\', a.item, ifnull(ae.bonusset,0)) infokey FROM tblAuction a LEFT JOIN tblAuctionExtra ae on a.house=ae.house and a.id=ae.id WHERE a.house = ?');
+define('EXISTING_COL_BID', 0);
+define('EXISTING_COL_BUY', 1);
+define('EXISTING_COL_TIMELEFT', 2);
+define('EXISTING_COL_INFOKEY', 3);
+
 ini_set('memory_limit', '512M');
 
 if (!DBConnect()) {
@@ -154,11 +160,15 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     $region = $houseRegionCache[$house]['region'];
 
-    $stmt = $ourDb->prepare('SELECT a.id, a.bid, a.buy, a.timeleft+0 timeleft, concat_ws(\':\', a.item, ifnull(ae.bonusset,0)) infokey FROM tblAuction a LEFT JOIN tblAuctionExtra ae on a.house=ae.house and a.id=ae.id WHERE a.house = ?');
+    $existingIds = [];
+    $stmt = $ourDb->prepare(EXISTING_SQL);
     $stmt->bind_param('i', $house);
     $stmt->execute();
-    $result = $stmt->get_result();
-    $existingIds = DBMapArray($result);
+    $id = $bid = $buy = $timeLeft = $infoKey = null;
+    $stmt->bind_result($bid, $buy, $timeLeft, $infoKey);
+    while ($stmt->fetch()) {
+        $existingIds[$id] = [$bid, $buy, $timeLeft, $infoKey];
+    }
     $stmt->close();
 
     $stmt = $ourDb->prepare('SELECT id, species, breed FROM tblAuctionPet WHERE house = ?');
@@ -340,8 +350,8 @@ function ParseAuctionData($house, $snapshot, &$json)
             }
 
             if (isset($existingIds[$auction['auc']])) {
-                $needUpdate = ($auction['bid'] != $existingIds[$auction['auc']]['bid']);
-                $needUpdate |= ($auction['timeLeft'] != $existingIds[$auction['auc']]['timeleft']);
+                $needUpdate = ($auction['bid'] != $existingIds[$auction['auc']][EXISTING_COL_BID]);
+                $needUpdate |= ($auction['timeLeft'] != $existingIds[$auction['auc']][EXISTING_COL_TIMELEFT]);
                 unset($existingIds[$auction['auc']]);
                 unset($existingPetIds[$auction['auc']]);
                 if (!$needUpdate) {
@@ -459,17 +469,17 @@ EOF;
         DBQueryWithError($ourDb, $sql);
     }
 
-    foreach ($existingIds as &$oldRow) {
+    foreach ($existingIds as $existingId => &$oldRow) {
         // all missing auctions
-        if (!isset($existingPetIds[$oldRow['id']])) {
+        if (!isset($existingPetIds[$existingId])) {
             // missing item auction
-            if (($oldRow['buy'] > 0) && ($oldRow['timeleft'] > 0) && ($oldRow['timeleft'] <= $expiredLength)) {
+            if (($oldRow[EXISTING_COL_BUY] > 0) && ($oldRow[EXISTING_COL_TIMELEFT] > 0) && ($oldRow[EXISTING_COL_TIMELEFT] <= $expiredLength)) {
                 // probably expired item with buyout
-                $expiredPosted = Date('Y-m-d', $snapshot - GetAuctionAge($oldRow['id'], $snapshot, $snapshotList));
-                if (!isset($expiredItemInfo[$expiredPosted][$oldRow['infokey']])) {
-                    $expiredItemInfo[$expiredPosted][$oldRow['infokey']] = 0;
+                $expiredPosted = date('Y-m-d', $snapshot - GetAuctionAge($existingId, $snapshot, $snapshotList));
+                if (!isset($expiredItemInfo[$expiredPosted][$oldRow[EXISTING_COL_INFOKEY]])) {
+                    $expiredItemInfo[$expiredPosted][$oldRow[EXISTING_COL_INFOKEY]] = 0;
                 }
-                $expiredItemInfo[$expiredPosted][$oldRow['infokey']]++;
+                $expiredItemInfo[$expiredPosted][$oldRow[EXISTING_COL_INFOKEY]]++;
             }
         }
     }
@@ -478,11 +488,11 @@ EOF;
     $rareDeletes = [];
 
     $preDeleted = count($itemInfo);
-    foreach ($existingIds as &$oldRow) {
-        if ((!isset($existingPetIds[$oldRow['id']])) && (!isset($itemInfo[$oldRow['infokey']]))) {
-            list($itemId, $bonusSet) = explode(':', $oldRow['infokey']);
+    foreach ($existingIds as $existingId => &$oldRow) {
+        if ((!isset($existingPetIds[$existingId])) && (!isset($itemInfo[$oldRow[EXISTING_COL_INFOKEY]]))) {
+            list($itemId, $bonusSet) = explode(':', $oldRow[EXISTING_COL_INFOKEY]);
             $rareDeletes[$bonusSet][] = $itemId;
-            $itemInfo[$oldRow['infokey']] = array('tq' => 0, 'a' => array());
+            $itemInfo[$oldRow[EXISTING_COL_INFOKEY]] = array('tq' => 0, 'a' => array());
         }
     }
     unset($oldRow);
