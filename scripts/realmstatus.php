@@ -33,6 +33,7 @@ if (!DBConnect()) {
 ShowRealms();
 ShowMemcacheStats();
 ShowLogs();
+ShowErrors();
 
 echo '</body></html>';
 
@@ -214,4 +215,12 @@ function ShowLogs()
         echo '<h2>' . htmlentities($path) . '</h2>';
         echo '<pre>' . htmlentities($log) . '</pre>';
     }
+}
+
+function ShowErrors()
+{
+    echo '<h1>Errors</h1>';
+    echo '<pre>';
+    passthru('crontab -l | grep php | grep -o \'/var/newsstand/logs/.*.log\' | sort -u | xargs grep \'Fatal error\'');
+    echo '</pre>';
 }
