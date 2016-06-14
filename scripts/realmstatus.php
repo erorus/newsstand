@@ -221,6 +221,6 @@ function ShowErrors()
 {
     echo '<h1>Errors</h1>';
     echo '<pre>';
-    passthru('crontab -l | grep php | grep -o \'/var/newsstand/logs/.*.log\' | sort -u | xargs grep \'Fatal error\'');
+    passthru('cat '.escapeshellarg(__DIR__.'/../crontab.txt').' | grep php | grep -o \'/var/newsstand/logs/.*.log\' | sort -u | xargs grep \'Fatal error\'');
     echo '</pre>';
 }
