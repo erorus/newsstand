@@ -8,7 +8,8 @@ define('TWITTER_ACCOUNT', 'RollingRestarts');
 define('LAST_ALERT_PATH', __DIR__.'/rollingrestarts.txt');
 define('FONT_PATH', __DIR__.'/FRIZQT__.TTF');
 
-define('TWEET_MAX_LENGTH', 120);
+define('TWEET_CHARS_RESERVED', 24);
+define('TWEET_MAX_LENGTH', 140 - TWEET_CHARS_RESERVED);
 
 function Main() {
     $alert = GetCurrentAlert();
@@ -57,20 +58,11 @@ function GetLastAlert() {
 }
 
 function GetTwitterSnippet($txt) {
-    if (preg_match('/^[\w\W]+?\.(?=(?:\s+[A-Z0-9])|\s*$)/', $txt, $res)) {
-        $part = $res[0];
-    } else {
-        $pos = strrpos($txt, ' ', TWEET_MAX_LENGTH);
-        if ($pos === false) {
-            $part = $txt;
-        } else {
-            $part = substr($txt, 0, $pos-1);
-        }
-    }
+    $part = preg_match('/^[\w\W]+?\.(?=(?:\s+[A-Z0-9])|\s*$)/', $txt, $res) ? $res[0] : $txt;
     if (strlen($part) > TWEET_MAX_LENGTH) {
-        $pos = strrpos($part, ' ', TWEET_MAX_LENGTH);
+        $pos = strrpos($part, ' ', TWEET_MAX_LENGTH - strlen($part));
         if ($pos !== false) {
-            $part = substr($part, 0, $pos-1);
+            $part = substr($part, 0, $pos);
         }
     }
     if (strlen($part) > TWEET_MAX_LENGTH) {
@@ -184,3 +176,4 @@ function UploadTweetMedia($data) {
 }
 
 exit(Main());
+
