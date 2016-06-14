@@ -25,6 +25,9 @@ CRON_TZ="UTC"
 10 */3 * * * php /var/newsstand/scripts/itemglobal.php >> /var/newsstand/logs/itemglobal.log 2>&1
 0 0 * * 0 mv /var/newsstand/logs/itemglobal.log /var/newsstand/logs/itemglobal.lastweek.log
 
+25 * * * * php /var/newsstand/scripts/bouncebacks.php >> /var/newsstand/logs/bouncebacks.log 2>&1
+0 0 * * * mv /var/newsstand/logs/bouncebacks.log /var/newsstand/logs/bouncebacks.yesterday.log
+
 30 */3 * * * php /var/newsstand/scripts/historyprune.php >> /var/newsstand/logs/historyprune.log 2>&1
 0 0 * * * mv /var/newsstand/logs/historyprune.log /var/newsstand/logs/historyprune.yesterday.log
 
@@ -43,4 +46,7 @@ CRON_TZ="UTC"
 59 0 * * * mv /var/newsstand/logs/wowtoken.log /var/newsstand/logs/wowtoken.yesterday.log
 
 20 1,9,17 * * * cp /var/newsstand/wowtoken/snapshot-history.json /var/newsstand/wowtoken/snapshot-history-old.json
+
+1,6,11,16,21,26,31,36,41,46,51,56 * * * * php /var/newsstand/scripts/doestheapiwork.php /var/newsstand/theapi.work/times.json > /var/newsstand/logs/theapi.times.log 2>&1
+2,7,12,17,22,27,32,37,42,47,52,57 * * * * php /var/newsstand/scripts/rollingrestarts/rollingrestarts.php >> /var/newsstand/logs/rollingrestarts.log 2>&1
 
