@@ -30,6 +30,9 @@ PrintImportantMessage('Starting: printing important messages to stderr');
 $regions = [
     'US' => 'en_US',
     'EU' => 'en_GB',
+//    'CN' => 'zh_CN',
+//    'TW' => 'zh_TW',
+//    'KR' => 'ko_KR',
 ];
 
 foreach ($regions as $region => $realmListLocale) {
@@ -98,6 +101,9 @@ foreach ($regions as $region => $realmListLocale) {
 
     $seenLocales = array_keys($seenLocales);
     foreach ($seenLocales as $locale) {
+        if ($locale == $realmListLocale) {
+            continue;
+        }
         if ($caughtKill) {
             break;
         }
@@ -107,9 +113,11 @@ foreach ($regions as $region => $realmListLocale) {
         break;
     }
 
-    GetRealmPopulation($region);
-    if ($caughtKill) {
-        break;
+    if (in_array($region, ['US','EU'])) {
+        GetRealmPopulation($region);
+        if ($caughtKill) {
+            break;
+        }
     }
 
     $stmt = $db->prepare('SELECT slug, house, name, ifnull(ownerrealm, replace(name, \' \', \'\')) AS ownerrealm FROM tblRealm WHERE region = ? AND locale is not null');
@@ -135,7 +143,7 @@ foreach ($regions as $region => $realmListLocale) {
         $bySellerRealm[$row['ownerrealm']] = $row['slug'];
 
         PrintDebugNoise("Fetching $region $slug");
-        $url = GetBattleNetURL($region, "wow/auction/data/$slug");
+        $url = GetBattleNetURL($region, "wow/auction/data/".urlencode($slug));
 
         $json = \Newsstand\HTTP::Get($url);
         $dta = json_decode($json, true);
@@ -353,7 +361,7 @@ function GetLocalizedOwnerRealms($region, $locale)
         }
 
         PrintDebugNoise("Getting ownerrealm for $locale slug $slug");
-        $url = GetBattleNetURL($region, 'wow/realm/status?realms=' . $slug . '&locale=' . $locale);
+        $url = GetBattleNetURL($region, 'wow/realm/status?realms=' . urlencode($slug) . '&locale=' . $locale);
         $realmJson = json_decode(\Newsstand\HTTP::Get($url), true, 512, JSON_BIGINT_AS_STRING);
         if (json_last_error() != JSON_ERROR_NONE) {
             PrintDebugNoise("$url did not return valid JSON");
@@ -363,6 +371,10 @@ function GetLocalizedOwnerRealms($region, $locale)
         if (!isset($realmJson['realms']) || (count($realmJson['realms']) == 0)) {
             PrintDebugNoise("$url returned no realms");
             continue;
+        }
+
+        if (count($realmJson['realms']) > 1) {
+            PrintImportantMessage("Region $region slug $slug returned ".count($realmJson['realms'])." realms. $url");
         }
 
         $ownerRealm = str_replace(' ', '', $realmJson['realms'][0]['name']);
