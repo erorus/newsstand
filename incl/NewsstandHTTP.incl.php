@@ -149,8 +149,12 @@ class HTTP
             return $data;
         } else {
             $outHeaders['body'] = $data;
-            if (!$wasRetry && isset($headers['Retry-After'])) {
-                $delay = intval($headers['Retry-After'], 10);
+            if (!$wasRetry && isset($headers['Retry-After']) && preg_match('/^5\d\d$/', $responseCode)) {
+                if (preg_match('/^\d+$/', trim($headers['Retry-After']))) {
+                    $delay = intval($headers['Retry-After'], 10);
+                } else {
+                    $delay = max(0, strtotime($headers['Retry-After']) - time());
+                }
                 DebugMessage("Asked to wait $delay seconds for $url", E_USER_NOTICE);
                 if ($delay > 0 && $delay <= 10) {
                     sleep($delay);

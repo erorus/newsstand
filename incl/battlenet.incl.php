@@ -43,7 +43,8 @@ function GetBattleNetURL($region, $path)
 
         MCDelete($cacheKey . '_critical');
 
-        $finalUrl = sprintf('https://%s.api.battle.net/%s%sapikey=%s', $region, $path, strpos($path, '?') !== false ? '&' : '?', BATTLE_NET_KEY);
+        $pattern = ($region == 'cn') ? 'https://api.battlenet.com.%s/%s%sapikey=%s' : 'https://%s.api.battle.net/%s%sapikey=%s';
+        $finalUrl = sprintf($pattern, $region, $path, strpos($path, '?') !== false ? '&' : '?', BATTLE_NET_KEY);
     }
 
     return $finalUrl ? $finalUrl : false;

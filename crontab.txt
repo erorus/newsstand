@@ -19,7 +19,7 @@ CRON_TZ="UTC"
 * * * * * php /var/newsstand/scripts/reportwatches.php >> /var/newsstand/logs/reportwatches.log 2>&1
 0 0 * * * mv /var/newsstand/logs/reportwatches.log /var/newsstand/logs/reportwatches.yesterday.log
 
-#23 4 * * * php /var/newsstand/scripts/realms2houses.php >> /var/newsstand/logs/realms2houses.log 2>&1
+#23 4 * * * php /var/newsstand/scripts/realms2houses.php >/dev/null 2>>/var/newsstand/logs/realms2houses.log
 #0 0 * * 0 mv /var/newsstand/logs/realms2houses.log /var/newsstand/logs/realms2houses.lastweek.log
 
 10 */3 * * * php /var/newsstand/scripts/itemglobal.php >> /var/newsstand/logs/itemglobal.log 2>&1

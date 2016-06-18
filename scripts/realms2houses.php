@@ -9,8 +9,6 @@ require_once('../incl/heartbeat.incl.php');
 require_once('../incl/memcache.incl.php');
 require_once('../incl/battlenet.incl.php');
 
-ini_set('memory_limit', '512M');
-
 RunMeNTimes(1);
 CatchKill();
 
@@ -18,9 +16,23 @@ if (!DBConnect()) {
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
 }
 
-$regions = array('US', 'EU');
+function PrintDebugNoise($message) {
+    echo date('Y-m-d H:i:s') . " $message\n";
+}
 
-foreach ($regions as $region) {
+function PrintImportantMessage($message) {
+    fwrite(STDERR, date('Y-m-d H:i:s') . " $message\n");
+}
+
+PrintDebugNoise('Starting: printing detailed debugging to stdout');
+PrintImportantMessage('Starting: printing important messages to stderr');
+
+$regions = [
+    'US' => 'en_US',
+    'EU' => 'en_GB',
+];
+
+foreach ($regions as $region => $realmListLocale) {
     heartbeat();
     if ($caughtKill) {
         break;
@@ -28,17 +40,17 @@ foreach ($regions as $region) {
     if (isset($argv[1]) && $argv[1] != $region) {
         continue;
     }
-    $url = GetBattleNetURL($region, 'wow/realm/status');
+    $url = GetBattleNetURL($region, 'wow/realm/status?locale=' . $realmListLocale);
 
     $json = \Newsstand\HTTP::Get($url);
     $realms = json_decode($json, true, 512, JSON_BIGINT_AS_STRING);
     if (json_last_error() != JSON_ERROR_NONE) {
-        DebugMessage("$url did not return valid JSON");
+        PrintImportantMessage("$url did not return valid JSON");
         continue;
     }
 
     if (!isset($realms['realms']) || (count($realms['realms']) == 0)) {
-        DebugMessage("$url returned no realms");
+        PrintImportantMessage("$url returned no realms");
         continue;
     }
 
@@ -49,8 +61,11 @@ foreach ($regions as $region) {
     $stmt->close();
     $nextId++;
 
+    $seenLocales = [];
+
     $stmt = $db->prepare('INSERT INTO tblRealm (id, region, slug, name, locale) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=values(name), locale=values(locale)');
     foreach ($realms['realms'] as $realm) {
+        $seenLocales[$realm['locale']] = true;
         $stmt->bind_param('issss', $nextId, $region, $realm['slug'], $realm['name'], $realm['locale']);
         $stmt->execute();
         if ($db->affected_rows > 0) {
@@ -71,7 +86,7 @@ foreach ($regions as $region) {
                 $stmt->bind_param('isss', $nextId, $region, $res[1][$x], $res[2][$x]);
                 $stmt->execute();
                 if ($db->affected_rows > 0) {
-                    DebugMessage("New $region realm from challenge mode page: " . $res[2][$x] . " (" . $res[1][$x] . ')');
+                    PrintImportantMessage("New $region realm from challenge mode page: " . $res[2][$x] . " (" . $res[1][$x] . ')');
                     $nextId++;
                 }
                 $stmt->reset();
@@ -81,7 +96,13 @@ foreach ($regions as $region) {
     }
     unset($challengeRealmsHtml, $res, $res2, $c, $x);
 
-    GetRussianOwnerRealms($region);
+    $seenLocales = array_keys($seenLocales);
+    foreach ($seenLocales as $locale) {
+        if ($caughtKill) {
+            break;
+        }
+        GetLocalizedOwnerRealms($region, $locale);
+    }
     if ($caughtKill) {
         break;
     }
@@ -91,7 +112,7 @@ foreach ($regions as $region) {
         break;
     }
 
-    $stmt = $db->prepare('SELECT slug, house, name, ifnull(ownerrealm, replace(name, \' \', \'\')) AS ownerrealm FROM tblRealm WHERE region = ?');
+    $stmt = $db->prepare('SELECT slug, house, name, ifnull(ownerrealm, replace(name, \' \', \'\')) AS ownerrealm FROM tblRealm WHERE region = ? AND locale is not null');
     $stmt->bind_param('s', $region);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -113,19 +134,19 @@ foreach ($regions as $region) {
         $slug = $row['slug'];
         $bySellerRealm[$row['ownerrealm']] = $row['slug'];
 
-        DebugMessage("Fetching $region $slug");
+        PrintDebugNoise("Fetching $region $slug");
         $url = GetBattleNetURL($region, "wow/auction/data/$slug");
 
         $json = \Newsstand\HTTP::Get($url);
         $dta = json_decode($json, true);
         if (!isset($dta['files'])) {
-            DebugMessage("$region $slug returned no files.", E_USER_WARNING);
+            PrintImportantMessage("$region $slug returned no files.");
             continue;
         }
 
         $hash = preg_match('/\b[a-f0-9]{32}\b/', $dta['files'][0]['url'], $res) > 0 ? $res[0] : '';
         if ($hash == '') {
-            DebugMessage("$region $slug had no hash in the URL: {$dta['files'][0]['url']}", E_USER_WARNING);
+            PrintImportantMessage("$region $slug had no hash in the URL: {$dta['files'][0]['url']}");
             continue;
         }
 
@@ -138,7 +159,7 @@ foreach ($regions as $region) {
 
     foreach ($canonicals as $canon => $results) {
         if (count($results) > 1) {
-            DebugMessage("$region $canon has " . count($results) . " results: " . print_r($results, true));
+            PrintImportantMessage("$region $canon has " . count($results) . " results: " . print_r($results, true));
         }
 
         foreach ($results as $result) {
@@ -219,21 +240,30 @@ foreach ($regions as $region) {
         }
         foreach ($slugs as $slug) {
             if ($bySlug[$slug]['house'] != $curHouse) {
-                DebugMessage("$region $slug changing from " . (is_null($bySlug[$slug]['house']) ? 'null' : $bySlug[$slug]['house']) . " to $curHouse");
-                $db->real_query(sprintf('UPDATE tblRealm SET house = %d WHERE region = \'%s\' AND slug = \'%s\'', $curHouse, $db->escape_string($region), $db->escape_string($slug)));
+                if (!MCHouseLock($curHouse) || !MCHouseLock($bySlug[$slug]['house'])) {
+                    break;
+                }
+                PrintImportantMessage("$region $slug changing from " . (is_null($bySlug[$slug]['house']) ? 'null' : $bySlug[$slug]['house']) . " to $curHouse");
+                DBQueryWithError($db, sprintf('UPDATE tblRealm SET house = %d WHERE region = \'%s\' AND slug = \'%s\'', $curHouse, $db->escape_string($region), $db->escape_string($slug)));
                 $bySlug[$slug]['house'] = $curHouse;
             }
         }
-        $db->real_query(sprintf('UPDATE tblRealm SET canonical = NULL WHERE house = %d', $curHouse));
-        $db->real_query(sprintf('UPDATE tblRealm SET canonical = \'%s\' WHERE house = %d AND region = \'%s\' AND slug = \'%s\'', $db->escape_string($canon), $curHouse, $db->escape_string($region), $db->escape_string($rep)));
+        if (MCHouseLock($curHouse)) {
+            DBQueryWithError($db, sprintf('UPDATE tblRealm SET canonical = NULL WHERE house = %d', $curHouse));
+            DBQueryWithError($db, sprintf('UPDATE tblRealm SET canonical = \'%s\' WHERE house = %d AND region = \'%s\' AND slug = \'%s\'', $db->escape_string($canon), $curHouse, $db->escape_string($region), $db->escape_string($rep)));
+            MCHouseUnlock($curHouse);
+        } else {
+            PrintImportantMessage("Could not lock $curHouse to set canonical to $canon");
+        }
+        MCHouseUnlock();
     }
     $memcache->delete('realms_' . $region);
 }
 
-CleanOldHouses();
+//CleanOldHouses();
 //DebugMessage('Skipped cleaning old houses!');
 
-DebugMessage('Done! Started ' . TimeDiff($startTime));
+PrintImportantMessage('Done! Started ' . TimeDiff($startTime));
 
 function GetDataRealms($region, $hash)
 {
@@ -257,14 +287,14 @@ function GetDataRealms($region, $hash)
     $outHeaders = array();
     $json = \Newsstand\HTTP::Get($url, [], $outHeaders);
     if (!$json) {
-        DebugMessage("No data from $url, waiting 5 secs");
+        PrintDebugNoise("No data from $url, waiting 5 secs");
         \Newsstand\HTTP::AbandonConnections();
         sleep(5);
         $json = \Newsstand\HTTP::Get($url, [], $outHeaders);
     }
 
     if (!$json) {
-        DebugMessage("No data from $url, waiting 15 secs");
+        PrintDebugNoise("No data from $url, waiting 15 secs");
         \Newsstand\HTTP::AbandonConnections();
         sleep(15);
         $json = \Newsstand\HTTP::Get($url, [], $outHeaders);
@@ -272,18 +302,29 @@ function GetDataRealms($region, $hash)
 
     if (!$json) {
         if (file_exists($cachePath) && (filemtime($cachePath) > (time() - 3 * 24 * 60 * 60))) {
-            DebugMessage("No data from $url, using cache");
+            PrintDebugNoise("No data from $url, using cache");
             return json_decode(file_get_contents($cachePath), true);
         }
-        DebugMessage("No data from $url, giving up");
+        PrintImportantMessage("No data from $url, giving up");
         return $result;
     }
 
     $xferBytes = isset($outHeaders['X-Original-Content-Length']) ? $outHeaders['X-Original-Content-Length'] : strlen($json);
-    DebugMessage("$region $hash data file " . strlen($json) . " bytes" . ($xferBytes != strlen($json) ? (' (transfer length ' . $xferBytes . ', ' . round($xferBytes / strlen($json) * 100, 1) . '%)') : ''));
+    PrintDebugNoise("$region $hash data file " . strlen($json) . " bytes" . ($xferBytes != strlen($json) ? (' (transfer length ' . $xferBytes . ', ' . round($xferBytes / strlen($json) * 100, 1) . '%)') : ''));
 
-    if (preg_match('/"slug":"([^"?]+)"/', $json, $m)) {
-        $result['slug'] = $m[1];
+    $realmSectionCount = preg_match('/"realms":\s*(\[[^\]]+\])/', $json, $realmMatch);
+    if ($c = preg_match_all('/"slug":\s*"([^"?]+)"/', $realmSectionCount ? $realmMatch[1] : $json, $m)) {
+        $slugs = [];
+        for ($x = 0; $x < $c; $x++) {
+            $slugs[$m[1][$x]] = true;
+        }
+        $slugs = array_keys($slugs);
+        sort($slugs);
+        $result['slug'] = array_shift($slugs);
+    }
+
+    if ($result['slug'] === false) {
+        PrintImportantMessage("No slug found in $region $hash\n" . substr($json, 0, 2000));
     }
 
     preg_match_all('/"ownerRealm":"([^"?]+)"/', $json, $m);
@@ -294,51 +335,51 @@ function GetDataRealms($region, $hash)
     return $result;
 }
 
-function GetRussianOwnerRealms($region)
+function GetLocalizedOwnerRealms($region, $locale)
 {
     global $db, $caughtKill;
 
-    $ruID = 0;
-    $ruSlug = '';
-    $ruToRun = array();
-    $stmt = $db->prepare('SELECT id, slug FROM tblRealm WHERE region=? AND locale=\'ru_RU\' AND ownerrealm IS NULL');
-    $stmt->bind_param('s', $region);
+    $realmId = 0;
+    $slug = '';
+    $sqlToRun = array();
+    $stmt = $db->prepare('SELECT id, slug FROM tblRealm WHERE region=? AND locale=? AND ownerrealm IS NULL');
+    $stmt->bind_param('ss', $region, $locale);
     $stmt->execute();
-    $stmt->bind_result($ruID, $ruSlug);
+    $stmt->bind_result($realmId, $slug);
     while ($stmt->fetch()) {
         heartbeat();
         if ($caughtKill) {
             return;
         }
 
-        DebugMessage("Getting ownerrealm for russian slug $ruSlug");
-        $url = GetBattleNetURL($region, 'wow/realm/status?realms=' . $ruSlug . '&locale=ru_RU');
-        $ruRealm = json_decode(\Newsstand\HTTP::Get($url), true, 512, JSON_BIGINT_AS_STRING);
+        PrintDebugNoise("Getting ownerrealm for $locale slug $slug");
+        $url = GetBattleNetURL($region, 'wow/realm/status?realms=' . $slug . '&locale=' . $locale);
+        $realmJson = json_decode(\Newsstand\HTTP::Get($url), true, 512, JSON_BIGINT_AS_STRING);
         if (json_last_error() != JSON_ERROR_NONE) {
-            DebugMessage("$url did not return valid JSON");
+            PrintDebugNoise("$url did not return valid JSON");
             continue;
         }
 
-        if (!isset($ruRealm['realms']) || (count($ruRealm['realms']) == 0)) {
-            DebugMessage("$url returned no realms");
+        if (!isset($realmJson['realms']) || (count($realmJson['realms']) == 0)) {
+            PrintDebugNoise("$url returned no realms");
             continue;
         }
 
-        $ruOwner = str_replace(' ', '', $ruRealm['realms'][0]['name']);
-        $ruToRun[] = sprintf('UPDATE tblRealm SET ownerrealm = \'%s\' WHERE id = %d', $db->escape_string($ruOwner), $ruID);
+        $ownerRealm = str_replace(' ', '', $realmJson['realms'][0]['name']);
+        $sqlToRun[] = sprintf('UPDATE tblRealm SET ownerrealm = \'%s\' WHERE id = %d', $db->escape_string($ownerRealm), $realmId);
     }
     $stmt->close();
     if ($caughtKill) {
         return;
     }
 
-    foreach ($ruToRun as $sql) {
+    foreach ($sqlToRun as $sql) {
         heartbeat();
         if ($caughtKill) {
             return;
         }
         if (!$db->real_query($sql)) {
-            DebugMessage(sprintf("%s: %s", $sql, $db->error), E_USER_WARNING);
+            PrintImportantMessage(sprintf("%s: %s", $sql, $db->error), E_USER_WARNING);
         }
     }
 }
@@ -409,7 +450,7 @@ function CleanOldHouses()
             return;
         }
 
-        DebugMessage('Clearing out auctions from old house ' . $oldId);
+        PrintImportantMessage('Clearing out auctions from old house ' . $oldId);
 
         while (!$caughtKill) {
             heartbeat();
@@ -451,7 +492,7 @@ function CleanOldHouses()
             return;
         }
 
-        DebugMessage('Clearing out item history from old house ' . $oldId);
+        PrintImportantMessage('Clearing out item history from old house ' . $oldId);
 
         while (!$caughtKill) {
             heartbeat();
@@ -479,7 +520,7 @@ function CleanOldHouses()
             return;
         }
 
-        DebugMessage('Clearing out item summary from old house ' . $oldId);
+        PrintImportantMessage('Clearing out item summary from old house ' . $oldId);
 
         while (!$caughtKill) {
             heartbeat();
@@ -507,7 +548,7 @@ function CleanOldHouses()
             return;
         }
 
-        DebugMessage('Clearing out pet history from old house ' . $oldId);
+        PrintImportantMessage('Clearing out pet history from old house ' . $oldId);
 
         while (!$caughtKill) {
             heartbeat();
@@ -535,7 +576,7 @@ function CleanOldHouses()
             return;
         }
 
-        DebugMessage('Clearing out pet summary from old house ' . $oldId);
+        PrintImportantMessage('Clearing out pet summary from old house ' . $oldId);
 
         while (!$caughtKill) {
             heartbeat();
@@ -563,7 +604,7 @@ function CleanOldHouses()
             return;
         }
 
-        DebugMessage('Clearing out snapshots from old house ' . $oldId);
+        PrintImportantMessage('Clearing out snapshots from old house ' . $oldId);
 
         while (!$caughtKill) {
             heartbeat();
@@ -573,5 +614,14 @@ function CleanOldHouses()
             }
         }
     }
+}
 
+function DBQueryWithError(&$db, $sql)
+{
+    $queryOk = $db->query($sql);
+    if (!$queryOk) {
+        DebugMessage("SQL error: " . $db->errno . ' ' . $db->error . " - " . substr(preg_replace('/[\r\n]/', ' ', $sql), 0, 500), E_USER_WARNING);
+    }
+
+    return $queryOk;
 }

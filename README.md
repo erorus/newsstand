@@ -21,7 +21,6 @@ Newsstand is currently hosted on a dedicated server with 16GB of memory, a quad 
 It's assumed that this repo lives in `/var/newsstand`. The MySQL table schema is in newsstand-tables.sql. The `public` directory is the HTTP root for The Undermine Journal, and `wowtoken` is the HTTP root for WoW Token Info.
 
 Start with running `scripts/realms2houses.php` to populate your realms table. It tries to figure out which realms are connected by looking at the AH data.
-**Note:** Realms2houses is probably broken since Blizzard included multiple realm names in the AH data. I haven't fixed this yet.
 
 Look at crontab.txt for the variety of `scripts/` that keep the site updated.
  - `itemupdate.php` updates some static item data from the Battle.net API and from Wowhead.
