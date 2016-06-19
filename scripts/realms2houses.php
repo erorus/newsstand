@@ -335,8 +335,16 @@ function GetDataRealms($region, $hash)
         PrintImportantMessage("No slug found in $region $hash\n" . substr($json, 0, 2000));
     }
 
-    preg_match_all('/"ownerRealm":"([^"?]+)"/', $json, $m);
-    $result['realms'] = array_values(array_unique($m[1]));
+    $seenOwnerRealms = [];
+    $pos = -1;
+    while (($pos = strpos($json, '"ownerRealm":', $pos+1)) !== false) {
+        $firstQuote = strpos($json, '"', $pos + 13);
+        $nextQuote = strpos($json, '"', $firstQuote + 1);
+        $ownerRealm = substr($json, $firstQuote+1, $nextQuote - $firstQuote - 1);
+        $seenOwnerRealms[$ownerRealm] = true;
+    }
+    ksort($seenOwnerRealms);
+    $result['realms'] = array_keys($seenOwnerRealms);
 
     file_put_contents($cachePath, json_encode($result));
 
