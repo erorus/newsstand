@@ -190,7 +190,7 @@ ENDSQL;
         DebugMessage('No compression? ' . print_r($outHeaders, true));
     }
 
-    if ($xferBytes / 1000 / $dlDuration < 200) {
+    if ($xferBytes / 1000 / $dlDuration < 200 && in_array($region, ['US','EU'])) {
         DebugMessage("Speed under 200KBps, closing persistent connections");
         \Newsstand\HTTP::AbandonConnections();
     }
