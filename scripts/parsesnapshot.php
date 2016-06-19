@@ -63,6 +63,15 @@ $stmt->fetch();
 $stmt->close();
 unset($nonsense);
 
+$FULL_HISTORY_SNAPSHOT_INTERVAL = [
+    'US' => (1 * 60 - 5) * 60, // minimum 0 hrs 55 minutes between full history snapshots
+    'EU' => (1 * 60 - 5) * 60,
+
+    'CN' => (4 * 60 - 5) * 60, // minimum 3 hrs 55 minutes between full history snapshots
+    'TW' => (4 * 60 - 5) * 60,
+    'KR' => (4 * 60 - 5) * 60,
+];
+
 $loopStart = time();
 $toSleep = 0;
 while ((!$caughtKill) && (time() < ($loopStart + 60 * 30))) {
@@ -152,6 +161,7 @@ function ParseAuctionData($house, $snapshot, &$json)
     global $houseRegionCache;
     global $auctionExtraItemsCache;
     global $TIMELEFT_ENUM;
+    global $FULL_HISTORY_SNAPSHOT_INTERVAL;
 
     $snapshotString = Date('Y-m-d H:i:s', $snapshot);
     $startTimer = microtime(true);
@@ -228,7 +238,9 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     $noHistory = false;
     $flags = 0;
-    if (($snapshot > $lastMaxUpdated) && (($snapshot - $lastMaxUpdated) < (50 * 60))) { // snapshots stored no more often than every 50 mins
+    if (isset($FULL_HISTORY_SNAPSHOT_INTERVAL[$region]) &&
+        ($snapshot > $lastMaxUpdated) &&
+        (($snapshot - $lastMaxUpdated) < $FULL_HISTORY_SNAPSHOT_INTERVAL[$region])) { // snapshots stored no more often than every X hours
         $noHistory = true;
         $flags = 1;
         DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " skipping snapshot history (" . ($snapshot - $lastMaxUpdated) . " seconds since last history)");
