@@ -13,10 +13,10 @@ CatchKill();
 define('SNAPSHOT_PATH', '/var/newsstand/snapshots/');
 define('EARLY_CHECK_SECONDS', 120);
 
-$regions = array('US', 'EU');
+$regions = ['US','EU','CN','TW','KR'];
 
 if (!isset($argv[1]) || !in_array($argv[1], $regions)) {
-    DebugMessage('Need region US or EU', E_USER_ERROR);
+    DebugMessage('Need region '.implode(', ', $regions), E_USER_ERROR);
 }
 
 if (!DBConnect()) {
