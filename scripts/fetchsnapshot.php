@@ -7,9 +7,6 @@ require_once('../incl/incl.php');
 require_once('../incl/heartbeat.incl.php');
 require_once('../incl/battlenet.incl.php');
 
-RunMeNTimes(1);
-CatchKill();
-
 define('SNAPSHOT_PATH', '/var/newsstand/snapshots/');
 define('EARLY_CHECK_SECONDS', 120);
 
@@ -24,6 +21,16 @@ if (!DBConnect()) {
 }
 
 $region = $argv[1];
+$runNTimes = 1;
+if (isset($argv[2])) {
+    $runNTimes = intval($argv[2], 10);
+    if ($runNTimes <= 0) {
+        $runNTimes = 1;
+    }
+}
+
+RunMeNTimes($runNTimes);
+CatchKill();
 
 $loopStart = time();
 $toSleep = 0;
@@ -33,7 +40,9 @@ while ((!$caughtKill) && (time() < ($loopStart + 60 * 30))) {
     if ($caughtKill) {
         break;
     }
+    ob_start();
     $toSleep = FetchSnapshot();
+    ob_end_flush();
     if ($toSleep === false) {
         break;
     }
@@ -44,6 +53,21 @@ function FetchSnapshot()
 {
     global $db, $region;
 
+    $lockName = "fetchsnapshot_$region";
+
+    $stmt = $db->prepare('select get_lock(?, 30)');
+    $stmt->bind_param('s', $lockName);
+    $stmt->execute();
+    $lockSuccess = null;
+    $stmt->bind_result($lockSuccess);
+    if (!$stmt->fetch()) {
+        $lockSuccess = null;
+    }
+    $stmt->close();
+    if ($lockSuccess != '1') {
+        DebugMessage("Could not get mysql lock for $lockName.");
+        return 30;
+    }
     $earlyCheckSeconds = EARLY_CHECK_SECONDS;
 
     $nextRealmSql = <<<ENDSQL
@@ -80,14 +104,19 @@ ENDSQL;
 
     if (!$gotRealm) {
         DebugMessage("No $region realms to fetch!");
+        ReleaseDBLock($lockName);
         return 30;
     }
 
     if (strtotime($nextDate) > time() && (strtotime($nextDate) < (time() + 3.5 * 60 * 60))) {
         $delay = strtotime($nextDate) - time();
         DebugMessage("No $region realms ready yet, waiting ".SecondsOrMinutes($delay).".");
+        ReleaseDBLock($lockName);
         return $delay;
     }
+
+    SetHouseNextCheck($house, time() + 600, null);
+    ReleaseDBLock($lockName);
 
     DebugMessage("$region $slug fetch for house $house to update $realmCount realms, due since " . (is_null($nextDate) ? 'unknown' : (SecondsOrMinutes(time() - strtotime($nextDate)).' ago')));
 
@@ -214,6 +243,15 @@ ENDSQL;
     unlink(SNAPSHOT_PATH . $fileName);
 
     return 0;
+}
+
+function ReleaseDBLock($lockName) {
+    global $db;
+
+    $stmt = $db->prepare('do release_lock(?)');
+    $stmt->bind_param('s', $lockName);
+    $stmt->execute();
+    $stmt->close();
 }
 
 function SecondsOrMinutes($sec) {
