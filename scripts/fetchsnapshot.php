@@ -239,7 +239,9 @@ ENDSQL;
     $fileName = "$modified-" . str_pad($house, 5, '0', STR_PAD_LEFT) . ".json";
     file_put_contents(SNAPSHOT_PATH . $fileName, $data, LOCK_EX);
     link(SNAPSHOT_PATH . $fileName, SNAPSHOT_PATH . 'parse/' . $fileName);
-    link(SNAPSHOT_PATH . $fileName, SNAPSHOT_PATH . 'watch/' . $fileName);
+    if (in_array($region, ['US','EU'])) {
+        link(SNAPSHOT_PATH . $fileName, SNAPSHOT_PATH . 'watch/' . $fileName);
+    }
     unlink(SNAPSHOT_PATH . $fileName);
 
     return 0;
