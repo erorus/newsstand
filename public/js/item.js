@@ -1698,23 +1698,8 @@ var TUJ_Item = function ()
                         text: tuj.lang.rangeButtons['1month']
                     },
                     {
-                        type: 'month',
-                        count: 3,
-                        text: tuj.lang.rangeButtons['3month']
-                    },
-                    {
-                        type: 'month',
-                        count: 6,
-                        text: tuj.lang.rangeButtons['6month']
-                    },
-                    {
-                        type: 'year',
-                        count: 1,
-                        text: tuj.lang.rangeButtons['1year']
-                    },
-                    {
                         type: 'all',
-                        text: tuj.lang.all
+                        text: tuj.lang.rangeButtons['3month']
                     },
                 ],
                 selected: 2,

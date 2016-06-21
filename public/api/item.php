@@ -181,7 +181,7 @@ function ItemHistoryDaily($house, $item)
 {
     global $db;
 
-    $cacheKey = 'item_historydaily2_' . $house . '_' . $item;
+    $cacheKey = 'item_historydaily_' . $house . '_' . $item;
 
     if (($tr = MCGet($cacheKey)) !== false) {
         return $tr;
@@ -196,7 +196,7 @@ select `when` as `date`,
 `quantitymin`, `quantityavg`, `quantitymax`, round(`presence`/255*100,1) as `presence`
 from tblItemHistoryDaily
 where house = ? and item = ?
-and `when` not between '2015-12-16' and '2015-12-22'
+and `when` > timestampadd(day, -93, now())
 order by `when` asc
 EOF;
 
