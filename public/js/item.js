@@ -1205,7 +1205,7 @@ var TUJ_Item = function ()
 
     function ItemMonthlyChart(data, dest)
     {
-        var hcdata = {price: [], priceMaxVal: 0, quantity: [], quantityMaxVal: 0, globalprice: []};
+        var hcdata = {price: [], priceMaxVal: 0, quantity: [], quantityMaxVal: 0, globalprice: [], ttLookup: {}};
 
         var allPrices = [], dt, dtParts;
         var offset = (new Date()).getTimezoneOffset() * 60 * 1000;
@@ -1222,6 +1222,10 @@ var TUJ_Item = function ()
                 hcdata.quantityMaxVal = data.monthly[bonusSet][x].quantity;
             }
             allPrices.push(data.monthly[bonusSet][x].silver * 100);
+            hcdata.ttLookup[dt] = {
+                'market': data.monthly[bonusSet][x].silver * 100,
+                'quantity': data.monthly[bonusSet][x].quantity,
+            };
         }
         for (var x = 0; x < data.globalmonthly[bonusSet].length; x++) {
             dtParts = data.globalmonthly[bonusSet][x].date.split('-');
@@ -1230,6 +1234,10 @@ var TUJ_Item = function ()
                 continue;
             }
             hcdata.globalprice.push([dt, data.globalmonthly[bonusSet][x].silver * 100]);
+            if (!hcdata.ttLookup.hasOwnProperty(dt)) {
+                hcdata.ttLookup[dt] = {};
+            }
+            hcdata.ttLookup[dt].region = data.globalmonthly[bonusSet][x].silver * 100;
         }
 
         allPrices.sort(function (a, b)
@@ -1360,14 +1368,18 @@ var TUJ_Item = function ()
                 formatter: function ()
                 {
                     var tr = '<b>' + Highcharts.dateFormat('%a %b %e %Y', this.x) + '</b>';
-                    if (this.points[1]) {
-                        tr += '<br><span style="color: #000099">' + tuj.lang.marketPrice + ': ' + libtuj.FormatPrice(this.points[1].y, true) + '</span>';
+                    if (!hcdata.ttLookup.hasOwnProperty(this.x)) {
+                        return tr;
                     }
-                    if (this.points[0]) {
-                        tr += '<br><span style="color: #009900">' + tuj.lang.regionPrice + ': ' + libtuj.FormatPrice(this.points[0].y, true) + '</span>';
+                    var points = hcdata.ttLookup[this.x];
+                    if (points.hasOwnProperty('market')) {
+                        tr += '<br><span style="color: #000099">' + tuj.lang.marketPrice + ': ' + libtuj.FormatPrice(points.market, true) + '</span>';
                     }
-                    if (this.points[2]) {
-                        tr += '<br><span style="color: #990000">' + tuj.lang.quantity + ': ' + libtuj.FormatQuantity(this.points[2].y, true) + '</span>';
+                    if (points.hasOwnProperty('region')) {
+                        tr += '<br><span style="color: #009900">' + tuj.lang.regionPrice + ': ' + libtuj.FormatPrice(points.region, true) + '</span>';
+                    }
+                    if (points.hasOwnProperty('quantity')) {
+                        tr += '<br><span style="color: #990000">' + tuj.lang.quantity + ': ' + libtuj.FormatQuantity(points.quantity, true) + '</span>';
                     }
                     return tr;
                     // &lt;br/&gt;&lt;span style="color: #990000"&gt;Quantity: '+this.points[1].y+'&lt;/span&gt;<xsl:if test="itemgraphs/d[@matsprice != '']">&lt;br/&gt;&lt;span style="color: #999900"&gt;Materials Price: '+this.points[2].y.toFixed(2)+'g&lt;/span&gt;</xsl:if>';
