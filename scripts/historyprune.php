@@ -103,7 +103,7 @@ EOF;
     $stmt->close();
 
     if (count($speciesChunks) == 0) {
-        DebugMessage("No species in tblPetSummary yet?");
+        DebugMessage("No species in tblDBCPet?");
         return;
     }
 
