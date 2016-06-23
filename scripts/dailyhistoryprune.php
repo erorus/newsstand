@@ -72,9 +72,8 @@ EOF;
     $minItem = $itemChunks[0]['first'];
     $maxItem = $itemChunks[count($itemChunks)-1]['last'];
 
-    // clean tblItemHistory
-
-    $sqlPatternDaily = 'delete from tblItemHistoryDaily where house = %d and item between %d and %d and `when` < \'%s\'';
+    $sqlPatternDaily = 'insert ignore into tblItemHistoryDaily2 (select item, house, `when`, pricemin, priceavg, pricemax, pricestart, priceend, quantitymin, quantityavg, quantitymax from tblItemHistoryDaily where house = %d and item between %d and %d and `when` > \'%s\')';
+    $cutOffDateDaily = date('Y-m-d H:i:s', strtotime('' . HISTORY_DAYS_DEEP . ' days ago'));
 
     for ($hx = 0; $hx < count($houses); $hx++) {
         heartbeat();
@@ -83,66 +82,40 @@ EOF;
         }
 
         $house = $houses[$hx];
-        if (!MCHouseLock($house)) {
-            continue;
-        }
-        $timeOnHouse = time();
-        $quitEarly = false;
 
-        $cutOffDateDaily = date('Y-m-d H:i:s', strtotime('' . HISTORY_DAYS_DEEP . ' days ago'));
+        $db->real_query(sprintf(str_ireplace('item between %d and %d', 'item < %d', $sqlPatternDaily), $house, $minItem, $cutOffDateDaily));
+        DebugMessage(sprintf("%d rows inserted for items < %d in house %d", $db->affected_rows, $minItem, $house));
+    }
 
+    for ($x = 0; $x < count($itemChunks); $x++) {
         heartbeat();
         if ($caughtKill) {
-            MCHouseUnlock($house);
             return;
         }
 
-        $rowCountDaily = 0;
-
-        if (!$caughtKill) $rowCountDaily += DeleteLimitLoop($db, sprintf(str_ireplace('item between %d and %d', 'item < %d', $sqlPatternDaily), $house, $minItem, $cutOffDateDaily));
-        if (!$caughtKill) $rowCountDaily += DeleteLimitLoop($db, sprintf(str_ireplace('item between %d and %d', 'item > %d', $sqlPatternDaily), $house, $maxItem, $cutOffDateDaily));
-
-        for ($x = 0; $x < count($itemChunks); $x++) {
+        for ($hx = 0; $hx < count($houses); $hx++) {
             heartbeat();
             if ($caughtKill) {
-                break;
+                return;
             }
-            $rowCountDaily += $rowCount = DeleteLimitLoop($db, sprintf($sqlPatternDaily, $house, $itemChunks[$x]['first'], $itemChunks[$x]['last'], $cutOffDateDaily));
-            DebugMessage(sprintf("%d rows deleted for items between %d and %d (chunk %d of %d) on house %d",
-                $rowCount,
-                $itemChunks[$x]['first'], $itemChunks[$x]['last'],
-                $x, count($itemChunks),
-                $house));
-            if ($timeOnHouse + 300 < time()) {
-                $quitEarly = true;
-            }
-        }
 
-        if (!$caughtKill && !$quitEarly) $rowCountDaily += DeleteLimitLoop($db, sprintf(str_ireplace(' and item between %d and %d', '', $sqlPatternDaily), $house, $cutOffDateDaily));
+            $house = $houses[$hx];
 
-        if ($quitEarly) {
-            DebugMessage(sprintf("Spent %d seconds on house %d, quitting early", time() - $timeOnHouse, $house));
+            $db->real_query(sprintf($sqlPatternDaily, $house, $itemChunks[$x]['first'], $itemChunks[$x]['last'], $cutOffDateDaily));
+            DebugMessage(sprintf("%d rows inserted for items between %d and %d in house %d", $db->affected_rows, $itemChunks[$x]['first'], $itemChunks[$x]['last'], $house));
         }
-        DebugMessage("$rowCountDaily item history daily rows deleted from house $house since $cutOffDateDaily");
-        MCHouseUnlock($house);
     }
 
-}
-
-function DeleteLimitLoop($db, $query, $limit = 5000) {
-    global $caughtKill;
-
-    $rowCount = 0;
-    if ($caughtKill) {
-        return $rowCount;
-    }
-
-    $query .= " LIMIT $limit";
-    do {
+    for ($hx = 0; $hx < count($houses); $hx++) {
         heartbeat();
-        $ok = $db->real_query($query);
-        $rowCount += $affectedRows = $db->affected_rows;
-    } while (!$caughtKill && $ok && ($affectedRows >= $limit));
+        if ($caughtKill) {
+            return;
+        }
 
-    return $rowCount;
+        $house = $houses[$hx];
+
+        $db->real_query(sprintf(str_ireplace('item between %d and %d', 'item > %d', $sqlPatternDaily), $house, $maxItem, $cutOffDateDaily));
+        DebugMessage(sprintf("%d rows inserted for items > %d in house %d", $db->affected_rows, $maxItem, $house));
+    }
+
 }

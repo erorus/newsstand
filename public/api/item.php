@@ -195,7 +195,7 @@ function ItemHistoryDaily($house, $item)
 select `when` as `date`,
 `pricemin` as `silvermin`, `priceavg` as `silveravg`, `pricemax` as `silvermax`,
 `pricestart` as `silverstart`, `priceend` as `silverend`,
-`quantitymin`, `quantityavg`, `quantitymax`, round(`presence`/255*100,1) as `presence`
+`quantitymin`, `quantityavg`, `quantitymax`
 from tblItemHistoryDaily
 where house = ? and item = ?
 and `when` > timestampadd(day, -$days, now())
