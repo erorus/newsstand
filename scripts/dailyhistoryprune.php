@@ -102,7 +102,10 @@ EOF;
             $house = $houses[$hx];
 
             $db->real_query(sprintf($sqlPatternDaily, $house, $itemChunks[$x]['first'], $itemChunks[$x]['last'], $cutOffDateDaily));
-            DebugMessage(sprintf("%d rows inserted for items between %d and %d in house %d", $db->affected_rows, $itemChunks[$x]['first'], $itemChunks[$x]['last'], $house));
+            DebugMessage(sprintf("%d rows inserted for items between %d and %d (chunk %d of %d) in house %d", $db->affected_rows,
+                $itemChunks[$x]['first'], $itemChunks[$x]['last'],
+                $x, count($itemChunks),
+                $house));
         }
     }
 
