@@ -189,6 +189,8 @@ function ItemHistoryDaily($house, $item)
 
     DBConnect();
 
+    $days = HISTORY_DAYS_DEEP;
+    
     $sql = <<<EOF
 select `when` as `date`,
 `pricemin` as `silvermin`, `priceavg` as `silveravg`, `pricemax` as `silvermax`,
@@ -196,7 +198,7 @@ select `when` as `date`,
 `quantitymin`, `quantityavg`, `quantitymax`, round(`presence`/255*100,1) as `presence`
 from tblItemHistoryDaily
 where house = ? and item = ?
-and `when` > timestampadd(day, -93, now())
+and `when` > timestampadd(day, -$days, now())
 order by `when` asc
 EOF;
 

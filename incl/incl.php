@@ -13,6 +13,7 @@ date_default_timezone_set('UTC');
 mb_internal_encoding("UTF-8");
 
 define('HISTORY_DAYS', 14);
+define('HISTORY_DAYS_DEEP', 93);
 $TIMELEFT_ENUM = [
     'SHORT'     => 1,
     'MEDIUM'    => 2,
