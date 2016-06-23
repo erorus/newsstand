@@ -32,6 +32,8 @@ function CleanOldData()
         return;
     }
 
+    DebugMessage("Starting, getting houses");
+
     $house = null;
     $houses = [];
     $stmt = $db->prepare('SELECT DISTINCT house FROM tblRealm WHERE house is not null');
@@ -44,6 +46,8 @@ function CleanOldData()
 
     //// get item chunks
 
+    DebugMessage("Getting item chunks");
+
     $sql = <<<'EOF'
 select * 
 from (
@@ -52,7 +56,7 @@ from (
         if(row % 500 = 0 or row = @rowcounter, item, null) last
     from (
         select (@rowcounter := @rowcounter + 1) row, items.item
-        from (SELECT distinct item FROM tblItemSummary ORDER BY 1) items, (select @rowcounter := 0) rowcounter
+        from (SELECT distinct item FROM tblItemGlobal ORDER BY 1) items, (select @rowcounter := 0) rowcounter
         ) rows
     where (row % 500 in (0, 1) or row = @rowcounter)
     ) withnulls
@@ -66,7 +70,7 @@ EOF;
     $stmt->close();
 
     if (count($itemChunks) == 0) {
-        DebugMessage("No items in tblItemSummary yet?");
+        DebugMessage("No items in tblItemGlobal yet?");
         return;
     }
 
@@ -74,6 +78,8 @@ EOF;
     $maxItem = $itemChunks[count($itemChunks)-1]['last'];
 
     //// get species chunks
+
+    DebugMessage("Getting species chunks");
 
     $sql = <<<'EOF'
 select * 
@@ -83,7 +89,7 @@ from (
         if(row % 50 = 0 or row = @rowcounter, item, null) last
     from (
         select (@rowcounter := @rowcounter + 1) row, items.item
-        from (SELECT distinct species as item FROM tblPetSummary ORDER BY 1) items, (select @rowcounter := 0) rowcounter
+        from (SELECT distinct id as item FROM tblDBCPet ORDER BY 1) items, (select @rowcounter := 0) rowcounter
         ) rows
     where (row % 50 in (0, 1) or row = @rowcounter)
     ) withnulls
