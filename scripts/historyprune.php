@@ -157,20 +157,23 @@ EOF;
         $rowCount = 0;
         $rowCountDaily = 0;
 
-        $rowCount += DeleteLimitLoop($db, sprintf(str_ireplace('item between %d and %d', 'item < %d', $sqlPattern), $house, $minItem, $cutoffDate));
-        $rowCount += DeleteLimitLoop($db, sprintf(str_ireplace('item between %d and %d', 'item > %d', $sqlPattern), $house, $maxItem, $cutoffDate));
+        if (!$caughtKill) $rowCount += DeleteLimitLoop($db, sprintf(str_ireplace('item between %d and %d', 'item < %d', $sqlPattern), $house, $minItem, $cutoffDate));
+        if (!$caughtKill) $rowCount += DeleteLimitLoop($db, sprintf(str_ireplace('item between %d and %d', 'item > %d', $sqlPattern), $house, $maxItem, $cutoffDate));
 
-        $rowCountDaily += DeleteLimitLoop($db, sprintf(str_ireplace('item between %d and %d', 'item < %d', $sqlPatternDaily), $house, $minItem, $cutOffDateDaily));
-        $rowCountDaily += DeleteLimitLoop($db, sprintf(str_ireplace('item between %d and %d', 'item > %d', $sqlPatternDaily), $house, $maxItem, $cutOffDateDaily));
+        if (!$caughtKill) $rowCountDaily += DeleteLimitLoop($db, sprintf(str_ireplace('item between %d and %d', 'item < %d', $sqlPatternDaily), $house, $minItem, $cutOffDateDaily));
+        if (!$caughtKill) $rowCountDaily += DeleteLimitLoop($db, sprintf(str_ireplace('item between %d and %d', 'item > %d', $sqlPatternDaily), $house, $maxItem, $cutOffDateDaily));
 
         for ($x = 0; $x < count($itemChunks); $x++) {
             heartbeat();
+            if ($caughtKill) {
+                break;
+            }
             $rowCount += DeleteLimitLoop($db, sprintf($sqlPattern, $house, $itemChunks[$x]['first'], $itemChunks[$x]['last'], $cutoffDate));
             $rowCountDaily += DeleteLimitLoop($db, sprintf($sqlPatternDaily, $house, $itemChunks[$x]['first'], $itemChunks[$x]['last'], $cutOffDateDaily));
         }
 
-        $rowCount += DeleteLimitLoop($db, sprintf(str_ireplace(' and item between %d and %d', '', $sqlPattern), $house, $cutoffDate));
-        $rowCountDaily += DeleteLimitLoop($db, sprintf(str_ireplace(' and item between %d and %d', '', $sqlPatternDaily), $house, $cutOffDateDaily));
+        if (!$caughtKill) $rowCount += DeleteLimitLoop($db, sprintf(str_ireplace(' and item between %d and %d', '', $sqlPattern), $house, $cutoffDate));
+        if (!$caughtKill) $rowCountDaily += DeleteLimitLoop($db, sprintf(str_ireplace(' and item between %d and %d', '', $sqlPatternDaily), $house, $cutOffDateDaily));
 
         DebugMessage("$rowCount item history rows deleted from house $house since $cutoffDate");
         DebugMessage("$rowCountDaily item history daily rows deleted from house $house since $cutOffDateDaily");
@@ -224,15 +227,18 @@ EOF;
 
         $rowCount = 0;
 
-        $rowCount += DeleteLimitLoop($db, sprintf(str_ireplace('species between %d and %d', 'species < %d', $sqlPattern), $house, $minSpecies, $cutoffDate));
-        $rowCount += DeleteLimitLoop($db, sprintf(str_ireplace('species between %d and %d', 'species > %d', $sqlPattern), $house, $maxSpecies, $cutoffDate));
+        if (!$caughtKill) $rowCount += DeleteLimitLoop($db, sprintf(str_ireplace('species between %d and %d', 'species < %d', $sqlPattern), $house, $minSpecies, $cutoffDate));
+        if (!$caughtKill) $rowCount += DeleteLimitLoop($db, sprintf(str_ireplace('species between %d and %d', 'species > %d', $sqlPattern), $house, $maxSpecies, $cutoffDate));
 
         for ($x = 0; $x < count($speciesChunks); $x++) {
             heartbeat();
+            if (!$caughtKill) {
+                break;
+            }
             $rowCount += DeleteLimitLoop($db, sprintf($sqlPattern, $house, $speciesChunks[$x]['first'], $speciesChunks[$x]['last'], $cutoffDate));
         }
 
-        $rowCount += DeleteLimitLoop($db, sprintf(str_ireplace(' and species between %d and %d', '', $sqlPattern), $house, $cutoffDate));
+        if (!$caughtKill) $rowCount += DeleteLimitLoop($db, sprintf(str_ireplace(' and species between %d and %d', '', $sqlPattern), $house, $cutoffDate));
 
         DebugMessage("$rowCount pet history rows deleted from house $house since $cutoffDate");
         MCHouseUnlock($house);
@@ -307,13 +313,19 @@ EOF;
 }
 
 function DeleteLimitLoop($db, $query, $limit = 5000) {
-    $query .= " LIMIT $limit";
+    global $caughtKill;
+
     $rowCount = 0;
+    if ($caughtKill) {
+        return $rowCount;
+    }
+
+    $query .= " LIMIT $limit";
     do {
         heartbeat();
         $ok = $db->real_query($query);
         $rowCount += $affectedRows = $db->affected_rows;
-    } while ($ok && ($affectedRows >= $limit));
+    } while (!$caughtKill && $ok && ($affectedRows >= $limit));
 
     return $rowCount;
 }
