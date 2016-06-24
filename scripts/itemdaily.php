@@ -52,23 +52,25 @@ EOF;
 
     DebugMessage(count($houses) . " houses need updates");
 
-    $sqlPattern = <<<EOF
+    $sqlPattern = <<<'EOF'
 replace into tblItemHistoryDaily
-(select id, %1\$d, '%2\$s', round(pricemin/100), round(priceavg/100), round(pricemax/100), round(pricestart/100), round(priceend/100), quantitymin, quantityavg, quantitymax from (
+(select id, %1$d, '%2$s', round(pricemin/100), round(priceavg/100), round(pricemax/100), round(pricestart/100), round(priceend/100), quantitymin, quantityavg, quantitymax from (
     select i.id,
     min(price) pricemin,
     round(avg(price)) priceavg,
     max(price) pricemax,
     min(if(@previtem != i.id, price, null)) pricestart,
-    min(cast(if(sn.updated = '%3\$s', @lastprice, null) as decimal(11,0))) priceend,
+    count(if(price is null, null, @previtem := i.id)) seensnapshots,
+    count(@lastprice := ifnull(price, @lastprice)) totalsnapshots,
+    min(cast(if(sn.updated = '%3$s', @lastprice, null) as decimal(11,0))) priceend,
     min(ifnull(quantity,0)) quantitymin,
     avg(ifnull(quantity,0)) quantityavg,
     max(quantity) quantitymax
     from (select @previtem := 0, @lastprice := 0) itemsetup, tblSnapshot sn
     join tblDBCItem i
-    left join tblItemHistory ih on ih.house=%1\$d and sn.updated=ih.snapshot and ih.item=i.id and ih.bonusset=0
-    where sn.house=%4\$d
-    and sn.updated between '%2\$s' and '%3\$s'
+    left join tblItemHistory ih on ih.house=%1$d and sn.updated=ih.snapshot and ih.item=i.id and ih.bonusset=0
+    where sn.house = %1$d
+    and sn.updated between '%2$s' and '%3$s'
     and sn.flags & 1 = 0
     and i.stacksize > 1
     group by i.id
@@ -86,7 +88,7 @@ EOF;
             continue;
         }
 
-        $sql = sprintf($sqlPattern, $house, $houseRow['start'], $houseRow['end'], $house);
+        $sql = sprintf($sqlPattern, $house, $houseRow['start'], $houseRow['end']);
         $db->real_query($sql);
         $rowCount = $db->affected_rows;
 
