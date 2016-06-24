@@ -60,8 +60,6 @@ replace into tblItemHistoryDaily
     round(avg(price)) priceavg,
     max(price) pricemax,
     min(if(@previtem != i.id, price, null)) pricestart,
-    count(if(price is null, null, @previtem := i.id)) seensnapshots,
-    count(@lastprice := ifnull(price, @lastprice)) totalsnapshots,
     min(cast(if(sn.updated = '%3\$s', @lastprice, null) as decimal(11,0))) priceend,
     min(ifnull(quantity,0)) quantitymin,
     avg(ifnull(quantity,0)) quantityavg,
