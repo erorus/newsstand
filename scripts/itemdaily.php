@@ -89,15 +89,21 @@ EOF;
         }
 
         $sql = sprintf($sqlPattern, $house, $houseRow['start'], $houseRow['end']);
-        $db->real_query($sql);
-        $rowCount = $db->affected_rows;
+        $queryOk = $db->real_query($sql);
+        if (!$queryOk) {
+            DebugMessage("SQL error: " . $db->errno . ' ' . $db->error . " - " . substr(preg_replace('/[\r\n]/', ' ', $sql), 0, 500), E_USER_WARNING);
+            $rowCount = -1;
+        } else {
+            $rowCount = $db->affected_rows;
+            DebugMessage("$rowCount item daily rows updated for house $house for date {$houseRow['start']}");
+        }
 
-        DebugMessage("$rowCount item daily rows updated for house $house for date {$houseRow['start']}");
-
-        $stmt = $db->prepare('INSERT INTO tblHouseCheck (house, lastdaily) VALUES (?, ?) ON DUPLICATE KEY UPDATE lastdaily = values(lastdaily)');
-        $stmt->bind_param('is', $house, $houseRow['start']);
-        $stmt->execute();
-        $stmt->close();
+        if ($rowCount >= 0) {
+            $stmt = $db->prepare('INSERT INTO tblHouseCheck (house, lastdaily) VALUES (?, ?) ON DUPLICATE KEY UPDATE lastdaily = values(lastdaily)');
+            $stmt->bind_param('is', $house, $houseRow['start']);
+            $stmt->execute();
+            $stmt->close();
+        }
 
         MCHouseUnlock($house);
     }
