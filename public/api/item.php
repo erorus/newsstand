@@ -189,8 +189,6 @@ function ItemHistoryDaily($house, $item)
 
     DBConnect();
 
-    $days = HISTORY_DAYS_DEEP;
-    
     $sql = <<<EOF
 select `when` as `date`,
 `pricemin` as `silvermin`, `priceavg` as `silveravg`, `pricemax` as `silvermax`,
@@ -198,7 +196,6 @@ select `when` as `date`,
 `quantitymin`, `quantityavg`, `quantitymax`
 from tblItemHistoryDaily
 where house = ? and item = ?
-and `when` > timestampadd(day, -$days, now())
 order by `when` asc
 EOF;
 
@@ -210,7 +207,12 @@ EOF;
     $result->close();
     $stmt->close();
 
-    MCSet($cacheKey, $tr, 60 * 60 * 8);
+    $fiveAm = strtotime('05:00:00 am');
+    if ($fiveAm < time()) {
+        $fiveAm = strtotime('tomorrow 05:00:00 am');
+    }
+
+    MCSet($cacheKey, $tr, $fiveAm);
 
     return $tr;
 }
