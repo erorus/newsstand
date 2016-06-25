@@ -1,14 +1,12 @@
 -- phpMyAdmin SQL Dump
--- version 4.2.7.1
+-- version 2.11.11.3
 -- http://www.phpmyadmin.net
 --
--- Host: localhost:3306
--- Generation Time: Apr 30, 2016 at 06:36 PM
--- Server version: 5.5.47
--- PHP Version: 5.5.32
+-- Generation Time: Jun 25, 2016 at 06:46 PM
+-- Server version: 5.5.45
+-- PHP Version: 5.3.3
 
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET time_zone = "+00:00";
+SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 
 --
 -- Database: `newsstand`
@@ -71,7 +69,7 @@ DETERMINISTIC
       FROM tblDBCItemReagents
       WHERE item = inID;
 
-      IF (inLevels >= 4) OR (x = 0)
+      IF (inLevels >= 3) OR (x = 0)
       THEN
         LEAVE sproc;
       END IF;
@@ -151,14 +149,66 @@ DETERMINISTIC
     THEN RETURN tr; END IF;
 
     if inDate is not null then
-      select price
+      select (case hour(s.updated)
+              when 0 then ih.silver00
+              when 1 then ih.silver01
+              when 2 then ih.silver02
+              when 3 then ih.silver03
+              when 4 then ih.silver04
+              when 5 then ih.silver05
+              when 6 then ih.silver06
+              when 7 then ih.silver07
+              when 8 then ih.silver08
+              when 9 then ih.silver09
+              when 10 then ih.silver10
+              when 11 then ih.silver11
+              when 12 then ih.silver12
+              when 13 then ih.silver13
+              when 14 then ih.silver14
+              when 15 then ih.silver15
+              when 16 then ih.silver16
+              when 17 then ih.silver17
+              when 18 then ih.silver18
+              when 19 then ih.silver19
+              when 20 then ih.silver20
+              when 21 then ih.silver21
+              when 22 then ih.silver22
+              when 23 then ih.silver23
+              else null end) * 100
       into tr
-      from tblItemHistory
-      where house = inHouse
-            and item = inID
-            and bonusset = ifnull(inBonusSet, bonusset)
-            and `snapshot` <= inDate
-      order by `snapshot` desc, if(quantity=0, 0, 1) desc, price desc
+      from tblSnapshot s
+        join tblItemHistoryHourly ih on date(s.updated) = ih.`when` and ih.house = s.house
+      where s.house = inHouse
+            and ih.item = inID
+            and ih.bonusset = ifnull(inBonusSet, ih.bonusset)
+            and s.updated <= inDate
+            and ifnull(case hour(s.updated)
+                       when 0 then ih.quantity00
+                       when 1 then ih.quantity01
+                       when 2 then ih.quantity02
+                       when 3 then ih.quantity03
+                       when 4 then ih.quantity04
+                       when 5 then ih.quantity05
+                       when 6 then ih.quantity06
+                       when 7 then ih.quantity07
+                       when 8 then ih.quantity08
+                       when 9 then ih.quantity09
+                       when 10 then ih.quantity10
+                       when 11 then ih.quantity11
+                       when 12 then ih.quantity12
+                       when 13 then ih.quantity13
+                       when 14 then ih.quantity14
+                       when 15 then ih.quantity15
+                       when 16 then ih.quantity16
+                       when 17 then ih.quantity17
+                       when 18 then ih.quantity18
+                       when 19 then ih.quantity19
+                       when 20 then ih.quantity20
+                       when 21 then ih.quantity21
+                       when 22 then ih.quantity22
+                       when 23 then ih.quantity23
+                       else null end, 0) > 0
+      order by s.updated desc
       limit 1;
     end if;
 
@@ -213,7 +263,10 @@ CREATE TABLE IF NOT EXISTS `tblAuction` (
   `bid` decimal(11,0) NOT NULL,
   `buy` decimal(11,0) NOT NULL,
   `seller` int(10) unsigned NOT NULL,
-  `timeleft` enum('SHORT','MEDIUM','LONG','VERY_LONG') COLLATE utf8_unicode_ci NOT NULL
+  `timeleft` enum('SHORT','MEDIUM','LONG','VERY_LONG') COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`house`,`id`),
+  KEY `seller` (`seller`),
+  KEY `item` (`item`,`house`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -234,7 +287,8 @@ CREATE TABLE IF NOT EXISTS `tblAuctionExtra` (
   `bonus3` smallint(5) unsigned DEFAULT NULL,
   `bonus4` smallint(5) unsigned DEFAULT NULL,
   `bonus5` smallint(5) unsigned DEFAULT NULL,
-  `bonus6` smallint(5) unsigned DEFAULT NULL
+  `bonus6` smallint(5) unsigned DEFAULT NULL,
+  PRIMARY KEY (`house`,`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -249,7 +303,9 @@ CREATE TABLE IF NOT EXISTS `tblAuctionPet` (
   `species` smallint(5) unsigned NOT NULL,
   `breed` tinyint(3) unsigned NOT NULL,
   `level` tinyint(3) unsigned NOT NULL,
-  `quality` tinyint(3) unsigned NOT NULL
+  `quality` tinyint(3) unsigned NOT NULL,
+  PRIMARY KEY (`house`,`id`),
+  KEY `species` (`species`,`house`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -261,7 +317,8 @@ CREATE TABLE IF NOT EXISTS `tblAuctionPet` (
 CREATE TABLE IF NOT EXISTS `tblAuctionRare` (
   `house` smallint(5) unsigned NOT NULL,
   `id` int(10) unsigned NOT NULL,
-  `prevseen` timestamp NULL DEFAULT NULL
+  `prevseen` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`house`,`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -272,7 +329,8 @@ CREATE TABLE IF NOT EXISTS `tblAuctionRare` (
 
 CREATE TABLE IF NOT EXISTS `tblBonusSet` (
   `set` tinyint(3) unsigned NOT NULL,
-  `bonus` smallint(5) unsigned NOT NULL
+  `bonus` smallint(5) unsigned NOT NULL,
+  PRIMARY KEY (`set`,`bonus`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -285,19 +343,9 @@ CREATE TABLE IF NOT EXISTS `tblCaptcha` (
   `id` int(10) unsigned NOT NULL,
   `race` tinyint(3) unsigned NOT NULL,
   `gender` tinyint(3) unsigned NOT NULL,
-  `helm` tinyint(3) unsigned NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `tblDBCEnchants`
---
-
-CREATE TABLE IF NOT EXISTS `tblDBCEnchants` (
-  `id` mediumint(8) unsigned NOT NULL,
-  `effect` varchar(64) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `gem` mediumint(8) unsigned DEFAULT NULL
+  `helm` tinyint(3) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `race` (`race`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -330,7 +378,8 @@ CREATE TABLE IF NOT EXISTS `tblDBCItem` (
   `requiredskill` smallint(5) unsigned DEFAULT NULL,
   `basebonus` smallint(5) unsigned NOT NULL DEFAULT '0',
   `display` mediumint(8) unsigned DEFAULT NULL,
-  `flags` set('pvp','notransmog') COLLATE utf8_unicode_ci NOT NULL
+  `flags` set('pvp','notransmog') COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -359,7 +408,8 @@ CREATE TABLE IF NOT EXISTS `tblDBCItemBonus` (
   `name_ptbr` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
   `name_ruru` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
   `namepriority` tinyint(3) unsigned DEFAULT NULL,
-  `flags` set('setmember') COLLATE utf8_unicode_ci NOT NULL
+  `flags` set('setmember') COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -370,7 +420,8 @@ CREATE TABLE IF NOT EXISTS `tblDBCItemBonus` (
 
 CREATE TABLE IF NOT EXISTS `tblDBCItemRandomSuffix` (
   `locale` char(4) COLLATE utf8_unicode_ci NOT NULL,
-  `suffix` varchar(120) COLLATE utf8_unicode_ci NOT NULL
+  `suffix` varchar(120) COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`locale`,`suffix`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -385,7 +436,11 @@ CREATE TABLE IF NOT EXISTS `tblDBCItemReagents` (
   `reagent` mediumint(8) unsigned NOT NULL,
   `quantity` decimal(8,4) unsigned NOT NULL,
   `spell` mediumint(9) DEFAULT NULL,
-  `fortooltip` tinyint(1) NOT NULL
+  `fortooltip` tinyint(1) NOT NULL,
+  KEY `itemid` (`item`),
+  KEY `reagentid` (`reagent`),
+  KEY `skillid` (`skillline`),
+  KEY `spell` (`spell`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -396,7 +451,8 @@ CREATE TABLE IF NOT EXISTS `tblDBCItemReagents` (
 
 CREATE TABLE IF NOT EXISTS `tblDBCItemSpell` (
   `item` mediumint(8) unsigned NOT NULL,
-  `spell` mediumint(8) unsigned NOT NULL
+  `spell` mediumint(8) unsigned NOT NULL,
+  PRIMARY KEY (`item`,`spell`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -406,10 +462,16 @@ CREATE TABLE IF NOT EXISTS `tblDBCItemSpell` (
 --
 
 CREATE TABLE IF NOT EXISTS `tblDBCItemSubClass` (
-  `class` smallint(6) NOT NULL,
-  `id` smallint(6) NOT NULL,
-  `name` varchar(40) COLLATE utf8_unicode_ci NOT NULL,
-  `fullname` varchar(40) COLLATE utf8_unicode_ci DEFAULT NULL
+  `class` tinyint(3) unsigned NOT NULL,
+  `subclass` tinyint(3) unsigned NOT NULL,
+  `name_enus` varchar(250) COLLATE utf8_unicode_ci NOT NULL,
+  `name_dede` varchar(250) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `name_eses` varchar(250) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `name_frfr` varchar(250) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `name_itit` varchar(250) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `name_ptbr` varchar(250) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `name_ruru` varchar(250) COLLATE utf8_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`class`,`subclass`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -422,7 +484,8 @@ CREATE TABLE IF NOT EXISTS `tblDBCItemVendorCost` (
   `item` mediumint(8) unsigned NOT NULL,
   `copper` int(10) unsigned DEFAULT NULL,
   `npc` mediumint(8) unsigned DEFAULT NULL,
-  `npccount` smallint(5) unsigned DEFAULT NULL
+  `npccount` smallint(5) unsigned DEFAULT NULL,
+  PRIMARY KEY (`item`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -447,7 +510,8 @@ CREATE TABLE IF NOT EXISTS `tblDBCPet` (
   `flags` mediumint(8) unsigned DEFAULT NULL,
   `power` smallint(6) DEFAULT NULL,
   `stamina` smallint(6) DEFAULT NULL,
-  `speed` smallint(6) DEFAULT NULL
+  `speed` smallint(6) DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -464,18 +528,8 @@ CREATE TABLE IF NOT EXISTS `tblDBCRandEnchants` (
   `name_frfr` varchar(64) COLLATE utf8_unicode_ci DEFAULT NULL,
   `name_itit` varchar(64) COLLATE utf8_unicode_ci DEFAULT NULL,
   `name_ptbr` varchar(64) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `name_ruru` varchar(64) COLLATE utf8_unicode_ci DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `tblDBCSkillLines`
---
-
-CREATE TABLE IF NOT EXISTS `tblDBCSkillLines` (
-  `id` smallint(5) unsigned NOT NULL,
-  `name` char(50) COLLATE utf8_unicode_ci NOT NULL
+  `name_ruru` varchar(64) COLLATE utf8_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -494,7 +548,10 @@ CREATE TABLE IF NOT EXISTS `tblDBCSpell` (
   `qtymade` decimal(7,2) unsigned NOT NULL DEFAULT '0.00',
   `yellow` smallint(5) unsigned DEFAULT NULL,
   `crafteditem` mediumint(8) unsigned DEFAULT NULL,
-  `expansion` tinyint(3) unsigned DEFAULT NULL
+  `expansion` tinyint(3) unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `crafteditem` (`crafteditem`),
+  KEY `skilllineid` (`skillline`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -505,7 +562,8 @@ CREATE TABLE IF NOT EXISTS `tblDBCSpell` (
 
 CREATE TABLE IF NOT EXISTS `tblEmailBlocked` (
   `address` varchar(250) COLLATE utf8_unicode_ci NOT NULL,
-  `added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`address`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -517,7 +575,8 @@ CREATE TABLE IF NOT EXISTS `tblEmailBlocked` (
 CREATE TABLE IF NOT EXISTS `tblEmailLog` (
   `sha1id` binary(20) NOT NULL,
   `sent` datetime NOT NULL,
-  `recipient` varchar(255) COLLATE utf8_unicode_ci NOT NULL
+  `recipient` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`sha1id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -533,7 +592,8 @@ CREATE TABLE IF NOT EXISTS `tblHouseCheck` (
   `lastcheck` timestamp NULL DEFAULT NULL,
   `lastcheckresult` text COLLATE utf8_unicode_ci,
   `lastchecksuccess` timestamp NULL DEFAULT NULL,
-  `lastchecksuccessresult` text COLLATE utf8_unicode_ci
+  `lastchecksuccessresult` text COLLATE utf8_unicode_ci,
+  PRIMARY KEY (`house`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -548,7 +608,9 @@ CREATE TABLE IF NOT EXISTS `tblItemExpired` (
   `house` smallint(5) unsigned NOT NULL,
   `when` date NOT NULL,
   `created` mediumint(8) unsigned NOT NULL DEFAULT '0',
-  `expired` mediumint(8) unsigned NOT NULL DEFAULT '0'
+  `expired` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`item`,`house`,`bonusset`,`when`),
+  KEY `house` (`house`,`when`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -562,7 +624,8 @@ CREATE TABLE IF NOT EXISTS `tblItemGlobal` (
   `bonusset` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `median` decimal(11,0) unsigned NOT NULL,
   `mean` decimal(11,0) unsigned NOT NULL,
-  `stddev` decimal(11,0) unsigned NOT NULL
+  `stddev` decimal(11,0) unsigned NOT NULL,
+  PRIMARY KEY (`item`,`bonusset`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -577,23 +640,8 @@ CREATE TABLE IF NOT EXISTS `tblItemGlobalWorking` (
   `bonusset` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `median` decimal(11,0) unsigned NOT NULL,
   `mean` decimal(11,0) unsigned NOT NULL,
-  `stddev` decimal(11,0) unsigned NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `tblItemHistory`
---
-
-CREATE TABLE IF NOT EXISTS `tblItemHistory` (
-  `house` smallint(5) unsigned NOT NULL,
-  `item` mediumint(8) unsigned NOT NULL,
-  `bonusset` tinyint(3) unsigned NOT NULL DEFAULT '0',
-  `snapshot` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `price` decimal(11,0) NOT NULL DEFAULT '0',
-  `quantity` mediumint(8) unsigned NOT NULL DEFAULT '0',
-  `age` tinyint(3) unsigned NOT NULL DEFAULT '0'
+  `stddev` decimal(11,0) unsigned NOT NULL,
+  PRIMARY KEY (`when`,`item`,`bonusset`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -611,10 +659,72 @@ CREATE TABLE IF NOT EXISTS `tblItemHistoryDaily` (
   `pricemax` int(10) unsigned NOT NULL,
   `pricestart` int(10) unsigned NOT NULL,
   `priceend` int(10) unsigned NOT NULL,
-  `quantitymin` smallint(5) unsigned NOT NULL,
-  `quantityavg` smallint(5) unsigned NOT NULL,
-  `quantitymax` smallint(5) unsigned NOT NULL,
-  `presence` tinyint(3) unsigned NOT NULL
+  `quantitymin` mediumint(8) unsigned NOT NULL,
+  `quantityavg` mediumint(8) unsigned NOT NULL,
+  `quantitymax` mediumint(8) unsigned NOT NULL,
+  PRIMARY KEY (`house`,`item`,`when`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tblItemHistoryHourly`
+--
+
+CREATE TABLE IF NOT EXISTS `tblItemHistoryHourly` (
+  `house` smallint(5) unsigned NOT NULL,
+  `item` mediumint(8) unsigned NOT NULL,
+  `bonusset` tinyint(3) unsigned NOT NULL,
+  `when` date NOT NULL,
+  `silver00` int(10) unsigned DEFAULT NULL,
+  `quantity00` mediumint(8) unsigned DEFAULT NULL,
+  `silver01` int(10) unsigned DEFAULT NULL,
+  `quantity01` mediumint(8) unsigned DEFAULT NULL,
+  `silver02` int(10) unsigned DEFAULT NULL,
+  `quantity02` mediumint(8) unsigned DEFAULT NULL,
+  `silver03` int(10) unsigned DEFAULT NULL,
+  `quantity03` mediumint(8) unsigned DEFAULT NULL,
+  `silver04` int(10) unsigned DEFAULT NULL,
+  `quantity04` mediumint(8) unsigned DEFAULT NULL,
+  `silver05` int(10) unsigned DEFAULT NULL,
+  `quantity05` mediumint(8) unsigned DEFAULT NULL,
+  `silver06` int(10) unsigned DEFAULT NULL,
+  `quantity06` mediumint(8) unsigned DEFAULT NULL,
+  `silver07` int(10) unsigned DEFAULT NULL,
+  `quantity07` mediumint(8) unsigned DEFAULT NULL,
+  `silver08` int(10) unsigned DEFAULT NULL,
+  `quantity08` mediumint(8) unsigned DEFAULT NULL,
+  `silver09` int(10) unsigned DEFAULT NULL,
+  `quantity09` mediumint(8) unsigned DEFAULT NULL,
+  `silver10` int(10) unsigned DEFAULT NULL,
+  `quantity10` mediumint(8) unsigned DEFAULT NULL,
+  `silver11` int(10) unsigned DEFAULT NULL,
+  `quantity11` mediumint(8) unsigned DEFAULT NULL,
+  `silver12` int(10) unsigned DEFAULT NULL,
+  `quantity12` mediumint(8) unsigned DEFAULT NULL,
+  `silver13` int(10) unsigned DEFAULT NULL,
+  `quantity13` mediumint(8) unsigned DEFAULT NULL,
+  `silver14` int(10) unsigned DEFAULT NULL,
+  `quantity14` mediumint(8) unsigned DEFAULT NULL,
+  `silver15` int(10) unsigned DEFAULT NULL,
+  `quantity15` mediumint(8) unsigned DEFAULT NULL,
+  `silver16` int(10) unsigned DEFAULT NULL,
+  `quantity16` mediumint(8) unsigned DEFAULT NULL,
+  `silver17` int(10) unsigned DEFAULT NULL,
+  `quantity17` mediumint(8) unsigned DEFAULT NULL,
+  `silver18` int(10) unsigned DEFAULT NULL,
+  `quantity18` mediumint(8) unsigned DEFAULT NULL,
+  `silver19` int(10) unsigned DEFAULT NULL,
+  `quantity19` mediumint(8) unsigned DEFAULT NULL,
+  `silver20` int(10) unsigned DEFAULT NULL,
+  `quantity20` mediumint(8) unsigned DEFAULT NULL,
+  `silver21` int(10) unsigned DEFAULT NULL,
+  `quantity21` mediumint(8) unsigned DEFAULT NULL,
+  `silver22` int(10) unsigned DEFAULT NULL,
+  `quantity22` mediumint(8) unsigned DEFAULT NULL,
+  `silver23` int(10) unsigned DEFAULT NULL,
+  `quantity23` mediumint(8) unsigned DEFAULT NULL,
+  PRIMARY KEY (`house`,`item`,`bonusset`,`when`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -689,7 +799,8 @@ CREATE TABLE IF NOT EXISTS `tblItemHistoryMonthly` (
   `mktslvr30` int(10) unsigned DEFAULT NULL,
   `qty30` smallint(5) unsigned DEFAULT NULL,
   `mktslvr31` int(10) unsigned DEFAULT NULL,
-  `qty31` smallint(5) unsigned DEFAULT NULL
+  `qty31` smallint(5) unsigned DEFAULT NULL,
+  PRIMARY KEY (`item`,`house`,`bonusset`,`month`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -705,7 +816,8 @@ CREATE TABLE IF NOT EXISTS `tblItemSummary` (
   `price` decimal(11,0) NOT NULL DEFAULT '0',
   `quantity` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `lastseen` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `age` tinyint(3) unsigned NOT NULL DEFAULT '0'
+  `age` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`house`,`item`,`bonusset`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -726,7 +838,9 @@ CREATE TABLE IF NOT EXISTS `tblPaypalTransactions` (
   `payment_status` char(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `user` mediumint(8) unsigned DEFAULT NULL,
   `pending_reason` char(50) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `reason_code` char(50) COLLATE utf8_unicode_ci DEFAULT NULL
+  `reason_code` char(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`test_ipn`,`txn_id`),
+  KEY `txn_type` (`txn_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -743,7 +857,8 @@ CREATE TABLE IF NOT EXISTS `tblPet` (
   `updated` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `type` tinyint(3) unsigned NOT NULL,
   `icon` varchar(120) COLLATE utf8_unicode_ci NOT NULL,
-  `npc` int(10) unsigned DEFAULT NULL
+  `npc` int(10) unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -758,7 +873,8 @@ CREATE TABLE IF NOT EXISTS `tblPetHistory` (
   `breed` tinyint(3) unsigned NOT NULL,
   `snapshot` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `price` decimal(11,0) NOT NULL DEFAULT '0',
-  `quantity` mediumint(8) unsigned NOT NULL DEFAULT '0'
+  `quantity` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`house`,`species`,`breed`,`snapshot`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -773,7 +889,8 @@ CREATE TABLE IF NOT EXISTS `tblPetSummary` (
   `breed` tinyint(3) unsigned NOT NULL,
   `price` decimal(11,0) NOT NULL DEFAULT '0',
   `quantity` mediumint(8) unsigned NOT NULL DEFAULT '0',
-  `lastseen` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
+  `lastseen` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  PRIMARY KEY (`house`,`species`,`breed`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -784,14 +901,18 @@ CREATE TABLE IF NOT EXISTS `tblPetSummary` (
 
 CREATE TABLE IF NOT EXISTS `tblRealm` (
   `id` smallint(5) unsigned NOT NULL,
-  `region` enum('US','EU') COLLATE utf8_unicode_ci NOT NULL,
+  `region` enum('US','EU','CN','TW','KR') COLLATE utf8_unicode_ci NOT NULL,
   `slug` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
   `name` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
   `locale` char(5) COLLATE utf8_unicode_ci DEFAULT NULL,
   `house` smallint(5) unsigned DEFAULT NULL,
   `canonical` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `ownerrealm` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `population` mediumint(8) unsigned DEFAULT NULL
+  `population` mediumint(8) unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `realmset` (`region`,`slug`),
+  UNIQUE KEY `region` (`region`,`name`),
+  KEY `house` (`house`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -802,7 +923,8 @@ CREATE TABLE IF NOT EXISTS `tblRealm` (
 
 CREATE TABLE IF NOT EXISTS `tblRealmGuidHouse` (
   `realmguid` smallint(5) unsigned NOT NULL,
-  `house` smallint(5) unsigned NOT NULL
+  `house` smallint(5) unsigned NOT NULL,
+  PRIMARY KEY (`realmguid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -812,12 +934,14 @@ CREATE TABLE IF NOT EXISTS `tblRealmGuidHouse` (
 --
 
 CREATE TABLE IF NOT EXISTS `tblSeller` (
-  `id` int(10) unsigned NOT NULL,
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `realm` smallint(5) unsigned NOT NULL,
   `name` char(12) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
   `firstseen` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `lastseen` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `lastseen` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `realmname` (`realm`,`name`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=33485149 ;
 
 -- --------------------------------------------------------
 
@@ -829,7 +953,9 @@ CREATE TABLE IF NOT EXISTS `tblSellerHistory` (
   `seller` int(10) unsigned NOT NULL,
   `snapshot` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `new` smallint(5) unsigned NOT NULL DEFAULT '0',
-  `total` smallint(5) unsigned NOT NULL DEFAULT '0'
+  `total` smallint(5) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`snapshot`,`seller`),
+  KEY `seller` (`seller`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -839,11 +965,15 @@ CREATE TABLE IF NOT EXISTS `tblSellerHistory` (
 --
 
 CREATE TABLE IF NOT EXISTS `tblSellerItemHistory` (
+  `item` mediumint(8) unsigned NOT NULL,
   `seller` int(10) unsigned NOT NULL,
   `snapshot` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `item` mediumint(8) unsigned NOT NULL,
+  `house` smallint(5) unsigned NOT NULL DEFAULT '0',
   `auctions` smallint(5) unsigned NOT NULL,
-  `quantity` mediumint(8) unsigned NOT NULL
+  `quantity` mediumint(8) unsigned NOT NULL,
+  PRIMARY KEY (`item`,`seller`,`snapshot`),
+  KEY `snapshot` (`snapshot`),
+  KEY `seller` (`seller`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -856,7 +986,8 @@ CREATE TABLE IF NOT EXISTS `tblSnapshot` (
   `house` smallint(5) unsigned NOT NULL,
   `updated` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `maxid` int(10) unsigned DEFAULT NULL,
-  `flags` set('NoHistory') COLLATE utf8_unicode_ci NOT NULL
+  `flags` set('NoHistory') COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`house`,`updated`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -866,7 +997,7 @@ CREATE TABLE IF NOT EXISTS `tblSnapshot` (
 --
 
 CREATE TABLE IF NOT EXISTS `tblUser` (
-  `id` mediumint(8) unsigned NOT NULL,
+  `id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
   `locale` char(4) COLLATE utf8_unicode_ci DEFAULT NULL,
   `firstseen` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
@@ -879,8 +1010,10 @@ CREATE TABLE IF NOT EXISTS `tblUser` (
   `watchsequence` int(10) unsigned NOT NULL DEFAULT '0',
   `watchperiod` smallint(5) unsigned NOT NULL DEFAULT '715',
   `watchesobserved` timestamp NULL DEFAULT NULL,
-  `watchesreported` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `watchesreported` timestamp NULL DEFAULT NULL,
+  `rss` varchar(24) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=21113 ;
 
 -- --------------------------------------------------------
 
@@ -893,7 +1026,9 @@ CREATE TABLE IF NOT EXISTS `tblUserAuth` (
   `providerid` bigint(20) unsigned NOT NULL,
   `user` mediumint(8) unsigned NOT NULL,
   `firstseen` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `lastseen` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
+  `lastseen` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  PRIMARY KEY (`provider`,`providerid`),
+  KEY `user` (`user`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -908,7 +1043,8 @@ CREATE TABLE IF NOT EXISTS `tblUserMessages` (
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `type` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
   `subject` varchar(250) COLLATE utf8_unicode_ci NOT NULL,
-  `message` mediumtext COLLATE utf8_unicode_ci NOT NULL
+  `message` mediumtext COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`user`,`seq`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -926,7 +1062,9 @@ CREATE TABLE IF NOT EXISTS `tblUserRare` (
   `minlevel` smallint(5) unsigned DEFAULT NULL,
   `maxlevel` smallint(5) unsigned DEFAULT NULL,
   `flags` set('includecrafted','includevendor') COLLATE utf8_unicode_ci NOT NULL,
-  `days` smallint(5) unsigned NOT NULL
+  `days` smallint(5) unsigned NOT NULL,
+  PRIMARY KEY (`user`,`seq`),
+  KEY `house` (`house`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -942,7 +1080,9 @@ CREATE TABLE IF NOT EXISTS `tblUserRareReport` (
   `bonusset` tinyint(3) unsigned NOT NULL,
   `prevseen` timestamp NULL DEFAULT NULL,
   `price` decimal(11,0) NOT NULL,
-  `snapshot` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
+  `snapshot` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  PRIMARY KEY (`user`,`house`,`item`,`bonusset`),
+  KEY `house` (`house`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -957,7 +1097,9 @@ CREATE TABLE IF NOT EXISTS `tblUserSession` (
   `firstseen` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `lastseen` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `ip` varchar(40) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `useragent` varchar(250) COLLATE utf8_unicode_ci NOT NULL
+  `useragent` varchar(250) COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`session`),
+  KEY `user` (`user`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -982,7 +1124,11 @@ CREATE TABLE IF NOT EXISTS `tblUserWatch` (
   `created` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `observed` timestamp NULL DEFAULT NULL,
   `reported` timestamp NULL DEFAULT NULL,
-  `deleted` timestamp NULL DEFAULT NULL
+  `deleted` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`user`,`seq`),
+  KEY `house` (`house`),
+  KEY `item` (`item`),
+  KEY `region` (`region`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -997,7 +1143,8 @@ CREATE TABLE IF NOT EXISTS `tblWowToken` (
   `marketgold` mediumint(8) unsigned DEFAULT NULL,
   `timeleft` enum('Short','Medium','Long','Very Long') COLLATE utf8_unicode_ci DEFAULT NULL,
   `timeleftraw` int(10) unsigned DEFAULT NULL,
-  `result` tinyint(4) DEFAULT NULL
+  `result` tinyint(4) DEFAULT NULL,
+  PRIMARY KEY (`region`,`when`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -1012,7 +1159,8 @@ CREATE TABLE IF NOT EXISTS `tblWowTokenEvents` (
   `direction` enum('over','under') COLLATE utf8_unicode_ci NOT NULL,
   `value` mediumint(8) unsigned NOT NULL,
   `created` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `lasttrigger` timestamp NULL DEFAULT NULL
+  `lasttrigger` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`subid`,`region`,`direction`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -1022,13 +1170,15 @@ CREATE TABLE IF NOT EXISTS `tblWowTokenEvents` (
 --
 
 CREATE TABLE IF NOT EXISTS `tblWowTokenSubs` (
-  `id` int(10) unsigned NOT NULL,
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `endpoint` varbinary(400) NOT NULL,
   `firstseen` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `lastseen` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `lastpush` timestamp NULL DEFAULT NULL,
-  `lastfail` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `lastfail` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `subdex` (`endpoint`(20))
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=673 ;
 
 -- --------------------------------------------------------
 
@@ -1040,306 +1190,9 @@ CREATE TABLE IF NOT EXISTS `ttblRareStageTemplate` (
   `item` mediumint(8) unsigned NOT NULL,
   `bonusset` tinyint(3) unsigned NOT NULL,
   `price` decimal(11,0) NOT NULL,
-  `lastseen` timestamp NULL DEFAULT NULL
+  `lastseen` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`item`,`bonusset`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
---
--- Indexes for dumped tables
---
-
---
--- Indexes for table `tblAuction`
---
-ALTER TABLE `tblAuction`
-ADD PRIMARY KEY (`house`,`id`), ADD KEY `item` (`item`), ADD KEY `seller` (`seller`);
-
---
--- Indexes for table `tblAuctionExtra`
---
-ALTER TABLE `tblAuctionExtra`
-ADD PRIMARY KEY (`house`,`id`);
-
---
--- Indexes for table `tblAuctionPet`
---
-ALTER TABLE `tblAuctionPet`
-ADD PRIMARY KEY (`house`,`id`);
-
---
--- Indexes for table `tblAuctionRare`
---
-ALTER TABLE `tblAuctionRare`
-ADD PRIMARY KEY (`house`,`id`);
-
---
--- Indexes for table `tblBonusSet`
---
-ALTER TABLE `tblBonusSet`
-ADD PRIMARY KEY (`set`,`bonus`);
-
---
--- Indexes for table `tblCaptcha`
---
-ALTER TABLE `tblCaptcha`
-ADD PRIMARY KEY (`id`), ADD KEY `race` (`race`);
-
---
--- Indexes for table `tblDBCEnchants`
---
-ALTER TABLE `tblDBCEnchants`
-ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `tblDBCItem`
---
-ALTER TABLE `tblDBCItem`
-ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `tblDBCItemBonus`
---
-ALTER TABLE `tblDBCItemBonus`
-ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `tblDBCItemRandomSuffix`
---
-ALTER TABLE `tblDBCItemRandomSuffix`
-ADD PRIMARY KEY (`locale`,`suffix`);
-
---
--- Indexes for table `tblDBCItemReagents`
---
-ALTER TABLE `tblDBCItemReagents`
-ADD KEY `itemid` (`item`), ADD KEY `reagentid` (`reagent`), ADD KEY `skillid` (`skillline`), ADD KEY `spell` (`spell`);
-
---
--- Indexes for table `tblDBCItemSpell`
---
-ALTER TABLE `tblDBCItemSpell`
-ADD PRIMARY KEY (`item`,`spell`);
-
---
--- Indexes for table `tblDBCItemSubClass`
---
-ALTER TABLE `tblDBCItemSubClass`
-ADD PRIMARY KEY (`class`,`id`);
-
---
--- Indexes for table `tblDBCItemVendorCost`
---
-ALTER TABLE `tblDBCItemVendorCost`
-ADD PRIMARY KEY (`item`);
-
---
--- Indexes for table `tblDBCPet`
---
-ALTER TABLE `tblDBCPet`
-ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `tblDBCRandEnchants`
---
-ALTER TABLE `tblDBCRandEnchants`
-ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `tblDBCSkillLines`
---
-ALTER TABLE `tblDBCSkillLines`
-ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `tblDBCSpell`
---
-ALTER TABLE `tblDBCSpell`
-ADD PRIMARY KEY (`id`), ADD KEY `crafteditem` (`crafteditem`), ADD KEY `skilllineid` (`skillline`);
-
---
--- Indexes for table `tblEmailBlocked`
---
-ALTER TABLE `tblEmailBlocked`
-ADD PRIMARY KEY (`address`);
-
---
--- Indexes for table `tblEmailLog`
---
-ALTER TABLE `tblEmailLog`
-ADD PRIMARY KEY (`sha1id`);
-
---
--- Indexes for table `tblHouseCheck`
---
-ALTER TABLE `tblHouseCheck`
-ADD PRIMARY KEY (`house`);
-
---
--- Indexes for table `tblItemExpired`
---
-ALTER TABLE `tblItemExpired`
-ADD PRIMARY KEY (`item`,`bonusset`,`house`,`when`), ADD KEY `house` (`house`,`when`);
-
---
--- Indexes for table `tblItemGlobal`
---
-ALTER TABLE `tblItemGlobal`
-ADD PRIMARY KEY (`item`,`bonusset`);
-
---
--- Indexes for table `tblItemGlobalWorking`
---
-ALTER TABLE `tblItemGlobalWorking`
-ADD PRIMARY KEY (`when`,`item`,`bonusset`);
-
---
--- Indexes for table `tblItemHistory`
---
-ALTER TABLE `tblItemHistory`
-ADD PRIMARY KEY (`house`,`item`,`bonusset`,`snapshot`);
-
---
--- Indexes for table `tblItemHistoryDaily`
---
-ALTER TABLE `tblItemHistoryDaily`
-ADD PRIMARY KEY (`item`,`house`,`when`);
-
---
--- Indexes for table `tblItemHistoryMonthly`
---
-ALTER TABLE `tblItemHistoryMonthly`
-ADD PRIMARY KEY (`item`,`house`,`bonusset`,`month`);
-
---
--- Indexes for table `tblItemSummary`
---
-ALTER TABLE `tblItemSummary`
-ADD PRIMARY KEY (`house`,`item`,`bonusset`);
-
---
--- Indexes for table `tblPaypalTransactions`
---
-ALTER TABLE `tblPaypalTransactions`
-ADD PRIMARY KEY (`test_ipn`,`txn_id`), ADD KEY `txn_type` (`txn_type`);
-
---
--- Indexes for table `tblPet`
---
-ALTER TABLE `tblPet`
-ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `tblPetHistory`
---
-ALTER TABLE `tblPetHistory`
-ADD PRIMARY KEY (`house`,`species`,`breed`,`snapshot`);
-
---
--- Indexes for table `tblPetSummary`
---
-ALTER TABLE `tblPetSummary`
-ADD PRIMARY KEY (`house`,`species`,`breed`);
-
---
--- Indexes for table `tblRealm`
---
-ALTER TABLE `tblRealm`
-ADD PRIMARY KEY (`id`), ADD UNIQUE KEY `realmset` (`region`,`slug`), ADD UNIQUE KEY `region` (`region`,`name`), ADD KEY `house` (`house`);
-
---
--- Indexes for table `tblRealmGuidHouse`
---
-ALTER TABLE `tblRealmGuidHouse`
-ADD PRIMARY KEY (`realmguid`);
-
---
--- Indexes for table `tblSeller`
---
-ALTER TABLE `tblSeller`
-ADD PRIMARY KEY (`id`), ADD UNIQUE KEY `realmname` (`realm`,`name`);
-
---
--- Indexes for table `tblSellerHistory`
---
-ALTER TABLE `tblSellerHistory`
-ADD PRIMARY KEY (`snapshot`,`seller`), ADD KEY `seller` (`seller`);
-
---
--- Indexes for table `tblSellerItemHistory`
---
-ALTER TABLE `tblSellerItemHistory`
-ADD PRIMARY KEY (`seller`,`snapshot`,`item`), ADD KEY `snapshot` (`snapshot`), ADD KEY `item` (`item`);
-
---
--- Indexes for table `tblSnapshot`
---
-ALTER TABLE `tblSnapshot`
-ADD PRIMARY KEY (`house`,`updated`);
-
---
--- Indexes for table `tblUser`
---
-ALTER TABLE `tblUser`
-ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `tblUserAuth`
---
-ALTER TABLE `tblUserAuth`
-ADD PRIMARY KEY (`provider`,`providerid`), ADD KEY `user` (`user`);
-
---
--- Indexes for table `tblUserMessages`
---
-ALTER TABLE `tblUserMessages`
-ADD PRIMARY KEY (`user`,`seq`);
-
---
--- Indexes for table `tblUserRare`
---
-ALTER TABLE `tblUserRare`
-ADD PRIMARY KEY (`user`,`seq`), ADD KEY `house` (`house`);
-
---
--- Indexes for table `tblUserRareReport`
---
-ALTER TABLE `tblUserRareReport`
-ADD PRIMARY KEY (`user`,`house`,`item`,`bonusset`), ADD KEY `house` (`house`);
-
---
--- Indexes for table `tblUserSession`
---
-ALTER TABLE `tblUserSession`
-ADD PRIMARY KEY (`session`), ADD KEY `user` (`user`);
-
---
--- Indexes for table `tblUserWatch`
---
-ALTER TABLE `tblUserWatch`
-ADD PRIMARY KEY (`user`,`seq`), ADD KEY `house` (`house`), ADD KEY `item` (`item`), ADD KEY `region` (`region`);
-
---
--- Indexes for table `tblWowToken`
---
-ALTER TABLE `tblWowToken`
-ADD PRIMARY KEY (`region`,`when`);
-
---
--- Indexes for table `tblWowTokenEvents`
---
-ALTER TABLE `tblWowTokenEvents`
-ADD PRIMARY KEY (`subid`,`region`,`direction`);
-
---
--- Indexes for table `tblWowTokenSubs`
---
-ALTER TABLE `tblWowTokenSubs`
-ADD PRIMARY KEY (`id`), ADD KEY `subdex` (`endpoint`(20));
-
---
--- Indexes for table `ttblRareStageTemplate`
---
-ALTER TABLE `ttblRareStageTemplate`
-ADD PRIMARY KEY (`item`,`bonusset`);
 
 --
 -- Constraints for dumped tables
@@ -1349,52 +1202,52 @@ ADD PRIMARY KEY (`item`,`bonusset`);
 -- Constraints for table `tblAuctionExtra`
 --
 ALTER TABLE `tblAuctionExtra`
-ADD CONSTRAINT `tblAuctionExtra_ibfk_1` FOREIGN KEY (`house`, `id`) REFERENCES `tblAuction` (`house`, `id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `tblAuctionExtra_ibfk_1` FOREIGN KEY (`house`, `id`) REFERENCES `tblAuction` (`house`, `id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `tblAuctionPet`
 --
 ALTER TABLE `tblAuctionPet`
-ADD CONSTRAINT `tblAuctionPet_ibfk_1` FOREIGN KEY (`house`, `id`) REFERENCES `tblAuction` (`house`, `id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `tblAuctionPet_ibfk_1` FOREIGN KEY (`house`, `id`) REFERENCES `tblAuction` (`house`, `id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `tblAuctionRare`
 --
 ALTER TABLE `tblAuctionRare`
-ADD CONSTRAINT `tblAuctionRare_ibfk_1` FOREIGN KEY (`house`, `id`) REFERENCES `tblAuction` (`house`, `id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `tblAuctionRare_ibfk_1` FOREIGN KEY (`house`, `id`) REFERENCES `tblAuction` (`house`, `id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `tblUserAuth`
 --
 ALTER TABLE `tblUserAuth`
-ADD CONSTRAINT `tblUserAuth_ibfk_1` FOREIGN KEY (`user`) REFERENCES `tblUser` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `tblUserAuth_ibfk_1` FOREIGN KEY (`user`) REFERENCES `tblUser` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `tblUserMessages`
 --
 ALTER TABLE `tblUserMessages`
-ADD CONSTRAINT `tblUserMessages_ibfk_1` FOREIGN KEY (`user`) REFERENCES `tblUser` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `tblUserMessages_ibfk_1` FOREIGN KEY (`user`) REFERENCES `tblUser` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `tblUserRare`
 --
 ALTER TABLE `tblUserRare`
-ADD CONSTRAINT `tblUserRare_ibfk_1` FOREIGN KEY (`user`) REFERENCES `tblUser` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `tblUserRare_ibfk_1` FOREIGN KEY (`user`) REFERENCES `tblUser` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `tblUserRareReport`
 --
 ALTER TABLE `tblUserRareReport`
-ADD CONSTRAINT `tblUserRareReport_ibfk_1` FOREIGN KEY (`user`) REFERENCES `tblUser` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `tblUserRareReport_ibfk_1` FOREIGN KEY (`user`) REFERENCES `tblUser` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `tblUserSession`
 --
 ALTER TABLE `tblUserSession`
-ADD CONSTRAINT `tblUserSession_ibfk_1` FOREIGN KEY (`user`) REFERENCES `tblUser` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `tblUserSession_ibfk_1` FOREIGN KEY (`user`) REFERENCES `tblUser` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `tblUserWatch`
 --
 ALTER TABLE `tblUserWatch`
-ADD CONSTRAINT `tblUserWatch_ibfk_1` FOREIGN KEY (`user`) REFERENCES `tblUser` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `tblUserWatch_ibfk_1` FOREIGN KEY (`user`) REFERENCES `tblUser` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;

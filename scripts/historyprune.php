@@ -44,39 +44,6 @@ function CleanOldData()
     }
     $stmt->close();
 
-    //// get item chunks
-
-    DebugMessage("Getting item chunks");
-
-    $sql = <<<'EOF'
-select * 
-from (
-    select 
-        if(row % 500 = 1, @firstitem := item, @firstitem) first,
-        if(row % 500 = 0 or row = @rowcounter, item, null) last
-    from (
-        select (@rowcounter := @rowcounter + 1) row, items.item
-        from (SELECT distinct item FROM tblItemGlobal ORDER BY 1) items, (select @rowcounter := 0) rowcounter
-        ) rows
-    where (row % 500 in (0, 1) or row = @rowcounter)
-    ) withnulls
-where last is not null
-EOF;
-    $stmt = $db->prepare($sql);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $itemChunks = $result->fetch_all(MYSQLI_ASSOC);
-    $result->close();
-    $stmt->close();
-
-    if (count($itemChunks) == 0) {
-        DebugMessage("No items in tblItemGlobal yet?");
-        return;
-    }
-
-    $minItem = $itemChunks[0]['first'];
-    $maxItem = $itemChunks[count($itemChunks)-1]['last'];
-
     //// get species chunks
 
     DebugMessage("Getting species chunks");
@@ -110,10 +77,10 @@ EOF;
     $minSpecies = $speciesChunks[0]['first'];
     $maxSpecies = $speciesChunks[count($speciesChunks)-1]['last'];
 
-    // clean tblItemHistory
+    // clean tblItemHistoryHourly, tblItemHistoryDaily
 
-    $sqlPattern = 'delete from tblItemHistory where house = %d and item between %d and %d and snapshot < \'%s\'';
-    $sqlPatternDaily = 'delete from tblItemHistoryDaily where house = %d and item between %d and %d and `when` < \'%s\'';
+    $sqlPatternHourly = 'delete from tblItemHistoryHourly where house = %d and `when` < \'%s\'';
+    $sqlPatternDaily = 'delete from tblItemHistoryDaily where house = %d and `when` < \'%s\'';
 
     for ($hx = 0; $hx < count($houses); $hx++) {
         heartbeat();
@@ -127,7 +94,7 @@ EOF;
         }
 
         $ssDate = '';
-        $cutoffDate = date('Y-m-d H:i:s', strtotime('' . HISTORY_DAYS . ' days ago'));
+        $cutoffDateHourly = date('Y-m-d H:i:s', strtotime('' . HISTORY_DAYS . ' days ago'));
         $cutOffDateDaily = date('Y-m-d H:i:s', strtotime('' . HISTORY_DAYS_DEEP . ' days ago'));
 
         $stmt = $db->prepare('SELECT min(`updated`) FROM (SELECT `updated` FROM tblSnapshot WHERE house = ? AND `flags` & 1 = 0 ORDER BY updated DESC LIMIT ?) aa');
@@ -144,39 +111,20 @@ EOF;
             continue;
         }
 
-        if (strtotime($ssDate) < strtotime($cutoffDate)) {
-            $cutoffDate = $ssDate;
+        if (strtotime($ssDate) < strtotime($cutoffDateHourly)) {
+            $cutoffDateHourly = $ssDate;
         }
 
-        heartbeat();
-        if ($caughtKill) {
-            MCHouseUnlock($house);
-            return;
+        if (!$caughtKill) {
+            $rowCount = DeleteLimitLoop($db, sprintf($sqlPatternHourly, $house, $cutoffDateHourly));
+            DebugMessage("$rowCount item history rows deleted from house $house since $cutoffDateHourly");
         }
 
-        $rowCount = 0;
-        $rowCountDaily = 0;
-
-        if (!$caughtKill) $rowCount += DeleteLimitLoop($db, sprintf(str_ireplace('item between %d and %d', 'item < %d', $sqlPattern), $house, $minItem, $cutoffDate));
-        if (!$caughtKill) $rowCount += DeleteLimitLoop($db, sprintf(str_ireplace('item between %d and %d', 'item > %d', $sqlPattern), $house, $maxItem, $cutoffDate));
-
-        if (!$caughtKill) $rowCountDaily += DeleteLimitLoop($db, sprintf(str_ireplace('item between %d and %d', 'item < %d', $sqlPatternDaily), $house, $minItem, $cutOffDateDaily));
-        if (!$caughtKill) $rowCountDaily += DeleteLimitLoop($db, sprintf(str_ireplace('item between %d and %d', 'item > %d', $sqlPatternDaily), $house, $maxItem, $cutOffDateDaily));
-
-        for ($x = 0; $x < count($itemChunks); $x++) {
-            heartbeat();
-            if ($caughtKill) {
-                break;
-            }
-            $rowCount += DeleteLimitLoop($db, sprintf($sqlPattern, $house, $itemChunks[$x]['first'], $itemChunks[$x]['last'], $cutoffDate));
-            $rowCountDaily += DeleteLimitLoop($db, sprintf($sqlPatternDaily, $house, $itemChunks[$x]['first'], $itemChunks[$x]['last'], $cutOffDateDaily));
+        if (!$caughtKill) {
+            $rowCount = DeleteLimitLoop($db, sprintf($sqlPatternDaily, $house, $cutOffDateDaily));
+            DebugMessage("$rowCount item history daily rows deleted from house $house since $cutOffDateDaily");
         }
 
-        if (!$caughtKill) $rowCount += DeleteLimitLoop($db, sprintf(str_ireplace(' and item between %d and %d', '', $sqlPattern), $house, $cutoffDate));
-        if (!$caughtKill) $rowCountDaily += DeleteLimitLoop($db, sprintf(str_ireplace(' and item between %d and %d', '', $sqlPatternDaily), $house, $cutOffDateDaily));
-
-        DebugMessage("$rowCount item history rows deleted from house $house since $cutoffDate");
-        DebugMessage("$rowCountDaily item history daily rows deleted from house $house since $cutOffDateDaily");
         MCHouseUnlock($house);
     }
 

@@ -89,14 +89,29 @@ function SearchItems($house, $search, $locale)
 
     $sql = <<<EOF
 select results.*,
+(select round(avg(case hours.h
+        when  0 then ihh.silver00 when  1 then ihh.silver01 when  2 then ihh.silver02 when  3 then ihh.silver03
+        when  4 then ihh.silver04 when  5 then ihh.silver05 when  6 then ihh.silver06 when  7 then ihh.silver07
+        when  8 then ihh.silver08 when  9 then ihh.silver09 when 10 then ihh.silver10 when 11 then ihh.silver11
+        when 12 then ihh.silver12 when 13 then ihh.silver13 when 14 then ihh.silver14 when 15 then ihh.silver15
+        when 16 then ihh.silver16 when 17 then ihh.silver17 when 18 then ihh.silver18 when 19 then ihh.silver19
+        when 20 then ihh.silver20 when 21 then ihh.silver21 when 22 then ihh.silver22 when 23 then ihh.silver23
+        else null end) * 100)
+        from tblItemHistoryHourly ihh,
+        (select  0 h union select  1 h union select  2 h union select  3 h union
+         select  4 h union select  5 h union select  6 h union select  7 h union
+         select  8 h union select  9 h union select 10 h union select 11 h union
+         select 12 h union select 13 h union select 14 h union select 15 h union
+         select 16 h union select 17 h union select 18 h union select 19 h union
+         select 20 h union select 21 h union select 22 h union select 23 h) hours
+        where ihh.house = ? and ihh.item = results.id and ihh.bonusset = results.bonusset) avgprice,
 ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
 ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), ifnull(results.basebonus, '')) bonuses
 from (
-    select i.id, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice,
+    select i.id, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen,
     ifnull(s.bonusset,0) bonusset, i.level, i.basebonus
     from tblDBCItem i
     left join tblItemSummary s on s.house=? and s.item=i.id
-    left join tblItemHistory h on h.house=? and h.item=i.id and h.bonusset = s.bonusset
     where $nameSearch
     and (s.item is not null or ifnull(i.auctionable,1) = 1)
     group by i.id, ifnull(s.bonusset,0)

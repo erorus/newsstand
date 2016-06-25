@@ -163,7 +163,7 @@ function ParseAuctionData($house, $snapshot, &$json)
     global $TIMELEFT_ENUM;
     global $FULL_HISTORY_SNAPSHOT_INTERVAL;
 
-    $snapshotString = Date('Y-m-d H:i:s', $snapshot);
+    $snapshotString = date('Y-m-d H:i:s', $snapshot);
     $startTimer = microtime(true);
 
     $ourDb = DBConnect(true);
@@ -540,7 +540,7 @@ EOF;
         if (isset($expiredItemInfo['n'])) {
             DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " adding new auctions for ".count($expiredItemInfo['n'])." items");
 
-            $snapshotDay = Date('Y-m-d', $snapshot);
+            $snapshotDay = date('Y-m-d', $snapshot);
             $expiredCount = 0;
             foreach ($expiredItemInfo['n'] as $infoKey => $createdCount) {
                 $keyParts = explode(':', $infoKey);
@@ -741,7 +741,7 @@ function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
 {
     global $db, $ownerRealmCache, $maxPacketSize;
 
-    $snapshotString = Date('Y-m-d H:i:s', $snapshot);
+    $snapshotString = date('Y-m-d H:i:s', $snapshot);
     $workingRealms = array_keys($sellerInfo);
     $neededInserts = false;
 
@@ -870,7 +870,7 @@ function UpdateSellerInfo(&$sellerInfo, $house, $snapshot, $noHistory)
 
     global $db, $maxPacketSize;
 
-    $snapshotString = Date('Y-m-d H:i:s', $snapshot);
+    $snapshotString = date('Y-m-d H:i:s', $snapshot);
     $realms = array_keys($sellerInfo);
 
     $sqlStart = 'INSERT IGNORE INTO tblSellerHistory (seller, snapshot, `new`, `total`) VALUES ';
@@ -915,15 +915,18 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $noHistory, $substitutePr
 {
     global $db, $maxPacketSize;
 
-    $month = (intval(Date('Y', $snapshot), 10) - 2014) * 12 + intval(Date('m', $snapshot), 10);
-    $day = Date('d', $snapshot);
+    $month = (intval(date('Y', $snapshot), 10) - 2014) * 12 + intval(date('m', $snapshot), 10);
+    $day = date('d', $snapshot);
+    $hour = date('H', $snapshot);
+    $dateString = date('Y-m-d', $snapshot);
 
-    $snapshotString = Date('Y-m-d H:i:s', $snapshot);
+    $snapshotString = date('Y-m-d H:i:s', $snapshot);
     $sqlStart = 'INSERT INTO tblItemSummary (house, item, bonusset, price, quantity, lastseen, age) VALUES ';
     $sqlEnd = ' on duplicate key update quantity=values(quantity), price=if(quantity=0,price,values(price)), lastseen=if(quantity=0,lastseen,values(lastseen)), age=values(age)';
     $sql = '';
 
-    $sqlHistoryStart = 'REPLACE INTO tblItemHistory (house, item, bonusset, price, quantity, snapshot, age) VALUES ';
+    $sqlHistoryStart = sprintf('INSERT INTO tblItemHistoryHourly (house, item, bonusset, `when`, `silver%1$s`, `quantity%1$s`) VALUES ', $hour);
+    $sqlHistoryEnd = sprintf(' on duplicate key update `silver%1$s`=if(values(`quantity%1$s`) > ifnull(`quantity%1$s`,0), values(`silver%1$s`), `silver%1$s`), `quantity%1$s`=if(values(`quantity%1$s`) > ifnull(`quantity%1$s`,0), values(`quantity%1$s`), `quantity%1$s`)', $hour);
     $sqlHistory = '';
 
     $sqlDeepStart = sprintf('INSERT INTO tblItemHistoryMonthly (house, item, bonusset, mktslvr%1$s, qty%1$s, `month`) VALUES ', $day);
@@ -953,15 +956,18 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $noHistory, $substitutePr
         $sql .= ($sql == '' ? $sqlStart : ',') . $sqlBit;
 
         if ($substitutePrices || ($info['tq'] > 0)) {
+            $price = round($price / 100);
+
             if (!$noHistory) {
-                if (strlen($sqlHistory) + strlen($sqlBit) + 5 > $maxPacketSize) {
-                    DBQueryWithError($db, $sqlHistory);
+                $sqlHistoryBit = sprintf('(%d,%u,%u,\'%s\',%u,%u)', $house, $item, $bonusSet, $dateString, $price, $info['tq']);
+                if (strlen($sqlHistory) + strlen($sqlHistoryBit) + strlen($sqlHistoryEnd) + 5 > $maxPacketSize) {
+                    DBQueryWithError($db, $sqlHistory . $sqlHistoryEnd);
                     $sqlHistory = '';
                 }
-                $sqlHistory .= ($sqlHistory == '' ? $sqlHistoryStart : ',') . $sqlBit;
+                $sqlHistory .= ($sqlHistory == '' ? $sqlHistoryStart : ',') . $sqlHistoryBit;
             }
 
-            $sqlDeepBit = sprintf('(%d,%u,%u,%u,%u,%u)', $house, $item, $bonusSet, round($price / 100), $info['tq'], $month);
+            $sqlDeepBit = sprintf('(%d,%u,%u,%u,%u,%u)', $house, $item, $bonusSet, $price, $info['tq'], $month);
             if (strlen($sqlDeep) + strlen($sqlDeepBit) + strlen($sqlDeepEnd) + 5 > $maxPacketSize) {
                 DBQueryWithError($db, $sqlDeep . $sqlDeepEnd);
                 $sqlDeep = '';
@@ -975,7 +981,7 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $noHistory, $substitutePr
         DBQueryWithError($db, $sql . $sqlEnd);
     }
     if ($sqlHistory != '') {
-        DBQueryWithError($db, $sqlHistory);
+        DBQueryWithError($db, $sqlHistory . $sqlHistoryEnd);
     }
     if ($sqlDeep != '') {
         DBQueryWithError($db, $sqlDeep . $sqlDeepEnd);
@@ -986,7 +992,7 @@ function UpdatePetInfo($house, &$petInfo, $snapshot, $noHistory)
 {
     global $db, $maxPacketSize;
 
-    $snapshotString = Date('Y-m-d H:i:s', $snapshot);
+    $snapshotString = date('Y-m-d H:i:s', $snapshot);
     $sqlStart = 'INSERT INTO tblPetSummary (house, species, breed, price, quantity, lastseen) VALUES ';
     $sqlEnd = ' on duplicate key update quantity=values(quantity), price=if(quantity=0,price,values(price)), lastseen=if(quantity=0,lastseen,values(lastseen))';
     $sql = '';

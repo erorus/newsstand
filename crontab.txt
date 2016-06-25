@@ -28,7 +28,7 @@ CRON_TZ="UTC"
 25 * * * * php /var/newsstand/scripts/bouncebacks.php >> /var/newsstand/logs/bouncebacks.log 2>&1
 0 0 * * * mv /var/newsstand/logs/bouncebacks.log /var/newsstand/logs/bouncebacks.yesterday.log
 
-30 */3 * * * php /var/newsstand/scripts/historyprune.php >> /var/newsstand/logs/historyprune.log 2>&1
+30 */6 * * * php /var/newsstand/scripts/historyprune.php >> /var/newsstand/logs/historyprune.log 2>&1
 0 0 * * * mv /var/newsstand/logs/historyprune.log /var/newsstand/logs/historyprune.yesterday.log
 
 15 */2 * * * php /var/newsstand/scripts/itemdaily.php >> /var/newsstand/logs/itemdaily.log 2>&1

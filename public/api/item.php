@@ -121,19 +121,72 @@ function ItemHistory($house, $item)
 
     if (ItemIsCrafted($item)) {
         $sql = <<<EOF
-select bonusset, snapshot, price, quantity, reagentprice
+select bonusset, snapshot, silver, quantity, reagentprice
 from (select
     if(bonusset = @prevBonusSet, null, @price := null) resetprice,
     (@prevBonusSet := bonusset) as bonusset,
     unix_timestamp(updated) snapshot,
-    cast(if(quantity is null, @price, @price := price) as decimal(11,0)) `price`,
+    cast(if(quantity is null, @price, @price := silver) as unsigned) `silver`,
     ifnull(quantity,0) as quantity,
     reagentprice
     from (select @price := null, @prevBonusSet := null) priceSetup,
-        (select `is`.bonusset, s.updated, ih.quantity, ih.price, GetReagentPrice(s.house, `is`.item, s.updated) reagentprice
+        (select `is`.bonusset, s.updated,
+        case hour(s.updated)
+            when 0 then ih.quantity00
+            when 1 then ih.quantity01
+            when 2 then ih.quantity02
+            when 3 then ih.quantity03
+            when 4 then ih.quantity04
+            when 5 then ih.quantity05
+            when 6 then ih.quantity06
+            when 7 then ih.quantity07
+            when 8 then ih.quantity08
+            when 9 then ih.quantity09
+            when 10 then ih.quantity10
+            when 11 then ih.quantity11
+            when 12 then ih.quantity12
+            when 13 then ih.quantity13
+            when 14 then ih.quantity14
+            when 15 then ih.quantity15
+            when 16 then ih.quantity16
+            when 17 then ih.quantity17
+            when 18 then ih.quantity18
+            when 19 then ih.quantity19
+            when 20 then ih.quantity20
+            when 21 then ih.quantity21
+            when 22 then ih.quantity22
+            when 23 then ih.quantity23
+            else null end as `quantity`,
+        case hour(s.updated)
+            when 0 then ih.silver00
+            when 1 then ih.silver01
+            when 2 then ih.silver02
+            when 3 then ih.silver03
+            when 4 then ih.silver04
+            when 5 then ih.silver05
+            when 6 then ih.silver06
+            when 7 then ih.silver07
+            when 8 then ih.silver08
+            when 9 then ih.silver09
+            when 10 then ih.silver10
+            when 11 then ih.silver11
+            when 12 then ih.silver12
+            when 13 then ih.silver13
+            when 14 then ih.silver14
+            when 15 then ih.silver15
+            when 16 then ih.silver16
+            when 17 then ih.silver17
+            when 18 then ih.silver18
+            when 19 then ih.silver19
+            when 20 then ih.silver20
+            when 21 then ih.silver21
+            when 22 then ih.silver22
+            when 23 then ih.silver23
+            else null end as `silver`,
+        GetReagentPrice(s.house, `is`.item, s.updated) reagentprice
         from tblSnapshot s
         join tblItemSummary `is` on `is`.house = s.house
-        left join tblItemHistory ih on s.updated = ih.snapshot and ih.house = `is`.house and ih.item = `is`.item and ih.bonusset = `is`.bonusset
+        left join tblItemHistoryHourly ih on date(s.updated) = ih.`when` and ih.house = `is`.house and ih.item = `is`.item and ih.bonusset = `is`.bonusset
         where `is`.item = %d and s.house = %d and s.updated >= timestampadd(day,-%d,now()) and s.flags & 1 = 0
         group by `is`.bonusset, s.updated
         order by `is`.bonusset, s.updated asc
@@ -142,18 +195,70 @@ from (select
 EOF;
     } else {
         $sql = <<<EOF
-select bonusset, snapshot, price, quantity
+select bonusset, snapshot, silver, quantity
 from (select
     if(bonusset = @prevBonusSet, null, @price := null) resetprice,
     (@prevBonusSet := bonusset) as bonusset,
     unix_timestamp(updated) snapshot,
-    cast(if(quantity is null, @price, @price := price) as decimal(11,0)) `price`,
+    cast(if(quantity is null, @price, @price := silver) as unsigned) `silver`,
     ifnull(quantity,0) as quantity
     from (select @price := null, @prevBonusSet := null) priceSetup,
-        (select `is`.bonusset, s.updated, ih.quantity, ih.price
+        (select `is`.bonusset, s.updated,
+        case hour(s.updated)
+            when 0 then ih.quantity00
+            when 1 then ih.quantity01
+            when 2 then ih.quantity02
+            when 3 then ih.quantity03
+            when 4 then ih.quantity04
+            when 5 then ih.quantity05
+            when 6 then ih.quantity06
+            when 7 then ih.quantity07
+            when 8 then ih.quantity08
+            when 9 then ih.quantity09
+            when 10 then ih.quantity10
+            when 11 then ih.quantity11
+            when 12 then ih.quantity12
+            when 13 then ih.quantity13
+            when 14 then ih.quantity14
+            when 15 then ih.quantity15
+            when 16 then ih.quantity16
+            when 17 then ih.quantity17
+            when 18 then ih.quantity18
+            when 19 then ih.quantity19
+            when 20 then ih.quantity20
+            when 21 then ih.quantity21
+            when 22 then ih.quantity22
+            when 23 then ih.quantity23
+            else null end as `quantity`,
+        case hour(s.updated)
+            when 0 then ih.silver00
+            when 1 then ih.silver01
+            when 2 then ih.silver02
+            when 3 then ih.silver03
+            when 4 then ih.silver04
+            when 5 then ih.silver05
+            when 6 then ih.silver06
+            when 7 then ih.silver07
+            when 8 then ih.silver08
+            when 9 then ih.silver09
+            when 10 then ih.silver10
+            when 11 then ih.silver11
+            when 12 then ih.silver12
+            when 13 then ih.silver13
+            when 14 then ih.silver14
+            when 15 then ih.silver15
+            when 16 then ih.silver16
+            when 17 then ih.silver17
+            when 18 then ih.silver18
+            when 19 then ih.silver19
+            when 20 then ih.silver20
+            when 21 then ih.silver21
+            when 22 then ih.silver22
+            when 23 then ih.silver23
+            else null end as `silver`
         from tblSnapshot s
         join tblItemSummary `is` on `is`.house = s.house
-        left join tblItemHistory ih on s.updated = ih.snapshot and ih.house = `is`.house and ih.item = `is`.item and ih.bonusset = `is`.bonusset
+        left join tblItemHistoryHourly ih on date(s.updated) = ih.`when` and ih.house = `is`.house and ih.item = `is`.item and ih.bonusset = `is`.bonusset
         where `is`.item = %d and s.house = %d and s.updated >= timestampadd(day,-%d,now()) and s.flags & 1 = 0
         group by `is`.bonusset, s.updated
         order by `is`.bonusset, s.updated asc
@@ -166,7 +271,7 @@ EOF;
     $tr = DBMapArray($result, array('bonusset', null));
 
     foreach ($tr as &$bonusSet) {
-        while (count($bonusSet) > 0 && is_null($bonusSet[0]['price'])) {
+        while (count($bonusSet) > 0 && is_null($bonusSet[0]['silver'])) {
             array_shift($bonusSet);
         }
     }

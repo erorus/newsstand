@@ -378,7 +378,7 @@ var TUJ_Item = function ()
                 } else if (data.history.hasOwnProperty(bonusSet) && data.history[bonusSet].length > 8) {
                     var prices = [];
                     for (var x = 0; x < data.history[bonusSet].length; x++) {
-                        prices.push(data.history[bonusSet][x].price);
+                        prices.push(data.history[bonusSet][x].silver * 100);
                     }
                     var priceMean = libtuj.Mean(prices);
                     var priceStdDev = libtuj.StdDev(prices, priceMean);
@@ -481,7 +481,7 @@ var TUJ_Item = function ()
 
         if (data.history.hasOwnProperty(bonusSet) && data.history[bonusSet].length > 8) {
             for (x = 0; x < data.history[bonusSet].length; x++) {
-                prices.push(data.history[bonusSet][x].price);
+                prices.push(data.history[bonusSet][x].silver * 100);
             }
         }
 
@@ -1033,7 +1033,7 @@ var TUJ_Item = function ()
 
         var allPrices = [];
         for (var x = 0; x < data.history[bonusSet].length; x++) {
-            hcdata.price.push([data.history[bonusSet][x].snapshot * 1000, data.history[bonusSet][x].price]);
+            hcdata.price.push([data.history[bonusSet][x].snapshot * 1000, data.history[bonusSet][x].silver * 100]);
             hcdata.quantity.push([data.history[bonusSet][x].snapshot * 1000, data.history[bonusSet][x].quantity]);
             if (hcdata.reagentPrice.length || data.history[bonusSet][x].hasOwnProperty('reagentprice')) {
                 hcdata.reagentPrice.push([data.history[bonusSet][x].snapshot * 1000, data.history[bonusSet][x].reagentprice]);
@@ -1041,7 +1041,7 @@ var TUJ_Item = function ()
             if (data.history[bonusSet][x].quantity > hcdata.quantityMaxVal) {
                 hcdata.quantityMaxVal = data.history[bonusSet][x].quantity;
             }
-            allPrices.push(data.history[bonusSet][x].price);
+            allPrices.push(data.history[bonusSet][x].silver * 100);
         }
 
         allPrices.sort(function (a, b)
@@ -2005,13 +2005,13 @@ var TUJ_Item = function ()
 
         for (var x = 0; x < data.history[bonusSet].length; x++) {
             if (typeof lastprice == 'undefined') {
-                lastprice = data.history[bonusSet][x].price;
+                lastprice = data.history[bonusSet][x].silver * 100;
             }
 
             var d = new Date(data.history[bonusSet][x].snapshot * 1000);
             wkdy = 6 - d.getDay();
             hr = Math.floor(d.getHours() * hcdata.categories.x.length / 24);
-            hcdata.days[wkdy][hr].push(data.history[bonusSet][x].price);
+            hcdata.days[wkdy][hr].push(data.history[bonusSet][x].silver * 100);
         }
 
         var p;

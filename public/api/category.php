@@ -249,18 +249,44 @@ function CategoryResult_deals($house)
     ];
 
     $joins = <<<EOF
-join (select item, bidper as bid from
-(select ib.item, ib.bidper, avg(ih.price) avgprice, stddev_pop(ih.price) sdprice from
-(select i.id as item, min(a.bid/a.quantity) bidper
-from tblAuction a
-join tblDBCItem i on i.id=a.item
-left join tblDBCItemVendorCost ivc on ivc.item=i.id
-where a.house=%1\$d
-and i.quality > 0
-and ivc.copper is null
-group by i.id) ib
-join tblItemHistory ih on ih.item=ib.item and ih.house=%1\$d
-group by ib.item) iba
+join (
+select item, bidper as bid
+from (
+    select ib.item, ib.bidper, avg(case hours.h
+        when  0 then ihh.silver00 when  1 then ihh.silver01 when  2 then ihh.silver02 when  3 then ihh.silver03
+        when  4 then ihh.silver04 when  5 then ihh.silver05 when  6 then ihh.silver06 when  7 then ihh.silver07
+        when  8 then ihh.silver08 when  9 then ihh.silver09 when 10 then ihh.silver10 when 11 then ihh.silver11
+        when 12 then ihh.silver12 when 13 then ihh.silver13 when 14 then ihh.silver14 when 15 then ihh.silver15
+        when 16 then ihh.silver16 when 17 then ihh.silver17 when 18 then ihh.silver18 when 19 then ihh.silver19
+        when 20 then ihh.silver20 when 21 then ihh.silver21 when 22 then ihh.silver22 when 23 then ihh.silver23
+        else null end) * 100 avgprice,
+        stddev_pop(
+        case hours.h
+        when  0 then ihh.silver00 when  1 then ihh.silver01 when  2 then ihh.silver02 when  3 then ihh.silver03
+        when  4 then ihh.silver04 when  5 then ihh.silver05 when  6 then ihh.silver06 when  7 then ihh.silver07
+        when  8 then ihh.silver08 when  9 then ihh.silver09 when 10 then ihh.silver10 when 11 then ihh.silver11
+        when 12 then ihh.silver12 when 13 then ihh.silver13 when 14 then ihh.silver14 when 15 then ihh.silver15
+        when 16 then ihh.silver16 when 17 then ihh.silver17 when 18 then ihh.silver18 when 19 then ihh.silver19
+        when 20 then ihh.silver20 when 21 then ihh.silver21 when 22 then ihh.silver22 when 23 then ihh.silver23
+        else null end) * 100 sdprice
+    from (
+        select i.id as item, min(a.bid/a.quantity) bidper
+        from tblAuction a
+        join tblDBCItem i on i.id=a.item
+        left join tblDBCItemVendorCost ivc on ivc.item=i.id
+        where a.house=%1\$d
+        and i.quality > 0
+        and ivc.copper is null
+        group by i.id) ib
+    join tblItemHistoryHourly ihh on ihh.house=%1\$d and ihh.item = ib.item and ihh.bonusset = 0
+    join (select  0 h union select  1 h union select  2 h union select  3 h union
+         select  4 h union select  5 h union select  6 h union select  7 h union
+         select  8 h union select  9 h union select 10 h union select 11 h union
+         select 12 h union select 13 h union select 14 h union select 15 h union
+         select 16 h union select 17 h union select 18 h union select 19 h union
+         select 20 h union select 21 h union select 22 h union select 23 h) hours
+    group by ib.item
+    ) iba
 where iba.sdprice < iba.avgprice/2
 and iba.bidper / iba.avgprice < 0.2
 order by iba.bidper / iba.avgprice asc
@@ -812,81 +838,6 @@ function CategoryResult_blacksmithing($house)
     $tr = ['name' => 'blacksmithing', 'results' => []];
     $sortIndex = 0;
 
-    /*
-    $key = 'category_blacksmithing_levels2_' . (count($expansionLevels) - 1);
-    if (($armorLevels = MCGet($key)) === false) {
-        DBConnect();
-
-        $sql = <<<EOF
-SELECT x.class, x.level, x.quality, sum( if(x.flags & 1, 1, 0) ) haspvp, sum( if(x.flags & 1, 0, 1) ) haspve
-FROM tblDBCItem x, tblDBCSpell s
-WHERE x.quality BETWEEN 2 AND 4
-AND s.expansion = ?
-AND s.crafteditem = x.id
-AND x.binds != 1
-AND x.class IN ( 2, 4 )
-AND s.skillline = 164
-GROUP BY x.class, x.level, x.quality
-ORDER BY x.class DESC, x.quality DESC, x.level DESC
-
-EOF;
-
-        $stmt = $db->prepare($sql);
-        $exp = count($expansionLevels) - 1;
-        $stmt->bind_param('i', $exp);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $rows = DBMapArray($result, null);
-        $stmt->close();
-
-        $armorLevels = ['PvE Armor' => [], 'PvP Armor' => [], 'Weapon' => []];
-        foreach ($armorLevels as $k => $v) {
-            for ($x = 4; $x >= 2; $x--) {
-                $armorLevels[$k][$x] = array();
-            }
-        }
-
-        foreach ($rows as $row) {
-            if ($row['class'] == 2) {
-                if (!in_array($row['level'], $armorLevels['Weapon'][$row['quality']])) {
-                    $armorLevels['Weapon'][$row['quality']][] = $row['level'];
-                }
-            } else {
-                if ($row['haspvp'] > 0) {
-                    $armorLevels['PvP Armor'][$row['quality']][] = $row['level'];
-                }
-                if ($row['haspve'] > 0) {
-                    $armorLevels['PvE Armor'][$row['quality']][] = $row['level'];
-                }
-            }
-        }
-
-        MCSet($key, $armorLevels, 24 * 60 * 60);
-    }
-
-    foreach ($armorLevels as $armorName => $armorQualities) {
-        $classId = ($armorName == 'Weapon') ? 2 : 4;
-        foreach ($armorQualities as $q => $levels) {
-            foreach ($levels as $level) {
-                $tr['results'][] = [
-                    'name' => 'ItemList',
-                    'sort' => [
-                        'main'    => $sortIndex,
-                        'level'   => $level,
-                        'quality' => $q,
-                        'name'    => $armorName
-                    ],
-                    'data' => [
-                        'name'  => $qualities[$q] . ' ' . $level . ' ' . $armorName,
-                        'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCItemReagents xir where xir.item=x.id and (x.flags & 1) ' . (($armorName == 'PvP Armor') ? '>' : '=') . '0 and x.level=' . $level . ' and x.class=' . $classId . ' and xir.skillline=164 and x.quality=' . $q . ') xyz on xyz.id = i.id'])
-                    ]
-                ];
-            }
-        }
-    }
-    $sortIndex++;
-    */
-
     $x = count($expansions) - 1;
 
     $tr['results'][] = [
@@ -931,21 +882,6 @@ EOF;
             ]
         ];
     }
-
-    /*usort(
-        $tr['results'], function ($a, $b) {
-            if ($a['sort']['main'] != $b['sort']['main']) {
-                return $a['sort']['main'] - $b['sort']['main'];
-            }
-            if ($a['sort']['level'] != $b['sort']['level']) {
-                return $b['sort']['level'] - $a['sort']['level'];
-            }
-            if ($a['sort']['quality'] != $b['sort']['quality']) {
-                return $b['sort']['quality'] - $a['sort']['quality'];
-            }
-            return strcmp($a['sort']['name'], $b['sort']['name']);
-        }
-    );*/
 
     return $tr;
 }
@@ -1207,46 +1143,6 @@ function CategoryResult_tailoring($house)
             ]
         ];
     };
-
-    /*
-    if (($pvpLevels = MCGet('category_tailoring_pvplevels_' . $expansionLevels[count($expansionLevels) - 1])) === false) {
-        DBConnect();
-        $sql = <<<EOF
-SELECT distinct i.level
-FROM tblDBCItem i
-JOIN tblDBCSpell s on s.crafteditem=i.id
-WHERE i.quality=3 and i.class=4 and s.skillline=197 and i.requiredlevel>? and i.flags & 1 > 0
-order by 1 desc
-EOF;
-
-        $stmt = $db->prepare($sql);
-        $stmt->bind_param('i', $expansionLevels[count($expansionLevels) - 2]);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $pvpLevels = DBMapArray($result, null);
-        $stmt->close();
-
-        MCSet('category_tailoring_pvplevels_' . $expansionLevels[count($expansionLevels) - 1], $pvpLevels, 24 * 60 * 60);
-    }
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Epic Armor',
-            'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.requiredlevel > ' . $expansionLevels[count($expansionLevels) - 2] . ' and x.quality=4 and x.class=4 and xs.skillline=197) xyz on xyz.id = i.id'])
-        ]
-    ];
-
-    foreach ($pvpLevels as $pvpLevel) {
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'data' => [
-                'name'  => 'PVP ' . $pvpLevel . ' Rare Armor',
-                'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.requiredlevel > ' . $expansionLevels[count($expansionLevels) - 2] . ' and x.level = ' . $pvpLevel . ' and x.quality=3 and x.class=4 and xs.skillline=197 and x.flags & 1 > 0) xyz on xyz.id = i.id'])
-            ]
-        ];
-    }
-    */
 
     return $tr;
 }
@@ -1513,89 +1409,6 @@ function CategoryResult_cooking($house)
         ];
     }
 
-    /*
-    global $expansions, $db;
-
-    $cexp = count($expansions) - 1;
-    $fish = '74856,74857,74859,74860,74861,74863,74864,74865,74866,83064';
-    $farmed = '74840,74841,74842,74843,74844,74845,74846,74847,74848,74849,74850';
-    $ironpaw = '74853,74661,74662';
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'From the Farm',
-            'items' => CategoryGenericItemList($house, "i.id in ($farmed)")
-        ]
-    ];
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Raw Pandaria Fish',
-            'items' => CategoryGenericItemList($house, "i.id in ($fish)")
-        ]
-    ];
-
-    $sql = <<<EOF
-select distinct x.id
-from tblDBCItem x, tblDBCItemReagents xir, tblDBCSkillLines xsl, tblDBCSpell xs
-where x.class=7
-and x.id=xir.reagent
-and x.id not in (select xx.item from tblDBCItemVendorCost xx where xx.item=x.id)
-and xir.spell=xs.id
-and xs.skillline=xsl.id
-and (xsl.name like 'Way of %' or xsl.name='Cooking')
-and xs.expansion=$cexp
-and x.id not in ($fish,$farmed,$ironpaw)
-EOF;
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Raw Meat and Miscellaneous',
-            'items' => CategoryGenericItemList($house, ['joins' => "join ($sql) xyz on xyz.id = i.id"])
-        ]
-    ];
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Ironpaw Token Ingredients',
-            'items' => CategoryGenericItemList($house, "i.id in ($ironpaw)")
-        ]
-    ];
-
-    $ways = MCGet('category_cooking_ways');
-    if ($ways === false) {
-        $stmt = $db->prepare('SELECT * FROM tblDBCSkillLines WHERE name LIKE \'Way of%\' ORDER BY name ASC');
-        if (!$stmt) {
-            DebugMessage("Bad SQL: \n" . $sql, E_USER_ERROR);
-        }
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $ways = DBMapArray($result, null);
-        $stmt->close();
-        MCSet('category_cooking_ways', $ways);
-    }
-
-    foreach ($ways as $row) {
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'data' => [
-                'name'  => $row['name'] . ' Food',
-                'items' => CategoryGenericItemList($house, ['joins' => "join (select x.crafteditem from tblDBCSpell x where x.skillline=" . $row['id'] . ") xyz on xyz.crafteditem=i.id"])
-            ]
-        ];
-    }
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Other Cooked Food',
-            'items' => CategoryGenericItemList($house, ['joins' => "join (select x.crafteditem from tblDBCSpell x where x.skillline=185 and expansion=$cexp) xyz on xyz.crafteditem=i.id"])
-        ]
-    ];
-    */
-
     return $tr;
 }
 
@@ -1623,7 +1436,7 @@ function CategoryResult_companions($house)
 
 function CategoryGenericItemList($house, $params)
 {
-    global $canCache, $LANG_LEVEL;
+    global $canCache;
 
     $key = 'category_gil2_' . md5(json_encode($params));
 
@@ -1651,15 +1464,30 @@ function CategoryGenericItemList($house, $params)
     }
 
     $sql = <<<EOF
-select results.*, $outside
+select results.*,
+(select round(avg(case hours.h
+        when  0 then ihh.silver00 when  1 then ihh.silver01 when  2 then ihh.silver02 when  3 then ihh.silver03
+        when  4 then ihh.silver04 when  5 then ihh.silver05 when  6 then ihh.silver06 when  7 then ihh.silver07
+        when  8 then ihh.silver08 when  9 then ihh.silver09 when 10 then ihh.silver10 when 11 then ihh.silver11
+        when 12 then ihh.silver12 when 13 then ihh.silver13 when 14 then ihh.silver14 when 15 then ihh.silver15
+        when 16 then ihh.silver16 when 17 then ihh.silver17 when 18 then ihh.silver18 when 19 then ihh.silver19
+        when 20 then ihh.silver20 when 21 then ihh.silver21 when 22 then ihh.silver22 when 23 then ihh.silver23
+        else null end) * 100)
+        from tblItemHistoryHourly ihh,
+        (select  0 h union select  1 h union select  2 h union select  3 h union
+         select  4 h union select  5 h union select  6 h union select  7 h union
+         select  8 h union select  9 h union select 10 h union select 11 h union
+         select 12 h union select 13 h union select 14 h union select 15 h union
+         select 16 h union select 17 h union select 18 h union select 19 h union
+         select 20 h union select 21 h union select 22 h union select 23 h) hours
+        where ihh.house = ? and ihh.item = results.id and ihh.bonusset = results.bonusset) avgprice, $outside
 ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
 ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), ifnull(results.basebonus, '')) bonuses
 from (
-    select i.id, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, round(avg(h.price)) avgprice,
+    select i.id, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen,
     ifnull(s.bonusset,0) bonusset, i.level, i.basebonus `basebonus` $cols
     from tblDBCItem i
     left join tblItemSummary s on s.house=? and s.item=i.id
-    left join tblItemHistory h on h.house=? and h.item=i.id and h.bonusset = s.bonusset
     join tblItemGlobal g on g.item=i.id+0 and g.bonusset = ifnull(s.bonusset,0)
     $joins
     where ifnull(i.auctionable,1) = 1

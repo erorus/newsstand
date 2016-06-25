@@ -137,14 +137,40 @@ EOF;
     $sql = <<<EOF
 SELECT tis.item, tis.bonusset,
 datediff(now(), tis.lastseen) since,
-round(ifnull(avg(ih.price), tis.price)/100) price,
-round(ifnull(avg(if(ih.snapshot > timestampadd(hour, -72, now()), ih.price, null)), tis.price)/100) pricerecent,
-round(stddev(ih.price)/100) pricestddev,
+round(ifnull(avg(case hours.h
+    when  0 then ihh.silver00 when  1 then ihh.silver01 when  2 then ihh.silver02 when  3 then ihh.silver03
+    when  4 then ihh.silver04 when  5 then ihh.silver05 when  6 then ihh.silver06 when  7 then ihh.silver07
+    when  8 then ihh.silver08 when  9 then ihh.silver09 when 10 then ihh.silver10 when 11 then ihh.silver11
+    when 12 then ihh.silver12 when 13 then ihh.silver13 when 14 then ihh.silver14 when 15 then ihh.silver15
+    when 16 then ihh.silver16 when 17 then ihh.silver17 when 18 then ihh.silver18 when 19 then ihh.silver19
+    when 20 then ihh.silver20 when 21 then ihh.silver21 when 22 then ihh.silver22 when 23 then ihh.silver23
+    else null end), tis.price/100)) price,
+round(ifnull(avg(if(timestampadd(hour, 72 + hours.h, ihh.`when`) > now(), case hours.h
+    when  0 then ihh.silver00 when  1 then ihh.silver01 when  2 then ihh.silver02 when  3 then ihh.silver03
+    when  4 then ihh.silver04 when  5 then ihh.silver05 when  6 then ihh.silver06 when  7 then ihh.silver07
+    when  8 then ihh.silver08 when  9 then ihh.silver09 when 10 then ihh.silver10 when 11 then ihh.silver11
+    when 12 then ihh.silver12 when 13 then ihh.silver13 when 14 then ihh.silver14 when 15 then ihh.silver15
+    when 16 then ihh.silver16 when 17 then ihh.silver17 when 18 then ihh.silver18 when 19 then ihh.silver19
+    when 20 then ihh.silver20 when 21 then ihh.silver21 when 22 then ihh.silver22 when 23 then ihh.silver23
+    else null end, null)), tis.price/100)) pricerecent,
+round(stddev(case hours.h
+    when  0 then ihh.silver00 when  1 then ihh.silver01 when  2 then ihh.silver02 when  3 then ihh.silver03
+    when  4 then ihh.silver04 when  5 then ihh.silver05 when  6 then ihh.silver06 when  7 then ihh.silver07
+    when  8 then ihh.silver08 when  9 then ihh.silver09 when 10 then ihh.silver10 when 11 then ihh.silver11
+    when 12 then ihh.silver12 when 13 then ihh.silver13 when 14 then ihh.silver14 when 15 then ihh.silver15
+    when 16 then ihh.silver16 when 17 then ihh.silver17 when 18 then ihh.silver18 when 19 then ihh.silver19
+    when 20 then ihh.silver20 when 21 then ihh.silver21 when 22 then ihh.silver22 when 23 then ihh.silver23
+    else null end)) pricestddev,
 ceil(ivc.copper/100) vendorprice
 FROM tblItemSummary tis
 join tblDBCItem i on i.id = tis.item
-join tblHouseCheck hc on hc.house = tis.house
-left join tblItemHistory ih on ih.item=tis.item and ih.house = tis.house and ih.bonusset=tis.bonusset
+join (select  0 h union select  1 h union select  2 h union select  3 h union
+     select  4 h union select  5 h union select  6 h union select  7 h union
+     select  8 h union select  9 h union select 10 h union select 11 h union
+     select 12 h union select 13 h union select 14 h union select 15 h union
+     select 16 h union select 17 h union select 18 h union select 19 h union
+     select 20 h union select 21 h union select 22 h union select 23 h) hours
+left join tblItemHistoryHourly ihh on ihh.item = tis.item and ihh.house = tis.house and ihh.bonusset = tis.bonusset
 left join tblDBCItemVendorCost ivc on ivc.item = i.id
 WHERE tis.house = ?
 $itemExcludeSql
@@ -200,7 +226,6 @@ round(ifnull(avg(ph.price), tps.price)/100) price,
 round(ifnull(avg(if(ph.snapshot > timestampadd(hour, -72, now()), ph.price, null)), tps.price)/100) pricerecent,
 round(stddev(ph.price)/100) pricestddev
 FROM tblPetSummary tps
-join tblHouseCheck hc on hc.house = tps.house
 left join tblPetHistory ph on ph.species=tps.species and ph.house = tps.house and ph.breed=tps.breed
 WHERE tps.house = ?
 group by tps.species, tps.breed

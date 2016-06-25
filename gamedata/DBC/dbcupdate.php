@@ -401,9 +401,6 @@ run_sql($sql);
 //$sql = 'replace INTO tblItemVendorCost (itemid, copper) VALUES (52078, 0)';
 //run_sql($sql);
 
-//$sql = 'replace into ttblDBCSkillLines values (0,\'Vendor\')';
-//run_sql($sql);
-
 /* arctic fur */
 $sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values (44128,0,38425,10,-32515,0)';
 run_sql($sql);
