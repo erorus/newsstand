@@ -50,6 +50,7 @@ var TUJ_Subscription = function ()
     function ShowSubscriptionSettings(dta)
     {
         subData = dta;
+        subData.watches = libtuj.HydrateData(subData.watches);
 
         var settingsParent = $('#subscription-settings');
         settingsParent.empty().hide();

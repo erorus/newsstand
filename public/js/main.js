@@ -311,6 +311,29 @@ var libtuj = {
             .on('mouseover', function(){ $(applyTarget).addClass('hover'); })
             .on('mouseout', function(){ $(applyTarget).removeClass('hover'); });
     },
+    HydrateData: function(o)
+    {
+        if (!o.hasOwnProperty('hydrate')) {
+            return o;
+        }
+        var d;
+        for (var x in o.data) {
+            if (!o.data.hasOwnProperty(x)) {
+                continue;
+            }
+            d = o.data[x];
+            for (var y = 0, h; h = o.hydrate[y]; y++) {
+                if (!d.hasOwnProperty(h.key)) {
+                    continue;
+                }
+                if (!h.values.hasOwnProperty(d[h.key])) {
+                    continue;
+                }
+                $.extend(d, h.values[d[h.key]]);
+            }
+        }
+        return o.data;
+    },
     Ads: {
         addCount: 0,
         adsWillShow: true,

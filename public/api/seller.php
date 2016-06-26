@@ -144,7 +144,7 @@ function SellerAuctions($house, $seller)
                 ['func' => 'GetItemBonusNames',     'key' => 'bonuses', 'name' => 'bonusname'],
                 ['func' => 'GetItemBonusTags',      'key' => 'bonuses', 'name' => 'bonustag'],
                 ['func' => 'GetRandEnchantNames',   'key' => 'rand',    'name' => 'randname'],
-            ]);
+            ], true);
         return $tr;
     }
 
@@ -184,7 +184,7 @@ EOF;
             ['func' => 'GetItemBonusNames',     'key' => 'bonuses', 'name' => 'bonusname'],
             ['func' => 'GetItemBonusTags',      'key' => 'bonuses', 'name' => 'bonustag'],
             ['func' => 'GetRandEnchantNames',   'key' => 'rand',    'name' => 'randname'],
-        ]);
+        ], true);
 
     return $tr;
 }
@@ -194,7 +194,7 @@ function SellerPetAuctions($house, $seller)
     $cacheKey = 'seller_petauctions_' . $seller;
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
-        PopulateLocaleCols($tr, [['func' => 'GetPetNames', 'key' => 'species', 'name' => 'name']]);
+        PopulateLocaleCols($tr, [['func' => 'GetPetNames', 'key' => 'species', 'name' => 'name']], true);
         return $tr;
     }
 
@@ -223,7 +223,7 @@ EOF;
 
     MCSetHouse($house, $cacheKey, $tr);
 
-    PopulateLocaleCols($tr, [['func' => 'GetPetNames', 'key' => 'species', 'name' => 'name']]);
+    PopulateLocaleCols($tr, [['func' => 'GetPetNames', 'key' => 'species', 'name' => 'name']], true);
 
     return $tr;
 }

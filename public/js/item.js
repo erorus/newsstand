@@ -322,6 +322,10 @@ var TUJ_Item = function ()
 
         itemPage.append(MakeNotificationsSection(dta, fullItemName));
 
+        if (dta.auctions.hasOwnProperty(bonusSet)) {
+            dta.auctions[bonusSet] = libtuj.HydrateData(dta.auctions[bonusSet]);
+        }
+
         if (dta.auctions.hasOwnProperty(bonusSet) && dta.auctions[bonusSet].length) {
             d = libtuj.ce();
             d.className = 'chart-section';

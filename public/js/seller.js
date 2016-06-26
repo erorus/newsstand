@@ -86,6 +86,9 @@ var TUJ_Seller = function ()
             return;
         }
 
+        dta.auctions = libtuj.HydrateData(dta.auctions);
+        dta.petAuctions = libtuj.HydrateData(dta.petAuctions);
+
         $('#page-title').empty().append(document.createTextNode(tuj.lang.seller + ': ' + dta.stats.name));
         tuj.SetTitle(tuj.lang.seller + ': ' + dta.stats.name);
 

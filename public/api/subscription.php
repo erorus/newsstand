@@ -869,7 +869,7 @@ EOF;
         ['func' => 'GetItemNames',      'key' => 'item',    'name' => 'name'],
         ['func' => 'GetItemBonusNames', 'key' => 'bonuses', 'name' => 'bonusname'],
         ['func' => 'GetItemBonusTags',  'key' => 'bonuses', 'name' => 'bonustag'],
-    ]);
+    ], true);
 
     $cacheKey = SUBSCRIPTION_SPECIES_CACHEKEY . $userId;
     $battlePets = MCGet($cacheKey);
@@ -896,9 +896,12 @@ EOF;
         MCSet($cacheKey, $battlePets);
     }
 
-    PopulateLocaleCols($battlePets, [['func' => 'GetPetNames', 'key' => 'species', 'name' => 'name']]);
+    PopulateLocaleCols($battlePets, [['func' => 'GetPetNames', 'key' => 'species', 'name' => 'name']], true);
 
-    $json = $items + $battlePets;
+    $json = [
+        'data' => $items['data'] + $battlePets['data'],
+        'hydrate' => array_merge($items['hydrate'], $battlePets['hydrate']),
+    ];
 
     return $json;
 }

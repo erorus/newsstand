@@ -3,7 +3,7 @@
 require_once('memcache.incl.php');
 require_once('incl.php');
 
-define('API_VERSION', 39);
+define('API_VERSION', 40);
 define('THROTTLE_PERIOD', 3600); // seconds
 define('THROTTLE_MAXHITS', 200);
 define('BANLIST_CACHEKEY', 'banlist_cidrs4');
@@ -148,8 +148,6 @@ function GetItemNames($itemIds, $renamedTo = false)
 
 function GetItemBonusNames($bonusGroups, $renamedTo = false)
 {
-    global $VALID_LOCALES;
-
     $results = [];
     foreach ($bonusGroups as $bonusesKey) {
         $c = preg_match_all('/\d+/', $bonusesKey, $res);
@@ -162,7 +160,7 @@ function GetItemBonusNames($bonusGroups, $renamedTo = false)
 
         $bonuses = implode(',', array_filter($bonuses, 'is_numeric'));
 
-        $cacheKey = 'itembonusnames_' . $bonuses;
+        $cacheKey = 'itembonusnames2_' . $bonuses;
 
         $names = MCGet($cacheKey);
 
@@ -181,10 +179,8 @@ function GetItemBonusNames($bonusGroups, $renamedTo = false)
             }
             if ($names === false) {
                 $names = [];
-                foreach ($VALID_LOCALES as $locId) {
-                    $names['bonusname_' . $locId] = '';
-                }
             }
+            $names = array_filter($names);
             MCSet($cacheKey, $names, 86400);
         }
 
@@ -204,8 +200,6 @@ function GetItemBonusNames($bonusGroups, $renamedTo = false)
 
 function GetItemBonusTags($bonusGroups, $renamedTo = false)
 {
-    global $VALID_LOCALES;
-
     $results = [];
     foreach ($bonusGroups as $bonusesKey) {
         $c = preg_match_all('/\d+/', $bonusesKey, $res);
@@ -218,7 +212,7 @@ function GetItemBonusTags($bonusGroups, $renamedTo = false)
 
         $bonuses = implode(',', array_filter($bonuses, 'is_numeric'));
 
-        $cacheKey = 'itembonustags_' . $bonuses;
+        $cacheKey = 'itembonustags2_' . $bonuses;
 
         $names = MCGet($cacheKey);
 
@@ -237,10 +231,8 @@ function GetItemBonusTags($bonusGroups, $renamedTo = false)
             }
             if ($names === false) {
                 $names = [];
-                foreach ($VALID_LOCALES as $locId) {
-                    $names['bonustag_' . $locId] = '';
-                }
             }
+            $names = array_filter($names);
             MCSet($cacheKey, $names, 86400);
         }
 
@@ -260,9 +252,7 @@ function GetItemBonusTags($bonusGroups, $renamedTo = false)
 
 function GetRandEnchantNames($randIds, $renamedTo = false)
 {
-    global $VALID_LOCALES;
-
-    $cacheKeyPrefix = 'randenchantnames_';
+    $cacheKeyPrefix = 'randenchantnames2_';
     $cacheKeyPrefixLen = strlen($cacheKeyPrefix);
 
     // assemble memcache keys, and fetch into $names
@@ -304,7 +294,7 @@ function GetRandEnchantNames($randIds, $renamedTo = false)
             $result = $stmt->get_result();
             while ($row = $result->fetch_assoc()) {
                 $id = array_shift($row);
-                $names[$id] = $row;
+                $names[$id] = array_filter($row);
                 MCSet($cacheKeyPrefix.$id, $names[$id], 86400);
             }
             $result->close();
@@ -312,9 +302,7 @@ function GetRandEnchantNames($randIds, $renamedTo = false)
 
             foreach ($missingChunk as $id) {
                 if (!isset($names[$id])) { // if this id didn't come back from the db
-                    foreach ($VALID_LOCALES as $locId) {
-                        $names[$id]['randname_'.$locId] = '';
-                    }
+                    $names[$id] = [];
                     MCSet($cacheKeyPrefix.$id, $names[$id], 1800);
                 }
             }
@@ -406,7 +394,7 @@ function GetPetNames($speciesIds, $renamedTo = false)
     return $names;
 }
 
-function PopulateLocaleCols(&$rows, $calls) {
+function PopulateLocaleCols(&$rows, $calls, $dry = false) {
     if (!is_array($rows)) {
         return;
     }
@@ -430,13 +418,32 @@ function PopulateLocaleCols(&$rows, $calls) {
         }
     }
 
+    if ($dry) {
+        $rows = [
+            'data'    => $rows,
+            'hydrate' => []
+        ];
+    }
+    
     for ($x = 0; $x < $c; $x++) {
         $keys[$x] = array_keys($keys[$x]);
         $funcName = $calls[$x]['func'];
-        $vals[$x] = $funcName($keys[$x], isset($calls[$x]['name']) ? $calls[$x]['name'] : false);
+        $vals[$x] = array_filter($funcName($keys[$x], isset($calls[$x]['name']) ? $calls[$x]['name'] : false));
         unset($keys[$x]);
+        
+        if ($dry && count($vals[$x])) {
+            $rows['hydrate'][] = [
+                'key'    => $calls[$x]['key'],
+                'values' => $vals[$x],
+            ];
+            unset($vals[$x]);
+        }
     }
 
+    if ($dry) {
+        return;
+    }
+    
     foreach ($rows as &$row) {
         if ($c <= 4) {
             $row = array_merge(
@@ -457,6 +464,7 @@ function PopulateLocaleCols(&$rows, $calls) {
     unset($row);
 }
 
+// only used for old non-/api/ pages
 function GetSiteRegion()
 {
     return (isset($_SERVER['HTTP_HOST']) && (preg_match('/^eu./i', $_SERVER['HTTP_HOST']) > 0)) ? 'EU' : 'US';

@@ -469,7 +469,7 @@ function ItemAuctions($house, $item)
                 ['func' => 'GetItemBonusNames', 'key' => 'bonuses', 'name' => 'bonusname'],
                 ['func' => 'GetItemBonusTags', 'key' => 'bonuses', 'name' => 'bonustag'],
                 ['func' => 'GetRandEnchantNames', 'key' => 'rand', 'name' => 'randname'],
-            ]);
+            ], true);
         }
         unset($rows);
         return $tr;
@@ -508,7 +508,7 @@ EOF;
             ['func' => 'GetItemBonusNames', 'key' => 'bonuses', 'name' => 'bonusname'],
             ['func' => 'GetItemBonusTags', 'key' => 'bonuses', 'name' => 'bonustag'],
             ['func' => 'GetRandEnchantNames', 'key' => 'rand', 'name' => 'randname'],
-        ]);
+        ], true);
     }
     unset($rows);
     return $tr;
