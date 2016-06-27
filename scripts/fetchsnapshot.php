@@ -156,7 +156,7 @@ ENDSQL;
         } else if (($lastDateUnix + $minDelta + 45) > time()) {
             // this is the first check after we expected a new snapshot, but didn't see one.
             // don't trust api, assume data file URL won't change, and check last-modified time on data file
-            $headers = \Newsstand\HTTP::Head(preg_replace('/^http:/', 'https:', $fileInfo['url']));
+            $headers = \Newsstand\HTTP::Head($fileInfo['url']);
             if (isset($headers['Last-Modified'])) {
                 $newModified = strtotime($headers['Last-Modified']);
                 if ($newModified > $modified) {
@@ -184,7 +184,7 @@ ENDSQL;
 
     DebugMessage("$region $slug updated $modified ".Date('H:i:s', $modified)." (" . SecondsOrMinutes(time() - $modified) . " ago), fetching auction data file");
     $dlStart = microtime(true);
-    $data = \Newsstand\HTTP::Get(preg_replace('/^http:/', 'https:', $fileInfo['url']), [], $outHeaders);
+    $data = \Newsstand\HTTP::Get($fileInfo['url'], [], $outHeaders);
     $dlDuration = microtime(true) - $dlStart;
     if (!$data || (substr($data, -4) != "]\r\n}")) {
         if (!$data) {
