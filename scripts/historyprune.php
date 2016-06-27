@@ -97,7 +97,7 @@ EOF;
         $cutoffDateHourly = date('Y-m-d', strtotime('' . HISTORY_DAYS . ' days ago'));
         $cutOffDateDaily = date('Y-m-d', strtotime('' . HISTORY_DAYS_DEEP . ' days ago'));
 
-        $stmt = $db->prepare('SELECT min(`updated`) FROM (SELECT `updated` FROM tblSnapshot WHERE house = ? AND `flags` & 1 = 0 ORDER BY updated DESC LIMIT ?) aa');
+        $stmt = $db->prepare('SELECT date(min(`updated`)) FROM (SELECT `updated` FROM tblSnapshot WHERE house = ? AND `flags` & 1 = 0 ORDER BY updated DESC LIMIT ?) aa');
         $maxSnapshots = 24 * HISTORY_DAYS;
         $stmt->bind_param('ii', $house, $maxSnapshots);
         $stmt->execute();
