@@ -609,8 +609,7 @@ CREATE TABLE IF NOT EXISTS `tblItemExpired` (
   `when` date NOT NULL,
   `created` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `expired` mediumint(8) unsigned NOT NULL DEFAULT '0',
-  PRIMARY KEY (`item`,`house`,`bonusset`,`when`),
-  KEY `house` (`house`,`when`)
+  PRIMARY KEY (`house`,`item`,`bonusset`,`when`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
