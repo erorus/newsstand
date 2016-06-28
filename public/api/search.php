@@ -168,7 +168,22 @@ function SearchBattlePets($house, $search, $locale)
     $sql = <<<EOF
 select i.id, i.icon, i.type, i.npc,
 min(if(s.quantity>0,s.price,null)) price, sum(s.quantity) quantity, unix_timestamp(max(s.lastseen)) lastseen,
-(select round(avg(h.price)) from tblPetHistory h where h.house=? and h.species=i.id group by h.breed order by 1 asc limit 1) avgprice
+(select round(avg(case hours.h
+    when  0 then ph.silver00 when  1 then ph.silver01 when  2 then ph.silver02 when  3 then ph.silver03
+    when  4 then ph.silver04 when  5 then ph.silver05 when  6 then ph.silver06 when  7 then ph.silver07
+    when  8 then ph.silver08 when  9 then ph.silver09 when 10 then ph.silver10 when 11 then ph.silver11
+    when 12 then ph.silver12 when 13 then ph.silver13 when 14 then ph.silver14 when 15 then ph.silver15
+    when 16 then ph.silver16 when 17 then ph.silver17 when 18 then ph.silver18 when 19 then ph.silver19
+    when 20 then ph.silver20 when 21 then ph.silver21 when 22 then ph.silver22 when 23 then ph.silver23
+    else null end)*100)
+    from tblPetHistoryHourly ph,
+    (select  0 h union select  1 h union select  2 h union select  3 h union
+     select  4 h union select  5 h union select  6 h union select  7 h union
+     select  8 h union select  9 h union select 10 h union select 11 h union
+     select 12 h union select 13 h union select 14 h union select 15 h union
+     select 16 h union select 17 h union select 18 h union select 19 h union
+     select 20 h union select 21 h union select 22 h union select 23 h) hours
+    where ph.house = ? and ph.species = i.id group by ph.breed order by 1 asc limit 1) avgprice
 from tblDBCPet i
 left join tblPetSummary s on s.house=? and s.species=i.id
 where i.name_$locale like ?

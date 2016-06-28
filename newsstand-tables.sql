@@ -864,17 +864,63 @@ CREATE TABLE IF NOT EXISTS `tblPet` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tblPetHistory`
+-- Table structure for table `tblPetHistoryHourly`
 --
 
-CREATE TABLE IF NOT EXISTS `tblPetHistory` (
+CREATE TABLE IF NOT EXISTS `tblPetHistoryHourly` (
   `house` smallint(5) unsigned NOT NULL,
   `species` smallint(5) unsigned NOT NULL,
   `breed` tinyint(3) unsigned NOT NULL,
-  `snapshot` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `price` decimal(11,0) NOT NULL DEFAULT '0',
-  `quantity` mediumint(8) unsigned NOT NULL DEFAULT '0',
-  PRIMARY KEY (`house`,`species`,`breed`,`snapshot`)
+  `when` date NOT NULL,
+  `silver00` int(10) unsigned DEFAULT NULL,
+  `quantity00` smallint(5) unsigned DEFAULT NULL,
+  `silver01` int(10) unsigned DEFAULT NULL,
+  `quantity01` smallint(5) unsigned DEFAULT NULL,
+  `silver02` int(10) unsigned DEFAULT NULL,
+  `quantity02` smallint(5) unsigned DEFAULT NULL,
+  `silver03` int(10) unsigned DEFAULT NULL,
+  `quantity03` smallint(5) unsigned DEFAULT NULL,
+  `silver04` int(10) unsigned DEFAULT NULL,
+  `quantity04` smallint(5) unsigned DEFAULT NULL,
+  `silver05` int(10) unsigned DEFAULT NULL,
+  `quantity05` smallint(5) unsigned DEFAULT NULL,
+  `silver06` int(10) unsigned DEFAULT NULL,
+  `quantity06` smallint(5) unsigned DEFAULT NULL,
+  `silver07` int(10) unsigned DEFAULT NULL,
+  `quantity07` smallint(5) unsigned DEFAULT NULL,
+  `silver08` int(10) unsigned DEFAULT NULL,
+  `quantity08` smallint(5) unsigned DEFAULT NULL,
+  `silver09` int(10) unsigned DEFAULT NULL,
+  `quantity09` smallint(5) unsigned DEFAULT NULL,
+  `silver10` int(10) unsigned DEFAULT NULL,
+  `quantity10` smallint(5) unsigned DEFAULT NULL,
+  `silver11` int(10) unsigned DEFAULT NULL,
+  `quantity11` smallint(5) unsigned DEFAULT NULL,
+  `silver12` int(10) unsigned DEFAULT NULL,
+  `quantity12` smallint(5) unsigned DEFAULT NULL,
+  `silver13` int(10) unsigned DEFAULT NULL,
+  `quantity13` smallint(5) unsigned DEFAULT NULL,
+  `silver14` int(10) unsigned DEFAULT NULL,
+  `quantity14` smallint(5) unsigned DEFAULT NULL,
+  `silver15` int(10) unsigned DEFAULT NULL,
+  `quantity15` smallint(5) unsigned DEFAULT NULL,
+  `silver16` int(10) unsigned DEFAULT NULL,
+  `quantity16` smallint(5) unsigned DEFAULT NULL,
+  `silver17` int(10) unsigned DEFAULT NULL,
+  `quantity17` smallint(5) unsigned DEFAULT NULL,
+  `silver18` int(10) unsigned DEFAULT NULL,
+  `quantity18` smallint(5) unsigned DEFAULT NULL,
+  `silver19` int(10) unsigned DEFAULT NULL,
+  `quantity19` smallint(5) unsigned DEFAULT NULL,
+  `silver20` int(10) unsigned DEFAULT NULL,
+  `quantity20` smallint(5) unsigned DEFAULT NULL,
+  `silver21` int(10) unsigned DEFAULT NULL,
+  `quantity21` smallint(5) unsigned DEFAULT NULL,
+  `silver22` int(10) unsigned DEFAULT NULL,
+  `quantity22` smallint(5) unsigned DEFAULT NULL,
+  `silver23` int(10) unsigned DEFAULT NULL,
+  `quantity23` smallint(5) unsigned DEFAULT NULL,
+  PRIMARY KEY (`house`,`species`,`breed`,`when`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------

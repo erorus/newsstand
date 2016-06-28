@@ -555,14 +555,14 @@ function CleanOldHouses()
         return;
     }
 
-    $sql = 'SELECT DISTINCT house FROM tblPetHistory WHERE house NOT IN (SELECT DISTINCT house FROM tblRealm)';
+    $sql = 'SELECT DISTINCT house FROM tblPetHistoryHourly WHERE house NOT IN (SELECT DISTINCT house FROM tblRealm)';
     $stmt = $db->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();
     $oldIds = DBMapArray($result);
     $stmt->close();
 
-    $sql = 'DELETE FROM tblPetHistory WHERE house = %d LIMIT 2000';
+    $sql = 'DELETE FROM tblPetHistoryHourly WHERE house = %d LIMIT 2000';
     foreach ($oldIds as $oldId) {
         if ($caughtKill) {
             return;

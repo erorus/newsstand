@@ -48,7 +48,7 @@ function GetDataTables() {
         'tblItemHistoryMonthly' => 'item in (select id from tblDBCItem where auctionable=1) and house='.$house,
         'tblItemSummary' => 'house='.$house,
         'tblPet' => '1=1',
-        'tblPetHistory' => 'house='.$house,
+        'tblPetHistoryHourly' => 'house='.$house,
         'tblPetSummary' => 'house='.$house,
         'tblRealm' => '1=1',
         'tblRealmGuidHouse' => '1=1',

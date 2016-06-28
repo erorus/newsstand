@@ -77,15 +77,31 @@ function PetHistory($house, $species)
     $historyDays = HISTORY_DAYS;
 
     $sql = <<<EOF
-select breed, snapshot, price, quantity
+select breed, snapshot, silver*100 price, quantity
 from (
     select if(breed = @prevBreed, null, @price := null) resetprice, @prevBreed := breed as breed, unix_timestamp(updated) snapshot,
-        cast(if(quantity is null, @price, @price := price) as decimal(11,0)) `price`, ifnull(quantity,0) as quantity
-    from (select @price := null, @prevBreed := null) priceSetup, (
-    select ps.breed, s.updated, ph.quantity, ph.price
+        cast(if(quantity is null, @price, @price := silver) as unsigned) `silver`, ifnull(quantity,0) as quantity
+    from (select @price := null, @prevBreed := null) priceSetup, 
+    (select ps.breed, s.updated, 
+        case hour(s.updated)
+            when  0 then ph.quantity00 when  1 then ph.quantity01 when  2 then ph.quantity02 when  3 then ph.quantity03
+            when  4 then ph.quantity04 when  5 then ph.quantity05 when  6 then ph.quantity06 when  7 then ph.quantity07
+            when  8 then ph.quantity08 when  9 then ph.quantity09 when 10 then ph.quantity10 when 11 then ph.quantity11
+            when 12 then ph.quantity12 when 13 then ph.quantity13 when 14 then ph.quantity14 when 15 then ph.quantity15
+            when 16 then ph.quantity16 when 17 then ph.quantity17 when 18 then ph.quantity18 when 19 then ph.quantity19
+            when 20 then ph.quantity20 when 21 then ph.quantity21 when 22 then ph.quantity22 when 23 then ph.quantity23
+            else null end as `quantity`,
+        case hour(s.updated)
+            when  0 then ph.silver00 when  1 then ph.silver01 when  2 then ph.silver02 when  3 then ph.silver03
+            when  4 then ph.silver04 when  5 then ph.silver05 when  6 then ph.silver06 when  7 then ph.silver07
+            when  8 then ph.silver08 when  9 then ph.silver09 when 10 then ph.silver10 when 11 then ph.silver11
+            when 12 then ph.silver12 when 13 then ph.silver13 when 14 then ph.silver14 when 15 then ph.silver15
+            when 16 then ph.silver16 when 17 then ph.silver17 when 18 then ph.silver18 when 19 then ph.silver19
+            when 20 then ph.silver20 when 21 then ph.silver21 when 22 then ph.silver22 when 23 then ph.silver23
+            else null end as `silver`
     from tblSnapshot s
     join tblPetSummary ps on ps.house = ?
-    left join tblPetHistory ph on s.updated = ph.snapshot and ph.house = ps.house and ph.species = ps.species and ph.breed = ps.breed
+    left join tblPetHistoryHourly ph on date(s.updated) = ph.`when` and ph.house = ps.house and ph.species = ps.species and ph.breed = ps.breed
     where s.house = ? and ps.species = ? and s.updated >= timestampadd(day,-$historyDays,now()) and s.flags & 1 = 0
     order by ps.breed, s.updated asc
     ) ordered

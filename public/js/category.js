@@ -756,6 +756,8 @@ var TUJ_Category = function ()
                     continue;
                 }
 
+                data[petType][species] = libtuj.HydrateData(data[petType][species]);
+
                 o = {id: species, quantity: 0, breedCount: 0, breeds: {}};
 
                 firstBreed = false;

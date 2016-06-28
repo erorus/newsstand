@@ -992,12 +992,16 @@ function UpdatePetInfo($house, &$petInfo, $snapshot, $noHistory)
 {
     global $db, $maxPacketSize;
 
+    $hour = date('H', $snapshot);
+    $dateString = date('Y-m-d', $snapshot);
+
     $snapshotString = date('Y-m-d H:i:s', $snapshot);
     $sqlStart = 'INSERT INTO tblPetSummary (house, species, breed, price, quantity, lastseen) VALUES ';
     $sqlEnd = ' on duplicate key update quantity=values(quantity), price=if(quantity=0,price,values(price)), lastseen=if(quantity=0,lastseen,values(lastseen))';
     $sql = '';
 
-    $sqlHistoryStart = 'REPLACE INTO tblPetHistory (house, species, breed, price, quantity, snapshot) VALUES ';
+    $sqlHistoryStart = sprintf('INSERT INTO tblPetHistoryHourly (house, species, breed, `when`, `silver%1$s`, `quantity%1$s`) VALUES ', $hour);
+    $sqlHistoryEnd = sprintf(' on duplicate key update `silver%1$s`=if(values(`quantity%1$s`) > ifnull(`quantity%1$s`,0), values(`silver%1$s`), `silver%1$s`), `quantity%1$s`=if(values(`quantity%1$s`) > ifnull(`quantity%1$s`,0), values(`quantity%1$s`), `quantity%1$s`)', $hour);
     $sqlHistory = '';
 
     foreach ($petInfo as $species => &$breeds) {
@@ -1011,11 +1015,12 @@ function UpdatePetInfo($house, &$petInfo, $snapshot, $noHistory)
             $sql .= ($sql == '' ? $sqlStart : ',') . $sqlBit;
 
             if ((!$noHistory) && ($info['tq'] > 0)) {
-                if (strlen($sqlHistory) + strlen($sqlBit) + 5 > $maxPacketSize) {
-                    DBQueryWithError($db, $sqlHistory);
+                $sqlHistoryBit = sprintf('(%d,%u,%u,\'%s\',%u,%u)', $house, $species, $breed, $dateString, round($price / 100), $info['tq']);
+                if (strlen($sqlHistory) + strlen($sqlHistoryBit) + strlen($sqlHistoryEnd) + 5 > $maxPacketSize) {
+                    DBQueryWithError($db, $sqlHistory . $sqlHistoryEnd);
                     $sqlHistory = '';
                 }
-                $sqlHistory .= ($sqlHistory == '' ? $sqlHistoryStart : ',') . $sqlBit;
+                $sqlHistory .= ($sqlHistory == '' ? $sqlHistoryStart : ',') . $sqlHistoryBit;
             }
         }
         unset($info);
@@ -1026,7 +1031,7 @@ function UpdatePetInfo($house, &$petInfo, $snapshot, $noHistory)
         DBQueryWithError($db, $sql . $sqlEnd);
     }
     if ($sqlHistory != '') {
-        DBQueryWithError($db, $sqlHistory);
+        DBQueryWithError($db, $sqlHistory . $sqlHistoryEnd);
     }
 }
 

@@ -164,7 +164,7 @@ round(stddev(case hours.h
 ceil(ivc.copper/100) vendorprice
 FROM tblItemSummary tis
 join tblDBCItem i on i.id = tis.item
-join (select  0 h union select  1 h union select  2 h union select  3 h union
+join (select 0 h union select  1 h union select  2 h union select  3 h union
      select  4 h union select  5 h union select  6 h union select  7 h union
      select  8 h union select  9 h union select 10 h union select 11 h union
      select 12 h union select 13 h union select 14 h union select 15 h union
@@ -222,11 +222,38 @@ EOF;
     $sql = <<<EOF
 SELECT tps.species, tps.breed,
 datediff(now(), tps.lastseen) since,
-round(ifnull(avg(ph.price), tps.price)/100) price,
-round(ifnull(avg(if(ph.snapshot > timestampadd(hour, -72, now()), ph.price, null)), tps.price)/100) pricerecent,
-round(stddev(ph.price)/100) pricestddev
+round(ifnull(avg(case hours.h
+    when  0 then phh.silver00 when  1 then phh.silver01 when  2 then phh.silver02 when  3 then phh.silver03
+    when  4 then phh.silver04 when  5 then phh.silver05 when  6 then phh.silver06 when  7 then phh.silver07
+    when  8 then phh.silver08 when  9 then phh.silver09 when 10 then phh.silver10 when 11 then phh.silver11
+    when 12 then phh.silver12 when 13 then phh.silver13 when 14 then phh.silver14 when 15 then phh.silver15
+    when 16 then phh.silver16 when 17 then phh.silver17 when 18 then phh.silver18 when 19 then phh.silver19
+    when 20 then phh.silver20 when 21 then phh.silver21 when 22 then phh.silver22 when 23 then phh.silver23
+    else null end), tps.price/100)) price,
+round(ifnull(avg(if(timestampadd(hour, 72 + hours.h, phh.`when`) > now(), case hours.h
+    when  0 then phh.silver00 when  1 then phh.silver01 when  2 then phh.silver02 when  3 then phh.silver03
+    when  4 then phh.silver04 when  5 then phh.silver05 when  6 then phh.silver06 when  7 then phh.silver07
+    when  8 then phh.silver08 when  9 then phh.silver09 when 10 then phh.silver10 when 11 then phh.silver11
+    when 12 then phh.silver12 when 13 then phh.silver13 when 14 then phh.silver14 when 15 then phh.silver15
+    when 16 then phh.silver16 when 17 then phh.silver17 when 18 then phh.silver18 when 19 then phh.silver19
+    when 20 then phh.silver20 when 21 then phh.silver21 when 22 then phh.silver22 when 23 then phh.silver23
+    else null end, null)), tps.price/100)) pricerecent,
+round(stddev(case hours.h
+    when  0 then phh.silver00 when  1 then phh.silver01 when  2 then phh.silver02 when  3 then phh.silver03
+    when  4 then phh.silver04 when  5 then phh.silver05 when  6 then phh.silver06 when  7 then phh.silver07
+    when  8 then phh.silver08 when  9 then phh.silver09 when 10 then phh.silver10 when 11 then phh.silver11
+    when 12 then phh.silver12 when 13 then phh.silver13 when 14 then phh.silver14 when 15 then phh.silver15
+    when 16 then phh.silver16 when 17 then phh.silver17 when 18 then phh.silver18 when 19 then phh.silver19
+    when 20 then phh.silver20 when 21 then phh.silver21 when 22 then phh.silver22 when 23 then phh.silver23
+    else null end)) pricestddev
 FROM tblPetSummary tps
-left join tblPetHistory ph on ph.species=tps.species and ph.house = tps.house and ph.breed=tps.breed
+join (select 0 h union select  1 h union select  2 h union select  3 h union
+     select  4 h union select  5 h union select  6 h union select  7 h union
+     select  8 h union select  9 h union select 10 h union select 11 h union
+     select 12 h union select 13 h union select 14 h union select 15 h union
+     select 16 h union select 17 h union select 18 h union select 19 h union
+     select 20 h union select 21 h union select 22 h union select 23 h) hours
+left join tblPetHistoryHourly phh on phh.species=tps.species and phh.house = tps.house and phh.breed=tps.breed
 WHERE tps.house = ?
 group by tps.species, tps.breed
 EOF;

@@ -37,12 +37,12 @@ function CategoryResult_battlepets($house)
 {
     global $canCache;
 
-    $key = 'category_bpets_l2';
+    $key = 'category_bpets';
 
     if ($canCache && (($tr = MCGetHouse($house, $key)) !== false)) {
         foreach ($tr as &$species) {
             foreach ($species as &$breeds) {
-                PopulateLocaleCols($breeds, [['func' => 'GetPetNames', 'key' => 'species', 'name' => 'name']]);
+                PopulateLocaleCols($breeds, [['func' => 'GetPetNames', 'key' => 'species', 'name' => 'name']], count($breeds) > 1);
             }
             unset($breeds);
         }
@@ -53,12 +53,27 @@ function CategoryResult_battlepets($house)
     $db = DBConnect();
 
     $sql = <<<EOF
-SELECT ps.species, ps.breed, ps.price, ps.quantity, ps.lastseen, round(avg(ph.price)) avgprice, p.type, p.icon, p.npc, 0 regionavgprice
+SELECT ps.species, ps.breed, ps.price, ps.quantity, ps.lastseen,
+(select round(avg(case hours.h
+    when  0 then ph.silver00 when  1 then ph.silver01 when  2 then ph.silver02 when  3 then ph.silver03
+    when  4 then ph.silver04 when  5 then ph.silver05 when  6 then ph.silver06 when  7 then ph.silver07
+    when  8 then ph.silver08 when  9 then ph.silver09 when 10 then ph.silver10 when 11 then ph.silver11
+    when 12 then ph.silver12 when 13 then ph.silver13 when 14 then ph.silver14 when 15 then ph.silver15
+    when 16 then ph.silver16 when 17 then ph.silver17 when 18 then ph.silver18 when 19 then ph.silver19
+    when 20 then ph.silver20 when 21 then ph.silver21 when 22 then ph.silver22 when 23 then ph.silver23
+    else null end)*100)
+    from tblPetHistoryHourly ph,
+    (select  0 h union select  1 h union select  2 h union select  3 h union
+     select  4 h union select  5 h union select  6 h union select  7 h union
+     select  8 h union select  9 h union select 10 h union select 11 h union
+     select 12 h union select 13 h union select 14 h union select 15 h union
+     select 16 h union select 17 h union select 18 h union select 19 h union
+     select 20 h union select 21 h union select 22 h union select 23 h) hours
+    where ph.house = ps.house and ph.species = ps.species and ph.breed = ps.breed) avgprice, 
+p.type, p.icon, p.npc, 0 regionavgprice
 FROM tblPetSummary ps
 JOIN tblDBCPet p on ps.species=p.id
-LEFT JOIN tblPetHistory ph on ph.house = ps.house and ph.species = ps.species and ph.breed = ps.breed
 WHERE ps.house = ?
-group by ps.species, ps.breed
 EOF;
 
     $stmt = $db->prepare($sql);
@@ -89,7 +104,7 @@ EOF;
 
     foreach ($tr as &$species) {
         foreach ($species as &$breeds) {
-            PopulateLocaleCols($breeds, [['func' => 'GetPetNames', 'key' => 'species', 'name' => 'name']]);
+            PopulateLocaleCols($breeds, [['func' => 'GetPetNames', 'key' => 'species', 'name' => 'name']], count($breeds) > 1);
         }
         unset($breeds);
     }
@@ -279,7 +294,7 @@ from (
         and ivc.copper is null
         group by i.id) ib
     join tblItemHistoryHourly ihh on ihh.house=%1\$d and ihh.item = ib.item and ihh.bonusset = 0
-    join (select  0 h union select  1 h union select  2 h union select  3 h union
+    join (select 0 h union select  1 h union select  2 h union select  3 h union
          select  4 h union select  5 h union select  6 h union select  7 h union
          select  8 h union select  9 h union select 10 h union select 11 h union
          select 12 h union select 13 h union select 14 h union select 15 h union

@@ -301,7 +301,7 @@ var TUJ_BattlePet = function ()
 
     function BattlePetBreedData(dtaAll, breeds)
     {
-        var dta = {};
+        var x, dta = {};
         if (breedId) {
             if (dtaAll.stats.hasOwnProperty(breedId)) {
                 dta.stats = dtaAll.stats[breedId];
@@ -1124,7 +1124,7 @@ var TUJ_BattlePet = function ()
                 s += a[x];
             }
             return s / a.length;
-        }
+        };
 
         var d, wkdy, hr, lastprice;
         for (wkdy = 0; wkdy < hcdata.categories.y.length; wkdy++) {
