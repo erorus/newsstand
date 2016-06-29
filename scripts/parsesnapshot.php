@@ -870,10 +870,15 @@ function UpdateSellerInfo(&$sellerInfo, $house, $snapshot, $noHistory)
 
     global $db, $maxPacketSize;
 
+    $hour = date('H', $snapshot);
+    $dateString = date('Y-m-d', $snapshot);
+
     $snapshotString = date('Y-m-d H:i:s', $snapshot);
     $realms = array_keys($sellerInfo);
 
-    $sqlStart = 'INSERT IGNORE INTO tblSellerHistory (seller, snapshot, `new`, `total`) VALUES ';
+    $sqlStart = sprintf('INSERT IGNORE INTO tblSellerHistoryHourly (seller, `when`, `new%1$s`, `total%1$s`) VALUES ', $hour);
+    $sqlEnd = sprintf(' on duplicate key update `new%1$s` = values(`new%1$s`) + ifnull(`new%1$s`, 0), `total%1$s`=if(values(`total%1$s`) > ifnull(`total%1$s`,0), values(`total%1$s`), `total%1$s`)', $hour);
+
     $sqlItemStart = 'INSERT IGNORE INTO tblSellerItemHistory (item, seller, snapshot, house, auctions, quantity) VALUES ';
     $sql = '';
     $sqlItem = '';
@@ -884,9 +889,9 @@ function UpdateSellerInfo(&$sellerInfo, $house, $snapshot, $noHistory)
                 continue;
             }
 
-            $sqlBit = sprintf('(%d,\'%s\',%d,%d)', $info['id'], $snapshotString, $info['new'], $info['total']);
-            if (strlen($sql) + strlen($sqlBit) + 5 > $maxPacketSize) {
-                DBQueryWithError($db, $sql);
+            $sqlBit = sprintf('(%d,\'%s\',%d,%d)', $info['id'], $dateString, $info['new'], $info['total']);
+            if (strlen($sql) + strlen($sqlBit) + strlen($sqlEnd) + 5 > $maxPacketSize) {
+                DBQueryWithError($db, $sql . $sqlEnd);
                 $sql = '';
             }
             $sql .= ($sql == '' ? $sqlStart : ',') . $sqlBit;
@@ -904,7 +909,7 @@ function UpdateSellerInfo(&$sellerInfo, $house, $snapshot, $noHistory)
     }
 
     if ($sql != '') {
-        DBQueryWithError($db, $sql);
+        DBQueryWithError($db, $sql . $sqlEnd);
     }
     if ($sqlItem != '') {
         DBQueryWithError($db, $sqlItem);

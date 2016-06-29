@@ -77,9 +77,23 @@ function SellerHistory($house, $seller)
     $historyDays = HISTORY_DAYS;
 
     $sql = <<<EOF
-select unix_timestamp(s.updated) snapshot, ifnull(h.`total`, 0) `total`, ifnull(h.`new`,0) as `new`
+select unix_timestamp(s.updated) snapshot, ifnull(case hour(s.updated)
+    when  0 then h.total00 when  1 then h.total01 when  2 then h.total02 when  3 then h.total03
+    when  4 then h.total04 when  5 then h.total05 when  6 then h.total06 when  7 then h.total07
+    when  8 then h.total08 when  9 then h.total09 when 10 then h.total10 when 11 then h.total11
+    when 12 then h.total12 when 13 then h.total13 when 14 then h.total14 when 15 then h.total15
+    when 16 then h.total16 when 17 then h.total17 when 18 then h.total18 when 19 then h.total19
+    when 20 then h.total20 when 21 then h.total21 when 22 then h.total22 when 23 then h.total23
+    else null end, 0) `total`, ifnull(case hour(s.updated)
+    when  0 then h.new00 when  1 then h.new01 when  2 then h.new02 when  3 then h.new03
+    when  4 then h.new04 when  5 then h.new05 when  6 then h.new06 when  7 then h.new07
+    when  8 then h.new08 when  9 then h.new09 when 10 then h.new10 when 11 then h.new11
+    when 12 then h.new12 when 13 then h.new13 when 14 then h.new14 when 15 then h.new15
+    when 16 then h.new16 when 17 then h.new17 when 18 then h.new18 when 19 then h.new19
+    when 20 then h.new20 when 21 then h.new21 when 22 then h.new22 when 23 then h.new23
+    else null end,0) as `new`
 from tblSnapshot s
-left join tblSellerHistory h on s.updated = h.snapshot and h.seller=?
+left join tblSellerHistoryHourly h on date(s.updated) = h.`when` and h.seller=?
 where s.house = ? and s.updated >= timestampadd(day,-$historyDays,now()) and s.flags & 1 = 0
 order by s.updated asc
 EOF;

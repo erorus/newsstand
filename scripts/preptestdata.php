@@ -27,7 +27,7 @@ function GetDataTables() {
     $realms = DBMapArray($result, null);
     $stmt->close();
 
-    $sql = sprintf('SELECT id from tblSeller where realm in (%s) order by lastseen desc limit 10', implode(',', $realms));
+    $sql = sprintf('SELECT id from tblSeller where realm in (%s) order by lastseen desc limit 20', implode(',', $realms));
     $stmt = $db->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -53,7 +53,7 @@ function GetDataTables() {
         'tblRealm' => '1=1',
         'tblRealmGuidHouse' => '1=1',
         'tblSeller' => 'realm in ('.implode(',',$realms).')',
-        'tblSellerHistory' => 'seller in ('.implode(',',$sellers).')',
+        'tblSellerHistoryHourly' => 'seller in ('.implode(',',$sellers).')',
         'tblSellerItemHistory' => 'seller in ('.implode(',',$sellers).')',
         'tblSnapshot' => 'house='.$house,
         'tblWowToken' => '1=1',

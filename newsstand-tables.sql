@@ -991,16 +991,61 @@ CREATE TABLE IF NOT EXISTS `tblSeller` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tblSellerHistory`
+-- Table structure for table `tblSellerHistoryHourly`
 --
 
-CREATE TABLE IF NOT EXISTS `tblSellerHistory` (
+CREATE TABLE IF NOT EXISTS `tblSellerHistoryHourly` (
   `seller` int(10) unsigned NOT NULL,
-  `snapshot` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `new` smallint(5) unsigned NOT NULL DEFAULT '0',
-  `total` smallint(5) unsigned NOT NULL DEFAULT '0',
-  PRIMARY KEY (`snapshot`,`seller`),
-  KEY `seller` (`seller`)
+  `when` date NOT NULL,
+  `new00` smallint(5) unsigned DEFAULT NULL,
+  `total00` smallint(5) unsigned DEFAULT NULL,
+  `new01` smallint(5) unsigned DEFAULT NULL,
+  `total01` smallint(5) unsigned DEFAULT NULL,
+  `new02` smallint(5) unsigned DEFAULT NULL,
+  `total02` smallint(5) unsigned DEFAULT NULL,
+  `new03` smallint(5) unsigned DEFAULT NULL,
+  `total03` smallint(5) unsigned DEFAULT NULL,
+  `new04` smallint(5) unsigned DEFAULT NULL,
+  `total04` smallint(5) unsigned DEFAULT NULL,
+  `new05` smallint(5) unsigned DEFAULT NULL,
+  `total05` smallint(5) unsigned DEFAULT NULL,
+  `new06` smallint(5) unsigned DEFAULT NULL,
+  `total06` smallint(5) unsigned DEFAULT NULL,
+  `new07` smallint(5) unsigned DEFAULT NULL,
+  `total07` smallint(5) unsigned DEFAULT NULL,
+  `new08` smallint(5) unsigned DEFAULT NULL,
+  `total08` smallint(5) unsigned DEFAULT NULL,
+  `new09` smallint(5) unsigned DEFAULT NULL,
+  `total09` smallint(5) unsigned DEFAULT NULL,
+  `new10` smallint(5) unsigned DEFAULT NULL,
+  `total10` smallint(5) unsigned DEFAULT NULL,
+  `new11` smallint(5) unsigned DEFAULT NULL,
+  `total11` smallint(5) unsigned DEFAULT NULL,
+  `new12` smallint(5) unsigned DEFAULT NULL,
+  `total12` smallint(5) unsigned DEFAULT NULL,
+  `new13` smallint(5) unsigned DEFAULT NULL,
+  `total13` smallint(5) unsigned DEFAULT NULL,
+  `new14` smallint(5) unsigned DEFAULT NULL,
+  `total14` smallint(5) unsigned DEFAULT NULL,
+  `new15` smallint(5) unsigned DEFAULT NULL,
+  `total15` smallint(5) unsigned DEFAULT NULL,
+  `new16` smallint(5) unsigned DEFAULT NULL,
+  `total16` smallint(5) unsigned DEFAULT NULL,
+  `new17` smallint(5) unsigned DEFAULT NULL,
+  `total17` smallint(5) unsigned DEFAULT NULL,
+  `new18` smallint(5) unsigned DEFAULT NULL,
+  `total18` smallint(5) unsigned DEFAULT NULL,
+  `new19` smallint(5) unsigned DEFAULT NULL,
+  `total19` smallint(5) unsigned DEFAULT NULL,
+  `new20` smallint(5) unsigned DEFAULT NULL,
+  `total20` smallint(5) unsigned DEFAULT NULL,
+  `new21` smallint(5) unsigned DEFAULT NULL,
+  `total21` smallint(5) unsigned DEFAULT NULL,
+  `new22` smallint(5) unsigned DEFAULT NULL,
+  `total22` smallint(5) unsigned DEFAULT NULL,
+  `new23` smallint(5) unsigned DEFAULT NULL,
+  `total23` smallint(5) unsigned DEFAULT NULL,
+  PRIMARY KEY (`seller`,`when`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------

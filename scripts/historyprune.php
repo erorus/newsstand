@@ -131,7 +131,8 @@ function CleanOldData()
 
     $rowCount = 0;
     DebugMessage('Clearing out old seller history');
-    $sql = 'delete from tblSellerHistory where snapshot < timestampadd(day, -' . HISTORY_DAYS . ', now())';
+    $cutoffDateHourly = date('Y-m-d', strtotime('' . HISTORY_DAYS . ' days ago'));
+    $sql = sprintf('delete from tblSellerHistoryHourly where `when` < \'%s\'', $cutoffDateHourly);
     $rowCount += DeleteLimitLoop($db, $sql);
     DebugMessage("$rowCount seller history rows deleted in total");
 
