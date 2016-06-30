@@ -526,20 +526,6 @@ var TUJ = function ()
         }
         inMain = true;
 
-        /*
-        if (!$('#viewport')[0]) {
-            var d = libtuj.ce();
-            d.id = 'viewport';
-            d.style.position = 'absolute';
-            d.style.top = '0';
-            d.style.left = '0';
-            document.body.appendChild(d);
-        }
-        window.setInterval(function(){
-            $('#viewport').text(window.innerWidth);
-        }, 1000);
-        */
-
         var pageClasses = 'page-region page-realm page-front';
         for (var x = 1; x < validPages.length; x++) {
             pageClasses += ' page-' + validPages[x];
@@ -1000,7 +986,7 @@ var TUJ = function ()
             realm: self.params.realm,
             page: undefined,
             id: undefined
-        }
+        };
 
         var h = location.hash.toLowerCase();
         if (h.charAt(0) == '#') {
@@ -1062,7 +1048,7 @@ var TUJ = function ()
                 p.id = h[x];
             }
 
-        if (!p.realm && (gotRegion < 0)) {
+        if (!gotRealm && (gotRegion < 0)) {
             p.region = undefined;
         }
         if (p.region != undefined && !gotRealm) {
@@ -1132,12 +1118,13 @@ var TUJ = function ()
             $('#topcorner > div').show();
             $('#topcorner .region-pick').hide();
             if (!self.params.realm) {
-                $('#topcorner #region-pick-' + validRegions[self.params.region]).show();
-                $('#topcorner .region-pick a')[0].href = self.BuildHash({region: 1-self.params.region, realm: undefined});
+                var $regionPick = $('#topcorner #region-pick-' + validRegions[self.params.region]);
+                $regionPick.show();
+                $regionPick.find('a')[0].href = self.BuildHash({region: 1-self.params.region, realm: undefined});
             }
 
             var regionLink = $('#topcorner a.region');
-            regionLink[0].href = self.params.region == 0 ? self.BuildHash({region: 1, realm: undefined}) : self.BuildHash({region: 0, realm: undefined});
+            regionLink[0].href = self.BuildHash({region: undefined, realm: undefined});
             regionLink.text(self.validRegions[self.params.region]);
 
             var realmLink = $('#topcorner a.realm');
@@ -1473,7 +1460,7 @@ var TUJ = function ()
         var h = '';
         if (tParams.region != undefined) {
             h += '/' + validRegions[tParams.region].toLowerCase();
-            if (tParams.realm) {
+            if (tParams.realm && self.allRealms[tParams.region].hasOwnProperty(tParams.realm)) {
                 h += '/' + self.allRealms[tParams.region][tParams.realm].slug;
             }
         }
