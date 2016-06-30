@@ -12,6 +12,7 @@ body {min-width: 18em}
 #main {padding: 0 1em 7em}
 #main a {padding: 0.5em}
 #main a.rss-icon {padding-left: 1.25em}
+#main .realms-column a {margin-left: -1em; margin-right: -1em; padding: 0.5em 1.5em; border-bottom: 1px solid #808080}
 
 #region-page h2 {display: none}
 #region-page .directions {margin-bottom: 2em}
@@ -24,7 +25,7 @@ body {min-width: 18em}
 
 #front-welcome {display: none}
 #front-page .top-list {float: none; margin: 2em 0}
-.top-list a {display: block}
+#main .top-list a, #category-sidebar a {display: block; margin: 0 -1em; padding: 0.5em 1.5em; border-bottom: 1px solid #808080; text-decoration: none !important}
 .top-list br {display: none}
 
 #page-title {font-size:125%; padding-left: 0.5em}
