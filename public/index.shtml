@@ -51,6 +51,7 @@
                             <a href="#us">Looking for US realms?</a>
                         </div>
                     </div>
+                    <datalist id="searched-previously"></datalist>
                 </div>
             </div>
             <div id="main">

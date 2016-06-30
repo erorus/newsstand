@@ -61,6 +61,12 @@ var TUJ_Search = function ()
             },
             url: 'api/search.php'
         });
+    };
+
+    function AddToSearched(a, txt)
+    {
+        $(a).click(libtuj.Searched.Add.bind(null, txt));
+        return txt;
     }
 
     function SearchResult(hash, dta)
@@ -79,6 +85,7 @@ var TUJ_Search = function ()
 
         var results = 0;
         var lastResult;
+        var lastResultName = '';
         var t, tr, td, i, a, x;
 
         if (dta.items) {
@@ -181,6 +188,7 @@ var TUJ_Search = function ()
                     $(tagspan).text(bonusTag);
                     a.appendChild(tagspan);
                 }
+                lastResultName = AddToSearched(a, item['name_' + tuj.locale]);
 
                 td = libtuj.ce('td');
                 td.className = 'quantity';
@@ -252,6 +260,7 @@ var TUJ_Search = function ()
                 td.appendChild(a);
                 a.href = tuj.BuildHash({page: 'seller', id: seller.name, realm: seller.realm});
                 $(a).text(seller.name + ' - ' + tuj.realms[seller.realm].name);
+                lastResultName = AddToSearched(a, seller.name);
 
                 td = libtuj.ce('td');
                 td.className = 'date';
@@ -344,6 +353,7 @@ var TUJ_Search = function ()
                     a.rel = 'npc=' + pet.npc + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
                 }
                 $(a).text('[' + pet['name_' + tuj.locale] + ']');
+                lastResultName = AddToSearched(a, pet['name_' + tuj.locale]);
 
                 td = libtuj.ce('td');
                 td.className = 'quantity';
@@ -368,6 +378,7 @@ var TUJ_Search = function ()
         }
 
         if (results == 1) {
+            libtuj.Searched.Add(lastResultName);
             tuj.SetParams(lastResult, true);
         }
         else {
@@ -381,6 +392,6 @@ var TUJ_Search = function ()
     }
 
     this.load(tuj.params);
-}
+};
 
 tuj.page_search = new TUJ_Search();

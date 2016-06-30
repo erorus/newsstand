@@ -334,6 +334,44 @@ var libtuj = {
         }
         return o.data;
     },
+    Searched: {
+        key: 'searched-list-',
+        current: [],
+        Add: function (v)
+        {
+            if (!v) {
+                return;
+            }
+            var LIST_LENGTH = 15;
+
+            var items = libtuj.Storage.Get(libtuj.Searched.key + tuj.locale);
+            if (items === false) {
+                items = libtuj.Searched.current;
+            }
+            if (items.indexOf(v) >= 0) {
+                return;
+            }
+            if (items.unshift(v) > LIST_LENGTH) {
+                items.splice(LIST_LENGTH);
+            }
+            libtuj.Searched.current = items;
+
+            libtuj.Storage.Set(libtuj.Searched.key + tuj.locale, libtuj.Searched.current);
+
+            libtuj.Searched.Update();
+        },
+        Update: function()
+        {
+            var items = libtuj.Storage.Get(libtuj.Searched.key + tuj.locale) || libtuj.Searched.current;
+            var ele = document.getElementById('searched-previously');
+            $(ele).empty();
+            for (var x = 0; x < items.length; x++) {
+                var o = libtuj.ce('option');
+                o.value = items[x];
+                ele.appendChild(o);
+            }
+        }
+    },
     Ads: {
         addCount: 0,
         adsWillShow: true,
@@ -477,7 +515,7 @@ var tujConstants = {
             redQuantityBackground: '#CC6666',
         }
     }
-}
+};
 
 if (!Date.now) {
     Date.now = function now() {
@@ -1174,6 +1212,8 @@ var TUJ = function ()
             i.placeholder = self.lang.search;
             i.id = 'searchbox';
             i.autocomplete = 'off';
+            i.setAttribute('inputmode', 'latin');
+            i.setAttribute('list', 'searched-previously');
 
             $(form).on('submit',function () {
                 location.href = self.BuildHash({page: 'search', id: this.search.value.replace('/', '')});
@@ -1187,6 +1227,8 @@ var TUJ = function ()
             form.className = 'no-realm-hide';
 
             $('#topcorner .region-realm').after(d).after(form);
+
+            libtuj.Searched.Update();
         } else {
             $('#topcorner form input')[0].placeholder = self.lang.search;
         }
