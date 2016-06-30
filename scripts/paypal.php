@@ -26,6 +26,8 @@ function FullPaypalProcess() {
         if (!$isIPN) {
             LogPaypalMessage("Forwarding errored post to paidpending");
             header('Location: /#subscription/paidpending');
+        } elseif (!isset($_POST['txn_id'])) {
+            // ignore IPN txns without IDs
         } else {
             if (!is_string($postResult)) {
                 $postResult = 'HTTP/1.0 500 Internal Server Error';
