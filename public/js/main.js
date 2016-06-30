@@ -542,15 +542,16 @@ var TUJ = function ()
         realm: undefined,
         page: undefined,
         id: undefined
-    }
+    };
     this.locales = {};
     this.locale = false;
     this.lang = false;
     var hash = {
         sets: 0,
         changes: 0,
+        reading: false,
         watching: false
-    }
+    };
     var inMain = false;
     var self = this;
     var checkLanguageHeader = false;
@@ -1010,6 +1011,10 @@ var TUJ = function ()
             hash.watching = $(window).on('hashchange', ReadParams);
         }
 
+        if (hash.reading) {
+            return false;
+        }
+
         if (hash.sets > hash.changes) {
             hash.changes++;
             return false;
@@ -1019,6 +1024,8 @@ var TUJ = function ()
             return false;
         }
 
+        hash.reading = true;
+
         var p = {
             region: self.params.region,
             realm: self.params.realm,
@@ -1026,11 +1033,10 @@ var TUJ = function ()
             id: undefined
         };
 
-        var h = location.hash.toLowerCase();
+        var h = decodeURIComponent(location.hash.replace('+', ' ')).toLowerCase();
         if (h.charAt(0) == '#') {
             h = h.substr(1);
         }
-        h = decodeURIComponent(h.replace('+', ' '));
         h = h.split('/');
 
         var y;
@@ -1096,6 +1102,8 @@ var TUJ = function ()
         if (!self.SetParams(p)) {
             Main();
         }
+
+        hash.reading = false;
     }
 
     this.SetParams = function (p, replaceHistory)
@@ -1130,7 +1138,7 @@ var TUJ = function ()
 
         var h = self.BuildHash(self.params);
 
-        if (h != location.hash) {
+        if (h != decodeURIComponent(location.hash)) {
             hash.sets++;
             if (location.search) {
                 location.href = location.pathname + h;
@@ -1145,7 +1153,7 @@ var TUJ = function ()
         }
 
         return false;
-    }
+    };
 
     function UpdateSidebar()
     {
