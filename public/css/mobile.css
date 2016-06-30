@@ -21,11 +21,12 @@ body {min-width: 18em}
 .realms-column {-moz-column-width: unset; -webkit-column-width: unset; column-width: unset}
 
 #front-page {padding-right: 0}
-#category-sidebar {right: auto; width: auto; float: none}
+#category-sidebar {right: auto; width: auto; float: none; -moz-column-count: 2; -webkit-column-count: 2; column-count: 2}
+#category-sidebar a[href] {text-decoration: none}
 
 #front-welcome {display: none}
 #front-page .top-list {float: none; margin: 2em 0}
-#main .top-list a, #category-sidebar a {display: block; margin: 0 -1em; padding: 0.5em 1.5em; border-bottom: 1px solid #808080; text-decoration: none !important}
+#main .top-list a {display: block}
 .top-list br {display: none}
 
 #page-title {font-size:125%; padding-left: 0.5em}
