@@ -1,3 +1,6 @@
 [submodule "scripts/zopfli.git"]
 	path = scripts/zopfli.git
 	url = https://github.com/google/zopfli.git
+[submodule "gamedata/DBC/db2"]
+	path = gamedata/DBC/db2
+	url = https://github.com/erorus/db2.git

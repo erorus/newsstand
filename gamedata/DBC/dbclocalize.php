@@ -1,50 +1,107 @@
 <?php
-require_once('../incl/old.incl.php');
-require_once('dbcdecode.php');
+
+require_once '../../incl/incl.php';
+require_once 'db2/src/autoload.php';
+
+use \Erorus\DB2\Reader;
 
 $LOCALES = ['dede','eses','frfr','itit','ptbr','ruru'];
 
-header('Content-type: text/plain');
+$newLocales = [];
+for ($x = 1; $x < count($argv); $x++) {
+    if (in_array($argv[$x], $LOCALES)) {
+        $newLocales[] = $argv[$x];
+    } else {
+        fwrite(STDERR, "Could not find locale ".$argv[$x]."\n");
+    }
+}
+if (count($newLocales)) {
+    $LOCALES = $newLocales;
+}
+
 error_reporting(E_ALL);
 
-DBConnect();
-
-$tables = array();
-dtecho(run_sql('set session max_heap_table_size='.(1024*1024*1024)));
+$db = DBConnect();
 
 foreach ($LOCALES as $locale) {
-    dtecho("Starting locale $locale");
-
-    foreach ($tables as $tbl) {
-        run_sql('drop temporary table `ttbl'.$tbl.'`');
-    }
-    $tables = array();
-
     $dirnm = 'current/' . substr($locale, 0, 2) . strtoupper(substr($locale, 2, 2));
 
-    /* */
+    LogLine("$locale tblDBCItemSubClass");
+    $sql = <<<EOF
+insert ignore into tblDBCItemSubClass (class, subclass, name_$locale) values (?, ?, ?)
+on duplicate key update name_$locale = ifnull(values(name_$locale), name_$locale)
+EOF;
+    $reader = new Reader($dirnm . '/ItemSubClass.dbc');
+    $reader->setFieldNames([1=>'class', 2=>'subclass', 11=>'name', 12=>'plural']);
+    $stmt = $db->prepare($sql);
+    $classs = $subclass = $name = null;
+    $stmt->bind_param('iis', $classs, $subclass, $name);
+    $x = 0; $recordCount = count($reader->getIds());
+    foreach ($reader->generateRecords() as $rec) {
+        EchoProgress(++$x/$recordCount);
+        $classs = $rec['class'];
+        $subclass = $rec['subclass'];
+        $name = $rec['plural'];
+        if (is_null($name) || $name == '') {
+            $name = $rec['name'];
+        }
+        $stmt->execute();
+    }
+    $stmt->close();
+    EchoProgress(false);
+    unset($reader);
 
-    // DBCItemSubClass
-    dtecho(dbcdecode('ItemSubClass', array(1=>'id', 2=>'class', 3=>'subclass', 12=>'name', 13=>'plural')));
-    dtecho(run_sql("insert ignore into tblDBCItemSubClass (class, subclass, name_$locale) (select class, subclass, if(ifnull(plural,'')='',name,plural) from ttblItemSubClass) on duplicate key update tblDBCItemSubClass.name_$locale=ifnull(values(name_$locale),tblDBCItemSubClass.name_$locale)"));
+    LogLine("$locale tblDBCItem");
+    $reader = new Reader($dirnm . '/Item-sparse.db2');
+    $reader->setFieldNames([70 => 'name']);
+    $stmt = $db->prepare("insert into tblDBCItem (id, name_$locale) values (?, ?) on duplicate key update name_$locale = ifnull(values(name_$locale), name_$locale)");
+    $id = $name = null;
+    $stmt->bind_param('is', $id, $name);
+    $x = 0; $recordCount = count($reader->getIds());
+    foreach ($reader->generateRecords() as $recId => $rec) {
+        EchoProgress(++$x/$recordCount);
+        $id = $recId;
+        $name = $rec['name'];
+        $stmt->execute();
+    }
+    $stmt->close();
+    EchoProgress(false);
+    unset($reader);
 
-    // DBCItem
-    dtecho(dbcdecode('Item-sparse', array(1=>'id',71=>'name')));
-    dtecho(run_sql('delete from `ttblItem-sparse` where id not in (select id from tblDBCItem)'));
-    dtecho(run_sql("insert into tblDBCItem (id, name_$locale) (select id, name from `ttblItem-sparse`) on duplicate key update tblDBCItem.name_$locale=ifnull(values(name_$locale),tblDBCItem.name_$locale)"));
+    LogLine("$locale tblDBCItemBonus");
 
-    //DBCItemBonus
-    dtecho(dbcdecode('ItemBonus', array(2=>'bonusid', 3=>'changetype', 4=>'param1', 5=>'param2', 6=>'prio')));
-    dtecho(dbcdecode('ItemNameDescription', array(1=>'id', 2=>'name')));
+    $reader = new Reader($dirnm . '/ItemNameDescription.dbc');
+    $reader->setFieldNames([1 =>'name']);
+    $bonusNames = [];
+    $x = 0; $recordCount = count($reader->getIds());
+    foreach ($reader->generateRecords() as $id => $row) {
+        EchoProgress(++$x/$recordCount);
+        $bonusNames[$id] = $row['name'];
+    }
+    EchoProgress(false);
+    unset($reader);
+
+    $reader = new Reader($dirnm . '/ItemBonus.db2');
+    $reader->setFieldNames([1=>'bonusid', 2=>'changetype', 3=>'param1', 4=>'param2', 5=>'prio']);
+    $bonusRows = [];
+    $x = 0; $recordCount = count($reader->getIds());
+    foreach ($reader->generateRecords() as $id => $row) {
+        EchoProgress(++$x/$recordCount);
+        $bonusRows[] = $row;
+    }
+    EchoProgress(false);
+    unset($reader);
+
+    usort($bonusRows, function($a, $b) {
+        $s = ($a['bonusid'] - $b['bonusid']);
+        if ($s == 0) {
+            $s = ($a['prio'] - $b['prio']);
+        }
+        return $s;
+    });
 
     $bonuses = [];
-    $bonusNames = [];
-    $rst = get_rst('select * from ttblItemNameDescription');
-    while ($row = next_row($rst)) {
-        $bonusNames[$row['id']] = $row['name'];
-    }
-    $rst = get_rst('select * from ttblItemBonus order by bonusid, prio');
-    while ($row = next_row($rst)) {
+    foreach ($bonusRows as $row) {
         if (!isset($bonuses[$row['bonusid']])) {
             $bonuses[$row['bonusid']] = [];
         }
@@ -68,57 +125,114 @@ foreach ($LOCALES as $locale) {
         }
     }
 
-    dtecho(run_sql('CREATE temporary TABLE `ttblDBCItemBonus` LIKE `tblDBCItemBonus`'));
-    $tables[] = 'DBCItemBonus';
-
+    $sql = <<<EOF
+insert into tblDBCItemBonus (id, tag_$locale, name_$locale) values (?, ?, ?)
+on duplicate key update tag_$locale = values(tag_$locale), name_$locale = values(name_$locale)
+EOF;
+    $stmt = $db->prepare($sql);
+    $id = $tag = $name = null;
+    $stmt->bind_param('iss', $id, $tag, $name);
     foreach ($bonuses as $bonusId => $bonusData) {
-        $sql = "insert into ttblDBCItemBonus (id, tag_$locale, `name_$locale`) values ($bonusId";
-        if (isset($bonusData['nametag'])) {
-            $sql .= ', \'' . sql_esc($bonusData['nametag']['name']) . '\'';
-        } else {
-            $sql .= ', null';
-        }
-        if (isset($bonusData['randname'])) {
-            $sql .= ', \'' . sql_esc($bonusData['randname']['name']) . '\'';
-        } else {
-            $sql .= ', null';
-        }
-        $sql .= ')';
-        dtecho(run_sql($sql));
+        $id = $bonusId;
+        $tag = isset($bonusData['nametag']) ? $bonusData['nametag']['name'] : null;
+        $name = isset($bonusData['randname']) ? $bonusData['randname']['name'] : null;
+        $stmt->execute();
     }
+    $stmt->close();
 
-    dtecho(run_sql('delete from ttblDBCItemBonus where id not in (select id from tblDBCItemBonus)'));
-    dtecho(run_sql("insert into tblDBCItemBonus (id, tag_$locale, name_$locale) (select id, tag_$locale, name_$locale from ttblDBCItemBonus) on duplicate key update tag_$locale = values(tag_$locale), name_$locale = values(name_$locale)"));
+    LogLine("$locale tblDBCRandEnchants");
 
-    // DBCItemRandomSuffix
-    dtecho(dbcdecode('ItemRandomSuffix', array(1=>'suffixid', 2=>'name1', 3=>'name2')));
-    dtecho(dbcdecode('ItemRandomProperties', array(1=>'suffixid', 2=>'name1', 8=>'name2')));
-    dtecho(run_sql('delete from ttblItemRandomProperties where suffixid not in (select id from tblDBCRandEnchants)'));
-    dtecho(run_sql('delete from ttblItemRandomSuffix where suffixid not in (select id * -1 from tblDBCRandEnchants)'));
-    dtecho(run_sql('insert into tblDBCRandEnchants (id, name_'.$locale.') (select suffixid, ifnull(name1, name2) from ttblItemRandomProperties) on duplicate key update name_'.$locale.'=values(name_'.$locale.')'));
-    dtecho(run_sql('insert into tblDBCRandEnchants (id, name_'.$locale.') (select suffixid * -1, ifnull(name1, name2) from ttblItemRandomSuffix) on duplicate key update name_'.$locale.'=values(name_'.$locale.')'));
-    dtecho(run_sql('insert ignore into tblDBCItemRandomSuffix (locale, suffix) (select distinct \''.$locale.'\', name_'.$locale.' from tblDBCRandEnchants where trim(name_'.$locale.') != \'\' and id < 0)'));
+    $reader = new Reader($dirnm . '/ItemRandomSuffix.db2');
+    $reader->setFieldNames(['id', 'name1', 'name2']);
+    $stmt = $db->prepare("insert into tblDBCRandEnchants (id, name_$locale) values (?, ?) on duplicate key update name_$locale = values(name_$locale)");
+    $enchId = $name = null;
+    $stmt->bind_param('is', $enchId, $name);
+    $x = 0; $recordCount = count($reader->getIds());
+    foreach ($reader->generateRecords() as $id => $row) {
+        EchoProgress(++$x/$recordCount);
+        $enchId = $id * -1;
+        $name = $row['name1'];
+        if (!$name) {
+            $name = $row['name2'];
+        }
+        $stmt->execute();
+    }
+    $stmt->close();
+    EchoProgress(false);
+    unset($reader);
 
-    // DBCPet
-    dtecho(dbcdecode('BattlePetSpecies', array(1=>'id', 2=>'npcid')));
-    dtecho(dbcdecode('Creature', array(1=>'id', 15=>'name')));
-    dtecho(run_sql('delete from ttblBattlePetSpecies where id not in (select id from tblDBCPet)'));
-    dtecho(run_sql("insert into tblDBCPet (id, name_$locale) (select bps.id, c.name from ttblBattlePetSpecies bps join ttblCreature c on bps.npcid = c.id) on duplicate key update name_$locale=values(name_$locale)"));
+    $reader = new Reader($dirnm . '/ItemRandomProperties.db2');
+    $reader->setFieldNames(['id', 'name1', 7 => 'name2']);
+    $stmt = $db->prepare("insert into tblDBCRandEnchants (id, name_$locale) values (?, ?) on duplicate key update name_$locale = values(name_$locale)");
+    $enchId = $name = null;
+    $stmt->bind_param('is', $enchId, $name);
+    $x = 0; $recordCount = count($reader->getIds());
+    foreach ($reader->generateRecords() as $id => $row) {
+        EchoProgress(++$x/$recordCount);
+        $enchId = $id;
+        $name = $row['name1'];
+        if (!$name) {
+            $name = $row['name2'];
+        }
+        $stmt->execute();
+    }
+    $stmt->close();
+    EchoProgress(false);
+    unset($reader);
+
+    $stmt = $db->prepare("insert ignore into tblDBCItemRandomSuffix (locale, suffix) (select distinct '$locale', name_$locale from tblDBCRandEnchants where trim(name_$locale) != '' and id < 0)");
+    $stmt->execute();
+    $stmt->close();
+
+    LogLine("$locale tblDBCPet");
+
+    $battlePetReader = new Reader($dirnm . '/BattlePetSpecies.db2');
+    $battlePetReader->setFieldNames(['id', 'npc']);
+    $creatureReader = new Reader($dirnm . '/Creature.db2');
+    $creatureReader->setFieldNames(['id', 14=>'name']);
+    $stmt = $db->prepare("insert into tblDBCPet (id, name_$locale) values (?, ?) on duplicate key update name_$locale = values(name_$locale)");
+    $species = $name = null;
+    $stmt->bind_param('is', $species, $name);
+    $x = 0; $recordCount = count($battlePetReader->getIds());
+    foreach ($battlePetReader->generateRecords() as $id => $row) {
+        EchoProgress(++$x/$recordCount);
+        $species = $id;
+        $creature = $creatureReader->getRecord($row['npc']);
+        if (is_null($creature)) {
+            continue;
+        }
+        $name = $creature['name'];
+        $stmt->execute();
+    }
+    $stmt->close();
+    EchoProgress(false);
+    unset($creatureReader);
+    unset($battlePetReader);
 
 
     /* */
 }
 
 /* */
-dtecho("Done.\n ");
+LogLine("Done.\n");
 
-function dtecho($msg) {
+function LogLine($msg) {
 	if ($msg == '') return;
 	if (substr($msg, -1, 1)=="\n") $msg = substr($msg, 0, -1);
 	echo "\n".Date('H:i:s').' '.$msg;
 }
 
-foreach ($tables as $tbl) {
-	run_sql('drop temporary table `ttbl'.$tbl.'`');
+function EchoProgress($frac) {
+    static $lastStr = false;
+    if ($frac === false) {
+        $lastStr = false;
+        return;
+    }
+
+    $str = str_pad(number_format($frac * 100, 1) . '%', 6, ' ', STR_PAD_LEFT);
+    if ($str === $lastStr) {
+        return;
+    }
+
+    echo ($lastStr === false) ? " " : str_repeat(chr(8), strlen($lastStr)), $lastStr = $str;
 }
-cleanup('');
