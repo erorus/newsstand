@@ -28,7 +28,7 @@ foreach ($LOCALES as $locale) {
 
     LogLine("$locale tblDBCItemSubClass");
     $sql = <<<EOF
-insert ignore into tblDBCItemSubClass (class, subclass, name_$locale) values (?, ?, ?)
+insert into tblDBCItemSubClass (class, subclass, name_$locale) values (?, ?, ?)
 on duplicate key update name_$locale = ifnull(values(name_$locale), name_$locale)
 EOF;
     $reader = new Reader($dirnm . '/ItemSubClass.dbc');
@@ -139,7 +139,9 @@ EOF;
         $stmt->execute();
     }
     $stmt->close();
-
+    unset($bonuses, $bonusRows, $bonusNames);
+    
+    
     LogLine("$locale tblDBCRandEnchants");
 
     $reader = new Reader($dirnm . '/ItemRandomSuffix.db2');

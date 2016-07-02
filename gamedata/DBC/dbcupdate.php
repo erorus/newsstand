@@ -2,50 +2,130 @@
 require_once('../incl/old.incl.php');
 require_once('dbcdecode.php');
 
-header('Content-type: text/plain');
+require_once '../../incl/incl.php';
+require_once 'db2/src/autoload.php';
+
+use \Erorus\DB2\Reader;
+
 error_reporting(E_ALL);
 
+$locale = 'enus';
 $dirnm = 'current/enUS';
 
 DBConnect();
 
-$tables = array();
-dtecho(run_sql('set session max_heap_table_size='.(1024*1024*1024)));
+$fileDataReader = new Reader($dirnm . '/FileData.dbc');
+$fileDataReader->setFieldNames(['id', 'name']);
 
-dtecho(dbcdecode('ItemSubClass', array(1=>'id', 2=>'class', 3=>'subclass', 12=>'name', 13=>'plural')));
-dtecho(run_sql('truncate tblDBCItemSubClass'));
-dtecho(run_sql('insert ignore into tblDBCItemSubClass (class, subclass, name_enus) (select class, subclass, if(ifnull(plural,\'\')=\'\',name,plural) from ttblItemSubClass)'));
-
-dtecho(dbcdecode('FileData', array(1=>'id', 2=>'name')));
-dtecho(dbcdecode('BattlePetSpecies', array(1=>'id', 2=>'npcid', 3=>'iconid', 5=>'type', 6=>'category', 7=>'flags')));
-dtecho(dbcdecode('BattlePetSpeciesState', array(1=>'id', 2=>'speciesid', 3=>'stateid', 4=>'amount')));
-dtecho(dbcdecode('Creature', array(1=>'id', 15=>'name')));
-
-dtecho(run_sql('truncate tblDBCPet'));
+LogLine("tblDBCItemSubClass");
 $sql = <<<EOF
-insert into tblDBCPet (id, name_enus, type, icon, npc, category, flags)
-(select bps.id, c.name, bps.type, if(right(lower(fd.name), 4) = '.blp', lower(substr(fd.name, 1, length(fd.name) - 4)), lower(fd.name)), bps.npcid, bps.category, bps.flags
-from ttblBattlePetSpecies bps
-join ttblCreature c on bps.npcid = c.id
-join ttblFileData fd on bps.iconid = fd.id)
+insert into tblDBCItemSubClass (class, subclass, name_$locale) values (?, ?, ?)
+on duplicate key update name_$locale = ifnull(values(name_$locale), name_$locale)
 EOF;
-dtecho(run_sql($sql));
+$reader = new Reader($dirnm . '/ItemSubClass.dbc');
+$reader->setFieldNames([1=>'class', 2=>'subclass', 11=>'name', 12=>'plural']);
+RunAndLogError('truncate tblDBCItemSubClass');
+$stmt = $db->prepare($sql);
+$classs = $subclass = $name = null;
+$stmt->bind_param('iis', $classs, $subclass, $name);
+$x = 0; $recordCount = count($reader->getIds());
+foreach ($reader->generateRecords() as $rec) {
+    EchoProgress(++$x/$recordCount);
+    $classs = $rec['class'];
+    $subclass = $rec['subclass'];
+    $name = $rec['plural'];
+    if (is_null($name) || $name == '') {
+        $name = $rec['name'];
+    }
+    RunAndLogError($stmt->execute());
+}
+$stmt->close();
+EchoProgress(false);
+unset($reader);
 
-dtecho(run_sql('update tblDBCPet p set power=(select bpss.amount from ttblBattlePetSpeciesState bpss where bpss.speciesid=p.id and bpss.stateid=18)'));
-dtecho(run_sql('update tblDBCPet p set stamina=(select bpss.amount from ttblBattlePetSpeciesState bpss where bpss.speciesid=p.id and bpss.stateid=19)'));
-dtecho(run_sql('update tblDBCPet p set speed=(select bpss.amount from ttblBattlePetSpeciesState bpss where bpss.speciesid=p.id and bpss.stateid=20)'));
+$battlePetSpeciesReader = new Reader($dirnm . '/BattlePetSpecies.db2');
+$battlePetSpeciesReader->setFieldNames([0=>'id', 1=>'npcid', 2=>'iconid', 4=>'type', 5=>'category', 6=>'flags']);
 
-dtecho(dbcdecode('ItemBonus', array(2=>'bonusid', 3=>'changetype', 4=>'param1', 5=>'param2', 6=>'prio')));;
-dtecho(dbcdecode('ItemNameDescription', array(1=>'id', 2=>'name')));
+$creatureReader = new Reader($dirnm . '/Creature.db2');
+$creatureReader->setFieldNames([0=>'id', 14=>'name']);
+
+LogLine("tblDBCPet");
+RunAndLogError('truncate tblDBCPet');
+$stmt = $db->prepare('insert into tblDBCPet (id, name_enus, type, icon, npc, category, flags) values (?, ?, ?, ?, ?, ?, ?)');
+$id = $name = $type = $icon = $npc = $category = $flags = null;
+$stmt->bind_param('isisiii', $id, $name, $type, $icon, $npc, $category, $flags);
+$x = 0; $recordCount = count($battlePetSpeciesReader->getIds());
+foreach ($battlePetSpeciesReader->generateRecords() as $recId => $rec) {
+    EchoProgress(++$x/$recordCount);
+    $id = $recId;
+
+    $creatureRec = $creatureReader->getRecord($rec['npcid']);
+    $name = is_null($creatureRec) ? null : $creatureRec['name'];
+    
+    $type = $rec['type'];
+    $icon = GetFileDataName($rec['iconid']);
+    $npc = $rec['npcid'];
+    $category = $rec['category'];
+    $flags = $rec['flags'];
+    
+    RunAndLogError($stmt->execute());
+}
+$stmt->close();
+EchoProgress(false);
+unset($creatureReader);
+unset($battlePetSpeciesReader);
+
+$stateFields = [
+    18 => 'power',
+    19 => 'stamina',
+    20 => 'speed',
+];
+$reader = new Reader($dirnm . '/BattlePetSpeciesState.db2');
+$reader->setFieldNames([0=>'id', 1=>'species', 2=>'state', 3=>'amount']);
+$x = 0; $recordCount = count($reader->getIds());
+foreach ($reader->generateRecords() as $rec) {
+    EchoProgress(++$x/$recordCount);
+    if (isset($stateFields[$rec['state']])) {
+        RunAndLogError(sprintf('update tblDBCPet set `%1$s`=%2$d where id=%3$d', $stateFields[$rec['state']], $rec['amount'], $rec['species']));
+    }
+}
+EchoProgress(false);
+unset($reader);
+
+LogLine("tblDBCItemBonus");
+
+$reader = new Reader($dirnm . '/ItemNameDescription.dbc');
+$reader->setFieldNames([1 =>'name']);
+$bonusNames = [];
+$x = 0; $recordCount = count($reader->getIds());
+foreach ($reader->generateRecords() as $id => $row) {
+    EchoProgress(++$x/$recordCount);
+    $bonusNames[$id] = $row['name'];
+}
+EchoProgress(false);
+unset($reader);
+
+$reader = new Reader($dirnm . '/ItemBonus.db2');
+$reader->setFieldNames([1=>'bonusid', 2=>'changetype', 3=>'param1', 4=>'param2', 5=>'prio']);
+$bonusRows = [];
+$x = 0; $recordCount = count($reader->getIds());
+foreach ($reader->generateRecords() as $id => $row) {
+    EchoProgress(++$x/$recordCount);
+    $bonusRows[] = $row;
+}
+EchoProgress(false);
+unset($reader);
+
+usort($bonusRows, function($a, $b) {
+    $s = ($a['bonusid'] - $b['bonusid']);
+    if ($s == 0) {
+        $s = ($a['prio'] - $b['prio']);
+    }
+    return $s;
+});
 
 $bonuses = [];
-$bonusNames = [];
-$rst = get_rst('select * from ttblItemNameDescription');
-while ($row = next_row($rst)) {
-    $bonusNames[$row['id']] = $row['name'];
-}
-$rst = get_rst('select * from ttblItemBonus order by bonusid, prio');
-while ($row = next_row($rst)) {
+foreach ($bonusRows as $row) {
     if (!isset($bonuses[$row['bonusid']])) {
         $bonuses[$row['bonusid']] = [];
     }
@@ -78,190 +158,239 @@ while ($row = next_row($rst)) {
     }
 }
 
-dtecho(run_sql('truncate table tblDBCItemBonus'));
+RunAndLogError('truncate table tblDBCItemBonus');
+$stmt = $db->prepare("insert into tblDBCItemBonus (id, quality, level, tag_$locale, tagpriority, name_$locale, namepriority) values (?, ?, ?, ?, ?, ?, ?)");
+$id = $quality = $level = $tag = $tagPriority = $name = $namePriority = null;
+$stmt->bind_param('iiisisi', $id, $quality, $level, $tag, $tagPriority, $name, $namePriority);
 foreach ($bonuses as $bonusId => $bonusData) {
-    $sql = "insert into tblDBCItemBonus (id, quality, `level`, tag_enus, tagpriority, `name_enus`, namepriority) values ($bonusId";
-    if (isset($bonusData['quality'])) {
-        $sql .= ', ' . $bonusData['quality'];
-    } else {
-        $sql .= ', null';
-    }
-    if (isset($bonusData['itemlevel']) && $bonusData['itemlevel']) {
-        $sql .= ', ' . $bonusData['itemlevel'];
-    } else {
-        $sql .= ', null';
-    }
-    if (isset($bonusData['nametag'])) {
-        $sql .= ', \'' . sql_esc($bonusData['nametag']['name']) . '\', ' . $bonusData['nametag']['prio'];
-    } else {
-        $sql .= ', null, null';
-    }
-    if (isset($bonusData['randname'])) {
-        $sql .= ', \'' . sql_esc($bonusData['randname']['name']) . '\', ' . $bonusData['randname']['prio'];
-    } else {
-        $sql .= ', null, null';
-    }
-    $sql .= ')';
-    dtecho(run_sql($sql));
+    $id = $bonusId;
+    $quality = isset($bonusData['quality']) ? $bonusData['quality'] : null;
+    $level = isset($bonusData['itemlevel']) ? $bonusData['itemlevel'] : null;
+    $tag = isset($bonusData['nametag']) ? $bonusData['nametag']['name'] : null;
+    $tagPriority = isset($bonusData['nametag']) ? $bonusData['nametag']['prio'] : null;
+    $name = isset($bonusData['randname']) ? $bonusData['randname']['name'] : null;
+    $namePriority = isset($bonusData['randname']) ? $bonusData['randname']['prio'] : null;
+    $stmt->execute();
 }
-unset($bonuses, $bonusNames, $bonusId, $bonusData);
-dtecho(run_sql('update tblDBCItemBonus set flags = flags | 1 where ifnull(level,0) != 0'));
+$stmt->close();
+unset($bonuses, $bonusRows, $bonusNames);
+RunAndLogError('update tblDBCItemBonus set flags = flags | 1 where ifnull(level,0) != 0');
 
-dtecho(dbcdecode('Item', array(1=>'id', 2=>'classid', 3=>'subclassid', 8=>'iconfiledataid')));
-dtecho(dbcdecode('Item-sparse', array(
-    1=>'id',
-    2=>'quality',
-    4=>'flags2',
-    8=>'buycount',
-    9=>'buyprice',
-    10=>'sellprice',
-    11=>'type',
-    14=>'level',
-    15=>'requiredlevel',
-    16=>'requiredskill',
-    24=>'stacksize',
-    26=>'stat1',
-    27=>'stat2',
-    28=>'stat3',
-    29=>'stat4',
-    30=>'stat5',
-    31=>'stat6',
-    32=>'stat7',
-    33=>'stat8',
-    34=>'stat9',
-    35=>'stat10',
-    70=>'binds',
-    71=>'name')));
+LogLine("tblDBCItem");
+$itemReader = new Reader($dirnm . '/Item.db2');
+$itemReader->setFieldNames([0=>'id', 1=>'class', 2=>'subclass', 7=>'iconfiledata']);
+$itemSparseReader = new Reader($dirnm . '/Item-sparse.db2');
+$itemSparseReader->setFieldNames([
+    0=>'id',
+    1=>'quality',
+    3=>'flags2',
+    7=>'buycount',
+    8=>'buyprice',
+    9=>'sellprice',
+    10=>'type',
+    13=>'level',
+    14=>'requiredlevel',
+    15=>'requiredskill',
+    23=>'stacksize',
+    25=>'stat1',
+    26=>'stat2',
+    27=>'stat3',
+    28=>'stat4',
+    29=>'stat5',
+    30=>'stat6',
+    31=>'stat7',
+    32=>'stat8',
+    35=>'stat9',
+    34=>'stat10',
+    69=>'binds',
+    70=>'name'
+]);
 
-dtecho('Running items..');
-//dtecho(run_sql('truncate table tblDBCItem'));
-$sql = <<<EOF
-insert into tblDBCItem (id, name_enus, quality, level, class, subclass, icon, stacksize, binds,
-buyfromvendor, selltovendor, auctionable, type, requiredlevel, requiredskill, flags)
-(select i.id, ifnull(s.name,''), ifnull(s.quality,0), s.level, i.classid, i.subclassid,
-if(right(lower(fd.name), 4) = '.blp', lower(substr(fd.name, 1, length(fd.name) - 4)), lower(fd.name)),
-s.stacksize, s.binds, s.buyprice, s.sellprice, case s.binds when 0 then 1 when 2 then 1 when 3 then 1 else 0 end,
-s.type, s.requiredlevel, s.requiredskill,
-if(stat1 <= 0 and stat2 <= 0 and stat3 <= 0 and stat4 <= 0 and stat5 <= 0 and stat6 <= 0 and stat7 <= 0 and stat8 <= 0 and stat9 <= 0 and stat10 <= 0, 0, if (
- stat1 in (35,57) or
- stat2 in (35,57) or
- stat3 in (35,57) or
- stat4 in (35,57) or
- stat5 in (35,57) or
- stat6 in (35,57) or
- stat7 in (35,57) or
- stat8 in (35,57) or
- stat9 in (35,57) or
- stat10 in (35,57), 1, 0) | if(s.flags2 & 0x400000 > 0, 2, 0))
-from ttblItem i
-join `ttblItem-sparse` s on s.id = i.id
-left join ttblFileData fd on fd.id = i.iconfiledataid)
-on duplicate key update
-tblDBCItem.quality=if(values(name)='',tblDBCItem.quality,values(quality)),
-tblDBCItem.level=ifnull(values(level),tblDBCItem.level),
-tblDBCItem.class=values(class),
-tblDBCItem.subclass=values(subclass),
-tblDBCItem.icon=values(icon),
-tblDBCItem.stacksize=ifnull(values(stacksize), tblDBCItem.stacksize),
-tblDBCItem.binds=ifnull(values(binds), tblDBCItem.binds),
-tblDBCItem.buyfromvendor=ifnull(values(buyfromvendor), tblDBCItem.buyfromvendor),
-tblDBCItem.selltovendor=ifnull(values(selltovendor), tblDBCItem.selltovendor),
-tblDBCItem.auctionable=ifnull(values(auctionable), tblDBCItem.auctionable),
-tblDBCItem.type=ifnull(values(type), tblDBCItem.type),
-tblDBCItem.requiredlevel=ifnull(values(requiredlevel), tblDBCItem.requiredlevel),
-tblDBCItem.requiredskill=ifnull(values(requiredskill), tblDBCItem.requiredskill),
-tblDBCItem.flags=if(values(name)='',tblDBCItem.flags,values(flags)),
-tblDBCItem.name_enus=if(values(name_enus)='',tblDBCItem.name_enus,values(name_enus))
+$pvpStatIds = [35,57];
+
+RunAndLogError('truncate table tblDBCItem');
+$sql = <<<'EOF'
+insert into tblDBCItem (
+    id, name_enus, quality, level, class, subclass, icon, 
+    stacksize, binds, buyfromvendor, selltovendor, auctionable, 
+    type, requiredlevel, requiredskill, flags) VALUES
+    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 EOF;
-dtecho(run_sql($sql));
+$stmt = $db->prepare($sql);
+$id = $name = $quality = $level = $classId = $subclass = $icon = null;
+$stackSize = $binds = $buyFromVendor = $sellToVendor = $auctionable = null;
+$type = $requiredLevel = $requiredSkill = $flags = null;
+$stmt->bind_param('isiiiisiiiiiiiii',
+    $id, $name, $quality, $level, $classId, $subclass, $icon,
+    $stackSize, $binds, $buyFromVendor, $sellToVendor, $auctionable,
+    $type, $requiredLevel, $requiredSkill, $flags
+    );
+$x = 0; $recordCount = count($itemReader->getIds());
+foreach ($itemReader->generateRecords() as $recId => $rec) {
+    EchoProgress(++$x / $recordCount);
+    $sparseRec = $itemSparseReader->getRecord($recId);
+    if (is_null($sparseRec)) {
+        continue;
+    }
 
-dtecho(dbcdecode('ItemModifiedAppearance', array(2=>'itemid', 3=>'bonustype', 4=>'appearanceid', 5=>'iconoverride', 6=>'idx')));
-dtecho(dbcdecode('ItemAppearance', array(1=>'appearanceid', 2=>'display', 3=>'iconfiledataid')));
+    $id = $recId;
+    $name = $sparseRec['name'];
+    $quality = $sparseRec['quality'];
+    $level = $sparseRec['level'];
+    $classId = $rec['class'];
+    $subclass = $rec['subclass'];
+    $icon = GetFileDataName($rec['iconfiledata']) ?: '';
+    $stackSize = $sparseRec['stacksize'];
+    $binds = $sparseRec['binds'];
+    $buyFromVendor = $sparseRec['buyprice'];
+    $sellToVendor = $sparseRec['sellprice'];
+    $auctionable = in_array($sparseRec['binds'], [0,2,3]) ? 1 : 0;
+    $type = $sparseRec['type'];
+    $requiredLevel = $sparseRec['requiredlevel'];
+    $requiredSkill = $sparseRec['requiredskill'];
 
-$sql = <<<EOF
-update tblDBCItem i
-set icon =
-(select if(right(lower(fd.name), 4) = '.blp', lower(substr(fd.name, 1, length(fd.name) - 4)), lower(fd.name))
-from ttblFileData fd
-join ttblItemModifiedAppearance ima on ima.iconoverride=fd.id
-where ima.itemid = i.id
-order by if(ima.bonustype=0,0,1), ima.idx asc
-limit 1)
-where ifnull(icon,'') = ''
-EOF;
+    $pvpFlag = 0;
+    for ($i = 1; $i <= 10; $i++) {
+        if (in_array($sparseRec["stat$i"], $pvpStatIds)) {
+            $pvpFlag = 1;
+            break;
+        }
+    }
 
-dtecho(run_sql($sql));
+    $noTransmogFlag = ($sparseRec['flags2'] & 0x400000) ? 2 : 0;
 
-$sql = <<<EOF
-update tblDBCItem i
-set icon =
-(select if(right(lower(fd.name), 4) = '.blp', lower(substr(fd.name, 1, length(fd.name) - 4)), lower(fd.name))
-from ttblFileData fd
-join ttblItemAppearance ia on ia.iconfiledataid=fd.id
-join ttblItemModifiedAppearance ima on ima.appearanceid=ia.appearanceid
-where ima.itemid = i.id
-order by if(ima.bonustype=0,0,1), ima.idx asc
-limit 1)
-where ifnull(icon,'') = ''
-EOF;
+    $flags = $pvpFlag | $noTransmogFlag;
 
-dtecho(run_sql($sql));
+    RunAndLogError($stmt->execute());
+}
+$stmt->close();
+EchoProgress(false);
+unset($itemReader);
+unset($itemSparseReader);
 
-$sql = <<<EOF
-update tblDBCItem i
-set display =
-(select ia.display
-from ttblItemAppearance ia
-join ttblItemModifiedAppearance ima on ima.appearanceid=ia.appearanceid
-where ima.itemid = i.id
-order by if(ima.bonustype=0,0,1), ima.idx asc
-limit 1)
-where display is null
-EOF;
+$appearanceReader = new Reader($dirnm . '/ItemAppearance.db2');
+$appearanceReader->setFieldNames([0=>'id', 1=>'display', 2=>'iconfiledata']);
+$modifiedAppearanceReader = new Reader($dirnm . '/ItemModifiedAppearance.db2');
+$modifiedAppearanceReader->setFieldNames([1=>'item', 2=>'bonustype', 3=>'appearance', 4=>'iconoverride', 5=>'index']);
 
-dtecho(run_sql($sql));
+$sorted = [];
+$x = 0; $recordCount = count($modifiedAppearanceReader->getIds());
+foreach ($modifiedAppearanceReader->generateRecords() as $recId => $rec) {
+    EchoProgress(++$x / $recordCount);
+    $sorted[] = $rec;
+}
+EchoProgress(false);
 
-dtecho(dbcdecode('ItemXBonusTree', array(2=>'itemid', 3=>'nodeid')));
-dtecho(dbcdecode('ItemBonusTreeNode', array(2=>'nodeid', 5=>'bonusid')));
+// we want the first index to appear last, so it's the update that doesn't get overwritten
+usort($sorted, function($a, $b){
+    $s = ($b['bonustype'] == 0 ? 0 : 1) - ($a['bonustype'] == 0 ? 0 : 1);
+    if ($s != 0) {
+        return $s;
+    }
+    return $b['index'] - $a['index'];
+});
 
-$sql = <<<EOF
-update tblDBCItem i
+$stmt = $db->prepare('update tblDBCItem set icon = ? where id = ? and icon = \'\'');
+$id = $icon = null;
+$stmt->bind_param('si', $icon, $id);
+$x = 0;
+foreach ($sorted as $rec) {
+    EchoProgress(++$x / $recordCount);
+    $icon = GetFileDataName($rec['iconoverride']);
+    if (is_null($icon)) {
+        $appearance = $appearanceReader->getRecord($rec['appearance']);
+        if (!is_null($appearance)) {
+            $icon = GetFileDataName($appearance['iconfiledata']);
+        }
+    }
+    if (is_null($icon)) {
+        continue;
+    }
+    $id = $rec['item'];
+    $stmt->execute();
+}
+$stmt->close();
+EchoProgress(false);
+
+$stmt = $db->prepare('update tblDBCItem set display = ? where id = ? and display is null');
+$id = $display = null;
+$stmt->bind_param('ii', $display, $id);
+$x = 0;
+foreach ($sorted as $rec) {
+    EchoProgress(++$x / $recordCount);
+    $appearance = $appearanceReader->getRecord($rec['appearance']);
+    if (is_null($appearance)) {
+        continue;
+    }
+
+    $display = $appearance['display'];
+    $id = $rec['item'];
+    $stmt->execute();
+}
+$stmt->close();
+EchoProgress(false);
+unset($sorted, $appearanceReader, $modifiedAppearanceReader);
+
+// this bonus tree node stuff probably isn't quite right
+$bonusTreeNodeReader = new Reader($dirnm . '/ItemBonusTreeNode.db2');
+$bonusTreeNodeReader->setFieldNames([1=>'node', 4=>'bonus']);
+$nodeLookup = [];
+$x = 0; $recordCount = count($bonusTreeNodeReader->getIds());
+foreach ($bonusTreeNodeReader->generateRecords() as $rec) {
+    EchoProgress(++$x / $recordCount);
+    if (!$rec['bonus']) {
+        continue;
+    }
+    $nodeLookup[$rec['node']][] = $rec['bonus'];
+}
+unset($bonusTreeNodeReader);
+
+$itemXBonusTreeReader = new Reader($dirnm . '/ItemXBonusTree.db2');
+$itemXBonusTreeReader->setFieldNames([1=>'item', 2=>'node']);
+
+$sql = <<<'EOF'
+update tblDBCItem 
 set basebonus = (
     select ib.id
     from tblDBCItemBonus ib
-    join ttblItemBonusTreeNode btn on btn.bonusid=ib.id
-    join ttblItemXBonusTree ibt on ibt.nodeid=btn.nodeid
-    where ibt.itemid = i.id
-    and ib.level is null
-    and ib.tag is not null
+    where ib.level is null
+    and ib.tag_enus is not null
+    and ib.id in (%s)
     order by ib.tagpriority desc
-    limit 1
-);
+    limit 1)
+where id = %d    
 EOF;
-dtecho(run_sql($sql));
 
-dtecho(dbcdecode('ItemEffect', array(2=>'itemid', 4=>'spellid')));
-dtecho(run_sql('truncate table tblDBCItemSpell'));
-dtecho(run_sql('insert ignore into tblDBCItemSpell (select * from ttblItemEffect where itemid > 0 and spellid > 0)'));
+$x = 0; $recordCount = count($itemXBonusTreeReader->getIds());
+foreach ($itemXBonusTreeReader->generateRecords() as $recId => $rec) {
+    EchoProgress(++$x / $recordCount);
 
-dtecho(dbcdecode('ItemRandomSuffix', array(1=>'suffixid', 2=>'name1', 3=>'name2')));
-dtecho(dbcdecode('ItemRandomProperties', array(1=>'suffixid', 2=>'name1', 8=>'name2')));
-dtecho(run_sql('truncate table tblDBCRandEnchants'));
-dtecho(run_sql('insert into tblDBCRandEnchants (id, name_enus) (select suffixid, ifnull(name1, name2) from ttblItemRandomProperties)'));
-dtecho(run_sql('insert into tblDBCRandEnchants (id, name_enus) (select suffixid * -1, ifnull(name1, name2) from ttblItemRandomSuffix)'));
-dtecho(run_sql('truncate table tblDBCItemRandomSuffix'));
-dtecho(run_sql('insert into tblDBCItemRandomSuffix (locale, suffix) (select distinct \'enus\', name from tblDBCRandEnchants where trim(name) like \'of %\')'));
+    if (!isset($nodeLookup[$rec['node']])) {
+        continue;
+    }
+    RunAndLogError(sprintf($sql, implode(',', $nodeLookup[$rec['node']]), $rec['item']));
+}
 
-/*
-dtecho(dbcdecode('ItemToBattlePet', array(1=>'itemid',2=>'speciesid')));
-dtecho(run_sql('truncate table tblDBCItemToBattlePet'));
-dtecho(run_sql('insert ignore into tblDBCItemToBattlePet (select * from ttblItemToBattlePet)'));
-*/
+/* */
 
-dtecho(dbcdecode('SpellIcon', array(1=>'iconid',2=>'iconpath')));
-dtecho(run_sql('update ttblSpellIcon set iconpath = substring_index(iconpath,\'\\\\\',-1) where instr(iconpath,\'\\\\\') > 0'));
+// TODO: rest of this script
 
-dtecho(dbcdecode('SpellEffect', array(
+LogLine(dbcdecode('ItemEffect', array(2=>'itemid', 4=>'spellid')));
+RunAndLogError('truncate table tblDBCItemSpell');
+RunAndLogError('insert ignore into tblDBCItemSpell (select * from ttblItemEffect where itemid > 0 and spellid > 0)');
+
+LogLine(dbcdecode('ItemRandomSuffix', array(1=>'suffixid', 2=>'name1', 3=>'name2')));
+LogLine(dbcdecode('ItemRandomProperties', array(1=>'suffixid', 2=>'name1', 8=>'name2')));
+RunAndLogError('truncate table tblDBCRandEnchants');
+RunAndLogError('insert into tblDBCRandEnchants (id, name_enus) (select suffixid, ifnull(name1, name2) from ttblItemRandomProperties)');
+RunAndLogError('insert into tblDBCRandEnchants (id, name_enus) (select suffixid * -1, ifnull(name1, name2) from ttblItemRandomSuffix)');
+RunAndLogError('truncate table tblDBCItemRandomSuffix');
+RunAndLogError('insert into tblDBCItemRandomSuffix (locale, suffix) (select distinct \'enus\', name from tblDBCRandEnchants where trim(name) like \'of %\')');
+
+LogLine(dbcdecode('SpellIcon', array(1=>'iconid',2=>'iconpath')));
+RunAndLogError('update ttblSpellIcon set iconpath = substring_index(iconpath,\'\\\\\',-1) where instr(iconpath,\'\\\\\') > 0');
+
+LogLine(dbcdecode('SpellEffect', array(
 	1=>'effectid',
 	3=>'effecttypeid', //24 = create item, 53 = enchant, 157 = create tradeskill item
 	7=>'qtymade',
@@ -271,7 +400,7 @@ dtecho(dbcdecode('SpellEffect', array(
 	29=>'effectorder'
 	)));
 
-dtecho(dbcdecode('Spell', array(
+LogLine(dbcdecode('Spell', array(
 	1=>'spellid',
 	2=>'spellname',
 	4=>'longdescription',
@@ -281,35 +410,35 @@ dtecho(dbcdecode('Spell', array(
     13=>'categoriesid',
 	)));
 
-dtecho(dbcdecode('SpellCooldowns', array(
+LogLine(dbcdecode('SpellCooldowns', array(
             1=>'id',
             4=>'categorycooldown',
             5=>'individualcooldown',
         )));
 
-dtecho(dbcdecode('SpellCategories', array(
+LogLine(dbcdecode('SpellCategories', array(
             1=>'id',
             4=>'categoryid',
             10=>'chargecategoryid',
         )));
 
-dtecho(dbcdecode('SpellCategory', array(
+LogLine(dbcdecode('SpellCategory', array(
             1=>'id',
             2=>'flags',
             6=>'chargecooldown',
         )));
 
-dtecho(run_sql('create temporary table ttblSpellCategory2 select * from ttblSpellCategory'));
+RunAndLogError('create temporary table ttblSpellCategory2 select * from ttblSpellCategory');
 $tables[] = 'SpellCategory2';
 
-dtecho(dbcdecode('SpellMisc', array(
+LogLine(dbcdecode('SpellMisc', array(
 	1=>'miscid',
 	2=>'spellid',
 	22=>'iconid'
 	)));
 
 
-dtecho(dbcdecode('SpellReagents', array(
+LogLine(dbcdecode('SpellReagents', array(
 	1=>'reagentsid',
 	2=>'reagent1',
 	3=>'reagent2',
@@ -330,21 +459,21 @@ dtecho(dbcdecode('SpellReagents', array(
 	)));
 
 
-dtecho(dbcdecode('SkillLine', array(1=>'lineid',2=>'linecatid',3=>'linename')));
-dtecho(dbcdecode('SkillLineAbility', array(1=>'slaid',2=>'lineid',3=>'spellid',9=>'greyat',10=>'yellowat')));
+LogLine(dbcdecode('SkillLine', array(1=>'lineid',2=>'linecatid',3=>'linename')));
+LogLine(dbcdecode('SkillLineAbility', array(1=>'slaid',2=>'lineid',3=>'spellid',9=>'greyat',10=>'yellowat')));
 
-dtecho(run_sql('CREATE temporary TABLE `ttblDBCSkillLines` (`id` smallint unsigned NOT NULL, `name` char(50) NOT NULL, PRIMARY KEY (`id`)) ENGINE=memory'));
-dtecho(run_sql('insert into ttblDBCSkillLines (select lineid, linename from ttblSkillLine where ((linecatid=11) or (linecatid=9 and (linename=\'Cooking\' or linename like \'Way of %\'))))'));
+RunAndLogError('CREATE temporary TABLE `ttblDBCSkillLines` (`id` smallint unsigned NOT NULL, `name` char(50) NOT NULL, PRIMARY KEY (`id`)) ENGINE=memory');
+RunAndLogError('insert into ttblDBCSkillLines (select lineid, linename from ttblSkillLine where ((linecatid=11) or (linecatid=9 and (linename=\'Cooking\' or linename like \'Way of %\'))))');
 
-dtecho('Getting trades..');
-dtecho(run_sql('truncate tblDBCItemReagents'));
+LogLine('Getting trades..');
+RunAndLogError('truncate tblDBCItemReagents');
 for ($x = 1; $x <= 8; $x++) {
     $sql = 'insert into tblDBCItemReagents (select itemcreated, sl.id, sr.reagent'.$x.', sr.reagentcount'.$x.'/if(se.diesides=0,if(se.qtymade=0,1,se.qtymade),(se.qtymade * 2 + se.diesides + 1)/2), s.spellid, 1 from ttblSpell s, ttblSpellReagents sr, ttblSpellEffect se, ttblSkillLineAbility sla, ttblDBCSkillLines sl where sla.lineid=sl.id and sla.spellid=s.spellid and s.reagentsid=sr.reagentsid and s.spellid=se.spellid and se.itemcreated != 0 and sr.reagent'.$x.' != 0)';
     $sr = run_sql($sql);
-    if ($sr != '') dtecho($sql."\n".$sr);
+    if ($sr != '') LogLine($sql."\n".$sr);
 }
 
-dtecho(run_sql('truncate tblDBCSpell'));
+RunAndLogError('truncate tblDBCSpell');
 $sql = <<<EOF
 insert into tblDBCSpell (id,name,icon,description,cooldown,qtymade,yellow,skillline,crafteditem)
 (select distinct s.spellid, s.spellname, si.iconpath, s.longdescription,
@@ -366,13 +495,13 @@ join ttblSpellEffect se on s.spellid=se.spellid
 join ttblSkillLineAbility sla on s.spellid=sla.spellid
 where se.effecttypeid in (24,53,157))
 EOF;
-dtecho(run_sql($sql));
+RunAndLogError($sql);
 
 $sql = 'insert ignore into tblDBCSpell (id,name,icon,description) ';
 $sql .= ' (select distinct s.spellid, s.spellname, si.iconpath, s.longdescription ';
 $sql .= ' from ttblSpell s left join ttblSpellMisc sm on s.miscid=sm.miscid left join ttblSpellIcon si on si.iconid=sm.iconid ';
 $sql .= ' join tblDBCItemSpell dis on dis.spell=s.spellid) ';
-dtecho(run_sql($sql));
+RunAndLogError($sql);
 
 
 $sql = <<<EOF
@@ -383,7 +512,7 @@ where ic.class=3 and ic.quality=2 and ic.name like 'Perfect %'
 and ic2.class=3 and ic2.name = substr(ic.name,9)
 and ic2.id=ir.item
 EOF;
-dtecho(run_sql($sql));
+RunAndLogError($sql);
 
 /*
 $sql = 'insert into tblDBCItemReagents (select 45850, skilllineid, reagentid, quantity, spellid from tblDBCItemReagents where itemid=45854)';
@@ -520,7 +649,7 @@ $sql = 'delete from tblDBCItemReagents where spell=28021 and item=22445 and skil
 run_sql($sql);
 run_sql('delete FROM tblDBCItemReagents WHERE spell in (102366,140040,140041)');
 
-dtecho('Getting spell expansion IDs..');
+LogLine('Getting spell expansion IDs..');
 $sql = <<<EOF
 SELECT s.id, max(ic.level) mx, min(ic.level) mn
 FROM tblDBCItemReagents ir, tblDBCItem ic, tblDBCSpell s
@@ -557,7 +686,7 @@ while ($row = next_row($rst))
 
 
 /* */
-dtecho("Done.\n ");
+LogLine("Done.\n ");
 
 function getIconById($iconid) {
 	static $iconcache = array();
@@ -573,14 +702,41 @@ function getIconById($iconid) {
 	return $spellicon;
 }
 
-function dtecho($msg) {
+function LogLine($msg) {
 	if ($msg == '') return;
 	if (substr($msg, -1, 1)=="\n") $msg = substr($msg, 0, -1);
 	echo "\n".Date('H:i:s').' '.$msg;
 }
 
-foreach ($tables as $tbl) {
-	run_sql('drop temporary table `ttbl'.$tbl.'`');
+function RunAndLogError($sql) {
+    global $db;
+    $ok = is_bool($sql) ? $sql : $db->real_query($sql);
+    if (!$ok) {
+        LogLine("Error: ".$db->error."\n".$sql);
+        exit(1);
+    }
 }
-cleanup('');
-?>
+
+function EchoProgress($frac) {
+    static $lastStr = false;
+    if ($frac === false) {
+        $lastStr = false;
+        return;
+    }
+
+    $str = str_pad(number_format($frac * 100, 1) . '%', 6, ' ', STR_PAD_LEFT);
+    if ($str === $lastStr) {
+        return;
+    }
+
+    echo ($lastStr === false) ? " " : str_repeat(chr(8), strlen($lastStr)), $lastStr = $str;
+}
+
+function GetFileDataName($id) {
+    global $fileDataReader;
+    $row = $fileDataReader->getRecord($id);
+    if (is_null($row)) {
+        return null;
+    }
+    return preg_replace('/\.blp$/', '', strtolower($row['name']));
+}
