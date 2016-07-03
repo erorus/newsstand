@@ -92,14 +92,6 @@ EOF;
     EchoProgress(false);
     unset($reader);
 
-    usort($bonusRows, function($a, $b) {
-        $s = ($a['bonusid'] - $b['bonusid']);
-        if ($s == 0) {
-            $s = ($a['prio'] - $b['prio']);
-        }
-        return $s;
-    });
-
     $bonuses = [];
     foreach ($bonusRows as $row) {
         if (!isset($bonuses[$row['bonusid']])) {

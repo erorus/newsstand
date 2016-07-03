@@ -436,7 +436,6 @@ CREATE TABLE IF NOT EXISTS `tblDBCItemReagents` (
   `reagent` mediumint(8) unsigned NOT NULL,
   `quantity` decimal(8,4) unsigned NOT NULL,
   `spell` mediumint(9) DEFAULT NULL,
-  `fortooltip` tinyint(1) NOT NULL,
   KEY `itemid` (`item`),
   KEY `reagentid` (`reagent`),
   KEY `skillid` (`skillline`),

@@ -116,14 +116,6 @@ foreach ($reader->generateRecords() as $id => $row) {
 EchoProgress(false);
 unset($reader);
 
-usort($bonusRows, function($a, $b) {
-    $s = ($a['bonusid'] - $b['bonusid']);
-    if ($s == 0) {
-        $s = ($a['prio'] - $b['prio']);
-    }
-    return $s;
-});
-
 $bonuses = [];
 foreach ($bonusRows as $row) {
     if (!isset($bonuses[$row['bonusid']])) {
@@ -468,7 +460,7 @@ RunAndLogError('insert into ttblDBCSkillLines (select lineid, linename from ttbl
 LogLine('Getting trades..');
 RunAndLogError('truncate tblDBCItemReagents');
 for ($x = 1; $x <= 8; $x++) {
-    $sql = 'insert into tblDBCItemReagents (select itemcreated, sl.id, sr.reagent'.$x.', sr.reagentcount'.$x.'/if(se.diesides=0,if(se.qtymade=0,1,se.qtymade),(se.qtymade * 2 + se.diesides + 1)/2), s.spellid, 1 from ttblSpell s, ttblSpellReagents sr, ttblSpellEffect se, ttblSkillLineAbility sla, ttblDBCSkillLines sl where sla.lineid=sl.id and sla.spellid=s.spellid and s.reagentsid=sr.reagentsid and s.spellid=se.spellid and se.itemcreated != 0 and sr.reagent'.$x.' != 0)';
+    $sql = 'insert into tblDBCItemReagents (select itemcreated, sl.id, sr.reagent'.$x.', sr.reagentcount'.$x.'/if(se.diesides=0,if(se.qtymade=0,1,se.qtymade),(se.qtymade * 2 + se.diesides + 1)/2), s.spellid from ttblSpell s, ttblSpellReagents sr, ttblSpellEffect se, ttblSkillLineAbility sla, ttblDBCSkillLines sl where sla.lineid=sl.id and sla.spellid=s.spellid and s.reagentsid=sr.reagentsid and s.spellid=se.spellid and se.itemcreated != 0 and sr.reagent'.$x.' != 0)';
     $sr = run_sql($sql);
     if ($sr != '') LogLine($sql."\n".$sr);
 }
@@ -505,8 +497,8 @@ RunAndLogError($sql);
 
 
 $sql = <<<EOF
-replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip)
-select ic.id, ir.skillline, ir.reagent, ir.quantity, ir.spell, 0
+replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell)
+select ic.id, ir.skillline, ir.reagent, ir.quantity, ir.spell
 from tblDBCItem ic, tblDBCItem ic2, tblDBCItemReagents ir
 where ic.class=3 and ic.quality=2 and ic.name like 'Perfect %'
 and ic2.class=3 and ic2.name = substr(ic.name,9)
@@ -531,115 +523,115 @@ run_sql($sql);
 //run_sql($sql);
 
 /* arctic fur */
-$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values (44128,0,38425,10,-32515,0)';
+$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (44128,0,38425,10,-32515)';
 run_sql($sql);
 
 /* frozen orb swaps NPC 40160 */
-$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values (47556,0,43102,6,-40160,0)';
+$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (47556,0,43102,6,-40160)';
 run_sql($sql);
 
-$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values (45087,0,43102,4,-40160,0)';
+$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (45087,0,43102,4,-40160)';
 run_sql($sql);
 
-$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values (35623,0,43102,1,-40160,0)';
+$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (35623,0,43102,1,-40160)';
 run_sql($sql);
 
-$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values (35624,0,43102,1,-40160,0)';
+$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (35624,0,43102,1,-40160)';
 run_sql($sql);
 
-$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values (36860,0,43102,1,-40160,0)';
+$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (36860,0,43102,1,-40160)';
 run_sql($sql);
 
-$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values (35625,0,43102,1,-40160,0)';
+$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (35625,0,43102,1,-40160)';
 run_sql($sql);
 
-$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values (35627,0,43102,1,-40160,0)';
+$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (35627,0,43102,1,-40160)';
 run_sql($sql);
 
-$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values (35622,0,43102,1,-40160,0)';
+$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (35622,0,43102,1,-40160)';
 run_sql($sql);
 
-$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values (36908,0,43102,1,-40160,0)';
+$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (36908,0,43102,1,-40160)';
 run_sql($sql);
 
 /* spirit of harmony */
 $sql = <<<EOF
-replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values 
-(72092,0,76061,0.05,-66678,0),
-(72093,0,76061,0.05,-66678,0),
-(72094,0,76061,0.2,-66678,0),
-(72103,0,76061,0.2,-66678,0),
-(72120,0,76061,0.05,-66678,0),
-(72238,0,76061,0.5,-66678,0),
-(72988,0,76061,0.05,-66678,0),
-(74247,0,76061,1,-66678,0),
-(74249,0,76061,0.05,-66678,0),
-(74250,0,76061,0.2,-66678,0),
-(76734,0,76061,1,-66678,0),
-(79101,0,76061,0.05,-66678,0),
-(79255,0,76061,1,-66678,0)
+replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values 
+(72092,0,76061,0.05,-66678),
+(72093,0,76061,0.05,-66678),
+(72094,0,76061,0.2,-66678),
+(72103,0,76061,0.2,-66678),
+(72120,0,76061,0.05,-66678),
+(72238,0,76061,0.5,-66678),
+(72988,0,76061,0.05,-66678),
+(74247,0,76061,1,-66678),
+(74249,0,76061,0.05,-66678),
+(74250,0,76061,0.2,-66678),
+(76734,0,76061,1,-66678),
+(79101,0,76061,0.05,-66678),
+(79255,0,76061,1,-66678)
 EOF;
 run_sql($sql);
 
 /* ink trader - currency is ink of dreams */
 /* starlight ink uncommon */
-$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values (79255,0,79254,10,-33027,0)';
+$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (79255,0,79254,10,-33027)';
 run_sql($sql);
 
 /* inferno ink uncommon */
-$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values (61981,0,79254,10,-33027,0)';
+$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (61981,0,79254,10,-33027)';
 run_sql($sql);
 
 /* snowfall ink uncommon */
-$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values (43127,0,79254,10,-33027,0)';
+$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (43127,0,79254,10,-33027)';
 run_sql($sql);
 
 /* blackfallow ink */
-$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values (61978,0,79254,1,-33027,0)';
+$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (61978,0,79254,1,-33027)';
 run_sql($sql);
 
 /* celestial ink */
-$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values (43120,0,79254,1,-33027,0)';
+$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (43120,0,79254,1,-33027)';
 run_sql($sql);
 
 /* ethereal ink */
-$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values (43124,0,79254,1,-33027,0)';
+$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (43124,0,79254,1,-33027)';
 run_sql($sql);
 
 /* ink of the sea */
-$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values (43126,0,79254,1,-33027,0)';
+$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (43126,0,79254,1,-33027)';
 run_sql($sql);
 
 /* ivory ink */
-$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values (37101,0,79254,1,-33027,0)';
+$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (37101,0,79254,1,-33027)';
 run_sql($sql);
 
 /* jadefire ink */
-$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values (43118,0,79254,1,-33027,0)';
+$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (43118,0,79254,1,-33027)';
 run_sql($sql);
 
 /* lions ink */
-$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values (43116,0,79254,1,-33027,0)';
+$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (43116,0,79254,1,-33027)';
 run_sql($sql);
 
 /* midnight ink */
-$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values (39774,0,79254,1,-33027,0)';
+$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (39774,0,79254,1,-33027)';
 run_sql($sql);
 
 /* moonglow ink */
-$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values (39469,0,79254,1,-33027,0)';
+$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (39469,0,79254,1,-33027)';
 run_sql($sql);
 
 /* shimmering ink */
-$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values (43122,0,79254,1,-33027,0)';
+$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (43122,0,79254,1,-33027)';
 run_sql($sql);
 
 /* pristine hide */
-$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) values (52980,0,56516,10,-50381,0)';
+$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (52980,0,56516,10,-50381)';
 run_sql($sql);
 
 /* imperial silk cooldown */
-$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell, fortooltip) VALUES (82447, 197, 82441, 8, 125557, 1)';
+$sql = 'replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) VALUES (82447, 197, 82441, 8, 125557)';
 run_sql($sql);
 
 /* spells deleted from game */
