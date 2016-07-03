@@ -804,45 +804,6 @@ function CategoryResult_leatherworking($house)
         ];
     }
 
-    /*
-    if (($pvpLevels = MCGet('category_leatherworking_pvplevels_' . $expansionLevels[count($expansionLevels) - 1])) === false) {
-        DBConnect();
-        $sql = <<<EOF
-SELECT distinct i.level
-FROM tblDBCItem i
-JOIN tblDBCSpell s on s.crafteditem=i.id
-WHERE i.quality=3 and i.class=4 and s.skillline=165 and i.requiredlevel>? and i.flags & 1
-order by 1 desc
-EOF;
-
-        $stmt = $db->prepare($sql);
-        $stmt->bind_param('i', $expansionLevels[count($expansionLevels) - 2]);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $pvpLevels = DBMapArray($result, null);
-        $stmt->close();
-
-        MCSet('category_leatherworking_pvplevels_' . $expansionLevels[count($expansionLevels) - 1], $pvpLevels, 24 * 60 * 60);
-    }
-
-    foreach ($pvpLevels as $itemLevel) {
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'data' => [
-                'name'  => 'PVP Rare ' . $itemLevel . ' Leather',
-                'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.requiredlevel > ' . $expansionLevels[count($expansionLevels) - 2] . ' and x.level=' . $itemLevel . ' and x.quality=3 and x.class=4 and x.subclass=2 and xs.skillline=165 and x.flags & 1) xyz on xyz.id = i.id'])
-            ]
-        ];
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'data' => [
-                'name'  => 'PVP Rare ' . $itemLevel . ' Mail',
-                'items' => CategoryGenericItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.requiredlevel > ' . $expansionLevels[count($expansionLevels) - 2] . ' and x.level=' . $itemLevel . ' and x.quality=3 and x.class=4 and x.subclass=3 and xs.skillline=165 and x.flags & 1) xyz on xyz.id = i.id'])
-            ]
-        ];
-    }
-    */
-
     return $tr;
 }
 

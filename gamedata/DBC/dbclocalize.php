@@ -74,9 +74,9 @@ EOF;
     $reader->setFieldNames([1 =>'name']);
     $bonusNames = [];
     $x = 0; $recordCount = count($reader->getIds());
-    foreach ($reader->generateRecords() as $id => $row) {
+    foreach ($reader->generateRecords() as $id => $rec) {
         EchoProgress(++$x/$recordCount);
-        $bonusNames[$id] = $row['name'];
+        $bonusNames[$id] = $rec['name'];
     }
     EchoProgress(false);
     unset($reader);
@@ -85,9 +85,9 @@ EOF;
     $reader->setFieldNames([1=>'bonusid', 2=>'changetype', 3=>'param1', 4=>'param2', 5=>'prio']);
     $bonusRows = [];
     $x = 0; $recordCount = count($reader->getIds());
-    foreach ($reader->generateRecords() as $id => $row) {
+    foreach ($reader->generateRecords() as $id => $rec) {
         EchoProgress(++$x/$recordCount);
-        $bonusRows[] = $row;
+        $bonusRows[] = $rec;
     }
     EchoProgress(false);
     unset($reader);
@@ -137,17 +137,17 @@ EOF;
     LogLine("$locale tblDBCRandEnchants");
 
     $reader = new Reader($dirnm . '/ItemRandomSuffix.db2');
-    $reader->setFieldNames(['id', 'name1', 'name2']);
-    $stmt = $db->prepare("insert into tblDBCRandEnchants (id, name_$locale) values (?, ?) on duplicate key update name_$locale = values(name_$locale)");
+    $reader->setFieldNames(['id', 'name']);
+    $stmt = $db->prepare("insert into tblDBCRandEnchants (id, name_$locale) values (?, ?) on duplicate key update name_$locale = ifnull(values(name_$locale), name_enus)");
     $enchId = $name = null;
     $stmt->bind_param('is', $enchId, $name);
     $x = 0; $recordCount = count($reader->getIds());
-    foreach ($reader->generateRecords() as $id => $row) {
+    foreach ($reader->generateRecords() as $id => $rec) {
         EchoProgress(++$x/$recordCount);
         $enchId = $id * -1;
-        $name = $row['name1'];
+        $name = $rec['name'];
         if (!$name) {
-            $name = $row['name2'];
+            $name = null;
         }
         $stmt->execute();
     }
@@ -156,17 +156,17 @@ EOF;
     unset($reader);
 
     $reader = new Reader($dirnm . '/ItemRandomProperties.db2');
-    $reader->setFieldNames(['id', 'name1', 7 => 'name2']);
-    $stmt = $db->prepare("insert into tblDBCRandEnchants (id, name_$locale) values (?, ?) on duplicate key update name_$locale = values(name_$locale)");
+    $reader->setFieldNames(['id', 'name']);
+    $stmt = $db->prepare("insert into tblDBCRandEnchants (id, name_$locale) values (?, ?) on duplicate key update name_$locale = ifnull(values(name_$locale), name_enus)");
     $enchId = $name = null;
     $stmt->bind_param('is', $enchId, $name);
     $x = 0; $recordCount = count($reader->getIds());
-    foreach ($reader->generateRecords() as $id => $row) {
+    foreach ($reader->generateRecords() as $id => $rec) {
         EchoProgress(++$x/$recordCount);
         $enchId = $id;
-        $name = $row['name1'];
+        $name = $rec['name'];
         if (!$name) {
-            $name = $row['name2'];
+            $name = null;
         }
         $stmt->execute();
     }
@@ -188,10 +188,10 @@ EOF;
     $species = $name = null;
     $stmt->bind_param('is', $species, $name);
     $x = 0; $recordCount = count($battlePetReader->getIds());
-    foreach ($battlePetReader->generateRecords() as $id => $row) {
+    foreach ($battlePetReader->generateRecords() as $id => $rec) {
         EchoProgress(++$x/$recordCount);
         $species = $id;
-        $creature = $creatureReader->getRecord($row['npc']);
+        $creature = $creatureReader->getRecord($rec['npc']);
         if (is_null($creature)) {
             continue;
         }

@@ -1,12 +1,14 @@
 <?php
-require_once('incl/old.incl.php');
+require_once('../incl/incl.php');
 
 $langs = ['enus','dede','eses','frfr','itit','ptbr','ruru'];
 $jsons = [];
 
-do_connect();
-$rst = get_rst('select * from tblDBCItemSubClass');
-while ($row = next_row($rst)) {
+DBConnect();
+$stmt = $db->prepare('select * from tblDBCItemSubClass');
+$stmt->execute();
+$result = $stmt->get_result();
+while ($row = $result->fetch_assoc()) {
     $key = "{$row['class']}-{$row['subclass']}";
     foreach ($langs as $lang) {
         if (isset($row["name_$lang"])) {
@@ -14,6 +16,8 @@ while ($row = next_row($rst)) {
         }
     }
 }
+$result->close();
+$stmt->close();
 
 foreach ($langs as $lang) {
     if (!isset($jsons[$lang])) {

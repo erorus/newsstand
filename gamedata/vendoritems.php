@@ -1,9 +1,9 @@
 <?php
 
-require_once('incl/old.incl.php');
+require_once '../incl/incl.php';
 
-do_connect();
-run_sql('delete from tblDBCItemVendorCost');
+DBConnect();
+$db->real_query('delete from tblDBCItemVendorCost');
 
 $thejson = <<<'EOF'
 {"38":{"price":1,"npc":18672,"npccount":1}}
@@ -14,12 +14,16 @@ $itms = json_decode($thejson, true);
 
 // exclude all herbs and elemental (motes, etc) trade goods
 $sql = 'select id from tblDBCItem where class=7 and subclass in (9,10)';
-$rst = get_rst($sql);
-while ($row = next_row($rst)) {
+$stmt = $db->prepare($sql);
+$stmt->execute();
+$result = $stmt->get_result();
+while ($row = $result->fetch_assoc()) {
     unset($itms[$row['id']]);
 }
+$result->close();
+$stmt->close();
 
 $sql = 'replace into tblDBCItemVendorCost (item, copper, npc, npccount) values (%d, %d, %d, %d)';
 foreach ($itms as $itemId => $itemInfo) {
-    run_sql(sprintf($sql, $itemId, $itemInfo['price'], $itemInfo['npc'], $itemInfo['npccount']));
+    $db->real_query(sprintf($sql, $itemId, $itemInfo['price'], $itemInfo['npc'], $itemInfo['npccount']));
 }
