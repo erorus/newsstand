@@ -204,6 +204,7 @@ function ShowLogs()
                 passthru('grep -v '.escapeshellarg('worldofwarcraft.com/auction-data/').' '.escapeshellarg($path).' | tail -n 20');
                 break;
             case 'private.access.log':
+            case 'error.private.log':
                 passthru('grep -v '.escapeshellarg('^'.$_SERVER['REMOTE_ADDR'].' ').' '.escapeshellarg($path).' | tail -n 20');
                 break;
             default:
