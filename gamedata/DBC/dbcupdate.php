@@ -162,7 +162,7 @@ foreach ($bonuses as $bonusId => $bonusData) {
     $tagPriority = isset($bonusData['nametag']) ? $bonusData['nametag']['prio'] : null;
     $name = isset($bonusData['randname']) ? $bonusData['randname']['name'] : null;
     $namePriority = isset($bonusData['randname']) ? $bonusData['randname']['prio'] : null;
-    $stmt->execute();
+    RunAndLogError($stmt->execute());
 }
 $stmt->close();
 unset($bonuses, $bonusRows, $bonusNames);
@@ -281,7 +281,7 @@ foreach ($sorted as $rec) {
         continue;
     }
     $id = $rec['item'];
-    $stmt->execute();
+    RunAndLogError($stmt->execute());
 }
 $stmt->close();
 EchoProgress(false);
@@ -299,7 +299,7 @@ foreach ($sorted as $rec) {
 
     $display = $appearance['display'];
     $id = $rec['item'];
-    $stmt->execute();
+    RunAndLogError($stmt->execute());
 }
 $stmt->close();
 EchoProgress(false);
@@ -349,7 +349,7 @@ EchoProgress(false);
 
 LogLine("tblDBCItemSpell");
 $reader = new Reader($dirnm . '/ItemEffect.db2');
-$reader->setFieldNames([1=>'item', 4=>'spell']);
+$reader->setFieldNames([1=>'item', 3=>'spell']);
 RunAndLogError('truncate table tblDBCItemSpell');
 $sql = 'insert ignore into tblDBCItemSpell (item, spell) values (?, ?)';
 $stmt = $db->prepare($sql);
@@ -363,7 +363,7 @@ foreach ($reader->generateRecords() as $rec) {
     if ($item <= 0 || $spell <= 0) {
         continue;
     }
-    $stmt->execute();
+    RunAndLogError($stmt->execute());
 }
 EchoProgress(false);
 $stmt->close();
@@ -381,7 +381,7 @@ foreach ($reader->generateRecords() as $id => $rec) {
     EchoProgress(++$x/$recordCount);
     $enchId = $id * -1;
     $name = $rec['name'];
-    $stmt->execute();
+    RunAndLogError($stmt->execute());
 }
 $stmt->close();
 EchoProgress(false);
@@ -397,7 +397,7 @@ foreach ($reader->generateRecords() as $id => $rec) {
     EchoProgress(++$x/$recordCount);
     $enchId = $id;
     $name = $rec['name'];
-    $stmt->execute();
+    RunAndLogError($stmt->execute());
 }
 $stmt->close();
 EchoProgress(false);
@@ -405,7 +405,7 @@ unset($reader);
 
 RunAndLogError('truncate table tblDBCItemRandomSuffix');
 $stmt = $db->prepare("insert ignore into tblDBCItemRandomSuffix (locale, suffix) (select distinct '$locale', name_$locale from tblDBCRandEnchants where trim(name_$locale) != '' and id < 0)");
-$stmt->execute();
+RunAndLogError($stmt->execute());
 $stmt->close();
 
 LogLine("Making spell temp tables..");
@@ -455,7 +455,6 @@ RunAndLogError('create temporary table ttblSpellCategory2 select * from ttblSpel
 
 DB2TempTable('SpellMisc', [
     0=>'miscid',
-    1=>'spellid',
     21=>'iconid',
 ]);
 
@@ -643,7 +642,7 @@ group by s.id
 EOF;
 
 $stmt = $db->prepare($sql);
-$stmt->execute();
+RunAndLogError($stmt->execute());
 $result = $stmt->get_result();
 while ($row = $result->fetch_assoc()) {
     $exp = 0;
@@ -730,6 +729,25 @@ function DB2TempTable($baseFile, $columns) {
     $reader->setFieldNames($columns);
     $fieldTypes = $reader->getFieldTypes();
 
+    $maxLengths = [];
+    foreach ($columns as $colName) {
+        if ($fieldTypes[$colName] == Reader::FIELD_TYPE_STRING) {
+            $maxLengths[$colName] = 1;
+        }
+    }
+
+    if (count($maxLengths)) {
+        $x = 0; $recordCount = count($reader->getIds());
+        foreach ($reader->generateRecords() as $id => $rec) {
+            EchoProgress(++$x / $recordCount);
+            foreach ($maxLengths as $colName => &$maxLength) {
+                $maxLength = max($maxLength, strlen($rec[$colName]));
+            }
+            unset($maxLength);
+        }
+        EchoProgress(false);
+    }
+
     $sql = 'create temporary table `ttbl'.$baseFile.'` (';
     $y = 0;
     $indexFields = [];
@@ -752,7 +770,7 @@ function DB2TempTable($baseFile, $columns) {
                 $paramTypes .= 'd';
                 break;
             case Reader::FIELD_TYPE_STRING:
-                $sql .= 'varchar(4000)';
+                $sql .= 'varchar(' . $maxLengths[$colName] . ')';
                 $paramTypes .= 's';
                 break;
             default:
@@ -784,7 +802,7 @@ function DB2TempTable($baseFile, $columns) {
         foreach ($columns as $colName) {
             $row[$colName] = $rec[$colName];
         }
-        $stmt->execute();
+        RunAndLogError($stmt->execute());
     }
     EchoProgress(false);
     unset($reader);
