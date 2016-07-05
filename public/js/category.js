@@ -424,7 +424,7 @@ var TUJ_Category = function ()
 
     resultFunctions.ItemList = function (data, dest)
     {
-        var item, x, t, td, th, tr, a;
+        var item, x, t, td, th, tr, a, i;
 
         if (!data.items.length) {
             return false;
@@ -502,7 +502,7 @@ var TUJ_Category = function ()
             td = libtuj.ce('th');
             td.className = 'price';
             tr.appendChild(td);
-            $(td).text(tuj.lang.mean)
+            $(td).text(tuj.lang.mean);
             titleColSpan++;
         }
 
@@ -651,7 +651,7 @@ var TUJ_Category = function ()
         }
 
         return true;
-    }
+    };
 
     function ShowBreedRows(species, tds)
     {
@@ -937,7 +937,7 @@ var TUJ_Category = function ()
         }
 
 
-    }
+    };
 
     resultFunctions.FishTable = function (data, dest)
     {
@@ -1065,10 +1065,187 @@ var TUJ_Category = function ()
         }
 
         return true;
-    }
+    };
+
+    resultFunctions.RecipeList = function (data, dest)
+    {
+        var item, crafted, map, x, t, td, th, tr, a, i;
+
+        if (!data.map.length) {
+            return false;
+        }
+
+        t = libtuj.ce('table');
+        t.className = 'category category-recipes';
+        dest.appendChild(t);
+
+        if (data.hasOwnProperty('name')) {
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+
+            td = libtuj.ce('th');
+            td.className = 'title';
+            tr.appendChild(td);
+            td.colSpan = 6;
+
+            var sluggedName = data.name.toLowerCase().replace(/[^ a-z0-9]/, '');
+            for (x = 0; x < sluggedName.length; x++) {
+                if (sluggedName.substr(x, 1) == ' ') {
+                    sluggedName = sluggedName.substr(0, x) + sluggedName.substr(x+1, 1).toUpperCase() + sluggedName.substr(x+2);
+                }
+            }
+
+            if (tuj.lang.hasOwnProperty(sluggedName)) {
+                $(td).text(tuj.lang[sluggedName]);
+            } else if (sluggedName == 'recipes') {
+                $(td).text(tuj.lang.itemClasses[9]);
+            } else {
+                $(td).text(data.name);
+            }
+        }
+
+        tr = libtuj.ce('tr');
+        t.appendChild(tr);
+
+        td = libtuj.ce('th');
+        td.className = 'name';
+        tr.appendChild(td);
+        td.colSpan = 2;
+        $(td).text(tuj.lang.name);
+
+        td = libtuj.ce('th');
+        td.className = 'quantity';
+        tr.appendChild(td);
+        $(td).text(tuj.lang.availableAbbrev);
+
+        td = libtuj.ce('th');
+        td.className = 'price';
+        tr.appendChild(td);
+        $(td).text(tuj.lang.price);
+
+        td = libtuj.ce('th');
+        td.className = 'quantity';
+        tr.appendChild(td);
+        $(td).text(tuj.lang.availableAbbrev);
+
+        td = libtuj.ce('th');
+        td.className = 'price';
+        tr.appendChild(td);
+        $(td).text(tuj.lang.price);
+
+        data.map.sort(function(a, b) {
+            var recipeA = data.recipes[a.recipe];
+            var craftedA = data.crafted[a.crafted];
+            var recipeB = data.recipes[b.recipe];
+            var craftedB = data.crafted[b.crafted];
+
+            if (!recipeA || !craftedA) {
+                return 1;
+            }
+            if (!recipeB || !craftedB) {
+                return -1;
+            }
+
+            var recipePriceA = recipeA.price || 500000;
+            var recipePriceB = recipeB.price || 500000;
+            var craftedPriceA = craftedA.price || 0;
+            var craftedPriceB = craftedB.price || 0;
+
+            var ratioA = recipePriceA * Math.log(recipePriceA / 10000) - craftedPriceA;
+            var ratioB = recipePriceB * Math.log(recipePriceB / 10000) - craftedPriceB;
+
+            return ((recipePriceA - craftedPriceA > 0 ? 1 : 0) - (recipePriceB - craftedPriceB > 0 ? 1 : 0)) || // recipe cheaper than crafted at top
+                (((recipePriceA && !craftedPriceA) ? 0 : 1) - ((recipePriceB && !craftedPriceB) ? 0 : 1)) || // has recipe but not crafted at bottom
+                (ratioA - ratioB) || // degree of profitability
+                (recipePriceA - recipePriceB) || // cheaper recipes at top
+                (craftedPriceA - craftedPriceB) || // cheaper items at top
+                recipeA['name_' + tuj.locale].localeCompare(recipeB['name_' + tuj.locale]);
+        });
+
+        for (x = 0; map = data.map[x]; x++) {
+            item = data.recipes[map.recipe];
+            crafted = data.crafted[map.crafted];
+
+            if (!item) {
+                continue;
+            }
+
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+
+            td = libtuj.ce('td');
+            td.className = 'icon';
+            tr.appendChild(td);
+            i = libtuj.ce('img');
+            td.appendChild(i);
+            i.className = 'icon';
+            i.src = libtuj.IconURL(item.icon, 'medium');
+
+            td = libtuj.ce('td');
+            td.className = 'name';
+            tr.appendChild(td);
+            a = libtuj.ce('a');
+            td.appendChild(a);
+            a.rel = 'item=' + item.id + (item.bonusurl ? '&bonus=' + item.bonusurl : (item.basebonus ? '&bonus=' + item.basebonus : '')) + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
+            a.href = tuj.BuildHash({page: 'item', id: item.id + (item.bonusurl ? ('.'+item.bonusurl).replace(':','.') : '')});
+            $(a).text('[' + item['name_' + tuj.locale] + (item['bonusname_' + tuj.locale] ? ' ' + item['bonusname_' + tuj.locale].substr(0, item['bonusname_' + tuj.locale].indexOf('|') >= 0 ? item['bonusname_' + tuj.locale].indexOf('|') : item['bonusname_' + tuj.locale].length) : '') + ']' + (item['bonustag_' + tuj.locale] ? ' ' : ''));
+            if (item['bonustag_' + tuj.locale]) {
+                var tagspan = libtuj.ce('span');
+                tagspan.className = 'nowrap';
+                $(tagspan).text(item['bonustag_' + tuj.locale]);
+                a.appendChild(tagspan);
+            }
+
+            td = libtuj.ce('td');
+            td.className = 'quantity';
+            tr.appendChild(td);
+            if (item.quantity > 0 || !item.lastseen) {
+                td.appendChild(libtuj.FormatQuantity(item.quantity));
+            } else {
+                a = libtuj.ce('abbr');
+                a.className = 'full-date';
+                a.title = tuj.lang.lastSeen + ' ' + libtuj.FormatDate(item.lastseen, true);
+                a.appendChild(libtuj.FormatQuantity(item.quantity));
+                td.appendChild(a);
+            }
+
+            td = libtuj.ce('td');
+            td.className = 'price';
+            tr.appendChild(td);
+            td.appendChild(libtuj.FormatPrice(item.price));
+
+            td = libtuj.ce('td');
+            td.className = 'quantity';
+            tr.appendChild(td);
+            if (crafted) {
+                if (crafted.quantity > 0 || !crafted.lastseen) {
+                    td.appendChild(libtuj.FormatQuantity(crafted.quantity));
+                } else {
+                    a = libtuj.ce('abbr');
+                    a.className = 'full-date';
+                    a.title = tuj.lang.lastSeen + ' ' + libtuj.FormatDate(crafted.lastseen, true);
+                    a.appendChild(libtuj.FormatQuantity(crafted.quantity));
+                    td.appendChild(a);
+                }
+            }
+
+            td = libtuj.ce('td');
+            td.className = 'price';
+            tr.appendChild(td);
+            if (crafted) {
+                a = libtuj.ce('a');
+                td.appendChild(a);
+                a.rel = 'item=' + crafted.id + (crafted.bonusurl ? '&bonus=' + crafted.bonusurl : (crafted.basebonus ? '&bonus=' + crafted.basebonus : '')) + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
+                a.href = tuj.BuildHash({page: 'item', id: crafted.id + (crafted.bonusurl ? ('.'+crafted.bonusurl).replace(':','.') : '')});
+                a.appendChild(libtuj.FormatPrice(crafted.price));
+            }
+        }
+
+        return true;
+    };
 
 
     this.load(tuj.params);
-}
+};
 
 tuj.page_category = new TUJ_Category();
