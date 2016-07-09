@@ -2753,7 +2753,10 @@ var TUJ_Item = function ()
                 Math.floor(a.bid / a.quantity) - Math.floor(b.bid / b.quantity) ||
                 a.quantity - b.quantity ||
                 (tuj.realms[a.sellerrealm] ? tuj.realms[a.sellerrealm].name : '').localeCompare(tuj.realms[b.sellerrealm] ? tuj.realms[b.sellerrealm].name : '') ||
-                a.sellername.localeCompare(b.sellername);
+                a.sellername.localeCompare(b.sellername) ||
+                (a['bonustag_' + tuj.locale] || "").localeCompare(b['bonustag_' + tuj.locale] || "") ||
+                (a['bonusname_' + tuj.locale] || "").localeCompare(b['bonusname_' + tuj.locale] || "") ||
+                (a['randname_' + tuj.locale] || "").localeCompare(b['randname_' + tuj.locale] || "");
         });
 
         var s, a, stackable = data.stats[bonusSet].stacksize > 1;
