@@ -119,82 +119,7 @@ function ItemHistory($house, $item)
 
     DBConnect();
 
-    if (ItemIsCrafted($item)) {
-        $sql = <<<EOF
-select bonusset, snapshot, silver, quantity, reagentprice
-from (select
-    if(bonusset = @prevBonusSet, null, @price := null) resetprice,
-    (@prevBonusSet := bonusset) as bonusset,
-    unix_timestamp(updated) snapshot,
-    cast(if(quantity is null, @price, @price := silver) as unsigned) `silver`,
-    ifnull(quantity,0) as quantity,
-    reagentprice
-    from (select @price := null, @prevBonusSet := null) priceSetup,
-        (select `is`.bonusset, s.updated,
-        case hour(s.updated)
-            when 0 then ih.quantity00
-            when 1 then ih.quantity01
-            when 2 then ih.quantity02
-            when 3 then ih.quantity03
-            when 4 then ih.quantity04
-            when 5 then ih.quantity05
-            when 6 then ih.quantity06
-            when 7 then ih.quantity07
-            when 8 then ih.quantity08
-            when 9 then ih.quantity09
-            when 10 then ih.quantity10
-            when 11 then ih.quantity11
-            when 12 then ih.quantity12
-            when 13 then ih.quantity13
-            when 14 then ih.quantity14
-            when 15 then ih.quantity15
-            when 16 then ih.quantity16
-            when 17 then ih.quantity17
-            when 18 then ih.quantity18
-            when 19 then ih.quantity19
-            when 20 then ih.quantity20
-            when 21 then ih.quantity21
-            when 22 then ih.quantity22
-            when 23 then ih.quantity23
-            else null end as `quantity`,
-        case hour(s.updated)
-            when 0 then ih.silver00
-            when 1 then ih.silver01
-            when 2 then ih.silver02
-            when 3 then ih.silver03
-            when 4 then ih.silver04
-            when 5 then ih.silver05
-            when 6 then ih.silver06
-            when 7 then ih.silver07
-            when 8 then ih.silver08
-            when 9 then ih.silver09
-            when 10 then ih.silver10
-            when 11 then ih.silver11
-            when 12 then ih.silver12
-            when 13 then ih.silver13
-            when 14 then ih.silver14
-            when 15 then ih.silver15
-            when 16 then ih.silver16
-            when 17 then ih.silver17
-            when 18 then ih.silver18
-            when 19 then ih.silver19
-            when 20 then ih.silver20
-            when 21 then ih.silver21
-            when 22 then ih.silver22
-            when 23 then ih.silver23
-            else null end as `silver`,
-        GetReagentPrice(s.house, `is`.item, s.updated) reagentprice
-        from tblSnapshot s
-        join tblItemSummary `is` on `is`.house = s.house
-        left join tblItemHistoryHourly ih on date(s.updated) = ih.`when` and ih.house = `is`.house and ih.item = `is`.item and ih.bonusset = `is`.bonusset
-        where `is`.item = %d and s.house = %d and s.updated >= timestampadd(day,-%d,now()) and s.flags & 1 = 0
-        group by `is`.bonusset, s.updated
-        order by `is`.bonusset, s.updated asc
-        ) ordered
-    ) withoutresets
-EOF;
-    } else {
-        $sql = <<<EOF
+    $sql = <<<'EOF'
 select bonusset, snapshot, silver, quantity
 from (select
     if(bonusset = @prevBonusSet, null, @price := null) resetprice,
@@ -265,17 +190,41 @@ from (select
         ) ordered
     ) withoutresets
 EOF;
-    }
 
     $result = $db->query(sprintf($sql, $item, $house, HISTORY_DAYS));
-    $tr = DBMapArray($result, array('bonusset', null));
+    $tr = DBMapArray($result, ['bonusset', null]);
 
-    foreach ($tr as &$bonusSet) {
-        while (count($bonusSet) > 0 && is_null($bonusSet[0]['silver'])) {
-            array_shift($bonusSet);
+    if (ItemIsCrafted($item)) {
+        $sql = <<<'EOF'
+    select unix_timestamp(s.updated) `snapshot`, GetReagentPrice(s.house, ?, s.updated) reagentprice
+    from tblSnapshot s
+    where s.house = ? and s.updated >= timestampadd(day,?,now()) and s.flags & 1 = 0
+EOF;
+        $historyDays = -1 * HISTORY_DAYS;
+        $stmt = $db->prepare($sql);
+        $stmt->bind_param('iii', $item, $house, $historyDays);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $reagentPrices = DBMapArray($result, 'snapshot');
+        $stmt->close();
+    } else {
+        $reagentPrices = [];
+    }
+
+    foreach ($tr as &$snapshots) {
+        while (count($snapshots) > 0 && is_null($snapshots[0]['silver'])) {
+            array_shift($snapshots);
+        }
+        if (count($reagentPrices)) {
+            foreach ($snapshots as &$snapshotData) {
+                if (isset($reagentPrices[$snapshotData['snapshot']])) {
+                    $snapshotData['reagentprice'] = $reagentPrices[$snapshotData['snapshot']]['reagentprice'];
+                }
+            }
+            unset($snapshotData);
         }
     }
-    unset($bonusSet);
+    unset($snapshots);
 
     MCSetHouse($house, $key, $tr);
 
