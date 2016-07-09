@@ -193,6 +193,7 @@
     "regional": "Regional",
     "expandBreeds": "Click \"({1})\" in the Breeds column to expand the row for separate breeds.",
     "pasteInItems": "In the box below, paste in a list of item IDs to generate a custom category page with pricing information.",
+    "compareWith": "Compare with:",
     "flesh": "Flesh",
     "small": "Small",
     "regular": "Regular",

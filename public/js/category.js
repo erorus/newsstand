@@ -399,11 +399,41 @@ var TUJ_Category = function ()
 
         d.appendChild(libtuj.ce('br'));
 
+        var realms = [];
+        for (var id in tuj.realms) {
+            if (!tuj.realms.hasOwnProperty(id)) {
+                continue;
+            }
+            realms.push(id);
+        }
+        realms.sort(function(a,b){
+            return tuj.realms[a].name.localeCompare(tuj.realms[b].name);
+        });
+
+        d.appendChild(document.createTextNode(tuj.lang.compareWith));
+        var sel = libtuj.ce('select');
+        d.appendChild(sel);
+        var opt = libtuj.ce('option');
+        opt.value = '';
+        opt.label = '';
+        opt.appendChild(document.createTextNode(''));
+        sel.appendChild(opt);
+
+        for (var x = 0, realm; realm = realms[x]; x++) {
+            realm = tuj.realms[realm];
+
+            opt = libtuj.ce('option');
+            opt.value = realm.id;
+            opt.label = tuj.validRegions[params.region] + ' ' + realm.name;
+            opt.appendChild(document.createTextNode(tuj.validRegions[params.region] + ' ' + realm.name));
+            sel.appendChild(opt);
+        }
+
         var btn = libtuj.ce('input');
         btn.type = 'button';
         btn.value = tuj.lang.submit;
         d.appendChild(btn);
-        $(btn).on('click', LoadCustomItems.bind(btn, ta, resultDiv));
+        $(btn).on('click', LoadCustomItems.bind(btn, ta, sel, resultDiv));
     }
 
     function ParseCustomItemListMatch(dumpInto, match, p1)
@@ -412,14 +442,25 @@ var TUJ_Category = function ()
         return '';
     }
 
-    function LoadCustomItems(ta, resultsDiv) {
+    function CustomItemSectionsComparitor(a,b) {
+        var aClass = a.hasOwnProperty('data') && a.data.hasOwnProperty('name') && (a.data.name.indexOf('itemClasses.') == 0) ? parseInt(a.data.name.substr(12)) : 0;
+        var bClass = b.hasOwnProperty('data') && b.data.hasOwnProperty('name') && (b.data.name.indexOf('itemClasses.') == 0) ? parseInt(b.data.name.substr(12)) : 0;
+        if (tujConstants.itemClassOrder.hasOwnProperty(aClass) && tujConstants.itemClassOrder.hasOwnProperty(bClass)) {
+            return tujConstants.itemClassOrder[aClass] - tujConstants.itemClassOrder[bClass];
+        }
+        return 0;
+    }
+
+    function LoadCustomItems(ta, realmSel, resultsDiv) {
         var rawItemList = ta.value;
         var itemList = {};
         var items = [];
 
+        var matcher = ParseCustomItemListMatch.bind(null, itemList);
+
         rawItemList = rawItemList.replace(/\bp(:\d+)+/g, ''); // remove pets from tsm shopping list
-        rawItemList = rawItemList.replace(/\bi(?:tem)?:(\d+)(?::\d+)*/g, ParseCustomItemListMatch.bind(null, itemList)); // use items without bonuses from tsm shopping list
-        rawItemList = rawItemList.replace(/(\d+)/g, ParseCustomItemListMatch.bind(null, itemList)); // any other numbers assumed to be items
+        rawItemList = rawItemList.replace(/\bi(?:tem)?:(\d+)(?::\d+)*/g, matcher); // use items without bonuses from tsm shopping list
+        rawItemList = rawItemList.replace(/(\d+)/g, matcher); // any other numbers assumed to be items
 
         for (var i in itemList) {
             if (itemList.hasOwnProperty(i)) {
@@ -434,6 +475,9 @@ var TUJ_Category = function ()
             return;
         }
 
+        var compareRealm = realmSel.selectedIndex == 0 ? false : realmSel.options[realmSel.selectedIndex].value;
+        var compareHouse = compareRealm ? tuj.realms[compareRealm].house : false;
+
         $('#category-page').hide();
         $('#progress-page').show();
         $(resultsDiv).empty();
@@ -447,16 +491,38 @@ var TUJ_Category = function ()
                     tuj.AskCaptcha(d.captcha);
                 } else {
                     if (d.hasOwnProperty('results')) {
-                        d.results.sort(function(a,b) {
-                            var aClass = a.hasOwnProperty('data') && a.data.hasOwnProperty('name') && (a.data.name.indexOf('itemClasses.') == 0) ? parseInt(a.data.name.substr(12)) : 0;
-                            var bClass = b.hasOwnProperty('data') && b.data.hasOwnProperty('name') && (b.data.name.indexOf('itemClasses.') == 0) ? parseInt(b.data.name.substr(12)) : 0;
-                            if (tujConstants.itemClassOrder.hasOwnProperty(aClass) && tujConstants.itemClassOrder.hasOwnProperty(bClass)) {
-                                return tujConstants.itemClassOrder[aClass] - tujConstants.itemClassOrder[bClass];
-                            }
-                            return 0;
-                        });
+                        d.results.sort(CustomItemSectionsComparitor);
                     }
-                    CategoryResult(false, d, resultsDiv);
+                    if (compareHouse) {
+                        $.ajax({
+                            data: {'items': items.join(',')},
+                            method: 'POST',
+                            success: function (d2)
+                            {
+                                if (d2.captcha) {
+                                    tuj.AskCaptcha(d2.captcha);
+                                } else {
+                                    CategoryResult(false, MergeComparedData(d, d2, compareRealm), resultsDiv);
+                                }
+                            },
+                            error: function (xhr, stat, er)
+                            {
+                                if ((xhr.status == 503) && xhr.hasOwnProperty('responseJSON') && xhr.responseJSON && xhr.responseJSON.hasOwnProperty('maintenance')) {
+                                    tuj.APIMaintenance(xhr.responseJSON.maintenance);
+                                } else {
+                                    alert('Error fetching page data: ' + stat + ' ' + er);
+                                }
+                            },
+                            complete: function ()
+                            {
+                                $('#progress-page').hide();
+                            },
+                            url: 'api/category.php?house=' + compareHouse + '&id=custom'
+                        })
+                    } else {
+                        CategoryResult(false, d, resultsDiv);
+                        $('#progress-page').hide();
+                    }
                 }
             },
             error: function (xhr, stat, er)
@@ -466,13 +532,49 @@ var TUJ_Category = function ()
                 } else {
                     alert('Error fetching page data: ' + stat + ' ' + er);
                 }
-            },
-            complete: function ()
-            {
                 $('#progress-page').hide();
             },
             url: 'api/category.php?house=' + tuj.realms[params.realm].house + '&id=custom'
         });
+    }
+
+    function MergeComparedData(ourData, theirData, theirRealmId) {
+        var x, y, z, ourSection, theirSection;
+
+        while (theirSection = theirData.results.shift()) {
+            if (theirSection.name != 'ItemList') {
+                continue;
+            }
+            for (x = 0; ourSection = ourData.results[x]; x++) {
+                if (ourSection.name != 'ItemList') {
+                    continue;
+                }
+                if (ourSection.data.name != theirSection.data.name) {
+                    continue;
+                }
+                ourSection.data.compareTo = theirRealmId;
+                if (!ourSection.data.hasOwnProperty('hiddenCols')) {
+                    ourSection.data.hiddenCols = {};
+                }
+                ourSection.data.hiddenCols.lastseen = true;
+
+                for (y = 0; y < ourSection.data.items.length; y++) {
+                    for (z in theirSection.data.items) {
+                        if (!theirSection.data.items.hasOwnProperty(z)) {
+                            continue;
+                        }
+                        if (ourSection.data.items[y].id == theirSection.data.items[z].id &&
+                            ourSection.data.items[y].bonusset == theirSection.data.items[z].bonusset) {
+                            ourSection.data.items[y].compareTo = theirSection.data.items[z];
+                            delete theirSection.data.items[z];
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return ourData;
     }
 
     function CategoryResult(hash, dta, resultsContainer)
@@ -652,6 +754,14 @@ var TUJ_Category = function ()
             titleColSpan++;
         }
 
+        if (data.compareTo) {
+            td = libtuj.ce('th');
+            td.className = 'price';
+            tr.appendChild(td);
+            $(td).text(tuj.realms[data.compareTo].name);
+            titleColSpan++;
+        }
+
         titleTd.colSpan = titleColSpan;
 
         switch (data['sort']) {
@@ -769,6 +879,16 @@ var TUJ_Category = function ()
                 td.className = 'date';
                 tr.appendChild(td);
                 td.appendChild(libtuj.FormatDate(item.posted, false, 'hour', true));
+            }
+
+            if (data.compareTo && item.hasOwnProperty('compareTo')) {
+                td = libtuj.ce('td');
+                td.className = 'price';
+                tr.appendChild(td);
+                a = libtuj.ce('a');
+                td.appendChild(a);
+                a.href = tuj.BuildHash({realm: data.compareTo, page: 'item', id: item.id + (item.bonusurl ? ('.'+item.bonusurl).replace(':','.') : '')});
+                a.appendChild(libtuj.FormatPrice(item.compareTo.avgprice || item.compareTo.price));
             }
         }
 

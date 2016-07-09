@@ -201,6 +201,7 @@ img.captcha-button.selected { border-color: #006600 }
 .category-battlepets td.breeds, .category-battlepets th.breeds { font-size: 80%; text-align: right }
 
 .custom-textarea textarea { width: 100%; margin: 1em 0; height: 15em; box-sizing: border-box }
+.custom-textarea select { margin: 0 1em }
 
 .money-gold::after { content: "g " }
 .money-silver::after { content: "s " }
