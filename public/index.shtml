@@ -104,6 +104,9 @@
                         <a rel="archaeology">Archaeology</a>
                         <br/>
 
+                        <a rel="custom">Custom</a>
+                        <br/>
+
                         <a rel="transmog/cloth">Transmog: Cloth</a>
                         <a rel="transmog/leather">Transmog: Leather</a>
                         <a rel="transmog/mail">Transmog: Mail</a>
@@ -112,9 +115,6 @@
 
                         <a rel="transmog/main">Transmog: Main-Hand</a>
                         <a rel="transmog/off">Transmog: Off-Hand</a>
-                        <br/>
-
-                        <a rel="custom">Custom</a>
                     </div>
 
                     <h2 id="front-welcome">Welcome to The Undermine Journal <sub>...your source for Auction House statistics and data in World of Warcraft.</sub></h2>

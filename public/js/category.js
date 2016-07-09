@@ -372,6 +372,41 @@ var TUJ_Category = function ()
         $(mainDiv).show();
     }
 
+    function MakeRealmCompareSelBox(selectedRealmId) {
+        var realms = [];
+        for (var id in tuj.realms) {
+            if (!tuj.realms.hasOwnProperty(id)) {
+                continue;
+            }
+            realms.push(id);
+        }
+        realms.sort(function(a,b){
+            return tuj.realms[a].name.localeCompare(tuj.realms[b].name);
+        });
+
+        var sel = libtuj.ce('select');
+        var opt = libtuj.ce('option');
+        opt.value = '';
+        opt.label = '';
+        opt.appendChild(document.createTextNode(''));
+        sel.appendChild(opt);
+
+        for (var x = 0, realm; realm = realms[x]; x++) {
+            realm = tuj.realms[realm];
+
+            opt = libtuj.ce('option');
+            opt.value = realm.id;
+            opt.label = realm.name;
+            opt.appendChild(document.createTextNode(realm.name));
+            sel.appendChild(opt);
+            if (realm.id == selectedRealmId) {
+                opt.selected = true;
+            }
+        }
+
+        return sel;
+    }
+
     function ShowCustomPage()
     {
         var categoryPage = $('#category-page');
@@ -387,8 +422,8 @@ var TUJ_Category = function ()
         d.className = 'custom-textarea';
         categoryPage.append(d);
 
-        var resultDiv = libtuj.ce('div');
-        categoryPage.append(resultDiv);
+        var resultsDiv = libtuj.ce('div');
+        categoryPage.append(resultsDiv);
 
         d.appendChild(document.createTextNode(tuj.lang.pasteInItems));
 
@@ -399,41 +434,15 @@ var TUJ_Category = function ()
 
         d.appendChild(libtuj.ce('br'));
 
-        var realms = [];
-        for (var id in tuj.realms) {
-            if (!tuj.realms.hasOwnProperty(id)) {
-                continue;
-            }
-            realms.push(id);
-        }
-        realms.sort(function(a,b){
-            return tuj.realms[a].name.localeCompare(tuj.realms[b].name);
-        });
-
         d.appendChild(document.createTextNode(tuj.lang.compareWith));
-        var sel = libtuj.ce('select');
+        var sel = MakeRealmCompareSelBox();
         d.appendChild(sel);
-        var opt = libtuj.ce('option');
-        opt.value = '';
-        opt.label = '';
-        opt.appendChild(document.createTextNode(''));
-        sel.appendChild(opt);
-
-        for (var x = 0, realm; realm = realms[x]; x++) {
-            realm = tuj.realms[realm];
-
-            opt = libtuj.ce('option');
-            opt.value = realm.id;
-            opt.label = tuj.validRegions[params.region] + ' ' + realm.name;
-            opt.appendChild(document.createTextNode(tuj.validRegions[params.region] + ' ' + realm.name));
-            sel.appendChild(opt);
-        }
 
         var btn = libtuj.ce('input');
         btn.type = 'button';
         btn.value = tuj.lang.submit;
         d.appendChild(btn);
-        $(btn).on('click', LoadCustomItems.bind(btn, ta, sel, resultDiv));
+        $(btn).on('click', LoadCustomItems.bind(btn, ta, sel, resultsDiv));
     }
 
     function ParseCustomItemListMatch(dumpInto, match, p1)
@@ -538,8 +547,72 @@ var TUJ_Category = function ()
         });
     }
 
-    function MergeComparedData(ourData, theirData, theirRealmId) {
+    function LoadComparedRealm(dta, realmSel, resultsDiv) {
+        var compareRealm = realmSel.selectedIndex == 0 ? false : realmSel.options[realmSel.selectedIndex].value;
+        var compareHouse = compareRealm ? tuj.realms[compareRealm].house : false;
+
+        $('#category-page').hide();
+        $('#progress-page').show();
+        $(resultsDiv).empty();
+
+        if (!compareHouse) {
+            CategoryResult(false, MergeComparedData(dta), resultsDiv);
+            $('#progress-page').hide();
+            return;
+        }
+
+        $.ajax({
+            data: $.extend({}, params, {'house': compareHouse}),
+            success: function (d)
+            {
+                if (d.captcha) {
+                    tuj.AskCaptcha(d.captcha);
+                } else {
+                    CategoryResult(false, MergeComparedData(dta, d, compareRealm), resultsDiv);
+                }
+            },
+            error: function (xhr, stat, er)
+            {
+                if ((xhr.status == 503) && xhr.hasOwnProperty('responseJSON') && xhr.responseJSON && xhr.responseJSON.hasOwnProperty('maintenance')) {
+                    tuj.APIMaintenance(xhr.responseJSON.maintenance);
+                } else {
+                    alert('Error fetching page data: ' + stat + ' ' + er);
+                }
+            },
+            complete: function ()
+            {
+                $('#progress-page').hide();
+            },
+            url: 'api/category.php'
+        });
+    }
+
+    function MergeComparedData(fromData, theirData, theirRealmId) {
         var x, y, z, ourSection, theirSection;
+
+        var ourData = $.extend(true, {}, fromData);
+
+        if (theirRealmId) {
+            ourData.compareTo = theirRealmId;
+        } else {
+            delete ourData.compareTo;
+        }
+        for (x = 0; ourSection = ourData.results[x]; x++) {
+            if (ourSection.name != 'ItemList') {
+                continue;
+            }
+            delete ourSection.data.compareTo;
+            if (ourSection.data.hasOwnProperty('hiddenCols')) {
+                ourSection.data.hiddenCols.lastseen = false;
+            }
+            for (y = 0; y < ourSection.data.items.length; y++) {
+                delete ourSection.data.items[y].compareTo;
+            }
+        }
+
+        if (!theirData) {
+            return ourData;
+        }
 
         while (theirSection = theirData.results.shift()) {
             if (theirSection.name != 'ItemList') {
@@ -610,6 +683,22 @@ var TUJ_Category = function ()
         tuj.SetTitle(tuj.lang.category + ': ' + titleName);
 
         if (dta.hasOwnProperty('results')) {
+            if (['custom', 'battlepets', 'deals', 'unusualItems'].indexOf(dta.name) < 0) {
+                var compareDiv = libtuj.ce('div');
+                compareDiv.className = 'custom-textarea';
+                resultsDiv.append(compareDiv);
+
+                compareDiv.appendChild(document.createTextNode(tuj.lang.compareWith));
+                var sel = MakeRealmCompareSelBox(dta.compareTo);
+                compareDiv.appendChild(sel);
+
+                var btn = libtuj.ce('input');
+                btn.type = 'button';
+                btn.value = tuj.lang.submit;
+                compareDiv.appendChild(btn);
+                $(btn).on('click', LoadComparedRealm.bind(btn, dta, sel, resultsDiv));
+            }
+
             resultsDiv.append(libtuj.Ads.Add('8323200718'));
 
             var f, resultCount = 0;
