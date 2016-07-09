@@ -13,6 +13,19 @@ var TUJ_Category = function ()
             }
         }
 
+        var categoryPage = $('#category-page')[0];
+        if (!categoryPage) {
+            categoryPage = libtuj.ce();
+            categoryPage.id = 'category-page';
+            categoryPage.className = 'page';
+            $('#main').append(categoryPage);
+        }
+
+        if (params.id == 'custom') {
+            ShowCustomPage();
+            return;
+        }
+
         var qs = {
             house: tuj.realms[params.realm].house,
             id: params.id
@@ -24,14 +37,6 @@ var TUJ_Category = function ()
                 CategoryResult(false, lastResults[x].data);
                 return;
             }
-        }
-
-        var categoryPage = $('#category-page')[0];
-        if (!categoryPage) {
-            categoryPage = libtuj.ce();
-            categoryPage.id = 'category-page';
-            categoryPage.className = 'page';
-            $('#main').append(categoryPage);
         }
 
         if (!params.id) {
@@ -66,7 +71,7 @@ var TUJ_Category = function ()
             },
             url: 'api/category.php'
         });
-    }
+    };
 
     function MakeNotificationsSection(house)
     {
@@ -367,7 +372,110 @@ var TUJ_Category = function ()
         $(mainDiv).show();
     }
 
-    function CategoryResult(hash, dta)
+    function ShowCustomPage()
+    {
+        var categoryPage = $('#category-page');
+        categoryPage.empty();
+        categoryPage.show();
+
+        var titleName = tuj.lang.custom;
+
+        $('#page-title').empty().append(document.createTextNode(tuj.lang.category + ': ' + titleName));
+        tuj.SetTitle(tuj.lang.category + ': ' + titleName);
+
+        var d = libtuj.ce('div');
+        d.className = 'custom-textarea';
+        categoryPage.append(d);
+
+        var resultDiv = libtuj.ce('div');
+        categoryPage.append(resultDiv);
+
+        d.appendChild(document.createTextNode(tuj.lang.pasteInItems));
+
+        d.appendChild(libtuj.ce('br'));
+
+        var ta = libtuj.ce('textarea');
+        d.appendChild(ta);
+
+        d.appendChild(libtuj.ce('br'));
+
+        var btn = libtuj.ce('input');
+        btn.type = 'button';
+        btn.value = tuj.lang.submit;
+        d.appendChild(btn);
+        $(btn).on('click', LoadCustomItems.bind(btn, ta, resultDiv));
+    }
+
+    function ParseCustomItemListMatch(dumpInto, match, p1)
+    {
+        dumpInto[p1] = true;
+        return '';
+    }
+
+    function LoadCustomItems(ta, resultsDiv) {
+        var rawItemList = ta.value;
+        var itemList = {};
+        var items = [];
+
+        rawItemList = rawItemList.replace(/\bp(:\d+)+/g, ''); // remove pets from tsm shopping list
+        rawItemList = rawItemList.replace(/\bi(?:tem)?:(\d+)(?::\d+)*/g, ParseCustomItemListMatch.bind(null, itemList)); // use items without bonuses from tsm shopping list
+        rawItemList = rawItemList.replace(/(\d+)/g, ParseCustomItemListMatch.bind(null, itemList)); // any other numbers assumed to be items
+
+        for (var i in itemList) {
+            if (itemList.hasOwnProperty(i)) {
+                items.push(i);
+                if (items.length >= 250) {
+                    break;
+                }
+            }
+        }
+
+        if (!items.length) {
+            return;
+        }
+
+        $('#category-page').hide();
+        $('#progress-page').show();
+        $(resultsDiv).empty();
+
+        $.ajax({
+            data: {'items': items.join(',')},
+            method: 'POST',
+            success: function (d)
+            {
+                if (d.captcha) {
+                    tuj.AskCaptcha(d.captcha);
+                } else {
+                    if (d.hasOwnProperty('results')) {
+                        d.results.sort(function(a,b) {
+                            var aClass = a.hasOwnProperty('data') && a.data.hasOwnProperty('name') && (a.data.name.indexOf('itemClasses.') == 0) ? parseInt(a.data.name.substr(12)) : 0;
+                            var bClass = b.hasOwnProperty('data') && b.data.hasOwnProperty('name') && (b.data.name.indexOf('itemClasses.') == 0) ? parseInt(b.data.name.substr(12)) : 0;
+                            if (tujConstants.itemClassOrder.hasOwnProperty(aClass) && tujConstants.itemClassOrder.hasOwnProperty(bClass)) {
+                                return tujConstants.itemClassOrder[aClass] - tujConstants.itemClassOrder[bClass];
+                            }
+                            return 0;
+                        });
+                    }
+                    CategoryResult(false, d, resultsDiv);
+                }
+            },
+            error: function (xhr, stat, er)
+            {
+                if ((xhr.status == 503) && xhr.hasOwnProperty('responseJSON') && xhr.responseJSON && xhr.responseJSON.hasOwnProperty('maintenance')) {
+                    tuj.APIMaintenance(xhr.responseJSON.maintenance);
+                } else {
+                    alert('Error fetching page data: ' + stat + ' ' + er);
+                }
+            },
+            complete: function ()
+            {
+                $('#progress-page').hide();
+            },
+            url: 'api/category.php?house=' + tuj.realms[params.realm].house + '&id=custom'
+        });
+    }
+
+    function CategoryResult(hash, dta, resultsContainer)
     {
         if (hash) {
             lastResults.push({hash: hash, data: dta});
@@ -376,16 +484,16 @@ var TUJ_Category = function ()
             }
         }
 
-        var categoryPage = $('#category-page');
-        categoryPage.empty();
-        categoryPage.show();
+        var resultsDiv = resultsContainer ? $(resultsContainer) : $('#category-page');
+        resultsDiv.empty();
+        $('#category-page').show();
 
         if (!dta.hasOwnProperty('name')) {
             $('#page-title').empty().append(document.createTextNode(tuj.lang.category + ': ' + params.id));
             tuj.SetTitle(tuj.lang.category + ': ' + params.id);
 
             var h2 = libtuj.ce('h2');
-            categoryPage.append(h2);
+            resultsDiv.append(h2);
             h2.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.notFound, tuj.lang.category + ' ' + params.id)));
 
             return;
@@ -400,23 +508,23 @@ var TUJ_Category = function ()
         tuj.SetTitle(tuj.lang.category + ': ' + titleName);
 
         if (dta.hasOwnProperty('results')) {
-            categoryPage.append(libtuj.Ads.Add('8323200718'));
+            resultsDiv.append(libtuj.Ads.Add('8323200718'));
 
             var f, resultCount = 0;
             for (var x = 0; f = dta.results[x]; x++) {
                 if (resultFunctions.hasOwnProperty(f.name)) {
-                    d = libtuj.ce();
+                    var d = libtuj.ce();
                     d.className = 'category-' + f.name.toLowerCase();
-                    categoryPage.append(d);
+                    resultsDiv.append(d);
                     if (resultFunctions[f.name](f.data, d) && (++resultCount == 5)) {
-                        categoryPage.append(libtuj.Ads.Add('2276667118'));
+                        resultsDiv.append(libtuj.Ads.Add('2276667118'));
                     }
                 }
             }
         }
 
         if (dta.name == 'unusualItems') {
-            categoryPage.append(MakeNotificationsSection(tuj.realms[params.realm].house));
+            resultsDiv.append(MakeNotificationsSection(tuj.realms[params.realm].house));
         }
 
         libtuj.Ads.Show();
@@ -458,14 +566,28 @@ var TUJ_Category = function ()
             tr.appendChild(td);
             titleTd = td;
 
-            var sluggedName = data.name.toLowerCase().replace(/[^ a-z0-9]/, '');
+            var sluggedName = data.name.replace(/[^ a-zA-Z0-9\.]/, '');
             for (x = 0; x < sluggedName.length; x++) {
                 if (sluggedName.substr(x, 1) == ' ') {
                     sluggedName = sluggedName.substr(0, x) + sluggedName.substr(x+1, 1).toUpperCase() + sluggedName.substr(x+2);
                 }
             }
 
-            $(td).text(tuj.lang.hasOwnProperty(sluggedName) ? tuj.lang[sluggedName] : data.name);
+            var sluggedParts = sluggedName.split('.');
+            var langObj = tuj.lang;
+            var title = data.name;
+            while (sluggedParts.length) {
+                var slugPart = sluggedParts.shift();
+                if (!langObj.hasOwnProperty(slugPart)) {
+                    break;
+                }
+                if (!sluggedParts.length) {
+                    title = langObj[slugPart];
+                } else {
+                    langObj = langObj[slugPart];
+                }
+            }
+            $(td).text(title);
         }
 
         tr = libtuj.ce('tr');

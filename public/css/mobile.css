@@ -40,7 +40,7 @@ body {min-width: 18em}
 #subscription-messages,
 #search-page table, table.auctionlist, table.category {font-size:75%}
 
-#search-page table, table.auctionlist, table.category,
+#search-page table, table.auctionlist, table.category, .custom-textarea,
 #item-page .chart {width:100%;width:calc(100% + 2em);margin-left:-1em;margin-right:-1em}
 
 #bottom-bar {height:7em;margin-top:-7em;line-height:2em}

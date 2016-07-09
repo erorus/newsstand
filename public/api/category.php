@@ -145,6 +145,49 @@ EOF;
     return $tr;
 }
 
+function CategoryResult_custom($house) {
+    if (!isset($_POST['items'])) {
+        return [];
+    }
+
+    $maxId = (1<<24) - 1;
+
+    $items = [];
+    $c = min(250, preg_match_all('/\d+/', $_POST['items'], $res));
+    for ($x = 0; $x < $c; $x++) {
+        $id = intval($res[0][$x]);
+        if ($id > $maxId) {
+            continue;
+        }
+        $items[$id] = true;
+    }
+    if (!count($items)) {
+        return [];
+    }
+    $items = array_keys($items);
+    sort($items);
+
+    $rawResult = CategoryGenericItemList($house, 'i.id in (' . implode(',', $items) . ')');
+
+    $classLookup = [];
+    $tr = ['name' => 'custom', 'results' => []];
+    while ($item = array_pop($rawResult)) {
+        if (!isset($classLookup[$item['classid']])) {
+            $classLookup[$item['classid']] = count($tr['results']);
+            $tr['results'][$classLookup[$item['classid']]] = [
+                'name' => 'ItemList',
+                'data' => [
+                    'name' => 'itemClasses.' . $item['classid'],
+                    'items' => []
+                ]
+            ];
+        }
+        $tr['results'][$classLookup[$item['classid']]]['data']['items'][] = $item;
+    }
+
+    return $tr;
+}
+
 function CategoryResult_deals($house)
 {
     $tr = [

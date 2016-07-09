@@ -68,6 +68,7 @@
     "unusuals": "Incomuns",
     "unusualItems": "Itens Incomuns",
     "category_auction": "Casa de Leilões da Guarnição",
+    "custom": "Custom",
 
     "blacksmithing": "Ferraria",
     "leatherworking": "Couraria",
@@ -191,6 +192,7 @@
     "globalMedian": "Média Global",
     "regional": "Regional",
     "expandBreeds": "Clique \"({1})\" na Coluna de Breeds para expandir uma linha para breeds separados.",
+    "pasteInItems": "In the box below, paste in a list of item IDs to generate a custom category page with pricing information.",
     "flesh": "Carne",
     "small": "Pequeno",
     "regular": "Regular",

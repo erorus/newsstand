@@ -68,6 +68,7 @@
     "unusuals": "inhabituels",
     "unusualItems": "Objets inhabituels",
     "category_auction": "Fiefs HV",
+    "custom": "Custom",
 
     "blacksmithing": "Forge",
     "leatherworking": "Travail du cuir",
@@ -191,6 +192,7 @@
     "globalMedian": "Médian Global",
     "regional": "Regional",
     "expandBreeds": "Cliquez \"({1})\" dans la colonne races pour étendre la ligne aux différentes races.",
+    "pasteInItems": "In the box below, paste in a list of item IDs to generate a custom category page with pricing information.",
     "flesh": "Chair",
     "small": "Petit",
     "regular": "Normal",

@@ -68,6 +68,7 @@
     "unusuals": "Inusuales",
     "unusualItems": "Objetos Inusuales",
     "category_auction": "Subasta de Fortaleza",
+    "custom": "Custom",
 
     "blacksmithing": "Herrería",
     "leatherworking": "Peletería",
@@ -191,6 +192,7 @@
     "globalMedian": "Media Global",
     "regional": "Regional",
     "expandBreeds": "Click \"({1})\" in the Breeds column to expand the row for separate breeds.",
+    "pasteInItems": "In the box below, paste in a list of item IDs to generate a custom category page with pricing information.",
     "flesh": "Flesh",
     "small": "Pequeño",
     "regular": "Regular",

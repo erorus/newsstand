@@ -96,7 +96,7 @@ abbr:hover.full-date { border-bottom: 1px dotted }
 #progress-page { padding: 3em; text-align: center; }
 #progress-page div { background-image: url("../images/progress.gif"); background-repeat: no-repeat; background-position: center; height: 20px; }
 
-#search-page table, table.auctionlist, table.category { width: 54em; margin: 0 auto 2em; border-spacing: 0 }
+#search-page table, table.auctionlist, table.category, .custom-textarea { width: 54em; margin: 0 auto 2em; border-spacing: 0 }
 #search-page table th, table.auctionlist th, table.category th {padding: 0.4em 0.2em 0; border-bottom: 1px solid #CCC; font-weight: normal}
 #search-page table td, table.auctionlist td, table.category td {padding: 0.2em 0.4em}
 #search-page tr:hover td, table.auctionlist tr:hover td, table.category tr:hover td, td.hover {background-color: #EEE}
@@ -199,6 +199,8 @@ img.captcha-button.selected { border-color: #006600 }
 .category-battlepets tr.breed { display: none }
 .category-battlepets tr.breed td { border-top: 0; }
 .category-battlepets td.breeds, .category-battlepets th.breeds { font-size: 80%; text-align: right }
+
+.custom-textarea textarea { width: 100%; margin: 1em 0; height: 15em; box-sizing: border-box }
 
 .money-gold::after { content: "g " }
 .money-silver::after { content: "s " }

@@ -68,6 +68,7 @@
     "unusuals": "Selten gesehen",
     "unusualItems": "Selten gesehene Gegenstände",
     "category_auction": "Garnisions AH",
+    "custom": "Custom",
 
     "blacksmithing": "Schmiedekunst",
     "leatherworking": "Lederverarbeitung",
@@ -192,6 +193,7 @@
     "globalMedian": "Globales Mittel",
     "regional": "Regional",
     "expandBreeds": "Klicke \"({1})\" in der Züchtungen-Spalte um die Zeile für die verschieden Züchtungen aufzuklappen.",
+    "pasteInItems": "In the box below, paste in a list of item IDs to generate a custom category page with pricing information.",
     "flesh": "Fleisch",
     "small": "Klein",
     "regular": "Normal",
