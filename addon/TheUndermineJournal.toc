@@ -1,8 +1,8 @@
-## Interface: 60200
+## Interface: 70000
 ## Title: The Undermine Journal
 ## Notes: %s
 ## OptionalDeps: Auctionator, AuctionLite, LibExtraTip
-## Version: 4.1.%s
+## Version: 4.2.%s
 
 libs\LibStub.lua
 libs\LibRealmInfo.lua

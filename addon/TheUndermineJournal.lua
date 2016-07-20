@@ -1,6 +1,6 @@
 --[[
 
-TheUndermineJournal addon, v 4.1
+TheUndermineJournal addon, v 4.2
 https://theunderminejournal.com/
 
 You should be able to query this DB from other addons:
@@ -198,7 +198,7 @@ function TUJMarketInfo(item,...)
         local itemStringParts = { strsplit(":", itemString) }
         iid = itemStringParts[2]
 
-        local numBonuses = tonumber(itemStringParts[14],10)
+        local numBonuses = tonumber(itemStringParts[14],10) or 0
         bonusSet = 0
 
         if numBonuses > 0 then
