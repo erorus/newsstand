@@ -1,6 +1,6 @@
 --[[
 
-TheUndermineJournal addon, v 4.2
+TheUndermineJournal addon, v 4.4
 https://theunderminejournal.com/
 
 You should be able to query this DB from other addons:
@@ -45,10 +45,6 @@ This is useful for other addons (Auctioneer, TSM, etc) that have their own fancy
     TUJTooltip()        -> returns a boolean whether TUJ tooltips are enabled
     TUJTooltip(true)    -> enables TUJ tooltips
     TUJTooltip(false)   -> disables TUJ tooltips
-
-You may need to re-disable tooltips upon reloadui, or any other event that resets runtime variables.
-Tooltips are enabled by default and there is no savedvariable that remembers to shut them back off.
-See http://tuj.me/TUJTooltip for more information/examples.
 
 ]]
 
@@ -402,6 +398,9 @@ local function onEvent(self,event,arg)
         elseif not addonTable.marketData then
             print("The Undermine Journal - Warning: no data loaded!")
         else
+            if not tooltipsEnabled then
+                print("The Undermine Journal - Tooltip prices disabled. Run /tujtooltip to toggle.")
+            end
             LibExtraTip:AddCallback({type = "item", callback = onTooltipSetItem});
             LibExtraTip:AddCallback({type = "battlepet", callback = onTooltipSetItem});
             LibExtraTip:RegisterTooltip(GameTooltip)
@@ -409,11 +408,32 @@ local function onEvent(self,event,arg)
             LibExtraTip:RegisterTooltip(BattlePetTooltip)
             LibExtraTip:RegisterTooltip(FloatingBattlePetTooltip)
         end
+    elseif event == "ADDON_LOADED" then
+        tooltipsEnabled = not _G["TUJTooltipsHidden"]
+    elseif event == "PLAYER_LOGOUT" then
+        _G["TUJTooltipsHidden"] = not tooltipsEnabled
     end
 end
 
 eventframe:RegisterEvent("PLAYER_ENTERING_WORLD")
+eventframe:RegisterEvent("ADDON_LOADED")
+eventframe:RegisterEvent("PLAYER_LOGOUT")
 eventframe:SetScript("OnEvent", onEvent)
+
+SLASH_THEUNDERMINEJOURNAL1 = '/tujtooltip'
+function SlashCmdList.THEUNDERMINEJOURNAL(msg)
+    local newEnabled = not TUJTooltip()
+    if msg == 'on' then
+        newEnabled = true
+    elseif msg == 'off' then
+        newEnabled = false
+    end
+    if TUJTooltip(newEnabled) then
+        print("The Undermine Journal - Tooltip prices enabled.")
+    else
+        print("The Undermine Journal - Tooltip prices disabled.")
+    end
+end
 
 local origGetAuctionBuyout = GetAuctionBuyout
 local getAuctionBuyoutTable = {}

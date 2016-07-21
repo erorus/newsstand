@@ -2,7 +2,8 @@
 ## Title: The Undermine Journal
 ## Notes: %s
 ## OptionalDeps: Auctionator, AuctionLite, LibExtraTip
-## Version: 4.3.%s
+## SavedVariablesPerCharacter: TUJTooltipsHidden
+## Version: 4.4.%s
 
 libs\LibStub.lua
 libs\LibRealmInfo.lua
