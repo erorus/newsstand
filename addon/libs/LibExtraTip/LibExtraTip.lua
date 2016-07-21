@@ -1067,7 +1067,7 @@ function lib:GenerateTooltipMethodTable() -- Sets up hooks to give the quantity 
 			OnTooltipCleared(self)
 			local reg = tooltipRegistry[self]
 			reg.ignoreOnCleared = true
-			local _,_,q,_,cu = GetInboxItem(index)
+			local _,_,_,q,_,cu = GetInboxItem(index, 1)
 			reg.quantity = q
 			reg.additional.event = "SetInboxItem"
 			reg.additional.eventIndex = index
@@ -1153,7 +1153,7 @@ function lib:GenerateTooltipMethodTable() -- Sets up hooks to give the quantity 
 			OnTooltipCleared(self)
 			local reg = tooltipRegistry[self]
 			reg.ignoreOnCleared = true
-			local name,texture,quantity = GetSendMailItem(index)
+			local name,_,texture,quantity = GetSendMailItem(index)
 			reg.quantity = quantity
 			reg.additional.event = "SetSendMailItem"
 			reg.additional.eventIndex = index
@@ -1322,7 +1322,6 @@ function lib:GenerateTooltipMethodTable() -- Sets up hooks to give the quantity 
 			reg.additional.eventIndex = index
 			reg.additional.eventFilter = filter
 		end,
-		--]]
 
 		SetUnitBuff = function(self, unit, index, filter)
 			OnTooltipCleared(self)
@@ -1343,6 +1342,7 @@ function lib:GenerateTooltipMethodTable() -- Sets up hooks to give the quantity 
 			reg.additional.eventIndex = index
 			reg.additional.eventFilter = filter
 		end,
+		--]]
 	}
 
 	local function posthookClearIgnore(self)
@@ -1384,8 +1384,8 @@ function lib:GenerateTooltipMethodTable() -- Sets up hooks to give the quantity 
 		SetTrainerService = posthookClearIgnore,
 		--SetUnit = posthookClearIgnore,
 		--SetUnitAura = posthookClearIgnore,
-		SetUnitBuff = posthookClearIgnore,
-		SetUnitDebuff = posthookClearIgnore,
+		--SetUnitBuff = posthookClearIgnore,
+		--SetUnitDebuff = posthookClearIgnore,
 	}
 
 end
