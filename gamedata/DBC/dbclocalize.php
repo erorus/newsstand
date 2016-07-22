@@ -31,7 +31,7 @@ foreach ($LOCALES as $locale) {
 insert into tblDBCItemSubClass (class, subclass, name_$locale) values (?, ?, ?)
 on duplicate key update name_$locale = ifnull(values(name_$locale), name_$locale)
 EOF;
-    $reader = new Reader($dirnm . '/ItemSubClass.dbc');
+    $reader = new Reader($dirnm . '/ItemSubClass.db2');
     $reader->setFieldNames([0=>'name', 1=>'plural', 3=>'class', 4=>'subclass']);
     $stmt = $db->prepare($sql);
     $classs = $subclass = $name = null;
@@ -70,7 +70,7 @@ EOF;
 
     LogLine("$locale tblDBCItemBonus");
 
-    $reader = new Reader($dirnm . '/ItemNameDescription.dbc');
+    $reader = new Reader($dirnm . '/ItemNameDescription.db2');
     $reader->setFieldNames(['name']);
     $bonusNames = [];
     $x = 0; $recordCount = count($reader->getIds());

@@ -410,10 +410,10 @@ DB2TempTable('SpellIcon', ['iconpath']);
 RunAndLogError('update ttblSpellIcon set iconpath = substring_index(iconpath,\'\\\\\',-1) where instr(iconpath,\'\\\\\') > 0');
 
 DB2TempTable('SpellEffect', [
-	9=>'effecttypeid', //24 = create item, 53 = enchant, 157 = create tradeskill item
-	12=>'qtymade',
-	14=>'diesides',
-	15=>'itemcreated',
+	10=>'effecttypeid', //24 = create item, 53 = enchant, 157 = create tradeskill item
+	13=>'qtymade',
+	15=>'diesides',
+	16=>'itemcreated',
 	22=>'spellid',
 	23=>'effectorder',
 	]);
@@ -447,16 +447,13 @@ DB2TempTable('SpellMisc', [
     6=>'iconid',
 ]);
 
-// TODO: must handle arrays in db2temptable here
-exit;
-
 DB2TempTable('SpellReagents', [
 	0=>'spell',
-	1=>'reagents',
+	1=>'reagent',
 	2=>'reagentcount',
 ]);
 
-DB2TempTable('SkillLine', ['linecatid','linename']);
+DB2TempTable('SkillLine', [0=>'linename',5=>'linecatid']);
 DB2TempTable('SkillLineAbility', [0=>'spellid',4=>'lineid',6=>'greyat',7=>'yellowat']);
 
 RunAndLogError('CREATE temporary TABLE `ttblDBCSkillLines` (`id` smallint unsigned NOT NULL, `name` char(50) NOT NULL, PRIMARY KEY (`id`)) ENGINE=memory');
@@ -627,8 +624,8 @@ while ($row = $result->fetch_assoc()) {
 
     if (is_null($row['mx']))
         $exp = 'null';
-//    elseif ($row['mx'] > 100)
-//        $exp = 6; // legion
+    elseif ($row['mx'] > 100)
+        $exp = 6; // legion
     elseif ($row['mx'] > 90)
         $exp = 5; // wod
     elseif ($row['mx'] > 85)
@@ -690,7 +687,7 @@ function GetFileDataName($id) {
     return preg_replace('/\.blp$/', '', strtolower($row['name']));
 }
 
-function DB2TempTable($baseFile, $columns) {
+function DB2TempTable($baseFile, $columns, $signedCols=[]) {
     global $dirnm, $db;
 
     $filePath = "$dirnm/$baseFile.db2";
@@ -705,7 +702,15 @@ function DB2TempTable($baseFile, $columns) {
     LogLine("ttbl$baseFile");
     $reader = new Reader($filePath);
     $reader->setFieldNames($columns);
+    $reader->setFieldsSigned($signedCols);
     $fieldTypes = $reader->getFieldTypes();
+    $fieldCounts = [];
+    foreach ($reader->generateRecords() as $id => $rec) {
+        foreach ($columns as $colName) {
+            $fieldCounts[$colName] = is_array($rec[$colName]) ? count($rec[$colName]) : 1;
+        }
+        break;
+    }
 
     $maxLengths = [];
     foreach ($columns as $colName) {
@@ -719,42 +724,53 @@ function DB2TempTable($baseFile, $columns) {
         foreach ($reader->generateRecords() as $id => $rec) {
             EchoProgress(++$x / $recordCount);
             foreach ($maxLengths as $colName => &$maxLength) {
-                $maxLength = max($maxLength, strlen($rec[$colName]));
+                if (is_array($rec[$colName])) {
+                    foreach ($rec[$colName] as $recVal) {
+                        $maxLength = max($maxLength, strlen($recVal));
+                    }
+                } else {
+                    $maxLength = max($maxLength, strlen($rec[$colName]));
+                }
             }
             unset($maxLength);
         }
         EchoProgress(false);
     }
 
-    $sql = 'create temporary table `ttbl'.$baseFile.'` (`id`,';
+    $sql = 'create temporary table `ttbl'.$baseFile.'` (`id` int,';
     $y = 0;
+    $tableCols = [];
     $indexFields = ['id'];
     $paramTypes = 'i';
     foreach ($columns as $colName) {
         if ($y++ > 0) {
             $sql .= ',';
         }
-        $sql .= "`$colName` ";
-        if (strtolower(substr($colName,-2)) == 'id') {
-            $indexFields[] = $colName;
-        }
-        switch ($fieldTypes[$colName]) {
-            case Reader::FIELD_TYPE_INT:
-                $sql .= 'int';
-                $paramTypes .= 'i';
-                break;
-            case Reader::FIELD_TYPE_FLOAT:
-                $sql .= 'float';
-                $paramTypes .= 'd';
-                break;
-            case Reader::FIELD_TYPE_STRING:
-                $sql .= 'varchar(' . $maxLengths[$colName] . ')';
-                $paramTypes .= 's';
-                break;
-            default:
-                $sql .= 'int';
-                $paramTypes .= 'i';
-                break;
+        for ($x = 1; $x <= $fieldCounts[$colName]; $x++) {
+            $tableColName = $colName . ($fieldCounts[$colName] > 1 ? $x : '');
+            $sql .= ($x > 1 ? ',' : '') . "`$tableColName` ";
+            $tableCols[] = $tableColName;
+            if (strtolower(substr($colName,-2)) == 'id') {
+                $indexFields[] = $tableColName;
+            }
+            switch ($fieldTypes[$colName]) {
+                case Reader::FIELD_TYPE_INT:
+                    $sql .= 'int';
+                    $paramTypes .= 'i';
+                    break;
+                case Reader::FIELD_TYPE_FLOAT:
+                    $sql .= 'float';
+                    $paramTypes .= 'd';
+                    break;
+                case Reader::FIELD_TYPE_STRING:
+                    $sql .= 'varchar(' . $maxLengths[$colName] . ')';
+                    $paramTypes .= 's';
+                    break;
+                default:
+                    $sql .= 'int';
+                    $paramTypes .= 'i';
+                    break;
+            }
         }
     }
     foreach ($indexFields as $idx) {
@@ -764,14 +780,17 @@ function DB2TempTable($baseFile, $columns) {
 
     RunAndLogError($sql);
 
-    $sql = sprintf('insert into `%s` (`id`,`%s`) values (?,%s)', "ttbl$baseFile", implode('`,`', $columns), substr(str_repeat('?,', count($columns)), 0, -1));
+    $sql = sprintf('insert into `%s` (`id`,`%s`) values (?,%s)', "ttbl$baseFile", implode('`,`', $tableCols), substr(str_repeat('?,', count($tableCols)), 0, -1));
     $stmt = $db->prepare($sql);
     $row = [];
     $idCol = 0;
     $params = [$paramTypes, &$idCol];
     foreach ($columns as $colName) {
-        $row[$colName] = null;
-        $params[] = &$row[$colName];
+        for ($x = 1; $x <= $fieldCounts[$colName]; $x++) {
+            $tableColName = $colName . ($fieldCounts[$colName] > 1 ? $x : '');
+            $row[$tableColName] = null;
+            $params[] = &$row[$tableColName];
+        }
     }
     call_user_func_array([$stmt, 'bind_param'], $params);
     
@@ -780,7 +799,13 @@ function DB2TempTable($baseFile, $columns) {
         EchoProgress(++$x/$recordCount);
         $idCol = $id;
         foreach ($columns as $colName) {
-            $row[$colName] = $rec[$colName];
+            if ($fieldCounts[$colName] > 1) {
+                for ($z = 1; $z <= $fieldCounts[$colName]; $z++) {
+                    $row[$colName.$z] = $rec[$colName][$z-1];
+                }
+            } else {
+                $row[$colName] = $rec[$colName];
+            }
         }
         RunAndLogError($stmt->execute());
     }
