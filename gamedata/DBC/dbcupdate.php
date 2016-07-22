@@ -241,14 +241,10 @@ EchoProgress(false);
 unset($itemReader);
 unset($itemSparseReader);
 
-LogLine("TODO: the rest of this!");
-exit;
-
-
 $appearanceReader = new Reader($dirnm . '/ItemAppearance.db2');
-$appearanceReader->setFieldNames([0=>'id', 1=>'display', 2=>'iconfiledata']);
+$appearanceReader->setFieldNames(['display', 'iconfiledata']);
 $modifiedAppearanceReader = new Reader($dirnm . '/ItemModifiedAppearance.db2');
-$modifiedAppearanceReader->setFieldNames([1=>'item', 2=>'bonustype', 3=>'appearance', 4=>'iconoverride', 5=>'index']);
+$modifiedAppearanceReader->setFieldNames(['item', 'appearance', 'bonustype', 'index']);
 
 $sorted = [];
 $x = 0; $recordCount = count($modifiedAppearanceReader->getIds());
@@ -273,12 +269,9 @@ $stmt->bind_param('si', $icon, $id);
 $x = 0;
 foreach ($sorted as $rec) {
     EchoProgress(++$x / $recordCount);
-    $icon = GetFileDataName($rec['iconoverride']);
-    if (is_null($icon)) {
-        $appearance = $appearanceReader->getRecord($rec['appearance']);
-        if (!is_null($appearance)) {
-            $icon = GetFileDataName($appearance['iconfiledata']);
-        }
+    $appearance = $appearanceReader->getRecord($rec['appearance']);
+    if (!is_null($appearance)) {
+        $icon = GetFileDataName($appearance['iconfiledata']);
     }
     if (is_null($icon)) {
         continue;
@@ -310,7 +303,7 @@ unset($sorted, $appearanceReader, $modifiedAppearanceReader);
 
 // this bonus tree node stuff probably isn't quite right
 $bonusTreeNodeReader = new Reader($dirnm . '/ItemBonusTreeNode.db2');
-$bonusTreeNodeReader->setFieldNames([1=>'node', 4=>'bonus']);
+$bonusTreeNodeReader->setFieldNames(['node', 2=>'bonus']);
 $nodeLookup = [];
 $x = 0; $recordCount = count($bonusTreeNodeReader->getIds());
 foreach ($bonusTreeNodeReader->generateRecords() as $rec) {
@@ -323,7 +316,7 @@ foreach ($bonusTreeNodeReader->generateRecords() as $rec) {
 unset($bonusTreeNodeReader);
 
 $itemXBonusTreeReader = new Reader($dirnm . '/ItemXBonusTree.db2');
-$itemXBonusTreeReader->setFieldNames([1=>'item', 2=>'node']);
+$itemXBonusTreeReader->setFieldNames(['item', 'node']);
 
 $sql = <<<'EOF'
 update tblDBCItem 
@@ -352,7 +345,7 @@ EchoProgress(false);
 
 LogLine("tblDBCItemSpell");
 $reader = new Reader($dirnm . '/ItemEffect.db2');
-$reader->setFieldNames([1=>'item', 3=>'spell']);
+$reader->setFieldNames(['item', 'spell']);
 RunAndLogError('truncate table tblDBCItemSpell');
 $sql = 'insert ignore into tblDBCItemSpell (item, spell) values (?, ?)';
 $stmt = $db->prepare($sql);
@@ -374,7 +367,7 @@ unset($reader);
 
 LogLine("tblDBCRandEnchants");
 $reader = new Reader($dirnm . '/ItemRandomSuffix.db2');
-$reader->setFieldNames(['id', 'name']);
+$reader->setFieldNames(['name']);
 RunAndLogError('truncate table tblDBCRandEnchants');
 $stmt = $db->prepare("insert into tblDBCRandEnchants (id, name_$locale) values (?, ?) on duplicate key update name_$locale = values(name_$locale)");
 $enchId = $name = null;
@@ -391,7 +384,7 @@ EchoProgress(false);
 unset($reader);
 
 $reader = new Reader($dirnm . '/ItemRandomProperties.db2');
-$reader->setFieldNames(['id', 'name']);
+$reader->setFieldNames(['name']);
 $stmt = $db->prepare("insert into tblDBCRandEnchants (id, name_$locale) values (?, ?) on duplicate key update name_$locale = values(name_$locale)");
 $enchId = $name = null;
 $stmt->bind_param('is', $enchId, $name);
@@ -413,79 +406,61 @@ $stmt->close();
 
 LogLine("Making spell temp tables..");
 
-DB2TempTable('SpellIcon', array(0=>'iconid',1=>'iconpath'));
+DB2TempTable('SpellIcon', ['iconpath']);
 RunAndLogError('update ttblSpellIcon set iconpath = substring_index(iconpath,\'\\\\\',-1) where instr(iconpath,\'\\\\\') > 0');
 
 DB2TempTable('SpellEffect', [
-	0=>'effectid',
-	2=>'effecttypeid', //24 = create item, 53 = enchant, 157 = create tradeskill item
-	6=>'qtymade',
-	10=>'diesides',
-	11=>'itemcreated',
-	27=>'spellid',
-	28=>'effectorder',
+	9=>'effecttypeid', //24 = create item, 53 = enchant, 157 = create tradeskill item
+	12=>'qtymade',
+	14=>'diesides',
+	15=>'itemcreated',
+	22=>'spellid',
+	23=>'effectorder',
 	]);
 
 DB2TempTable('Spell', [
-	0=>'spellid',
-	1=>'spellname',
-	3=>'longdescription',
-    12=>'categoriesid',
-    14=>'cooldownsid',
-	18=>'reagentsid',
-    23=>'miscid',
+	0=>'spellname',
+	2=>'longdescription',
+    4=>'miscid',
 	]);
 
 DB2TempTable('SpellCooldowns', [
-    0=>'id',
-    3=>'categorycooldown',
-    4=>'individualcooldown',
+    0=>'spell',
+    1=>'categorycooldown',
+    2=>'individualcooldown',
 ]);
 
 DB2TempTable('SpellCategories', [
-    0=>'id',
-    3=>'categoryid',
-    9=>'chargecategoryid',
+    0=>'spell',
+    2=>'categoryid',
+    8=>'chargecategoryid',
 ]);
 
 DB2TempTable('SpellCategory', [
-    0=>'id',
-    1=>'flags',
-    5=>'chargecooldown',
+    1=>'chargecooldown',
+    2=>'flags',
 ]);
 
 RunAndLogError('create temporary table ttblSpellCategory2 select * from ttblSpellCategory');
 
 DB2TempTable('SpellMisc', [
-    0=>'miscid',
-    21=>'iconid',
+    6=>'iconid',
 ]);
+
+// TODO: must handle arrays in db2temptable here
+exit;
 
 DB2TempTable('SpellReagents', [
-	0=>'reagentsid',
-	1=>'reagent1',
-	2=>'reagent2',
-	3=>'reagent3',
-	4=>'reagent4',
-	5=>'reagent5',
-	6=>'reagent6',
-	7=>'reagent7',
-	8=>'reagent8',
-	9=>'reagentcount1',
-	10=>'reagentcount2',
-	11=>'reagentcount3',
-	12=>'reagentcount4',
-	13=>'reagentcount5',
-	14=>'reagentcount6',
-	15=>'reagentcount7',
-	16=>'reagentcount8'
+	0=>'spell',
+	1=>'reagents',
+	2=>'reagentcount',
 ]);
 
-DB2TempTable('SkillLine', [0=>'lineid',1=>'linecatid',2=>'linename']);
-DB2TempTable('SkillLineAbility', [0=>'slaid',1=>'lineid',2=>'spellid',8=>'greyat',9=>'yellowat']);
+DB2TempTable('SkillLine', ['linecatid','linename']);
+DB2TempTable('SkillLineAbility', [0=>'spellid',4=>'lineid',6=>'greyat',7=>'yellowat']);
 
 RunAndLogError('CREATE temporary TABLE `ttblDBCSkillLines` (`id` smallint unsigned NOT NULL, `name` char(50) NOT NULL, PRIMARY KEY (`id`)) ENGINE=memory');
-RunAndLogError('insert into ttblDBCSkillLines (select lineid, linename from ttblSkillLine where ((linecatid=11) or (linecatid=9 and (linename=\'Cooking\' or linename like \'Way of %\'))))');
+RunAndLogError('insert into ttblDBCSkillLines (select id, linename from ttblSkillLine where ((linecatid=11) or (linecatid=9 and (linename=\'Cooking\' or linename like \'Way of %\'))))');
 
 LogLine('Getting trades..');
 RunAndLogError('truncate tblDBCItemReagents');
@@ -496,11 +471,11 @@ insert into tblDBCItemReagents (item, skillline, reagent, quantity, spell) (
         sl.id, 
         sr.reagent%1$d, 
         sr.reagentcount%1$d/if(se.diesides=0,if(se.qtymade=0,1,se.qtymade),(se.qtymade * 2 + se.diesides + 1)/2), 
-        s.spellid 
+        s.id 
     from ttblSpell s
-    join ttblSpellReagents sr on sr.reagentsid = s.reagentsid 
-    join ttblSpellEffect se on se.spellid = s.spellid 
-    join ttblSkillLineAbility sla on sla.spellid = s.spellid
+    join ttblSpellReagents sr on sr.spell = s.id 
+    join ttblSpellEffect se on se.spellid = s.id 
+    join ttblSkillLineAbility sla on sla.spellid = s.id
     join ttblDBCSkillLines sl on sl.id = sla.lineid
     where se.itemcreated != 0 and sr.reagent%1$d != 0
 )
@@ -511,7 +486,7 @@ EOF;
 RunAndLogError('truncate tblDBCSpell');
 $sql = <<<EOF
 insert into tblDBCSpell (id,name,icon,description,cooldown,qtymade,yellow,skillline,crafteditem)
-(select distinct s.spellid, s.spellname, si.iconpath, s.longdescription,
+(select distinct s.id, s.spellname, si.iconpath, s.longdescription,
     greatest(
         ifnull(cd.categorycooldown * if(c.flags & 8, 86400, 1),0),
         ifnull(cd.individualcooldown * if(c.flags & 8, 86400, 1),0),
@@ -519,23 +494,23 @@ insert into tblDBCSpell (id,name,icon,description,cooldown,qtymade,yellow,skilll
     if(se.itemcreated=0,0,if(se.diesides=0,if(se.qtymade=0,1,se.qtymade),(se.qtymade * 2 + se.diesides + 1)/2)),
     sla.yellowat,sla.lineid,if(se.itemcreated=0,null,se.itemcreated)
 from ttblSpell s
-left join ttblSpellMisc sm on s.miscid=sm.miscid
-left join ttblSpellIcon si on si.iconid=sm.iconid
-left join ttblSpellCooldowns cd on cd.id = s.cooldownsid
-left join ttblSpellCategories cs on cs.id = s.categoriesid
+left join ttblSpellMisc sm on s.miscid=sm.id
+left join ttblSpellIcon si on si.id=sm.iconid
+left join ttblSpellCooldowns cd on cd.spell = s.id
+left join ttblSpellCategories cs on cs.spell = s.id
 left join ttblSpellCategory c on c.id = cs.categoryid
 left join ttblSpellCategory2 cc on cc.id = cs.chargecategoryid
-join tblDBCItemReagents ir on s.spellid=ir.spell
-join ttblSpellEffect se on s.spellid=se.spellid
-join ttblSkillLineAbility sla on s.spellid=sla.spellid
+join tblDBCItemReagents ir on s.id=ir.spell
+join ttblSpellEffect se on s.id=se.spellid
+join ttblSkillLineAbility sla on s.id=sla.spellid
 where se.effecttypeid in (24,53,157))
 EOF;
 RunAndLogError($sql);
 
 $sql = 'insert ignore into tblDBCSpell (id,name,icon,description) ';
-$sql .= ' (select distinct s.spellid, s.spellname, si.iconpath, s.longdescription ';
-$sql .= ' from ttblSpell s left join ttblSpellMisc sm on s.miscid=sm.miscid left join ttblSpellIcon si on si.iconid=sm.iconid ';
-$sql .= ' join tblDBCItemSpell dis on dis.spell=s.spellid) ';
+$sql .= ' (select distinct s.id, s.spellname, si.iconpath, s.longdescription ';
+$sql .= ' from ttblSpell s left join ttblSpellMisc sm on s.miscid=sm.id left join ttblSpellIcon si on si.id=sm.iconid ';
+$sql .= ' join tblDBCItemSpell dis on dis.spell=s.id) ';
 RunAndLogError($sql);
 
 $sql = <<<EOF
@@ -751,10 +726,10 @@ function DB2TempTable($baseFile, $columns) {
         EchoProgress(false);
     }
 
-    $sql = 'create temporary table `ttbl'.$baseFile.'` (';
+    $sql = 'create temporary table `ttbl'.$baseFile.'` (`id`,';
     $y = 0;
-    $indexFields = [];
-    $paramTypes = '';
+    $indexFields = ['id'];
+    $paramTypes = 'i';
     foreach ($columns as $colName) {
         if ($y++ > 0) {
             $sql .= ',';
@@ -789,10 +764,11 @@ function DB2TempTable($baseFile, $columns) {
 
     RunAndLogError($sql);
 
-    $sql = sprintf('insert into `%s` (`%s`) values (%s)', "ttbl$baseFile", implode('`,`', $columns), substr(str_repeat('?,', count($columns)), 0, -1));
+    $sql = sprintf('insert into `%s` (`id`,`%s`) values (?,%s)', "ttbl$baseFile", implode('`,`', $columns), substr(str_repeat('?,', count($columns)), 0, -1));
     $stmt = $db->prepare($sql);
     $row = [];
-    $params = [$paramTypes];
+    $idCol = 0;
+    $params = [$paramTypes, &$idCol];
     foreach ($columns as $colName) {
         $row[$colName] = null;
         $params[] = &$row[$colName];
@@ -802,6 +778,7 @@ function DB2TempTable($baseFile, $columns) {
     $x = 0; $recordCount = count($reader->getIds());
     foreach ($reader->generateRecords() as $id => $rec) {
         EchoProgress(++$x/$recordCount);
+        $idCol = $id;
         foreach ($columns as $colName) {
             $row[$colName] = $rec[$colName];
         }

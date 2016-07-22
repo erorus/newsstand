@@ -32,7 +32,7 @@ insert into tblDBCItemSubClass (class, subclass, name_$locale) values (?, ?, ?)
 on duplicate key update name_$locale = ifnull(values(name_$locale), name_$locale)
 EOF;
     $reader = new Reader($dirnm . '/ItemSubClass.dbc');
-    $reader->setFieldNames([1=>'class', 2=>'subclass', 11=>'name', 12=>'plural']);
+    $reader->setFieldNames([0=>'name', 1=>'plural', 3=>'class', 4=>'subclass']);
     $stmt = $db->prepare($sql);
     $classs = $subclass = $name = null;
     $stmt->bind_param('iis', $classs, $subclass, $name);
@@ -53,7 +53,7 @@ EOF;
 
     LogLine("$locale tblDBCItem");
     $reader = new Reader($dirnm . '/Item-sparse.db2');
-    $reader->setFieldNames([70 => 'name']);
+    $reader->setFieldNames([13 => 'name']);
     $stmt = $db->prepare("insert into tblDBCItem (id, name_$locale) values (?, ?) on duplicate key update name_$locale = ifnull(values(name_$locale), name_$locale)");
     $id = $name = null;
     $stmt->bind_param('is', $id, $name);
@@ -71,7 +71,7 @@ EOF;
     LogLine("$locale tblDBCItemBonus");
 
     $reader = new Reader($dirnm . '/ItemNameDescription.dbc');
-    $reader->setFieldNames([1 =>'name']);
+    $reader->setFieldNames(['name']);
     $bonusNames = [];
     $x = 0; $recordCount = count($reader->getIds());
     foreach ($reader->generateRecords() as $id => $rec) {
@@ -82,7 +82,7 @@ EOF;
     unset($reader);
 
     $reader = new Reader($dirnm . '/ItemBonus.db2');
-    $reader->setFieldNames([1=>'bonusid', 2=>'changetype', 3=>'param1', 4=>'param2', 5=>'prio']);
+    $reader->setFieldNames(['params', 'bonusid', 'changetype', 'prio']);
     $bonusRows = [];
     $x = 0; $recordCount = count($reader->getIds());
     foreach ($reader->generateRecords() as $id => $rec) {
@@ -102,16 +102,16 @@ EOF;
                 if (!isset($bonuses[$row['bonusid']]['nametag'])) {
                     $bonuses[$row['bonusid']]['nametag'] = ['name' => '', 'prio' => -1];
                 }
-                if ($bonuses[$row['bonusid']]['nametag']['prio'] < $row['param2']) {
-                    $bonuses[$row['bonusid']]['nametag'] = ['name' => isset($bonusNames[$row['param1']]) ? $bonusNames[$row['param1']] : $row['param1'], 'prio' => $row['param2']];
+                if ($bonuses[$row['bonusid']]['nametag']['prio'] < $row['params'][1]) {
+                    $bonuses[$row['bonusid']]['nametag'] = ['name' => isset($bonusNames[$row['params'][0]]) ? $bonusNames[$row['params'][0]] : $row['params'][0], 'prio' => $row['params'][1]];
                 }
                 break;
             case 5: // rand enchant name
                 if (!isset($bonuses[$row['bonusid']]['randname'])) {
                     $bonuses[$row['bonusid']]['randname'] = ['name' => '', 'prio' => -1];
                 }
-                if ($bonuses[$row['bonusid']]['randname']['prio'] < $row['param2']) {
-                    $bonuses[$row['bonusid']]['randname'] = ['name' => isset($bonusNames[$row['param1']]) ? $bonusNames[$row['param1']] : $row['param1'], 'prio' => $row['param2']];
+                if ($bonuses[$row['bonusid']]['randname']['prio'] < $row['params'][1]) {
+                    $bonuses[$row['bonusid']]['randname'] = ['name' => isset($bonusNames[$row['params'][0]]) ? $bonusNames[$row['params'][0]] : $row['params'][0], 'prio' => $row['params'][1]];
                 }
                 break;
         }
@@ -137,7 +137,7 @@ EOF;
     LogLine("$locale tblDBCRandEnchants");
 
     $reader = new Reader($dirnm . '/ItemRandomSuffix.db2');
-    $reader->setFieldNames(['id', 'name']);
+    $reader->setFieldNames(['name']);
     $stmt = $db->prepare("insert into tblDBCRandEnchants (id, name_$locale) values (?, ?) on duplicate key update name_$locale = ifnull(values(name_$locale), name_enus)");
     $enchId = $name = null;
     $stmt->bind_param('is', $enchId, $name);
@@ -156,7 +156,7 @@ EOF;
     unset($reader);
 
     $reader = new Reader($dirnm . '/ItemRandomProperties.db2');
-    $reader->setFieldNames(['id', 'name']);
+    $reader->setFieldNames(['name']);
     $stmt = $db->prepare("insert into tblDBCRandEnchants (id, name_$locale) values (?, ?) on duplicate key update name_$locale = ifnull(values(name_$locale), name_enus)");
     $enchId = $name = null;
     $stmt->bind_param('is', $enchId, $name);
@@ -181,9 +181,9 @@ EOF;
     LogLine("$locale tblDBCPet");
 
     $battlePetReader = new Reader($dirnm . '/BattlePetSpecies.db2');
-    $battlePetReader->setFieldNames(['id', 'npc']);
+    $battlePetReader->setFieldNames(['npc']);
     $creatureReader = new Reader($dirnm . '/Creature.db2');
-    $creatureReader->setFieldNames(['id', 14=>'name']);
+    $creatureReader->setFieldNames([4=>'name']);
     $stmt = $db->prepare("insert into tblDBCPet (id, name_$locale) values (?, ?) on duplicate key update name_$locale = values(name_$locale)");
     $species = $name = null;
     $stmt->bind_param('is', $species, $name);
