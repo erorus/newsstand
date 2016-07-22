@@ -23,6 +23,10 @@ foreach ($langs as $lang) {
     if (!isset($jsons[$lang])) {
         continue;
     }
-    $fn = __DIR__."/subclass.$lang.json";
-    file_put_contents($fn, json_encode($jsons[$lang], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    $jsonChunk = preg_replace('/(^|\n)[ \t]+/', '$1        ', substr(json_encode($jsons[$lang], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), 1, -1));
+
+    $fn = __DIR__."/../public/js/locale/$lang.json";
+    $localeFile = file_get_contents($fn);
+    $localeFile = preg_replace('/("itemSubClasses": \{)[^\}]+\n(\s*\})/', '$1'.$jsonChunk.'$2', $localeFile);
+    file_put_contents($fn, $localeFile);
 }
