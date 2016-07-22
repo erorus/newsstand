@@ -14,16 +14,16 @@ LogLine("Starting!");
 DBConnect();
 RunAndLogError('set session max_heap_table_size='.(1024*1024*1024));
 
-$fileDataReader = new Reader($dirnm . '/FileData.dbc');
-$fileDataReader->setFieldNames(['id', 'name']);
+$fileDataReader = new Reader($dirnm . '/ManifestInterfaceData.db2');
+$fileDataReader->setFieldNames(['path', 'name']);
 
 LogLine("tblDBCItemSubClass");
 $sql = <<<EOF
 insert into tblDBCItemSubClass (class, subclass, name_$locale) values (?, ?, ?)
 on duplicate key update name_$locale = ifnull(values(name_$locale), name_$locale)
 EOF;
-$reader = new Reader($dirnm . '/ItemSubClass.dbc');
-$reader->setFieldNames([1=>'class', 2=>'subclass', 11=>'name', 12=>'plural']);
+$reader = new Reader($dirnm . '/ItemSubClass.db2');
+$reader->setFieldNames([0=>'name', 1=>'plural', 3=>'class', 4=>'subclass']);
 RunAndLogError('truncate tblDBCItemSubClass');
 $stmt = $db->prepare($sql);
 $classs = $subclass = $name = null;
@@ -44,10 +44,10 @@ EchoProgress(false);
 unset($reader);
 
 $battlePetSpeciesReader = new Reader($dirnm . '/BattlePetSpecies.db2');
-$battlePetSpeciesReader->setFieldNames([0=>'id', 1=>'npcid', 2=>'iconid', 4=>'type', 5=>'category', 6=>'flags']);
+$battlePetSpeciesReader->setFieldNames([0=>'npcid', 1=>'iconid', 5=>'flags', 6=>'type', 7=>'category']);
 
 $creatureReader = new Reader($dirnm . '/Creature.db2');
-$creatureReader->setFieldNames([0=>'id', 14=>'name']);
+$creatureReader->setFieldNames([4=>'name']);
 
 LogLine("tblDBCPet");
 RunAndLogError('truncate tblDBCPet');
@@ -60,8 +60,8 @@ foreach ($battlePetSpeciesReader->generateRecords() as $recId => $rec) {
     $id = $recId;
 
     $creatureRec = $creatureReader->getRecord($rec['npcid']);
-    $name = is_null($creatureRec) ? null : $creatureRec['name'];
-    
+    $name = is_null($creatureRec) ? 'NPC ' . $rec['npcid'] : $creatureRec['name'];
+
     $type = $rec['type'];
     $icon = GetFileDataName($rec['iconid']);
     $npc = $rec['npcid'];
@@ -81,7 +81,8 @@ $stateFields = [
     20 => 'speed',
 ];
 $reader = new Reader($dirnm . '/BattlePetSpeciesState.db2');
-$reader->setFieldNames([0=>'id', 1=>'species', 2=>'state', 3=>'amount']);
+$reader->setFieldNames([0=>'amount', 1=>'species', 2=>'state']);
+$reader->setFieldsSigned([0=>true]);
 $x = 0; $recordCount = count($reader->getIds());
 foreach ($reader->generateRecords() as $rec) {
     EchoProgress(++$x/$recordCount);
@@ -94,8 +95,8 @@ unset($reader);
 
 LogLine("tblDBCItemBonus");
 
-$reader = new Reader($dirnm . '/ItemNameDescription.dbc');
-$reader->setFieldNames([1 =>'name']);
+$reader = new Reader($dirnm . '/ItemNameDescription.db2');
+$reader->setFieldNames(['name']);
 $bonusNames = [];
 $x = 0; $recordCount = count($reader->getIds());
 foreach ($reader->generateRecords() as $id => $rec) {
@@ -106,7 +107,8 @@ EchoProgress(false);
 unset($reader);
 
 $reader = new Reader($dirnm . '/ItemBonus.db2');
-$reader->setFieldNames([1=>'bonusid', 2=>'changetype', 3=>'param1', 4=>'param2', 5=>'prio']);
+$reader->setFieldNames(['params', 'bonusid', 'changetype', 'prio']);
+$reader->setFieldsSigned([true]);
 $bonusRows = [];
 $x = 0; $recordCount = count($reader->getIds());
 foreach ($reader->generateRecords() as $id => $rec) {
@@ -126,25 +128,25 @@ foreach ($bonusRows as $row) {
             if (!isset($bonuses[$row['bonusid']]['itemlevel'])) {
                 $bonuses[$row['bonusid']]['itemlevel'] = 0;
             }
-            $bonuses[$row['bonusid']]['itemlevel'] += $row['param1'];
+            $bonuses[$row['bonusid']]['itemlevel'] += $row['params'][0];
             break;
         case 3: // quality
-            $bonuses[$row['bonusid']]['quality'] = $row['param1'];
+            $bonuses[$row['bonusid']]['quality'] = $row['params'][0];
             break;
         case 4: // nametag
             if (!isset($bonuses[$row['bonusid']]['nametag'])) {
                 $bonuses[$row['bonusid']]['nametag'] = ['name' => '', 'prio' => -1];
             }
-            if ($bonuses[$row['bonusid']]['nametag']['prio'] < $row['param2']) {
-                $bonuses[$row['bonusid']]['nametag'] = ['name' => isset($bonusNames[$row['param1']]) ? $bonusNames[$row['param1']] : $row['param1'], 'prio' => $row['param2']];
+            if ($bonuses[$row['bonusid']]['nametag']['prio'] < $row['params'][1]) {
+                $bonuses[$row['bonusid']]['nametag'] = ['name' => isset($bonusNames[$row['params'][0]]) ? $bonusNames[$row['params'][0]] : $row['params'][0], 'prio' => $row['params'][1]];
             }
             break;
         case 5: // rand enchant name
             if (!isset($bonuses[$row['bonusid']]['randname'])) {
                 $bonuses[$row['bonusid']]['randname'] = ['name' => '', 'prio' => -1];
             }
-            if ($bonuses[$row['bonusid']]['randname']['prio'] < $row['param2']) {
-                $bonuses[$row['bonusid']]['randname'] = ['name' => isset($bonusNames[$row['param1']]) ? $bonusNames[$row['param1']] : $row['param1'], 'prio' => $row['param2']];
+            if ($bonuses[$row['bonusid']]['randname']['prio'] < $row['params'][1]) {
+                $bonuses[$row['bonusid']]['randname'] = ['name' => isset($bonusNames[$row['params'][0]]) ? $bonusNames[$row['params'][0]] : $row['params'][0], 'prio' => $row['params'][1]];
             }
             break;
     }
@@ -170,25 +172,22 @@ RunAndLogError('update tblDBCItemBonus set flags = flags | 1 where ifnull(level,
 
 LogLine("tblDBCItem");
 $itemReader = new Reader($dirnm . '/Item.db2');
-$itemReader->setFieldNames([0=>'id', 1=>'class', 2=>'subclass', 7=>'iconfiledata']);
+$itemReader->setFieldNames(['iconfiledata', 'class', 'subclass']);
 $itemSparseReader = new Reader($dirnm . '/Item-sparse.db2');
 $itemSparseReader->setFieldNames([
-    0=>'id',
-    1=>'quality',
-    3=>'flags2',
-    7=>'buycount',
-    8=>'buyprice',
-    9=>'sellprice',
-    10=>'type',
-    13=>'level',
-    14=>'requiredlevel',
-    15=>'requiredskill',
-    23=>'stacksize',
-    69=>'binds',
-    70=>'name'
+    0=>'flags',
+    3=>'buyprice',
+    4=>'sellprice',
+    9=>'stacksize',
+    13=>'name',
+    22=>'level',
+    23=>'requiredskill',
+    42=>'quality',
+    43=>'buycount',
+    44=>'type',
+    45=>'requiredlevel',
+    52=>'binds',
 ]);
-
-$pvpStatIds = [35,57];
 
 RunAndLogError('truncate table tblDBCItem');
 $sql = <<<'EOF'
@@ -231,7 +230,7 @@ foreach ($itemReader->generateRecords() as $recId => $rec) {
     $requiredLevel = $sparseRec['requiredlevel'];
     $requiredSkill = $sparseRec['requiredskill'];
 
-    $noTransmogFlag = ($sparseRec['flags2'] & 0x400000) ? 2 : 0;
+    $noTransmogFlag = ($sparseRec['flags'][1] & 0x400000) ? 2 : 0;
 
     $flags = $noTransmogFlag;
 
@@ -243,9 +242,9 @@ unset($itemReader);
 unset($itemSparseReader);
 
 $appearanceReader = new Reader($dirnm . '/ItemAppearance.db2');
-$appearanceReader->setFieldNames([0=>'id', 1=>'display', 2=>'iconfiledata']);
+$appearanceReader->setFieldNames(['display', 'iconfiledata']);
 $modifiedAppearanceReader = new Reader($dirnm . '/ItemModifiedAppearance.db2');
-$modifiedAppearanceReader->setFieldNames([1=>'item', 2=>'bonustype', 3=>'appearance', 4=>'iconoverride', 5=>'index']);
+$modifiedAppearanceReader->setFieldNames(['item', 'appearance', 'bonustype', 'index']);
 
 $sorted = [];
 $x = 0; $recordCount = count($modifiedAppearanceReader->getIds());
@@ -270,12 +269,9 @@ $stmt->bind_param('si', $icon, $id);
 $x = 0;
 foreach ($sorted as $rec) {
     EchoProgress(++$x / $recordCount);
-    $icon = GetFileDataName($rec['iconoverride']);
-    if (is_null($icon)) {
-        $appearance = $appearanceReader->getRecord($rec['appearance']);
-        if (!is_null($appearance)) {
-            $icon = GetFileDataName($appearance['iconfiledata']);
-        }
+    $appearance = $appearanceReader->getRecord($rec['appearance']);
+    if (!is_null($appearance)) {
+        $icon = GetFileDataName($appearance['iconfiledata']);
     }
     if (is_null($icon)) {
         continue;
@@ -307,7 +303,7 @@ unset($sorted, $appearanceReader, $modifiedAppearanceReader);
 
 // this bonus tree node stuff probably isn't quite right
 $bonusTreeNodeReader = new Reader($dirnm . '/ItemBonusTreeNode.db2');
-$bonusTreeNodeReader->setFieldNames([1=>'node', 4=>'bonus']);
+$bonusTreeNodeReader->setFieldNames(['node', 2=>'bonus']);
 $nodeLookup = [];
 $x = 0; $recordCount = count($bonusTreeNodeReader->getIds());
 foreach ($bonusTreeNodeReader->generateRecords() as $rec) {
@@ -320,7 +316,7 @@ foreach ($bonusTreeNodeReader->generateRecords() as $rec) {
 unset($bonusTreeNodeReader);
 
 $itemXBonusTreeReader = new Reader($dirnm . '/ItemXBonusTree.db2');
-$itemXBonusTreeReader->setFieldNames([1=>'item', 2=>'node']);
+$itemXBonusTreeReader->setFieldNames(['item', 'node']);
 
 $sql = <<<'EOF'
 update tblDBCItem 
@@ -349,7 +345,7 @@ EchoProgress(false);
 
 LogLine("tblDBCItemSpell");
 $reader = new Reader($dirnm . '/ItemEffect.db2');
-$reader->setFieldNames([1=>'item', 3=>'spell']);
+$reader->setFieldNames(['item', 'spell']);
 RunAndLogError('truncate table tblDBCItemSpell');
 $sql = 'insert ignore into tblDBCItemSpell (item, spell) values (?, ?)';
 $stmt = $db->prepare($sql);
@@ -371,7 +367,7 @@ unset($reader);
 
 LogLine("tblDBCRandEnchants");
 $reader = new Reader($dirnm . '/ItemRandomSuffix.db2');
-$reader->setFieldNames(['id', 'name']);
+$reader->setFieldNames(['name']);
 RunAndLogError('truncate table tblDBCRandEnchants');
 $stmt = $db->prepare("insert into tblDBCRandEnchants (id, name_$locale) values (?, ?) on duplicate key update name_$locale = values(name_$locale)");
 $enchId = $name = null;
@@ -388,7 +384,7 @@ EchoProgress(false);
 unset($reader);
 
 $reader = new Reader($dirnm . '/ItemRandomProperties.db2');
-$reader->setFieldNames(['id', 'name']);
+$reader->setFieldNames(['name']);
 $stmt = $db->prepare("insert into tblDBCRandEnchants (id, name_$locale) values (?, ?) on duplicate key update name_$locale = values(name_$locale)");
 $enchId = $name = null;
 $stmt->bind_param('is', $enchId, $name);
@@ -410,79 +406,58 @@ $stmt->close();
 
 LogLine("Making spell temp tables..");
 
-DB2TempTable('SpellIcon', array(0=>'iconid',1=>'iconpath'));
+DB2TempTable('SpellIcon', ['iconpath']);
 RunAndLogError('update ttblSpellIcon set iconpath = substring_index(iconpath,\'\\\\\',-1) where instr(iconpath,\'\\\\\') > 0');
 
 DB2TempTable('SpellEffect', [
-	0=>'effectid',
-	2=>'effecttypeid', //24 = create item, 53 = enchant, 157 = create tradeskill item
-	6=>'qtymade',
-	10=>'diesides',
-	11=>'itemcreated',
-	27=>'spellid',
-	28=>'effectorder',
+	10=>'effecttypeid', //24 = create item, 53 = enchant, 157 = create tradeskill item
+	13=>'qtymade',
+	15=>'diesides',
+	16=>'itemcreated',
+	22=>'spellid',
+	23=>'effectorder',
 	]);
 
 DB2TempTable('Spell', [
-	0=>'spellid',
-	1=>'spellname',
-	3=>'longdescription',
-    12=>'categoriesid',
-    14=>'cooldownsid',
-	18=>'reagentsid',
-    23=>'miscid',
+	0=>'spellname',
+	2=>'longdescription',
+    4=>'miscid',
 	]);
 
 DB2TempTable('SpellCooldowns', [
-    0=>'id',
-    3=>'categorycooldown',
-    4=>'individualcooldown',
+    0=>'spell',
+    1=>'categorycooldown',
+    2=>'individualcooldown',
 ]);
 
 DB2TempTable('SpellCategories', [
-    0=>'id',
-    3=>'categoryid',
-    9=>'chargecategoryid',
+    0=>'spell',
+    2=>'categoryid',
+    8=>'chargecategoryid',
 ]);
 
 DB2TempTable('SpellCategory', [
-    0=>'id',
-    1=>'flags',
-    5=>'chargecooldown',
+    1=>'chargecooldown',
+    2=>'flags',
 ]);
 
 RunAndLogError('create temporary table ttblSpellCategory2 select * from ttblSpellCategory');
 
 DB2TempTable('SpellMisc', [
-    0=>'miscid',
-    21=>'iconid',
+    6=>'iconid',
 ]);
 
 DB2TempTable('SpellReagents', [
-	0=>'reagentsid',
-	1=>'reagent1',
-	2=>'reagent2',
-	3=>'reagent3',
-	4=>'reagent4',
-	5=>'reagent5',
-	6=>'reagent6',
-	7=>'reagent7',
-	8=>'reagent8',
-	9=>'reagentcount1',
-	10=>'reagentcount2',
-	11=>'reagentcount3',
-	12=>'reagentcount4',
-	13=>'reagentcount5',
-	14=>'reagentcount6',
-	15=>'reagentcount7',
-	16=>'reagentcount8'
+	0=>'spell',
+	1=>'reagent',
+	2=>'reagentcount',
 ]);
 
-DB2TempTable('SkillLine', [0=>'lineid',1=>'linecatid',2=>'linename']);
-DB2TempTable('SkillLineAbility', [0=>'slaid',1=>'lineid',2=>'spellid',8=>'greyat',9=>'yellowat']);
+DB2TempTable('SkillLine', [0=>'linename',5=>'linecatid']);
+DB2TempTable('SkillLineAbility', [0=>'spellid',4=>'lineid',6=>'greyat',7=>'yellowat']);
 
 RunAndLogError('CREATE temporary TABLE `ttblDBCSkillLines` (`id` smallint unsigned NOT NULL, `name` char(50) NOT NULL, PRIMARY KEY (`id`)) ENGINE=memory');
-RunAndLogError('insert into ttblDBCSkillLines (select lineid, linename from ttblSkillLine where ((linecatid=11) or (linecatid=9 and (linename=\'Cooking\' or linename like \'Way of %\'))))');
+RunAndLogError('insert into ttblDBCSkillLines (select id, linename from ttblSkillLine where ((linecatid=11) or (linecatid=9 and (linename=\'Cooking\' or linename like \'Way of %\'))))');
 
 LogLine('Getting trades..');
 RunAndLogError('truncate tblDBCItemReagents');
@@ -493,11 +468,11 @@ insert into tblDBCItemReagents (item, skillline, reagent, quantity, spell) (
         sl.id, 
         sr.reagent%1$d, 
         sr.reagentcount%1$d/if(se.diesides=0,if(se.qtymade=0,1,se.qtymade),(se.qtymade * 2 + se.diesides + 1)/2), 
-        s.spellid 
+        s.id 
     from ttblSpell s
-    join ttblSpellReagents sr on sr.reagentsid = s.reagentsid 
-    join ttblSpellEffect se on se.spellid = s.spellid 
-    join ttblSkillLineAbility sla on sla.spellid = s.spellid
+    join ttblSpellReagents sr on sr.spell = s.id 
+    join ttblSpellEffect se on se.spellid = s.id 
+    join ttblSkillLineAbility sla on sla.spellid = s.id
     join ttblDBCSkillLines sl on sl.id = sla.lineid
     where se.itemcreated != 0 and sr.reagent%1$d != 0
 )
@@ -508,7 +483,7 @@ EOF;
 RunAndLogError('truncate tblDBCSpell');
 $sql = <<<EOF
 insert into tblDBCSpell (id,name,icon,description,cooldown,qtymade,yellow,skillline,crafteditem)
-(select distinct s.spellid, s.spellname, si.iconpath, s.longdescription,
+(select distinct s.id, s.spellname, si.iconpath, s.longdescription,
     greatest(
         ifnull(cd.categorycooldown * if(c.flags & 8, 86400, 1),0),
         ifnull(cd.individualcooldown * if(c.flags & 8, 86400, 1),0),
@@ -516,23 +491,23 @@ insert into tblDBCSpell (id,name,icon,description,cooldown,qtymade,yellow,skilll
     if(se.itemcreated=0,0,if(se.diesides=0,if(se.qtymade=0,1,se.qtymade),(se.qtymade * 2 + se.diesides + 1)/2)),
     sla.yellowat,sla.lineid,if(se.itemcreated=0,null,se.itemcreated)
 from ttblSpell s
-left join ttblSpellMisc sm on s.miscid=sm.miscid
-left join ttblSpellIcon si on si.iconid=sm.iconid
-left join ttblSpellCooldowns cd on cd.id = s.cooldownsid
-left join ttblSpellCategories cs on cs.id = s.categoriesid
+left join ttblSpellMisc sm on s.miscid=sm.id
+left join ttblSpellIcon si on si.id=sm.iconid
+left join ttblSpellCooldowns cd on cd.spell = s.id
+left join ttblSpellCategories cs on cs.spell = s.id
 left join ttblSpellCategory c on c.id = cs.categoryid
 left join ttblSpellCategory2 cc on cc.id = cs.chargecategoryid
-join tblDBCItemReagents ir on s.spellid=ir.spell
-join ttblSpellEffect se on s.spellid=se.spellid
-join ttblSkillLineAbility sla on s.spellid=sla.spellid
+join tblDBCItemReagents ir on s.id=ir.spell
+join ttblSpellEffect se on s.id=se.spellid
+join ttblSkillLineAbility sla on s.id=sla.spellid
 where se.effecttypeid in (24,53,157))
 EOF;
 RunAndLogError($sql);
 
 $sql = 'insert ignore into tblDBCSpell (id,name,icon,description) ';
-$sql .= ' (select distinct s.spellid, s.spellname, si.iconpath, s.longdescription ';
-$sql .= ' from ttblSpell s left join ttblSpellMisc sm on s.miscid=sm.miscid left join ttblSpellIcon si on si.iconid=sm.iconid ';
-$sql .= ' join tblDBCItemSpell dis on dis.spell=s.spellid) ';
+$sql .= ' (select distinct s.id, s.spellname, si.iconpath, s.longdescription ';
+$sql .= ' from ttblSpell s left join ttblSpellMisc sm on s.miscid=sm.id left join ttblSpellIcon si on si.id=sm.iconid ';
+$sql .= ' join tblDBCItemSpell dis on dis.spell=s.id) ';
 RunAndLogError($sql);
 
 $sql = <<<EOF
@@ -649,8 +624,8 @@ while ($row = $result->fetch_assoc()) {
 
     if (is_null($row['mx']))
         $exp = 'null';
-//    elseif ($row['mx'] > 100)
-//        $exp = 6; // legion
+    elseif ($row['mx'] > 100)
+        $exp = 6; // legion
     elseif ($row['mx'] > 90)
         $exp = 5; // wod
     elseif ($row['mx'] > 85)
@@ -712,7 +687,7 @@ function GetFileDataName($id) {
     return preg_replace('/\.blp$/', '', strtolower($row['name']));
 }
 
-function DB2TempTable($baseFile, $columns) {
+function DB2TempTable($baseFile, $columns, $signedCols=[]) {
     global $dirnm, $db;
 
     $filePath = "$dirnm/$baseFile.db2";
@@ -727,7 +702,15 @@ function DB2TempTable($baseFile, $columns) {
     LogLine("ttbl$baseFile");
     $reader = new Reader($filePath);
     $reader->setFieldNames($columns);
+    $reader->setFieldsSigned($signedCols);
     $fieldTypes = $reader->getFieldTypes();
+    $fieldCounts = [];
+    foreach ($reader->generateRecords() as $id => $rec) {
+        foreach ($columns as $colName) {
+            $fieldCounts[$colName] = is_array($rec[$colName]) ? count($rec[$colName]) : 1;
+        }
+        break;
+    }
 
     $maxLengths = [];
     foreach ($columns as $colName) {
@@ -741,42 +724,53 @@ function DB2TempTable($baseFile, $columns) {
         foreach ($reader->generateRecords() as $id => $rec) {
             EchoProgress(++$x / $recordCount);
             foreach ($maxLengths as $colName => &$maxLength) {
-                $maxLength = max($maxLength, strlen($rec[$colName]));
+                if (is_array($rec[$colName])) {
+                    foreach ($rec[$colName] as $recVal) {
+                        $maxLength = max($maxLength, strlen($recVal));
+                    }
+                } else {
+                    $maxLength = max($maxLength, strlen($rec[$colName]));
+                }
             }
             unset($maxLength);
         }
         EchoProgress(false);
     }
 
-    $sql = 'create temporary table `ttbl'.$baseFile.'` (';
+    $sql = 'create temporary table `ttbl'.$baseFile.'` (`id` int,';
     $y = 0;
-    $indexFields = [];
-    $paramTypes = '';
+    $tableCols = [];
+    $indexFields = ['id'];
+    $paramTypes = 'i';
     foreach ($columns as $colName) {
         if ($y++ > 0) {
             $sql .= ',';
         }
-        $sql .= "`$colName` ";
-        if (strtolower(substr($colName,-2)) == 'id') {
-            $indexFields[] = $colName;
-        }
-        switch ($fieldTypes[$colName]) {
-            case Reader::FIELD_TYPE_INT:
-                $sql .= 'int';
-                $paramTypes .= 'i';
-                break;
-            case Reader::FIELD_TYPE_FLOAT:
-                $sql .= 'float';
-                $paramTypes .= 'd';
-                break;
-            case Reader::FIELD_TYPE_STRING:
-                $sql .= 'varchar(' . $maxLengths[$colName] . ')';
-                $paramTypes .= 's';
-                break;
-            default:
-                $sql .= 'int';
-                $paramTypes .= 'i';
-                break;
+        for ($x = 1; $x <= $fieldCounts[$colName]; $x++) {
+            $tableColName = $colName . ($fieldCounts[$colName] > 1 ? $x : '');
+            $sql .= ($x > 1 ? ',' : '') . "`$tableColName` ";
+            $tableCols[] = $tableColName;
+            if (strtolower(substr($colName,-2)) == 'id') {
+                $indexFields[] = $tableColName;
+            }
+            switch ($fieldTypes[$colName]) {
+                case Reader::FIELD_TYPE_INT:
+                    $sql .= 'int';
+                    $paramTypes .= 'i';
+                    break;
+                case Reader::FIELD_TYPE_FLOAT:
+                    $sql .= 'float';
+                    $paramTypes .= 'd';
+                    break;
+                case Reader::FIELD_TYPE_STRING:
+                    $sql .= 'varchar(' . $maxLengths[$colName] . ')';
+                    $paramTypes .= 's';
+                    break;
+                default:
+                    $sql .= 'int';
+                    $paramTypes .= 'i';
+                    break;
+            }
         }
     }
     foreach ($indexFields as $idx) {
@@ -786,21 +780,32 @@ function DB2TempTable($baseFile, $columns) {
 
     RunAndLogError($sql);
 
-    $sql = sprintf('insert into `%s` (`%s`) values (%s)', "ttbl$baseFile", implode('`,`', $columns), substr(str_repeat('?,', count($columns)), 0, -1));
+    $sql = sprintf('insert into `%s` (`id`,`%s`) values (?,%s)', "ttbl$baseFile", implode('`,`', $tableCols), substr(str_repeat('?,', count($tableCols)), 0, -1));
     $stmt = $db->prepare($sql);
     $row = [];
-    $params = [$paramTypes];
+    $idCol = 0;
+    $params = [$paramTypes, &$idCol];
     foreach ($columns as $colName) {
-        $row[$colName] = null;
-        $params[] = &$row[$colName];
+        for ($x = 1; $x <= $fieldCounts[$colName]; $x++) {
+            $tableColName = $colName . ($fieldCounts[$colName] > 1 ? $x : '');
+            $row[$tableColName] = null;
+            $params[] = &$row[$tableColName];
+        }
     }
     call_user_func_array([$stmt, 'bind_param'], $params);
     
     $x = 0; $recordCount = count($reader->getIds());
     foreach ($reader->generateRecords() as $id => $rec) {
         EchoProgress(++$x/$recordCount);
+        $idCol = $id;
         foreach ($columns as $colName) {
-            $row[$colName] = $rec[$colName];
+            if ($fieldCounts[$colName] > 1) {
+                for ($z = 1; $z <= $fieldCounts[$colName]; $z++) {
+                    $row[$colName.$z] = $rec[$colName][$z-1];
+                }
+            } else {
+                $row[$colName] = $rec[$colName];
+            }
         }
         RunAndLogError($stmt->execute());
     }
