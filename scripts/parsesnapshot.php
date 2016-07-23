@@ -920,9 +920,9 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $substitutePrices = false
     global $db, $maxPacketSize;
 
     $stats = [
-        'summary' => [0,0],
-        'hourly' => [0,0],
-        'monthly' => [0,0],
+        'summary' => [0,0,0],
+        'hourly' => [0,0,0],
+        'monthly' => [0,0,0],
     ];
     $startT = microtime(true) * 10000;
 
@@ -970,6 +970,7 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $substitutePrices = false
             $sql = '';
         }
         $sql .= ($sql == '' ? $sqlStart : ',') . $sqlBit;
+        $stats['summary'][2]++;
 
         if ($substitutePrices || ($info['tq'] > 0)) {
             $price = round($price / 100);
@@ -983,6 +984,7 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $substitutePrices = false
                 $sqlHistory = '';
             }
             $sqlHistory .= ($sqlHistory == '' ? $sqlHistoryStart : ',') . $sqlHistoryBit;
+            $stats['hourly'][2]++;
 
             $sqlDeepBit = sprintf('(%d,%u,%u,%u,%u,%u)', $house, $item, $bonusSet, $price, $info['tq'], $month);
             if (strlen($sqlDeep) + strlen($sqlDeepBit) + strlen($sqlDeepEnd) + 5 > $maxPacketSize) {
@@ -993,6 +995,7 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $substitutePrices = false
                 $sqlDeep = '';
             }
             $sqlDeep .= ($sqlDeep == '' ? $sqlDeepStart : ',') . $sqlDeepBit;
+            $stats['monthly'][2]++;
         }
     }
     unset($info);
@@ -1019,7 +1022,7 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $substitutePrices = false
     $totalT = microtime(true) * 10000 - $startT;
     $statMsg = '';
     foreach ($stats as $statName => $statArray) {
-        $statMsg .= " $statName: {$statArray[0]} " . round($statArray[1] / $totalT * 100) . "%";
+        $statMsg .= " $statName: {$statArray[0]} queries, {$statArray[2]} rows, " . round($statArray[1] / $totalT * 100) . "% " . round($statArray[1] / 10000, 2) . ' sec';
     }
 
     DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . $statMsg);
