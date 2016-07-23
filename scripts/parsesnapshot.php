@@ -950,6 +950,7 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $substitutePrices = false
     }
 
     ksort($itemInfo); // improves insert performance(?)
+    $itemRows = 0;
 
     foreach ($itemInfo as $itemKey => &$info) {
         list($item, $bonusSet) = explode(':', $itemKey, 2);
@@ -973,10 +974,12 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $substitutePrices = false
         $stats['summary'][2]++;
 
         if ($substitutePrices || ($info['tq'] > 0)) {
+            $itemRows++;
+
             $price = round($price / 100);
 
             $sqlHistoryBit = sprintf('(%d,%u,%u,\'%s\',%u,%u)', $house, $item, $bonusSet, $dateString, $price, $info['tq']);
-            if (strlen($sqlHistory) + strlen($sqlHistoryBit) + strlen($sqlHistoryEnd) + 5 > $maxPacketSize) {
+            if (($itemRows % 1000 == 0) || strlen($sqlHistory) + strlen($sqlHistoryBit) + strlen($sqlHistoryEnd) + 5 > $maxPacketSize) {
                 $t = microtime(true) * 10000;
                 DBQueryWithError($db, $sqlHistory . $sqlHistoryEnd);
                 $stats['hourly'][0]++;
@@ -987,7 +990,7 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $substitutePrices = false
             $stats['hourly'][2]++;
 
             $sqlDeepBit = sprintf('(%d,%u,%u,%u,%u,%u)', $house, $item, $bonusSet, $price, $info['tq'], $month);
-            if (strlen($sqlDeep) + strlen($sqlDeepBit) + strlen($sqlDeepEnd) + 5 > $maxPacketSize) {
+            if (($itemRows % 1000 == 0) || strlen($sqlDeep) + strlen($sqlDeepBit) + strlen($sqlDeepEnd) + 5 > $maxPacketSize) {
                 $t = microtime(true) * 10000;
                 DBQueryWithError($db, $sqlDeep . $sqlDeepEnd);
                 $stats['monthly'][0]++;
