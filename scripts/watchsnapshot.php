@@ -37,16 +37,24 @@ $result = $stmt->get_result();
 $houseRegionCache = DBMapArray($result);
 $stmt->close();
 
+$auctionExtraItemsCache = [];
 $stmt = $db->prepare('SELECT id FROM tblDBCItem WHERE `class` in (2,4) AND `auctionable` = 1');
 $stmt->execute();
-$result = $stmt->get_result();
-$auctionExtraItemsCache = DBMapArray($result);
+$z = null;
+$stmt->bind_result($z);
+while ($stmt->fetch()) {
+    $auctionExtraItemsCache[$z] = $z;
+}
 $stmt->close();
 
+$bonusSetMemberCache = [];
 $stmt = $db->prepare('SELECT id FROM tblDBCItemBonus WHERE `flags` & 1');
 $stmt->execute();
-$result = $stmt->get_result();
-$bonusSetMemberCache = array_keys(DBMapArray($result));
+$z = null;
+$stmt->bind_result($z);
+while ($stmt->fetch()) {
+    $bonusSetMemberCache[$z] = $z;
+}
 $stmt->close();
 
 $maxPacketSize = 0;
@@ -167,8 +175,8 @@ function ParseAuctionData($house, $snapshot, &$json)
     $ourDb->query('set transaction isolation level read uncommitted, read only');
     $ourDb->begin_transaction();
 
-    $stmt = $ourDb->prepare('SELECT ifnull(maxid,0), unix_timestamp(updated) FROM tblSnapshot s WHERE house = ? AND updated = (SELECT max(s2.updated) FROM tblSnapshot s2 WHERE s2.house = s.house AND s2.updated < ?)');
-    $stmt->bind_param('is', $house, $snapshotString);
+    $stmt = $ourDb->prepare('SELECT ifnull(maxid,0), unix_timestamp(updated) FROM tblSnapshot s WHERE house = ? AND updated = (SELECT max(s2.updated) FROM tblSnapshot s2 WHERE s2.house = ? AND s2.updated < ?)');
+    $stmt->bind_param('iis', $house, $house, $snapshotString);
     $stmt->execute();
     $stmt->bind_result($lastMax, $lastMaxUpdated);
     if ($stmt->fetch() !== true) {
@@ -189,9 +197,7 @@ function ParseAuctionData($house, $snapshot, &$json)
         $auctionCount = count($jsonAuctions);
         DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " parsing $auctionCount auctions");
 
-        for ($x = 0; $x < $auctionCount; $x++) {
-            $auction =& $jsonAuctions[$x];
-
+        while ($auction = array_pop($jsonAuctions)) {
             $isNewAuction = ($auction['auc'] - $lastMax);
             $isNewAuction = ($isNewAuction > 0) || ($isNewAuction < -0x20000000);
 
@@ -595,15 +601,18 @@ function GetBonusSet($bonusList)
     $bonuses = [];
     for ($y = 0; $y < count($bonusList); $y++) {
         if (isset($bonusList[$y]['bonusListId'])) {
-            $bonuses[] = intval($bonusList[$y]['bonusListId'],10);
+            $bonus = intval($bonusList[$y]['bonusListId'],10);
+            if (isset($bonusSetMemberCache[$bonus])) {
+                $bonuses[] = $bonus;
+            }
         }
     }
-    $bonuses = array_intersect(array_unique($bonuses, SORT_NUMERIC), $bonusSetMemberCache);
-    sort($bonuses, SORT_NUMERIC);
 
     if (count($bonuses) == 0) {
         return 0;
     }
+
+    sort($bonuses, SORT_NUMERIC);
 
     // check local static cache
     $bonusesKey = implode(':', $bonuses);
