@@ -292,7 +292,11 @@ function ParseAuctionData($house, $snapshot, &$json)
             }
         }
 
+        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " sellerInfo populated");
+
         GetSellerIds($region, $sellerInfo, $snapshot);
+
+        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " seller IDs fetched");
 
         $sql = $sqlPet = $sqlExtra = '';
         $delayedAuctionSql = [];
@@ -437,6 +441,7 @@ function ParseAuctionData($house, $snapshot, &$json)
             $delayedAuctionSql[] = $sqlExtra;
         }
 
+        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " running delayedAuctionSql");
         while (count($delayedAuctionSql)) {
             DBQueryWithError($ourDb, array_pop($delayedAuctionSql));
         }
@@ -454,9 +459,11 @@ and a.item not in (82800)
 and ifnull(tis.lastseen, '2000-01-01') < timestampadd(day,-14,'%s'))
 EOF;
         $sql = sprintf($sql, $house, $lastMax, $hasRollOver ? ' and a.id < 0x20000000 ' : '', $snapshotString);
+        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " running tblAuctionRare");
         DBQueryWithError($ourDb, $sql);
     }
 
+    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " finding missing auctions");
     foreach ($existingIds as $existingId => &$oldRow) {
         // all missing auctions
         if (!isset($existingPetIds[$existingId])) {
