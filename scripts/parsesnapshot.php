@@ -547,7 +547,7 @@ EOF;
         $createdCount = 0;
         $snapshotDays = array_keys($expiredItemInfo);
         foreach ($snapshotDays as $snapshotDay) {
-            DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " adding expired auctions from $snapshotDay for ".count($expiredItemInfo[$snapshotDay])." items");
+            //DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " adding expired auctions from $snapshotDay for ".count($expiredItemInfo[$snapshotDay])." items");
             foreach ($expiredItemInfo[$snapshotDay] as $infoKey => $expiredCount) {
                 $keyParts = explode(':', $infoKey);
                 $sqlPart = sprintf('(%u, %u, %u, \'%s\', %u, %u)', $keyParts[0], $keyParts[1], $house, $snapshotDay, $createdCount, $expiredCount);
