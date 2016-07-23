@@ -43,16 +43,24 @@ $result = $stmt->get_result();
 $ownerRealmCache = DBMapArray($result, array('region', 'ownerrealm'));
 $stmt->close();
 
+$auctionExtraItemsCache = [];
 $stmt = $db->prepare('SELECT id FROM tblDBCItem WHERE `class` in (2,4) AND `auctionable` = 1');
 $stmt->execute();
-$result = $stmt->get_result();
-$auctionExtraItemsCache = DBMapArray($result);
+$z = null;
+$stmt->bind_result($z);
+while ($stmt->fetch()) {
+    $auctionExtraItemsCache[$z] = $z;
+}
 $stmt->close();
 
+$bonusSetMemberCache = [];
 $stmt = $db->prepare('SELECT id FROM tblDBCItemBonus WHERE `flags` & 1');
 $stmt->execute();
-$result = $stmt->get_result();
-$bonusSetMemberCache = array_keys(DBMapArray($result));
+$z = null;
+$stmt->bind_result($z);
+while ($stmt->fetch()) {
+    $bonusSetMemberCache[$z] = $z;
+}
 $stmt->close();
 
 $maxPacketSize = 0;
@@ -301,9 +309,7 @@ function ParseAuctionData($house, $snapshot, &$json)
         $sql = $sqlPet = $sqlExtra = '';
         $delayedAuctionSql = [];
 
-        for ($x = 0; $x < $auctionCount; $x++) {
-            $auction =& $jsonAuctions[$x];
-
+        while ($auction = array_pop($jsonAuctions)) {
             if (isset($auction['petBreedId'])) {
                 $auction['petBreedId'] = (($auction['petBreedId'] - 3) % 10) + 3; // squash gender
             }
@@ -610,15 +616,18 @@ function GetBonusSet($bonusList)
     $bonuses = [];
     for ($y = 0; $y < count($bonusList); $y++) {
         if (isset($bonusList[$y]['bonusListId'])) {
-            $bonuses[] = intval($bonusList[$y]['bonusListId'],10);
+            $bonus = intval($bonusList[$y]['bonusListId'],10);
+            if (isset($bonusSetMemberCache[$bonus])) {
+                $bonuses[] = $bonus;
+            }
         }
     }
-    $bonuses = array_intersect(array_unique($bonuses, SORT_NUMERIC), $bonusSetMemberCache);
-    sort($bonuses, SORT_NUMERIC);
 
     if (count($bonuses) == 0) {
         return 0;
     }
+
+    sort($bonuses, SORT_NUMERIC);
 
     // check local static cache
     $bonusesKey = implode(':', $bonuses);
