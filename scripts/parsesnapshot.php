@@ -612,7 +612,7 @@ function GetBonusSet($bonusList)
         if (isset($bonusList[$y]['bonusListId'])) {
             $bonus = intval($bonusList[$y]['bonusListId'],10);
             if (isset($bonusSetMemberCache[$bonus])) {
-                $bonuses[] = $bonus;
+                $bonuses[$bonus] = $bonus;
             }
         }
     }
