@@ -341,7 +341,7 @@ function ParseAuctionData($house, $snapshot, &$json)
                     $itemInfo[$itemInfoKey]['a'][] = array(
                         'q'   => $auction['quantity'],
                         'p'   => $auction['buyout'],
-                        'age' => min(254, max(0, floor(GetAuctionAge($auction['auc'], $snapshot, $snapshotList) / (48 * 60 * 60) * 255)))
+                        //'age' => min(254, max(0, floor(GetAuctionAge($auction['auc'], $snapshot, $snapshotList) / (48 * 60 * 60) * 255)))
                     );
                     $itemInfo[$itemInfoKey]['tq'] += $auction['quantity'];
                 }
@@ -921,7 +921,7 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $substitutePrices = false
 
     $snapshotString = date('Y-m-d H:i:s', $snapshot);
     $sqlStart = 'INSERT INTO tblItemSummary (house, item, bonusset, price, quantity, lastseen, age) VALUES ';
-    $sqlEnd = ' on duplicate key update quantity=values(quantity), price=if(quantity=0,price,values(price)), lastseen=if(quantity=0,lastseen,values(lastseen)), age=values(age)';
+    $sqlEnd = ' on duplicate key update quantity=values(quantity), price=if(quantity=0,price,values(price)), lastseen=if(quantity=0,lastseen,values(lastseen))';
     $sql = '';
 
     $sqlHistoryStart = sprintf('INSERT INTO tblItemHistoryHourly (house, item, bonusset, `when`, `silver%1$s`, `quantity%1$s`) VALUES ', $hour);
@@ -933,7 +933,7 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $substitutePrices = false
     $sqlDeep = '';
 
     if ($substitutePrices) {
-        $sqlEnd = ' on duplicate key update quantity=values(quantity), price=values(price), lastseen=values(lastseen), age=values(age)';
+        $sqlEnd = ' on duplicate key update quantity=values(quantity), price=values(price), lastseen=values(lastseen)';
         $sqlDeepEnd = sprintf(' on duplicate key update mktslvr%1$s=ifnull(least(values(mktslvr%1$s), mktslvr%1$s), values(mktslvr%1$s)), qty%1$s=if(values(qty%1$s) >= ifnull(qty%1$s,0), values(qty%1$s), qty%1$s)', $day);
     }
 
@@ -944,7 +944,7 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $substitutePrices = false
             $age = 255;
         } else {
             $price = GetMarketPrice($info);
-            $age = GetAverageAge($info, $price);
+            $age = 0; //GetAverageAge($info, $price);
         }
 
         $sqlBit = sprintf('(%d,%u,%u,%u,%u,\'%s\',%u)', $house, $item, $bonusSet, $price, $info['tq'], $snapshotString, $age);
@@ -1124,6 +1124,7 @@ EOF;
     return $missingItems;
 }
 
+/* unused
 function GetAverageAge(&$info, $price)
 {
     if ($info['tq'] == 0) {
@@ -1144,6 +1145,7 @@ function GetAverageAge(&$info, $price)
 
     return floor($s / $c);
 }
+*/
 
 function GetMarketPrice(&$info)
 {
