@@ -168,7 +168,7 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     $region = $houseRegionCache[$house]['region'];
 
-    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " fetching existing auctions", E_USER_WARNING);
+    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " fetching existing auctions");
     $existingIds = [];
     $stmt = $ourDb->prepare(EXISTING_SQL);
     $stmt->bind_param('i', $house);
@@ -180,7 +180,7 @@ function ParseAuctionData($house, $snapshot, &$json)
     }
     $stmt->close();
 
-    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " fetching existing pet auctions", E_USER_WARNING);
+    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " fetching existing pet auctions");
     $stmt = $ourDb->prepare('SELECT id, species, breed FROM tblAuctionPet WHERE house = ?');
     $stmt->bind_param('i', $house);
     $stmt->execute();
@@ -225,7 +225,7 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     unset($naiveMax, $lowMax, $highMax);
 
-    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating snapshot metadata", E_USER_WARNING);
+    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating snapshot metadata");
     $stmt = $ourDb->prepare('SELECT ifnull(maxid,0) FROM tblSnapshot s WHERE house = ? AND updated = (SELECT max(s2.updated) FROM tblSnapshot s2 WHERE s2.house = s.house AND s2.updated < ?)');
     $stmt->bind_param('is', $house, $snapshotString);
     $stmt->execute();
