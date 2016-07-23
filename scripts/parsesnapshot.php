@@ -226,8 +226,8 @@ function ParseAuctionData($house, $snapshot, &$json)
     unset($naiveMax, $lowMax, $highMax);
 
     DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating snapshot metadata");
-    $stmt = $ourDb->prepare('SELECT ifnull(maxid,0) FROM tblSnapshot s WHERE house = ? AND updated = (SELECT max(s2.updated) FROM tblSnapshot s2 WHERE s2.house = s.house AND s2.updated < ?)');
-    $stmt->bind_param('is', $house, $snapshotString);
+    $stmt = $ourDb->prepare('SELECT ifnull(maxid,0) FROM tblSnapshot s WHERE house = ? AND updated = (SELECT max(s2.updated) FROM tblSnapshot s2 WHERE s2.house = ? AND s2.updated < ?)');
+    $stmt->bind_param('iis', $house, $house, $snapshotString);
     $stmt->execute();
     $stmt->bind_result($lastMax);
     if ($stmt->fetch() !== true) {
