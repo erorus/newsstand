@@ -503,6 +503,7 @@ EOF;
     DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating " . count($itemInfo) . " item info (including " . (count($itemInfo) - $preDeleted) . " no longer available)");
     UpdateItemInfo($house, $itemInfo, $snapshot);
 
+    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " deleting rare reports");
     $sql = 'delete from tblUserRareReport where house = %d and bonusset = %d and item in (%s)';
     foreach ($rareDeletes as $bonusSet => $itemIds) {
         $chunked = array_chunk($itemIds, 200);
@@ -917,6 +918,13 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $substitutePrices = false
 {
     global $db, $maxPacketSize;
 
+    $stats = [
+        'summary' => [0,0],
+        'hourly' => [0,0],
+        'monthly' => [0,0],
+    ];
+    $startT = microtime(true) * 10000;
+
     $month = (intval(date('Y', $snapshot), 10) - 2014) * 12 + intval(date('m', $snapshot), 10);
     $day = date('d', $snapshot);
     $hour = date('H', $snapshot);
@@ -952,7 +960,10 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $substitutePrices = false
 
         $sqlBit = sprintf('(%d,%u,%u,%u,%u,\'%s\',%u)', $house, $item, $bonusSet, $price, $info['tq'], $snapshotString, $age);
         if (strlen($sql) + strlen($sqlBit) + strlen($sqlEnd) + 5 > $maxPacketSize) {
+            $t = microtime(true) * 10000;
             DBQueryWithError($db, $sql . $sqlEnd);
+            $stats['summary'][0]++;
+            $stats['summary'][1] += ((microtime(true) * 10000) - $t);
             $sql = '';
         }
         $sql .= ($sql == '' ? $sqlStart : ',') . $sqlBit;
@@ -962,14 +973,20 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $substitutePrices = false
 
             $sqlHistoryBit = sprintf('(%d,%u,%u,\'%s\',%u,%u)', $house, $item, $bonusSet, $dateString, $price, $info['tq']);
             if (strlen($sqlHistory) + strlen($sqlHistoryBit) + strlen($sqlHistoryEnd) + 5 > $maxPacketSize) {
+                $t = microtime(true) * 10000;
                 DBQueryWithError($db, $sqlHistory . $sqlHistoryEnd);
+                $stats['hourly'][0]++;
+                $stats['hourly'][1] += ((microtime(true) * 10000) - $t);
                 $sqlHistory = '';
             }
             $sqlHistory .= ($sqlHistory == '' ? $sqlHistoryStart : ',') . $sqlHistoryBit;
 
             $sqlDeepBit = sprintf('(%d,%u,%u,%u,%u,%u)', $house, $item, $bonusSet, $price, $info['tq'], $month);
             if (strlen($sqlDeep) + strlen($sqlDeepBit) + strlen($sqlDeepEnd) + 5 > $maxPacketSize) {
+                $t = microtime(true) * 10000;
                 DBQueryWithError($db, $sqlDeep . $sqlDeepEnd);
+                $stats['monthly'][0]++;
+                $stats['monthly'][1] += ((microtime(true) * 10000) - $t);
                 $sqlDeep = '';
             }
             $sqlDeep .= ($sqlDeep == '' ? $sqlDeepStart : ',') . $sqlDeepBit;
@@ -978,14 +995,31 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $substitutePrices = false
     unset($info);
 
     if ($sql != '') {
+        $t = microtime(true) * 10000;
         DBQueryWithError($db, $sql . $sqlEnd);
+        $stats['summary'][0]++;
+        $stats['summary'][1] += ((microtime(true) * 10000) - $t);
     }
     if ($sqlHistory != '') {
+        $t = microtime(true) * 10000;
         DBQueryWithError($db, $sqlHistory . $sqlHistoryEnd);
+        $stats['hourly'][0]++;
+        $stats['hourly'][1] += ((microtime(true) * 10000) - $t);
     }
     if ($sqlDeep != '') {
+        $t = microtime(true) * 10000;
         DBQueryWithError($db, $sqlDeep . $sqlDeepEnd);
+        $stats['monthly'][0]++;
+        $stats['monthly'][1] += ((microtime(true) * 10000) - $t);
     }
+
+    $totalT = microtime(true) * 10000 - $startT;
+    $statMsg = '';
+    foreach ($stats as $statName => $statArray) {
+        $statMsg .= " $statName: {$statArray[0]} " . round($statArray[1] / $totalT * 100) . "%";
+    }
+
+    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . $statMsg);
 }
 
 function UpdatePetInfo($house, &$petInfo, $snapshot)
