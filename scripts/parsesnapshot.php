@@ -13,8 +13,9 @@ CatchKill();
 
 define('SNAPSHOT_PATH', '/var/newsstand/snapshots/parse/');
 define('MAX_BONUSES', 6); // is a count, 1 through N
+define('ITEM_ID_PAD', 7); // min number of chars for item id, for sorting infokeys
 
-define('EXISTING_SQL', 'SELECT a.id, a.bid, a.buy, a.timeleft+0 timeleft, concat_ws(\':\', a.item, ifnull(ae.bonusset,0)) infokey FROM tblAuction a LEFT JOIN tblAuctionExtra ae on a.house=ae.house and a.id=ae.id WHERE a.house = ?');
+define('EXISTING_SQL', 'SELECT a.id, a.bid, a.buy, a.timeleft+0 timeleft, concat_ws(\':\', lpad(a.item,' . ITEM_ID_PAD . ',\'0\'), ifnull(ae.bonusset,0)) infokey FROM tblAuction a LEFT JOIN tblAuctionExtra ae on a.house=ae.house and a.id=ae.id WHERE a.house = ?');
 define('EXISTING_COL_BID', 0);
 define('EXISTING_COL_BUY', 1);
 define('EXISTING_COL_TIMELEFT', 2);
@@ -336,7 +337,7 @@ function ParseAuctionData($house, $snapshot, &$json)
                     if (isset($auctionExtraItemsCache[$auction['item']]) && isset($auction['bonusLists'])) {
                         $bonusSet = GetBonusSet($auction['bonusLists']);
                     }
-                    $itemInfoKey = $auction['item'] . ":$bonusSet";
+                    $itemInfoKey = str_pad($auction['item'], ITEM_ID_PAD, '0', STR_PAD_LEFT) . ":$bonusSet";
                     if (!isset($itemInfo[$itemInfoKey])) {
                         $itemInfo[$itemInfoKey] = array('a' => array(), 'tq' => 0);
                     }
@@ -947,6 +948,8 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $substitutePrices = false
         $sqlEnd = ' on duplicate key update quantity=values(quantity), price=values(price), lastseen=values(lastseen)';
         $sqlDeepEnd = sprintf(' on duplicate key update mktslvr%1$s=ifnull(least(values(mktslvr%1$s), mktslvr%1$s), values(mktslvr%1$s)), qty%1$s=if(values(qty%1$s) >= ifnull(qty%1$s,0), values(qty%1$s), qty%1$s)', $day);
     }
+
+    ksort($itemInfo); // improves insert performance(?)
 
     foreach ($itemInfo as $itemKey => &$info) {
         list($item, $bonusSet) = explode(':', $itemKey, 2);
