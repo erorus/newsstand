@@ -823,7 +823,7 @@ var TUJ_Category = function ()
             td = libtuj.ce('th');
             td.className = 'price';
             tr.appendChild(td);
-            $(td).text(tuj.lang.globalMedian);
+            $(td).text(tuj.lang.regional);
             titleColSpan++;
         }
 

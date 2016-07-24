@@ -110,11 +110,12 @@ EOF;
 SELECT g.item, g.bonusset, g.median, g.mean, g.stddev
 FROM tblItemGlobal g
 join tblDBCItem i on g.item=i.id
-where 1=1
+where g.region = ?
 $itemExcludeSql
 EOF;
 
     $stmt = $db->prepare($sql);
+    $stmt->bind_param('s', $region);
     $stmt->execute();
     $result = $stmt->get_result();
     while ($priceRow = $result->fetch_assoc()) {
@@ -473,6 +474,7 @@ local dataLoad = function(realmId)
     addonTable.marketData = {}
     addonTable.realmIndex = realmIndex
     addonTable.dataAge = $dataAge
+    addonTable.region = "$region"
 
     for i=1,#dataFuncs,1 do
         dataFuncs[i]()

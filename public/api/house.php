@@ -120,7 +120,7 @@ FROM tblAuction a
 left join tblAuctionExtra ae on ae.id = a.id and ae.house = a.house
 join tblSeller s on a.seller = s.id
 join tblRealm r on s.realm = r.id
-join tblItemGlobal g on a.item = g.item and g.bonusset = ifnull(ae.bonusset, 0)
+join tblItemGlobal g on a.item = g.item and g.bonusset = ifnull(ae.bonusset, 0) and g.region = r.region
 where a.item != 86400
 and a.house = ?
 group by a.seller
@@ -193,7 +193,7 @@ function HouseDeals($house)
 SELECT i.id
 FROM `tblItemSummary` tis
 join tblDBCItem i on tis.item = i.id
-join tblItemGlobal g on g.item = tis.item and g.bonusset = tis.bonusset
+join tblItemGlobal g on g.item = tis.item and g.bonusset = tis.bonusset and g.region = ?
 WHERE house = ?
 and tis.quantity > 0
 and i.quality > 0
@@ -202,8 +202,10 @@ order by tis.price / g.median asc
 limit 10
 EOF;
 
+    $region = GetRegion($house);
+
     $stmt = $db->prepare($sql);
-    $stmt->bind_param('i', $house);
+    $stmt->bind_param('si', $region, $house);
     $stmt->execute();
     $result = $stmt->get_result();
     $tr = $result->fetch_all(MYSQLI_ASSOC);

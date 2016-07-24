@@ -1,6 +1,6 @@
 --[[
 
-TheUndermineJournal addon, v 4.4
+TheUndermineJournal addon, v 4.5
 https://theunderminejournal.com/
 
 You should be able to query this DB from other addons:
@@ -25,9 +25,9 @@ Prices are returned in copper, but accurate to the last *silver* (with coppers a
 
     o['age']            -> number of seconds since data was compiled
 
-    o['globalMedian']   -> median market price across all US and EU realms
-    o['globalMean']     -> mean market price across all US and EU realms
-    o['globalStdDev']   -> standard deviation of the market price across all US and EU realms
+    o['globalMedian']   -> median market price across all realms in this region
+    o['globalMean']     -> mean market price across all realms in this region
+    o['globalStdDev']   -> standard deviation of the market price across all realms in this region
 
     o['market']         -> average market price of the item on this AH over the past 14 days.
     o['stddev']         -> standard deviation of market price of the item on this AH over the past 14 days.
@@ -332,14 +332,17 @@ local function buildExtraTip(tooltip, pricingData)
     if pricingData['stddev'] then
         LibExtraTip:AddDoubleLine(tooltip,"14-Day Std Dev",coins(pricingData['stddev']),r,g,b,nil,nil,nil,true)
     end
+
+    local regionName = addonTable.region or "Regional"
+
     if pricingData['globalMedian'] then
-        LibExtraTip:AddDoubleLine(tooltip,"Global Median",coins(pricingData['globalMedian']),r,g,b,nil,nil,nil,true)
+        LibExtraTip:AddDoubleLine(tooltip,regionName.." Median",coins(pricingData['globalMedian']),r,g,b,nil,nil,nil,true)
     end
     if pricingData['globalMean'] then
-        LibExtraTip:AddDoubleLine(tooltip,"Global Mean",coins(pricingData['globalMean']),r,g,b,nil,nil,nil,true)
+        LibExtraTip:AddDoubleLine(tooltip,regionName.." Mean",coins(pricingData['globalMean']),r,g,b,nil,nil,nil,true)
     end
     if pricingData['globalStdDev'] then
-        LibExtraTip:AddDoubleLine(tooltip,"Global Std Dev",coins(pricingData['globalStdDev']),r,g,b,nil,nil,nil,true)
+        LibExtraTip:AddDoubleLine(tooltip,regionName.." Std Dev",coins(pricingData['globalStdDev']),r,g,b,nil,nil,nil,true)
     end
 
     if pricingData['days'] == 255 then

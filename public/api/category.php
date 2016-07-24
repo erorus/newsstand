@@ -1581,7 +1581,7 @@ from (
     ifnull(s.bonusset,0) bonusset, i.level, i.basebonus `basebonus` $cols
     from tblDBCItem i
     left join tblItemSummary s on s.house=? and s.item=i.id
-    join tblItemGlobal g on g.item=i.id+0 and g.bonusset = ifnull(s.bonusset,0)
+    join tblItemGlobal g on g.item = i.id+0 and g.bonusset = ifnull(s.bonusset,0) and g.region = ?
     $joins
     where ifnull(i.auctionable,1) = 1
     $where
@@ -1591,11 +1591,13 @@ left join tblBonusSet bs on results.bonusset = bs.`set`
 group by results.id, results.bonusset
 EOF;
 
+    $region = GetRegion($house);
+
     $stmt = $db->prepare($sql);
     if (!$stmt) {
         DebugMessage("Bad SQL: \n" . $sql, E_USER_ERROR);
     }
-    $stmt->bind_param('ii', $house, $house);
+    $stmt->bind_param('iis', $house, $house, $region);
     $stmt->execute();
     $result = $stmt->get_result();
     $tr = DBMapArray($result, $keys);
@@ -1668,7 +1670,7 @@ EOF;
         where r.region = ?
         group by ab.item, ab.bonusset
     ) ac
-    join tblItemGlobal gs on gs.item = ac.item and gs.bonusset = ac.bonusset
+    join tblItemGlobal gs on gs.item = ac.item and gs.bonusset = ac.bonusset and gs.region = ?
     where ((c_over/c_total) > 2/3 or c_total < 15)
 ) aa
 where median > 1500000
@@ -1681,7 +1683,7 @@ EOF;
     if (!$stmt) {
         DebugMessage("Bad SQL: \n" . $fullSql, E_USER_ERROR);
     }
-    $stmt->bind_param('iis', $house, $house, $region);
+    $stmt->bind_param('iiss', $house, $house, $region, $region);
     $stmt->execute();
     $result = $stmt->get_result();
     $iidList = DBMapArray($result, null);

@@ -302,15 +302,16 @@ select z.house, z.item, z.bonusset, max(z.snapshot) snapshot,
     z.name, z.class, z.level, z.quality,
     ifnull(group_concat(ib.`tag_%1$s` order by ib.tagpriority separator ' '), if(ifnull(bs.`set`,0)=0,'',concat('%2$s ', z.level+sum(ifnull(ib.level,0))))) bonustag,
     z.prevseen,
-    z.price, z.median, z.mean, z.stddev,
+    z.price, z.median, z.mean, z.stddev, z.region,
     case z.class %3$s else 999 end classorder
 from (
     SELECT rr.house, rr.item, rr.bonusset, rr.prevseen, rr.price, unix_timestamp(rr.snapshot) snapshot,
     i.name_%1$s name, i.class, i.basebonus, i.level, i.quality,
-    ig.median, ig.mean, ig.stddev
+    ig.median, ig.mean, ig.stddev, ig.region
     FROM tblUserRareReport rr
     join tblDBCItem i on i.id = rr.item
-    left join tblItemGlobal ig on ig.item = rr.item and ig.bonusset = rr.bonusset
+    join tblRealm r on r.house = rr.house and r.canonical is not null
+    left join tblItemGlobal ig on ig.item = rr.item and ig.bonusset = rr.bonusset and ig.region = r.region 
     where rr.user = ?
     ) z
 left join tblBonusSet bs on z.bonusset = bs.`set`
@@ -365,8 +366,8 @@ EOF;
             is_null($row['prevseen']) ? '?' : sprintf(str_replace('{1}', '%s', $LANG['timePast']), round((time() - strtotime($row['prevseen'])) / 86400) . ' ' . $LANG['timeDays']),
             $LANG['now'],
             FormatPrice($row['price'], $LANG));
-        $message .= sprintf('%s: %s, %s: %s, %s: %s<br><br>',
-            $LANG['globalMedian'], FormatPrice($row['median'], $LANG),
+        $message .= sprintf('%s %s: %s, %s: %s, %s: %s<br><br>',
+            $row['region'], $LANG['medianPrice'], FormatPrice($row['median'], $LANG),
             $LANG['mean'], FormatPrice($row['mean'], $LANG),
             $LANG['standardDeviation'], FormatPrice($row['stddev'], $LANG)
             );

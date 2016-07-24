@@ -41,18 +41,22 @@ if ($caughtKill) {
     exit;
 }
 
+$regions = ['US','EU'];
+
 $sql = <<<END
 SELECT price
 FROM tblItemSummary ih, tblRealm r
 WHERE item = ?
 and bonusset = ?
+and r.region = ?
 and r.canonical is not null
 and ih.house = r.house
+ORDER BY 1
 END;
 
 DebugMessage('Updating items..');
 $itemsCount = count($items);
-$now = Date('Y-m-d H:i:s');
+$now = date('Y-m-d H:i:s');
 for ($z = 0; $z < $itemsCount; $z++) {
     $item = $items[$z]['item'];
     $bonusSet = $items[$z]['bonusset'];
@@ -65,42 +69,47 @@ for ($z = 0; $z < $itemsCount; $z++) {
         DebugMessage("Processing item $z/$itemsCount (" . round($z / $itemsCount * 100) . '%)');
     }
 
-    $stmt = $db->prepare($sql);
-    $stmt->bind_param('ii', $item, $bonusSet);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $prices = DBMapArray($result, null);
-    $stmt->close();
+    foreach ($regions as $region) {
+        $stmt = $db->prepare($sql);
+        $stmt->bind_param('iis', $item, $bonusSet, $region);
+        $stmt->execute();
+        $prices = [];
+        $price = null;
+        $stmt->bind_result($price);
+        while ($stmt->fetch()) {
+            $prices[] = $price;
+        }
+        $stmt->close();
 
-    sort($prices, SORT_NUMERIC);
-    $cnt = count($prices);
+        $cnt = count($prices);
 
-    if ($cnt == 0) {
-        continue;
+        if ($cnt == 0) {
+            continue;
+        }
+
+        $mean = 0;
+        for ($x = 0; $x < $cnt; $x++) {
+            $mean += $prices[$x] / $cnt;
+        }
+        $mean = round($mean);
+
+        $stdDev = 0;
+        for ($x = 0; $x < $cnt; $x++) {
+            $stdDev += pow($prices[$x] - $mean, 2) / $cnt;
+        }
+        $stdDev = round(sqrt($stdDev));
+
+        if ($cnt % 2 == 1) {
+            $median = $prices[(int)floor($cnt / 2)];
+        } else {
+            $median = round(($prices[(int)floor($cnt / 2) - 1] + $prices[(int)floor($cnt / 2)]) / 2);
+        }
+
+        $stmt = $db->prepare('INSERT INTO tblItemGlobalWorking (`region`, `when`, `item`, `bonusset`, `median`, `mean`, `stddev`) VALUES (?, ?, ?, ?, ?, ?, ?)');
+        $stmt->bind_param('ssiiiii', $region, $now, $item, $bonusSet, $median, $mean, $stdDev);
+        $stmt->execute();
+        $stmt->close();
     }
-
-    $mean = 0;
-    for ($x = 0; $x < $cnt; $x++) {
-        $mean += $prices[$x] / $cnt;
-    }
-    $mean = round($mean);
-
-    $stdDev = 0;
-    for ($x = 0; $x < $cnt; $x++) {
-        $stdDev += pow($prices[$x] - $mean, 2) / $cnt;
-    }
-    $stdDev = round(sqrt($stdDev));
-
-    if ($cnt % 2 == 1) {
-        $median = $prices[floor($cnt / 2)];
-    } else {
-        $median = round(($prices[floor($cnt / 2) - 1] + $prices[floor($cnt / 2)]) / 2);
-    }
-
-    $stmt = $db->prepare('INSERT INTO tblItemGlobalWorking (`when`, item, `bonusset`, `median`, `mean`, `stddev`) VALUES (?, ?, ?, ?, ?, ?)');
-    $stmt->bind_param('siiiii', $now, $item, $bonusSet, $median, $mean, $stdDev);
-    $stmt->execute();
-    $stmt->close();
 }
 
 if (!$caughtKill) {
@@ -112,7 +121,7 @@ if (!$caughtKill) {
 if (!$caughtKill) {
     heartbeat();
     DebugMessage("Updating tblItemGlobal rows");
-    $db->query('REPLACE INTO tblItemGlobal (SELECT `item`, `bonusset`, avg(`median`), avg(`mean`), avg(`stddev`) FROM tblItemGlobalWorking GROUP BY `item`, `bonusset`)');
+    $db->query('REPLACE INTO tblItemGlobal (SELECT `item`, `bonusset`, `region`, avg(`median`), avg(`mean`), avg(`stddev`) FROM tblItemGlobalWorking GROUP BY `item`, `bonusset`, `region`)');
 }
 
 UpdateGlobalDataJson();
@@ -129,7 +138,7 @@ function UpdateGlobalDataJson()
     heartbeat();
     DebugMessage("Updating global data json");
 
-    $stmt = $db->prepare('SELECT item, median FROM tblItemGlobal where bonusset=0');
+    $stmt = $db->prepare('SELECT item, avg(median) FROM tblItemGlobal where bonusset=0');
     $stmt->execute();
     $result = $stmt->get_result();
     $prices = DBMapArray($result, null);

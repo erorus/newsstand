@@ -383,10 +383,11 @@ CREATE TABLE IF NOT EXISTS `tblItemExpired` (
 CREATE TABLE IF NOT EXISTS `tblItemGlobal` (
   `item` mediumint(8) unsigned NOT NULL,
   `bonusset` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `region` enum('US','EU','CN','TW','KR') COLLATE utf8_unicode_ci NOT NULL,
   `median` decimal(11,0) unsigned NOT NULL,
   `mean` decimal(11,0) unsigned NOT NULL,
   `stddev` decimal(11,0) unsigned NOT NULL,
-  PRIMARY KEY (`item`,`bonusset`)
+  PRIMARY KEY (`item`,`bonusset`,`region`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -397,12 +398,13 @@ CREATE TABLE IF NOT EXISTS `tblItemGlobal` (
 
 CREATE TABLE IF NOT EXISTS `tblItemGlobalWorking` (
   `when` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `region` enum('US','EU','CN','TW','KR') COLLATE utf8_unicode_ci NOT NULL,
   `item` mediumint(8) unsigned NOT NULL,
   `bonusset` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `median` decimal(11,0) unsigned NOT NULL,
   `mean` decimal(11,0) unsigned NOT NULL,
   `stddev` decimal(11,0) unsigned NOT NULL,
-  PRIMARY KEY (`when`,`item`,`bonusset`)
+  PRIMARY KEY (`when`,`region`,`item`,`bonusset`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
