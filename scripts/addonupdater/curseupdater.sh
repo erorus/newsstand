@@ -10,7 +10,7 @@ if [ -s "/tmp/curseupdater.$$/TheUndermineJournal.zip" ]; then
 	if [ $? -eq 0 ]; then
 		echo Boundary: $boundary
 
-		wget -O /tmp/curseupdater.$$/curseout.txt --header "Content-type: multipart/form-data; boundary=$boundary" --header "X-API-Key: $CURSEAPIKEY" --post-file /tmp/curseupdater.$$/topost.txt "http://wow.curseforge.com/addons/undermine-journal/upload-file.json"
+		wget -O /tmp/curseupdater.$$/curseout.txt --header "Content-type: multipart/form-data; boundary=$boundary" --header "X-API-Key: $CURSEAPIKEY" --post-file /tmp/curseupdater.$$/topost.txt "https://wow.curseforge.com/addons/undermine-journal/upload-file.json"
 		cat /tmp/curseupdater.$$/curseout.txt
 		rm /tmp/curseupdater.$$/curseout.txt
 

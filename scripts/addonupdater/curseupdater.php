@@ -22,7 +22,7 @@ if (!file_exists($filpath)) {
     exit(2);
 }
 
-$versionjson = `wget -O - --quiet "http://wow.curseforge.com/game-versions.json"`;
+$versionjson = `wget -O - --quiet "https://wow.curseforge.com/game-versions.json"`;
 $json = json_decode($versionjson,true,12);
 krsort($json);
 foreach ($json as $vers => $o)
