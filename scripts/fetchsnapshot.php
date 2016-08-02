@@ -9,7 +9,6 @@ require_once('../incl/battlenet.incl.php');
 
 define('SNAPSHOT_PATH', '/var/newsstand/snapshots/');
 define('EARLY_CHECK_SECONDS', 120);
-define('MINIMUM_INTERVAL_SECONDS', 1200);
 
 $regions = ['US','EU','CN','TW','KR'];
 
@@ -70,13 +69,12 @@ function FetchSnapshot()
         return 30;
     }
     $earlyCheckSeconds = EARLY_CHECK_SECONDS;
-    $minimumIntervalSeconds = MINIMUM_INTERVAL_SECONDS;
 
     $nextRealmSql = <<<ENDSQL
     select r.house, min(r.canonical), count(*) c, ifnull(hc.nextcheck, s.nextcheck) upd, s.lastupdate, s.mindelta
     from tblRealm r
     left join (
-        select deltas.house, timestampadd(second, greatest($minimumIntervalSeconds, least(ifnull(min(delta)-$earlyCheckSeconds, 45*60), 150*60)), max(deltas.updated)) nextcheck, max(deltas.updated) lastupdate, min(delta) mindelta
+        select deltas.house, timestampadd(second, least(ifnull(min(delta)-$earlyCheckSeconds, 45*60), 150*60), max(deltas.updated)) nextcheck, max(deltas.updated) lastupdate, min(delta) mindelta
         from (
             select sn.updated,
             if(@prevhouse = sn.house and sn.updated > timestampadd(hour, -72, now()), unix_timestamp(sn.updated) - @prevdate, null) delta,
