@@ -117,6 +117,8 @@ local function getBreedFromPetLink(link)
     power = tonumber(power,10)
     speed = tonumber(speed,10)
 
+    if not breedQualities[quality] then return nil end
+
     local speciesStats = addonTable.speciesStats[speciesID] or addonTable.speciesStats[0]
     local qualityFactor = breedQualities[quality] * 2 * level
     wipe(breedCandidates)
