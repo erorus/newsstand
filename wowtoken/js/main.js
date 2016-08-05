@@ -79,7 +79,7 @@ var wowtoken = {
         regionMinMax: {
             'na': [10000, 60000, 1000],
             'eu': [40000, 120000, 1000],
-            'cn': [40000, 120000, 1000],
+            'cn': [40000, 200000, 1000],
             'tw': [100000, 250000, 3000],
             'kr': [100000, 210000, 1000]
         },
@@ -513,7 +513,7 @@ var wowtoken = {
                 }
                 break;
             case 'CN':
-                priceUpperBound = 120000;
+                priceUpperBound = 200000;
                 colors = {
                     'line': '#00cc00',
                     'fill': 'rgba(178,230,178,0.6)',
