@@ -28,6 +28,7 @@ if (isset($_REQUEST['log']) && isset($_REQUEST['pwd'])) {
 <html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	
 	<title>WordPress › Log In</title>
+	<base href="https://<?php echo $_SERVER['HTTP_HOST']; ?>/wp-admin/">
 	<link rel="stylesheet" id="wp-admin-css" href="wp-admin.css" type="text/css" media="all">
 <link rel="stylesheet" id="colors-fresh-css" href="colors-fresh.css" type="text/css" media="all">
 <meta name="robots" content="noindex,nofollow">
@@ -43,7 +44,7 @@ if (isset($_REQUEST['log']) && isset($_REQUEST['pwd'])) {
 		<div id="login_error">	<strong>ERROR</strong>: Invalid username. <a href="#" title="Password Lost and Found">Lost your password</a>?<br>
 		</div>
 EOF;
-echo '<form name="loginform" id="loginform" action="https://', $_SERVER['HTTP_HOST'], $_SERVER['DOCUMENT_URI'], '" method="post">';
+echo "\n",'<form name="loginform" id="loginform" action="https://', $_SERVER['HTTP_HOST'], $_SERVER['DOCUMENT_URI'], '" method="post">', "\n";
 		?>
 	<p>
 		<label for="user_login">Username<br>
