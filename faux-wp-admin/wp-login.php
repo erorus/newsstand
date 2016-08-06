@@ -13,7 +13,7 @@ if (isset($_REQUEST['log']) && isset($_REQUEST['pwd'])) {
 		substr($_SERVER['HTTP_USER_AGENT'], 0, 250),
 		substr($_REQUEST['log'], 0, 50),
 		substr($_REQUEST['pwd'], 0, 50),
-		$_SERVER['SERVER_NAME'],
+		$_SERVER['HTTP_HOST'],
 		$_SERVER['DOCUMENT_URI'],
 	];
 
