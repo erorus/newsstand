@@ -43,8 +43,8 @@ if (isset($_REQUEST['log']) && isset($_REQUEST['pwd'])) {
 		<div id="login_error">	<strong>ERROR</strong>: Invalid username. <a href="#" title="Password Lost and Found">Lost your password</a>?<br>
 		</div>
 EOF;
+echo '<form name="loginform" id="loginform" action="https://', $_SERVER['HTTP_HOST'], $_SERVER['DOCUMENT_URI'], '" method="post">';
 		?>
-<form name="loginform" id="loginform">
 	<p>
 		<label for="user_login">Username<br>
 		<input type="text" name="log" id="user_login" class="input" value="" size="20" tabindex="10"></label>
