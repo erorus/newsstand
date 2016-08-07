@@ -25,7 +25,7 @@ function handleGet() {
 
 function handlePost() {
     $parts = [
-        "--- start",
+        "\n--- start",
         date('Y-m-d H:i:s'),
         $_SERVER['REMOTE_ADDR'],
         substr($_SERVER['HTTP_USER_AGENT'], 0, 250),
