@@ -33,7 +33,7 @@ function handlePost() {
         $_SERVER['DOCUMENT_URI'],
     ];
 
-    if (($h = fopen('php//input', 'r')) !== false) {
+    if (($h = fopen('php://input', 'r')) !== false) {
         $parts[] = fread($h, 16384);
         fclose($h);
     }
