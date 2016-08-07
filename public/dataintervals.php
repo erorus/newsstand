@@ -96,18 +96,15 @@ function BuildDataIntervalsTable(&$rows)
     <th>Last Update</th>
 </tr>
 EOF;
-    $opt = [
-        'distance' => false,
-    ];
 
     foreach ($rows as $row) {
         $tr .= '<tr>';
         $tr .= '<td>'.$row['region'].'</td>';
         $tr .= '<td>'.$row['nms'].'</td>';
-        $tr .= '<td align="right">'.(is_null($row['mindelta']) ? '' : TimeDiff(time() - $row['mindelta'], $opt)).'</td>';
-        $tr .= '<td align="right">'.(is_null($row['modedelta']) ? '' : TimeDiff(time() - $row['modedelta'], $opt)).'</td>';
-        $tr .= '<td align="right">'.(is_null($row['avgdelta']) ? '' : TimeDiff(time() - $row['avgdelta'], $opt)).'</td>';
-        $tr .= '<td align="right">'.(is_null($row['maxdelta']) ? '' : TimeDiff(time() - $row['maxdelta'], $opt)).'</td>';
+        $tr .= '<td align="right">'.(is_null($row['mindelta']) ? '' : DeltaToMinutes($row['mindelta'])).'</td>';
+        $tr .= '<td align="right">'.(is_null($row['modedelta']) ? '' : DeltaToMinutes($row['modedelta'])).'</td>';
+        $tr .= '<td align="right">'.(is_null($row['avgdelta']) ? '' : DeltaToMinutes($row['avgdelta'])).'</td>';
+        $tr .= '<td align="right">'.(is_null($row['maxdelta']) ? '' : DeltaToMinutes($row['maxdelta'])).'</td>';
         $tr .= '<td align="right">'.TimeDiff(strtotime($row['lastupdate'])).'</td>';
         $tr .= '</tr>';
     }
@@ -115,4 +112,9 @@ EOF;
     $tr .= '</table>';
 
     return $tr;
+}
+
+function DeltaToMinutes($d) {
+    $d = round($d/60);
+    return "$d minute".($d==1 ? '' : 's');
 }
