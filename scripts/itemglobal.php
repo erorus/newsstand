@@ -138,7 +138,7 @@ function UpdateGlobalDataJson()
     heartbeat();
     DebugMessage("Updating global data json");
 
-    $stmt = $db->prepare('SELECT item, avg(median) median FROM tblItemGlobal where bonusset=0 group by item');
+    $stmt = $db->prepare('SELECT item, floor(avg(median)) median FROM tblItemGlobal where bonusset=0 group by item');
     $stmt->execute();
     $result = $stmt->get_result();
     $prices = DBMapArray($result, null);
