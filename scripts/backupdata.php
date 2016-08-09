@@ -49,6 +49,7 @@ APIMaintenance($backupSet == 'data' ? '+45 minutes' : '+5 minutes');
 $cmd = 'mysqldump --verbose --skip-opt --quick --allow-keywords --create-options --add-drop-table --add-locks --extended-insert --single-transaction --user='.escapeshellarg(DATABASE_USERNAME_CLI).' --password='.escapeshellarg(DATABASE_PASSWORD_CLI).' --where=%s '.escapeshellarg(DATABASE_SCHEMA)." %s | gzip -c >> %s\n";
 foreach ($tables[$backupSet] as $table => $where) {
     DebugMessage("Starting $table");
+    file_put_contents($sqlFile, "select concat(now(), ' Inserting into $table');\n", FILE_APPEND);
     $trash = [];
     $ret = 0;
     exec(sprintf($cmd, escapeshellarg($where), escapeshellarg($table), escapeshellarg($sqlFile)), $trash, $ret);

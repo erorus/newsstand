@@ -13,6 +13,7 @@ public/index.scripts.inc
 public/paypal.*.php
 scripts/realms2houses_cache/*
 scripts/zopfli
+scripts/*.credentials.sh
 compress/*
 
 public/globalprices.json
