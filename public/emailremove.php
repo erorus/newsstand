@@ -46,7 +46,7 @@ function BlockMailId($mailId) {
     }
 
     if (!is_null($address['blocked'])) {
-        return $address['address'].' was removed on '.Date('Y-m-d H:i:s', $address['blocked']);
+        return $address['address'].' was removed on '.date('Y-m-d H:i:s', $address['blocked']);
     }
 
     $stmt = $db->prepare('insert into tblEmailBlocked (address, added) values (?, now())');

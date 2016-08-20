@@ -55,7 +55,7 @@ function CatchUp($region) {
 
     $dt = strtotime('2015-04-01');
     while ($dt < time()) { // hack
-        if (!isset($dates[Date('Y-m-d', $dt)])) {
+        if (!isset($dates[date('Y-m-d', $dt)])) {
             IndexRegionDay($region, $dt);
         }
         $dt = strtotime('tomorrow', $dt);
@@ -74,9 +74,9 @@ function IndexRegionDay($region, $timestamp) {
     $indexValues = [];
 
     $total = 0;
-    $when = Date('Y-m-d', $timestamp);
-    $month = (intval(Date('Y', $timestamp), 10) - 2014) * 12 + intval(Date('m', $timestamp), 10);
-    $day = Date('d', $timestamp);
+    $when = date('Y-m-d', $timestamp);
+    $month = (intval(date('Y', $timestamp), 10) - 2014) * 12 + intval(date('m', $timestamp), 10);
+    $day = date('d', $timestamp);
     $dayPadded = str_pad($day, 2, '0', STR_PAD_LEFT);
 
     DebugMessage("Processing $region $when");

@@ -1,11 +1,11 @@
 <?php
 
 header('HTTP/1.1 410 Gone');
-header('Expires: '.Date(DATE_RFC1123, strtotime('+1 year')));
+header('Expires: '.date(DATE_RFC1123, strtotime('+1 year')));
 
 if (isset($_GET['rss'])) {
     $self = 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
-    $date = Date(DATE_RFC2822);
+    $date = date(DATE_RFC2822);
     $guid = md5($date);
 
     $rss = <<<EOF

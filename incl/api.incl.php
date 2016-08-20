@@ -608,7 +608,7 @@ function BanIP($ip = false)
     $ip = trim(strtolower($ip));
 
     if (!IPIsBanned($ip)) {
-        file_put_contents(BANLIST_FILENAME, "\n$ip # " . Date('Y-m-d H:i:s'), FILE_APPEND | LOCK_EX);
+        file_put_contents(BANLIST_FILENAME, "\n$ip # " . date('Y-m-d H:i:s'), FILE_APPEND | LOCK_EX);
         MCDelete(BANLIST_CACHEKEY);
         MCDelete(BANLIST_CACHEKEY . '_' . $ip);
         $addedBan = true;

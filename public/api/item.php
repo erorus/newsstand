@@ -528,7 +528,7 @@ EOF;
     $stmt->close();
 
     $tr = array();
-    $today = strtotime(Date('Y-m-d'));
+    $today = strtotime(date('Y-m-d'));
     foreach ($bonusRows as $bonusSet => &$rows) {
         $prevPrice = 0;
         for ($x = 0; $x < count($rows); $x++) {

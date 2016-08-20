@@ -30,7 +30,7 @@ if (isset($_SERVER['CONTENT_TYPE'])) {
 }
 
 $headers = array();
-$headers['Date'] = Date(DATE_RFC2822);
+$headers['Date'] = date(DATE_RFC2822);
 $headers['Content-Type'] = 'text/plain; charset=UTF-8; format="flowed"';
 $headers['Content-Transfer-Encoding'] = 'base64';
 $headers['From'] = 'Contact Form <contactform@from.theunderminejournal.com>';
@@ -41,7 +41,7 @@ if (preg_match('/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/i', $_POST['from'], 
 
 $_POST['message'] = preg_replace('/\r\n?/', "\n", $_POST['message']);
 
-$body = "Date: " . Date('Y-m-d H:i:s') . "\nFrom: " . $_POST['from'] . "\nIP: " . $_SERVER['REMOTE_ADDR'] . "\nUser Agent: " . $_SERVER['HTTP_USER_AGENT'] . "\n";
+$body = "Date: " . date('Y-m-d H:i:s') . "\nFrom: " . $_POST['from'] . "\nIP: " . $_SERVER['REMOTE_ADDR'] . "\nUser Agent: " . $_SERVER['HTTP_USER_AGENT'] . "\n";
 
 $banned = BotCheck(true);
 $body .= "Banned: " . ($banned['isbanned'] ? 'yes: ' . $banned['reason'] . ' ' . $banned['ip'] : 'no') . "\n";

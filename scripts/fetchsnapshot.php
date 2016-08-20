@@ -160,12 +160,12 @@ ENDSQL;
             if (isset($headers['Last-Modified'])) {
                 $newModified = strtotime($headers['Last-Modified']);
                 if ($newModified > $modified) {
-                    DebugMessage("$region $slug data file indicates last modified $newModified ".Date('H:i:s', $newModified).", ignoring API result.");
+                    DebugMessage("$region $slug data file indicates last modified $newModified ".date('H:i:s', $newModified).", ignoring API result.");
                     $modified = $newModified;
                 } else if ($newModified == $modified) {
                     DebugMessage("$region $slug data file has last modified date matching API result.");
                 } else {
-                    DebugMessage("$region $slug data file has last modified date earlier than API result: $newModified ".Date('H:i:s', $newModified).".");
+                    DebugMessage("$region $slug data file has last modified date earlier than API result: $newModified ".date('H:i:s', $newModified).".");
                 }
             } else {
                 DebugMessage("$region $slug data file failed fetching last modified date via HEAD method.");
@@ -176,13 +176,13 @@ ENDSQL;
         if ($delay <= 0) {
             $delay = GetCheckDelay($modified);
         }
-        DebugMessage("$region $slug still not updated since $modified ".Date('H:i:s', $modified)." (" . SecondsOrMinutes(time() - $modified) . " ago). Waiting ".SecondsOrMinutes($delay).".");
+        DebugMessage("$region $slug still not updated since $modified ".date('H:i:s', $modified)." (" . SecondsOrMinutes(time() - $modified) . " ago). Waiting ".SecondsOrMinutes($delay).".");
         SetHouseNextCheck($house, time() + $delay, $json);
 
         return 0;
     }
 
-    DebugMessage("$region $slug updated $modified ".Date('H:i:s', $modified)." (" . SecondsOrMinutes(time() - $modified) . " ago), fetching auction data file");
+    DebugMessage("$region $slug updated $modified ".date('H:i:s', $modified)." (" . SecondsOrMinutes(time() - $modified) . " ago), fetching auction data file");
     $dlStart = microtime(true);
     $data = \Newsstand\HTTP::Get(preg_replace('/^http:/', 'https:', $fileInfo['url']), [], $outHeaders);
     $dlDuration = microtime(true) - $dlStart;

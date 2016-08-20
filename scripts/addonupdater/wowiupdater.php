@@ -93,7 +93,7 @@ curl_setopt_array($curl, [
             'version' => $version,
             'wysiwyg' => 0,
             'message' => $description,
-            'changelog' => 'Automatic data update for '.Date('l, F j, Y'),
+            'changelog' => 'Automatic data update for '.date('l, F j, Y'),
             'donatepage' => '',
             'compatible[]' => $compatible,
             'overlaytype' => 0,

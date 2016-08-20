@@ -24,7 +24,7 @@ td.r { text-align: right }
 
 </style></head><body>
 EOF;
-echo '<h1>' . Date('Y-m-d H:i:s') . '</h1>';
+echo '<h1>' . date('Y-m-d H:i:s') . '</h1>';
 
 if (!DBConnect()) {
     DebugMessage('Cannot connect to db!', E_USER_ERROR);

@@ -156,7 +156,7 @@ function ParseAuctionData($house, $snapshot, &$json)
     global $houseRegionCache;
     global $auctionExtraItemsCache;
 
-    $snapshotString = Date('Y-m-d H:i:s', $snapshot);
+    $snapshotString = date('Y-m-d H:i:s', $snapshot);
     $startTimer = microtime(true);
 
     $region = $houseRegionCache[$house]['region'];

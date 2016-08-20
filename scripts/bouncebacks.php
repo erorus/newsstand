@@ -70,7 +70,7 @@ function NextMailFile()
         return false;
     }
 
-    DebugMessage('Found message received at '.Date('Y-m-d H:i:s', $ts).', '.TimeDiff($ts));
+    DebugMessage('Found message received at '.date('Y-m-d H:i:s', $ts).', '.TimeDiff($ts));
     $message = fread($handle, min(filesize(BOUNCEBACK_PATH . $fileName), 4194304));
 
     ftruncate($handle, 0);

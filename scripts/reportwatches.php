@@ -379,7 +379,7 @@ EOF;
         return false;
     }
 
-    $maxSnapshot = Date('Y-m-d H:i:s', $maxSnapshot);
+    $maxSnapshot = date('Y-m-d H:i:s', $maxSnapshot);
     $stmt = $db->prepare('delete from tblUserRareReport where user = ? and snapshot <= ?');
     $stmt->bind_param('is', $userId, $maxSnapshot);
     $stmt->execute();

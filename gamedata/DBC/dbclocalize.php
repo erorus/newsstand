@@ -213,7 +213,7 @@ LogLine("Done.\n");
 function LogLine($msg) {
 	if ($msg == '') return;
 	if (substr($msg, -1, 1)=="\n") $msg = substr($msg, 0, -1);
-	echo "\n".Date('H:i:s').' '.$msg;
+	echo "\n".date('H:i:s').' '.$msg;
 }
 
 function EchoProgress($frac) {

@@ -173,7 +173,7 @@ function ParseTokenData($region, $snapshot, &$lua)
         DebugMessage("Region $region $snapshot data file does not have snapshot or region!", E_USER_WARNING);
         return false;
     }
-    $snapshotString = Date('Y-m-d H:i:s', $lua['now']);
+    $snapshotString = date('Y-m-d H:i:s', $lua['now']);
     foreach (['selltime', 'market', 'result', 'selltimeraw'] as $col) {
         if (!isset($lua[$col])) {
             $lua[$col] = null;
@@ -299,7 +299,7 @@ EOF;
         foreach ($historyJson[$fileRegion] as $row) {
             if ($row[1] != $prevPrice) {
                 $prevPrice = $row[1];
-                $csv .= "$fileRegion,".Date('Y-m-d H:i:s', $row[0]).",{$row[1]}\r\n"; //,{$row[2]}
+                $csv .= "$fileRegion,".date('Y-m-d H:i:s', $row[0]).",{$row[1]}\r\n"; //,{$row[2]}
             }
         }
 
@@ -313,7 +313,7 @@ EOF;
                 'timeToSellSeconds' => $tokenData['timeleftraw'],
                 'result' => $tokenData['result'],
                 'updated' => strtotime($tokenData['when']),
-                'updatedISO8601' => Date(DATE_ISO8601, strtotime($tokenData['when'])),
+                'updatedISO8601' => date(DATE_ISO8601, strtotime($tokenData['when'])),
             ],
             'formatted' => [
                 'buy' => number_format($tokenData['marketgold']).'g',

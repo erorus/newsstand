@@ -45,7 +45,7 @@ function DebugMessage($message, $debugLevel = E_USER_NOTICE)
         $pth = realpath(__DIR__ . '/../logs/scripterrors.log');
         if ($pth) {
             $me = (PHP_SAPI == 'cli') ? ('CLI:' . realpath($argv[0])) : ('Web:' . $_SERVER['REQUEST_URI']);
-            file_put_contents($pth, Date('Y-m-d H:i:s') . " $me$bt $message\n", FILE_APPEND | LOCK_EX);
+            file_put_contents($pth, date('Y-m-d H:i:s') . " $me$bt $message\n", FILE_APPEND | LOCK_EX);
         }
     }
 
@@ -56,9 +56,9 @@ function DebugMessage($message, $debugLevel = E_USER_NOTICE)
 
     if (PHP_SAPI == 'cli') {
         if ($debugLevel == E_USER_NOTICE) {
-            echo Date('Y-m-d H:i:s') . " $myPid $message\n";
+            echo date('Y-m-d H:i:s') . " $myPid $message\n";
         } else {
-            trigger_error("\n" . Date('Y-m-d H:i:s') . " $myPid $message\n", $debugLevel);
+            trigger_error("\n" . date('Y-m-d H:i:s') . " $myPid $message\n", $debugLevel);
         }
     } elseif ($debugLevel != E_USER_NOTICE) {
         trigger_error($message, $debugLevel);
