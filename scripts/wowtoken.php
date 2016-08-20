@@ -23,8 +23,6 @@ define('SNAPSHOT_PATH', '/home/wowtoken/pending/');
 define('TWEET_FREQUENCY_MINUTES', 360); // tweet at least every 6 hours
 define('PRICE_CHANGE_THRESHOLD', 0.15); // was 0.2, for 20% change required. 0 means tweet every change
 
-define('WOWTOKEN_FLAGS_COMPRESS', 0x1);
-
 if (!DBConnect()) {
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
 }
@@ -246,6 +244,7 @@ EOF;
 
     $json = [];
     $historyJson = [];
+    $historyJsonFull = [];
     $csv = "Region,UTC Date,Buy Price\r\n"; //,Time Left
 
     foreach ($regions as $region) {
@@ -285,11 +284,11 @@ EOF;
             $sparkUrl = $blankImage;
         }
 
-        $fullHistoryJson = BuildHistoryJson($region);
+        $historyJsonFull[$fileRegion] = BuildHistoryData($region);
         $historyJson[$fileRegion] = [];
-        $cutOff = time() - 1209600;
+        $cutOff = time() - 604800; // one week
         $prevPrice = -1;
-        foreach ($fullHistoryJson as $row) {
+        foreach ($historyJsonFull[$fileRegion] as $row) {
             if ($row[0] > $cutOff) {
                 $historyJson[$fileRegion][] = $row;
             }
@@ -338,13 +337,20 @@ EOF;
         AtomicFilePutContents($filenm, $html);
     }
 
-    AtomicFilePutContents(__DIR__.'/../wowtoken/snapshot.json', json_encode($json, JSON_NUMERIC_CHECK), WOWTOKEN_FLAGS_COMPRESS);
-    AtomicFilePutContents(__DIR__.'/../wowtoken/snapshot-history.json', json_encode([
-                'attention' => 'Please see usage guidelines on https://wowtoken.info/',
-                'update' => $json,
-                'history' => $historyJson
-            ], JSON_NUMERIC_CHECK), WOWTOKEN_FLAGS_COMPRESS);
-    AtomicFilePutContents(__DIR__.'/../wowtoken/snapshot-history.csv', $csv, WOWTOKEN_FLAGS_COMPRESS);
+    AtomicFilePutContents(__DIR__.'/../wowtoken/snapshot.json', json_encode($json, JSON_NUMERIC_CHECK), true);
+    AtomicFilePutContents(__DIR__.'/../wowtoken/snapshot-history.csv', $csv, true);
+    AtomicFilePutContents(__DIR__.'/../wowtoken/snapshot-history.json',
+        json_encode([
+            'attention' => 'Please see usage guidelines on https://wowtoken.info/',
+            'note' => 'Data is truncated since it was fetched without gzip encoding.',
+            'update' => $json,
+            'history' => $historyJson
+            ], JSON_NUMERIC_CHECK),
+        json_encode([
+            'attention' => 'Please see usage guidelines on https://wowtoken.info/',
+            'update' => $json,
+            'history' => $historyJsonFull
+            ], JSON_NUMERIC_CHECK));
 
     $shtmlPath = __DIR__.'/../wowtoken/index-template.shtml';
     if (file_exists($shtmlPath)) {
@@ -387,7 +393,7 @@ function BuildImageURI($s) {
     return 'data:image/png;base64,'.base64_encode($imgdata);
 }
 
-function BuildHistoryJson($region) {
+function BuildHistoryData($region) {
     global $db;
 
     $sql = 'select unix_timestamp(`when`) `dt`, `marketgold` `buy` from tblWowToken where region = ? and `result` = 1 order by `when` asc'; // and `when` < timestampadd(minute, -70, now())
@@ -1029,10 +1035,10 @@ EOF;
     }
 }
 
-function AtomicFilePutContents($path, $data, $flags = 0) {
+function AtomicFilePutContents($path, $data, $zippedVersion = false) {
     $aPath = "$path.atomic";
     file_put_contents($aPath, $data);
-    if ($flags & WOWTOKEN_FLAGS_COMPRESS) {
+    if ($zippedVersion) {
         static $hasZopfli = null;
         if (is_null($hasZopfli)) {
             $hasZopfli = is_executable(__DIR__.'/zopfli');
@@ -1042,7 +1048,18 @@ function AtomicFilePutContents($path, $data, $flags = 0) {
         $zaPath = "$aPath.gz";
         $zPath = "$path.gz";
 
-        exec(($hasZopfli ? escapeshellcmd(__DIR__.'/zopfli') : 'gzip') . ' -c ' . escapeshellarg($aPath) . ' > ' . escapeshellarg($zaPath), $o, $ret);
+        if (is_string($zippedVersion)) {
+            $dataPath = tempnam('/tmp', 'atomiczipdata');
+            file_put_contents($dataPath, $zippedVersion);
+        } else {
+            $dataPath = $aPath;
+        }
+
+        exec(($hasZopfli ? escapeshellcmd(__DIR__.'/zopfli') : 'gzip') . ' -c ' . escapeshellarg($dataPath) . ' > ' . escapeshellarg($zaPath), $o, $ret);
+
+        if (is_string($zippedVersion)) {
+            unlink($dataPath);
+        }
 
         if ($ret != 0) {
             if (file_exists($zaPath)) {
