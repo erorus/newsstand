@@ -23,17 +23,20 @@ h2:first-child {
 }
 
 table.results {
-    min-width: 270px;
+    width: 100%;
+    max-width: 40em;
 }
 
 table.results > tbody > tr > td {
     font-weight: 700;
     padding-top: 0.25em;
+    white-space: nowrap;
 }
 
 table.results > tbody > tr > td:first-child {
     font-weight: normal;
-    padding-right: 2em;
+    padding-right: 1em;
+    width: 8em;
 }
 
 table.results > tbody > tr:first-child > td {
@@ -123,7 +126,7 @@ div.hc {
     .adsbygoogle { width: 728px; height: 90px; }
 }
 
-.range-bar { position: relative; display: inline-block; margin: 0 10px; width: 10em; height: 1.2em; vertical-align: middle;
+.range-bar { position: relative; display: inline-block; margin: 0 0.25em; width: 33%; width: calc(33% - 0.5em); height: 1.2em; vertical-align: middle;
     /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#3333cc+0,cc3333+100 */
     background: grey; /* Old browsers */
     background: -moz-linear-gradient(left, #3333cc 0%, #cc3333 100%); /* FF3.6-15 */
