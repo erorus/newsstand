@@ -227,21 +227,11 @@ function BuildIncludes($regions)
                         <tr>
                             <td style="vertical-align: bottom">24-Hour Range</td>
                             <td>
-                                <table>
-                                    <tr>
-                                        <td colspan="2"><img src="##rangeImg##" width="150" height="75"></td>
-                                    </tr>
-                                    <tr>
-                                        <td>##24min##</td>
-                                        <td align="right">##24max##</td>
-                                    </tr>
-                                </table>
+                                ##24min##
+                                <div class="range-bar"><div class="range-point" style="left: ##24pct##%"></div></div>
+                                ##24max##
                             </td>
                         </tr>
-                        <!-- tr>
-                            <td>Time to Sell</td>
-                            <td id="##region##-timeToSell">##timeToSell##</td>
-                        </tr -->
                         <tr>
                             <td>API Result</td>
                             <td id="##region##-result">##result##</td>
@@ -274,6 +264,7 @@ EOF;
         $tokenData = array_pop($tokenData);
         $stmt->close();
 
+        $tokenData['24min'] = $tokenData['24max'] = null;
         $sql = 'select min(`marketgold`) `min`, max(`marketgold`) `max` from tblWowToken w where region = ? and `when` between timestampadd(hour, -24, ?) and ?';
         $stmt = $db->prepare($sql);
         $stmt->bind_param('sss', $region, $tokenData['when'], $tokenData['when']);
@@ -317,9 +308,9 @@ EOF;
             ],
             'formatted' => [
                 'buy' => number_format($tokenData['marketgold']).'g',
-                '24min' => number_format($tokenData['24min']).'g',
-                '24max' => number_format($tokenData['24max']).'g',
-                'rangeImg' => (is_null($tokenData['24min']) || ($tokenData['24max'] == $tokenData['24min'])) ? $blankImage : 'data:image/png;base64,'.base64_encode(\Newsstand\HTTP::Get('https://chart.googleapis.com/chart?chs=150x75&cht=gom&chd=t:'.round(($tokenData['marketgold'] - $tokenData['24min'])/($tokenData['24max'] - $tokenData['24min'])*100).'&chco=3333CC,CC3333&chf=bg,s,FFFFFF00')),
+                '24min' => isset($tokenData['24min']) ? number_format($tokenData['24min']).'g' : '',
+                '24max' => isset($tokenData['24max']) ? number_format($tokenData['24max']).'g' : '',
+                '24pct' => ($tokenData['24max'] != $tokenData['24min']) ? round(($tokenData['marketgold'] - $tokenData['24min']) / ($tokenData['24max'] - $tokenData['24min']) * 100, 1) : 50,
                 //'buyimg' => BuildImageURI(number_format($tokenData['marketgold']).'g'),
                 'timeToSell' => isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft'],
                 'result' => isset($resultCodes[$tokenData['result']]) ? $resultCodes[$tokenData['result']] : ('Unknown: ' . $tokenData['result']),
@@ -340,8 +331,6 @@ EOF;
             }, $htmlFormat);
 
         AtomicFilePutContents($filenm, $html);
-
-        unset($json[$fileRegion]['formatted']['rangeImg']);
     }
 
     AtomicFilePutContents(__DIR__.'/../wowtoken/snapshot.json', json_encode($json, JSON_NUMERIC_CHECK), WOWTOKEN_FLAGS_COMPRESS);
@@ -396,7 +385,6 @@ function BuildImageURI($s) {
 function BuildHistoryJson($region) {
     global $db;
 
-    // , `timeleft`+0 `time`, `timeleftraw`
     $sql = 'select unix_timestamp(`when`) `dt`, `marketgold` `buy` from tblWowToken where region = ? and `result` = 1 order by `when` asc'; // and `when` < timestampadd(minute, -70, now())
     $stmt = $db->prepare($sql);
     $stmt->bind_param('s', $region);
