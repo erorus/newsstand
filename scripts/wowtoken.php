@@ -222,14 +222,14 @@ function BuildIncludes($regions)
                     <tbody>
                         <tr>
                             <td>Buy Price</td>
-                            <td id="##region##-buy">##buy##</td>
+                            <td class="buy-price" id="##region##-buy">##buy##</td>
                         </tr>
                         <tr>
                             <td style="vertical-align: bottom">24-Hour Range</td>
                             <td>
-                                ##24min##
-                                <div class="range-bar"><div class="range-point" style="left: ##24pct##%"></div></div>
-                                ##24max##
+                                <span id="##region##-24min">##24min##</span>
+                                <div class="range-bar"><div class="range-point" style="left: ##24pct##%" id="##region##-24pct-left"></div></div>
+                                <span id="##region##-24max">##24max##</span>
                             </td>
                         </tr>
                         <tr>
@@ -285,9 +285,14 @@ EOF;
             $sparkUrl = $blankImage;
         }
 
-        $historyJson[$fileRegion] = BuildHistoryJson($region);
+        $fullHistoryJson = BuildHistoryJson($region);
+        $historyJson[$fileRegion] = [];
+        $cutOff = time() - 1209600;
         $prevPrice = -1;
-        foreach ($historyJson[$fileRegion] as $row) {
+        foreach ($fullHistoryJson as $row) {
+            if ($row[0] > $cutOff) {
+                $historyJson[$fileRegion][] = $row;
+            }
             if ($row[1] != $prevPrice) {
                 $prevPrice = $row[1];
                 $csv .= "$fileRegion,".date('Y-m-d H:i:s', $row[0]).",{$row[1]}\r\n"; //,{$row[2]}

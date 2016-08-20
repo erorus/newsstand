@@ -40,6 +40,8 @@ table.results > tbody > tr:first-child > td {
     padding-top: 0;
 }
 
+table.results td.buy-price { font-size: 125% }
+
 .mui-container {
     max-width: 970px;
 }

@@ -17,6 +17,8 @@ var wowtoken = {
         'kr': 'KR',
     },
 
+    timeouts: {},
+
     NumberCommas: function(v) {
         return v.toFixed().split("").reverse().join("").replace(/(\d{3})(?=\d)/g, '$1,').split("").reverse().join("");
     },
@@ -410,8 +412,9 @@ var wowtoken = {
     {
         wowtoken.LastVisitCheck();
         wowtoken.EUCheck();
-        wowtoken.LoadHistory();
+        wowtoken.LoadUpdate();
         wowtoken.Notification.Check();
+        wowtoken.LoadHistory();
     },
 
     EUCheck: function()
@@ -449,12 +452,7 @@ var wowtoken = {
     LoadHistory: function ()
     {
         $.ajax({
-            success: function (d)
-            {
-                wowtoken.ShowHistory(d.history);
-                wowtoken.ParseUpdate(d.update);
-                // window.setTimeout(wowtoken.LoadHistory, 60000*5);
-            },
+            success: wowtoken.ShowHistory,
             url: '/wowtoken.json'
         });
     },
@@ -462,14 +460,26 @@ var wowtoken = {
     ShowHistory: function (d)
     {
         var dest;
-        for (var region in d) {
-
-            if (d[region].length) {
+        for (var region in d.history) {
+            if (d.history[region].length) {
                 dest = document.getElementById('hc-'+region.toLowerCase());
                 dest.className = 'hc';
-                wowtoken.ShowChart(region, d[region], dest);
+                wowtoken.ShowChart(region, d.history[region], dest);
             }
         }
+    },
+
+    LoadUpdate: function ()
+    {
+        if (wowtoken.timeouts.loadUpdate) {
+            window.clearTimeout(wowtoken.timeouts.loadUpdate);
+            delete wowtoken.timeouts.loadUpdate;
+        }
+
+        $.ajax({
+            success: wowtoken.ParseUpdate,
+            url: '/snapshot.json'
+        });
     },
 
     ParseUpdate: function (d)
@@ -480,8 +490,13 @@ var wowtoken = {
             }
             for (var attrib in d[region].formatted) {
                 $('#'+region+'-'+attrib).html(d[region].formatted[attrib]);
+                $('#'+region+'-'+attrib+'-left').css('left', d[region].formatted[attrib] + '%');
             }
         }
+        if (wowtoken.timeouts.loadUpdate) {
+            window.clearTimeout(wowtoken.timeouts.loadUpdate);
+        }
+        wowtoken.timeouts.loadUpdate = window.setTimeout(wowtoken.LoadUpdate, 600000);
     },
 
     ShowChart: function(region, dta, dest) {
