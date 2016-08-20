@@ -218,12 +218,11 @@ function BuildIncludes($regions)
     $blankImage = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
     $htmlFormat = <<<EOF
-                <meta itemprop="price" content="##rawbuy##"><meta itemprop="priceCurrency" content="XAU">
-                <table class="results" itemprop="priceSpecification" itemscope itemtype="http://schema.org/PriceSpecification">
+                <table class="results">
                     <tbody>
                         <tr>
                             <td>Buy Price</td>
-                            <td id="##region##-buy" itemprop="price" content="##rawbuy##">##buy##<meta itemprop="priceCurrency" content="XAU"></td>
+                            <td id="##region##-buy">##buy##</td>
                         </tr>
                         <tr>
                             <td style="vertical-align: bottom">24-Hour Range</td>
@@ -233,8 +232,8 @@ function BuildIncludes($regions)
                                         <td colspan="2"><img src="##rangeImg##" width="150" height="75"></td>
                                     </tr>
                                     <tr>
-                                        <td itemprop="minPrice" content="##raw24min##">##24min##</td>
-                                        <td itemprop="maxPrice" content="##raw24max##" align="right">##24max##</td>
+                                        <td>##24min##</td>
+                                        <td align="right">##24max##</td>
                                     </tr>
                                 </table>
                             </td>
@@ -249,27 +248,12 @@ function BuildIncludes($regions)
                         </tr>
                         <tr>
                             <td>Updated</td>
-                            <td itemprop="validFrom" content="##rawupdatedISO8601##" id="##region##-updatedhtml">##updatedhtml##</td>
+                            <td id="##region##-updatedhtml">##updatedhtml##</td>
                         </tr>
                     </tbody>
                 </table>
 EOF;
 
-    $htmlFormatWaiting = <<<EOF
-                <meta itemprop="price" content="##rawbuy##"><meta itemprop="priceCurrency" content="XAU">
-                <table class="results" itemprop="priceSpecification" itemscope itemtype="http://schema.org/PriceSpecification">
-                    <tbody>
-                        <tr>
-                            <td>API Result</td>
-                            <td>Waiting for Battle.net API Support</td>
-                        </tr>
-                        <tr>
-                            <td>Updated</td>
-                            <td itemprop="validFrom" content="##rawupdatedISO8601##" id="##region##-updatedhtml">##updatedhtml##</td>
-                        </tr>
-                    </tbody>
-                </table>
-EOF;
     $json = [];
     $historyJson = [];
     $csv = "Region,UTC Date,Buy Price\r\n"; //,Time Left
@@ -346,21 +330,14 @@ EOF;
             ],
         ];
 
-        $replacements = $json[$fileRegion];
-
-        $format = (strtotime($tokenData['when']) < strtotime('36 hours ago')) ? $htmlFormatWaiting : $htmlFormat;
+        $replacements = $json[$fileRegion]['formatted'];
 
         $html = preg_replace_callback('/##([a-zA-Z0-9]+)##/', function ($m) use ($replacements) {
-                if (substr($m[1], 0, 3) == 'raw') {
-                    if (isset($replacements['raw'][substr($m[1], 3)])) {
-                        return $replacements['raw'][substr($m[1], 3)];
-                    }
-                }
-                if (isset($replacements['formatted'][$m[1]])) {
-                    return $replacements['formatted'][$m[1]];
+                if (isset($replacements[$m[1]])) {
+                    return $replacements[$m[1]];
                 }
                 return $m[0];
-            }, $format);
+            }, $htmlFormat);
 
         AtomicFilePutContents($filenm, $html);
 
