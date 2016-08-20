@@ -286,7 +286,7 @@ EOF;
 
         $historyJsonFull[$fileRegion] = BuildHistoryData($region);
         $historyJson[$fileRegion] = [];
-        $cutOff = time() - 604800; // one week
+        $cutOff = time() - 259200; // 72 hours
         $prevPrice = -1;
         foreach ($historyJsonFull[$fileRegion] as $row) {
             if ($row[0] > $cutOff) {
