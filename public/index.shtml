@@ -321,7 +321,7 @@
                         Just as a quick reminder, here are some services we provide that you can't find anywhere else:
                         <ul>
                             <li>Hourly chart resolution for the past 2 weeks</li>
-                            <li>OHLC pricing charts for stackable items since December 2014</li>
+                            <li>OHLC pricing charts for stackable items for the past 90 days</li>
                             <li>Separate pricing for item bonus levels (Heroic, Warforged, Mythic...)</li>
                             <li>Battle pet support, with separate pricing for different breeds</li>
                             <li>Localized item and pet names, and site text, in 7 languages</li>
@@ -339,7 +339,9 @@
                             <input type="hidden" name="hosted_button_id" value="RH5C3YCJVGEU6">
                         </form>
 
-                        Note: This donate link is not related to any paid subscription on this site. You should log in to your subscription to renew it on your subscription page.
+                        <!--#include virtual="donate.bitcoin.inc" -->
+
+                        Note: This donation information is not related to any paid subscription on this site. You should log in to your subscription to renew it on your subscription page.
                     </div>
                 </div>
                 <div class="page page-generic" id="addon-page">
