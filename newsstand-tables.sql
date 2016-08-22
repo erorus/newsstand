@@ -87,6 +87,33 @@ CREATE TABLE IF NOT EXISTS `tblAuctionRare` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `tblBitPayTransactions`
+--
+
+CREATE TABLE IF NOT EXISTS `tblBitPayTransactions` (
+  `id` char(30) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  `user` mediumint(8) unsigned DEFAULT NULL,
+  `subextended` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `price` decimal(6,2) NOT NULL,
+  `currency` char(3) COLLATE utf8_unicode_ci NOT NULL,
+  `rate` decimal(6,2) NOT NULL,
+  `btcprice` decimal(16,8) NOT NULL,
+  `btcpaid` decimal(16,8) NOT NULL,
+  `btcdue` decimal(16,8) NOT NULL,
+  `status` varchar(20) COLLATE utf8_unicode_ci NOT NULL,
+  `exception` varchar(20) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `url` varchar(250) COLLATE utf8_unicode_ci NOT NULL,
+  `posdata` varchar(1000) COLLATE utf8_unicode_ci NOT NULL,
+  `invoiced` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `expired` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `updated` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  PRIMARY KEY (`id`),
+  KEY `user` (`user`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `tblBonusSet`
 --
 

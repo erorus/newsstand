@@ -350,7 +350,40 @@ var TUJ_Subscription = function ()
             f.appendChild(i);
 
             dest.appendChild(f);
+
+            d = libtuj.ce('div');
+            d.className = 'bitcoin';
+
+            i = libtuj.ce('input');
+            i.type = 'button';
+            i.value = tuj.lang.payWithBitcoin;
+            i.style.display = 'none';
+            $(i).on('click', FetchBitPayInvoice.bind(this, i));
+            d.appendChild(i);
+
+            dest.appendChild(d);
         }
+    }
+
+    function FetchBitPayInvoice(btn)
+    {
+        btn.disabled = true;
+        tuj.SendCSRFProtectedRequest({
+            data: {'bitpayinvoice': 1},
+            success: function(dta) {
+                if (dta.hasOwnProperty('url')) {
+                    location.href = dta.url;
+                } else {
+                    alert(tuj.lang.EmailStatus.unknown);
+                    btn.disabled = false;
+                }
+            },
+            error: function() {
+                alert(tuj.lang.EmailStatus.unknown);
+                btn.disabled = false;
+            }
+        });
+
     }
 
     function ShowWatches(dest)

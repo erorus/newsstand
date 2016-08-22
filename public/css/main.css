@@ -256,6 +256,8 @@ input.battle-net {
 #subscription-email.verify #subscription-email-verification { display: block }
 
 #subscription-paidstatus form { display: inline-block; margin-left: 4em; }
+#subscription-paidstatus div.bitcoin { display: inline-block; margin-left: 4em; height: 50px; vertical-align: bottom }
+#subscription-paidstatus div.bitcoin input { cursor: pointer; background: #4638e8; border: 1px solid #4638e8; font-size: 100%; color: white; border-radius: 5em; padding: 0.5em 1.5em; position: relative; top: 50%; transform: perspective(1px) translateY(-50%) }
 
 .notifications-insert { margin: 1em 0 }
 .notifications-insert ul { margin: 1em 0 }

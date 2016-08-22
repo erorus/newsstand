@@ -27,6 +27,10 @@ if (!ValidateCSRFProtectedRequest()) {
     json_return(false);
 }
 
+if (isset($_POST['bitpayinvoice'])) {
+    json_return(CreateBitPayInvoice($loginState));
+}
+
 if (isset($_POST['newlocale'])) {
     json_return(SetSubLocale($loginState, strtolower($_POST['newlocale'])));
 }
@@ -1208,3 +1212,54 @@ function DeleteRareWatch($loginState, $house, $seq)
     return GetRareWatches($loginState, $house);
 }
 
+function CreateBitPayInvoice($loginState)
+{
+    $paid = GetIsPaid($loginState);
+    if (!$paid['accept']) {
+        DebugMessage("User ".$loginState['id']." attempted to create BitPay invoice when we would not accept payments.");
+        return [];
+    }
+
+    $priceAmount = preg_match('/\d+\.\d+/', SUBSCRIPTION_PAID_PRICE, $res) ? $res[0] : false;
+    $priceCurrency = preg_match('/\b[A-Z]{3}\b/', SUBSCRIPTION_PAID_PRICE, $res) ? $res[0] : false;
+
+    if (!$priceAmount || !$priceCurrency) {
+        DebugMessage("Could not find price ($priceAmount) or currency ($priceCurrency) from ".SUBSCRIPTION_PAID_PRICE." when creating BitPay invoice.");
+        return [];
+    }
+
+    $LANG = GetLang($loginState['locale']);
+
+    $toPost = [
+        'price' => $priceAmount,
+        'currency' => $priceCurrency,
+        'posData' => $paid['accept']['custom'],
+        'notificationURL' => SUBSCRIPTION_BITPAY_IPN_URL,
+        'notificationEmail' => SUBSCRIPTION_ERRORS_EMAIL_ADDRESS,
+        'redirectURL' => 'https://' . strtolower($_SERVER["HTTP_HOST"]) . '/#subscription',
+        'itemDesc' => $LANG['paidSubscription'] . ' - ' . round(SUBSCRIPTION_PAID_ADDS_SECONDS / 86400) . ' ' . $LANG['timeDays'],
+    ];
+
+    $headers = [
+        'Content-Type: application/json; charset=utf-8',
+        'Authorization: Basic '.base64_encode(SUBSCRIPTION_BITPAY_KEY.':'),
+    ];
+
+    $jsonString = \Newsstand\HTTP::Post(SUBSCRIPTION_BITPAY_INVOICE_URL, json_encode($toPost), $headers);
+    if (!$jsonString) {
+        DebugMessage("No response from BitPay having sent:\n" . json_encode($toPost) . "\n" . print_r($headers, true));
+        return [];
+    }
+
+    $json = json_decode($jsonString, true);
+    if (json_last_error() != JSON_ERROR_NONE) {
+        DebugMessage("Invalid response from BitPay:\n$jsonString\nHaving sent:\n" . json_encode($toPost) . "\n" . print_r($headers, true));
+        return [];
+    }
+
+    if (!UpdateBitPayTransaction($json, true)) {
+        return [];
+    }
+
+    return ['url' => $json['url']];
+}

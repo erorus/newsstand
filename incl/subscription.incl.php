@@ -15,7 +15,9 @@ define('SUBSCRIPTION_PAID_ADDS_SECONDS', 5184000); // 60 days
 define('SUBSCRIPTION_PAID_RENEW_WINDOW_DAYS', 10); // when subscription has this or fewer days remaining, allow them to renew 
 define('SUBSCRIPTION_PAID_ACCEPT_PAYMENTS', true); // set to false to disable paypal
 define('SUBSCRIPTION_PAID_ACCEPT_BUTTON', 'BBL426DYP3BTC');
-define('SUBSCRIPTION_PAID_PRICE', '$5.00 USD');
+define('SUBSCRIPTION_PAID_PRICE', '$5.00 USD'); // must be formatted: "$##.## XXX"
+
+define('SUBSCRIPTION_BITPAY_INVOICE_URL', 'https://bitpay.com/api/invoice');
 
 define('SUBSCRIPTION_MESSAGES_CACHEKEY', 'submessage_');
 define('SUBSCRIPTION_MESSAGES_MAX', 50);
@@ -535,3 +537,149 @@ function GetUserFromPublicHMAC($msg) {
 
     return $user;
 }
+
+function UpdateBitPayTransaction($bitPayJson, $isNew = false) {
+    $isNew = !!$isNew; // force boolean
+
+    if (!is_array($bitPayJson)) {
+        $jsonString = $bitPayJson;
+        $bitPayJson = json_decode($jsonString, true);
+        if (json_last_error() != JSON_ERROR_NONE) {
+            DebugMessage("Invalid BitPay JSON\n" . print_r($jsonString, true), E_USER_ERROR);
+            return false;
+        }
+    }
+
+    $requiredFields = ['btcDue','btcPaid','btcPrice','currency','currentTime',
+        'exceptionStatus','expirationTime','id','invoiceTime','posData','price',
+        'rate','status','url'];
+
+    foreach ($requiredFields as $fieldName) {
+        if (!array_key_exists($fieldName, $bitPayJson)) {
+            DebugMessage("BitPay JSON missing required field: $fieldName\n" . print_r($bitPayJson, true), E_USER_ERROR);
+            return false;
+        }
+    }
+
+    $db = DBConnect();
+    $stmt = $db->prepare('select id, user, subextended from tblBitPayTransactions where id = ?');
+    $stmt->bind_param('s', $bitPayJson['id']);
+    $stmt->execute();
+    $txnId = $userId = $subExtended = null;
+    $stmt->bind_result($txnId, $userId, $subExtended);
+    if (!$stmt->fetch()) {
+        $txnId = $userId = $subExtended = null;
+    }
+    $stmt->close();
+
+    if (is_null($txnId) != $isNew) {
+        if ($isNew) {
+            DebugMessage("New BitPay transaction already found in database:\n" . print_r($bitPayJson, true), E_USER_ERROR);
+        } else {
+            DebugMessage("Existing BitPay transaction not found in database:\n" . print_r($bitPayJson, true), E_USER_ERROR);
+        }
+        return false;
+    }
+
+    if ($isNew) {
+        $userId = GetUserFromPublicHMAC($bitPayJson['posData']);
+        if (is_null($userId)) {
+            DebugMessage("Could not get valid user from BitPay posData:\n" . print_r($bitPayJson, true), E_USER_ERROR);
+            return false;
+        }
+    }
+
+    $sql = <<<'EOF'
+insert into tblBitPayTransactions (
+    id, user, price, currency, rate, 
+    btcprice, btcpaid, btcdue, status, 
+    exception, url, posdata, 
+    invoiced, expired, updated
+) values (
+    ?, ?, ?, ?, ?, 
+    ?, ?, ?, ?, 
+    ?, ?, ?, 
+    from_unixtime(?), from_unixtime(?), now())
+on duplicate key update 
+user=ifnull(user,values(user)), price=values(price), currency=values(currency), rate=values(rate),
+btcprice=values(btcprice), btcpaid=values(btcpaid), btcdue=values(btcdue), status=values(status), 
+exception=values(exception), url=values(url), posdata=values(posdata), 
+invoiced=values(invoiced), expired=values(expired), updated=values(updated)
+EOF;
+
+    $stmt = $db->prepare($sql);
+    $invoiced = floor($bitPayJson['invoiceTime'] / 1000);
+    $expired = floor($bitPayJson['expirationTime'] / 1000);
+    $exceptionStatus = $bitPayJson['exceptionStatus'] ?: null;
+
+    $stmt->bind_param('sissssssssssii',
+        $bitPayJson['id'], $userId, $bitPayJson['price'], $bitPayJson['currency'], $bitPayJson['rate'],
+        $bitPayJson['btcPrice'], $bitPayJson['btcPaid'], $bitPayJson['btcDue'], $bitPayJson['status'],
+        $exceptionStatus, $bitPayJson['url'], $bitPayJson['posData']
+        , $invoiced, $expired);
+
+    if (!$stmt->execute()) {
+        DebugMessage("Error updating BitPay transaction record: " . print_r($bitPayJson, true), E_USER_ERROR);
+        return false;
+    }
+
+    $stmt->close();
+
+    if ($userId && !$subExtended) {
+        $stmt = $db->prepare('select locale from tblUser where id = ?');
+        $locale = null;
+        $stmt->bind_param('i', $userId);
+        $stmt->execute();
+        $stmt->bind_result($locale);
+        if (!$stmt->fetch()) {
+            $locale = 'enus';
+        }
+        $stmt->close();
+
+        $LANG = GetLang($locale);
+
+        if (in_array($bitPayJson['status'], ['confirmed', 'complete'])) {
+            $paidUntil = AddPaidTime($userId, SUBSCRIPTION_PAID_ADDS_SECONDS);
+            if ($paidUntil === false) {
+                LogBitPayError($bitPayJson, "Failed to add paid time to $userId");
+                SendUserMessage($userId, 'Subscription', $LANG['paidSubscription'], $LANG['SubscriptionErrors']['paiderror']);
+                return false;
+            } else {
+                $stmt = $db->prepare('update tblBitPayTransactions set subextended=1 where id=?');
+                $stmt->bind_param('s', $bitPayJson['id']);
+                if (!$stmt->execute()) {
+                    LogBitPayError($bitPayJson, "Failed to mark transaction as extending the sub for $userId");
+                } else {
+                    $message = $LANG['subscriptionTimeAddedMessage'];
+                    $message .= "<br><br>" . sprintf(preg_replace('/\{(\d+)\}/', '%$1$s', $LANG['paidExpires']), date('Y-m-d H:i:s e', $paidUntil));
+
+                    SendUserMessage($userId, 'Subscription', $LANG['paidSubscription'], $message);
+                }
+                $stmt->close();
+            }
+        } elseif (in_array($bitPayJson['status'], ['invalid']) || $bitPayJson['exceptionStatus']) {
+            LogBitPayError($bitPayJson, "BitPay exception for $userId");
+            SendUserMessage($userId, 'Subscription', $LANG['paidSubscription'], $LANG['SubscriptionErrors']['paiderror']);
+        }
+    }
+
+    return true;
+}
+
+function LogBitPayError($bitPayJson, $message, $subject = 'BitPay Transaction Issue') {
+    global $argv;
+
+    $pth = __DIR__ . '/../logs/paypalerrors.log';
+    if ($pth) {
+        $me = (PHP_SAPI == 'cli') ? ('CLI:' . realpath($argv[0])) : ('Web:' . $_SERVER['REQUEST_URI']);
+        file_put_contents($pth, date('Y-m-d H:i:s') . " $me $message\n".($subject === false ? '' : print_r($bitPayJson, true)), FILE_APPEND | LOCK_EX);
+    }
+
+    if ($subject !== false) {
+        NewsstandMail(
+            SUBSCRIPTION_ERRORS_EMAIL_ADDRESS, 'BitPay Manager',
+            $subject, $message . "<br><br>" . str_replace("\n", '<br>', print_r($bitPayJson, true))
+        );
+    }
+}
+

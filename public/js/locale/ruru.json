@@ -617,7 +617,8 @@
 
     "paidExpires": "Your account's paid subscription expires {1}.",
     "freeSubscriptionAccount": "Your account is on the free subscription tier.",
-    "clickToExtendSubscription": "Click below to extend your paid subscription by {1} days for {2}. Note: Paypal may require an hour or more to process the payment.",
+    "clickToExtendSubscription": "Click below to extend your paid subscription by {1} days for {2}. Note: It may require an hour or more to process the payment.",
+    "payWithBitcoin": "Pay with Bitcoin",
 
     "notificationPeriod": "Notification Period",
     "notificationPeriodDesc": "Select how much time you prefer between each Market Notifications message.",
