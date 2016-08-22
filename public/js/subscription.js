@@ -357,7 +357,6 @@ var TUJ_Subscription = function ()
             i = libtuj.ce('input');
             i.type = 'button';
             i.value = tuj.lang.payWithBitcoin;
-            i.style.display = 'none';
             $(i).on('click', FetchBitPayInvoice.bind(this, i));
             d.appendChild(i);
 

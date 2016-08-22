@@ -11,6 +11,7 @@ incl/*.credentials.php
 incl/banlist.txt
 public/index.scripts.inc
 public/paypal.*.php
+public/bitpay.*.php
 scripts/realms2houses_cache/*
 scripts/zopfli
 scripts/*.credentials.sh
