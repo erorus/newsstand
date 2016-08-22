@@ -1234,6 +1234,7 @@ function CreateBitPayInvoice($loginState)
         'price' => $priceAmount,
         'currency' => $priceCurrency,
         'posData' => $paid['accept']['custom'],
+        'fullNotifications' => true,
         'notificationURL' => SUBSCRIPTION_BITPAY_IPN_URL,
         'notificationEmail' => SUBSCRIPTION_ERRORS_EMAIL_ADDRESS,
         'redirectURL' => 'https://' . strtolower($_SERVER["HTTP_HOST"]) . '/#subscription',
