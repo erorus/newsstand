@@ -71,11 +71,12 @@ function ShowMemcacheStats() {
     echo "<tr><td>Accumulated user time for this process </td><td>".$status["rusage_user"]." seconds</td></tr>";
     echo "<tr><td>Accumulated system time for this process </td><td>".$status["rusage_system"]." seconds</td></tr>";
     echo "<tr><td>Total number of items stored by this server ever since it started </td><td>".$status["total_items"]."</td></tr>";
+    echo "<tr><td>Number of valid items removed from cache to free memory for new items.</td><td>".$status["evictions"]." (" . round($status["evictions"]/$status["total_items"]*100,1) . "%)</td></tr>";
     echo "<tr><td>Number of open connections </td><td>".$status["curr_connections"]."</td></tr>";
     echo "<tr><td>Total number of connections opened since the server started running </td><td>".$status["total_connections"]."</td></tr>";
     echo "<tr><td>Number of connection structures allocated by the server </td><td>".$status["connection_structures"]."</td></tr>";
+    echo "<tr><td>Cumulative number of storage requests </td><td>".$status["cmd_set"]."</td></tr>";
     echo "<tr><td>Cumulative number of retrieval requests </td><td>".$status["cmd_get"]."</td></tr>";
-    echo "<tr><td> Cumulative number of storage requests </td><td>".$status["cmd_set"]."</td></tr>";
 
     $percCacheHit=((real)$status["get_hits"]/ (real)$status["cmd_get"] *100);
     $percCacheHit=round($percCacheHit,3);
@@ -90,7 +91,6 @@ function ShowMemcacheStats() {
     echo "<tr><td>Total number of bytes sent by this server to network </td><td>".$MBWrite."MB</td></tr>";
     $MBSize=round($status["limit_maxbytes"]/(1024*1024)) ;
     echo "<tr><td>Number of bytes this server is allowed to use for storage.</td><td>".$MBSize."MB</td></tr>";
-    echo "<tr><td>Number of valid items removed from cache to free memory for new items.</td><td>".$status["evictions"]."</td></tr>";
 
     echo "</table>";
 }
