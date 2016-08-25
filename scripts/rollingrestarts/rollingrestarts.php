@@ -58,15 +58,20 @@ function GetLastAlert() {
 }
 
 function GetTwitterSnippet($txt) {
-    $part = preg_match('/^[\w\W]+?\.(?=(?:\s+[A-Z0-9])|\s*$)/', $txt, $res) ? $res[0] : $txt;
-    if (strlen($part) > TWEET_MAX_LENGTH) {
-        $pos = strrpos($part, ' ', TWEET_MAX_LENGTH - strlen($part));
+    $txt = preg_replace('/\b[a-z]+:\/\//i', '', $txt); // remove any http:// protocols
+    $txt = preg_replace('/\bwww\./i', '', $txt); // remove www.
+    $txt = preg_replace('/\.(?=[A-Za-z])/', "\xE2\x80\xA4", $txt); // change any period followed by a letter to a lookalike dot, so twitter doesn't linkify
+
+    $res = [];
+    $part = mb_ereg('^[\w\W]+?\.(?=(?:\s+[A-Z0-9])|\s*$)', $txt, $res) ? $res[0] : $txt; // find the first full sentence
+    if (mb_strlen($part) > TWEET_MAX_LENGTH) { // sentence longer than max tweet length
+        $pos = mb_strrpos($part, ' ', TWEET_MAX_LENGTH - mb_strlen($part)); // find last space before max tweet length
         if ($pos !== false) {
-            $part = substr($part, 0, $pos);
+            $part = mb_substr($part, 0, $pos); // cut mid-sentence
         }
     }
-    if (strlen($part) > TWEET_MAX_LENGTH) {
-        $part = substr($part, 0, TWEET_MAX_LENGTH);
+    if (mb_strlen($part) > TWEET_MAX_LENGTH) {
+        $part = mb_substr($part, 0, TWEET_MAX_LENGTH);
     }
     return $part;
 }
