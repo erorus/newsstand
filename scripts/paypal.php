@@ -162,7 +162,8 @@ function ProcessPaypalPost() {
         $addPaidTime = false;
     }
 
-    $payment_date = date('Y-m-d H:i:s', isset($_POST['payment_date']) ? strtotime($_POST['payment_date']) : time());
+    $payment_date_timestamp = isset($_POST['payment_date']) ? strtotime($_POST['payment_date']) : time();
+    $payment_date = date('Y-m-d H:i:s', $payment_date_timestamp);
     $parent_txn_id = isset($_POST['parent_txn_id']) ? $_POST['parent_txn_id'] : null;
     $mc_currency = isset($_POST['mc_currency']) ? $_POST['mc_currency'] : null;
     $mc_fee = isset($_POST['mc_fee']) ? $_POST['mc_fee'] : null;
@@ -175,7 +176,7 @@ function ProcessPaypalPost() {
 
     LogPaypalMessage("Adding paid time: ".($addPaidTime ? 'yes' : 'no'));
 
-    $user = isset($_POST['custom']) ? GetUserFromPublicHMAC($_POST['custom']) : null;
+    $user = isset($_POST['custom']) ? GetUserFromPublicHMAC($_POST['custom'], $payment_date_timestamp) : null;
 
     LogPaypalMessage("User: $user");
 
@@ -206,6 +207,9 @@ function ProcessPaypalPost() {
     }
 
     if ($addPaidTime) {
+        if (!$user) {
+            LogPaypalError("Unknown user should have time added.");
+        }
         return ['addTime' => $user];
     }
 

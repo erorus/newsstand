@@ -481,7 +481,7 @@ function GeneratePublicUserHMAC($publicId) {
     return "$hmac:$msg";
 }
 
-function ValidatePublicUserHMAC($fullMsg) {
+function ValidatePublicUserHMAC($fullMsg, $timestamp = false) {
     $parts = explode(":", $fullMsg);
     if (count($parts) < 2) {
         return false;
@@ -502,8 +502,8 @@ function ValidatePublicUserHMAC($fullMsg) {
 
     $created = intval(array_shift($parts), 10);
 
-    $diff = time() - $created;
-    if ($diff < 0) {
+    $diff = ($timestamp ?: time()) - $created;
+    if ($diff < -600) {
         return false;
     }
     if ($diff > 86400) {
@@ -513,8 +513,8 @@ function ValidatePublicUserHMAC($fullMsg) {
     return $parts;
 }
 
-function GetUserFromPublicHMAC($msg) {
-    $result = ValidatePublicUserHMAC($msg);
+function GetUserFromPublicHMAC($msg, $timestamp = false) {
+    $result = ValidatePublicUserHMAC($msg, $timestamp);
     if (!$result) {
         return null;
     }
@@ -561,6 +561,9 @@ function UpdateBitPayTransaction($bitPayJson, $isNew = false) {
         }
     }
 
+    $invoiced = floor($bitPayJson['invoiceTime'] / 1000);
+    $expired = floor($bitPayJson['expirationTime'] / 1000);
+
     $db = DBConnect();
     $stmt = $db->prepare('select id, user, subextended from tblBitPayTransactions where id = ?');
     $stmt->bind_param('s', $bitPayJson['id']);
@@ -582,7 +585,7 @@ function UpdateBitPayTransaction($bitPayJson, $isNew = false) {
     }
 
     if ($isNew) {
-        $userId = GetUserFromPublicHMAC($bitPayJson['posData']);
+        $userId = GetUserFromPublicHMAC($bitPayJson['posData'], $invoiced);
         if (is_null($userId)) {
             DebugMessage("Could not get valid user from BitPay posData:\n" . print_r($bitPayJson, true), E_USER_ERROR);
             return false;
@@ -608,8 +611,6 @@ invoiced=values(invoiced), expired=values(expired), updated=values(updated)
 EOF;
 
     $stmt = $db->prepare($sql);
-    $invoiced = floor($bitPayJson['invoiceTime'] / 1000);
-    $expired = floor($bitPayJson['expirationTime'] / 1000);
     $exceptionStatus = $bitPayJson['exceptionStatus'] ?: null;
 
     $stmt->bind_param('sissssssssssii',
