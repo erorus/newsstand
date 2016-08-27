@@ -16,9 +16,9 @@ function FullPaypalProcess() {
     LogPaypalMessage("Received ".($isIPN ? "IPN" : "API")." txn: $txnId");
 
     $postResult = CheckPaypalPost();
-    if ($postResult === 'Duplicate') {
+    if ($postResult === 'Ignore') {
         if (!$isIPN) {
-            LogPaypalMessage("Forwarding duplicate post to paidfinish");
+            LogPaypalMessage("Forwarding post to paidfinish");
             header('Location: /#subscription/paidfinish');
         }
         return;
@@ -69,6 +69,11 @@ function FullPaypalProcess() {
 function CheckPaypalPost() {
     global $PAYPAL_BUSINESSES;
 
+    if (isset($_POST['txn_type']) && preg_match('/^recurring_payment_profile/i', $_POST['txn_type'])) {
+        LogPaypalMessage("Ignoring recurring donation notification");
+        return 'Ignore';
+    }
+
     if (!isset($_POST['txn_id'])) {
         LogPaypalError("Received request without txn_id at Paypal IPN. IP: ".(isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown'));
         return 'HTTP/1.0 404 Not Found';
@@ -112,7 +117,7 @@ function CheckPaypalPost() {
             (!isset($_POST['payment_status']) || $txnRow['payment_status'] == $_POST['payment_status'])) {
             // just a duplicate, probably received from post and IPN
             LogPaypalMessage("Found duplicate row, last updated: ".$txnRow['lastupdate']);
-            return 'Duplicate';
+            return 'Ignore';
         }
 
         $msg = "Paypal validation returned \"$validationResult\". IP: ".(isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown');
