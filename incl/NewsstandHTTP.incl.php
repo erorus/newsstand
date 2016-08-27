@@ -119,7 +119,7 @@ class HTTP
         $data = curl_exec($ch);
         $errMsg = curl_error($ch);
         if ($errMsg) {
-            DebugMessage("cURL error fetching $url - " . curl_errno($ch) . " $errMsg", E_USER_WARNING);
+            DebugMessage("cURL error fetching $url - " . curl_errno($ch) . " $errMsg", E_USER_NOTICE);
             return false;
         }
 
