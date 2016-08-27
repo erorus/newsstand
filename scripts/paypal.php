@@ -171,12 +171,17 @@ function ProcessPaypalPost() {
     $pending_reason = isset($_POST['pending_reason']) ? $_POST['pending_reason'] : null;
     $reason_code = isset($_POST['reason_code']) ? $_POST['reason_code'] : null;
     $payment_status = isset($_POST['payment_status']) ? $_POST['payment_status'] : null;
+    $hasUserHMAC = isset($_POST['custom']) && ($_POST['custom'] != '');
 
     $addPaidTime &= $payment_status == 'Completed';
+    $addPaidTime &= $hasUserHMAC; // donations do not have user hmac
 
     LogPaypalMessage("Adding paid time: ".($addPaidTime ? 'yes' : 'no'));
 
-    $user = isset($_POST['custom']) ? GetUserFromPublicHMAC($_POST['custom'], $payment_date_timestamp) : null;
+    $user = $hasUserHMAC ? GetUserFromPublicHMAC($_POST['custom'], $payment_date_timestamp) : null;
+    if (!isset($user) && isset($txnRow['user'])) {
+        $user = $txnRow['user'];
+    }
 
     LogPaypalMessage("User: $user");
 
