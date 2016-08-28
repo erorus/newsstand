@@ -33,7 +33,7 @@ function CheckForNewVersion() {
 
     DebugMessage("New version: $version");
 
-    SendTweet("Current Live #WorldofWarcraft #Patch - " . $version);
+    SendTweet("#WorldofWarcraft #Patch " . $version);
 }
 
 function GetCurrentVersion() {
