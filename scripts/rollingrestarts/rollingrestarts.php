@@ -4,21 +4,72 @@ require_once(__DIR__.'/../../incl/incl.php');
 require_once(__DIR__.'/../../incl/wowtoken-twitter.credentials.php');
 
 define('ALERT_URL', 'http://launcher.worldofwarcraft.com/alert');
-define('TWITTER_ACCOUNT', 'RollingRestarts');
+define('VERSION_URL', 'http://us.patch.battle.net:1119/wow/versions');
+
 define('LAST_ALERT_PATH', __DIR__.'/rollingrestarts.txt');
+define('LAST_VERSION_PATH', __DIR__.'/liveversion.txt');
 define('FONT_PATH', __DIR__.'/FRIZQT__.TTF');
 
+define('TWITTER_ACCOUNT', 'RollingRestarts');
 define('TWEET_CHARS_RESERVED', 24);
 define('TWEET_MAX_LENGTH', 140 - TWEET_CHARS_RESERVED);
 
 function Main() {
+    CheckForNewAlert();
+    CheckForNewVersion();
+}
+
+function CheckForNewVersion() {
+    $version = GetCurrentVersion();
+    if (!$version) {
+        return;
+    }
+
+    if ($version == GetLastVersion()) {
+        return;
+    }
+
+    file_put_contents(LAST_VERSION_PATH, $version);
+
+    DebugMessage("New version: $version");
+
+    SendTweet("Current Live #WorldofWarcraft #Patch - " . $version);
+}
+
+function GetCurrentVersion() {
+    $stuff = \Newsstand\HTTP::Get(VERSION_URL);
+    if (!$stuff) {
+        return '';
+    }
+
+    if (preg_match('/^us\|[^\n]+/m', $stuff, $res)) {
+        $parts = explode('|', $res[0], 7);
+        if (isset($parts[5])) {
+            return $parts[5];
+        } else {
+            DebugMessage("Could not find version in line: ".$res[0]."\n");
+        }
+    } else {
+        DebugMessage("Could not find US line:\n$stuff\n");
+    }
+    return '';
+}
+
+function GetLastVersion() {
+    if (file_exists(LAST_VERSION_PATH)) {
+        return file_get_contents(LAST_VERSION_PATH);
+    }
+    return '';
+}
+
+function CheckForNewAlert() {
     $alert = GetCurrentAlert();
     if (!$alert) {
-        return 0;
+        return;
     }
 
     if ($alert == GetLastAlert()) {
-        return 0;
+        return;
     }
 
     file_put_contents(LAST_ALERT_PATH, $alert);
@@ -29,8 +80,6 @@ function Main() {
     $pngImage = GetTextImage($alert);
 
     SendTweet($tweet, $pngImage);
-
-    return 0;
 }
 
 function ConvertToText($html) {
@@ -84,13 +133,13 @@ function GetTextImage($txt, $format='png') {
     return shell_exec($exec);
 }
 
-function SendTweet($msg, $png) {
+function SendTweet($msg, $png = false) {
     global $twitterCredentials;
     if ($twitterCredentials === false) {
         return true;
     }
 
-    $media = UploadTweetMedia($png);
+    $media = $png ? UploadTweetMedia($png) : false;
 
     $params = array();
     if ($media) {
@@ -180,5 +229,5 @@ function UploadTweetMedia($data) {
     }
 }
 
-exit(Main());
+Main();
 
