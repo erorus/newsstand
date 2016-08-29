@@ -235,9 +235,9 @@ function DateCheckLog($text) {
 
     for ($x = 0; $x < count($lines); $x++) {
         $dt = false;
-        if (preg_match('/(\d{4}(?:\/|-)\d\d(?:\/|-)\d\d \d\d:\d\d:\d\d/', $lines[$x], $res)) {
+        if (preg_match('/\d{4}(?:\/|-)\d\d(?:\/|-)\d\d \d\d:\d\d:\d\d/', $lines[$x], $res)) {
             $dt = strtotime($res[0]);
-        } elseif (preg_match('/(\d\d\/[A-Z][a-z]{2}\/\d{4}:\d\d:\d\d:\d\d (?:\+|-)\d{4}/', $lines[$x], $res)) {
+        } elseif (preg_match('/\d\d\/[A-Z][a-z]{2}\/\d{4}:\d\d:\d\d:\d\d (?:\+|-)\d{4}/', $lines[$x], $res)) {
             $dt = strtotime($res[0]);
         }
         if (!$dt) {
