@@ -71,7 +71,7 @@ function FetchSnapshot()
     $earlyCheckSeconds = EARLY_CHECK_SECONDS;
 
     $nextRealmSql = <<<ENDSQL
-    select r.house, min(r.canonical), count(*) c, ifnull(hc.nextcheck, s.nextcheck) upd, s.lastupdate, s.mindelta
+    select r.house, min(r.canonical), count(*) c, ifnull(hc.nextcheck, s.nextcheck) upd, s.lastupdate, s.mindelta, hc.lastchecksuccessresult
     from tblRealm r
     left join (
         select deltas.house, timestampadd(second, least(ifnull(min(delta)-$earlyCheckSeconds, 45*60), 150*60), max(deltas.updated)) nextcheck, max(deltas.updated) lastupdate, min(delta) mindelta
@@ -93,12 +93,12 @@ function FetchSnapshot()
     limit 1
 ENDSQL;
 
-    $house = $slug = $realmCount = $nextDate = $lastDate = $minDelta = null;
+    $house = $slug = $realmCount = $nextDate = $lastDate = $minDelta = $lastSuccessJson = null;
 
     $stmt = $db->prepare($nextRealmSql);
     $stmt->bind_param('s', $region);
     $stmt->execute();
-    $stmt->bind_result($house, $slug, $realmCount, $nextDate, $lastDate, $minDelta);
+    $stmt->bind_result($house, $slug, $realmCount, $nextDate, $lastDate, $minDelta, $lastSuccessJson);
     $gotRealm = $stmt->fetch() === true;
     $stmt->close();
 
@@ -135,6 +135,36 @@ ENDSQL;
             $json = $outHeaders['body'];
         }
     }
+    if (!isset($dta['files']) && !is_null($lastSuccessJson)) {
+        // no files in current status json, probably "internal server error"
+        // check the headers on our last known good data url
+        $lastGoodDta = json_decode($lastSuccessJson, true);
+        if (json_last_error() != JSON_ERROR_NONE) {
+            DebugMessage("$region $slug invalid JSON for last successful json\n" . $lastSuccessJson, E_USER_WARNING);
+        } elseif (!isset($lastGoodDta['files'])) {
+            DebugMessage("$region $slug no files in the last success json?!", E_USER_WARNING);
+        } else {
+            usort($lastGoodDta['files'], 'AuctionFileSort');
+            $fileInfo = end($lastGoodDta['files']);
+            $oldModified = ceil(intval($fileInfo['lastModified'], 10) / 1000);
+            DebugMessage("$region $slug returned no files. Checking headers on URL from " . date('Y-m-d H:i:s', $oldModified));
+
+            $headers = \Newsstand\HTTP::Head(preg_replace('/^http:/', 'https:', $fileInfo['url']));
+            if (isset($headers['Last-Modified'])) {
+                $newModified = strtotime($headers['Last-Modified']);
+
+                if (abs($oldModified - $newModified) < 10) {
+                    DebugMessage("$region $slug data file has unchanged last modified date from last successful parse.");
+                } else {
+                    DebugMessage("$region $slug data file modified " . date('Y-m-d H:i:s', $newModified) . ", assuming different data.");
+                    $fileInfo['lastModified'] = $newModified * 1000;
+                    $dta['files'] = [$fileInfo];
+                }
+            } else {
+                DebugMessage("$region $slug data file failed fetching last modified date via HEAD method.");
+            }
+        }
+    }
     if (!isset($dta['files'])) {
         $delay = GetCheckDelay(strtotime($lastDate));
         DebugMessage("$region $slug returned no files. Waiting ".SecondsOrMinutes($delay).".", E_USER_WARNING);
@@ -144,7 +174,7 @@ ENDSQL;
     }
 
     usort($dta['files'], 'AuctionFileSort');
-    $fileInfo = array_pop($dta['files']);
+    $fileInfo = end($dta['files']);
 
     $modified = ceil(intval($fileInfo['lastModified'], 10) / 1000);
     $lastDateUnix = is_null($lastDate) ? ($modified - 1) : strtotime($lastDate);
@@ -224,8 +254,10 @@ ENDSQL;
         \Newsstand\HTTP::AbandonConnections();
     }
 
+    $successJson = json_encode($dta); // will include any updates from using lastSuccessJson
+
     $stmt = $db->prepare('INSERT INTO tblHouseCheck (house, nextcheck, lastcheck, lastcheckresult, lastchecksuccess, lastchecksuccessresult) VALUES (?, NULL, now(), ?, now(), ?) ON DUPLICATE KEY UPDATE nextcheck=values(nextcheck), lastcheck=values(lastcheck), lastcheckresult=values(lastcheckresult), lastchecksuccess=values(lastchecksuccess), lastchecksuccessresult=values(lastchecksuccessresult)');
-    $stmt->bind_param('iss', $house, $json, $json);
+    $stmt->bind_param('iss', $house, $json, $successJson);
     $stmt->execute();
     $stmt->close();
 
