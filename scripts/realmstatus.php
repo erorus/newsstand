@@ -197,18 +197,19 @@ function ShowLogs()
                 passthru('grep -v '.escapeshellarg('^--').' '.escapeshellarg($path).' | tail -n 20');
                 break;
             case 'error.undermine.log':
+            case 'error.theapi.log':
             case 'error.wowtoken.log':
-                passthru('grep -v '.escapeshellarg('SSL:').' '.escapeshellarg($path).' | tail -n 20');
+                echo DateCheckLog(shell_exec('grep -v '.escapeshellarg('SSL:').' '.escapeshellarg($path).' | tail -n 20'));
                 break;
             case 'scripterrors.log':
-                passthru('grep -v '.escapeshellarg('worldofwarcraft.com/auction-data/').' '.escapeshellarg($path).' | tail -n 20');
+                echo DateCheckLog(shell_exec('grep -v '.escapeshellarg('worldofwarcraft.com/auction-data/').' '.escapeshellarg($path).' | tail -n 20'));
                 break;
             case 'private.access.log':
             case 'error.private.log':
-                passthru('grep -v '.escapeshellarg('^'.$_SERVER['REMOTE_ADDR'].' ').' '.escapeshellarg($path).' | tail -n 20');
+                echo DateCheckLog(shell_exec('grep -v '.escapeshellarg('^'.$_SERVER['REMOTE_ADDR'].' ').' '.escapeshellarg($path).' | tail -n 20'));
                 break;
             default:
-                passthru('tail -n 20 ' . escapeshellarg($path));
+                echo DateCheckLog(shell_exec('tail -n 20 ' . escapeshellarg($path)));
                 break;
         }
         $log = ob_get_clean();
@@ -224,4 +225,36 @@ function ShowErrors()
     echo '<pre>';
     passthru('cat '.escapeshellarg(__DIR__.'/../crontab.txt').' | grep php | grep -o \'/var/newsstand/logs/.*.log\' | sort -u | xargs grep \'Fatal error\'');
     echo '</pre>';
+}
+
+function DateCheckLog($text) {
+    $lines = explode("\n", $text);
+
+    $ignoreAt = false;
+    $minValidTime = time() - 259200; // 72 hrs
+
+    for ($x = 0; $x < count($lines); $x++) {
+        $dt = false;
+        if (preg_match('/(\d{4}(?:\/|-)\d\d(?:\/|-)\d\d \d\d:\d\d:\d\d/', $lines[$x], $res)) {
+            $dt = strtotime($res[0]);
+        } elseif (preg_match('/(\d\d\/[A-Z][a-z]{2}\/\d{4}:\d\d:\d\d:\d\d (?:\+|-)\d{4}/', $lines[$x], $res)) {
+            $dt = strtotime($res[0]);
+        }
+        if (!$dt) {
+            if (($ignoreAt === $x - 1) && (substr($lines[$x], 0, 1) == ' ')) {
+                $ignoreAt = $x;
+            }
+            continue;
+        }
+        if ($dt < $minValidTime) {
+            $ignoreAt = $x;
+        }
+    }
+
+    if ($ignoreAt === false) {
+        return $text;
+    }
+
+    array_splice($lines, 0, $ignoreAt + 1);
+    return implode("\n", $lines);
 }
