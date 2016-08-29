@@ -152,13 +152,13 @@ ENDSQL;
             $headers = \Newsstand\HTTP::Head(preg_replace('/^http:/', 'https:', $fileInfo['url']));
             if (isset($headers['Last-Modified'])) {
                 $newModified = strtotime($headers['Last-Modified']);
+                $fileInfo['lastModified'] = $newModified * 1000;
+                $dta['files'] = [$fileInfo];
 
                 if (abs($oldModified - $newModified) < 10) {
                     DebugMessage("$region $slug data file has unchanged last modified date from last successful parse.");
                 } else {
-                    DebugMessage("$region $slug data file modified " . date('Y-m-d H:i:s', $newModified) . ", assuming different data.");
-                    $fileInfo['lastModified'] = $newModified * 1000;
-                    $dta['files'] = [$fileInfo];
+                    DebugMessage("$region $slug data file modified " . date('Y-m-d H:i:s', $newModified) . ".");
                 }
             } else {
                 DebugMessage("$region $slug data file failed fetching last modified date via HEAD method.");
