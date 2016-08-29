@@ -125,14 +125,14 @@ ENDSQL;
     $outHeaders = [];
     $dta = [];
     $json = \Newsstand\HTTP::Get($url, [], $outHeaders);
+    if (($json === false) && isset($outHeaders['body'])) {
+        // happens if server returns non-200 code, but we'll want that json anyway
+        $json = $outHeaders['body'];
+    }
     if ($json !== false) {
         $dta = json_decode($json, true);
         if (json_last_error() != JSON_ERROR_NONE) {
             $dta = [];
-        }
-    } else {
-        if (isset($outHeaders['body'])) {
-            $json = $outHeaders['body'];
         }
     }
     if (!isset($dta['files']) && !is_null($lastSuccessJson)) {
