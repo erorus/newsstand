@@ -124,7 +124,7 @@ foreach ($bonusRows as $row) {
         $bonuses[$row['bonusid']] = [];
     }
     switch ($row['changetype']) {
-        case 1: // itemlevel
+        case 1: // itemlevel boost
             if (!isset($bonuses[$row['bonusid']]['itemlevel'])) {
                 $bonuses[$row['bonusid']]['itemlevel'] = 0;
             }
@@ -149,17 +149,24 @@ foreach ($bonusRows as $row) {
                 $bonuses[$row['bonusid']]['randname'] = ['name' => isset($bonusNames[$row['params'][0]]) ? $bonusNames[$row['params'][0]] : $row['params'][0], 'prio' => $row['params'][1]];
             }
             break;
+        case 14: // min itemlevel
+            if (!isset($bonuses[$row['bonusid']]['minitemlevel'])) {
+                $bonuses[$row['bonusid']]['minitemlevel'] = 0;
+            }
+            $bonuses[$row['bonusid']]['minitemlevel'] = max($bonuses[$row['bonusid']]['minitemlevel'], $row['params'][0]);
+            break;
     }
 }
 
 RunAndLogError('truncate table tblDBCItemBonus');
-$stmt = $db->prepare("insert into tblDBCItemBonus (id, quality, level, tag_$locale, tagpriority, name_$locale, namepriority) values (?, ?, ?, ?, ?, ?, ?)");
-$id = $quality = $level = $tag = $tagPriority = $name = $namePriority = null;
-$stmt->bind_param('iiisisi', $id, $quality, $level, $tag, $tagPriority, $name, $namePriority);
+$stmt = $db->prepare("insert into tblDBCItemBonus (id, quality, level, minlevel, tag_$locale, tagpriority, name_$locale, namepriority) values (?, ?, ?, ?, ?, ?, ?, ?)");
+$id = $quality = $level = $minLevel = $tag = $tagPriority = $name = $namePriority = null;
+$stmt->bind_param('iiiisisi', $id, $quality, $level, $minLevel, $tag, $tagPriority, $name, $namePriority);
 foreach ($bonuses as $bonusId => $bonusData) {
     $id = $bonusId;
     $quality = isset($bonusData['quality']) ? $bonusData['quality'] : null;
     $level = isset($bonusData['itemlevel']) ? $bonusData['itemlevel'] : null;
+    $minLevel = isset($bonusData['minitemlevel']) ? $bonusData['minitemlevel'] : null;
     $tag = isset($bonusData['nametag']) ? $bonusData['nametag']['name'] : null;
     $tagPriority = isset($bonusData['nametag']) ? $bonusData['nametag']['prio'] : null;
     $name = isset($bonusData['randname']) ? $bonusData['randname']['name'] : null;
@@ -168,7 +175,7 @@ foreach ($bonuses as $bonusId => $bonusData) {
 }
 $stmt->close();
 unset($bonuses, $bonusRows, $bonusNames);
-RunAndLogError('update tblDBCItemBonus set flags = flags | 1 where ifnull(level,0) != 0');
+RunAndLogError('update tblDBCItemBonus set flags = flags | 1 where (ifnull(level,0) != 0 or ifnull(minlevel,0) != 0)');
 
 LogLine("tblDBCItem");
 $itemReader = new Reader($dirnm . '/Item.db2');
