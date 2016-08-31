@@ -58,7 +58,7 @@ function FullPaypalProcess() {
     if (isset($operation['delTime'])) {
         $newPaidUntil = AddPaidTime($operation['delTime'], -1 * SUBSCRIPTION_PAID_ADDS_SECONDS);
         LogPaypalMessage("Removed time, paid until: $newPaidUntil");
-        PaypalResultForUser($operation['addTime'], $newPaidUntil, true);
+        PaypalResultForUser($operation['delTime'], $newPaidUntil, true);
     }
     if (!$isIPN) {
         LogPaypalMessage("Forwarding to paidfinish");
@@ -273,6 +273,8 @@ EOF;
                 LogPaypalError("", "Redundant Paypal Payment Reversal - $user");
             }
         }
+    } elseif ($mc_gross < 0) {
+        LogPaypalError("", "Unknown Paypal withdrawal - $user");
     }
 
     return [];
