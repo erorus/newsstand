@@ -410,7 +410,7 @@ function ItemAuctions($house, $item)
 {
     global $db;
 
-    $cacheKey = 'item_auctions_l2_' . $item;
+    $cacheKey = 'item_auctions_l_' . $item;
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         foreach ($tr as &$rows) {
@@ -427,7 +427,7 @@ function ItemAuctions($house, $item)
     DBConnect();
 
     $sql = <<<EOF
-SELECT ifnull(ae.bonusset,0) bonusset, a.quantity, a.bid, a.buy, ifnull(ae.`rand`,0) `rand`, ifnull(ae.seed,0) `seed`, s.realm sellerrealm, ifnull(s.name, '???') sellername,
+SELECT ifnull(ae.bonusset,0) bonusset, a.quantity, a.bid, a.buy, ifnull(ae.`rand`,0) `rand`, ifnull(ae.seed,0) `seed`, ifnull(ae.lootedlevel,0) `lootedlevel`, s.realm sellerrealm, ifnull(s.name, '???') sellername,
 concat_ws(':',ae.bonus1,ae.bonus2,ae.bonus3,ae.bonus4,ae.bonus5,ae.bonus6) bonuses,
 ifnull(GROUP_CONCAT(distinct bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl
 FROM `tblAuction` a

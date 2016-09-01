@@ -151,7 +151,7 @@ EOF;
 
 function SellerAuctions($house, $seller)
 {
-    $cacheKey = 'seller_auctions_' . $seller;
+    $cacheKey = 'seller_auctions2_' . $seller;
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         PopulateLocaleCols($tr, [
                 ['func' => 'GetItemNames',          'key' => 'item',    'name' => 'name'],
@@ -165,11 +165,11 @@ function SellerAuctions($house, $seller)
     $db = DBConnect();
 
     $sql = <<<EOF
-select item, level, quality, class, subclass, icon, stacksize, quantity, bid, buy, `rand`, seed, bonuses, bonusurl,
+select item, level, quality, class, subclass, icon, stacksize, quantity, bid, buy, `rand`, seed, lootedlevel, bonuses, bonusurl,
 (SELECT ifnull(sum(quantity),0) from tblAuction a2 left join tblAuctionExtra ae2 on a2.house=ae2.house and a2.id=ae2.id where a2.house=results.house and a2.item=results.item and ifnull(ae2.bonusset,0) = ifnull(results.bonusset,0) and
 ((results.buy > 0 and a2.buy > 0 and (a2.buy / a2.quantity < results.buy / results.quantity)) or (results.buy = 0 and (a2.bid / a2.quantity < results.bid / results.quantity)))) cheaper
 from (
-    SELECT a.item, i.level, i.quality, i.class, i.subclass, i.icon, i.stacksize, a.quantity, a.bid, a.buy, ifnull(ae.`rand`, 0) `rand`, ifnull(ae.seed,0) seed,
+    SELECT a.item, i.level, i.quality, i.class, i.subclass, i.icon, i.stacksize, a.quantity, a.bid, a.buy, ifnull(ae.`rand`, 0) `rand`, ifnull(ae.seed,0) seed, ae.lootedlevel,
     concat_ws(':',ae.bonus1,ae.bonus2,ae.bonus3,ae.bonus4,ae.bonus5,ae.bonus6) bonuses,
     ifnull(GROUP_CONCAT(distinct bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
     a.house, a.seller, ae.bonusset

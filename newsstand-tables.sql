@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS `tblAuctionExtra` (
   `rand` int(11) NOT NULL,
   `seed` int(11) NOT NULL,
   `context` tinyint(3) unsigned NOT NULL,
+  `lootedlevel` tinyint(3) unsigned NULL,
   `bonusset` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `bonus1` smallint(5) unsigned DEFAULT NULL,
   `bonus2` smallint(5) unsigned DEFAULT NULL,

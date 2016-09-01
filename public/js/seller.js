@@ -596,7 +596,7 @@ var TUJ_Seller = function ()
             tr.appendChild(td);
             td.className = 'name';
             a = libtuj.ce('a');
-            a.rel = 'item=' + auc.item + (auc.rand ? '&rand=' + auc.rand : '') + (auc.bonuses ? '&bonus=' + auc.bonuses : '') + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
+            a.rel = 'item=' + auc.item + (auc.rand ? '&rand=' + auc.rand : '') + (auc.bonuses ? '&bonus=' + auc.bonuses : '') + (auc.lootedlevel ? '&lvl=' + auc.lootedlevel : '') + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
             a.href = tuj.BuildHash({page: 'item', id: auc.item + (auc.bonusurl ? ('.'+auc.bonusurl).replace(':','.') : '')});
             td.appendChild(a);
             $(a).text('[' + auc['name_' + tuj.locale] + (auc['bonusname_' + tuj.locale] ? ' ' + auc['bonusname_' + tuj.locale].substr(0, auc['bonusname_' + tuj.locale].indexOf('|') >= 0 ? auc['bonusname_' + tuj.locale].indexOf('|') : auc['bonusname_' + tuj.locale].length) : '') + (auc['randname_' + tuj.locale] ? ' ' + auc['randname_' + tuj.locale] : '') + ']' + (auc['bonustag_' + tuj.locale] ? ' ' : ''));

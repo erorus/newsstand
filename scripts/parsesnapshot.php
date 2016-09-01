@@ -45,12 +45,12 @@ $ownerRealmCache = DBMapArray($result, array('region', 'ownerrealm'));
 $stmt->close();
 
 $auctionExtraItemsCache = [];
-$stmt = $db->prepare('SELECT id FROM tblDBCItem WHERE `class` in (2,4) AND `auctionable` = 1');
+$stmt = $db->prepare('SELECT id, level FROM tblDBCItem WHERE `class` in (2,4) AND `auctionable` = 1');
 $stmt->execute();
-$z = null;
-$stmt->bind_result($z);
+$id = $level = null;
+$stmt->bind_result($id, $level);
 while ($stmt->fetch()) {
-    $auctionExtraItemsCache[$z] = $z;
+    $auctionExtraItemsCache[$id] = $level;
 }
 $stmt->close();
 
@@ -257,7 +257,7 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     $sqlStart = 'REPLACE INTO tblAuction (house, id, item, quantity, bid, buy, seller, timeleft) VALUES ';
     $sqlStartPet = 'REPLACE INTO tblAuctionPet (house, id, species, breed, `level`, quality) VALUES ';
-    $sqlStartExtra = 'REPLACE INTO tblAuctionExtra (house, id, `rand`, `seed`, `context`, `bonusset`';
+    $sqlStartExtra = 'REPLACE INTO tblAuctionExtra (house, id, `rand`, `seed`, `context`, `lootedlevel`, `bonusset`';
     for ($x = 1; $x <= MAX_BONUSES; $x++) {
         $sqlStartExtra .= ", bonus$x";
     }
@@ -312,8 +312,21 @@ function ParseAuctionData($house, $snapshot, &$json)
             }
             $auction['timeLeft'] = isset($TIMELEFT_ENUM[$auction['timeLeft']]) ? $TIMELEFT_ENUM[$auction['timeLeft']] : 0;
 
+            $auction['lootedLevel'] = null;
+            if (isset($auction['modifiers'])) {
+                foreach ($auction['modifiers'] as $modObj) {
+                    if (isset($modObj['type']) && ($modObj['type'] == 9)) {
+                        $auction['lootedLevel'] = intval($modObj['value']);
+                    }
+                }
+            }
+
             $totalAuctions++;
             $itemInfoKey = false;
+            $bonusSet = 0;
+            if (!isset($auction['petSpeciesId']) && isset($auctionExtraItemsCache[$auction['item']]) && isset($auction['bonusLists'])) {
+                $bonusSet = GetBonusSet($auction['bonusLists'], $auctionExtraItemsCache[$auction['item']], $auction['lootedLevel']);
+            }
             if ($auction['buyout'] != 0) {
                 if (isset($auction['petSpeciesId'])) {
                     if (!isset($petInfo[$auction['petSpeciesId']][$auction['petBreedId']])) {
@@ -326,10 +339,6 @@ function ParseAuctionData($house, $snapshot, &$json)
                     );
                     $petInfo[$auction['petSpeciesId']][$auction['petBreedId']]['tq'] += $auction['quantity'];
                 } else {
-                    $bonusSet = 0;
-                    if (isset($auctionExtraItemsCache[$auction['item']]) && isset($auction['bonusLists'])) {
-                        $bonusSet = GetBonusSet($auction['bonusLists']);
-                    }
                     $itemInfoKey = str_pad($auction['item'], ITEM_ID_PAD, '0', STR_PAD_LEFT) . ":$bonusSet";
                     if (!isset($itemInfo[$itemInfoKey])) {
                         $itemInfo[$itemInfoKey] = array('a' => array(), 'tq' => 0);
@@ -413,12 +422,13 @@ function ParseAuctionData($house, $snapshot, &$json)
                         $bonuses[] = 'null';
                     }
                     $bonuses = implode(',',$bonuses);
-                    $thisSql = sprintf('(%u, %u, %d, %d, %u, %u, %s)',
+                    $thisSql = sprintf('(%u, %u, %d, %d, %u, %s, %u, %s)',
                         $house,
                         $auction['auc'],
                         $auction['rand'],
                         $auction['seed'],
                         $auction['context'],
+                        isset($auction['lootedLevel']) ? $auction['lootedLevel'] : 'null',
                         $bonusSet,
                         $bonuses
                     );
@@ -602,7 +612,7 @@ EOF;
     DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " finished with $totalAuctions auctions in " . round(microtime(true) - $startTimer, 2) . " sec");
 }
 
-function GetBonusSet($bonusList)
+function GetBonusSet($bonusList, $itemLevel, $lootedLevel)
 {
     global $bonusSetMemberCache, $db;
     static $bonusSetCache = [];
