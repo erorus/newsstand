@@ -1,6 +1,7 @@
 DBFilesClient\BattlePetSpecies.db2
 DBFilesClient\BattlePetSpeciesState.db2
 DBFilesClient\Creature.db2
+DBFilesClient\CurvePoint.db2
 DBFilesClient\ItemAppearance.db2
 DBFilesClient\ItemBonus.db2
 DBFilesClient\ItemBonusTreeNode.db2
@@ -14,6 +15,7 @@ DBFilesClient\Item-sparse.db2
 DBFilesClient\ItemSubClass.db2
 DBFilesClient\ItemXBonusTree.db2
 DBFilesClient\ManifestInterfaceData.db2
+DBFilesClient\ScalingStatDistribution.db2
 DBFilesClient\SkillLineAbility.db2
 DBFilesClient\SkillLine.db2
 DBFilesClient\SpellCategories.db2

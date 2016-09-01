@@ -142,6 +142,20 @@ CREATE TABLE IF NOT EXISTS `tblCaptcha` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `tblDBCCurvePoint`
+--
+
+CREATE TABLE IF NOT EXISTS `tblDBCCurvePoint` (
+  `curve` smallint(5) unsigned NOT NULL,
+  `step` tinyint(3) unsigned NOT NULL,
+  `key` float NOT NULL,
+  `value` float NOT NULL,
+  PRIMARY KEY (`curve`,`step`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `tblDBCItem`
 --
 
@@ -183,6 +197,8 @@ CREATE TABLE IF NOT EXISTS `tblDBCItemBonus` (
   `id` smallint(5) unsigned NOT NULL,
   `quality` tinyint(3) unsigned DEFAULT NULL,
   `level` smallint(6) DEFAULT NULL,
+  `minlevel` smallint(5) unsigned default null,
+  `levelcurve` smallint(5) unsigned null,
   `tag_enus` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
   `tag_dede` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
   `tag_eses` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,

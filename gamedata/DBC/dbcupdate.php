@@ -106,6 +106,17 @@ foreach ($reader->generateRecords() as $id => $rec) {
 EchoProgress(false);
 unset($reader);
 
+$reader = new Reader($dirnm . '/ScalingStatDistribution.db2');
+$reader->setFieldNames(['curve', 'minlevel', 'maxlevel']);
+$distCurves = [];
+$x = 0; $recordCount = count($reader->getIds());
+foreach ($reader->generateRecords() as $id => $rec) {
+    EchoProgress(++$x/$recordCount);
+    $distCurves[$id] = $rec;
+}
+EchoProgress(false);
+unset($reader);
+
 $reader = new Reader($dirnm . '/ItemBonus.db2');
 $reader->setFieldNames(['params', 'bonusid', 'changetype', 'prio']);
 $reader->setFieldsSigned([true]);
@@ -149,6 +160,17 @@ foreach ($bonusRows as $row) {
                 $bonuses[$row['bonusid']]['randname'] = ['name' => isset($bonusNames[$row['params'][0]]) ? $bonusNames[$row['params'][0]] : $row['params'][0], 'prio' => $row['params'][1]];
             }
             break;
+        case 13: // itemlevel scaling distribution
+            if (!isset($distCurves[$row['params'][0]])) {
+                LogLine("Warning: Could not find distribution " . $row['params'][0] . " for bonus " . $row['bonusid']);
+                break;
+            }
+            $newCurve = $distCurves[$row['params'][0]]['curve'];
+            if (isset($bonuses[$row['bonusid']]['levelcurve'])) {
+                LogLine("Warning: already have curve " . $bonuses[$row['bonusid']]['levelcurve'] . ' for ' . $row['bonusid'] . ', overriding with ' . $newCurve);
+            }
+            $bonuses[$row['bonusid']]['levelcurve'] = $newCurve;
+            break;
         case 14: // min itemlevel
             if (!isset($bonuses[$row['bonusid']]['minitemlevel'])) {
                 $bonuses[$row['bonusid']]['minitemlevel'] = 0;
@@ -159,14 +181,15 @@ foreach ($bonusRows as $row) {
 }
 
 RunAndLogError('truncate table tblDBCItemBonus');
-$stmt = $db->prepare("insert into tblDBCItemBonus (id, quality, level, minlevel, tag_$locale, tagpriority, name_$locale, namepriority) values (?, ?, ?, ?, ?, ?, ?, ?)");
-$id = $quality = $level = $minLevel = $tag = $tagPriority = $name = $namePriority = null;
-$stmt->bind_param('iiiisisi', $id, $quality, $level, $minLevel, $tag, $tagPriority, $name, $namePriority);
+$stmt = $db->prepare("insert into tblDBCItemBonus (id, quality, level, minlevel, levelcurve, tag_$locale, tagpriority, name_$locale, namepriority) values (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+$id = $quality = $level = $minLevel = $levelCurve = $tag = $tagPriority = $name = $namePriority = null;
+$stmt->bind_param('iiiiisisi', $id, $quality, $level, $minLevel, $levelCurve, $tag, $tagPriority, $name, $namePriority);
 foreach ($bonuses as $bonusId => $bonusData) {
     $id = $bonusId;
     $quality = isset($bonusData['quality']) ? $bonusData['quality'] : null;
     $level = isset($bonusData['itemlevel']) ? $bonusData['itemlevel'] : null;
     $minLevel = isset($bonusData['minitemlevel']) ? $bonusData['minitemlevel'] : null;
+    $levelCurve = isset($bonusData['levelcurve']) ? $bonusData['levelcurve'] : null;
     $tag = isset($bonusData['nametag']) ? $bonusData['nametag']['name'] : null;
     $tagPriority = isset($bonusData['nametag']) ? $bonusData['nametag']['prio'] : null;
     $name = isset($bonusData['randname']) ? $bonusData['randname']['name'] : null;
@@ -176,6 +199,29 @@ foreach ($bonuses as $bonusId => $bonusData) {
 $stmt->close();
 unset($bonuses, $bonusRows, $bonusNames);
 RunAndLogError('update tblDBCItemBonus set flags = flags | 1 where (ifnull(level,0) != 0 or ifnull(minlevel,0) != 0)');
+
+LogLine("tblDBCCurvePoint");
+
+$reader = new Reader($dirnm . '/CurvePoint.db2');
+$reader->setFieldNames(['pair', 'curve', 'step']);
+
+RunAndLogError('truncate table tblDBCCurvePoint');
+$stmt = $db->prepare("replace into tblDBCCurvePoint (curve, step, `key`, `value`) values (?, ?, ?, ?)");
+$curve = $step = $key = $value = null;
+$stmt->bind_param('iidd', $curve, $step, $key, $value);
+
+$x = 0; $recordCount = count($reader->getIds());
+foreach ($reader->generateRecords() as $id => $rec) {
+    EchoProgress(++$x/$recordCount);
+    $curve = $rec['curve'];
+    $step = $rec['step'];
+    $key = $rec['pair'][0];
+    $value = $rec['pair'][1];
+    RunAndLogError($stmt->execute());
+}
+$stmt->close();
+EchoProgress(false);
+unset($reader);
 
 LogLine("tblDBCItem");
 $itemReader = new Reader($dirnm . '/Item.db2');
