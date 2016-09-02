@@ -596,8 +596,8 @@ EOF;
         }
     }
 
-    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " finding missing prices");
-    UpdateMissingPrices($house, $snapshot);
+    //DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " finding missing prices");
+    //UpdateMissingPrices($house, $snapshot);
 
     $snapshotHourStart = date('Y-m-d H', $snapshot) . ':00:00';
     $stmt = $ourDb->prepare('UPDATE tblSnapshot SET flags = flags | 1 WHERE house = ? AND updated between ? and timestampadd(second, 3599, ?) AND updated != ?');

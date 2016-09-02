@@ -57,7 +57,7 @@ s.price, s.quantity, s.lastseen,
 ifnull(s.bonusset,0) bonusset, ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
 $bonusTags,
 ivc.copper vendorprice, ivc.npc vendornpc, ivc.npccount vendornpccount,
-GetReagentPrice(s.house, i.id, null) reagentprice
+null reagentprice
 from tblDBCItem i
 left join tblItemSummary s on s.house = %d and s.item = i.id
 left join tblBonusSet bs on s.bonusset = bs.`set`
@@ -66,6 +66,8 @@ left join tblDBCItemVendorCost ivc on ivc.item = i.id
 where i.id = %d
 group by s.bonusset
 EOF;
+
+    //reagentprice: GetReagentPrice(s.house, i.id, null)
 
     $result = $db->query(sprintf($sql, $house, $item), MYSQLI_USE_RESULT);
     $tr = DBMapArray($result, array('bonusset', null));
@@ -82,6 +84,8 @@ EOF;
 function ItemIsCrafted($item)
 {
     global $db;
+
+    return false; // check item 133578
 
     $key = 'item_crafted_' . $item;
 
