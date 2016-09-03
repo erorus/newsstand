@@ -52,7 +52,7 @@ EOF;
 
     $sqlPattern = <<<'EOF'
 replace into tblItemHistoryDaily
-(SELECT item, house, `when`,
+(SELECT `ihh`.item, `ihh`.house, `ihh`.`when`,
 nullif(least(
 ifnull(silver00, 4294967295),ifnull(silver01, 4294967295),ifnull(silver02, 4294967295),ifnull(silver03, 4294967295),
 ifnull(silver04, 4294967295),ifnull(silver05, 4294967295),ifnull(silver06, 4294967295),ifnull(silver07, 4294967295),
@@ -127,8 +127,9 @@ ifnull(quantity12, 0),ifnull(quantity13, 0),ifnull(quantity14, 0),ifnull(quantit
 ifnull(quantity16, 0),ifnull(quantity17, 0),ifnull(quantity18, 0),ifnull(quantity19, 0),
 ifnull(quantity20, 0),ifnull(quantity21, 0),ifnull(quantity22, 0),ifnull(quantity23, 0)),0) quantitymax
 
-FROM `tblItemHistoryHourly`
-WHERE house = ? and `when` = ?)
+FROM `tblItemHistoryHourly` ihh
+JOIN `tblDBCItem` `i` ON `i`.`id` = `ihh`.`item`
+WHERE i.stacksize > 1 and ihh.house = ? and ihh.`when` = ?)
 EOF;
 
     foreach ($houses as $houseRow) {
