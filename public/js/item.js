@@ -3,7 +3,7 @@ var TUJ_Item = function ()
     var params;
     var lastResults = [];
     var itemId;
-    var bonusSet, bonusUrl;
+    var bonusSet, tagUrl;
     var bonusSets;
 
     this.load = function (inParams)
@@ -17,11 +17,11 @@ var TUJ_Item = function ()
 
         itemId = '' + params.id;
         bonusSet = 0;
-        bonusUrl = '';
+        tagUrl = '';
 
         if (itemId.indexOf('.') > 0) {
             itemId = ('' + params.id).substr(0, ('' + params.id).indexOf('.'));
-            bonusUrl = ('' + params.id).substr(('' + params.id).indexOf('.') + 1);
+            tagUrl = ('' + params.id).substr(('' + params.id).indexOf('.') + 1);
         }
 
         var qs = {
@@ -72,7 +72,7 @@ var TUJ_Item = function ()
             },
             url: 'api/item.php'
         });
-    }
+    };
 
     function ItemResult(hash, dta)
     {
@@ -100,19 +100,21 @@ var TUJ_Item = function ()
 
         bonusSets = [];
         bonusSet = -1;
-        var bonusUrlParts = bonusUrl.replace(/[^\d\.]/,'').split('.');
+        var tagUrlParts = tagUrl.replace(/[^\d\.]/,'').split('.');
         var matchingParts, testingParts;
         for (var bset in dta.stats) {
+            if (!dta.stats.hasOwnProperty(bset)) {
+                continue;
+            }
             bonusSets.push(bset);
-            dta.stats[bset].bonusurl = (''+dta.stats[bset].bonusurl).replace(':','.');
             if (bonusSets.length == 1) {
                 bonusSet = bset;
             } else {
                 matchingParts = 0;
-                testingParts = ('' + dta.stats[bset].bonusurl).split('.');
+                testingParts = ('' + dta.stats[bset].tagurl).split('.');
                 for (var x = 0; x < testingParts.length; x++) {
-                    for (var y = 0; y < bonusUrlParts.length; y++) {
-                        if (testingParts[x] == bonusUrlParts[y]) {
+                    for (var y = 0; y < tagUrlParts.length; y++) {
+                        if (testingParts[x] == tagUrlParts[y]) {
                             matchingParts++;
                             break;
                         }
@@ -123,19 +125,19 @@ var TUJ_Item = function ()
                 }
             }
         }
-        if (dta.stats[bonusSet].bonusurl != bonusUrl) {
-            tuj.SetParams({page: 'item', id: '' + itemId + (dta.stats[bonusSet].bonusurl ? ('.' + dta.stats[bonusSet].bonusurl) : '')});
-            bonusUrl = dta.stats[bonusSet].bonusurl;
+        if (dta.stats[bonusSet].tagurl != tagUrl) {
+            tuj.SetParams({page: 'item', id: '' + itemId + (dta.stats[bonusSet].tagurl ? ('.' + dta.stats[bonusSet].tagurl) : '')});
+            tagUrl = dta.stats[bonusSet].tagurl;
         }
 
         bonusSets.sort(function(a,b) {
             return (dta.stats[a].level - dta.stats[b].level) || dta.stats[a]['bonustag_' + tuj.locale].localeCompare(dta.stats[b]['bonustag_' + tuj.locale]) || a - b;
         });
 
-        var fullItemName = '[' + dta.stats[bonusSet]['name_' + tuj.locale] + ']' + (dta.stats[bonusSet]['bonustag_' + tuj.locale] ? ' ' + dta.stats[bonusSet]['bonustag_' + tuj.locale] : '');
+        var fullItemName = '[' + dta.stats[bonusSet]['name_' + tuj.locale] + ']' + ((dta.stats[bonusSet].bonusurl && dta.stats[bonusSet]['bonustag_' + tuj.locale]) ? ' ' + dta.stats[bonusSet]['bonustag_' + tuj.locale] : '');
 
         var ta = libtuj.ce('a');
-        ta.href = 'http://' + tuj.lang.wowheadDomain + '.wowhead.com/item=' + itemId + (bonusUrl ? '&bonus=' + bonusUrl.replace('.', ':') : '');
+        ta.href = 'http://' + tuj.lang.wowheadDomain + '.wowhead.com/item=' + itemId + (dta.stats[bonusSet].bonusurl ? '&bonus=' + dta.stats[bonusSet].bonusurl : '');
         ta.target = '_blank';
         ta.rel = 'noopener noreferrer';
         ta.className = 'item'
@@ -155,7 +157,7 @@ var TUJ_Item = function ()
             for (var x = 0; x < bonusSets.length; x++) {
                 a = libtuj.ce('a');
                 d.appendChild(a);
-                a.href = tuj.BuildHash({page: 'item', id: '' + itemId + (dta.stats[bonusSets[x]].bonusurl ? ('.' + dta.stats[bonusSets[x]].bonusurl) : '')});
+                a.href = tuj.BuildHash({page: 'item', id: '' + itemId + (dta.stats[bonusSets[x]].tagurl ? ('.' + dta.stats[bonusSets[x]].tagurl) : '')});
                 a.appendChild(document.createTextNode(dta.stats[bonusSets[x]]['bonustag_' + tuj.locale] || (bonusSets[x] == 0 ? tuj.lang.normal : '')));
                 if (bonusSet == bonusSets[x]) {
                     a.className = 'selected';
@@ -2803,8 +2805,6 @@ var TUJ_Item = function ()
                 tr.appendChild(td);
                 td.className = 'name';
                 a = libtuj.ce('a');
-                //a.rel = 'item=' + data.stats[bonusSet].id + (auc.rand ? '&rand=' + auc.rand : '') + (auc.bonuses ? '&bonus=' + auc.bonuses : '') + (auc.lootedlevel ? '&lvl=' + auc.lootedlevel : '');
-                //a.href = tuj.BuildHash({page: 'item', id: data.stats[bonusSet].id + (auc.bonusurl ? ('.'+auc.bonusurl).replace(':','.') : '')});
                 a.href = 'http://' + tuj.lang.wowheadDomain + '.wowhead.com/item=' + data.stats[bonusSet].id + (auc.bonuses ? '&bonus=' + auc.bonuses : '') + (auc.lootedlevel ? '&lvl=' + auc.lootedlevel : '');
                 td.appendChild(a);
                 $(a).text('[' + data.stats[bonusSet]['name_' + tuj.locale] + (auc['bonusname_' + tuj.locale] ? ' ' + auc['bonusname_' + tuj.locale].substr(0, auc['bonusname_' + tuj.locale].indexOf('|') >= 0 ? auc['bonusname_' + tuj.locale].indexOf('|') : auc['bonusname_' + tuj.locale].length) : '') + (auc['randname_' + tuj.locale] ? ' ' + auc['randname_' + tuj.locale] : '') + ']' + (auc['bonustag_' + tuj.locale] ? ' ' : ''));

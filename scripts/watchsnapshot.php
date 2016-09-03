@@ -47,13 +47,13 @@ while ($stmt->fetch()) {
 }
 $stmt->close();
 
-$bonusSetMemberCache = [];
-$stmt = $db->prepare('SELECT id FROM tblDBCItemBonus WHERE `flags` & 1');
+$bonusTagIdCache = [];
+$stmt = $db->prepare('SELECT id, tagid FROM tblDBCItemBonus WHERE tagid IS NOT NULL ORDER BY 1');
 $stmt->execute();
-$z = null;
-$stmt->bind_result($z);
+$id = $tagId = null;
+$stmt->bind_result($id, $tagId);
 while ($stmt->fetch()) {
-    $bonusSetMemberCache[$z] = $z;
+    $bonusTagIdCache[$id] = $tagId;
 }
 $stmt->close();
 
@@ -595,50 +595,52 @@ function AuctionListInsert(&$list, $qty, $buyout) {
 
 function GetBonusSet($bonusList)
 {
-    global $bonusSetMemberCache, $db;
+    global $bonusTagIdCache, $db;
     static $bonusSetCache = [];
 
-    $bonuses = [];
+    $tagIds = [];
     for ($y = 0; $y < count($bonusList); $y++) {
         if (isset($bonusList[$y]['bonusListId'])) {
             $bonus = intval($bonusList[$y]['bonusListId'],10);
-            if (isset($bonusSetMemberCache[$bonus])) {
-                $bonuses[$bonus] = $bonus;
+            if (isset($bonusTagIdCache[$bonus])) {
+                $tagIds[$bonusTagIdCache[$bonus]] = $bonusTagIdCache[$bonus];
             }
         }
     }
 
-    if (count($bonuses) == 0) {
+    if (count($tagIds) == 0) {
         return 0;
     }
 
-    sort($bonuses, SORT_NUMERIC);
+    sort($tagIds, SORT_NUMERIC);
 
     // check local static cache
-    $bonusesKey = implode(':', $bonuses);
-    if (isset($bonusSetCache[$bonusesKey])) {
-        return $bonusSetCache[$bonusesKey];
+    $tagIdsKey = implode(':', $tagIds);
+    if (isset($bonusSetCache[$tagIdsKey])) {
+        return $bonusSetCache[$tagIdsKey];
     }
 
     // not in cache, check db
-    $stmt = $db->prepare('SELECT `set`, GROUP_CONCAT(`bonus` ORDER BY 1 SEPARATOR \':\') `bonus` from tblBonusSet GROUP BY `set`');
+    if (!DBQueryWithError($db, 'lock tables tblBonusSet write')) {
+        return 0;
+    };
+
+    $stmt = $db->prepare('SELECT `set`, GROUP_CONCAT(`tagid` ORDER BY 1 SEPARATOR \':\') `tagidkey` from tblBonusSet GROUP BY `set`');
     $stmt->execute();
     $result = $stmt->get_result();
     while ($row = $result->fetch_assoc()) {
-        $bonusSetCache[$row['bonus']] = $row['set'];
+        $bonusSetCache[$row['tagidkey']] = $row['set'];
     }
     $result->close();
     $stmt->close();
 
     // check updated local cache now that we're synced with db
-    if (isset($bonusSetCache[$bonusesKey])) {
-        return $bonusSetCache[$bonusesKey];
+    if (isset($bonusSetCache[$tagIdsKey])) {
+        DBQueryWithError($db, 'unlock tables');
+        return $bonusSetCache[$tagIdsKey];
     }
 
     // still don't have it, make a new one
-    if (!DBQueryWithError($db, 'lock tables tblBonusSet write')) {
-        return 0;
-    };
     $newSet = 0;
 
     $stmt = $db->prepare('select ifnull(max(`set`),0)+1 from tblBonusSet');
@@ -648,9 +650,10 @@ function GetBonusSet($bonusList)
     $stmt->close();
 
     if ($newSet) {
-        $sql = 'insert into tblBonusSet (`set`, `bonus`) VALUES ';
-        for ($x = 0; $x < count($bonuses); $x++) {
-            $sql .= ($x > 0 ? ',' : '') . "($newSet,{$bonuses[$x]})";
+        $sql = 'insert into tblBonusSet (`set`, `tagid`) VALUES ';
+        $x = 0;
+        foreach ($tagIds as $tagId) {
+            $sql .= ($x++ > 0 ? ',' : '') . sprintf('(%d,%d)', $newSet, $tagId);
         }
         if (!DBQueryWithError($db, $sql)) {
             $newSet = 0;
@@ -659,7 +662,7 @@ function GetBonusSet($bonusList)
     DBQueryWithError($db, 'unlock tables');
 
     if ($newSet) {
-        $bonusSetCache[$bonusesKey] = $newSet;
+        $bonusSetCache[$tagIdsKey] = $newSet;
     }
 
     return $newSet;

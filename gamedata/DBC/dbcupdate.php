@@ -145,11 +145,12 @@ foreach ($bonusRows as $row) {
             $bonuses[$row['bonusid']]['quality'] = $row['params'][0];
             break;
         case 4: // nametag
-            if (!isset($bonuses[$row['bonusid']]['nametag'])) {
-                $bonuses[$row['bonusid']]['nametag'] = ['name' => '', 'prio' => -1];
-            }
-            if ($bonuses[$row['bonusid']]['nametag']['prio'] < $row['params'][1]) {
-                $bonuses[$row['bonusid']]['nametag'] = ['name' => isset($bonusNames[$row['params'][0]]) ? $bonusNames[$row['params'][0]] : $row['params'][0], 'prio' => $row['params'][1]];
+            if (!isset($bonuses[$row['bonusid']]['nametag']) || $bonuses[$row['bonusid']]['nametag']['prio'] > $row['params'][1]) {
+                $bonuses[$row['bonusid']]['nametag'] = [
+                    'id' => $row['params'][0],
+                    'prio' => $row['params'][1],
+                    'name' => isset($bonusNames[$row['params'][0]]) ? $bonusNames[$row['params'][0]] : $row['params'][0],
+                ];
             }
             break;
         case 5: // rand enchant name
@@ -171,34 +172,34 @@ foreach ($bonusRows as $row) {
             }
             $bonuses[$row['bonusid']]['levelcurve'] = $newCurve;
             break;
-        case 14: // min itemlevel
-            if (!isset($bonuses[$row['bonusid']]['minitemlevel'])) {
-                $bonuses[$row['bonusid']]['minitemlevel'] = 0;
+        case 14: // preview itemlevel
+            if (!isset($bonuses[$row['bonusid']]['previewlevel'])) {
+                $bonuses[$row['bonusid']]['previewlevel'] = 0;
             }
-            $bonuses[$row['bonusid']]['minitemlevel'] = max($bonuses[$row['bonusid']]['minitemlevel'], $row['params'][0]);
+            $bonuses[$row['bonusid']]['previewlevel'] = max($bonuses[$row['bonusid']]['previewlevel'], $row['params'][0]);
             break;
     }
 }
 
 RunAndLogError('truncate table tblDBCItemBonus');
-$stmt = $db->prepare("insert into tblDBCItemBonus (id, quality, level, minlevel, levelcurve, tag_$locale, tagpriority, name_$locale, namepriority) values (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-$id = $quality = $level = $minLevel = $levelCurve = $tag = $tagPriority = $name = $namePriority = null;
-$stmt->bind_param('iiiiisisi', $id, $quality, $level, $minLevel, $levelCurve, $tag, $tagPriority, $name, $namePriority);
+$stmt = $db->prepare("insert into tblDBCItemBonus (id, quality, level, previewlevel, levelcurve, tag_$locale, tagpriority, tagid, name_$locale, namepriority) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+$id = $quality = $level = $previewLevel = $levelCurve = $tag = $tagPriority = $tagId = $name = $namePriority = null;
+$stmt->bind_param('iiiiisiisi', $id, $quality, $level, $previewLevel, $levelCurve, $tag, $tagPriority, $tagId, $name, $namePriority);
 foreach ($bonuses as $bonusId => $bonusData) {
     $id = $bonusId;
     $quality = isset($bonusData['quality']) ? $bonusData['quality'] : null;
     $level = isset($bonusData['itemlevel']) ? $bonusData['itemlevel'] : null;
-    $minLevel = isset($bonusData['minitemlevel']) ? $bonusData['minitemlevel'] : null;
+    $previewLevel = isset($bonusData['previewlevel']) ? $bonusData['previewlevel'] : null;
     $levelCurve = isset($bonusData['levelcurve']) ? $bonusData['levelcurve'] : null;
     $tag = isset($bonusData['nametag']) ? $bonusData['nametag']['name'] : null;
     $tagPriority = isset($bonusData['nametag']) ? $bonusData['nametag']['prio'] : null;
+    $tagId = isset($bonusData['nametag']) ? $bonusData['nametag']['id'] : null;
     $name = isset($bonusData['randname']) ? $bonusData['randname']['name'] : null;
     $namePriority = isset($bonusData['randname']) ? $bonusData['randname']['prio'] : null;
     RunAndLogError($stmt->execute());
 }
 $stmt->close();
 unset($bonuses, $bonusRows, $bonusNames);
-RunAndLogError('update tblDBCItemBonus set flags = flags | 1 where (ifnull(level,0) != 0 or ifnull(minlevel,0) != 0)');
 
 LogLine("tblDBCCurvePoint");
 
@@ -353,48 +354,6 @@ foreach ($sorted as $rec) {
 $stmt->close();
 EchoProgress(false);
 unset($sorted, $appearanceReader, $modifiedAppearanceReader);
-
-// this bonus tree node stuff probably isn't quite right
-$bonusTreeNodeReader = new Reader($dirnm . '/ItemBonusTreeNode.db2');
-$bonusTreeNodeReader->setFieldNames(['node', 2=>'bonus']);
-$nodeLookup = [];
-$x = 0; $recordCount = count($bonusTreeNodeReader->getIds());
-foreach ($bonusTreeNodeReader->generateRecords() as $rec) {
-    EchoProgress(++$x / $recordCount);
-    if (!$rec['bonus']) {
-        continue;
-    }
-    $nodeLookup[$rec['node']][] = $rec['bonus'];
-}
-unset($bonusTreeNodeReader);
-
-$itemXBonusTreeReader = new Reader($dirnm . '/ItemXBonusTree.db2');
-$itemXBonusTreeReader->setFieldNames(['item', 'node']);
-
-$sql = <<<'EOF'
-update tblDBCItem 
-set basebonus = (
-    select ib.id
-    from tblDBCItemBonus ib
-    where ib.level is null
-    and ib.tag_enus is not null
-    and ib.id in (%s)
-    order by ib.tagpriority desc
-    limit 1)
-where id = %d    
-EOF;
-
-$x = 0; $recordCount = count($itemXBonusTreeReader->getIds());
-foreach ($itemXBonusTreeReader->generateRecords() as $recId => $rec) {
-    EchoProgress(++$x / $recordCount);
-
-    if (!isset($nodeLookup[$rec['node']])) {
-        continue;
-    }
-    RunAndLogError(sprintf($sql, implode(',', $nodeLookup[$rec['node']]), $rec['item']));
-}
-unset($itemXBonusTreeReader);
-EchoProgress(false);
 
 LogLine("tblDBCItemSpell");
 $reader = new Reader($dirnm . '/ItemEffect.db2');

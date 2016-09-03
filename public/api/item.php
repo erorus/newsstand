@@ -38,9 +38,9 @@ json_return($json);
 
 function ItemStats($house, $item)
 {
-    global $db, $LANG_LEVEL;
+    global $db;
 
-    $cacheKey = 'item_stats_' . $item;
+    $cacheKey = 'item_stats_b_' . $item;
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
@@ -49,19 +49,19 @@ function ItemStats($house, $item)
     DBConnect();
 
     $localeCols = LocaleColumns('i.name');
-    $bonusTags = LocaleColumns('ifnull(group_concat(ib.`tag%1$s` order by ib.tagpriority separator \' \'), if(ifnull(s.bonusset,0)=0,\'\',concat(\'__LEVEL%1$s__ \', i.level+sum(ifnull(ib.level,0))))) bonustag%1$s', true);
-    $bonusTags = strtr($bonusTags, $LANG_LEVEL);
+    $bonusTags = LocaleColumns('ifnull(group_concat(distinct ib.`tag%1$s` order by ib.tagpriority separator \' \'),\'\') bonustag%1$s', true);
     $sql = <<<EOF
-select i.id, $localeCols, i.icon, i.display, i.class as classid, i.subclass, ifnull(max(ib.quality), i.quality) quality, i.level+sum(ifnull(ib.level,0)) level, i.stacksize, i.binds, i.buyfromvendor, i.selltovendor, i.auctionable,
+select i.id, $localeCols, i.icon, i.display, i.class as classid, i.subclass, i.quality, 
+i.level, i.stacksize, i.binds, i.buyfromvendor, i.selltovendor, i.auctionable,
 s.price, s.quantity, s.lastseen,
-ifnull(s.bonusset,0) bonusset, ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
+ifnull(s.bonusset,0) bonusset, ifnull(GROUP_CONCAT(distinct bs.tagid ORDER BY 1 SEPARATOR '.'), '') tagurl,
 $bonusTags,
 ivc.copper vendorprice, ivc.npc vendornpc, ivc.npccount vendornpccount,
 null reagentprice
 from tblDBCItem i
 left join tblItemSummary s on s.house = %d and s.item = i.id
 left join tblBonusSet bs on s.bonusset = bs.`set`
-left join tblDBCItemBonus ib on ifnull(bs.bonus, i.basebonus) = ib.id
+left join tblDBCItemBonus ib on ib.tagid = bs.tagid
 left join tblDBCItemVendorCost ivc on ivc.item = i.id
 where i.id = %d
 group by s.bonusset
@@ -414,7 +414,7 @@ function ItemAuctions($house, $item)
 {
     global $db;
 
-    $cacheKey = 'item_auctions_l_' . $item;
+    $cacheKey = 'item_auctions_lb_' . $item;
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         foreach ($tr as &$rows) {
@@ -431,14 +431,13 @@ function ItemAuctions($house, $item)
     DBConnect();
 
     $sql = <<<EOF
-SELECT ifnull(ae.bonusset,0) bonusset, a.quantity, a.bid, a.buy, ifnull(ae.`rand`,0) `rand`, ifnull(ae.seed,0) `seed`, ifnull(ae.lootedlevel,0) `lootedlevel`, s.realm sellerrealm, ifnull(s.name, '???') sellername,
-concat_ws(':',ae.bonus1,ae.bonus2,ae.bonus3,ae.bonus4,ae.bonus5,ae.bonus6) bonuses,
-ifnull(GROUP_CONCAT(distinct bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl
+SELECT ifnull(ae.bonusset,0) bonusset, a.quantity, a.bid, a.buy, ifnull(ae.`rand`,0) `rand`, 
+ifnull(ae.seed,0) `seed`, ifnull(ae.lootedlevel,0) `lootedlevel`, s.realm sellerrealm, ifnull(s.name, '???') sellername,
+concat_ws(':',ae.bonus1,ae.bonus2,ae.bonus3,ae.bonus4,ae.bonus5,ae.bonus6) bonuses
 FROM `tblAuction` a
 join tblDBCItem i on a.item=i.id
 left join tblSeller s on a.seller=s.id
 left join tblAuctionExtra ae on ae.house=a.house and ae.id=a.id
-left join tblBonusSet bs on ae.bonusset = bs.set
 left join tblDBCItemBonus ib on ib.id in (ae.bonus1, ae.bonus2, ae.bonus3, ae.bonus4, ae.bonus5, ae.bonus6)
 left join tblDBCRandEnchants re on re.id = ae.rand
 WHERE a.house=? and a.item=?

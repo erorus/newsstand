@@ -1,3 +1,5 @@
 <div class="news">
-    Note: item bonuses and item levels for BoE weapons and armor aren't working entirely correctly yet. We plan on making a few changes on how we handle bonuses soon.
+    <b>September 3</b>: The way we distinguish different item versions (Mythic, Stage X of Y, etc) has changed, and historic pricing for those extended versions has been reset.
+
+    <p>Item levels should display correctly in auction listings, however all item levels for a given item version are still considered the same for market pricing purposes. This will be improved in a future update.</p>
 </div>

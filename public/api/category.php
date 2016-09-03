@@ -1525,16 +1525,15 @@ function CategoryGenericItemList($house, $params)
 {
     global $canCache;
 
-    $key = 'category_gil2_' . md5(json_encode($params));
+    $key = 'category_gil_b_' . md5(json_encode($params));
 
     $skipLocales = is_array($params) && isset($params['locales']) && ($params['locales'] == false);
 
     if ($canCache && (($tr = MCGetHouse($house, $key)) !== false)) {
         if (!$skipLocales) {
             PopulateLocaleCols($tr, [
-                ['func' => 'GetItemNames',      'key' => 'id',      'name' => 'name'],
-                ['func' => 'GetItemBonusNames', 'key' => 'bonuses', 'name' => 'bonusname'],
-                ['func' => 'GetItemBonusTags',  'key' => 'bonuses', 'name' => 'bonustag'],
+                ['func' => 'GetItemNames',          'key' => 'id',     'name' => 'name'],
+                ['func' => 'GetItemBonusTagsByTag', 'key' => 'tagurl', 'name' => 'bonustag'],
             ]);
         }
         return $tr;
@@ -1574,11 +1573,10 @@ select results.*,
          select 16 h union select 17 h union select 18 h union select 19 h union
          select 20 h union select 21 h union select 22 h union select 23 h) hours
         where ihh.house = ? and ihh.item = results.id and ihh.bonusset = results.bonusset) avgprice, $outside
-ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
-ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), ifnull(results.basebonus, '')) bonuses
+ifnull(GROUP_CONCAT(bs.`tagid` ORDER BY 1 SEPARATOR '.'), '') tagurl
 from (
     select i.id, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen,
-    ifnull(s.bonusset,0) bonusset, i.level, i.basebonus `basebonus` $cols
+    ifnull(s.bonusset,0) bonusset, i.level $cols
     from tblDBCItem i
     left join tblItemSummary s on s.house=? and s.item=i.id
     join tblItemGlobal g on g.item = i.id+0 and g.bonusset = ifnull(s.bonusset,0) and g.region = ?
@@ -1607,9 +1605,8 @@ EOF;
 
     if (!$skipLocales) {
         PopulateLocaleCols($tr, [
-            ['func' => 'GetItemNames',      'key' => 'id',      'name' => 'name'],
-            ['func' => 'GetItemBonusNames', 'key' => 'bonuses', 'name' => 'bonusname'],
-            ['func' => 'GetItemBonusTags',  'key' => 'bonuses', 'name' => 'bonustag'],
+            ['func' => 'GetItemNames',          'key' => 'id',     'name' => 'name'],
+            ['func' => 'GetItemBonusTagsByTag', 'key' => 'tagurl', 'name' => 'bonustag'],
         ]);
     }
 

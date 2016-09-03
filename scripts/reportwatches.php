@@ -160,7 +160,7 @@ EOF;
 
 function ReportUserWatches($now, $userRow)
 {
-    global $LANG_LEVEL, $houseNameCache, $itemClassOrderSql;
+    global $houseNameCache, $itemClassOrderSql;
 
     $locale = $userRow['locale'];
     $LANG = GetLang($locale);
@@ -171,15 +171,15 @@ function ReportUserWatches($now, $userRow)
 
     $sql = <<<'EOF'
 select 0 ispet, uw.seq, uw.region, uw.house,
-    uw.item, uw.bonusset, ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR '.'), '') bonusurl,
+    uw.item, uw.bonusset, ifnull(GROUP_CONCAT(distinct bs.`tagid` ORDER BY 1 SEPARATOR '.'), '') bonusurl,
     i.name_%1$s name,
-    ifnull(group_concat(ib.`tag_%1$s` order by ib.tagpriority separator ' '), if(ifnull(bs.`set`,0)=0,'',concat('%2$s ', i.level+sum(ifnull(ib.level,0))))) bonustag,
-    case i.class %3$s else 999 end classorder,
+    ifnull(group_concat(distinct ib.`tag_%1$s` order by ib.tagpriority separator ' '),'') bonustag,
+    case i.class %2$s else 999 end classorder,
     uw.direction, uw.quantity, uw.price, uw.currently
 from tblUserWatch uw
 join tblDBCItem i on uw.item = i.id
 left join tblBonusSet bs on uw.bonusset = bs.`set`
-left join tblDBCItemBonus ib on ifnull(bs.bonus, i.basebonus) = ib.id
+left join tblDBCItemBonus ib on bs.tagid = ib.tagid
 where uw.user = ?
 and uw.deleted is null
 and uw.observed > ifnull(uw.reported, '2000-01-01')
@@ -199,7 +199,7 @@ and uw.observed > ifnull(uw.reported, '2000-01-01')
 order by if(region is null, 0, 1), house, region, ispet, classorder, name, bonustag, seq
 EOF;
 
-    $sql = sprintf($sql, $locale, $LANG_LEVEL['__LEVEL_'.$locale.'__'], $itemClassOrderSql);
+    $sql = sprintf($sql, $locale, $itemClassOrderSql);
 
     $prevHouse = false;
     $houseCount = 0;
@@ -286,7 +286,7 @@ EOF;
 
 function ReportUserRares($now, $userRow)
 {
-    global $LANG_LEVEL, $houseNameCache, $itemClassOrderSql;
+    global $houseNameCache, $itemClassOrderSql;
 
     $locale = $userRow['locale'];
     $LANG = GetLang($locale);
@@ -298,15 +298,15 @@ function ReportUserRares($now, $userRow)
 
     $sql = <<<'EOF'
 select z.house, z.item, z.bonusset, max(z.snapshot) snapshot,
-    ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR '.'), '') bonusurl,
+    ifnull(group_concat(distinct bs.`tagid` ORDER BY 1 SEPARATOR '.'), '') bonusurl,
     z.name, z.class, z.level, z.quality,
-    ifnull(group_concat(ib.`tag_%1$s` order by ib.tagpriority separator ' '), if(ifnull(bs.`set`,0)=0,'',concat('%2$s ', z.level+sum(ifnull(ib.level,0))))) bonustag,
+    ifnull(group_concat(distinct ib.`tag_%1$s` order by ib.tagpriority separator ' '), '') bonustag,
     z.prevseen,
     z.price, z.median, z.mean, z.stddev, z.region,
-    case z.class %3$s else 999 end classorder
+    case z.class %2$s else 999 end classorder
 from (
     SELECT rr.house, rr.item, rr.bonusset, rr.prevseen, rr.price, unix_timestamp(rr.snapshot) snapshot,
-    i.name_%1$s name, i.class, i.basebonus, i.level, i.quality,
+    i.name_%1$s name, i.class, i.level, i.quality,
     ig.median, ig.mean, ig.stddev, ig.region
     FROM tblUserRareReport rr
     join tblDBCItem i on i.id = rr.item
@@ -315,12 +315,12 @@ from (
     where rr.user = ?
     ) z
 left join tblBonusSet bs on z.bonusset = bs.`set`
-left join tblDBCItemBonus ib on ifnull(bs.bonus, z.basebonus) = ib.id
+left join tblDBCItemBonus ib on bs.tagid = ib.tagid
 group by z.house, z.item, z.bonusset
 order by house, prevseen, classorder, name, bonustag;
 EOF;
 
-    $sql = sprintf($sql, $locale, $LANG_LEVEL['__LEVEL_'.$locale.'__'], $itemClassOrderSql);
+    $sql = sprintf($sql, $locale, $itemClassOrderSql);
 
     $prevHouse = false;
     $houseCount = 0;
@@ -358,7 +358,7 @@ EOF;
         $lastItem = sprintf('[%s]%s', $row['name'], $bonusTag);
         $message .= sprintf('<a href="%s">[%s]%s</a>', $url, $row['name'], $bonusTag);
         $message .= sprintf(' (%s %d %s %s) - ',
-            $LANG_LEVEL['__LEVEL_'.$locale.'__'], $row['level'],
+            $LANG['level'], $row['level'],
             isset($LANG['qualities'][$row['quality']]) ? $LANG['qualities'][$row['quality']] : '',
             isset($LANG['itemClasses'][$row['class']]) ? $LANG['itemClasses'][$row['class']] : '');
         $message .= sprintf(' %s <b>%s</b>, %s <b>%s</b>.<br>',

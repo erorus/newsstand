@@ -41,18 +41,28 @@ function BuildBonusSets()
 {
     global $db;
 
-    $stmt = $db->prepare('SELECT `set`, concat(\'\'\'\', cast(group_concat(bonus order by 1 separator \'\'\',\'\'\') as char), \'\'\'\') bonuses FROM `tblBonusSet` group by `set`');
+    $lua = "local addonName, addonTable = ...\n";
+
+    $lua .= "addonTable.bonusSets = {\n";
+    $stmt = $db->prepare('SELECT `set`, group_concat(tagid order by 1 separator \',\') tagids FROM `tblBonusSet` group by `set`');
     $stmt->execute();
-    $result = $stmt->get_result();
-    $sets = DBMapArray($result);
-    $stmt->close();
-
-    $lua = "local addonName, addonTable = ...\naddonTable.bonusSets = {\n";
-
-    foreach ($sets as $row) {
-        $lua .= "\t[".$row['set'].']={'.$row['bonuses']."},\n";
+    $k = $v = null;
+    $stmt->bind_result($k, $v);
+    while ($stmt->fetch()) {
+        $lua .= "\t[".$k.']={'.$v."},\n";
     }
+    $stmt->close();
+    $lua .= "}\n";
 
+    $lua .= "addonTable.bonusTags = {\n";
+    $stmt = $db->prepare('SELECT tagid, concat(\'\'\'\', group_concat(id order by 1 separator \'\'\',\'\'\'), \'\'\'\') bonuses FROM `tblDBCItemBonus` WHERE tagid is not null group by tagid');
+    $stmt->execute();
+    $k = $v = null;
+    $stmt->bind_result($k, $v);
+    while ($stmt->fetch()) {
+        $lua .= "\t[".$k.']={'.$v."},\n";
+    }
+    $stmt->close();
     $lua .= "}\n";
 
     $stmt = $db->prepare('select id, concat_ws(\',\', ifnull(stamina,0), ifnull(power,0), ifnull(speed,0)) stats from tblDBCPet');

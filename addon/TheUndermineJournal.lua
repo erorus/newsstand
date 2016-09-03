@@ -200,21 +200,33 @@ function TUJMarketInfo(item,...)
         bonusSet = 0
 
         if numBonuses > 0 then
-            local matched = 0
-
-            for s,setBonuses in pairs(addonTable.bonusSets) do
-                local matches = 0
-                for x = 1,#setBonuses,1 do
-                    for y = 1,numBonuses,1 do
-                        if itemStringParts[14+y] == setBonuses[x] then
-                            matches = matches + 1
-                            break
-                        end
+            local tagIds = {}
+            for y = 1,numBonuses,1 do
+                for tagId,tagBonuses in pairs(addonTable.bonusTags) do
+                    if tContains(tagBonuses, itemStringParts[14+y]) then
+                        tinsert(tagIds, tagId)
+                        break
                     end
                 end
-                if (matches > matched) and (matches == #setBonuses) then
-                    matched = matches
-                    bonusSet = s
+            end
+
+            if #tagIds > 0 then
+                local matched = 0
+
+                for s,setTags in pairs(addonTable.bonusSets) do
+                    local matches = 0
+                    for x = 1,#setTags,1 do
+                        for y = 1,#tagIds,1 do
+                            if tagIds[y] == setTags[x] then
+                                matches = matches + 1
+                                break
+                            end
+                        end
+                    end
+                    if (matches > matched) and (matches == #setTags) then
+                        matched = matches
+                        bonusSet = s
+                    end
                 end
             end
         end

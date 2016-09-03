@@ -22,15 +22,6 @@ $TIMELEFT_ENUM = [
 ];
 
 $VALID_LOCALES = ['enus','dede','eses','frfr','itit','ptbr','ruru'];
-$LANG_LEVEL = [
-    '__LEVEL_enus__' => 'Level',
-    '__LEVEL_dede__' => 'Stufe',
-    '__LEVEL_eses__' => 'Nivel',
-    '__LEVEL_frfr__' => 'Niveau',
-    '__LEVEL_itit__' => 'Livello',
-    '__LEVEL_ptbr__' => 'Nível',
-    '__LEVEL_ruru__' => 'Уровень',
-];
 
 function DebugMessage($message, $debugLevel = E_USER_NOTICE)
 {

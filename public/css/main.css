@@ -159,7 +159,7 @@ table.highcharts-tuj-tooltip td + td {padding-left: 0.4em}
 
 .battlepet-breeds, .item-bonussets, .transmog-slots { margin-bottom: 1em; font-size: 120% }
 .battlepet-breeds a, .item-bonussets a, .transmog-slots a { display: inline-block; padding: 1em; margin-right: 1em; margin-bottom: 1em; background-color: #DDD; opacity: 0.5; text-decoration: none; box-shadow: 0.2em 0.2em #CCC; white-space: nowrap; cursor: pointer }
-.battlepet-breeds a.selected, .item-bonussets a.selected, .transmog-slots a.selected { opacity: 1 }
+.battlepet-breeds a.selected, .item-bonussets a.selected, .transmog-slots a.selected { opacity: 1; font-weight: bold }
 .battlepet-breeds a:hover, .item-bonussets a:hover, .transmog-slots a:hover { opacity: 1 }
 
 a.sellerbot::after { content: 'BOT'; font-size: 80%; padding: 0 2px; background-color: #900; color: white; border-radius: 2px; margin: 0 4px; position: relative; top: -1px }

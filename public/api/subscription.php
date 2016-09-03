@@ -846,8 +846,7 @@ function GetWatches($loginState)
         $sql = <<<EOF
 select uw.seq, uw.region, uw.house,
     uw.item, uw.bonusset,
-        ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
-        ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), ifnull(i.basebonus, '')) bonuses,
+    ifnull(GROUP_CONCAT(bs.`tagid` ORDER BY 1 SEPARATOR '.'), '') tagurl,
     i.level, i.icon, i.class,
     uw.direction, uw.quantity, uw.price
 from tblUserWatch uw
@@ -870,9 +869,8 @@ EOF;
     }
 
     PopulateLocaleCols($items, [
-        ['func' => 'GetItemNames',      'key' => 'item',    'name' => 'name'],
-        ['func' => 'GetItemBonusNames', 'key' => 'bonuses', 'name' => 'bonusname'],
-        ['func' => 'GetItemBonusTags',  'key' => 'bonuses', 'name' => 'bonustag'],
+        ['func' => 'GetItemNames',          'key' => 'item',   'name' => 'name'],
+        ['func' => 'GetItemBonusTagsByTag', 'key' => 'tagurl', 'name' => 'bonustag'],
     ], true);
 
     $cacheKey = SUBSCRIPTION_SPECIES_CACHEKEY . $userId;

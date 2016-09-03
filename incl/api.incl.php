@@ -3,7 +3,7 @@
 require_once('memcache.incl.php');
 require_once('incl.php');
 
-define('API_VERSION', 50);
+define('API_VERSION', 51);
 define('THROTTLE_PERIOD', 3600); // seconds
 define('THROTTLE_MAXHITS', 200);
 define('BANLIST_CACHEKEY', 'banlist_cidrs4');
@@ -245,6 +245,58 @@ function GetItemBonusTags($bonusGroups, $renamedTo = false)
         }
 
         $results[$bonusesKey] = $names;
+    }
+
+    return $results;
+}
+
+function GetItemBonusTagsByTag($tagGroups, $renamedTo = false)
+{
+    $results = [];
+    foreach ($tagGroups as $tagsKey) {
+        $c = preg_match_all('/\d+/', $tagsKey, $res);
+        $tagIds = [];
+        for ($x = 0; $x < $c; $x++) {
+            if ($res[0][$x]) {
+                $tagIds[] = $res[0][$x];
+            }
+        }
+
+        $tagIds = implode(',', array_filter($tagIds, 'is_numeric'));
+
+        $cacheKey = 'itembonustagsbytag_' . $tagIds;
+
+        $names = MCGet($cacheKey);
+
+        if ($names === false) {
+            if ($tagIds) {
+                $db = DBConnect();
+
+                $sql = 'select ' . LocaleColumns('group_concat(distinct `tag%1$s` order by tagpriority separator \' \') bonustag%1$s', true);
+                $sql .= ' from tblDBCItemBonus where tagid in (' . $tagIds . ')';
+                $stmt = $db->prepare($sql);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                $names = $result->fetch_assoc();
+                $result->close();
+                $stmt->close();
+            }
+            if ($names === false) {
+                $names = [];
+            }
+            $names = array_filter($names);
+            MCSet($cacheKey, $names, 86400);
+        }
+
+        if ($renamedTo && $renamedTo != 'bonustag') {
+            $keys = array_keys($names);
+            foreach ($keys as $key) {
+                $names[str_replace('bonustag', $renamedTo, $key)] = $names[$key];
+                unset($names[$key]);
+            }
+        }
+
+        $results[$tagsKey] = $names;
     }
 
     return $results;

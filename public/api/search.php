@@ -19,14 +19,13 @@ BotCheck();
 HouseETag($house);
 
 $locale = GetLocale();
-$searchCacheKey = 'search2_' . $locale . '_' . md5($search);
+$searchCacheKey = 'search_b_' . $locale . '_' . md5($search);
 
 if ($json = MCGetHouse($house, $searchCacheKey)) {
     PopulateLocaleCols($json['battlepets'], [['func' => 'GetPetNames', 'key' => 'id', 'name' => 'name']]);
     PopulateLocaleCols($json['items'], [
-        ['func' => 'GetItemNames',      'key' => 'id',      'name' => 'name'],
-        ['func' => 'GetItemBonusNames', 'key' => 'bonuses', 'name' => 'bonusname'],
-        ['func' => 'GetItemBonusTags',  'key' => 'bonuses', 'name' => 'bonustag'],
+        ['func' => 'GetItemNames',          'key' => 'id',       'name' => 'name'],
+        ['func' => 'GetItemBonusTagsByTag', 'key' => 'tagurl', 'name' => 'bonustag'],
     ]);
 
     json_return($json);
@@ -51,9 +50,8 @@ MCSetHouse($house, $searchCacheKey, $json);
 
 PopulateLocaleCols($json['battlepets'], [['func' => 'GetPetNames', 'key' => 'id', 'name' => 'name']]);
 PopulateLocaleCols($json['items'], [
-    ['func' => 'GetItemNames',      'key' => 'id',      'name' => 'name'],
-    ['func' => 'GetItemBonusNames', 'key' => 'bonuses', 'name' => 'bonusname'],
-    ['func' => 'GetItemBonusTags',  'key' => 'bonuses', 'name' => 'bonustag'],
+    ['func' => 'GetItemNames',          'key' => 'id',     'name' => 'name'],
+    ['func' => 'GetItemBonusTagsByTag', 'key' => 'tagurl', 'name' => 'bonustag'],
 ]);
 
 json_return($json);
@@ -105,11 +103,10 @@ select results.*,
          select 16 h union select 17 h union select 18 h union select 19 h union
          select 20 h union select 21 h union select 22 h union select 23 h) hours
         where ihh.house = ? and ihh.item = results.id and ihh.bonusset = results.bonusset) avgprice,
-ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), '') bonusurl,
-ifnull(GROUP_CONCAT(bs.`bonus` ORDER BY 1 SEPARATOR ':'), ifnull(results.basebonus, '')) bonuses
+ifnull(GROUP_CONCAT(bs.`tagid` ORDER BY 1 SEPARATOR '.'), '') tagurl
 from (
     select i.id, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen,
-    ifnull(s.bonusset,0) bonusset, i.level, i.basebonus
+    ifnull(s.bonusset,0) bonusset, i.level
     from tblDBCItem i
     left join tblItemSummary s on s.house=? and s.item=i.id
     where $nameSearch
@@ -118,7 +115,6 @@ from (
     limit ?
 ) results
 left join tblBonusSet bs on results.bonusset = bs.`set`
-left join tblDBCItemBonus ib on ifnull(bs.bonus, results.basebonus) = ib.id
 group by results.id, results.bonusset
 EOF;
     $limit = 50 * strlen(preg_replace('/\s/', '', $search));

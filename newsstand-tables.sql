@@ -120,8 +120,8 @@ CREATE TABLE IF NOT EXISTS `tblBitPayTransactions` (
 
 CREATE TABLE IF NOT EXISTS `tblBonusSet` (
   `set` tinyint(3) unsigned NOT NULL,
-  `bonus` smallint(5) unsigned NOT NULL,
-  PRIMARY KEY (`set`,`bonus`)
+  `tagid` mediumint(8) unsigned NOT NULL,
+  PRIMARY KEY (`set`,`tagid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -181,7 +181,6 @@ CREATE TABLE IF NOT EXISTS `tblDBCItem` (
   `type` tinyint(3) unsigned DEFAULT NULL,
   `requiredlevel` tinyint(3) unsigned DEFAULT NULL,
   `requiredskill` smallint(5) unsigned DEFAULT NULL,
-  `basebonus` smallint(5) unsigned NOT NULL DEFAULT '0',
   `display` mediumint(8) unsigned DEFAULT NULL,
   `flags` set('pvp','notransmog') COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`)
@@ -197,8 +196,8 @@ CREATE TABLE IF NOT EXISTS `tblDBCItemBonus` (
   `id` smallint(5) unsigned NOT NULL,
   `quality` tinyint(3) unsigned DEFAULT NULL,
   `level` smallint(6) DEFAULT NULL,
-  `minlevel` smallint(5) unsigned default null,
-  `levelcurve` smallint(5) unsigned null,
+  `previewlevel` smallint(5) unsigned DEFAULT NULL,
+  `levelcurve` smallint(5) unsigned DEFAULT NULL,
   `tag_enus` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
   `tag_dede` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
   `tag_eses` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -207,6 +206,7 @@ CREATE TABLE IF NOT EXISTS `tblDBCItemBonus` (
   `tag_ptbr` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
   `tag_ruru` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
   `tagpriority` tinyint(3) unsigned DEFAULT NULL,
+  `tagid` mediumint(8) unsigned DEFAULT NULL,
   `name_enus` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
   `name_dede` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
   `name_eses` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -215,8 +215,8 @@ CREATE TABLE IF NOT EXISTS `tblDBCItemBonus` (
   `name_ptbr` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
   `name_ruru` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
   `namepriority` tinyint(3) unsigned DEFAULT NULL,
-  `flags` set('setmember') COLLATE utf8_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `tagid` (`tagid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------

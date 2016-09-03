@@ -564,7 +564,7 @@ var TUJ_Subscription = function ()
             td.appendChild(a);
             if (item.item) {
                 a.rel = 'item=' + item.item + (item.bonusurl ? '&bonus=' + item.bonusurl : (item.basebonus ? '&bonus=' + item.basebonus : '')) + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
-                h = {page: 'item', id: item.item + (item.bonusurl ? ('.'+item.bonusurl).replace(':','.') : '')};
+                h = {page: 'item', id: item.item + (item.tagurl ? '.'+item.tagurl : '')};
             } else if (item.species) {
                 a.rel = 'npc=' + item.npc + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
                 h = {page: 'battlepet', id: item.species + (item.breed ? ('.'+item.breed) : '')};
