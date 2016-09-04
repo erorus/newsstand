@@ -56,8 +56,7 @@ i.level, i.stacksize, i.binds, i.buyfromvendor, i.selltovendor, i.auctionable,
 s.price, s.quantity, s.lastseen,
 ifnull(s.bonusset,0) bonusset, ifnull(GROUP_CONCAT(distinct bs.tagid ORDER BY 1 SEPARATOR '.'), '') tagurl,
 $bonusTags,
-ivc.copper vendorprice, ivc.npc vendornpc, ivc.npccount vendornpccount,
-null reagentprice
+ivc.copper vendorprice, ivc.npc vendornpc, ivc.npccount vendornpccount
 from tblDBCItem i
 left join tblItemSummary s on s.house = %d and s.item = i.id
 left join tblBonusSet bs on s.bonusset = bs.`set`
@@ -66,8 +65,6 @@ left join tblDBCItemVendorCost ivc on ivc.item = i.id
 where i.id = %d
 group by s.bonusset
 EOF;
-
-    //reagentprice: GetReagentPrice(s.house, i.id, null)
 
     $result = $db->query(sprintf($sql, $house, $item), MYSQLI_USE_RESULT);
     $tr = DBMapArray($result, array('bonusset', null));
@@ -79,36 +76,6 @@ EOF;
     MCSetHouse($house, $cacheKey, $tr);
 
     return $tr;
-}
-
-function ItemIsCrafted($item)
-{
-    global $db;
-
-    return false; // check item 133578
-
-    $key = 'item_crafted_' . $item;
-
-    if (($tr = MCGet($key)) !== false) {
-        return $tr == 'yes';
-    }
-
-    DBConnect();
-
-    $tr = 0;
-
-    $stmt = $db->prepare('select count(*) from tblDBCItemReagents where item = ?');
-    $stmt->bind_param('i', $item);
-    $stmt->execute();
-    $stmt->bind_result($tr);
-    $stmt->fetch();
-    $stmt->close();
-
-    $tr = $tr > 0 ? 'yes' : 'no';
-
-    MCSet($key, $tr);
-
-    return ($tr == 'yes');
 }
 
 function ItemHistory($house, $item)
@@ -198,34 +165,9 @@ EOF;
     $result = $db->query(sprintf($sql, $item, $house, HISTORY_DAYS));
     $tr = DBMapArray($result, ['bonusset', null]);
 
-    if (ItemIsCrafted($item)) {
-        $sql = <<<'EOF'
-    select unix_timestamp(s.updated) `snapshot`, GetReagentPrice(s.house, ?, s.updated) reagentprice
-    from tblSnapshot s
-    where s.house = ? and s.updated >= timestampadd(day,?,now()) and s.flags & 1 = 0
-EOF;
-        $historyDays = -1 * HISTORY_DAYS;
-        $stmt = $db->prepare($sql);
-        $stmt->bind_param('iii', $item, $house, $historyDays);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $reagentPrices = DBMapArray($result, 'snapshot');
-        $stmt->close();
-    } else {
-        $reagentPrices = [];
-    }
-
     foreach ($tr as &$snapshots) {
         while (count($snapshots) > 0 && is_null($snapshots[0]['silver'])) {
             array_shift($snapshots);
-        }
-        if (count($reagentPrices)) {
-            foreach ($snapshots as &$snapshotData) {
-                if (isset($reagentPrices[$snapshotData['snapshot']])) {
-                    $snapshotData['reagentprice'] = $reagentPrices[$snapshotData['snapshot']]['reagentprice'];
-                }
-            }
-            unset($snapshotData);
         }
     }
     unset($snapshots);

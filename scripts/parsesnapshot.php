@@ -599,9 +599,6 @@ EOF;
         }
     }
 
-    //DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " finding missing prices");
-    //UpdateMissingPrices($house, $snapshot);
-
     $snapshotHourStart = date('Y-m-d H', $snapshot) . ':00:00';
     $stmt = $ourDb->prepare('UPDATE tblSnapshot SET flags = flags | 1 WHERE house = ? AND updated between ? and timestampadd(second, 3599, ?) AND updated != ?');
     $stmt->bind_param('isss', $house, $snapshotHourStart, $snapshotHourStart, $snapshotString);
@@ -1046,121 +1043,6 @@ function UpdatePetInfo($house, &$petInfo, $snapshot)
         DBQueryWithError($db, $sqlHistory . $sqlHistoryEnd);
     }
 }
-
-function UpdateMissingPrices($house, $snapshot) {
-    global $db;
-
-    $sql = <<<EOF
-select bb.reagent, ((createdprice - sum(quantity * reagentprice)) / missingqty) as price
-from (
-   select aa.*, irs2.quantity, min(s2.price) reagentprice
-   from
-     (SELECT irs.spell, irs.reagent, irs.quantity missingqty, min(s.price) createdprice
-      from tblDBCItemReagents irs
-        join tblItemSummary s on s.item = irs.item and s.house = %1\$d and s.quantity > 0
-      where irs.reagent in (%2\$s)
-      group by irs.spell, irs.reagent) aa
-     join tblDBCItemReagents irs2 on irs2.spell = aa.spell
-     join tblItemSummary s2 on s2.item = irs2.reagent and s2.house = %1\$d and not (s2.age = 255 and s2.quantity = 0)
-   group by aa.spell, irs2.reagent) bb
-group by bb.spell, bb.reagent
-order by 2
-EOF;
-
-    $stmt = $db->prepare(sprintf($sql, $house, implode(',', GetMissingItems())));
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $allPrices = [];
-    while ($row = $result->fetch_assoc()) {
-        $allPrices[$row['reagent']][] = $row['price'];
-    }
-    $result->close();
-    $stmt->close();
-
-    $itemInfo = [];
-
-    foreach ($allPrices as $item => &$prices) {
-        if (count($prices) >= 4) {
-            $toCut = count($prices) / 4;
-            array_splice($prices, 0, floor($toCut));
-            array_splice($prices, count($prices) - ceil($toCut));
-        }
-
-        if (count($prices) == 0) {
-            continue;
-        }
-
-        $itemInfo["$item:0"] = [
-            'price' => max(0, floor(array_sum($prices) / count($prices))),
-            'tq' => 0
-        ];
-
-    }
-    unset($prices);
-
-    if (count($itemInfo)) {
-        UpdateItemInfo($house, $itemInfo, $snapshot, true);
-    }
-}
-
-function GetMissingItems() {
-    static $missingItems = false;
-
-    global $db;
-
-    $cacheKey = 'parse_missing_items';
-
-    if ($missingItems === false) {
-        $missingItems = MCGet($cacheKey);
-    }
-
-    if ($missingItems === false) {
-        $sql = <<<EOF
-SELECT i.id
-from tblDBCItemReagents dir
-join tblDBCItem i on dir.reagent=i.id
-join tblDBCItem i2 on dir.item=i2.id
-where not exists (select 1 from tblItemSummary s join tblRealm r on s.house=r.house and r.canonical is not null where s.item=i.id and not (s.quantity=0 and s.age=255) limit 1)
-and exists (select 1 from tblItemSummary s join tblRealm r on s.house=r.house and r.canonical is not null where s.item=i2.id and not (s.quantity=0 and s.age=255) limit 1)
-and not exists (select 1 from tblDBCItemVendorCost v where v.item = i.id limit 1)
-and i2.auctionable = 1
-and i.id not in (120945)
-group by i.id
-EOF;
-        $stmt = $db->prepare($sql);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $missingItems = array_keys(DBMapArray($result));
-        $stmt->close();
-
-        MCSet($cacheKey, $missingItems, 43200);
-    }
-
-    return $missingItems;
-}
-
-/* unused
-function GetAverageAge(&$info, $price)
-{
-    if ($info['tq'] == 0) {
-        return 0;
-    }
-
-    $c = $s = 0;
-    $tc = count($info['a']);
-    for ($x = 0; $x < $tc; $x++) {
-        $p = floor($info['a'][$x]['p'] / $info['a'][$x]['q']);
-        if ($p <= $price) {
-            $s += $info['a'][$x]['age'];
-            $c++;
-        } elseif ($c > 0) {
-            break; // already sorted by market price
-        }
-    }
-
-    return floor($s / $c);
-}
-*/
 
 function GetMarketPrice(&$info)
 {
