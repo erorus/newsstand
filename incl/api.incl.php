@@ -168,8 +168,8 @@ function GetItemBonusNames($bonusGroups, $renamedTo = false)
             if ($bonuses) {
                 $db = DBConnect();
 
-                $sql = 'select ' . LocaleColumns('ifnull(group_concat(distinct name%1$s order by namepriority desc separator \' \'), \'\') bonusname%1$s', true);
-                $sql .= ' from tblDBCItemBonus where id in (' . $bonuses . ')';
+                $sql = 'select ' . LocaleColumns('ifnull(group_concat(distinct ind.desc%1$s order by ib.namepriority desc separator \' \'), \'\') bonusname%1$s', true);
+                $sql .= ' from tblDBCItemBonus ib left join tblDBCItemNameDescription ind on ib.nameid = ind.id where ib.id in (' . $bonuses . ')';
                 $stmt = $db->prepare($sql);
                 $stmt->execute();
                 $result = $stmt->get_result();
@@ -220,8 +220,8 @@ function GetItemBonusTags($bonusGroups, $renamedTo = false)
             if ($bonuses) {
                 $db = DBConnect();
 
-                $sql = 'select ' . LocaleColumns('ifnull(group_concat(distinct `tag%1$s` order by tagpriority separator \' \'), if(sum(ifnull(level,0))=0,\'\',sum(ifnull(level,0)))) bonustag%1$s', true);
-                $sql .= ' from tblDBCItemBonus where id in (' . $bonuses . ')';
+                $sql = 'select ' . LocaleColumns('ifnull(group_concat(distinct ind.`desc%1$s` order by ib.tagpriority separator \' \'), \'\') bonustag%1$s', true);
+                $sql .= ' from tblDBCItemBonus ib left join tblDBCItemNameDescription ind on ib.tagid = ind.id where ib.id in (' . $bonuses . ')';
                 $stmt = $db->prepare($sql);
                 $stmt->execute();
                 $result = $stmt->get_result();
@@ -272,8 +272,8 @@ function GetItemBonusTagsByTag($tagGroups, $renamedTo = false)
             if ($tagIds) {
                 $db = DBConnect();
 
-                $sql = 'select ' . LocaleColumns('group_concat(distinct `tag%1$s` order by tagpriority separator \' \') bonustag%1$s', true);
-                $sql .= ' from tblDBCItemBonus where tagid in (' . $tagIds . ')';
+                $sql = 'select ' . LocaleColumns('group_concat(distinct `desc%1$s` separator \' \') bonustag%1$s', true);
+                $sql .= ' from tblDBCItemNameDescription where id in (' . $tagIds . ')';
                 $stmt = $db->prepare($sql);
                 $stmt->execute();
                 $result = $stmt->get_result();

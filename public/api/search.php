@@ -62,7 +62,18 @@ function SearchItems($house, $search, $locale)
 
     $suffixes = MCGet('search_itemsuffixes_' . $locale);
     if ($suffixes === false) {
-        $stmt = $db->prepare('SELECT lower(suffix) FROM tblDBCItemRandomSuffix where locale=\''.$locale.'\' union select lower(name_'.$locale.') from tblDBCItemBonus where name_'.$locale.' is not null');
+        $sql = <<<EOF
+SELECT lower(suffix)
+FROM tblDBCItemRandomSuffix
+where locale='$locale'
+union
+select lower(ind.`desc_$locale`)
+from tblDBCItemBonus ib
+join tblDBCItemNameDescription ind on ind.id = ib.nameid
+where ind.`desc_$locale` is not null
+EOF;
+
+        $stmt = $db->prepare($sql);
         $stmt->execute();
         $result = $stmt->get_result();
         $suffixes = DBMapArray($result, null);

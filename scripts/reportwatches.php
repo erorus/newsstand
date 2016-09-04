@@ -171,15 +171,15 @@ function ReportUserWatches($now, $userRow)
 
     $sql = <<<'EOF'
 select 0 ispet, uw.seq, uw.region, uw.house,
-    uw.item, uw.bonusset, ifnull(GROUP_CONCAT(distinct bs.`tagid` ORDER BY 1 SEPARATOR '.'), '') bonusurl,
+    uw.item, uw.bonusset, ifnull(GROUP_CONCAT(distinct bs.`tagid` ORDER BY 1 SEPARATOR '.'), '') tagurl,
     i.name_%1$s name,
-    ifnull(group_concat(distinct ib.`tag_%1$s` order by ib.tagpriority separator ' '),'') bonustag,
+    ifnull(group_concat(distinct ind.`desc_%1$s` separator ' '),'') bonustag,
     case i.class %2$s else 999 end classorder,
     uw.direction, uw.quantity, uw.price, uw.currently
 from tblUserWatch uw
 join tblDBCItem i on uw.item = i.id
 left join tblBonusSet bs on uw.bonusset = bs.`set`
-left join tblDBCItemBonus ib on bs.tagid = ib.tagid
+left join tblDBCItemNameDescription ind on ind.id = bs.tagid
 where uw.user = ?
 and uw.deleted is null
 and uw.observed > ifnull(uw.reported, '2000-01-01')
@@ -224,7 +224,7 @@ EOF;
             $houseNameCache[$prevHouse]['slug'],
             $row['ispet'] ? 'battlepet' : 'item',
             $row['item'],
-            $row['bonusurl'] ? ('.' . $row['bonusurl']) : ''
+            $row['tagurl'] ? ('.' . $row['tagurl']) : ''
         );
 
         $bonusTag = $row['bonustag'];
@@ -298,9 +298,9 @@ function ReportUserRares($now, $userRow)
 
     $sql = <<<'EOF'
 select z.house, z.item, z.bonusset, max(z.snapshot) snapshot,
-    ifnull(group_concat(distinct bs.`tagid` ORDER BY 1 SEPARATOR '.'), '') bonusurl,
+    ifnull(group_concat(distinct bs.`tagid` ORDER BY 1 SEPARATOR '.'), '') tagurl,
     z.name, z.class, z.level, z.quality,
-    ifnull(group_concat(distinct ib.`tag_%1$s` order by ib.tagpriority separator ' '), '') bonustag,
+    ifnull(group_concat(distinct ind.`desc_%1$s` separator ' '), '') bonustag,
     z.prevseen,
     z.price, z.median, z.mean, z.stddev, z.region,
     case z.class %2$s else 999 end classorder
@@ -315,7 +315,7 @@ from (
     where rr.user = ?
     ) z
 left join tblBonusSet bs on z.bonusset = bs.`set`
-left join tblDBCItemBonus ib on bs.tagid = ib.tagid
+left join tblDBCItemNameDescription ind on bs.tagid = ind.id
 group by z.house, z.item, z.bonusset
 order by house, prevseen, classorder, name, bonustag;
 EOF;
@@ -347,7 +347,7 @@ EOF;
             $houseNameCache[$prevHouse]['slug'],
             'item',
             $row['item'],
-            $row['bonusurl'] ? ('.' . $row['bonusurl']) : ''
+            $row['tagurl'] ? ('.' . $row['tagurl']) : ''
         );
 
         $bonusTag = $row['bonustag'];

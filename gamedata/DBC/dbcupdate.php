@@ -93,19 +93,26 @@ foreach ($reader->generateRecords() as $rec) {
 EchoProgress(false);
 unset($reader);
 
-LogLine("tblDBCItemBonus");
-
+LogLine("tblDBCItemNameDescription");
+RunAndLogError('truncate tblDBCItemNameDescription');
+$stmt = $db->prepare('insert into tblDBCItemNameDescription (id, desc_enus) values (?, ?)');
+$tblId = $name = null;
+$stmt->bind_param('is', $tblId, $name);
 $reader = new Reader($dirnm . '/ItemNameDescription.db2');
 $reader->setFieldNames(['name']);
-$bonusNames = [];
 $x = 0; $recordCount = count($reader->getIds());
 foreach ($reader->generateRecords() as $id => $rec) {
     EchoProgress(++$x/$recordCount);
-    $bonusNames[$id] = $rec['name'];
+
+    $tblId = $id;
+    $name = $rec['name'];
+
+    RunAndLogError($stmt->execute());
 }
 EchoProgress(false);
 unset($reader);
 
+LogLine("ScalingStatDistribution");
 $reader = new Reader($dirnm . '/ScalingStatDistribution.db2');
 $reader->setFieldNames(['curve', 'minlevel', 'maxlevel']);
 $distCurves = [];
@@ -117,6 +124,7 @@ foreach ($reader->generateRecords() as $id => $rec) {
 EchoProgress(false);
 unset($reader);
 
+LogLine("tblDBCItemBonus");
 $reader = new Reader($dirnm . '/ItemBonus.db2');
 $reader->setFieldNames(['params', 'bonusid', 'changetype', 'prio']);
 $reader->setFieldsSigned([true]);
@@ -144,21 +152,14 @@ foreach ($bonusRows as $row) {
         case 3: // quality
             $bonuses[$row['bonusid']]['quality'] = $row['params'][0];
             break;
-        case 4: // nametag
-            if (!isset($bonuses[$row['bonusid']]['nametag']) || $bonuses[$row['bonusid']]['nametag']['prio'] > $row['params'][1]) {
-                $bonuses[$row['bonusid']]['nametag'] = [
+        case 4: // tag
+        case 5: // rand enchant name
+            $dataName = ($row['changetype'] == 4) ? 'tag' : 'name';
+            if (!isset($bonuses[$row['bonusid']][$dataName]) || $bonuses[$row['bonusid']][$dataName]['prio'] > $row['params'][1]) {
+                $bonuses[$row['bonusid']][$dataName] = [
                     'id' => $row['params'][0],
                     'prio' => $row['params'][1],
-                    'name' => isset($bonusNames[$row['params'][0]]) ? $bonusNames[$row['params'][0]] : $row['params'][0],
                 ];
-            }
-            break;
-        case 5: // rand enchant name
-            if (!isset($bonuses[$row['bonusid']]['randname'])) {
-                $bonuses[$row['bonusid']]['randname'] = ['name' => '', 'prio' => -1];
-            }
-            if ($bonuses[$row['bonusid']]['randname']['prio'] < $row['params'][1]) {
-                $bonuses[$row['bonusid']]['randname'] = ['name' => isset($bonusNames[$row['params'][0]]) ? $bonusNames[$row['params'][0]] : $row['params'][0], 'prio' => $row['params'][1]];
             }
             break;
         case 13: // itemlevel scaling distribution
@@ -182,24 +183,23 @@ foreach ($bonusRows as $row) {
 }
 
 RunAndLogError('truncate table tblDBCItemBonus');
-$stmt = $db->prepare("insert into tblDBCItemBonus (id, quality, level, previewlevel, levelcurve, tag_$locale, tagpriority, tagid, name_$locale, namepriority) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-$id = $quality = $level = $previewLevel = $levelCurve = $tag = $tagPriority = $tagId = $name = $namePriority = null;
-$stmt->bind_param('iiiiisiisi', $id, $quality, $level, $previewLevel, $levelCurve, $tag, $tagPriority, $tagId, $name, $namePriority);
+$stmt = $db->prepare("insert into tblDBCItemBonus (id, quality, level, previewlevel, levelcurve, tagid, tagpriority, nameid, namepriority) values (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+$id = $quality = $level = $previewLevel = $levelCurve = $tagPriority = $tagId = $nameId = $namePriority = null;
+$stmt->bind_param('iiiiiiiii', $id, $quality, $level, $previewLevel, $levelCurve, $tagId, $tagPriority, $nameId, $namePriority);
 foreach ($bonuses as $bonusId => $bonusData) {
     $id = $bonusId;
     $quality = isset($bonusData['quality']) ? $bonusData['quality'] : null;
     $level = isset($bonusData['itemlevel']) ? $bonusData['itemlevel'] : null;
     $previewLevel = isset($bonusData['previewlevel']) ? $bonusData['previewlevel'] : null;
     $levelCurve = isset($bonusData['levelcurve']) ? $bonusData['levelcurve'] : null;
-    $tag = isset($bonusData['nametag']) ? $bonusData['nametag']['name'] : null;
-    $tagPriority = isset($bonusData['nametag']) ? $bonusData['nametag']['prio'] : null;
-    $tagId = isset($bonusData['nametag']) ? $bonusData['nametag']['id'] : null;
-    $name = isset($bonusData['randname']) ? $bonusData['randname']['name'] : null;
-    $namePriority = isset($bonusData['randname']) ? $bonusData['randname']['prio'] : null;
+    $tagId = isset($bonusData['tag']) ? $bonusData['tag']['id'] : null;
+    $tagPriority = isset($bonusData['tag']) ? $bonusData['tag']['prio'] : null;
+    $nameId = isset($bonusData['name']) ? $bonusData['name']['id'] : null;
+    $namePriority = isset($bonusData['name']) ? $bonusData['name']['prio'] : null;
     RunAndLogError($stmt->execute());
 }
 $stmt->close();
-unset($bonuses, $bonusRows, $bonusNames);
+unset($bonuses, $bonusRows);
 
 LogLine("tblDBCCurvePoint");
 

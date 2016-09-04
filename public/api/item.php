@@ -49,7 +49,7 @@ function ItemStats($house, $item)
     DBConnect();
 
     $localeCols = LocaleColumns('i.name');
-    $bonusTags = LocaleColumns('ifnull(group_concat(distinct ib.`tag%1$s` order by ib.tagpriority separator \' \'),\'\') bonustag%1$s', true);
+    $bonusTags = LocaleColumns('ifnull(group_concat(distinct ind.`desc%1$s` separator \' \'),\'\') bonustag%1$s', true);
     $sql = <<<EOF
 select i.id, $localeCols, i.icon, i.display, i.class as classid, i.subclass, i.quality, 
 i.level, i.stacksize, i.binds, i.buyfromvendor, i.selltovendor, i.auctionable,
@@ -61,7 +61,7 @@ null reagentprice
 from tblDBCItem i
 left join tblItemSummary s on s.house = %d and s.item = i.id
 left join tblBonusSet bs on s.bonusset = bs.`set`
-left join tblDBCItemBonus ib on ib.tagid = bs.tagid
+left join tblDBCItemNameDescription ind on ind.id = bs.tagid
 left join tblDBCItemVendorCost ivc on ivc.item = i.id
 where i.id = %d
 group by s.bonusset
@@ -438,7 +438,6 @@ FROM `tblAuction` a
 join tblDBCItem i on a.item=i.id
 left join tblSeller s on a.seller=s.id
 left join tblAuctionExtra ae on ae.house=a.house and ae.id=a.id
-left join tblDBCItemBonus ib on ib.id in (ae.bonus1, ae.bonus2, ae.bonus3, ae.bonus4, ae.bonus5, ae.bonus6)
 left join tblDBCRandEnchants re on re.id = ae.rand
 WHERE a.house=? and a.item=?
 group by a.id

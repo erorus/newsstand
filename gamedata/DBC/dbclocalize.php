@@ -26,6 +26,24 @@ $db = DBConnect();
 foreach ($LOCALES as $locale) {
     $dirnm = 'current/' . substr($locale, 0, 2) . strtoupper(substr($locale, 2, 2));
 
+    LogLine("$locale tblDBCItemNameDescription");
+    $stmt = $db->prepare("insert into tblDBCItemNameDescription (id, desc_$locale) values (?, ?) on duplicate key update desc_$locale = values(desc_$locale)");
+    $tblId = $name = null;
+    $stmt->bind_param('is', $tblId, $name);
+    $reader = new Reader($dirnm . '/ItemNameDescription.db2');
+    $reader->setFieldNames(['name']);
+    $x = 0; $recordCount = count($reader->getIds());
+    foreach ($reader->generateRecords() as $id => $rec) {
+        EchoProgress(++$x/$recordCount);
+
+        $tblId = $id;
+        $name = $rec['name'];
+
+        $stmt->execute();
+    }
+    EchoProgress(false);
+    unset($reader);
+
     LogLine("$locale tblDBCItemSubClass");
     $sql = <<<EOF
 insert into tblDBCItemSubClass (class, subclass, name_$locale) values (?, ?, ?)
@@ -68,74 +86,7 @@ EOF;
     EchoProgress(false);
     unset($reader);
 
-    LogLine("$locale tblDBCItemBonus");
-
-    $reader = new Reader($dirnm . '/ItemNameDescription.db2');
-    $reader->setFieldNames(['name']);
-    $bonusNames = [];
-    $x = 0; $recordCount = count($reader->getIds());
-    foreach ($reader->generateRecords() as $id => $rec) {
-        EchoProgress(++$x/$recordCount);
-        $bonusNames[$id] = $rec['name'];
-    }
-    EchoProgress(false);
-    unset($reader);
-
-    $reader = new Reader($dirnm . '/ItemBonus.db2');
-    $reader->setFieldNames(['params', 'bonusid', 'changetype', 'prio']);
-    $bonusRows = [];
-    $x = 0; $recordCount = count($reader->getIds());
-    foreach ($reader->generateRecords() as $id => $rec) {
-        EchoProgress(++$x/$recordCount);
-        $bonusRows[] = $rec;
-    }
-    EchoProgress(false);
-    unset($reader);
-
-    $bonuses = [];
-    foreach ($bonusRows as $row) {
-        if (!isset($bonuses[$row['bonusid']])) {
-            $bonuses[$row['bonusid']] = [];
-        }
-        switch ($row['changetype']) {
-            case 4: // nametag
-                if (!isset($bonuses[$row['bonusid']]['nametag'])) {
-                    $bonuses[$row['bonusid']]['nametag'] = ['name' => '', 'prio' => -1];
-                }
-                if ($bonuses[$row['bonusid']]['nametag']['prio'] < $row['params'][1]) {
-                    $bonuses[$row['bonusid']]['nametag'] = ['name' => isset($bonusNames[$row['params'][0]]) ? $bonusNames[$row['params'][0]] : $row['params'][0], 'prio' => $row['params'][1]];
-                }
-                break;
-            case 5: // rand enchant name
-                if (!isset($bonuses[$row['bonusid']]['randname'])) {
-                    $bonuses[$row['bonusid']]['randname'] = ['name' => '', 'prio' => -1];
-                }
-                if ($bonuses[$row['bonusid']]['randname']['prio'] < $row['params'][1]) {
-                    $bonuses[$row['bonusid']]['randname'] = ['name' => isset($bonusNames[$row['params'][0]]) ? $bonusNames[$row['params'][0]] : $row['params'][0], 'prio' => $row['params'][1]];
-                }
-                break;
-        }
-    }
-
-    $sql = <<<EOF
-insert into tblDBCItemBonus (id, tag_$locale, name_$locale) values (?, ?, ?)
-on duplicate key update tag_$locale = values(tag_$locale), name_$locale = values(name_$locale)
-EOF;
-    $stmt = $db->prepare($sql);
-    $id = $tag = $name = null;
-    $stmt->bind_param('iss', $id, $tag, $name);
-    foreach ($bonuses as $bonusId => $bonusData) {
-        $id = $bonusId;
-        $tag = isset($bonusData['nametag']) ? $bonusData['nametag']['name'] : null;
-        $name = isset($bonusData['randname']) ? $bonusData['randname']['name'] : null;
-        $stmt->execute();
-    }
-    $stmt->close();
-    unset($bonuses, $bonusRows, $bonusNames);
-    
-    
     LogLine("$locale tblDBCRandEnchants");
-
     $reader = new Reader($dirnm . '/ItemRandomSuffix.db2');
     $reader->setFieldNames(['name']);
     $stmt = $db->prepare("insert into tblDBCRandEnchants (id, name_$locale) values (?, ?) on duplicate key update name_$locale = ifnull(values(name_$locale), name_enus)");

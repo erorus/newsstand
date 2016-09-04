@@ -198,25 +198,29 @@ CREATE TABLE IF NOT EXISTS `tblDBCItemBonus` (
   `level` smallint(6) DEFAULT NULL,
   `previewlevel` smallint(5) unsigned DEFAULT NULL,
   `levelcurve` smallint(5) unsigned DEFAULT NULL,
-  `tag_enus` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `tag_dede` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `tag_eses` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `tag_frfr` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `tag_itit` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `tag_ptbr` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `tag_ruru` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `tagpriority` tinyint(3) unsigned DEFAULT NULL,
   `tagid` mediumint(8) unsigned DEFAULT NULL,
-  `name_enus` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `name_dede` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `name_eses` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `name_frfr` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `name_itit` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `name_ptbr` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `name_ruru` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `tagpriority` tinyint(3) unsigned DEFAULT NULL,
+  `nameid` mediumint(8) unsigned DEFAULT NULL,
   `namepriority` tinyint(3) unsigned DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `tagid` (`tagid`)
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tblDBCItemNameDescription`
+--
+
+CREATE TABLE IF NOT EXISTS `tblDBCItemNameDescription` (
+  `id` mediumint(5) unsigned NOT NULL,
+  `desc_enus` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `desc_dede` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `desc_eses` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `desc_frfr` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `desc_itit` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `desc_ptbr` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `desc_ruru` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
