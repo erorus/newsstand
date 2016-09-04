@@ -305,6 +305,7 @@ function ParseAuctionData($house, $snapshot, &$json)
     $sqlStartExtra .= ') VALUES ';
     $sqlStartBonusesSeen = 'INSERT INTO tblItemBonusesSeen (item, bonusset, bonus1, bonus2, bonus3, bonus4, observed) VALUES ';
     $sqlEndBonusesSeen = ' ON DUPLICATE KEY UPDATE observed = observed + 1';
+    $sqlStartLevelsSeen = 'INSERT IGNORE INTO tblItemLevelsSeen (item, bonusset, `level`) VALUES ';
 
     $totalAuctions = 0;
     $itemInfo = array();
@@ -349,7 +350,7 @@ function ParseAuctionData($house, $snapshot, &$json)
         DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " getting $sellerCount seller IDs");
         GetSellerIds($region, $sellerInfo, $snapshot);
 
-        $sql = $sqlPet = $sqlExtra = $sqlBonusesSeen = '';
+        $sql = $sqlPet = $sqlExtra = $sqlBonusesSeen = $sqlLevelsSeen = '';
         $delayedAuctionSql = [];
 
         DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " parsing $auctionCount auctions");
@@ -463,8 +464,17 @@ function ParseAuctionData($house, $snapshot, &$json)
                         DBQueryWithError($ourDb, $sqlBonusesSeen . $sqlEndBonusesSeen);
                         $sqlBonusesSeen = '';
                     }
-
                     $sqlBonusesSeen .= ($sqlBonusesSeen ? ',' : $sqlStartBonusesSeen) . $thisSql;
+
+                    if (!is_null($bonusItemLevel)) {
+                        $thisSql = sprintf('(%u,%u,%u)', $auction['item'], $bonusSet, $bonusItemLevel);
+                        if (strlen($sqlLevelsSeen) + 5 + strlen($thisSql) > $maxPacketSize) {
+                            DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating seen levels (" . round($totalAuctions / $auctionCount * 100) . '%)');
+                            DBQueryWithError($ourDb, $sqlLevelsSeen);
+                            $sqlLevelsSeen = '';
+                        }
+                        $sqlLevelsSeen .= ($sqlLevelsSeen ? ',' : $sqlStartLevelsSeen) . $thisSql;
+                    }
                 }
             }
 
@@ -534,6 +544,11 @@ function ParseAuctionData($house, $snapshot, &$json)
             DBQueryWithError($ourDb, $sqlBonusesSeen . $sqlEndBonusesSeen);
         }
 
+        if ($sqlLevelsSeen != '') {
+            DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating seen levels");
+            DBQueryWithError($ourDb, $sqlLevelsSeen);
+        }
+
         if ($sql != '') {
             DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating tblAuction");
             DBQueryWithError($ourDb, $sql);
@@ -553,7 +568,7 @@ function ParseAuctionData($house, $snapshot, &$json)
         while (count($delayedAuctionSql)) {
             DBQueryWithError($ourDb, array_pop($delayedAuctionSql));
         }
-        unset($sqlBonusesSeen, $sqlPet, $sqlExtra, $delayedAuctionSql);
+        unset($sqlBonusesSeen, $sqlLevelsSeen, $sqlPet, $sqlExtra, $delayedAuctionSql);
 
         $sql = <<<EOF
 insert ignore into tblAuctionRare (house, id, prevseen) (

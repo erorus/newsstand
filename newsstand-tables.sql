@@ -427,6 +427,19 @@ CREATE TABLE IF NOT EXISTS `tblItemBonusesSeen` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `tblItemLevelsSeen`
+--
+
+CREATE TABLE IF NOT EXISTS `tblItemLevelsSeen` (
+  `item` mediumint(8) unsigned NOT NULL,
+  `bonusset` tinyint(3) unsigned NOT NULL,
+  `level` smallint(5) unsigned NOT NULL,
+  PRIMARY KEY (`item`,`bonusset`,`level`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `tblItemExpired`
 --
 

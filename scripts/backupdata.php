@@ -17,6 +17,7 @@ $tables = [
         'tblItemGlobal'         => '1=1',
         'tblItemHistoryDaily'   => 'item in (select id from tblDBCItem where auctionable=1)',
         'tblItemHistoryMonthly' => 'item in (select id from tblDBCItem where auctionable=1)',
+        'tblItemLevelsSeen'     => '1=1',
         'tblItemSummary'        => '1=1',
         'tblPet'                => '1=1',
         'tblPetSummary'         => '1=1',
