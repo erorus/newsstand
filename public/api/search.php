@@ -19,12 +19,12 @@ BotCheck();
 HouseETag($house);
 
 $locale = GetLocale();
-$searchCacheKey = 'search_b_' . $locale . '_' . md5($search);
+$searchCacheKey = 'search_b2_' . $locale . '_' . md5($search);
 
 if ($json = MCGetHouse($house, $searchCacheKey)) {
     PopulateLocaleCols($json['battlepets'], [['func' => 'GetPetNames', 'key' => 'id', 'name' => 'name']]);
     PopulateLocaleCols($json['items'], [
-        ['func' => 'GetItemNames',          'key' => 'id',       'name' => 'name'],
+        ['func' => 'GetItemNames',          'key' => 'id',     'name' => 'name'],
         ['func' => 'GetItemBonusTagsByTag', 'key' => 'tagurl', 'name' => 'bonustag'],
     ]);
 
@@ -114,7 +114,9 @@ select results.*,
          select 16 h union select 17 h union select 18 h union select 19 h union
          select 20 h union select 21 h union select 22 h union select 23 h) hours
         where ihh.house = ? and ihh.item = results.id and ihh.bonusset = results.bonusset) avgprice,
-ifnull(GROUP_CONCAT(bs.`tagid` ORDER BY 1 SEPARATOR '.'), '') tagurl
+ifnull(GROUP_CONCAT(bs.`tagid` ORDER BY 1 SEPARATOR '.'), '') tagurl,
+ifnull((select concat_ws(':', nullif(bonus1,0), nullif(bonus2,0), nullif(bonus3,0), nullif(bonus4,0)) 
+ FROM `tblItemBonusesSeen` ibs WHERE ibs.item=results.id and ibs.bonusset=results.bonusset order by ibs.observed desc limit 1),'') bonusurl
 from (
     select i.id, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen,
     ifnull(s.bonusset,0) bonusset, i.level

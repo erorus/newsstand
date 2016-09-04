@@ -847,6 +847,8 @@ function GetWatches($loginState)
 select uw.seq, uw.region, uw.house,
     uw.item, uw.bonusset,
     ifnull(GROUP_CONCAT(bs.`tagid` ORDER BY 1 SEPARATOR '.'), '') tagurl,
+    ifnull((select concat_ws(':', nullif(bonus1,0), nullif(bonus2,0), nullif(bonus3,0), nullif(bonus4,0)) 
+     FROM `tblItemBonusesSeen` ibs WHERE ibs.item=i.id and ibs.bonusset=uw.bonusset order by ibs.observed desc limit 1),'') bonusurl,
     i.level, i.icon, i.class,
     uw.direction, uw.quantity, uw.price
 from tblUserWatch uw

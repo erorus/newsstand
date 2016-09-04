@@ -40,7 +40,7 @@ function ItemStats($house, $item)
 {
     global $db;
 
-    $cacheKey = 'item_stats_b_' . $item;
+    $cacheKey = 'item_stats_b2_' . $item;
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
@@ -55,6 +55,8 @@ select i.id, $localeCols, i.icon, i.display, i.class as classid, i.subclass, i.q
 i.level, i.stacksize, i.binds, i.buyfromvendor, i.selltovendor, i.auctionable,
 s.price, s.quantity, s.lastseen,
 ifnull(s.bonusset,0) bonusset, ifnull(GROUP_CONCAT(distinct bs.tagid ORDER BY 1 SEPARATOR '.'), '') tagurl,
+ifnull((select concat_ws(':', nullif(bonus1,0), nullif(bonus2,0), nullif(bonus3,0), nullif(bonus4,0)) 
+ FROM `tblItemBonusesSeen` ibs WHERE ibs.item=i.id and ibs.bonusset=s.bonusset order by ibs.observed desc limit 1),'') bonusurl,
 $bonusTags,
 ivc.copper vendorprice, ivc.npc vendornpc, ivc.npccount vendornpccount
 from tblDBCItem i
