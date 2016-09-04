@@ -41,6 +41,7 @@ function GetDataTables() {
         'tblAuctionRare' => 'house='.$house,
         'tblBonusSet' => '1=1',
         'tblHouseCheck' => '1=1',
+        'tblItemBonusesSeen' => '1=1',
         'tblItemExpired' => 'house='.$house,
         'tblItemGlobal' => '1=1',
         'tblItemHistoryDaily' => 'house='.$house,

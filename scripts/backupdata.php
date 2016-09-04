@@ -13,6 +13,7 @@ $tables = [
     'data' => [
         'tblBonusSet'           => '1=1',
         'tblHouseCheck'         => '1=1',
+        'tblItemBonusesSeen'    => '1=1',
         'tblItemGlobal'         => '1=1',
         'tblItemHistoryDaily'   => 'item in (select id from tblDBCItem where auctionable=1)',
         'tblItemHistoryMonthly' => 'item in (select id from tblDBCItem where auctionable=1)',

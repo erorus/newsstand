@@ -409,6 +409,23 @@ CREATE TABLE IF NOT EXISTS `tblHouseCheck` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `tblItemBonusesSeen`
+--
+
+CREATE TABLE IF NOT EXISTS `tblItemBonusesSeen` (
+  `item` mediumint(8) unsigned NOT NULL,
+  `bonusset` tinyint(3) unsigned NOT NULL,
+  `bonus1` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `bonus2` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `bonus3` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `bonus4` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `observed` int(10) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`item`,`bonusset`,`bonus1`,`bonus2`,`bonus3`,`bonus4`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `tblItemExpired`
 --
 

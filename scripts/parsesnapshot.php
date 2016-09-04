@@ -64,6 +64,16 @@ while ($stmt->fetch()) {
 }
 $stmt->close();
 
+$usefulBonusesCache = [];
+$stmt = $db->prepare('select id from tblDBCItemBonus where (quality is not null or level is not null or previewlevel is not null or levelcurve is not null or tagid is not null) order by 1');
+$stmt->execute();
+$id = null;
+$stmt->bind_result($id);
+while ($stmt->fetch()) {
+    $usefulBonusesCache[$id] = $id;
+}
+$stmt->close();
+
 $maxPacketSize = 0;
 $stmt = $db->prepare('show variables like \'max_allowed_packet\'');
 $stmt->execute();
@@ -160,6 +170,7 @@ function ParseAuctionData($house, $snapshot, &$json)
     global $maxPacketSize;
     global $houseRegionCache;
     global $auctionExtraItemsCache;
+    global $usefulBonusesCache;
     global $TIMELEFT_ENUM;
 
     $snapshotString = date('Y-m-d H:i:s', $snapshot);
@@ -262,6 +273,8 @@ function ParseAuctionData($house, $snapshot, &$json)
         $sqlStartExtra .= ", bonus$x";
     }
     $sqlStartExtra .= ') VALUES ';
+    $sqlStartBonusesSeen = 'INSERT INTO tblItemBonusesSeen (item, bonusset, bonus1, bonus2, bonus3, bonus4, observed) VALUES ';
+    $sqlEndBonusesSeen = ' ON DUPLICATE KEY UPDATE observed = observed + 1';
 
     $totalAuctions = 0;
     $itemInfo = array();
@@ -271,8 +284,9 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     if ($jsonAuctions) {
         $auctionCount = count($jsonAuctions);
-        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " parsing $auctionCount auctions");
+        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " prepping $auctionCount auctions");
 
+        $sellerCount = 0;
         for ($x = 0; $x < $auctionCount; $x++) {
             $auction =& $jsonAuctions[$x];
             if ($auction['owner'] == '???') {
@@ -282,6 +296,7 @@ function ParseAuctionData($house, $snapshot, &$json)
                 $sellerInfo[$auction['ownerRealm']] = array();
             }
             if (!isset($sellerInfo[$auction['ownerRealm']][$auction['owner']])) {
+                $sellerCount++;
                 $sellerInfo[$auction['ownerRealm']][$auction['owner']] = array(
                     'new'   => 0,
                     'total' => 0,
@@ -301,11 +316,13 @@ function ParseAuctionData($house, $snapshot, &$json)
             }
         }
 
+        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " getting $sellerCount seller IDs");
         GetSellerIds($region, $sellerInfo, $snapshot);
 
-        $sql = $sqlPet = $sqlExtra = '';
+        $sql = $sqlPet = $sqlExtra = $sqlBonusesSeen = '';
         $delayedAuctionSql = [];
 
+        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " parsing $auctionCount auctions");
         while ($auction = array_pop($jsonAuctions)) {
             if (isset($auction['petBreedId'])) {
                 $auction['petBreedId'] = (($auction['petBreedId'] - 3) % 10) + 3; // squash gender
@@ -324,9 +341,18 @@ function ParseAuctionData($house, $snapshot, &$json)
             $totalAuctions++;
             $itemInfoKey = false;
             $bonusSet = 0;
+            $bonuses = [];
             $bonusItemLevel = null;
             if (!isset($auction['petSpeciesId']) && isset($auctionExtraItemsCache[$auction['item']]) && isset($auction['bonusLists'])) {
-                $bonusSet = GetBonusSet($auction['bonusLists']);
+                for ($y = 0; $y < count($auction['bonusLists']); $y++) {
+                    if (isset($auction['bonusLists'][$y]['bonusListId']) && $auction['bonusLists'][$y]['bonusListId']) {
+                        $bonuses[] = intval($auction['bonusLists'][$y]['bonusListId'],10);
+                    }
+                }
+                $bonuses = array_unique($bonuses, SORT_NUMERIC);
+                sort($bonuses, SORT_NUMERIC);
+
+                $bonusSet = $bonuses ? GetBonusSet($bonuses) : 0;
                 //$bonusItemLevel = GetBonusItemLevel($auction['bonusLists'], $auctionExtraItemsCache[$auction['item']], $auction['lootedLevel']);
             }
             if ($auction['buyout'] != 0) {
@@ -373,6 +399,43 @@ function ParseAuctionData($house, $snapshot, &$json)
                         $expiredItemInfo['n'][$itemInfoKey]++;
                     }
                 }
+                if (isset($auctionExtraItemsCache[$auction['item']])) {
+                    $usefulBonuses = [];
+                    foreach ($bonuses as $bonus) {
+                        if (isset($usefulBonusesCache[$bonus])) {
+                            $usefulBonuses[$bonus] = $bonus;
+                        }
+                    }
+
+                    sort($usefulBonuses, SORT_NUMERIC);
+                    switch (count($usefulBonuses)) {
+                        case 0:
+                            $usefulBonuses[] = 0;
+                        case 1:
+                            $usefulBonuses[] = 0;
+                        case 2:
+                            $usefulBonuses[] = 0;
+                        case 3:
+                            $usefulBonuses[] = 0;
+                    }
+
+                    $thisSql = sprintf('(%u,%u,%u,%u,%u,%u,1)',
+                        $auction['item'],
+                        $bonusSet,
+                        $usefulBonuses[0],
+                        $usefulBonuses[1],
+                        $usefulBonuses[2],
+                        $usefulBonuses[3]
+                        );
+
+                    if (strlen($sqlBonusesSeen) + 5 + strlen($thisSql) + strlen($sqlEndBonusesSeen) > $maxPacketSize) {
+                        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating seen bonuses (" . round($totalAuctions / $auctionCount * 100) . '%)');
+                        DBQueryWithError($ourDb, $sqlBonusesSeen . $sqlEndBonusesSeen);
+                        $sqlBonusesSeen = '';
+                    }
+
+                    $sqlBonusesSeen .= ($sqlBonusesSeen ? ',' : $sqlStartBonusesSeen) . $thisSql;
+                }
             }
 
             $thisSql = sprintf(
@@ -387,6 +450,7 @@ function ParseAuctionData($house, $snapshot, &$json)
                 $auction['timeLeft']
             );
             if (strlen($sql) + 5 + strlen($thisSql) > $maxPacketSize) {
+                DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating tblAuction (" . round($totalAuctions / $auctionCount * 100) . '%)');
                 DBQueryWithError($ourDb, $sql);
                 $sql = '';
             }
@@ -409,17 +473,7 @@ function ParseAuctionData($house, $snapshot, &$json)
                 }
                 $sqlPet .= ($sqlPet == '' ? $sqlStartPet : ',') . $thisSql;
             } else if (isset($auctionExtraItemsCache[$auction['item']])) {
-                $bonuses = [];
-                if (isset($auction['bonusLists'])) {
-                    for ($y = 0; $y < count($auction['bonusLists']); $y++) {
-                        if (isset($auction['bonusLists'][$y]['bonusListId']) && $auction['bonusLists'][$y]['bonusListId']) {
-                            $bonuses[] = intval($auction['bonusLists'][$y]['bonusListId'],10);
-                        }
-                    }
-                }
                 if (count($bonuses) || $auction['rand'] || $auction['context']) {
-                    $bonuses = array_unique($bonuses, SORT_NUMERIC);
-                    sort($bonuses, SORT_NUMERIC);
                     for ($y = count($bonuses); $y < MAX_BONUSES; $y++) {
                         $bonuses[] = 'null';
                     }
@@ -444,7 +498,13 @@ function ParseAuctionData($house, $snapshot, &$json)
             }
         }
 
+        if ($sqlBonusesSeen != '') {
+            DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating seen bonuses");
+            DBQueryWithError($ourDb, $sqlBonusesSeen . $sqlEndBonusesSeen);
+        }
+
         if ($sql != '') {
+            DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating tblAuction");
             DBQueryWithError($ourDb, $sql);
         }
 
@@ -456,9 +516,13 @@ function ParseAuctionData($house, $snapshot, &$json)
             $delayedAuctionSql[] = $sqlExtra;
         }
 
+        if (count($delayedAuctionSql)) {
+            DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating tblAuctionExtra, tblAuctionPet");
+        }
         while (count($delayedAuctionSql)) {
             DBQueryWithError($ourDb, array_pop($delayedAuctionSql));
         }
+        unset($sqlBonusesSeen, $sqlPet, $sqlExtra, $delayedAuctionSql);
 
         $sql = <<<EOF
 insert ignore into tblAuctionRare (house, id, prevseen) (
@@ -473,6 +537,7 @@ and a.item not in (82800)
 and ifnull(tis.lastseen, '2000-01-01') < timestampadd(day,-14,'%s'))
 EOF;
         $sql = sprintf($sql, $house, $lastMax, $hasRollOver ? ' and a.id < 0x20000000 ' : '', $snapshotString);
+        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating tblAuctionRare");
         DBQueryWithError($ourDb, $sql);
     }
 
@@ -611,18 +676,15 @@ EOF;
     DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " finished with $totalAuctions auctions in " . round(microtime(true) - $startTimer, 2) . " sec");
 }
 
-function GetBonusSet($bonusList)
+function GetBonusSet($bonuses)
 {
     global $bonusTagIdCache, $db;
     static $bonusSetCache = [];
 
     $tagIds = [];
-    for ($y = 0; $y < count($bonusList); $y++) {
-        if (isset($bonusList[$y]['bonusListId'])) {
-            $bonus = intval($bonusList[$y]['bonusListId'],10);
-            if (isset($bonusTagIdCache[$bonus])) {
-                $tagIds[$bonusTagIdCache[$bonus]] = $bonusTagIdCache[$bonus];
-            }
+    for ($y = 0; $y < count($bonuses); $y++) {
+        if (isset($bonusTagIdCache[$bonuses[$y]])) {
+            $tagIds[$bonusTagIdCache[$bonuses[$y]]] = $bonusTagIdCache[$bonuses[$y]];
         }
     }
 
