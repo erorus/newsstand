@@ -1,6 +1,6 @@
 --[[
 
-TheUndermineJournal addon, v 4.5
+TheUndermineJournal addon, v 4.6
 https://theunderminejournal.com/
 
 You should be able to query this DB from other addons:
@@ -182,7 +182,7 @@ function TUJMarketInfo(item,...)
     end
 
     local _, link, dataKey;
-    local iid, bonusSet, species, breed, quality
+    local iid, bonusSet, usedBonuses, species, breed, quality
 
     if (strfind(item, 'battlepet:')) then
         breed, species, _, quality = getBreedFromPetLink(item)
@@ -200,11 +200,13 @@ function TUJMarketInfo(item,...)
         bonusSet = 0
 
         if numBonuses > 0 then
+            usedBonuses = {}
             local tagIds = {}
             for y = 1,numBonuses,1 do
                 for tagId,tagBonuses in pairs(addonTable.bonusTags) do
                     if tContains(tagBonuses, itemStringParts[14+y]) then
                         tinsert(tagIds, tagId)
+                        tinsert(usedBonuses, itemStringParts[14+y])
                         break
                     end
                 end
@@ -246,7 +248,7 @@ function TUJMarketInfo(item,...)
     if (iid) then
         tr['itemid'] = tonumber(iid,10)
         if bonusSet > 0 then
-            tr['bonuses'] = table.concat(addonTable.bonusSets[bonusSet], ':')
+            tr['bonuses'] = table.concat(usedBonuses, ':')
         end
     end
     if (species) then
