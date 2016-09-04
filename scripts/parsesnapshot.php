@@ -358,7 +358,6 @@ function ParseAuctionData($house, $snapshot, &$json)
             if (isset($existingIds[$auction['auc']])) {
                 $needUpdate = ($auction['bid'] != $existingIds[$auction['auc']][EXISTING_COL_BID]);
                 $needUpdate |= ($auction['timeLeft'] != $existingIds[$auction['auc']][EXISTING_COL_TIMELEFT]);
-                $needUpdate |= isset($auction['bonusLists']); // only during transition to new bonusset IDs
                 unset($existingIds[$auction['auc']]);
                 unset($existingPetIds[$auction['auc']]);
                 if (!$needUpdate) {
