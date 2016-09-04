@@ -2707,7 +2707,11 @@ var TUJ_Item = function ()
 
     function ItemAuctions(data, dest)
     {
-        var hasRand = bonusSets.length > 1, x, auc;
+        var hasMultipleLevels = false, x, auc;
+        for (x = 0; (!hasMultipleLevels) && (auc = data.auctions[bonusSet][x]); x++) {
+            hasMultipleLevels |= data.auctions[bonusSet][x].level != data.stats[bonusSet].level;
+        }
+        var hasRand = hasMultipleLevels || (bonusSets.length > 1);
         for (x = 0; (!hasRand) && (auc = data.auctions[bonusSet][x]); x++) {
             hasRand |= !!auc.rand;
             hasRand |= !!auc.bonuses;
@@ -2804,6 +2808,12 @@ var TUJ_Item = function ()
                 td = libtuj.ce('td');
                 tr.appendChild(td);
                 td.className = 'name';
+                if (hasMultipleLevels) {
+                    s = libtuj.ce('span');
+                    s.className = 'level';
+                    s.appendChild(document.createTextNode(auc.level));
+                    td.appendChild(s);
+                }
                 a = libtuj.ce('a');
                 a.href = 'http://' + tuj.lang.wowheadDomain + '.wowhead.com/item=' + data.stats[bonusSet].id + (auc.bonuses ? '&bonus=' + auc.bonuses : '') + (auc.lootedlevel ? '&lvl=' + auc.lootedlevel : '');
                 td.appendChild(a);
@@ -2811,11 +2821,7 @@ var TUJ_Item = function ()
                 if (auc['bonustag_' + tuj.locale]) {
                     var tagspan = libtuj.ce('span');
                     tagspan.className = 'nowrap';
-                    var bonusTag = auc['bonustag_' + tuj.locale];
-                    if (!isNaN(bonusTag)) {
-                        bonusTag = tuj.lang.level + ' ' + (auc.level + parseInt(bonusTag, 10));
-                    }
-                    $(tagspan).text(bonusTag);
+                    $(tagspan).text(auc['bonustag_' + tuj.locale]);
                     a.appendChild(tagspan);
                 }
             }

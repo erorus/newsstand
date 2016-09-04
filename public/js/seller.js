@@ -567,6 +567,7 @@ var TUJ_Seller = function ()
                 (a['name_' + tuj.locale] ? 0 : -1) ||
                 (b['name_' + tuj.locale] ? 0 : 1) ||
                 a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]) ||
+                a.level - b.level ||
                 Math.floor(a.buy / a.quantity) - Math.floor(b.buy / b.quantity) ||
                 Math.floor(a.bid / a.quantity) - Math.floor(b.bid / b.quantity) ||
                 a.quantity - b.quantity;
@@ -603,12 +604,14 @@ var TUJ_Seller = function ()
             if (auc['bonustag_' + tuj.locale]) {
                 var tagspan = libtuj.ce('span');
                 tagspan.className = 'nowrap';
-                var bonusTag = auc['bonustag_' + tuj.locale];
-                if (!isNaN(bonusTag)) {
-                    bonusTag = tuj.lang.level + ' ' + (auc.level + parseInt(bonusTag, 10));
-                }
-                $(tagspan).text(bonusTag);
+                $(tagspan).text(auc['bonustag_' + tuj.locale]);
                 a.appendChild(tagspan);
+            }
+            if (auc.level) {
+                s = libtuj.ce('span');
+                s.className = 'level';
+                s.appendChild(document.createTextNode(auc.level));
+                td.appendChild(s);
             }
 
             td = libtuj.ce('td');
