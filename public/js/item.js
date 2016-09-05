@@ -128,6 +128,14 @@ var TUJ_Item = function ()
                 }
             }
         }
+        if (dta.stats[bonusSet].levels.length) {
+            for (var x = 0, found = false; (!found) && (x < dta.stats[bonusSet].levels.length); x++) {
+                found |= dta.stats[bonusSet].levels[x] == dta.stats[bonusSet].level;
+            }
+            if (!found) {
+                priceLevel = dta.stats[bonusSet].levels[0];
+            }
+        }
         if (dta.stats[bonusSet].tagurl != tagUrl) {
             tuj.SetParams({page: 'item', id: '' + itemId + (dta.stats[bonusSet].tagurl ? ('.' + dta.stats[bonusSet].tagurl) : '')});
             tagUrl = dta.stats[bonusSet].tagurl;
