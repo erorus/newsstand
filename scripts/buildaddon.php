@@ -30,12 +30,163 @@ $luaQuoteChange = [
 ];
 
 heartbeat();
+file_put_contents('../addon/GetDetailedItemLevelInfo.lua', BuildGetDetailedItemLevelInfo());
 file_put_contents('../addon/BonusSets.lua', BuildBonusSets());
 file_put_contents('../addon/MarketData-US.lua', BuildAddonData('US'));
 file_put_contents('../addon/MarketData-EU.lua', BuildAddonData('EU'));
 MakeZip($zipPath);
 
 DebugMessage('Done! Started '.TimeDiff($startTime));
+
+function BuildGetDetailedItemLevelInfo() {
+    global $db;
+
+    $lua = <<<'EOF'
+--[[
+
+GetDetailedItemLevelInfo Polyfill, v 1.0
+by Erorus for The Undermine Journal
+https://theunderminejournal.com/
+
+Based on these "specs" for a GetDetailedItemLevelInfo function coming in 7.1
+https://www.reddit.com/r/woweconomy/comments/50hp5d/warning_be_careful_flipping/d74olsy
+
+Pass in an itemstring/link to GetDetailedItemLevelInfo
+Returns effectiveItemLevel, previewItemLevel, baseItemLevel
+
+This should use the in-game function if it already exists,
+otherwise it'll define a function that does what *I think* the official function would do.
+
+]]
+
+if GetDetailedItemLevelInfo then return end
+
+
+EOF;
+
+    $lua .= "local bonusLevelBoost = {";
+    $stmt = $db->prepare('select id, level from tblDBCItemBonus where level is not null order by 1');
+    $stmt->execute();
+    $k = $v = null;
+    $stmt->bind_result($k, $v);
+    while ($stmt->fetch()) {
+        $lua .= "[".$k.']='.$v.",";
+    }
+    $stmt->close();
+    $lua .= "}\n";
+
+    $lua .= "local bonusPreviewLevel = {";
+    $stmt = $db->prepare('select id, previewlevel from tblDBCItemBonus where previewlevel is not null order by 1');
+    $stmt->execute();
+    $k = $v = null;
+    $stmt->bind_result($k, $v);
+    while ($stmt->fetch()) {
+        $lua .= "[".$k.']='.$v.",";
+    }
+    $stmt->close();
+    $lua .= "}\n";
+
+    $lua .= "local bonusLevelCurve = {";
+    $stmt = $db->prepare('select id, levelcurve from tblDBCItemBonus where levelcurve is not null order by 1');
+    $stmt->execute();
+    $k = $v = null;
+    $stmt->bind_result($k, $v);
+    while ($stmt->fetch()) {
+        $lua .= "[".$k.']='.$v.",";
+    }
+    $stmt->close();
+    $lua .= "}\n";
+
+    $sql = <<<'EOF'
+SELECT curve, step, `key`, value
+FROM `tblDBCCurvePoint` cp
+join (select distinct levelcurve from tblDBCItemBonus) c on c.levelcurve = cp.curve
+order by 1, 2
+EOF;
+    $stmt = $db->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $curveSteps = DBMapArray($result, ['curve','step']);
+    $stmt->close();
+
+    $lua .= "local curvePoints = {";
+    foreach ($curveSteps as $curve => $steps) {
+        $lua .= "[$curve]={";
+        foreach ($steps as $row) {
+            $lua .= "{" . $row['key'] . ',' . $row['value'] . "},";
+        }
+        $lua .= "},";
+    }
+    $lua .= "}\n";
+
+    $lua .= <<<'EOF'
+
+local function round(num)
+    return floor(num + 0.5)
+end
+
+local function GetCurvePoint(curveId, point)
+    local curve = curvePoints[curveId]
+    if not curve then
+        return nil
+    end
+
+    local lastKey, lastValue = curve[1][1], curve[1][2]
+    if lastKey > point then
+        return lastValue
+    end
+
+    for x = 1,#curve,1 do
+        if point == curve[x][1] then
+            return curve[x][2]
+        end
+        if point < curve[x][1] then
+            return round((curve[x][2] - lastValue) / (curve[x][1] - lastKey) * (point - lastKey) + lastValue)
+        end
+        lastKey = curve[x][1]
+        lastValue = curve[x][2]
+    end
+
+    return lastValue
+end
+
+GetDetailedItemLevelInfo = GetDetailedItemLevelInfo or function(item)
+    local _, link, _, origLevel = GetItemInfo(item)
+    if not link then
+        return nil, nil, nil
+    end
+
+    local itemString = string.match(link, "item[%-?%d:]+")
+    local itemStringParts = { strsplit(":", itemString) }
+
+    local numBonuses = tonumber(itemStringParts[14],10) or 0
+
+    if numBonuses == 0 then
+        return origLevel, nil, origLevel
+    end
+
+    local effectiveLevel, previewLevel, curve
+    effectiveLevel = origLevel
+
+    for y = 1,numBonuses,1 do
+        local bonus = tonumber(itemStringParts[14+y],10) or 0
+
+        origLevel = origLevel - (bonusLevelBoost[bonus] or 0)
+        previewLevel = bonusPreviewLevel[bonus] or previewLevel
+        curve = bonusLevelCurve[bonus] or curve
+    end
+
+    if curve and itemStringParts[12] == "512" then
+        effectiveLevel = GetCurvePoint(curve, tonumber(itemStringParts[15+numBonuses],10)) or effectiveLevel
+    end
+
+    return effectiveLevel, previewLevel, origLevel
+end
+
+EOF;
+
+    return $lua;
+}
 
 function BuildBonusSets()
 {
