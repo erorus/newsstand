@@ -74,6 +74,16 @@ while ($stmt->fetch()) {
 }
 $stmt->close();
 
+$enoughBonusesSeenCache = [];
+$stmt = $db->prepare('SELECT concat_ws(\':\', item, bonusset) FROM `tblItemBonusesSeen` WHERE observed > 100000 group by item, bonusset');
+$stmt->execute();
+$id = null;
+$stmt->bind_result($id);
+while ($stmt->fetch()) {
+    $enoughBonusesSeenCache[$id] = $id;
+}
+$stmt->close();
+
 $bonusCurveCache = [];
 $stmt = $db->prepare('select id, levelcurve from tblDBCItemBonus where levelcurve is not null');
 $stmt->execute();
@@ -200,7 +210,7 @@ function ParseAuctionData($house, $snapshot, &$json)
     global $maxPacketSize;
     global $houseRegionCache;
     global $auctionExtraItemsCache;
-    global $usefulBonusesCache;
+    global $usefulBonusesCache, $enoughBonusesSeenCache;
     global $TIMELEFT_ENUM;
 
     $snapshotString = date('Y-m-d H:i:s', $snapshot);
@@ -431,40 +441,43 @@ function ParseAuctionData($house, $snapshot, &$json)
                     }
                 }
                 if (isset($auctionExtraItemsCache[$auction['item']])) {
-                    $usefulBonuses = [];
-                    foreach ($bonuses as $bonus) {
-                        if (isset($usefulBonusesCache[$bonus])) {
-                            $usefulBonuses[$bonus] = $bonus;
+                    if (!isset($enoughBonusesSeenCache["{$auction['item']}:$bonusSet"])) {
+                        $usefulBonuses = [];
+                        foreach ($bonuses as $bonus) {
+                            if (isset($usefulBonusesCache[$bonus])) {
+                                $usefulBonuses[$bonus] = $bonus;
+                            }
                         }
-                    }
 
-                    sort($usefulBonuses, SORT_NUMERIC);
-                    switch (count($usefulBonuses)) {
-                        case 0:
-                            $usefulBonuses[] = 0;
-                        case 1:
-                            $usefulBonuses[] = 0;
-                        case 2:
-                            $usefulBonuses[] = 0;
-                        case 3:
-                            $usefulBonuses[] = 0;
-                    }
+                        sort($usefulBonuses, SORT_NUMERIC);
+                        switch (count($usefulBonuses)) {
+                            case 0:
+                                $usefulBonuses[] = 0;
+                            case 1:
+                                $usefulBonuses[] = 0;
+                            case 2:
+                                $usefulBonuses[] = 0;
+                            case 3:
+                                $usefulBonuses[] = 0;
+                        }
 
-                    $thisSql = sprintf('(%u,%u,%u,%u,%u,%u,1)',
-                        $auction['item'],
-                        $bonusSet,
-                        $usefulBonuses[0],
-                        $usefulBonuses[1],
-                        $usefulBonuses[2],
-                        $usefulBonuses[3]
+                        $thisSql = sprintf(
+                            '(%u,%u,%u,%u,%u,%u,1)',
+                            $auction['item'],
+                            $bonusSet,
+                            $usefulBonuses[0],
+                            $usefulBonuses[1],
+                            $usefulBonuses[2],
+                            $usefulBonuses[3]
                         );
 
-                    if (strlen($sqlBonusesSeen) + 5 + strlen($thisSql) + strlen($sqlEndBonusesSeen) > $maxPacketSize) {
-                        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating seen bonuses (" . round($totalAuctions / $auctionCount * 100) . '%)');
-                        DBQueryWithError($ourDb, $sqlBonusesSeen . $sqlEndBonusesSeen);
-                        $sqlBonusesSeen = '';
+                        if (strlen($sqlBonusesSeen) + 5 + strlen($thisSql) + strlen($sqlEndBonusesSeen) > $maxPacketSize) {
+                            DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating seen bonuses (" . round($totalAuctions / $auctionCount * 100) . '%)');
+                            DBQueryWithError($ourDb, $sqlBonusesSeen . $sqlEndBonusesSeen);
+                            $sqlBonusesSeen = '';
+                        }
+                        $sqlBonusesSeen .= ($sqlBonusesSeen ? ',' : $sqlStartBonusesSeen) . $thisSql;
                     }
-                    $sqlBonusesSeen .= ($sqlBonusesSeen ? ',' : $sqlStartBonusesSeen) . $thisSql;
 
                     if (!is_null($bonusItemLevel)) {
                         $thisSql = sprintf('(%u,%u,%u)', $auction['item'], $bonusSet, $bonusItemLevel);
