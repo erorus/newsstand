@@ -2753,10 +2753,9 @@ var TUJ_Item = function ()
         td.className = 'price';
         $(td).text(tuj.lang.buyoutEach);
 
-        data.auctions[bonusSet].sort(function (a, b)
-        {
-            return Math.floor(a.buy / a.quantity) - Math.floor(b.buy / b.quantity) ||
-                Math.floor(a.bid / a.quantity) - Math.floor(b.bid / b.quantity) ||
+        data.auctions[bonusSet].sort(function (a, b) {
+            return Math.floor((a.buy / Math.pow(1.15, (a.level - data.stats[bonusSet].level) / 15)) / a.quantity) - Math.floor((b.buy / Math.pow(1.15, (b.level - data.stats[bonusSet].level) / 15)) / b.quantity) ||
+                Math.floor((a.bid / Math.pow(1.15, (a.level - data.stats[bonusSet].level) / 15)) / a.quantity) - Math.floor((b.bid / Math.pow(1.15, (b.level - data.stats[bonusSet].level) / 15)) / b.quantity) ||
                 a.quantity - b.quantity ||
                 (tuj.realms[a.sellerrealm] ? tuj.realms[a.sellerrealm].name : '').localeCompare(tuj.realms[b.sellerrealm] ? tuj.realms[b.sellerrealm].name : '') ||
                 a.sellername.localeCompare(b.sellername) ||

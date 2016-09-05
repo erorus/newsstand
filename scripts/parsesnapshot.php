@@ -44,13 +44,13 @@ $result = $stmt->get_result();
 $ownerRealmCache = DBMapArray($result, array('region', 'ownerrealm'));
 $stmt->close();
 
-$auctionExtraItemsCache = [];
+$equipBaseItemLevel = [];
 $stmt = $db->prepare('SELECT id, level FROM tblDBCItem WHERE `class` in (2,4) AND `auctionable` = 1');
 $stmt->execute();
 $id = $level = null;
 $stmt->bind_result($id, $level);
 while ($stmt->fetch()) {
-    $auctionExtraItemsCache[$id] = $level;
+    $equipBaseItemLevel[$id] = $level;
 }
 $stmt->close();
 
@@ -209,7 +209,7 @@ function ParseAuctionData($house, $snapshot, &$json)
 {
     global $maxPacketSize;
     global $houseRegionCache;
-    global $auctionExtraItemsCache;
+    global $equipBaseItemLevel;
     global $usefulBonusesCache, $enoughBonusesSeenCache;
     global $TIMELEFT_ENUM;
 
@@ -384,7 +384,8 @@ function ParseAuctionData($house, $snapshot, &$json)
             $bonusSet = 0;
             $bonuses = [];
             $bonusItemLevel = null;
-            if (!isset($auction['petSpeciesId']) && isset($auctionExtraItemsCache[$auction['item']]) && isset($auction['bonusLists'])) {
+            $priceScaling = null;
+            if (!isset($auction['petSpeciesId']) && isset($equipBaseItemLevel[$auction['item']]) && isset($auction['bonusLists'])) {
                 for ($y = 0; $y < count($auction['bonusLists']); $y++) {
                     if (isset($auction['bonusLists'][$y]['bonusListId']) && $auction['bonusLists'][$y]['bonusListId']) {
                         $bonuses[] = intval($auction['bonusLists'][$y]['bonusListId'],10);
@@ -394,7 +395,10 @@ function ParseAuctionData($house, $snapshot, &$json)
                 sort($bonuses, SORT_NUMERIC);
 
                 $bonusSet = $bonuses ? GetBonusSet($bonuses) : 0;
-                $bonusItemLevel = GetBonusItemLevel($bonuses, $auctionExtraItemsCache[$auction['item']], $auction['lootedLevel']);
+                $bonusItemLevel = GetBonusItemLevel($bonuses, $equipBaseItemLevel[$auction['item']], $auction['lootedLevel']);
+                if ($bonusItemLevel - $equipBaseItemLevel[$auction['item']] != 0) {
+                    $priceScaling = pow(1.15, ($bonusItemLevel - $equipBaseItemLevel[$auction['item']]) / 15);
+                }
             }
             if ($auction['buyout'] != 0) {
                 if (isset($auction['petSpeciesId'])) {
@@ -415,8 +419,7 @@ function ParseAuctionData($house, $snapshot, &$json)
 
                     $itemInfo[$itemInfoKey]['a'][] = array(
                         'q'   => $auction['quantity'],
-                        'p'   => $auction['buyout'],
-                        //'age' => min(254, max(0, floor(GetAuctionAge($auction['auc'], $snapshot, $snapshotList) / (48 * 60 * 60) * 255)))
+                        'p'   => isset($priceScaling) ? $auction['buyout'] / $priceScaling : $auction['buyout'],
                     );
                     $itemInfo[$itemInfoKey]['tq'] += $auction['quantity'];
                 }
@@ -440,7 +443,7 @@ function ParseAuctionData($house, $snapshot, &$json)
                         $expiredItemInfo['n'][$itemInfoKey]++;
                     }
                 }
-                if (isset($auctionExtraItemsCache[$auction['item']])) {
+                if (isset($equipBaseItemLevel[$auction['item']])) {
                     if (!isset($enoughBonusesSeenCache["{$auction['item']}:$bonusSet"])) {
                         $usefulBonuses = [];
                         foreach ($bonuses as $bonus) {
@@ -525,7 +528,7 @@ function ParseAuctionData($house, $snapshot, &$json)
                     $sqlPet = '';
                 }
                 $sqlPet .= ($sqlPet == '' ? $sqlStartPet : ',') . $thisSql;
-            } else if (isset($auctionExtraItemsCache[$auction['item']])) {
+            } else if (isset($equipBaseItemLevel[$auction['item']])) {
                 if (count($bonuses) || $auction['rand'] || $auction['context']) {
                     for ($y = count($bonuses); $y < MAX_BONUSES; $y++) {
                         $bonuses[] = 'null';
