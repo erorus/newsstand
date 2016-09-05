@@ -5,6 +5,7 @@ var TUJ_Item = function ()
     var itemId;
     var bonusSet, tagUrl;
     var bonusSets;
+    var priceLevel;
 
     this.load = function (inParams)
     {
@@ -100,6 +101,8 @@ var TUJ_Item = function ()
 
         bonusSets = [];
         bonusSet = -1;
+        priceLevel = false;
+
         var tagUrlParts = tagUrl.replace(/[^\d\.]/,'').split('.');
         var matchingParts, testingParts;
         for (var bset in dta.stats) {
@@ -236,7 +239,7 @@ var TUJ_Item = function ()
             $(h).text(tuj.lang.pricingHeatMap);
             d.appendChild(document.createTextNode(tuj.lang.pricingHeatMapDesc));
             cht = libtuj.ce();
-            cht.className = 'chart heatmap';
+            cht.className = 'chart heatmap priceheatmap';
             d.appendChild(cht);
             itemPage.append(d);
             ItemPriceHeatMap(dta, cht);
@@ -352,6 +355,10 @@ var TUJ_Item = function ()
         libtuj.Ads.Show();
     }
 
+    function PriceScalingFactor(level, baseLevel) {
+        return level ? Math.pow(1.15, (level - baseLevel) / 15) : 1;
+    }
+
     function MakeNotificationsSection(data, fullItemName)
     {
         var d = libtuj.ce();
@@ -405,6 +412,20 @@ var TUJ_Item = function ()
         return d;
     }
 
+    function ItemLevelChange(sel, data, statsDest)
+    {
+        priceLevel = sel.options[sel.selectedIndex].value;
+        if (priceLevel == data.stats[bonusSet].level) {
+            priceLevel = false;
+        }
+        ItemStats(data, statsDest);
+
+        var priceHeatMapDest = document.getElementsByClassName('priceheatmap');
+        if (priceHeatMapDest.length) {
+            ItemPriceHeatMap(data, priceHeatMapDest[0]);
+        }
+    }
+
     function ItemStats(data, dest)
     {
         var t, tr, td, abbr;
@@ -413,6 +434,9 @@ var TUJ_Item = function ()
         var spacerColSpan = stack ? 3 : 2;
 
         stack = 0; // disable stack size since they're an unusable "200"
+
+        $(dest).empty();
+        var priceScaling = PriceScalingFactor(priceLevel, data.stats[bonusSet].level);
 
         t = libtuj.ce('table');
         dest.appendChild(t);
@@ -431,6 +455,38 @@ var TUJ_Item = function ()
             tr.appendChild(td);
             td.style.whiteSpace = 'nowrap';
             td.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.stackof, stack)));
+        }
+
+        if (data.stats[bonusSet].levels.length > 1) {
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+            tr.className = 'level-select';
+            td = libtuj.ce('th');
+            tr.appendChild(td);
+            td.appendChild(document.createTextNode(tuj.lang.level));
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.colSpan = stack ? 2 : 1;
+            var sel = libtuj.ce('select');
+            $(sel).on('change', ItemLevelChange.bind(this, sel, data, dest));
+            for (var l, x=0; l = data.stats[bonusSet].levels[x]; x++) {
+                var opt = libtuj.ce('option');
+                opt.value = l;
+                opt.label = l;
+                if (l == priceLevel || (!priceLevel && l == data.stats[bonusSet].level)) {
+                    opt.selected = true;
+                }
+                opt.appendChild(document.createTextNode(l));
+                sel.appendChild(opt);
+            }
+            td.appendChild(sel);
+
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+            tr.className = 'spacer';
+            td = libtuj.ce('td');
+            td.colSpan = spacerColSpan;
+            tr.appendChild(td);
         }
 
         tr = libtuj.ce('tr');
@@ -476,11 +532,11 @@ var TUJ_Item = function ()
         td.appendChild(document.createTextNode(tuj.lang.currentPrice));
         td = libtuj.ce('td');
         tr.appendChild(td);
-        td.appendChild(libtuj.FormatPrice(data.stats[bonusSet].price));
+        td.appendChild(libtuj.FormatPrice(data.stats[bonusSet].price * priceScaling));
         if (stack) {
             td = libtuj.ce('td');
             tr.appendChild(td);
-            td.appendChild(libtuj.FormatPrice(data.stats[bonusSet].price * stack));
+            td.appendChild(libtuj.FormatPrice(data.stats[bonusSet].price * stack * priceScaling));
         }
 
         var prices = [], x;
@@ -501,15 +557,15 @@ var TUJ_Item = function ()
             td.appendChild(document.createTextNode(tuj.lang.medianPrice));
             td = libtuj.ce('td');
             tr.appendChild(td);
-            td.appendChild(libtuj.FormatPrice(median = libtuj.Median(prices)));
+            td.appendChild(libtuj.FormatPrice(median = libtuj.Median(prices) * priceScaling));
             if (stack) {
                 td = libtuj.ce('td');
                 tr.appendChild(td);
                 td.appendChild(libtuj.FormatPrice(median * stack));
             }
 
-            var mn = libtuj.Mean(prices);
-            var std = libtuj.StdDev(prices, mn);
+            var mn = libtuj.Mean(prices) * priceScaling;
+            var std = libtuj.StdDev(prices, mn) * priceScaling;
             tr = libtuj.ce('tr');
             t.appendChild(tr);
             tr.className = 'mean-price';
@@ -619,14 +675,14 @@ var TUJ_Item = function ()
             td.appendChild(document.createTextNode(headerPrefix + tuj.lang.medianPrice));
             td = libtuj.ce('td');
             tr.appendChild(td);
-            td.appendChild(libtuj.FormatPrice(median = libtuj.Median(globalStats.prices)));
+            td.appendChild(libtuj.FormatPrice(median = libtuj.Median(globalStats.prices) * priceScaling));
             if (stack) {
                 td = libtuj.ce('td');
                 tr.appendChild(td);
                 td.appendChild(libtuj.FormatPrice(median * stack));
             }
 
-            var mn = libtuj.Mean(globalStats.prices);
+            var mn = libtuj.Mean(globalStats.prices) * priceScaling;
             tr = libtuj.ce('tr');
             t.appendChild(tr);
             tr.className = 'mean-price';
@@ -1035,7 +1091,7 @@ var TUJ_Item = function ()
 
     function ItemHistoryChart(data, dest)
     {
-        var hcdata = {price: [], priceMaxVal: 0, quantity: [], quantityMaxVal: 0, reagentPrice: [], tooltip: {}};
+        var hcdata = {baseLevel: data.stats[bonusSet].level, price: [], priceMaxVal: 0, quantity: [], quantityMaxVal: 0, reagentPrice: [], tooltip: {}};
 
         var allPrices = [];
         for (var x = 0; x < data.history[bonusSet].length; x++) {
@@ -1177,7 +1233,7 @@ var TUJ_Item = function ()
                 formatter: function ()
                 {
                     var tr = '<b>' + Highcharts.dateFormat('%a %b %e %Y, %l:%M%P', this.x) + '</b>';
-                    tr += '<br><span style="color: #000099">' + tuj.lang.marketPrice + ': ' + libtuj.FormatPrice(hcdata.tooltip[this.x][0], true) + '</span>';
+                    tr += '<br><span style="color: #000099">' + tuj.lang.marketPrice + ': ' + libtuj.FormatPrice(hcdata.tooltip[this.x][0] * PriceScalingFactor(priceLevel, hcdata.baseLevel), true) + '</span>';
                     tr += '<br><span style="color: #990000">' + tuj.lang.quantity + ': ' + libtuj.FormatQuantity(hcdata.tooltip[this.x][1], true) + '</span>';
                     if (hcdata.tooltip[this.x].length > 2) {
                         tr += '<br><span style="color: #009900">Crafting Cost: ' + libtuj.FormatPrice(hcdata.tooltip[this.x][2], true) + '</span>';
@@ -1210,7 +1266,7 @@ var TUJ_Item = function ()
 
     function ItemMonthlyChart(data, dest)
     {
-        var hcdata = {price: [], priceMaxVal: 0, quantity: [], quantityMaxVal: 0, globalprice: [], ttLookup: {}};
+        var hcdata = {baseLevel: data.stats[bonusSet].level, price: [], priceMaxVal: 0, quantity: [], quantityMaxVal: 0, globalprice: [], ttLookup: {}};
 
         var allPrices = [], dt, dtParts;
         var offset = (new Date()).getTimezoneOffset() * 60 * 1000;
@@ -1376,12 +1432,14 @@ var TUJ_Item = function ()
                     if (!hcdata.ttLookup.hasOwnProperty(this.x)) {
                         return tr;
                     }
+                    var priceMult = PriceScalingFactor(priceLevel, hcdata.baseLevel);
+
                     var points = hcdata.ttLookup[this.x];
                     if (points.hasOwnProperty('market')) {
-                        tr += '<br><span style="color: #000099">' + tuj.lang.marketPrice + ': ' + libtuj.FormatPrice(points.market, true) + '</span>';
+                        tr += '<br><span style="color: #000099">' + tuj.lang.marketPrice + ': ' + libtuj.FormatPrice(points.market * priceMult, true) + '</span>';
                     }
                     if (points.hasOwnProperty('region')) {
-                        tr += '<br><span style="color: #009900">' + tuj.lang.regionPrice + ': ' + libtuj.FormatPrice(points.region, true) + '</span>';
+                        tr += '<br><span style="color: #009900">' + tuj.lang.regionPrice + ': ' + libtuj.FormatPrice(points.region * priceMult, true) + '</span>';
                     }
                     if (points.hasOwnProperty('quantity')) {
                         tr += '<br><span style="color: #990000">' + tuj.lang.quantity + ': ' + libtuj.FormatQuantity(points.quantity, true) + '</span>';
@@ -1439,7 +1497,7 @@ var TUJ_Item = function ()
 
     function ItemGlobalMonthlyChart(data, dest)
     {
-        var hcdata = {price: [], priceMaxVal: 0, quantity: [], quantityMaxVal: 0, tooltip: {}};
+        var hcdata = {baseLevel: data.stats[bonusSet].level, price: [], priceMaxVal: 0, quantity: [], quantityMaxVal: 0, tooltip: {}};
 
         var allPrices = [], dt, dtParts;
         var offset = (new Date()).getTimezoneOffset() * 60 * 1000;
@@ -1587,7 +1645,7 @@ var TUJ_Item = function ()
                 formatter: function ()
                 {
                     var tr = '<b>' + Highcharts.dateFormat('%a %b %e %Y', this.x) + '</b>';
-                    tr += '<br><span style="color: #000099">' + tuj.lang.regionPrice + ': ' + libtuj.FormatPrice(hcdata.tooltip[this.x][0], true) + '</span>';
+                    tr += '<br><span style="color: #000099">' + tuj.lang.regionPrice + ': ' + libtuj.FormatPrice(hcdata.tooltip[this.x][0] * PriceScalingFactor(priceLevel, hcdata.baseLevel), true) + '</span>';
                     tr += '<br><span style="color: #990000">' + tuj.lang.quantity + ': ' + libtuj.FormatQuantity(hcdata.tooltip[this.x][1], true) + '</span>';
                     return tr;
                     // &lt;br/&gt;&lt;span style="color: #990000"&gt;Quantity: '+this.points[1].y+'&lt;/span&gt;<xsl:if test="itemgraphs/d[@matsprice != '']">&lt;br/&gt;&lt;span style="color: #999900"&gt;Materials Price: '+this.points[2].y.toFixed(2)+'g&lt;/span&gt;</xsl:if>';
@@ -1985,6 +2043,8 @@ var TUJ_Item = function ()
             y: tuj.lang.heatMapDays
         }};
 
+        $(dest).empty();
+
         var CalcAvg = function (a)
         {
             if (a.length == 0) {
@@ -1995,7 +2055,9 @@ var TUJ_Item = function ()
                 s += a[x];
             }
             return s / a.length;
-        }
+        };
+
+        var priceFactor = PriceScalingFactor(priceLevel, data.stats[bonusSet].level);
 
         var d, wkdy, hr, lastprice;
         for (wkdy = 0; wkdy < hcdata.categories.y.length; wkdy++) {
@@ -2007,13 +2069,13 @@ var TUJ_Item = function ()
 
         for (var x = 0; x < data.history[bonusSet].length; x++) {
             if (typeof lastprice == 'undefined') {
-                lastprice = data.history[bonusSet][x].silver * 100;
+                lastprice = data.history[bonusSet][x].silver * 100 * priceFactor;
             }
 
             var d = new Date(data.history[bonusSet][x].snapshot * 1000);
             wkdy = 6 - d.getDay();
             hr = Math.floor(d.getHours() * hcdata.categories.x.length / 24);
-            hcdata.days[wkdy][hr].push(data.history[bonusSet][x].silver * 100);
+            hcdata.days[wkdy][hr].push(data.history[bonusSet][x].silver * 100 * priceFactor);
         }
 
         var p;
@@ -2228,7 +2290,7 @@ var TUJ_Item = function ()
 
     function ItemGlobalNowColumns(data, dest)
     {
-        var hcdata = {categories: [], price: [], quantity: [], lastseen: [], houses: []};
+        var hcdata = {baseLevel: data.stats[bonusSet].level, categories: [], price: [], quantity: [], lastseen: [], houses: []};
         var allPrices = [];
         var allQuantities = [];
         data.globalnow[bonusSet].sort(function (a, b)
@@ -2373,7 +2435,7 @@ var TUJ_Item = function ()
                 {
                     var realmNames = libtuj.GetRealmsForHouse(hcdata.houses[this.x], 40);
                     var tr = '<b>' + realmNames + '</b>';
-                    tr += '<br><span style="color: #000099">' + tuj.lang.marketPrice + ': ' + libtuj.FormatPrice(this.points[0].y, true) + '</span>';
+                    tr += '<br><span style="color: #000099">' + tuj.lang.marketPrice + ': ' + libtuj.FormatPrice(this.points[0].y * PriceScalingFactor(priceLevel, hcdata.baseLevel), true) + '</span>';
                     tr += '<br><span style="color: #990000">' + tuj.lang.quantity + ': ' + libtuj.FormatQuantity(this.points[1].y, true) + '</span>';
                     tr += '<br><span style="color: #990000">' + tuj.lang.lastSeen + ': ' + libtuj.FormatDate(hcdata.lastseen[this.x], true) + '</span>';
                     return tr;
@@ -2430,7 +2492,7 @@ var TUJ_Item = function ()
 
     function ItemGlobalNowScatter(data, dest)
     {
-        var hcdata = {price: [], quantity: {}, lastseen: {}, houses: {}};
+        var hcdata = {baseLevel: data.stats[bonusSet].level, price: [], quantity: {}, lastseen: {}, houses: {}};
         var allPrices = [];
 
         var o;
@@ -2549,7 +2611,7 @@ var TUJ_Item = function ()
                 {
                     var realmNames = libtuj.GetRealmsForHouse(hcdata.houses[this.point.id], 40);
                     var tr = '<b>' + realmNames + '</b>';
-                    tr += '<br><span style="color: #000099">' + tuj.lang.marketPrice + ': ' + libtuj.FormatPrice(this.point.y, true) + '</span>';
+                    tr += '<br><span style="color: #000099">' + tuj.lang.marketPrice + ': ' + libtuj.FormatPrice(this.point.y * PriceScalingFactor(priceLevel, hcdata.baseLevel), true) + '</span>';
                     tr += '<br><span style="color: #990000">' + tuj.lang.quantity + ': ' + libtuj.FormatQuantity(hcdata.quantity[this.point.id], true) + '</span>';
                     tr += '<br><span style="color: #990000">' + tuj.lang.lastSeen + ': ' + libtuj.FormatDate(hcdata.lastseen[this.point.id], true) + '</span>';
                     return tr;
@@ -2754,8 +2816,8 @@ var TUJ_Item = function ()
         $(td).text(tuj.lang.buyoutEach);
 
         data.auctions[bonusSet].sort(function (a, b) {
-            return Math.floor((a.buy / Math.pow(1.15, (a.level - data.stats[bonusSet].level) / 15)) / a.quantity) - Math.floor((b.buy / Math.pow(1.15, (b.level - data.stats[bonusSet].level) / 15)) / b.quantity) ||
-                Math.floor((a.bid / Math.pow(1.15, (a.level - data.stats[bonusSet].level) / 15)) / a.quantity) - Math.floor((b.bid / Math.pow(1.15, (b.level - data.stats[bonusSet].level) / 15)) / b.quantity) ||
+            return Math.floor((a.buy / PriceScalingFactor(a.level, data.stats[bonusSet].level)) / a.quantity) - Math.floor((b.buy / PriceScalingFactor(b.level, data.stats[bonusSet].level)) / b.quantity) ||
+                Math.floor((a.bid / PriceScalingFactor(a.level, data.stats[bonusSet].level)) / a.quantity) - Math.floor((b.bid / PriceScalingFactor(b.level, data.stats[bonusSet].level)) / b.quantity) ||
                 a.quantity - b.quantity ||
                 (tuj.realms[a.sellerrealm] ? tuj.realms[a.sellerrealm].name : '').localeCompare(tuj.realms[b.sellerrealm] ? tuj.realms[b.sellerrealm].name : '') ||
                 a.sellername.localeCompare(b.sellername) ||
