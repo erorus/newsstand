@@ -267,30 +267,30 @@ function TUJMarketInfo(item,...)
         tr['age'] = time() - addonTable.dataAge
     end
 
-    local priceSize = string.byte(dta, 1);
+    local priceSize = string.byte(dta, 1)
 
     local offset = 2
 
-    tr['globalMedian'] = char2dec(string.sub(dta, offset, offset+priceSize-1)) * 100 * priceFactor;
+    tr['globalMedian'] = round(char2dec(string.sub(dta, offset, offset+priceSize-1)) * priceFactor) * 100
     if tr['globalMedian'] == 0 then tr['globalMedian'] = nil end
     offset = offset + priceSize
 
-    tr['globalMean'] = char2dec(string.sub(dta, offset, offset+priceSize-1)) * 100 * priceFactor;
+    tr['globalMean'] = round(char2dec(string.sub(dta, offset, offset+priceSize-1)) * priceFactor) * 100
     offset = offset + priceSize
 
-    tr['globalStdDev'] = char2dec(string.sub(dta, offset, offset+priceSize-1)) * 100 * priceFactor;
+    tr['globalStdDev'] = round(char2dec(string.sub(dta, offset, offset+priceSize-1)) * priceFactor) * 100
     offset = offset + priceSize
 
     tr['days'] = string.byte(dta, offset, offset)
     offset = offset + 1
 
-    tr['market'] = char2dec(string.sub(dta, offset, offset+priceSize-1)) * 100 * priceFactor
+    tr['market'] = round(char2dec(string.sub(dta, offset, offset+priceSize-1)) * priceFactor) * 100
     offset = offset + priceSize
 
-    tr['stddev'] = char2dec(string.sub(dta, offset, offset+priceSize-1)) * 100 * priceFactor
+    tr['stddev'] = round(char2dec(string.sub(dta, offset, offset+priceSize-1)) * priceFactor) * 100
     offset = offset + priceSize
 
-    tr['recent'] = char2dec(string.sub(dta, offset, offset+priceSize-1)) * 100 * priceFactor
+    tr['recent'] = round(char2dec(string.sub(dta, offset, offset+priceSize-1)) * priceFactor) * 100
     --offset = offset + priceSize
 
     wipe(lastMarketInfo)
@@ -394,7 +394,7 @@ local function onTooltipSetItem(tooltip, itemLink, quantity)
     buildExtraTip(tooltip, dataResults)
 end
 
-local eventframe = CreateFrame("FRAME",addonName.."Events");
+local eventframe = CreateFrame("FRAME",addonName.."Events")
 
 local function onEvent(self,event,arg)
     if event == "PLAYER_ENTERING_WORLD" then
@@ -426,8 +426,8 @@ local function onEvent(self,event,arg)
             if not tooltipsEnabled then
                 print("The Undermine Journal - Tooltip prices disabled. Run /tujtooltip to toggle.")
             end
-            LibExtraTip:AddCallback({type = "item", callback = onTooltipSetItem});
-            LibExtraTip:AddCallback({type = "battlepet", callback = onTooltipSetItem});
+            LibExtraTip:AddCallback({type = "item", callback = onTooltipSetItem})
+            LibExtraTip:AddCallback({type = "battlepet", callback = onTooltipSetItem})
             LibExtraTip:RegisterTooltip(GameTooltip)
             LibExtraTip:RegisterTooltip(ItemRefTooltip)
             LibExtraTip:RegisterTooltip(BattlePetTooltip)
