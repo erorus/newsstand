@@ -181,8 +181,9 @@ function TUJMarketInfo(item,...)
         return tr
     end
 
-    local _, link, dataKey;
+    local _, link, dataKey
     local iid, bonusSet, usedBonuses, species, breed, quality
+    local priceFactor = 1
 
     if (strfind(item, 'battlepet:')) then
         breed, species, _, quality = getBreedFromPetLink(item)
@@ -231,6 +232,11 @@ function TUJMarketInfo(item,...)
                     end
                 end
             end
+
+            local effectiveLevel, previewLevel, origLevel = GetDetailedItemLevelInfo(item)
+            if effectiveLevel and (effectiveLevel ~= origLevel) then
+                priceFactor = 1.15^((effectiveLevel - origLevel) / 15)
+            end
         end
 
         dataKey = iid
@@ -265,26 +271,26 @@ function TUJMarketInfo(item,...)
 
     local offset = 2
 
-    tr['globalMedian'] = char2dec(string.sub(dta, offset, offset+priceSize-1))*100;
+    tr['globalMedian'] = char2dec(string.sub(dta, offset, offset+priceSize-1)) * 100 * priceFactor;
     if tr['globalMedian'] == 0 then tr['globalMedian'] = nil end
     offset = offset + priceSize
 
-    tr['globalMean'] = char2dec(string.sub(dta, offset, offset+priceSize-1))*100;
+    tr['globalMean'] = char2dec(string.sub(dta, offset, offset+priceSize-1)) * 100 * priceFactor;
     offset = offset + priceSize
 
-    tr['globalStdDev'] = char2dec(string.sub(dta, offset, offset+priceSize-1))*100;
+    tr['globalStdDev'] = char2dec(string.sub(dta, offset, offset+priceSize-1)) * 100 * priceFactor;
     offset = offset + priceSize
 
     tr['days'] = string.byte(dta, offset, offset)
     offset = offset + 1
 
-    tr['market'] = char2dec(string.sub(dta, offset, offset+priceSize-1)) * 100
+    tr['market'] = char2dec(string.sub(dta, offset, offset+priceSize-1)) * 100 * priceFactor
     offset = offset + priceSize
 
-    tr['stddev'] = char2dec(string.sub(dta, offset, offset+priceSize-1)) * 100
+    tr['stddev'] = char2dec(string.sub(dta, offset, offset+priceSize-1)) * 100 * priceFactor
     offset = offset + priceSize
 
-    tr['recent'] = char2dec(string.sub(dta, offset, offset+priceSize-1)) * 100
+    tr['recent'] = char2dec(string.sub(dta, offset, offset+priceSize-1)) * 100 * priceFactor
     --offset = offset + priceSize
 
     wipe(lastMarketInfo)

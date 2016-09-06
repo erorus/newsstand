@@ -670,6 +670,7 @@ function MakeZip($zipPath = false)
 
     $zip->addFromString("TheUndermineJournal/TheUndermineJournal.toc",$tocFile);
     RecursiveAddToZip($zip, '../addon/libs/', 'TheUndermineJournal/libs/');
+    $zip->addFile('../addon/GetDetailedItemLevelInfo.lua',"TheUndermineJournal/GetDetailedItemLevelInfo.lua");
     $zip->addFile('../addon/BonusSets.lua',"TheUndermineJournal/BonusSets.lua");
     $zip->addFile('../addon/TheUndermineJournal.lua',"TheUndermineJournal/TheUndermineJournal.lua");
     $zip->addFile('../addon/MarketData-US.lua',"TheUndermineJournal/MarketData-US.lua");

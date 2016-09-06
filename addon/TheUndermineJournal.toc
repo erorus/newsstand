@@ -9,6 +9,7 @@ libs\LibStub.lua
 libs\LibRealmInfo.lua
 libs\LibExtraTip\Load.xml
 
+GetDetailedItemLevelInfo.lua
 BonusSets.lua
 MarketData-US.lua
 MarketData-EU.lua
