@@ -3,7 +3,7 @@
 ## Notes: %s
 ## OptionalDeps: Auctionator, AuctionLite, LibExtraTip
 ## SavedVariablesPerCharacter: TUJTooltipsHidden
-## Version: 4.6.%s
+## Version: 4.7.%s
 
 libs\LibStub.lua
 libs\LibRealmInfo.lua

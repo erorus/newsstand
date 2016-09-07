@@ -1,6 +1,6 @@
 --[[
 
-TheUndermineJournal addon, v 4.6
+TheUndermineJournal addon, v 4.7
 https://theunderminejournal.com/
 
 You should be able to query this DB from other addons:
@@ -149,6 +149,7 @@ local function getBreedFromPetLink(link)
 end
 
 local lastMarketInfo = {}
+local GetDetailedItemLevelInfo = GetDetailedItemLevelInfo
 
 --[[
     pass a table as the second argument to wipe and reuse that table
@@ -233,9 +234,11 @@ function TUJMarketInfo(item,...)
                 end
             end
 
-            local effectiveLevel, previewLevel, origLevel = GetDetailedItemLevelInfo(item)
-            if effectiveLevel and (effectiveLevel ~= origLevel) then
-                priceFactor = 1.15^((effectiveLevel - origLevel) / 15)
+            if GetDetailedItemLevelInfo then
+                local effectiveLevel, previewLevel, origLevel = GetDetailedItemLevelInfo(item)
+                if effectiveLevel and (effectiveLevel ~= origLevel) then
+                    priceFactor = 1.15^((effectiveLevel - origLevel) / 15)
+                end
             end
         end
 
@@ -425,6 +428,9 @@ local function onEvent(self,event,arg)
         else
             if not tooltipsEnabled then
                 print("The Undermine Journal - Tooltip prices disabled. Run /tujtooltip to toggle.")
+            end
+            if not GetDetailedItemLevelInfo then
+                print("The Undermine Journal - Warning: GetDetailedItemLevelInfo function not found. Item level scaling not available.")
             end
             LibExtraTip:AddCallback({type = "item", callback = onTooltipSetItem})
             LibExtraTip:AddCallback({type = "battlepet", callback = onTooltipSetItem})
