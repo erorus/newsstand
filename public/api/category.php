@@ -1677,10 +1677,14 @@ EOF;
     call_user_func_array([$stmt, 'bind_result'], $params);
 
     while ($stmt->fetch()) {
+        $unreferenced = [];
+        foreach ($row as $k => $v) {
+            $unreferenced[$k] = $v;
+        }
         if ($key) {
-            $tr[$row[$key]] = $row;
+            $tr[$unreferenced[$key]] = $unreferenced;
         } else {
-            $tr[] = $row;
+            $tr[] = $unreferenced;
         }
     }
 
