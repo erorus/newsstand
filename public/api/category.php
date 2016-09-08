@@ -77,13 +77,13 @@ WHERE ps.house = ?
 EOF;
 
     $stmt = $db->prepare($sql);
-    if (!$stmt) {
+    if ($stmt === false) {
         DebugMessage("Bad SQL: \n" . $sql, E_USER_ERROR);
     }
     $stmt->bind_param('i', $house);
     $stmt->execute();
     $result = $stmt->get_result();
-    if (!$result) {
+    if ($result === false) {
         DebugMessage("No result: \n" . $sql, E_USER_ERROR);
     }
     $tr = DBMapArray($result, array('type', 'species', 'breed'));
@@ -134,13 +134,13 @@ group by i.species, i.breed
 EOF;
 
     $stmt = $db->prepare($sql);
-    if (!$stmt) {
+    if ($stmt === false) {
         DebugMessage("Bad SQL: \n" . $sql, E_USER_ERROR);
     }
     $stmt->bind_param('s', $region);
     $stmt->execute();
     $result = $stmt->get_result();
-    if (!$result) {
+    if ($result === false) {
         DebugMessage("No result: \n" . $sql, E_USER_ERROR);
     }
     $tr = DBMapArray($result, array('species', 'breed'));
@@ -1661,13 +1661,13 @@ EOF;
     $region = GetRegion($house);
 
     $stmt = $db->prepare($sql);
-    if (!$stmt) {
+    if ($stmt === false) {
         DebugMessage("Bad SQL: \n" . $sql, E_USER_ERROR);
     }
     $stmt->bind_param('iisiiisii', $house, $house, $region, $house, $house, $house, $region, $house, $house);
     $stmt->execute();
     $result = $stmt->get_result();
-    if (!$result) {
+    if ($result === false) {
         DebugMessage("No result: \n" . $sql, E_USER_ERROR);
     }
     $tr = DBMapArray($result, $keys);
@@ -1752,13 +1752,13 @@ limit 15
 EOF;
 
     $stmt = $db->prepare($fullSql);
-    if (!$stmt) {
+    if ($stmt === false) {
         DebugMessage("Bad SQL: \n" . $fullSql, E_USER_ERROR);
     }
     $stmt->bind_param('iiss', $house, $house, $region, $region);
     $stmt->execute();
     $result = $stmt->get_result();
-    if (!$result) {
+    if ($result === false) {
         DebugMessage("No result: \n" . $fullSql, E_USER_ERROR);
     }
     $iidList = DBMapArray($result, null);
