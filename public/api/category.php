@@ -1557,6 +1557,8 @@ function CategoryGenericItemList($house, $params)
         $keys = null;
     }
 
+    $cols2 = preg_replace('/\bi\.level\b/', 'r2.baselevel', $cols);
+
     $sql = <<<EOF
 select results.*,
 (select round(avg(case hours.h
@@ -1619,7 +1621,7 @@ ifnull(GROUP_CONCAT(bs.`tagid` ORDER BY 1 SEPARATOR '.'), '') tagurl
 from (
     select r2.*, a.buy price,
     concat_ws(':', ae.bonus1, ae.bonus2, ae.bonus3, ae.bonus4, ae.bonus5, ae.bonus6) bonusurl,
-    @level := ifnull(ae.level, r2.baselevel) level $cols
+    @level := ifnull(ae.level, r2.baselevel) level $cols2
     from (
         select i.id, i.quality, i.icon, i.class as classid, i.level baselevel,
         s.quantity, unix_timestamp(s.lastseen) lastseen, s.bonusset,
