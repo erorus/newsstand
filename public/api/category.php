@@ -83,6 +83,9 @@ EOF;
     $stmt->bind_param('i', $house);
     $stmt->execute();
     $result = $stmt->get_result();
+    if (!$result) {
+        DebugMessage("No result: \n" . $sql, E_USER_ERROR);
+    }
     $tr = DBMapArray($result, array('type', 'species', 'breed'));
     $stmt->close();
 
@@ -137,6 +140,9 @@ EOF;
     $stmt->bind_param('s', $region);
     $stmt->execute();
     $result = $stmt->get_result();
+    if (!$result) {
+        DebugMessage("No result: \n" . $sql, E_USER_ERROR);
+    }
     $tr = DBMapArray($result, array('species', 'breed'));
     $stmt->close();
 
@@ -1752,6 +1758,9 @@ EOF;
     $stmt->bind_param('iiss', $house, $house, $region, $region);
     $stmt->execute();
     $result = $stmt->get_result();
+    if (!$result) {
+        DebugMessage("No result: \n" . $sql, E_USER_ERROR);
+    }
     $iidList = DBMapArray($result, null);
     $stmt->close();
 
