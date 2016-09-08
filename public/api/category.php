@@ -791,8 +791,8 @@ EOF;
         'data' => [
             'name'  => 'Recipes',
             'map'   => CategoryRecipeMap(171),
-            'recipes' => CategoryGenericItemList($house, ['keys' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=171 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
-            'crafted' => CategoryGenericItemList($house, ['locales' => false, 'keys' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=171 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'recipes' => CategoryGenericItemList($house, ['key' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=171 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'crafted' => CategoryGenericItemList($house, ['locales' => false, 'key' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=171 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
         ]
     ];
 
@@ -870,8 +870,8 @@ function CategoryResult_leatherworking($house)
         'data' => [
             'name'  => 'Recipes',
             'map'   => CategoryRecipeMap(165),
-            'recipes' => CategoryGenericItemList($house, ['keys' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=165 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
-            'crafted' => CategoryGenericItemList($house, ['locales' => false, 'keys' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=165 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'recipes' => CategoryGenericItemList($house, ['key' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=165 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'crafted' => CategoryGenericItemList($house, ['locales' => false, 'key' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=165 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
         ]
     ];
 
@@ -936,8 +936,8 @@ function CategoryResult_blacksmithing($house)
         'data' => [
             'name'  => 'Recipes',
             'map'   => CategoryRecipeMap(164),
-            'recipes' => CategoryGenericItemList($house, ['keys' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=164 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
-            'crafted' => CategoryGenericItemList($house, ['locales' => false, 'keys' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=164 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'recipes' => CategoryGenericItemList($house, ['key' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=164 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'crafted' => CategoryGenericItemList($house, ['locales' => false, 'key' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=164 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
         ]
     ];
 
@@ -1041,8 +1041,8 @@ function CategoryResult_jewelcrafting($house)
         'data' => [
             'name'  => 'Recipes',
             'map'   => CategoryRecipeMap(755),
-            'recipes' => CategoryGenericItemList($house, ['keys' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=755 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
-            'crafted' => CategoryGenericItemList($house, ['locales' => false, 'keys' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=755 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'recipes' => CategoryGenericItemList($house, ['key' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=755 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'crafted' => CategoryGenericItemList($house, ['locales' => false, 'key' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=755 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
         ]
     ];
 
@@ -1142,8 +1142,8 @@ EOF;
         'data' => [
             'name'  => 'Recipes',
             'map'   => CategoryRecipeMap(202),
-            'recipes' => CategoryGenericItemList($house, ['keys' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=202 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
-            'crafted' => CategoryGenericItemList($house, ['locales' => false, 'keys' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=202 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'recipes' => CategoryGenericItemList($house, ['key' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=202 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'crafted' => CategoryGenericItemList($house, ['locales' => false, 'key' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=202 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
         ]
     ];
 
@@ -1225,8 +1225,8 @@ function CategoryResult_tailoring($house)
         'data' => [
             'name'  => 'Recipes',
             'map'   => CategoryRecipeMap(197),
-            'recipes' => CategoryGenericItemList($house, ['keys' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=197 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
-            'crafted' => CategoryGenericItemList($house, ['locales' => false, 'keys' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=197 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'recipes' => CategoryGenericItemList($house, ['key' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=197 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'crafted' => CategoryGenericItemList($house, ['locales' => false, 'key' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=197 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
         ]
     ];
 
@@ -1499,8 +1499,8 @@ function CategoryResult_cooking($house)
         'data' => [
             'name'  => 'Recipes',
             'map'   => CategoryRecipeMap(185),
-            'recipes' => CategoryGenericItemList($house, ['keys' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=185 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
-            'crafted' => CategoryGenericItemList($house, ['locales' => false, 'keys' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=185 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'recipes' => CategoryGenericItemList($house, ['key' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=185 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'crafted' => CategoryGenericItemList($house, ['locales' => false, 'key' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=185 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
         ]
     ];
 
@@ -1556,13 +1556,13 @@ function CategoryGenericItemList($house, $params)
         $colsLowerInside = isset($params['colsLowerInside']) ? (', ' . $params['colsLowerInside']) : '';
         $colsLowerOutside = isset($params['colsLowerOutside']) ? (', ' . $params['colsLowerOutside']) : '';
         $outside = isset($params['outside']) ? ($params['outside'].', ') : '';
-        $keys = isset($params['keys']) ? $params['keys'] : null;
+        $key = isset($params['key']) ? $params['key'] : false;
     } else {
         $joins = '';
         $where = ($params == '') ? '' : (' and ' . $params);
         $colsUpper = $colsLowerInside = $colsLowerOutside = '';
         $outside = '';
-        $keys = null;
+        $key = false;
     }
 
     $sql = <<<EOF
@@ -1666,11 +1666,24 @@ EOF;
     }
     $stmt->bind_param('iisiiisii', $house, $house, $region, $house, $house, $house, $region, $house, $house);
     $stmt->execute();
-    $result = $stmt->get_result();
-    if (($result === false) && ($errMsg = $db->error)) {
-        DebugMessage("No result: $errMsg\n" . $sql, E_USER_ERROR);
+
+    $tr = [];
+    $row = [];
+    $params = [];
+    $fields = $stmt->result_metadata()->fetch_fields();
+    foreach ($fields as $field) {
+        $params[] = &$row[$field->name];
     }
-    $tr = DBMapArray($result, $keys);
+    call_user_func_array([$stmt, 'bind_result'], $params);
+
+    while ($stmt->fetch()) {
+        if ($key) {
+            $tr[$row[$key]] = $row;
+        } else {
+            $tr[] = $row;
+        }
+    }
+
     $stmt->close();
 
     MCSetHouse($house, $key, $tr);
