@@ -1552,18 +1552,18 @@ function CategoryGenericItemList($house, $params)
     if (is_array($params)) {
         $joins = isset($params['joins']) ? $params['joins'] : '';
         $where = isset($params['where']) ? (' and ' . $params['where']) : '';
-        $cols = isset($params['cols']) ? (', ' . $params['cols']) : '';
+        $colsUpper = isset($params['colsUpper']) ? (', ' . $params['colsUpper']) : '';
+        $colsLowerInside = isset($params['colsLowerInside']) ? (', ' . $params['colsLowerInside']) : '';
+        $colsLowerOutside = isset($params['colsLowerOutside']) ? (', ' . $params['colsLowerOutside']) : '';
         $outside = isset($params['outside']) ? ($params['outside'].', ') : '';
         $keys = isset($params['keys']) ? $params['keys'] : null;
     } else {
         $joins = '';
         $where = ($params == '') ? '' : (' and ' . $params);
-        $cols = '';
+        $colsUpper = $colsLowerInside = $colsLowerOutside = '';
         $outside = '';
         $keys = null;
     }
-
-    $cols2 = preg_replace('/\bi\.level\b/', 'r2.baselevel', $cols);
 
     $sql = <<<EOF
 select results.*,
@@ -1593,7 +1593,7 @@ from (
     s.price * pow(1.15,(@level - cast(i.level as signed))/15) price,
     ifnull((select concat_ws(':', nullif(bonus1,0), nullif(bonus2,0), nullif(bonus3,0), nullif(bonus4,0))
         FROM `tblItemBonusesSeen` ibs WHERE ibs.item=i.id and ibs.bonusset=ifnull(s.bonusset,0) order by ibs.observed desc limit 1),'') bonusurl,
-    @level level $cols
+    @level level $colsUpper
     from tblDBCItem i
     left join tblItemSummary s on s.house=? and s.item=i.id
     join tblItemGlobal g on g.item = i.id+0 and g.bonusset = ifnull(s.bonusset,0) and g.region = ?
@@ -1625,9 +1625,9 @@ select results.*,
         where ihh.house = ? and ihh.item = results.id and ihh.bonusset = results.bonusset) * pow(1.15,(cast(results.level as signed) - cast(results.baselevel as signed))/15) avgprice, $outside
 ifnull(GROUP_CONCAT(bs.`tagid` ORDER BY 1 SEPARATOR '.'), '') tagurl
 from (
-    select r2.*, a.buy price,
-    concat_ws(':', ae.bonus1, ae.bonus2, ae.bonus3, ae.bonus4, ae.bonus5, ae.bonus6) bonusurl,
-    @level := ifnull(ae.level, r2.baselevel) level $cols2
+    select r2.id, r2.quality, r2.icon, r2.classid, r2.baselevel, r2.quantity, r2.lastseen, r2.bonusset, r2.cheapestaucid,
+    a.buy price, concat_ws(':', ae.bonus1, ae.bonus2, ae.bonus3, ae.bonus4, ae.bonus5, ae.bonus6) bonusurl,
+    @level := ifnull(ae.level, r2.baselevel) level $colsLowerOutside
     from (
         select i.id, i.quality, i.icon, i.class as classid, i.level baselevel,
         s.quantity, unix_timestamp(s.lastseen) lastseen, s.bonusset,
@@ -1639,7 +1639,7 @@ from (
              and ifnull(ae.bonusset,0) = s.bonusset
              and a.buy > 0
              order by a.buy
-             limit 1) cheapestaucid
+             limit 1) cheapestaucid $colsLowerInside
         from tblDBCItem i
         join tblItemSummary s on s.house=? and s.item=i.id
         $joins
@@ -1776,7 +1776,8 @@ function CategoryDealsItemListCached($house, $iidList)
     }
 
     $genArray = [
-        'cols' => 'g.median * pow(1.15,(@level - cast(i.level as signed))/15) globalmedian', // , g.mean globalmean, g.stddev globalstddev
+        'colsUpper'        => 'g.median * pow(1.15,(@level - cast(i.level as signed))/15) globalmedian',
+        'colsLowerOutside' => 'g.median * pow(1.15,(@level - cast(r2.baselevel as signed))/15) globalmedian',
     ];
 
     $auctionIds = [];
@@ -1876,7 +1877,9 @@ function CategoryUnusualItemList($house, $unusualSql, $allowCrafted = 0)
     $params = [
         'where' => $unusualSql . $craftedSql . ' and s.bonusset=0',
         'joins' => 'join tblAuction a on a.house=s.house and a.item=i.id join tblAuctionRare ar on ar.house=a.house and ar.id=a.id',
-        'cols'  => 'g.median * pow(1.15,(@level - cast(i.level as signed))/15) globalmedian, min(ar.prevseen) `lastseenover`, min(ifnull(a.buy/a.quantity, a.bid/a.quantity) * pow(1.15,(@level - cast(i.level as signed))/15)) `priceover`',
+        'colsUpper'        => 'g.median * pow(1.15,(@level - cast(i.level as signed))/15) globalmedian, min(ar.prevseen) `lastseenover`, min(ifnull(a.buy/a.quantity, a.bid/a.quantity) * pow(1.15,(@level - cast(i.level as signed))/15)) `priceover`',
+        'colsLowerOutside' => 'g.median * pow(1.15,(@level - cast(r2.baselevel as signed))/15) globalmedian, r2.lastseenover, r2.priceover * * pow(1.15,(@level - cast(r2.baselevel as signed))/15) priceover',
+        'colsLowerInside'  => 'min(ar.prevseen) `lastseenover`, min(ifnull(a.buy/a.quantity, a.bid/a.quantity)) `priceover`',
         'outside' => 'lastseenover as lastseen, priceover as price',
     ];
 
