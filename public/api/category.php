@@ -359,7 +359,7 @@ EOF;
                 $house, [
                     'joins' => sprintf($joins, $house),
                     'where' => 'ifnull(lowbids.bid / g.median, 0) < 0.2',
-                    'cols'  => 'lowbids.bid, g.median globalmedian'
+                    'cols'  => 'lowbids.bid, g.median * pow(1.15,(@level - cast(i.level as signed))/15) globalmedian'
                 ]
             ),
             'hiddenCols'  => ['price' => true, 'lastseen' => true],
@@ -1525,7 +1525,7 @@ function CategoryGenericItemList($house, $params)
 {
     global $canCache;
 
-    $key = 'category_gil_b2_' . md5(json_encode($params));
+    $key = 'category_gil_b5_' . md5(json_encode($params));
 
     $skipLocales = is_array($params) && isset($params['locales']) && ($params['locales'] == false);
 
@@ -1572,23 +1572,79 @@ select results.*,
          select 12 h union select 13 h union select 14 h union select 15 h union
          select 16 h union select 17 h union select 18 h union select 19 h union
          select 20 h union select 21 h union select 22 h union select 23 h) hours
-        where ihh.house = ? and ihh.item = results.id and ihh.bonusset = results.bonusset) avgprice, $outside
-ifnull(GROUP_CONCAT(bs.`tagid` ORDER BY 1 SEPARATOR '.'), '') tagurl,
-ifnull((select concat_ws(':', nullif(bonus1,0), nullif(bonus2,0), nullif(bonus3,0), nullif(bonus4,0)) 
- FROM `tblItemBonusesSeen` ibs WHERE ibs.item=results.id and ibs.bonusset=results.bonusset order by ibs.observed desc limit 1),'') bonusurl
+        where ihh.house = ? and ihh.item = results.id and ihh.bonusset = results.bonusset) * pow(1.15,(cast(results.level as signed) - cast(results.baselevel as signed))/15) avgprice, $outside
+ifnull(GROUP_CONCAT(bs.`tagid` ORDER BY 1 SEPARATOR '.'), '') tagurl
 from (
-    select i.id, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen,
-    ifnull(s.bonusset,0) bonusset, i.level $cols
+    select i.id, i.quality, i.icon, i.class as classid,
+    ifnull(null + (@level := cast(ifnull((SELECT ils.level FROM `tblItemLevelsSeen` ils WHERE ils.item = i.id and ils.bonusset=ifnull(s.bonusset,0) order by if(ils.level=i.level,0,1), ils.level limit 1), i.level) as signed)), i.level) baselevel,
+    s.quantity, unix_timestamp(s.lastseen) lastseen,
+    ifnull(s.bonusset,0) bonusset $cols,
+    null cheapestaucid,
+    s.price * pow(1.15,(@level - cast(i.level as signed))/15) price,
+    ifnull((select concat_ws(':', nullif(bonus1,0), nullif(bonus2,0), nullif(bonus3,0), nullif(bonus4,0))
+        FROM `tblItemBonusesSeen` ibs WHERE ibs.item=i.id and ibs.bonusset=ifnull(s.bonusset,0) order by ibs.observed desc limit 1),'') bonusurl,
+    @level level
     from tblDBCItem i
     left join tblItemSummary s on s.house=? and s.item=i.id
     join tblItemGlobal g on g.item = i.id+0 and g.bonusset = ifnull(s.bonusset,0) and g.region = ?
     $joins
     where ifnull(i.auctionable,1) = 1
+    and (i.class not in (2,4) or ifnull(s.quantity,0) = 0)
     $where
     group by i.id, ifnull(s.bonusset,0)
 ) results
 left join tblBonusSet bs on results.bonusset = bs.`set`
 group by results.id, results.bonusset
+union
+select results.*,
+(select round(avg(case hours.h
+        when  0 then ihh.silver00 when  1 then ihh.silver01 when  2 then ihh.silver02 when  3 then ihh.silver03
+        when  4 then ihh.silver04 when  5 then ihh.silver05 when  6 then ihh.silver06 when  7 then ihh.silver07
+        when  8 then ihh.silver08 when  9 then ihh.silver09 when 10 then ihh.silver10 when 11 then ihh.silver11
+        when 12 then ihh.silver12 when 13 then ihh.silver13 when 14 then ihh.silver14 when 15 then ihh.silver15
+        when 16 then ihh.silver16 when 17 then ihh.silver17 when 18 then ihh.silver18 when 19 then ihh.silver19
+        when 20 then ihh.silver20 when 21 then ihh.silver21 when 22 then ihh.silver22 when 23 then ihh.silver23
+        else null end) * 100)
+        from tblItemHistoryHourly ihh,
+        (select  0 h union select  1 h union select  2 h union select  3 h union
+         select  4 h union select  5 h union select  6 h union select  7 h union
+         select  8 h union select  9 h union select 10 h union select 11 h union
+         select 12 h union select 13 h union select 14 h union select 15 h union
+         select 16 h union select 17 h union select 18 h union select 19 h union
+         select 20 h union select 21 h union select 22 h union select 23 h) hours
+        where ihh.house = ? and ihh.item = results.id and ihh.bonusset = results.bonusset) * pow(1.15,(cast(results.level as signed) - cast(results.baselevel as signed))/15) avgprice, $outside
+ifnull(GROUP_CONCAT(bs.`tagid` ORDER BY 1 SEPARATOR '.'), '') tagurl
+from (
+    select r2.*, a.buy price, concat_ws(':', ae.bonus1, ae.bonus2, ae.bonus3, ae.bonus4, ae.bonus5, ae.bonus6) bonusurl, ifnull(ae.level, r2.baselevel) level
+    from (
+        select i.id, i.quality, i.icon, i.class as classid, i.level baselevel,
+        s.quantity, unix_timestamp(s.lastseen) lastseen,
+        s.bonusset $cols,
+        (select a.id
+            from tblAuction a
+            left join tblAuctionExtra ae on a.house = ae.house and a.id = ae.id
+            where a.house = ?
+             and a.item = i.id
+             and ifnull(ae.bonusset,0) = s.bonusset
+             and a.buy > 0
+             order by a.buy
+             limit 1) cheapestaucid
+        from tblDBCItem i
+        join tblItemSummary s on s.house=? and s.item=i.id
+        join tblItemGlobal g on g.item = i.id+0 and g.bonusset = ifnull(s.bonusset,0) and g.region = ?
+        $joins
+        where ifnull(i.auctionable,1) = 1
+        and i.class in (2,4)
+        and ifnull(s.quantity,0) > 0
+        $where
+        group by i.id, s.bonusset
+    ) r2
+    join tblAuction a on a.house = ? and a.id = r2.cheapestaucid
+    left join tblAuctionExtra ae on ae.house = ? and ae.id = r2.cheapestaucid
+) results
+left join tblBonusSet bs on results.bonusset = bs.`set`
+group by results.id, results.bonusset
+
 EOF;
 
     $region = GetRegion($house);
@@ -1597,7 +1653,7 @@ EOF;
     if (!$stmt) {
         DebugMessage("Bad SQL: \n" . $sql, E_USER_ERROR);
     }
-    $stmt->bind_param('iis', $house, $house, $region);
+    $stmt->bind_param('iisiiisii', $house, $house, $region, $house, $house, $house, $region, $house, $house);
     $stmt->execute();
     $result = $stmt->get_result();
     $tr = DBMapArray($result, $keys);
@@ -1703,7 +1759,7 @@ function CategoryDealsItemListCached($house, $iidList)
     }
 
     $genArray = [
-        'cols' => 'g.median globalmedian', // , g.mean globalmean, g.stddev globalstddev
+        'cols' => 'g.median * pow(1.15,(@level - cast(i.level as signed))/15) globalmedian', // , g.mean globalmean, g.stddev globalstddev
     ];
 
     $auctionIds = [];
@@ -1803,7 +1859,7 @@ function CategoryUnusualItemList($house, $unusualSql, $allowCrafted = 0)
     $params = [
         'where' => $unusualSql . $craftedSql . ' and s.bonusset=0',
         'joins' => 'join tblAuction a on a.house=s.house and a.item=i.id join tblAuctionRare ar on ar.house=a.house and ar.id=a.id',
-        'cols'  => 'g.median globalmedian, min(ar.prevseen) `lastseenover`, min(ifnull(a.buy/a.quantity, a.bid/a.quantity)) `priceover`',
+        'cols'  => 'g.median * pow(1.15,(@level - cast(i.level as signed))/15) globalmedian, min(ar.prevseen) `lastseenover`, min(ifnull(a.buy/a.quantity, a.bid/a.quantity) * pow(1.15,(@level - cast(i.level as signed))/15)) `priceover`',
         'outside' => 'lastseenover as lastseen, priceover as price',
     ];
 
