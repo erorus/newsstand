@@ -1661,6 +1661,9 @@ EOF;
     $stmt->bind_param('iisiiisii', $house, $house, $region, $house, $house, $house, $region, $house, $house);
     $stmt->execute();
     $result = $stmt->get_result();
+    if (!$result) {
+        DebugMessage("No result: \n" . $sql, E_USER_ERROR);
+    }
     $tr = DBMapArray($result, $keys);
     $stmt->close();
 
