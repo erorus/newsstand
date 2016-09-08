@@ -1637,9 +1637,12 @@ function CategoryDealsItemList($house, $dealsSql, $allowCrafted = 0)
 
     $fullSql = <<<EOF
 select aa.item, aa.bonusset,
-    (select a.id from tblAuction a left join tblAuctionExtra ae on ae.house=a.house and ae.id = a.id
+    (select a.id
+    from tblAuction a
+    left join tblAuctionExtra ae on ae.house=a.house and ae.id = a.id
+    join tblDBCItem i on a.item = i.id
     where a.buy > 0 and a.house=? and a.item=aa.item and ifnull(ae.bonusset,0) = aa.bonusset
-    order by a.buy/a.quantity limit 1) cheapestid
+    order by (a.buy/pow(1.15,(ifnull(ae.level, i.level) - i.level)/15))/a.quantity limit 1) cheapestid
 from (
     select ac.item, ac.bonusset, ac.c_total, ac.c_over, ac.price, gs.median
     from (
