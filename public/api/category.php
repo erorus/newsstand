@@ -76,8 +76,8 @@ JOIN tblDBCPet p on ps.species=p.id
 WHERE ps.house = ?
 EOF;
 
-    $stmt = $db->prepare($sql);
-    if ($stmt === false) {
+    $stmt = $db->stmt_init();
+    if (!$stmt->prepare($sql)) {
         DebugMessage("Bad SQL: \n" . $sql, E_USER_ERROR);
     }
     $stmt->bind_param('i', $house);
@@ -133,8 +133,8 @@ join `tblRealm` r on i.house = r.house and r.region = ?
 group by i.species, i.breed
 EOF;
 
-    $stmt = $db->prepare($sql);
-    if ($stmt === false) {
+    $stmt = $db->stmt_init();
+    if (!$stmt->prepare($sql)) {
         DebugMessage("Bad SQL: \n" . $sql, E_USER_ERROR);
     }
     $stmt->bind_param('s', $region);
@@ -1660,8 +1660,8 @@ EOF;
 
     $region = GetRegion($house);
 
-    $stmt = $db->prepare($sql);
-    if ($stmt === false) {
+    $stmt = $db->stmt_init();
+    if (!$stmt->prepare($sql)) {
         DebugMessage("Bad SQL: \n" . $sql, E_USER_ERROR);
     }
     $stmt->bind_param('iisiiisii', $house, $house, $region, $house, $house, $house, $region, $house, $house);
@@ -1751,8 +1751,8 @@ order by (cast(median as signed) - cast(price as signed))/greatest(5000000,price
 limit 15
 EOF;
 
-    $stmt = $db->prepare($fullSql);
-    if ($stmt === false) {
+    $stmt = $db->stmt_init();
+    if (!$stmt->prepare($fullSql)) {
         DebugMessage("Bad SQL: \n" . $fullSql, E_USER_ERROR);
     }
     $stmt->bind_param('iiss', $house, $house, $region, $region);
@@ -1808,7 +1808,8 @@ function CategoryDealsItemListCached($house, $iidList)
         $recentDates = MCGetHouse($house, 'category_disnapshots');
         if ($recentDates === false) {
             $db = DBConnect();
-            $stmt = $db->prepare('SELECT unix_timestamp(updated) upd, maxid FROM `tblSnapshot` WHERE house=? and updated > timestampadd(hour, -60, now()) order by updated');
+            $stmt = $db->stmt_init();
+            $stmt->prepare('SELECT unix_timestamp(updated) upd, maxid FROM `tblSnapshot` WHERE house=? and updated > timestampadd(hour, -60, now()) order by updated');
             $stmt->bind_param('i', $house);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -1906,7 +1907,8 @@ and ii.auctionable = 1
 EOF;
 
     $db = DBConnect();
-    $stmt = $db->prepare($sql);
+    $stmt = $db->stmt_init();
+    $stmt->prepare($sql);
     $stmt->bind_param('i', $skill);
     $stmt->execute();
     $result = $stmt->get_result();

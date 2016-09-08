@@ -561,14 +561,16 @@ function GetRegion($house)
     $stmt = $db->prepare($sql);
     $stmt->bind_param('i', $house);
     $stmt->execute();
-    $result = $stmt->get_result();
-    $tr = DBMapArray($result, null);
+    $region = null;
+    $stmt->bind_result($region);
+    if (!$stmt->fetch()) {
+        $region = null;
+    }
     $stmt->close();
-    $tr = array_pop($tr);
 
-    MCSet('getregion_' . $house, $tr, 24 * 60 * 60);
+    MCSet('getregion_' . $house, $region, 24 * 60 * 60);
 
-    return $tr;
+    return $region;
 }
 
 function GetHouse($realm)
