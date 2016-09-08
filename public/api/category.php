@@ -83,8 +83,8 @@ EOF;
     $stmt->bind_param('i', $house);
     $stmt->execute();
     $result = $stmt->get_result();
-    if ($result === false) {
-        DebugMessage("No result: \n" . $sql, E_USER_ERROR);
+    if (($result === false) && ($errMsg = $db->error)) {
+        DebugMessage("No result: $errMsg\n" . $sql, E_USER_ERROR);
     }
     $tr = DBMapArray($result, array('type', 'species', 'breed'));
     $stmt->close();
@@ -140,8 +140,8 @@ EOF;
     $stmt->bind_param('s', $region);
     $stmt->execute();
     $result = $stmt->get_result();
-    if ($result === false) {
-        DebugMessage("No result: \n" . $sql, E_USER_ERROR);
+    if (($result === false) && ($errMsg = $db->error)) {
+        DebugMessage("No result: $errMsg\n" . $sql, E_USER_ERROR);
     }
     $tr = DBMapArray($result, array('species', 'breed'));
     $stmt->close();
@@ -1667,8 +1667,8 @@ EOF;
     $stmt->bind_param('iisiiisii', $house, $house, $region, $house, $house, $house, $region, $house, $house);
     $stmt->execute();
     $result = $stmt->get_result();
-    if ($result === false) {
-        DebugMessage("No result: \n" . $sql, E_USER_ERROR);
+    if (($result === false) && ($errMsg = $db->error)) {
+        DebugMessage("No result: $errMsg\n" . $sql, E_USER_ERROR);
     }
     $tr = DBMapArray($result, $keys);
     $stmt->close();
@@ -1758,8 +1758,8 @@ EOF;
     $stmt->bind_param('iiss', $house, $house, $region, $region);
     $stmt->execute();
     $result = $stmt->get_result();
-    if ($result === false) {
-        DebugMessage("No result: \n" . $fullSql, E_USER_ERROR);
+    if (($result === false) && ($errMsg = $db->error)) {
+        DebugMessage("No result: $errMsg\n" . $fullSql, E_USER_ERROR);
     }
     $iidList = DBMapArray($result, null);
     $stmt->close();
