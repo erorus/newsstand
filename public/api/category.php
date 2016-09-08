@@ -351,6 +351,7 @@ order by iba.bidper / iba.avgprice asc
 limit 20) lowbids on i.id=lowbids.item
 EOF;
 
+    /*
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
@@ -367,6 +368,7 @@ EOF;
             'sort'        => 'lowbids'
         ]
     ];
+    */
 
     return $tr;
 }
@@ -1525,7 +1527,7 @@ function CategoryGenericItemList($house, $params)
 {
     global $canCache;
 
-    $key = 'category_gil_b5_' . md5(json_encode($params));
+    $key = 'category_gil_b6_' . md5(json_encode($params));
 
     $skipLocales = is_array($params) && isset($params['locales']) && ($params['locales'] == false);
 
@@ -1578,12 +1580,12 @@ from (
     select i.id, i.quality, i.icon, i.class as classid,
     ifnull(null + (@level := cast(ifnull((SELECT ils.level FROM `tblItemLevelsSeen` ils WHERE ils.item = i.id and ils.bonusset=ifnull(s.bonusset,0) order by if(ils.level=i.level,0,1), ils.level limit 1), i.level) as signed)), i.level) baselevel,
     s.quantity, unix_timestamp(s.lastseen) lastseen,
-    ifnull(s.bonusset,0) bonusset $cols,
+    ifnull(s.bonusset,0) bonusset,
     null cheapestaucid,
     s.price * pow(1.15,(@level - cast(i.level as signed))/15) price,
     ifnull((select concat_ws(':', nullif(bonus1,0), nullif(bonus2,0), nullif(bonus3,0), nullif(bonus4,0))
         FROM `tblItemBonusesSeen` ibs WHERE ibs.item=i.id and ibs.bonusset=ifnull(s.bonusset,0) order by ibs.observed desc limit 1),'') bonusurl,
-    @level level
+    @level level $cols
     from tblDBCItem i
     left join tblItemSummary s on s.house=? and s.item=i.id
     join tblItemGlobal g on g.item = i.id+0 and g.bonusset = ifnull(s.bonusset,0) and g.region = ?
@@ -1615,11 +1617,12 @@ select results.*,
         where ihh.house = ? and ihh.item = results.id and ihh.bonusset = results.bonusset) * pow(1.15,(cast(results.level as signed) - cast(results.baselevel as signed))/15) avgprice, $outside
 ifnull(GROUP_CONCAT(bs.`tagid` ORDER BY 1 SEPARATOR '.'), '') tagurl
 from (
-    select r2.*, a.buy price, concat_ws(':', ae.bonus1, ae.bonus2, ae.bonus3, ae.bonus4, ae.bonus5, ae.bonus6) bonusurl, ifnull(ae.level, r2.baselevel) level
+    select r2.*, a.buy price,
+    concat_ws(':', ae.bonus1, ae.bonus2, ae.bonus3, ae.bonus4, ae.bonus5, ae.bonus6) bonusurl,
+    @level := ifnull(ae.level, r2.baselevel) level $cols
     from (
         select i.id, i.quality, i.icon, i.class as classid, i.level baselevel,
-        s.quantity, unix_timestamp(s.lastseen) lastseen,
-        s.bonusset $cols,
+        s.quantity, unix_timestamp(s.lastseen) lastseen, s.bonusset,
         (select a.id
             from tblAuction a
             left join tblAuctionExtra ae on a.house = ae.house and a.id = ae.id
@@ -1631,7 +1634,6 @@ from (
              limit 1) cheapestaucid
         from tblDBCItem i
         join tblItemSummary s on s.house=? and s.item=i.id
-        join tblItemGlobal g on g.item = i.id+0 and g.bonusset = ifnull(s.bonusset,0) and g.region = ?
         $joins
         where ifnull(i.auctionable,1) = 1
         and i.class in (2,4)
@@ -1639,6 +1641,7 @@ from (
         $where
         group by i.id, s.bonusset
     ) r2
+    join tblItemGlobal g on g.item = r2.id+0 and g.bonusset = r2.bonusset and g.region = ?
     join tblAuction a on a.house = ? and a.id = r2.cheapestaucid
     left join tblAuctionExtra ae on ae.house = ? and ae.id = r2.cheapestaucid
 ) results
