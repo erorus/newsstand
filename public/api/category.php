@@ -1759,7 +1759,7 @@ EOF;
     $stmt->execute();
     $result = $stmt->get_result();
     if (!$result) {
-        DebugMessage("No result: \n" . $sql, E_USER_ERROR);
+        DebugMessage("No result: \n" . $fullSql, E_USER_ERROR);
     }
     $iidList = DBMapArray($result, null);
     $stmt->close();
