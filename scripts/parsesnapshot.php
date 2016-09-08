@@ -21,6 +21,9 @@ define('EXISTING_COL_BUY', 1);
 define('EXISTING_COL_TIMELEFT', 2);
 define('EXISTING_COL_INFOKEY', 3);
 
+define('DB_LOCK_SEEN_BONUSES', 'update_seen_bonuses');
+define('DB_LOCK_SEEN_ILVLS', 'update_seen_ilvls');
+
 ini_set('memory_limit', '768M');
 
 if (!DBConnect()) {
@@ -138,6 +141,33 @@ while ((!$caughtKill) && (time() < ($loopStart + 60 * 30))) {
     }
 }
 DebugMessage('Done! Started ' . TimeDiff($startTime));
+
+function GetDBLock($db, $lockName)
+{
+    $now = microtime(true);
+    $stmt = $db->prepare('select get_lock(?, 30)');
+    $stmt->bind_param('s', $lockName);
+    $stmt->execute();
+    $lockSuccess = null;
+    $stmt->bind_result($lockSuccess);
+    if (!$stmt->fetch()) {
+        $lockSuccess = null;
+    }
+    $stmt->close();
+    $duration = microtime(true) - $now;
+    if ($duration >= 3) {
+        DebugMessage("Waited ".round($duration, 2)." seconds for DB lock $lockName; " . ($lockSuccess === 1 ? "successful." : "failed."));
+    }
+
+    return $lockSuccess === 1;
+}
+
+function ReleaseDBLock($db, $lockName) {
+    $stmt = $db->prepare('do release_lock(?)');
+    $stmt->bind_param('s', $lockName);
+    $stmt->execute();
+    $stmt->close();
+}
 
 function NextDataFile()
 {
@@ -475,8 +505,13 @@ function ParseAuctionData($house, $snapshot, &$json)
                         );
 
                         if (strlen($sqlBonusesSeen) + 5 + strlen($thisSql) + strlen($sqlEndBonusesSeen) > $maxPacketSize) {
-                            DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating seen bonuses (" . round($totalAuctions / $auctionCount * 100) . '%)');
-                            DBQueryWithError($ourDb, $sqlBonusesSeen . $sqlEndBonusesSeen);
+                            if (GetDBLock($ourDb, DB_LOCK_SEEN_BONUSES)) {
+                                DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating seen bonuses (" . round($totalAuctions / $auctionCount * 100) . '%)');
+                                DBQueryWithError($ourDb, $sqlBonusesSeen . $sqlEndBonusesSeen);
+                                ReleaseDBLock($ourDb, DB_LOCK_SEEN_BONUSES);
+                            } else {
+                                DebugMessage("Could not obtain ".DB_LOCK_SEEN_BONUSES." DB lock, skipping update of seen bonuses.", E_USER_WARNING);
+                            }
                             $sqlBonusesSeen = '';
                         }
                         $sqlBonusesSeen .= ($sqlBonusesSeen ? ',' : $sqlStartBonusesSeen) . $thisSql;
@@ -485,8 +520,13 @@ function ParseAuctionData($house, $snapshot, &$json)
                     if (!is_null($bonusItemLevel)) {
                         $thisSql = sprintf('(%u,%u,%u)', $auction['item'], $bonusSet, $bonusItemLevel);
                         if (strlen($sqlLevelsSeen) + 5 + strlen($thisSql) > $maxPacketSize) {
-                            DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating seen levels (" . round($totalAuctions / $auctionCount * 100) . '%)');
-                            DBQueryWithError($ourDb, $sqlLevelsSeen);
+                            if (GetDBLock($ourDb, DB_LOCK_SEEN_ILVLS)) {
+                                DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating seen levels (" . round($totalAuctions / $auctionCount * 100) . '%)');
+                                DBQueryWithError($ourDb, $sqlLevelsSeen);
+                                ReleaseDBLock($ourDb, DB_LOCK_SEEN_ILVLS);
+                            } else {
+                                DebugMessage("Could not obtain ".DB_LOCK_SEEN_ILVLS." DB lock, skipping update of seen levels.", E_USER_WARNING);
+                            }
                             $sqlLevelsSeen = '';
                         }
                         $sqlLevelsSeen .= ($sqlLevelsSeen ? ',' : $sqlStartLevelsSeen) . $thisSql;
@@ -556,13 +596,23 @@ function ParseAuctionData($house, $snapshot, &$json)
         }
 
         if ($sqlBonusesSeen != '') {
-            DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating seen bonuses");
-            DBQueryWithError($ourDb, $sqlBonusesSeen . $sqlEndBonusesSeen);
+            if (GetDBLock($ourDb, DB_LOCK_SEEN_BONUSES)) {
+                DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating seen bonuses");
+                DBQueryWithError($ourDb, $sqlBonusesSeen . $sqlEndBonusesSeen);
+                ReleaseDBLock($ourDb, DB_LOCK_SEEN_BONUSES);
+            } else {
+                DebugMessage("Could not obtain ".DB_LOCK_SEEN_BONUSES." DB lock, skipping update of seen bonuses.", E_USER_WARNING);
+            }
         }
 
         if ($sqlLevelsSeen != '') {
-            DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating seen levels");
-            DBQueryWithError($ourDb, $sqlLevelsSeen);
+            if (GetDBLock($ourDb, DB_LOCK_SEEN_ILVLS)) {
+                DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating seen levels");
+                DBQueryWithError($ourDb, $sqlLevelsSeen);
+                ReleaseDBLock($ourDb, DB_LOCK_SEEN_ILVLS);
+            } else {
+                DebugMessage("Could not obtain ".DB_LOCK_SEEN_ILVLS." DB lock, skipping update of seen levels.", E_USER_WARNING);
+            }
         }
 
         if ($sql != '') {
