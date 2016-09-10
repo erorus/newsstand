@@ -14,6 +14,8 @@ mb_internal_encoding("UTF-8");
 
 define('HISTORY_DAYS', 14);
 define('HISTORY_DAYS_DEEP', 93);
+define('SOCKET_FAKE_ITEM_NAME_DESC_ID', 10);
+
 $TIMELEFT_ENUM = [
     'SHORT'     => 1,
     'MEDIUM'    => 2,

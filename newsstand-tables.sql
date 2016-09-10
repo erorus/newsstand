@@ -203,6 +203,7 @@ CREATE TABLE IF NOT EXISTS `tblDBCItemBonus` (
   `tagpriority` tinyint(3) unsigned DEFAULT NULL,
   `nameid` mediumint(8) unsigned DEFAULT NULL,
   `namepriority` tinyint(3) unsigned DEFAULT NULL,
+  `socketmask` bit(32) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 

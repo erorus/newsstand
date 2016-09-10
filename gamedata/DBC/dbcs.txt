@@ -2,6 +2,7 @@ DBFilesClient\BattlePetSpecies.db2
 DBFilesClient\BattlePetSpeciesState.db2
 DBFilesClient\Creature.db2
 DBFilesClient\CurvePoint.db2
+DBFilesClient\GlobalStrings.db2
 DBFilesClient\ItemAppearance.db2
 DBFilesClient\ItemBonus.db2
 DBFilesClient\Item.db2

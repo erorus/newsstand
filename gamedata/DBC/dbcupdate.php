@@ -17,6 +17,18 @@ RunAndLogError('set session max_heap_table_size='.(1024*1024*1024));
 $fileDataReader = new Reader($dirnm . '/ManifestInterfaceData.db2');
 $fileDataReader->setFieldNames(['path', 'name']);
 
+LogLine("GlobalStrings");
+$globalStrings = [];
+$reader = new Reader($dirnm . '/GlobalStrings.db2');
+$reader->setFieldNames(['key','value']);
+$x = 0; $recordCount = count($reader->getIds());
+foreach ($reader->generateRecords() as $rec) {
+    EchoProgress(++$x/$recordCount);
+    $globalStrings[$rec['key']] = $rec['value'];
+}
+EchoProgress(false);
+unset($reader);
+
 LogLine("tblDBCItemSubClass");
 $sql = <<<EOF
 insert into tblDBCItemSubClass (class, subclass, name_$locale) values (?, ?, ?)
@@ -98,6 +110,11 @@ RunAndLogError('truncate tblDBCItemNameDescription');
 $stmt = $db->prepare('insert into tblDBCItemNameDescription (id, desc_enus) values (?, ?)');
 $tblId = $name = null;
 $stmt->bind_param('is', $tblId, $name);
+
+$tblId = SOCKET_FAKE_ITEM_NAME_DESC_ID;
+$name = '+ ' . $globalStrings['EMPTY_SOCKET_PRISMATIC'];
+RunAndLogError($stmt->execute());
+
 $reader = new Reader($dirnm . '/ItemNameDescription.db2');
 $reader->setFieldNames(['name']);
 $x = 0; $recordCount = count($reader->getIds());
@@ -162,6 +179,12 @@ foreach ($bonusRows as $row) {
                 ];
             }
             break;
+        case 6: // socket
+            if (!isset($bonuses[$row['bonusid']]['socket'])) {
+                $bonuses[$row['bonusid']]['socket'] = 0;
+            }
+            $bonuses[$row['bonusid']]['socket'] = $bonuses[$row['bonusid']]['socket'] | pow(2, $row['params'][1] - 1);
+            break;
         case 13: // itemlevel scaling distribution
             if (!isset($distCurves[$row['params'][0]])) {
                 LogLine("Warning: Could not find distribution " . $row['params'][0] . " for bonus " . $row['bonusid']);
@@ -183,9 +206,9 @@ foreach ($bonusRows as $row) {
 }
 
 RunAndLogError('truncate table tblDBCItemBonus');
-$stmt = $db->prepare("insert into tblDBCItemBonus (id, quality, level, previewlevel, levelcurve, tagid, tagpriority, nameid, namepriority) values (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-$id = $quality = $level = $previewLevel = $levelCurve = $tagPriority = $tagId = $nameId = $namePriority = null;
-$stmt->bind_param('iiiiiiiii', $id, $quality, $level, $previewLevel, $levelCurve, $tagId, $tagPriority, $nameId, $namePriority);
+$stmt = $db->prepare("insert into tblDBCItemBonus (id, quality, level, previewlevel, levelcurve, tagid, tagpriority, nameid, namepriority, socketmask) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+$id = $quality = $level = $previewLevel = $levelCurve = $tagPriority = $tagId = $nameId = $namePriority = $socketMask = null;
+$stmt->bind_param('iiiiiiiiii', $id, $quality, $level, $previewLevel, $levelCurve, $tagId, $tagPriority, $nameId, $namePriority, $socketMask);
 foreach ($bonuses as $bonusId => $bonusData) {
     $id = $bonusId;
     $quality = isset($bonusData['quality']) ? $bonusData['quality'] : null;
@@ -196,6 +219,11 @@ foreach ($bonuses as $bonusId => $bonusData) {
     $tagPriority = isset($bonusData['tag']) ? $bonusData['tag']['prio'] : null;
     $nameId = isset($bonusData['name']) ? $bonusData['name']['id'] : null;
     $namePriority = isset($bonusData['name']) ? $bonusData['name']['prio'] : null;
+    $socketMask = (isset($bonusData['socket']) && ($bonusData['socket'] != 0)) ? $bonusData['socket'] : null;
+    if (isset($socketMask) && ($socketMask & 0x7F) && !isset($tagId)) {
+        $tagId = SOCKET_FAKE_ITEM_NAME_DESC_ID;
+        $tagPriority = 250;
+    }
     RunAndLogError($stmt->execute());
 }
 $stmt->close();

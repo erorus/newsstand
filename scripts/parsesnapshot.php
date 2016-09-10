@@ -68,7 +68,7 @@ while ($stmt->fetch()) {
 $stmt->close();
 
 $usefulBonusesCache = [];
-$stmt = $db->prepare('select id from tblDBCItemBonus where (quality is not null or level is not null or previewlevel is not null or levelcurve is not null or tagid is not null) order by 1');
+$stmt = $db->prepare('select id from tblDBCItemBonus where (quality is not null or level is not null or previewlevel is not null or levelcurve is not null or tagid is not null or socketmask is not null) order by 1');
 $stmt->execute();
 $id = null;
 $stmt->bind_result($id);

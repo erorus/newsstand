@@ -26,10 +26,24 @@ $db = DBConnect();
 foreach ($LOCALES as $locale) {
     $dirnm = 'current/' . substr($locale, 0, 2) . strtoupper(substr($locale, 2, 2));
 
+    LogLine("$locale GlobalStrings");
+    $globalStrings = [];
+    $reader = new Reader($dirnm . '/GlobalStrings.db2');
+    $reader->setFieldNames(['key','value']);
+    foreach ($reader->generateRecords() as $rec) {
+        $globalStrings[$rec['key']] = $rec['value'];
+    }
+    unset($reader);
+
     LogLine("$locale tblDBCItemNameDescription");
     $stmt = $db->prepare("insert into tblDBCItemNameDescription (id, desc_$locale) values (?, ?) on duplicate key update desc_$locale = values(desc_$locale)");
     $tblId = $name = null;
     $stmt->bind_param('is', $tblId, $name);
+
+    $tblId = SOCKET_FAKE_ITEM_NAME_DESC_ID;
+    $name = '+ ' . $globalStrings['EMPTY_SOCKET_PRISMATIC'];
+    $stmt->execute();
+
     $reader = new Reader($dirnm . '/ItemNameDescription.db2');
     $reader->setFieldNames(['name']);
     $x = 0; $recordCount = count($reader->getIds());
