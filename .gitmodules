@@ -4,3 +4,6 @@
 [submodule "gamedata/DBC/db2"]
 	path = gamedata/DBC/db2
 	url = https://github.com/erorus/db2.git
+[submodule "gamedata/icons/BLPConverter"]
+	path = gamedata/icons/BLPConverter
+	url = https://github.com/Kanma/BLPConverter.git
