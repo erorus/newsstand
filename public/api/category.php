@@ -357,7 +357,6 @@ order by iba.bidper / iba.avgprice asc
 limit 20) lowbids on i.id=lowbids.item
 EOF;
 
-    /*
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
@@ -365,8 +364,11 @@ EOF;
             'items'       => CategoryGenericItemList(
                 $house, [
                     'joins' => sprintf($joins, $house),
-                    'where' => 'ifnull(lowbids.bid / g.median, 0) < 0.2',
-                    'cols'  => 'lowbids.bid, g.median * pow(1.15,(@level - cast(i.level as signed))/15) globalmedian'
+                    'whereUpper' => 'ifnull(lowbids.bid / g.median, 0) < 0.2',
+                    'whereLower' => 'ifnull(r2.bid / g.median * pow(1.15,(cast(ifnull(ae.level, r2.baselevel) as signed) - cast(r2.baselevel as signed))/15), 0) < 0.2',
+                    'colsUpper'        => 'lowbids.bid, g.median globalmedian',
+                    'colsLowerInside'  => 'lowbids.bid',
+                    'colsLowerOutside' => 'r2.bid, g.median * pow(1.15,(@level - cast(r2.baselevel as signed))/15) globalmedian',
                 ]
             ),
             'hiddenCols'  => ['price' => true, 'lastseen' => true],
@@ -374,7 +376,6 @@ EOF;
             'sort'        => 'lowbids'
         ]
     ];
-    */
 
     return $tr;
 }
@@ -1552,6 +1553,8 @@ function CategoryGenericItemList($house, $params)
     if (is_array($params)) {
         $joins = isset($params['joins']) ? $params['joins'] : '';
         $where = isset($params['where']) ? (' and ' . $params['where']) : '';
+        $whereUpper = isset($params['whereUpper']) ? (' and ' . $params['whereUpper']) : '';
+        $whereLower = isset($params['whereLower']) ? (' where ' . $params['whereLower']) : '';
         $colsUpper = isset($params['colsUpper']) ? (', ' . $params['colsUpper']) : '';
         $colsLowerInside = isset($params['colsLowerInside']) ? (', ' . $params['colsLowerInside']) : '';
         $colsLowerOutside = isset($params['colsLowerOutside']) ? (', ' . $params['colsLowerOutside']) : '';
@@ -1560,7 +1563,7 @@ function CategoryGenericItemList($house, $params)
     } else {
         $joins = '';
         $where = ($params == '') ? '' : (' and ' . $params);
-        $colsUpper = $colsLowerInside = $colsLowerOutside = '';
+        $whereUpper = $whereLower = $colsUpper = $colsLowerInside = $colsLowerOutside = '';
         $outside = '';
         $key = false;
     }
@@ -1600,7 +1603,7 @@ from (
     $joins
     where ifnull(i.auctionable,1) = 1
     and (i.class not in (2,4) or ifnull(s.quantity,0) = 0)
-    $where
+    $where $whereUpper
     group by i.id, ifnull(s.bonusset,0)
 ) results
 left join tblBonusSet bs on results.bonusset = bs.`set`
@@ -1652,6 +1655,7 @@ from (
     join tblItemGlobal g on g.item = r2.id+0 and g.bonusset = r2.bonusset and g.region = ?
     join tblAuction a on a.house = ? and a.id = r2.cheapestaucid
     left join tblAuctionExtra ae on ae.house = ? and ae.id = r2.cheapestaucid
+    $whereLower
 ) results
 left join tblBonusSet bs on results.bonusset = bs.`set`
 group by results.id, results.bonusset
