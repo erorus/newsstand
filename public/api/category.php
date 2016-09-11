@@ -37,9 +37,9 @@ function CategoryResult_battlepets($house)
 {
     global $canCache;
 
-    $key = 'category_bpets';
+    $cacheKey = 'category_bpets';
 
-    if ($canCache && (($tr = MCGetHouse($house, $key)) !== false)) {
+    if ($canCache && (($tr = MCGetHouse($house, $cacheKey)) !== false)) {
         foreach ($tr as &$species) {
             foreach ($species as &$breeds) {
                 PopulateLocaleCols($breeds, [['func' => 'GetPetNames', 'key' => 'species', 'name' => 'name']], count($breeds) > 1);
@@ -103,7 +103,7 @@ EOF;
     }
     unset($allSpecies);
 
-    MCSetHouse($house, $key, $tr);
+    MCSetHouse($house, $cacheKey, $tr);
 
     foreach ($tr as &$species) {
         foreach ($species as &$breeds) {
@@ -119,8 +119,8 @@ function CategoryBattlePetRegion($region)
 {
     global $canCache;
 
-    $key = 'category_bpets_regional_'.$region;
-    if ($canCache && (($tr = MCGet($key)) !== false)) {
+    $cacheKey = 'category_bpets_regional_'.$region;
+    if ($canCache && (($tr = MCGet($cacheKey)) !== false)) {
         return $tr;
     }
 
@@ -146,7 +146,7 @@ EOF;
     $tr = DBMapArray($result, array('species', 'breed'));
     $stmt->close();
 
-    MCSet($key, $tr, 60*60*6);
+    MCSet($cacheKey, $tr, 60*60*6);
 
     return $tr;
 }
@@ -1534,11 +1534,11 @@ function CategoryGenericItemList($house, $params)
 {
     global $canCache;
 
-    $key = 'category_gil_b6_' . md5(json_encode($params));
+    $cacheKey = 'category_gil_b6_' . md5(json_encode($params));
 
     $skipLocales = is_array($params) && isset($params['locales']) && ($params['locales'] == false);
 
-    if ($canCache && (($tr = MCGetHouse($house, $key)) !== false)) {
+    if ($canCache && (($tr = MCGetHouse($house, $cacheKey)) !== false)) {
         if (!$skipLocales) {
             PopulateLocaleCols($tr, [
                 ['func' => 'GetItemNames',          'key' => 'id',     'name' => 'name'],
@@ -1559,13 +1559,13 @@ function CategoryGenericItemList($house, $params)
         $colsLowerInside = isset($params['colsLowerInside']) ? (', ' . $params['colsLowerInside']) : '';
         $colsLowerOutside = isset($params['colsLowerOutside']) ? (', ' . $params['colsLowerOutside']) : '';
         $outside = isset($params['outside']) ? ($params['outside'].', ') : '';
-        $key = isset($params['key']) ? $params['key'] : false;
+        $rowKey = isset($params['key']) ? $params['key'] : false;
     } else {
         $joins = '';
         $where = ($params == '') ? '' : (' and ' . $params);
         $whereUpper = $whereLower = $colsUpper = $colsLowerInside = $colsLowerOutside = '';
         $outside = '';
-        $key = false;
+        $rowKey = false;
     }
 
     $sql = <<<EOF
@@ -1685,8 +1685,8 @@ EOF;
         foreach ($row as $k => $v) {
             $unreferenced[$k] = $v;
         }
-        if ($key) {
-            $tr[$unreferenced[$key]] = $unreferenced;
+        if ($rowKey) {
+            $tr[$unreferenced[$rowKey]] = $unreferenced;
         } else {
             $tr[] = $unreferenced;
         }
@@ -1694,7 +1694,7 @@ EOF;
 
     $stmt->close();
 
-    MCSetHouse($house, $key, $tr);
+    MCSetHouse($house, $cacheKey, $tr);
 
     if (!$skipLocales) {
         PopulateLocaleCols($tr, [
@@ -1716,9 +1716,9 @@ function CategoryDealsItemList($house, $dealsSql, $allowCrafted = 0)
 
     global $canCache;
 
-    $key = 'category_di3_' . md5($dealsSql) . '_' . $allowCrafted;
+    $cacheKey = 'category_di3_' . md5($dealsSql) . '_' . $allowCrafted;
 
-    if ($canCache && (($iidList = MCGetHouse($house, $key)) !== false)) {
+    if ($canCache && (($iidList = MCGetHouse($house, $cacheKey)) !== false)) {
         return CategoryDealsItemListCached($house, $iidList);
     }
 
@@ -1785,7 +1785,7 @@ EOF;
     $iidList = DBMapArray($result, null);
     $stmt->close();
 
-    MCSetHouse($house, $key, $iidList);
+    MCSetHouse($house, $cacheKey, $iidList);
 
     return CategoryDealsItemListCached($house, $iidList);
 }
