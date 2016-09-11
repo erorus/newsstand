@@ -1808,7 +1808,9 @@ function CategoryDealsItemListCached($house, $iidList)
         $sql .= (strlen($sql) == 1 ? '' : ' or ') . '(i.id = ' . $row['item'] . ' and s.bonusset = ' . $row['bonusset'] . ')';
         $itemKey = $row['item'].':'.$row['bonusset'];
         $sortBy[] = $itemKey;
-        $auctionIds[$itemKey] = $row['cheapestid'];
+        if (isset($row['cheapestid'])) {
+            $auctionIds[$itemKey] = $row['cheapestid'];
+        }
     }
     $sql .= ')';
 
