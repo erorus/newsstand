@@ -17,6 +17,10 @@ if (!function_exists($resultFunc)) {
 }
 
 $canCache = true;
+
+define('CATEGORY_FLAGS_ALLOW_CRAFTED', 1);
+define('CATEGORY_FLAGS_DENY_NONCRAFTED', 2);
+
 BotCheck();
 HouseETag($house);
 
@@ -223,7 +227,7 @@ function CategoryResult_deals($house)
                 'name' => 'ItemList',
                 'data' => [
                     'name'        => 'Crafted Armor/Weapons',
-                    'items'       => CategoryDealsItemList($house, 'i.class in (2,4)', -1),
+                    'items'       => CategoryDealsItemList($house, 'i.class in (2,4)', CATEGORY_FLAGS_ALLOW_CRAFTED | CATEGORY_FLAGS_DENY_NONCRAFTED),
                     'hiddenCols'  => ['lastseen' => true],
                     'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
@@ -233,7 +237,7 @@ function CategoryResult_deals($house)
                 'name' => 'ItemList',
                 'data' => [
                     'name'        => 'Armor/Weapons with Bonuses',
-                    'items'       => CategoryDealsItemList($house, 'i.class in (2,4) and tis.bonusset != 0', 1),
+                    'items'       => CategoryDealsItemList($house, 'i.class in (2,4) and tis.bonusset != 0', CATEGORY_FLAGS_ALLOW_CRAFTED),
                     'hiddenCols'  => ['lastseen' => true],
                     'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
@@ -439,7 +443,7 @@ function CategoryResult_unusuals($house)
                 'name' => 'ItemList',
                 'data' => [
                     'name'        => 'Crafted Armor/Weapons',
-                    'items'       => CategoryUnusualItemList($house, 'i.class in (2,4)', -1),
+                    'items'       => CategoryUnusualItemList($house, 'i.class in (2,4)', CATEGORY_FLAGS_ALLOW_CRAFTED | CATEGORY_FLAGS_DENY_NONCRAFTED),
                     'hiddenCols'  => ['avgprice' => true],
                     'visibleCols' => ['globalmedian' => true],
                     'sort'        => 'lowprice'
@@ -1814,17 +1818,11 @@ EOF;
     return $tr;
 }
 
-function CategoryDealsItemList($house, $dealsSql, $allowCrafted = 0)
+function CategoryDealsItemList($house, $dealsSql, $flags = 0)
 {
-    /* $allowCrafted
-        0 = no crafted items
-        1 = crafted and drops
-        -1 = crafted only
-    */
-
     global $canCache;
 
-    $cacheKey = 'category_di3_' . md5($dealsSql) . '_' . $allowCrafted;
+    $cacheKey = 'category_di4_' . md5($dealsSql) . '_' . $flags;
 
     if ($canCache && (($iidList = MCGetHouse($house, $cacheKey)) !== false)) {
         return CategoryDealsItemListCached($house, $iidList);
@@ -1856,13 +1854,11 @@ from (
             and i.class not in (16)
             and $dealsSql
 EOF;
-    switch ($allowCrafted) {
-        case '0':
-            $fullSql .= ' and 0 = (select count(*) from tblDBCSpell s where s.crafteditem=i.id) ';
-            break;
-        case '-1' :
-            $fullSql .= ' and 0 < (select count(*) from tblDBCSpell s where s.crafteditem=i.id) ';
-            break;
+    if (($flags & CATEGORY_FLAGS_ALLOW_CRAFTED) == 0) {
+        $fullSql .= ' and not exists (select 1 from tblDBCSpell s where s.crafteditem=i.id) ';
+    }
+    if ($flags & CATEGORY_FLAGS_DENY_NONCRAFTED) {
+        $fullSql .= ' and exists (select 1 from tblDBCSpell s where s.crafteditem=i.id) ';
     }
     $fullSql .= <<<EOF
         ) ab
@@ -1988,22 +1984,15 @@ function CategoryDealsItemListCached($house, $iidList)
     return $tr;
 }
 
-function CategoryUnusualItemList($house, $unusualSql, $allowCrafted = 0)
+function CategoryUnusualItemList($house, $unusualSql, $flags)
 {
-    /* $allowCrafted
-        0 = no crafted items
-        1 = crafted and drops
-        -1 = crafted only
-    */
-
     $craftedSql = '';
-    switch ($allowCrafted) {
-        case '0':
-            $craftedSql .= ' and 0 = (select count(*) from tblDBCSpell s where s.crafteditem=i.id) ';
-            break;
-        case '-1' :
-            $craftedSql .= ' and 0 < (select count(*) from tblDBCSpell s where s.crafteditem=i.id) ';
-            break;
+
+    if (($flags & CATEGORY_FLAGS_ALLOW_CRAFTED) == 0) {
+        $craftedSql .= ' and not exists (select 1 from tblDBCSpell s where s.crafteditem=i.id) ';
+    }
+    if ($flags & CATEGORY_FLAGS_DENY_NONCRAFTED) {
+        $craftedSql .= ' and exists (select 1 from tblDBCSpell s where s.crafteditem=i.id) ';
     }
 
     $params = [
