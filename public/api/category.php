@@ -1846,8 +1846,8 @@ function CategoryBonusItemList($house, $params)
     if ($canCache && (($tr = MCGetHouse($house, $cacheKey)) !== false)) {
         if (!$skipLocales) {
             PopulateLocaleCols($tr, [
-                ['func' => 'GetItemNames',          'key' => 'id',     'name' => 'name'],
-                ['func' => 'GetItemBonusTagsByTag', 'key' => 'tagurl', 'name' => 'bonustag'],
+                ['func' => 'GetItemNames',     'key' => 'id',       'name' => 'name'],
+                ['func' => 'GetItemBonusTags', 'key' => 'bonusurl', 'name' => 'bonustag'],
             ]);
         }
         return $tr;
