@@ -2131,7 +2131,7 @@ function CategoryDealsItemListCached($house, $iidList, $flags)
     return $tr;
 }
 
-function CategoryUnusualItemList($house, $unusualSql, $flags)
+function CategoryUnusualItemList($house, $unusualSql, $flags = 0)
 {
     $craftedSql = '';
 
