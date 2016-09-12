@@ -1951,8 +1951,8 @@ EOF;
 
     if (!$skipLocales) {
         PopulateLocaleCols($tr, [
-            ['func' => 'GetItemNames',          'key' => 'id',     'name' => 'name'],
-            ['func' => 'GetItemBonusTagsByTag', 'key' => 'tagurl', 'name' => 'bonustag'],
+            ['func' => 'GetItemNames',     'key' => 'id',       'name' => 'name'],
+            ['func' => 'GetItemBonusTags', 'key' => 'bonusurl', 'name' => 'bonustag'],
         ]);
     }
 
