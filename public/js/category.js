@@ -922,7 +922,7 @@ var TUJ_Category = function ()
                 $(tagspan).text(item['bonustag_' + tuj.locale]);
                 a.appendChild(tagspan);
             }
-            if (item.level) {
+            if (item.baselevel && (item.level != item.baselevel)) {
                 var s = libtuj.ce('span');
                 s.className = 'level';
                 s.appendChild(document.createTextNode(item.level));

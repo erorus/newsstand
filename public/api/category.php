@@ -20,6 +20,7 @@ $canCache = true;
 
 define('CATEGORY_FLAGS_ALLOW_CRAFTED', 1);
 define('CATEGORY_FLAGS_DENY_NONCRAFTED', 2);
+define('CATEGORY_FLAGS_WITH_BONUSES', 4);
 
 BotCheck();
 HouseETag($house);
@@ -207,7 +208,7 @@ function CategoryResult_deals($house)
                 'name' => 'ItemList',
                 'data' => [
                     'name'        => 'Dropped Rare and Epic Armor/Weapons',
-                    'items'       => CategoryDealsItemList($house, 'i.class in (2,4) and i.quality > 2'),
+                    'items'       => CategoryDealsItemList($house, 'i.class in (2,4) and i.quality > 2', CATEGORY_FLAGS_WITH_BONUSES),
                     'hiddenCols'  => ['lastseen' => true],
                     'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
@@ -217,7 +218,7 @@ function CategoryResult_deals($house)
                 'name' => 'ItemList',
                 'data' => [
                     'name'        => 'Dropped Uncommon Armor/Weapons',
-                    'items'       => CategoryDealsItemList($house, 'i.class in (2,4) and i.quality = 2'),
+                    'items'       => CategoryDealsItemList($house, 'i.class in (2,4) and i.quality = 2', CATEGORY_FLAGS_WITH_BONUSES),
                     'hiddenCols'  => ['lastseen' => true],
                     'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
@@ -227,7 +228,7 @@ function CategoryResult_deals($house)
                 'name' => 'ItemList',
                 'data' => [
                     'name'        => 'Crafted Armor/Weapons',
-                    'items'       => CategoryDealsItemList($house, 'i.class in (2,4)', CATEGORY_FLAGS_ALLOW_CRAFTED | CATEGORY_FLAGS_DENY_NONCRAFTED),
+                    'items'       => CategoryDealsItemList($house, 'i.class in (2,4)', CATEGORY_FLAGS_ALLOW_CRAFTED | CATEGORY_FLAGS_DENY_NONCRAFTED | CATEGORY_FLAGS_WITH_BONUSES),
                     'hiddenCols'  => ['lastseen' => true],
                     'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
@@ -237,7 +238,7 @@ function CategoryResult_deals($house)
                 'name' => 'ItemList',
                 'data' => [
                     'name'        => 'Armor/Weapons with Bonuses',
-                    'items'       => CategoryDealsItemList($house, 'i.class in (2,4) and tis.bonusset != 0', CATEGORY_FLAGS_ALLOW_CRAFTED),
+                    'items'       => CategoryDealsItemList($house, 'i.class in (2,4) and tis.bonusset != 0', CATEGORY_FLAGS_ALLOW_CRAFTED | CATEGORY_FLAGS_WITH_BONUSES),
                     'hiddenCols'  => ['lastseen' => true],
                     'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
@@ -247,7 +248,7 @@ function CategoryResult_deals($house)
                 'name' => 'ItemList',
                 'data' => [
                     'name'        => 'Dropped Common/Junk Armor/Weapons',
-                    'items'       => CategoryDealsItemList($house, 'i.class in (2,4) and i.quality < 2'),
+                    'items'       => CategoryDealsItemList($house, 'i.class in (2,4) and i.quality < 2', CATEGORY_FLAGS_WITH_BONUSES),
                     'hiddenCols'  => ['lastseen' => true],
                     'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
@@ -343,6 +344,7 @@ from (
         join tblDBCItem i on i.id=a.item
         left join tblDBCItemVendorCost ivc on ivc.item=i.id
         where a.house=%1\$d
+        and i.`class` %2\$s in (2,4)
         and i.quality > 0
         and ivc.copper is null
         group by i.id) ib
@@ -364,15 +366,30 @@ EOF;
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
-            'name'        => 'Potential Low Bids',
-            'items'       => CategoryGenericItemList(
+            'name'        => 'Potential Low Bids - Gear',
+            'items'       => CategoryBonusItemList(
                 $house, [
-                    'joins' => sprintf($joins, $house),
-                    'whereUpper' => 'ifnull(lowbids.bid / g.median, 0) < 0.2',
-                    'whereLower' => 'ifnull(r2.bid / g.median * pow(1.15,(cast(ifnull(ae.level, r2.baselevel) as signed) - cast(r2.baselevel as signed))/15), 0) < 0.2',
-                    'colsUpper'        => 'lowbids.bid, g.median globalmedian',
-                    'colsLowerInside'  => 'lowbids.bid',
-                    'colsLowerOutside' => 'r2.bid, g.median * pow(1.15,(@level - cast(r2.baselevel as signed))/15) globalmedian',
+                    'joins' => sprintf($joins, $house, ''),
+                    'where' => 'ifnull(lowbids.bid / g.median, 0) < 0.2',
+                    'cols' => 'lowbids.bid, g.median globalmedian',
+                    'outside' => 'r2.bid, r2.globalmedian * pow(1.15,(cast(@level as signed) - cast(r2.baselevel as signed))/15) globalmedian',
+                ]
+            ),
+            'hiddenCols'  => ['price' => true, 'lastseen' => true],
+            'visibleCols' => ['bid' => true, 'globalmedian' => true],
+            'sort'        => 'lowbids'
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'        => 'Potential Low Bids - Misc',
+            'items'       => CategoryRegularItemList(
+                $house, [
+                    'joins' => sprintf($joins, $house, 'not'),
+                    'where' => 'ifnull(lowbids.bid / g.median, 0) < 0.2',
+                    'cols' => 'lowbids.bid, g.median globalmedian',
                 ]
             ),
             'hiddenCols'  => ['price' => true, 'lastseen' => true],
@@ -1731,13 +1748,13 @@ function CategoryRegularItemList($house, $params)
 
     if (is_array($params)) {
         $joins = isset($params['joins']) ? $params['joins'] : '';
+        $cols = isset($params['cols']) ? (', ' . $params['cols']) : '';
         $where = isset($params['where']) ? (' and ' . $params['where']) : '';
         $outside = isset($params['outside']) ? ($params['outside'].', ') : '';
         $rowKey = isset($params['key']) ? $params['key'] : false;
     } else {
-        $joins = '';
+        $cols = $joins = $outside = '';
         $where = ($params == '') ? '' : (' and ' . $params);
-        $outside = '';
         $rowKey = false;
     }
 
@@ -1762,7 +1779,7 @@ select results.*, $outside
 from (
     select i.id, i.icon, i.class as classid, i.level,
     s.quantity, unix_timestamp(s.lastseen) lastseen, s.price,
-    0 bonusset, '' bonusurl, '' tagurl
+    0 bonusset, '' bonusurl, '' tagurl $cols
     from tblDBCItem i
     left join tblItemSummary s on s.house = ? and s.item = i.id and s.bonusset = 0
     join tblItemGlobal g on g.item = i.id+0 and g.bonusset = 0 and g.region = ?
@@ -1876,7 +1893,7 @@ if(ae.id is null, r2.defaultbonusurl, concat_ws(':', nullif(ae.bonus1,0), nullif
 $outside ae.lootedlevel, ae.`rand`, ae.seed
 from (
 select i.id, i.icon, i.class as classid, i.level baselevel,
-s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, s.bonusset, $cols
+s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, s.bonusset, 
 (select concat_ws(':', nullif(ibs.bonus1,0), nullif(ibs.bonus2,0), nullif(ibs.bonus3,0), nullif(ibs.bonus4,0)) from tblItemBonusesSeen ibs where ibs.item=i.id and ibs.bonusset=s.bonusset order by ibs.observed desc limit 1) defaultbonusurl,
 (select a.id
     from tblAuction a
@@ -1886,7 +1903,7 @@ s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, s.bonusset, $cols
      and ifnull(ae.bonusset,0) = s.bonusset
      and a.buy > 0
      order by a.buy
-     limit 1) cheapestaucid
+     limit 1) cheapestaucid $cols
 from tblDBCItem i
 join tblItemSummary s on s.item = i.id and s.house = ?
 join tblItemGlobal g on g.item = i.id + 0 and g.bonusset = s.bonusset and g.region = ?
@@ -1949,7 +1966,7 @@ function CategoryDealsItemList($house, $dealsSql, $flags = 0)
     $cacheKey = 'category_di4_' . md5($dealsSql) . '_' . $flags;
 
     if ($canCache && (($iidList = MCGetHouse($house, $cacheKey)) !== false)) {
-        return CategoryDealsItemListCached($house, $iidList);
+        return CategoryDealsItemListCached($house, $iidList, $flags);
     }
 
     $db = DBConnect();
@@ -2015,19 +2032,14 @@ EOF;
 
     MCSetHouse($house, $cacheKey, $iidList);
 
-    return CategoryDealsItemListCached($house, $iidList);
+    return CategoryDealsItemListCached($house, $iidList, $flags);
 }
 
-function CategoryDealsItemListCached($house, $iidList)
+function CategoryDealsItemListCached($house, $iidList, $flags)
 {
     if (count($iidList) == 0) {
         return array();
     }
-
-    $genArray = [
-        'colsUpper'        => 'g.median * pow(1.15,(@level - cast(i.level as signed))/15) globalmedian',
-        'colsLowerOutside' => 'g.median * pow(1.15,(@level - cast(r2.baselevel as signed))/15) globalmedian',
-    ];
 
     $auctionIds = [];
     $sortBy = [];
@@ -2044,7 +2056,18 @@ function CategoryDealsItemListCached($house, $iidList)
 
     $sortBy = array_flip($sortBy);
 
-    $tr = CategoryGenericItemList($house, array_merge($genArray, ['where' => $sql]));
+    if ($flags & CATEGORY_FLAGS_WITH_BONUSES) {
+        $tr = CategoryBonusItemList($house, [
+            'where' => $sql,
+            'cols' => 'g.median globalmedian',
+            'outside' => 'r2.globalmedian',
+        ]);
+    } else {
+        $tr = CategoryRegularItemList($house, [
+            'where' => $sql,
+            'cols' => 'g.median globalmedian',
+        ]);
+    }
 
     usort(
         $tr, function ($a, $b) use ($sortBy) {
