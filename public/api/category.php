@@ -1888,7 +1888,7 @@ round((select round(avg(case hours.h
   select 20 h union select 21 h union select 22 h union select 23 h) hours
  where ihh.house = ? and ihh.item = r2.id and ihh.bonusset = r2.bonusset)
  * pow(1.15,(cast(@level as signed) - cast(r2.baselevel as signed))/15)) avgprice,
-ifnull((select group_concat(distinct bs.tagid order by 1 separator ':') from tblBonusSet bs where bs.set = r2.bonusset), '') tagurl,
+ifnull((select group_concat(distinct bs.tagid order by 1 separator '.') from tblBonusSet bs where bs.set = r2.bonusset), '') tagurl,
 if(ae.id is null, r2.defaultbonusurl, concat_ws(':', nullif(ae.bonus1,0), nullif(ae.bonus2,0), nullif(ae.bonus3,0), nullif(ae.bonus4,0), nullif(ae.bonus5,0), nullif(ae.bonus6,0))) bonusurl,
 $outside ae.lootedlevel, ae.`rand`, ae.seed
 from (
