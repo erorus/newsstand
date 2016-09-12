@@ -913,7 +913,7 @@ var TUJ_Category = function ()
             tr.appendChild(td);
             a = libtuj.ce('a');
             td.appendChild(a);
-            a.rel = 'item=' + item.id + (item.bonusurl ? '&bonus=' + item.bonusurl : (item.basebonus ? '&bonus=' + item.basebonus : '')) + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
+            a.rel = 'item=' + item.id + (item.rand ? '&rand=' + item.rand : '') + (item.bonusurl ? '&bonus=' + item.bonusurl : '') + (item.lootedlevel ? '&lvl=' + item.lootedlevel : '') + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
             a.href = tuj.BuildHash({page: 'item', id: item.id + (item.tagurl ? '.'+item.tagurl : '')});
             $(a).text('[' + item['name_' + tuj.locale] + (item['bonusname_' + tuj.locale] ? ' ' + item['bonusname_' + tuj.locale].substr(0, item['bonusname_' + tuj.locale].indexOf('|') >= 0 ? item['bonusname_' + tuj.locale].indexOf('|') : item['bonusname_' + tuj.locale].length) : '') + ']' + (item['bonustag_' + tuj.locale] ? ' ' : ''));
             if (item['bonustag_' + tuj.locale]) {
@@ -921,6 +921,12 @@ var TUJ_Category = function ()
                 tagspan.className = 'nowrap';
                 $(tagspan).text(item['bonustag_' + tuj.locale]);
                 a.appendChild(tagspan);
+            }
+            if (item.level) {
+                var s = libtuj.ce('span');
+                s.className = 'level';
+                s.appendChild(document.createTextNode(item.level));
+                a.appendChild(s);
             }
 
             td = libtuj.ce('td');
