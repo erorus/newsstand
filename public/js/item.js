@@ -104,7 +104,7 @@ var TUJ_Item = function ()
         priceLevel = false;
 
         var tagUrlParts = tagUrl.replace(/[^\d\.]/,'').split('.');
-        var matchingParts, testingParts;
+        var matchingParts, testingParts, alreadyMatchedParts = 0;
         for (var bset in dta.stats) {
             if (!dta.stats.hasOwnProperty(bset)) {
                 continue;
@@ -123,8 +123,9 @@ var TUJ_Item = function ()
                         }
                     }
                 }
-                if (matchingParts == testingParts.length) {
+                if (matchingParts == testingParts.length && matchingParts > alreadyMatchedParts) {
                     bonusSet = bset;
+                    alreadyMatchedParts = matchingParts;
                 }
             }
         }
