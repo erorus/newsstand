@@ -7,7 +7,8 @@ use \Erorus\DB2\Reader;
 error_reporting(E_ALL);
 
 $locale = 'enus';
-$dirnm = 'current/enUS';
+$dirnm = __DIR__.'/current/enUS';
+$adbDirNm = __DIR__.'/ADB';
 
 LogLine("Starting!");
 
@@ -270,6 +271,15 @@ $itemSparseReader->setFieldNames([
     45=>'requiredlevel',
     52=>'binds',
 ]);
+$sniffedReader = null;
+if (file_exists($adbDirNm.'/Item-sparse.adb')) {
+    try {
+        $sniffedReader = new Reader($adbDirNm.'/Item-sparse.adb', $itemSparseReader);
+    } catch (Exception $e) {
+        LogLine("Warning: could not open Item-sparse.adb: " .$e->getMessage());
+        $sniffedReader = null;
+    }
+}
 
 RunAndLogError('truncate table tblDBCItem');
 $sql = <<<'EOF'
@@ -291,7 +301,12 @@ $stmt->bind_param('isiiiisiiiiiiiii',
 $x = 0; $recordCount = count($itemReader->getIds());
 foreach ($itemReader->generateRecords() as $recId => $rec) {
     EchoProgress(++$x / $recordCount);
+    $sniffed = false;
     $sparseRec = $itemSparseReader->getRecord($recId);
+    if (is_null($sparseRec) && isset($sniffedReader)) {
+        $sparseRec = $sniffedReader->getRecord($recId);
+        $sniffed = true;
+    }
     if (is_null($sparseRec)) {
         continue;
     }
@@ -313,14 +328,16 @@ foreach ($itemReader->generateRecords() as $recId => $rec) {
     $requiredSkill = $sparseRec['requiredskill'];
 
     $noTransmogFlag = ($sparseRec['flags'][1] & 0x400000) ? 2 : 0;
+    $sniffedFlag = $sniffed ? 4 : 0;
 
-    $flags = $noTransmogFlag;
+    $flags = $noTransmogFlag | $sniffedFlag;
 
     RunAndLogError($stmt->execute());
 }
 $stmt->close();
 EchoProgress(false);
 unset($itemReader);
+unset($sniffedReader);
 unset($itemSparseReader);
 
 $appearanceReader = new Reader($dirnm . '/ItemAppearance.db2');

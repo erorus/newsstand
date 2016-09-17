@@ -1,3 +1,5 @@
 DBC/versions/*
 DBC/casc
+DBC/ADB/*
+itemsniffing/addon/ItemDefs.lua
 vendoritems.wowheadcache/*

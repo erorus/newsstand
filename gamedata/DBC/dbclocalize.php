@@ -100,6 +100,10 @@ EOF;
     EchoProgress(false);
     unset($reader);
 
+    $stmt = $db->prepare("update tblDBCItem set name_$locale = name_enus where name_$locale is null");
+    $stmt->execute();
+    $stmt->close();
+
     LogLine("$locale tblDBCRandEnchants");
     $reader = new Reader($dirnm . '/ItemRandomSuffix.db2');
     $reader->setFieldNames(['name']);
