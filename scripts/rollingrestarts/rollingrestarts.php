@@ -11,8 +11,7 @@ define('LAST_VERSION_PATH', __DIR__.'/liveversion.txt');
 define('FONT_PATH', __DIR__.'/FRIZQT__.TTF');
 
 define('TWITTER_ACCOUNT', 'RollingRestarts');
-define('TWEET_CHARS_RESERVED', 24);
-define('TWEET_MAX_LENGTH', 140 - TWEET_CHARS_RESERVED);
+define('TWEET_MAX_LENGTH', 140);
 
 function Main() {
     CheckForNewAlert();
