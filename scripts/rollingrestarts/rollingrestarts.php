@@ -111,6 +111,11 @@ function GetTwitterSnippet($txt) {
     $txt = preg_replace('/\bwww\./i', '', $txt); // remove www.
     $txt = preg_replace('/\.(?=[A-Za-z])/', "\xE2\x80\xA4", $txt); // change any period followed by a letter to a lookalike dot, so twitter doesn't linkify
 
+    $txt = AbbreviateForTweet($txt);
+    if (mb_strlen($txt) <= TWEET_MAX_LENGTH) {
+        return $txt;
+    }
+
     $res = [];
     $part = mb_ereg('^[\w\W]+?\.(?=(?:\s+[A-Z0-9])|\s*$)', $txt, $res) ? $res[0] : $txt; // find the first full sentence
     if (mb_strlen($part) > TWEET_MAX_LENGTH) { // sentence longer than max tweet length
@@ -123,6 +128,82 @@ function GetTwitterSnippet($txt) {
         $part = mb_substr($part, 0, TWEET_MAX_LENGTH);
     }
     return $part;
+}
+
+function AbbreviateForTweet($msg) {
+    $PregCallbackFixAM = function($m) {
+        $hour = intval($m[1]);
+        if ($hour < 12) {
+            return $m[0].'am';
+        }
+        if ($hour > 12) {
+            $hour -= 12;
+        }
+        return ''.$hour.$m[2].'pm';
+    };
+
+    $PregCallbackInitCap = function($m) {
+        $func = (ord(substr(trim($m[0]), 0, 1)) <= ord('Z')) ? 'strtoupper' : 'strtolower';
+        $addSpace = substr($m[1], 0, 1) == ' ' ? ' ' : '';
+        return $addSpace . $func(substr(trim($m[1]), 0, 1)) . substr(trim($m[1]), 1);
+    };
+
+    $PregCallbackLowerAMPM = function($m) {
+        return $m[1].strtolower($m[2]);
+    };
+
+    $PregCallbackDate = function($m) {
+        return (abs(strtotime($m[0]) - time()) < 604800) ? $m[1] : $m[0];
+    };
+
+    $msg = str_replace(' ,', ',', $msg);
+    $msg = str_replace('’', '\'', $msg);
+    $msg = preg_replace('/ {2,}/', ' ', $msg);
+    $msg = preg_replace_callback('/ ?(?:cur+ently|approximately|temporarily|as soon as possible|actively|during this time,?)( ?.)?/i', $PregCallbackInitCap, $msg);
+    $msg = str_replace(' undergoing ', ' in ', $msg);
+    $msg = preg_replace('/Update: /', '', $msg);
+    $msg = preg_replace('/(?:the )?world of warcraft (realms|servers|players)/i', '$1', $msg);
+    $msg = preg_replace('/world of warcraft(?: in-game)? shop/i', 'in-game shop', $msg);
+    $msg = str_replace(' has been brought offline', ' is offline', $msg);
+    $msg = preg_replace_callback('/We will be performing (\w)/', $PregCallbackInitCap, $msg);
+    $msg = preg_replace_callback('/We(?: wi|\')ll be (\w)/', $PregCallbackInitCap, $msg);
+    $msg = preg_replace_callback('/We are aware that (\w)/', $PregCallbackInitCap, $msg);
+    $msg = preg_replace_callback('/We are working on an issue where (\w)/', $PregCallbackInitCap, $msg);
+    $msg = preg_replace_callback('/\b((?:\w+)day), \w+ \d+(?:st|nd|rd|th),?/', $PregCallbackDate, $msg);
+    $msg = preg_replace('/ beginning (on|at) /', ' from ', $msg);
+    $msg = preg_replace('/,? running until /', ' until ', $msg);
+    $msg = preg_replace_callback('/(\d\d?)(:\d\d)(?! ?[ap]m)/i', $PregCallbackFixAM, $msg);
+    $msg = preg_replace('/0(\d:\d\d)/', '$1', $msg);
+    $msg = preg_replace_callback('/(\d:\d\d) ?(am|pm)/i', $PregCallbackLowerAMPM, $msg);
+    $msg = preg_replace('/ ?\((P[SD]T)\),?/', ' $1', $msg);
+    $msg = preg_replace('/We are aware of /', 'There\'s ', $msg);
+    $msg = preg_replace('/Players (are experiencing|may experience) /', 'There\'s ', $msg);
+    $msg = str_replace(' as a result of ', ' due to ', $msg);
+    $msg = preg_replace('/internet service provider/i', 'ISP', $msg);
+    $msg = preg_replace('/On (\w+day)\b/', '$1', $msg);
+    $msg = preg_replace('/\bwe will perform /', 'has ', $msg);
+    $msg = str_replace(' our ', ' ', $msg);
+    $msg = preg_replace_callback('/\bthat is (\w+ing)\b/i', $PregCallbackInitCap, $msg);
+    $msg = preg_replace_callback('/\bdue to technical issues, (\w)/i', $PregCallbackInitCap, $msg);
+    $msg = preg_replace('/( and|;)? we expect the services? to be available again( at)?( around)?/', ' until', $msg);
+    $msg = preg_replace('/We anticipate( the service to be available again| they\'ll be completed)( at| by)? /', 'Should be done by ', $msg);
+    $msg = preg_replace('/ (the game|world of warcraft) will be unavailable for play\./i', '', $msg);
+    $msg = preg_replace('/(For updates, )?Please follow @BlizzardCS( on Twitter)?( for( further| more)? (updates|information))?\.?/i', '', $msg);
+    $msg = preg_replace('/,? which may cause some interruption in communication, inability to log in, or disconnections\./', '.', $msg);
+    $msg = preg_replace('/, and( we)? hope to have a resolution soon\./', '.', $msg);
+    $msg = preg_replace('/,? and( we)? are working to bring it back online\./', '.', $msg);
+    $msg = preg_replace('/We are( investigating( the cause| these reports)| monitoring this situation)( and we thank you for your patience)?( and will provide( updates| further information) as( they (are|become)| it becomes) available)?\. ?/', '', $msg);
+    $msg = preg_replace('/(Our realm technicians|We) are working on a resolution\. ?/', '', $msg);
+    $msg = preg_replace('/We apologi(ze|es) for any inconvenience( this may cause)?( and thank you for your patience while this is being resolved)?\./', '', $msg);
+    $msg = preg_replace('/An in-game notice[^\.]+\./', '', $msg);
+    $msg = preg_replace('/Thank you for( your)? (patience|understanding)[\.!]/', '', $msg);
+
+    $msg = preg_replace('/\bat (\d\d:)/i', '$1', $msg);
+
+    $msg = preg_replace('/ {2,}/', ' ', $msg);
+    $msg = preg_replace('/\n[ \t]+\n/', "\n\n", $msg);
+    $msg = preg_replace('/\n{3,}/', "\n\n", $msg);
+    return trim($msg);
 }
 
 function GetTextImage($txt, $format='png') {
