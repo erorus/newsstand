@@ -76,7 +76,6 @@
                     <div class="sidebar" id="category-sidebar">
                         <a rel="deals">Deals</a>
                         <a rel="unusuals">Unusuals</a>
-                        <a rel="auction">Garrison AH</a>
                         <br/>
 
                         <a rel="blacksmithing">Blacksmithing</a>

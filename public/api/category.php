@@ -22,18 +22,26 @@ define('CATEGORY_FLAGS_ALLOW_CRAFTED', 1);
 define('CATEGORY_FLAGS_DENY_NONCRAFTED', 2);
 define('CATEGORY_FLAGS_WITH_BONUSES', 4);
 
-BotCheck();
-HouseETag($house);
+define('CATEGORY_MAX_OBLITERUM', 7);
+define('CATEGORY_OBLITERUM_ZERO_TAG', 13256);
 
-$expansionLevels = array(60, 70, 80, 85, 90, 100);
-$expansions = array(
+BotCheck();
+if ($canCache) {
+    HouseETag($house);
+} else {
+    header('Cache-Control: no-cache');
+}
+
+$expansionLevels = [60, 70, 80, 85, 90, 100, 110];
+$expansions = [
     'Classic',
     'Burning Crusade',
     'Wrath of the Lich King',
     'Cataclysm',
     'Mists of Pandaria',
-    'Warlords of Draenor'
-);
+    'Warlords of Draenor',
+    'Legion',
+];
 $qualities = array('Poor', 'Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Artifact', 'Heirloom');
 
 json_return($resultFunc($house));
@@ -510,57 +518,6 @@ function CategoryResult_unusuals($house)
     ];
 }
 
-function CategoryResult_auction($house)
-{
-    return [
-        'name'    => 'Ancient Trading Mechanism',
-        'results' => [
-            [
-                'name' => 'ItemList',
-                'data' => [
-                    'name'  => 'Modules',
-                    'items' => CategoryRegularItemList($house, 'i.id in (118375,118376,118377,118378,118379)')
-                ]
-            ],
-            [
-                'name' => 'ItemList',
-                'data' => [
-                    'name'  => 'Arcane Crystal Module',
-                    'items' => CategoryRegularItemList($house, 'i.id in (118344,118345,118346,118347)')
-                ]
-            ],
-            [
-                'name' => 'ItemList',
-                'data' => [
-                    'name'  => 'Auction Control Module',
-                    'items' => CategoryRegularItemList($house, 'i.id in (118197,118331,118332)')
-                ]
-            ],
-            [
-                'name' => 'ItemList',
-                'data' => [
-                    'name'  => 'Universal Language Module',
-                    'items' => CategoryRegularItemList($house, 'i.id in (118333,118334,118335)')
-                ]
-            ],
-            [
-                'name' => 'ItemList',
-                'data' => [
-                    'name'  => 'Super Cooling Module',
-                    'items' => CategoryRegularItemList($house, 'i.id in (118336,118337,118338,118339)')
-                ]
-            ],
-            [
-                'name' => 'ItemList',
-                'data' => [
-                    'name'  => 'Cyclical Power Module',
-                    'items' => CategoryRegularItemList($house, 'i.id in (118340,118341,118342,118343)')
-                ]
-            ],
-        ]
-    ];
-}
-
 function CategoryResult_archaeology($house)
 {
     return [
@@ -570,7 +527,7 @@ function CategoryResult_archaeology($house)
                 'name' => 'ItemList',
                 'data' => [
                     'name'  => 'Keystones',
-                    'items' => CategoryRegularItemList($house, 'i.id in (108439, 109584, 109585, 79868, 79869, 95373, 64397, 64395, 64396, 64392, 64394, 52843, 63127, 63128)')
+                    'items' => CategoryRegularItemList($house, 'i.id in (130903, 130904, 130905, 108439, 109584, 109585, 79868, 79869, 95373, 64397, 64395, 64396, 64392, 64394, 52843, 63127, 63128)')
                 ]
             ],
         ]
@@ -582,6 +539,12 @@ function CategoryResult_mining($house)
     return [
         'name'    => 'mining',
         'results' => [
+            [
+                'name' => 'ItemList',
+                'data' => ['name'  => 'Broken Isles Ore',
+                           'items' => CategoryRegularItemList($house, 'i.id in (123918,123919,124444)')
+                ]
+            ],
             [
                 'name' => 'ItemList',
                 'data' => ['name'  => 'Draenor Ore',
@@ -667,7 +630,15 @@ function CategoryResult_skinning($house)
 
     $tr = ['name' => 'skinning', 'results' => []];
 
-    for ($x = count($expansions); $x--; $x >= 0) {
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Legion Trade Goods',
+            'items' => CategoryRegularItemList($house, 'i.id in (124439,124438)'),
+        ],
+    ];
+
+    for ($x = count($expansions) - 1; $x >= 0; $x--) {
         $lsql = (($x > 0) ? (' i.level >' . (($x <= 2) ? '=' : '') . ' ' . $expansionLevels[$x - 1] . ' and ') : '') . ' i.level <' . (($x >= 3) ? '=' : '') . ' ' . $expansionLevels[$x];
         if ($x == 0) {
             $lsql .= ' or i.id in (17012,15414,15410,20381)';
@@ -686,6 +657,9 @@ function CategoryResult_skinning($house)
         }
         if ($x == 5) {
             $lsql .= ' or i.id = 110610';
+        }
+        if ($x == 6) {
+            $lsql .= ' or i.id in (124113,124115)';
         }
         $lsql = 'i.class=7 and i.subclass=6 and i.quality > 0 and (' . $lsql . ')';
         $tr['results'][] = [
@@ -706,7 +680,23 @@ function CategoryResult_herbalism($house)
 
     $tr = ['name' => 'herbalism', 'results' => []];
 
-    for ($x = count($expansions); $x--; $x >= 0) {
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Legion Herbs',
+            'items' => CategoryRegularItemList($house, 'i.id in (128304,124106,124105,124104,124103,124102,124101)'),
+        ],
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Legion Seeds',
+            'items' => CategoryRegularItemList($house, 'i.id in (129284,129285,129286,129287,129288,129289)'),
+        ],
+    ];
+
+    for ($x = 5; $x >= 0; $x--) {
         $lsql = (($x > 0) ? (' i.level >' . (($x == 1) ? '=' : '') . ' ' . $expansionLevels[$x - 1] . ' and ') : '') . ' i.level <' . (($x > 0) ? '=' : '') . ' ' . $expansionLevels[$x];
         $lsql2 = '';
         $lsql3 = ' and i.id < 108318';
@@ -767,6 +757,8 @@ function CategoryResult_alchemy($house)
             'items' => CategoryRegularItemList($house, ['joins' => 'join (SELECT xx.id from (select xic.id, group_concat(se.description) dd FROM tblDBCSpell xs JOIN tblDBCItem xic on xs.crafteditem=xic.id LEFT JOIN tblDBCItemSpell dis on dis.item=xic.id LEFT JOIN tblDBCSpell se on se.id=dis.spell WHERE xs.skillline=171 and xic.level > ' . $expansionLevels[count($expansionLevels) - 2] . ' and xic.class=0 and xic.subclass=1 group by xic.id) xx where xx.dd like \'%increas%\') xyz on xyz.id = i.id'])
         ]
     ];
+
+    /*
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
@@ -781,6 +773,7 @@ function CategoryResult_alchemy($house)
             'items' => CategoryRegularItemList($house, ['joins' => 'join (SELECT distinct xic.id FROM tblDBCSpell xs JOIN tblDBCItem xic on xs.crafteditem=xic.id WHERE xs.skillline=171 and xic.level > ' . $expansionLevels[count($expansionLevels) - 2] . ' and xic.class in (3,7)) xyz on xyz.id = i.id'])
         ]
     ];
+    */
 
     $sql = <<<EOF
 join (
@@ -790,10 +783,10 @@ FROM tblDBCSpell xs
 JOIN tblDBCItem xic on xs.crafteditem=xic.id
 LEFT JOIN tblDBCItemSpell dis on dis.item=xic.id
 LEFT JOIN tblDBCSpell se on se.id=dis.spell
-WHERE xs.skillline=171 and xic.class=0 and xic.subclass in (1,2)
+WHERE xs.skillline=171 and xic.class=0 and xic.subclass in (1,2,8)
 and xic.name_enus not like '%protection%'
 group by xic.id) xx
-where (xx.dd not like '%increas%' or (xx.dd like '%speed%' and xx.dd not like '%haste%'))
+where (xx.dd not like '%increas%' or (xx.dd like '%speed%' and xx.dd not like '%haste%') or xx.dd like '%well-rested%')
 and xx.dd not like '%restor%'
 and xx.dd not like '%heal%'
 and xx.dd not like '%regenerate%'
@@ -830,18 +823,57 @@ function CategoryResult_leatherworking($house)
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
-            'name'  => 'Bags',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.class=1 and xs.skillline=165) xyz on xyz.id = i.id'])
+            'name'  => 'Warhide Leather',
+            'items' => CategoryBonusItemList($house, 'i.id between 128876 and 128883')
         ]
     ];
+
+    for ($x = CATEGORY_MAX_OBLITERUM; $x >= 0; $x--) {
+        $tagId = CATEGORY_OBLITERUM_ZERO_TAG + $x;
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => 'Dreadleather '.$x.'/'.CATEGORY_MAX_OBLITERUM,
+                'items' => CategoryBonusItemList($house, [
+                    'joins' => 'join tblBonusSet bs on bs.set = s.bonusset and bs.tagid = '.$tagId,
+                    'where' => 'i.id between 128884 and 128891',
+                ]),
+            ]
+        ];
+    }
 
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
-            'name'  => 'Cloaks',
-            'items' => CategoryBonusItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.requiredlevel > ' . $expansionLevels[count($expansionLevels) - 2] . ' and x.class=4 and x.subclass=1 and x.type=16 and xs.skillline=165) xyz on xyz.id = i.id'])
+            'name'  => 'Battlebound Mail',
+            'items' => CategoryBonusItemList($house, 'i.id between 128892 and 128899')
         ]
     ];
+
+    for ($x = CATEGORY_MAX_OBLITERUM; $x >= 0; $x--) {
+        $tagId = CATEGORY_OBLITERUM_ZERO_TAG + $x;
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => 'Gravenscale Mail '.$x.'/'.CATEGORY_MAX_OBLITERUM,
+                'items' => CategoryBonusItemList($house, [
+                    'joins' => 'join tblBonusSet bs on bs.set = s.bonusset and bs.tagid = '.$tagId,
+                    'where' => 'i.id between 128900 and 128907',
+                ]),
+            ]
+        ];
+    }
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Legion Other',
+            'items' => CategoryRegularItemList($house, 'i.id in (129956,142406,129958,129960,129961,131746)'),
+        ]
+    ];
+
+
+    /*
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
@@ -856,8 +888,27 @@ function CategoryResult_leatherworking($house)
             'items' => CategoryBonusItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.requiredlevel > ' . $expansionLevels[count($expansionLevels) - 2] . ' and x.class=4 and x.subclass=3 and xs.skillline=165) xyz on xyz.id = i.id'])
         ]
     ];
+    */
 
-    for ($x = count($expansions) - 1; $x >= 5; $x--) {
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Bags',
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.class=1 and xs.skillline=165) xyz on xyz.id = i.id'])
+        ]
+    ];
+
+    /*
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Cloaks',
+            'items' => CategoryBonusItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.requiredlevel > ' . $expansionLevels[count($expansionLevels) - 2] . ' and x.class=4 and x.subclass=1 and x.type=16 and xs.skillline=165) xyz on xyz.id = i.id'])
+        ]
+    ];
+    */
+
+    for ($x = count($expansions) - 1; $x >= count($expansions) - 2; $x--) {
         $tr['results'][] = [
             'name' => 'ItemList',
             'data' => [
@@ -867,7 +918,7 @@ function CategoryResult_leatherworking($house)
         ];
     }
 
-    for ($x = count($expansions) - 1; $x >= 5; $x--) {
+    for ($x = count($expansions) - 1; $x >= count($expansions) - 2; $x--) {
         $tr['results'][] = [
             'name' => 'ItemList',
             'data' => [
@@ -907,6 +958,7 @@ function CategoryResult_blacksmithing($house)
     $tr = ['name' => 'blacksmithing', 'results' => []];
     $sortIndex = 0;
 
+    /*
     $x = count($expansions) - 1;
 
     $tr['results'][] = [
@@ -926,7 +978,45 @@ function CategoryResult_blacksmithing($house)
             'items' => CategoryBonusItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $x . ' and x.class = 4 and x.subclass != 6 and xs.skillline=164) xyz on xyz.id = i.id'])
         ]
     ];
+    */
 
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Leystone',
+            'items' => CategoryBonusItemList($house, 'i.id between 123891 and 123898')
+        ]
+    ];
+
+    for ($x = CATEGORY_MAX_OBLITERUM; $x >= 0; $x--) {
+        $tagId = CATEGORY_OBLITERUM_ZERO_TAG + $x;
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => 'Demonsteel '.$x.'/'.CATEGORY_MAX_OBLITERUM,
+                'items' => CategoryBonusItemList($house, [
+                    'joins' => 'join tblBonusSet bs on bs.set = s.bonusset and bs.tagid = '.$tagId,
+                    'where' => 'i.id between 123910 and 123917',
+                ]),
+            ]
+        ];
+    }
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Relics',
+            'items' => CategoryBonusItemList($house, 'i.id between 136683 and 136686')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Legion Other',
+            'items' => CategoryRegularItemList($house, 'i.id in (137686,124461,123956,136708)')
+        ]
+    ];
 
     for ($x = count($expansions) - 1; $x >= 5; $x--) {
         $tr['results'][] = [
@@ -970,9 +1060,107 @@ function CategoryResult_jewelcrafting($house)
 {
     global $expansions, $qualities;
 
-    $gemColors = ['Red','Blue','Yellow','Purple','Green','Orange','Meta'];
-
     $tr = ['name' => 'jewelcrafting', 'results' => []];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Legion ' . $qualities[3] . ' Uncut Gems',
+            'items' => CategoryRegularItemList($house, '(i.id between 130178 and 130183 or i.id in (130245))')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Legion ' . $qualities[2] . ' Uncut Gems',
+            'items' => CategoryRegularItemList($house, 'i.id between 130172 and 130177')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Legion ' . $qualities[4] . ' Cut Gems',
+            'items' => CategoryRegularItemList($house, 'i.id between 130246 and 130248')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Legion ' . $qualities[3] . ' Cut Gems',
+            'items' => CategoryRegularItemList($house, 'i.id between 130219 and 130222')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Legion ' . $qualities[2] . ' Cut Gems',
+            'items' => CategoryRegularItemList($house, 'i.id between 130215 and 130218')
+        ]
+    ];
+
+    for ($x = CATEGORY_MAX_OBLITERUM; $x >= 0; $x--) {
+        $tagId = CATEGORY_OBLITERUM_ZERO_TAG + $x;
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => sprintf('%d/%d Amulets', $x, CATEGORY_MAX_OBLITERUM),
+                'items' => CategoryBonusItemList($house, [
+                    'joins' => 'join tblBonusSet bs on bs.set = s.bonusset and bs.tagid = '.$tagId,
+                    'where' => 'i.id between 130233 and 130244',
+                ]),
+            ]
+        ];
+    }
+
+    for ($x = CATEGORY_MAX_OBLITERUM; $x >= 0; $x--) {
+        $tagId = CATEGORY_OBLITERUM_ZERO_TAG + $x;
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => sprintf('%d/%d Rings', $x, CATEGORY_MAX_OBLITERUM),
+                'items' => CategoryBonusItemList($house, [
+                    'joins' => 'join tblBonusSet bs on bs.set = s.bonusset and bs.tagid = '.$tagId,
+                    'where' => 'i.id in (130229,130230,130231,136713)',
+                ]),
+            ]
+        ];
+    }
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => '765 Pendants',
+            'items' => CategoryBonusItemList($house, 'i.id in (130227,130226,130228,136712)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => '715 Rings',
+            'items' => CategoryBonusItemList($house, 'i.id in (130223,130224,130225,136711)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Mounts',
+            'items' => CategoryRegularItemList($house, 'i.id in (82453,83087,83088,83089,83090)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Companions and Toys',
+            'items' => CategoryRegularItemList($house, 'i.id in (130254,130250,82774,82775,130251)')
+        ]
+    ];
 
     for ($x = count($expansions) - 1; $x >= 5; $x--) {
         $tr['results'][] = [
@@ -994,52 +1182,6 @@ function CategoryResult_jewelcrafting($house)
         ];
     }
 
-    for ($x = count($expansions) - 1; $x >= 5; $x--) {
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'data' => [
-                'name'  => $qualities[4] . ' ' . $expansions[$x] . ' Jewelry',
-                'items' => CategoryBonusItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $x . ' and x.class=4 and xs.skillline=755 and x.quality >= 4) xyz on xyz.id = i.id'])
-            ]
-        ];
-    }
-
-    for ($x = count($expansions) - 1; $x >= 5; $x--) {
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'data' => [
-                'name'  => $qualities[3] . ' ' . $expansions[$x] . ' Jewelry',
-                'items' => CategoryBonusItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $x . ' and x.class=4 and xs.skillline=755 and x.quality < 4) xyz on xyz.id = i.id'])
-            ]
-        ];
-    }
-
-    for ($x = count($expansions) - 1; $x >= 5; $x--) {
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'data' => [
-                'name'  => $expansions[$x] . ' Trade Goods',
-                'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $x . ' and x.class=7 and xs.skillline=755) xyz on xyz.id = i.id'])
-            ]
-        ];
-    }
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Consumables',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.class = 0 and xs.skillline=755) xyz on xyz.id = i.id'])
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Other',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.class not in (0,2,3,4,7) and xs.skillline=755) xyz on xyz.id = i.id'])
-        ]
-    ];
-
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
@@ -1048,11 +1190,11 @@ function CategoryResult_jewelcrafting($house)
         ]
     ];
 
-    for ($x = 0; $x < count($gemColors); $x++) {
+    for ($x = 0; $x <= 10; $x++) {
         $tr['results'][] = [
             'name' => 'ItemList',
             'data' => [
-                'name'  => 'Pre-' . $expansions[4] . ' ' . $gemColors[$x] . ' Gems',
+                'name'  => 'itemSubClasses.3-'.$x,
                 'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion < 4 and x.class=3 and x.subclass='.$x.' and xs.skillline=755) xyz on xyz.id = i.id'])
             ]
         ];
@@ -1077,13 +1219,49 @@ function CategoryResult_engineering($house)
 
     $tr = ['name' => 'engineering', 'results' => []];
 
-    $exp = $expansions[count($expansions) - 1];
+    for ($x = CATEGORY_MAX_OBLITERUM; $x >= 0; $x--) {
+        $tagId = CATEGORY_OBLITERUM_ZERO_TAG + $x;
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => 'Goggles '.$x.'/'.CATEGORY_MAX_OBLITERUM,
+                'items' => CategoryBonusItemList($house, [
+                    'joins' => 'join tblBonusSet bs on bs.set = s.bonusset and bs.tagid = '.$tagId,
+                    'where' => 'i.id between 132504 and 132507',
+                ]),
+            ]
+        ];
+    }
 
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
-            'name'  => $exp . ' Weapons and Armor',
-            'items' => CategoryBonusItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion=' . (count($expansions) - 1) . ' and x.level>40 and (x.class=2 or (x.class=4 and x.subclass>0)) and xs.skillline=202) xyz on xyz.id = i.id'])
+            'name'  => '715 Goggles',
+            'items' => CategoryBonusItemList($house, 'i.id between 132500 and 132503')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Relics',
+            'items' => CategoryBonusItemList($house, 'i.id between 136687 and 136688')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Reaves',
+            'items' => CategoryRegularItemList($house, 'i.id between 132524 and 132531')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Legion Other',
+            'items' => CategoryRegularItemList($house, 'i.id in (132509,132510,132511,132513,132514,132515,132516,132517,132518,132519,132982,134125,136606)')
         ]
     ];
 
@@ -1182,7 +1360,51 @@ function CategoryResult_tailoring($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Common Cloth',
-            'items' => CategoryRegularItemList($house, 'i.id in (2589,2592,4306,4338,14047,21877,33470,53010,72988,111557)')
+            'items' => CategoryRegularItemList($house, 'i.id in (2589,2592,4306,4338,14047,21877,33470,53010,72988,111557,124437)')
+        ]
+    ];
+
+    for ($x = CATEGORY_MAX_OBLITERUM; $x >= 0; $x--) {
+        $tagId = CATEGORY_OBLITERUM_ZERO_TAG + $x;
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => 'Imbued Silkweave Cloth '.$x.'/'.CATEGORY_MAX_OBLITERUM,
+                'items' => CategoryBonusItemList($house, [
+                    'joins' => 'join tblBonusSet bs on bs.set = s.bonusset and bs.tagid = '.$tagId,
+                    'where' => 'i.id between 126995 and 127002',
+                ]),
+            ]
+        ];
+    }
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Silkweave Cloth',
+            'items' => CategoryBonusItemList($house, 'i.id between 126987 and 126994')
+        ]
+    ];
+
+    for ($x = CATEGORY_MAX_OBLITERUM; $x >= 0; $x--) {
+        $tagId = CATEGORY_OBLITERUM_ZERO_TAG + $x;
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => 'Imbued Silkweave Cape '.$x.'/'.CATEGORY_MAX_OBLITERUM,
+                'items' => CategoryBonusItemList($house, [
+                    'joins' => 'join tblBonusSet bs on bs.set = s.bonusset and bs.tagid = '.$tagId,
+                    'where' => 'i.id in (127019,127020,127033,127034)',
+                ]),
+            ]
+        ];
+    }
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Silkweave Cape',
+            'items' => CategoryBonusItemList($house, 'i.id in (127016,127017,127031,127032)')
         ]
     ];
 
@@ -1205,8 +1427,8 @@ function CategoryResult_tailoring($house)
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
-            'name'  => 'Armor',
-            'items' => CategoryBonusItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.requiredlevel > ' . $expansionLevels[count($expansionLevels) - 2] . ' and x.class=4 and xs.skillline=197) xyz on xyz.id = i.id'])
+            'name'  => 'Legion Other',
+            'items' => CategoryRegularItemList($house, 'i.id in (137556,137557,137558,139503)')
         ]
     ];
 
@@ -1265,7 +1487,7 @@ function CategoryResult_enchanting($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Dust',
-            'items' => CategoryRegularItemList($house, 'i.class=7 and i.subclass=12 and i.quality=1 and i.name_enus like \'%Dust\'')
+            'items' => CategoryRegularItemList($house, 'i.class=7 and i.subclass=12 and i.quality=1 and (i.name_enus like \'%Dust\' or i.id in (124440))')
         ]
     ];
     $tr['results'][] = [
@@ -1293,8 +1515,56 @@ function CategoryResult_enchanting($house)
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
-            'name'  => $expansions[count($expansions) - 1] . ' Enchanted Scrolls',
-            'items' => CategoryRegularItemList($house, 'i.class=0 and i.subclass=6 and i.id in (select ir.crafteditem from tblDBCSpell ir where ir.skillline=333 and ir.expansion=' . (count($expansions) - 1) . ')')
+            'name'  => 'Enchant Cloak',
+            'items' => CategoryRegularItemList($house, 'i.id in (128549,128550,128548,128546,128547,128545)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Enchant Neck',
+            'items' => CategoryRegularItemList($house, 'i.id in (141910,128551,128552,141908,128553,141909)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Enchant Ring',
+            'items' => CategoryRegularItemList($house, 'i.id in (128541,128542,128543,128544,128537,128538,128539,128540)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Enchant Gloves/Shoulder',
+            'items' => CategoryRegularItemList($house, 'i.id in (128558,128559,128560,128561,128554)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Relics',
+            'items' => CategoryBonusItemList($house, 'i.id in (136691,136689)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Tomes of Illusions',
+            'items' => CategoryRegularItemList($house, 'i.id in (138787,138789,138790,138791,138792,138793,138794,138795)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Legion Toys and Companions',
+            'items' => CategoryRegularItemList($house, 'i.id in (128533,128534,128535,128536)')
         ]
     ];
 
@@ -1307,129 +1577,65 @@ function CategoryResult_inscription($house)
 
     $tr = ['name' => 'inscription', 'results' => []];
 
-    $x = count($expansions) - 1;
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
-            'name'  => $expansions[$x] . ' Decks',
-            'items' => CategoryRegularItemList($house, ['where' => 'i.id between 112303 and 112306'])
-        ]
-    ];
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => $expansions[$x] . ' Iron Deck Cards',
-            'items' => CategoryRegularItemList($house, ['where' => 'i.id between 112271 and 112278'])
-        ]
-    ];
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => $expansions[$x] . ' Moon Deck Cards',
-            'items' => CategoryRegularItemList($house, ['where' => 'i.id between 112295 and 112302'])
-        ]
-    ];
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => $expansions[$x] . ' Visions Deck Cards',
-            'items' => CategoryRegularItemList($house, ['where' => 'i.id between 112279 and 112286'])
-        ]
-    ];
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => $expansions[$x] . ' War Deck Cards',
-            'items' => CategoryRegularItemList($house, ['where' => 'i.id between 112287 and 112294'])
+            'name'  => 'Relics',
+            'items' => CategoryBonusItemList($house, 'i.id in (136692,136693)')
         ]
     ];
 
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
-            'name'  => 'Shoulder Inscription',
+            'name'  => 'Decks',
+            'items' => CategoryBonusItemList($house, 'i.id in (128705,128709,128710,128711)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Tranquil Mind',
+            'items' => CategoryRegularItemList($house, 'i.id in (141333,141641,141640,141446)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Vantus Runes',
+            'items' => CategoryRegularItemList($house, [
+                'joins' => 'join tblDBCSpell xs on xs.crafteditem = i.id',
+                'where' => 'xs.skillline = 773 and i.name_enus like \'Vantus Rune%\''
+            ])
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Songs',
+            'items' => CategoryRegularItemList($house, 'i.id in (136852,136856,136857,140567,140568)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Toys',
+            'items' => CategoryRegularItemList($house, 'i.id in (129211,128979,128980)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Glyphs',
             'items' => CategoryRegularItemList(
                 $house, [
                     'joins' => 'join tblDBCSpell xs on xs.crafteditem = i.id',
-                    'where' => 'xs.skillline = 773 and xs.expansion=' . (count($expansions) - 1) . ' and i.class = 0 and i.quality > 1'
-                ]
-            )
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Crafted Weapons',
-            'items' => CategoryBonusItemList(
-                $house, [
-                    'joins' => 'join tblDBCSpell xs on xs.crafteditem = i.id',
-                    'where' => 'xs.skillline = 773 and xs.expansion=' . (count($expansions) - 1) . ' and i.class = 2'
-                ]
-            )
-        ]
-    ];
-
-    for ($x = count($expansions) - 1; $x >= 5; $x--) {
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'data' => [
-                'name'  => $expansions[$x] . ' Trade Goods',
-                'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $x . ' and x.class=7 and x.subclass=14 and xs.skillline=773) xyz on xyz.id = i.id'])
-            ]
-        ];
-    }
-
-    for ($y = 0; $y <= 1; $y++) {
-        $x = count($expansions) - 1 - $y;
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'data' => [
-                'name'  => $expansions[$x] . ' Crafted Armor',
-                'items' => CategoryBonusItemList(
-                    $house, [
-                        'joins' => 'join tblDBCSpell xs on xs.crafteditem = i.id',
-                        'where' => 'xs.skillline = 773 and xs.expansion=' . $x . ' and i.level > 40 and i.class = 4'
-                    ]
-                )
-            ]
-        ];
-    }
-
-    $x--;
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Other Crafted Armor',
-            'items' => CategoryBonusItemList(
-                $house, [
-                    'joins' => 'join tblDBCSpell xs on xs.crafteditem = i.id',
-                    'where' => 'xs.skillline = 773 and xs.expansion<=' . $x . ' and i.level > 40 and i.class = 4'
-                ]
-            )
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Trade Goods',
-            'items' => CategoryRegularItemList(
-                $house, [
-                    'joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . (count($expansions) - 1) . ' and x.class=7 and xs.skillline=773) xyz on xyz.id = i.id',
-                ]
-            )
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Crafted Consumable',
-            'items' => CategoryRegularItemList(
-                $house, [
-                    'joins' => 'join tblDBCSpell xs on xs.crafteditem = i.id',
-                    'where' => 'xs.skillline = 773 and ((xs.expansion=' . (count($expansions) - 1) . ' and i.class = 0 and i.quality=1) or (i.id in (60838,43850)))'
+                    'where' => 'xs.skillline = 773 and i.class = 16'
                 ]
             )
         ]
@@ -1442,7 +1648,7 @@ function CategoryResult_inscription($house)
             'items' => CategoryRegularItemList(
                 $house, [
                     'joins' => 'join tblDBCSpell xs on xs.crafteditem = i.id',
-                    'where' => 'xs.skillline = 773 and i.class=7 and i.subclass=1 and i.quality=1'
+                    'where' => 'xs.skillline = 773 and i.class=7 and i.subclass=16 and i.quality=1'
                 ]
             )
         ]
@@ -1455,7 +1661,7 @@ function CategoryResult_inscription($house)
             'items' => CategoryRegularItemList(
                 $house, [
                     'joins' => 'join tblDBCSpell xs on xs.crafteditem = i.id',
-                    'where' => 'xs.skillline = 773 and i.class=7 and i.subclass=1 and i.quality>1'
+                    'where' => 'xs.skillline = 773 and i.class=7 and i.subclass=16 and i.quality>1'
                 ]
             )
         ]
@@ -1468,6 +1674,7 @@ function CategoryResult_cooking($house)
 {
     $tr = ['name' => 'cooking', 'results' => []];
 
+    /*
     // flesh, small, regular, enormous
     $fish = [
         [109143, 111659, 111664, 111671], // abyssal gulper eel
@@ -1496,14 +1703,10 @@ function CategoryResult_cooking($house)
         'name' => 'FishTable',
         'data' => ['name' => 'Draenor Fish', 'fish' => $fish, 'prices' => $fishPrices]
     ];
+    */
 
     $foods = [
-        //'Draenor Fish' => implode(',',range(109137,109143)),
-        'Draenor Meat' => implode(',',range(109131,109136)),
-        '+75 Stat Food' => '111433,111441,111437,111445,111434,111442,111438,111446,111436,111444,111431,111439',
-        '+100 Stat Food' => '111449,111453,111450,111454,111452,111447',
-        '+125 Stat Food' => implode(',',range(122343,122348)),
-        'Draenor Feasts' => '118576,111458,111457',
+        'Legion Food' => '142334, 133681, 133579, 133578, 133577, 133576, 133575, 133574, 133573, 133572, 133571, 133570, 133569, 133568, 133567, 133566, 133565, 133564, 133563, 133562, 133561, 133557',
     ];
 
     foreach ($foods as $name => $sql) {
