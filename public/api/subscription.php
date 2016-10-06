@@ -733,8 +733,8 @@ function SetWatch($loginState, $type, $item, $bonusSet, $region, $house, $direct
     $fail |= $cnt > SUBSCRIPTION_WATCH_LIMIT_PER;
 
     foreach ($curWatches as $curWatch) {
-        $fail |= ($curWatch['region'] == $region) && ($curWatch['direction'] == $direction) && ($curWatch['quantity'] == $quantity) && ($curWatch['price'] == $price);
-        $fail |= is_null($curWatch['region']) && ($curWatch['house'] == $house) && ($curWatch['direction'] == $direction) && ($curWatch['quantity'] == $quantity) && ($curWatch['price'] == $price);
+        $fail |= !is_null($curWatch['region']) && ($curWatch['region'] == $region) && ($curWatch['direction'] == $direction) && ($curWatch['quantity'] == $quantity) && ($curWatch['price'] == $price);
+        $fail |= is_null($region) && is_null($curWatch['region']) && ($curWatch['house'] == $house) && ($curWatch['direction'] == $direction) && ($curWatch['quantity'] == $quantity) && ($curWatch['price'] == $price);
     }
 
     if ($fail) {
