@@ -30,5 +30,6 @@ wowtoken/*.csv
 wowtoken/index.html
 wowtoken/index.shtml
 wowtoken/snapshot*.gz
+wowtoken/snapshot*.br
 
 theapi.work/times.json
