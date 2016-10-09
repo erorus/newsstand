@@ -7,3 +7,6 @@
 [submodule "gamedata/icons/BLPConverter"]
 	path = gamedata/icons/BLPConverter
 	url = https://github.com/Kanma/BLPConverter.git
+[submodule "scripts/brotli"]
+	path = scripts/brotli
+	url = https://github.com/google/brotli

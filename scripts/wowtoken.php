@@ -22,6 +22,7 @@ CatchKill();
 define('SNAPSHOT_PATH', '/home/wowtoken/pending/');
 define('TWEET_FREQUENCY_MINUTES', 360); // tweet at least every 6 hours
 define('PRICE_CHANGE_THRESHOLD', 0.15); // was 0.2, for 20% change required. 0 means tweet every change
+define('BROTLI_PATH', __DIR__.'/brotli/bin/bro');
 
 if (!DBConnect()) {
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
@@ -1039,14 +1040,19 @@ function AtomicFilePutContents($path, $data, $zippedVersion = false) {
     $aPath = "$path.atomic";
     file_put_contents($aPath, $data);
     if ($zippedVersion) {
-        static $hasZopfli = null;
+        static $hasZopfli = null, $hasBrotli = null;
         if (is_null($hasZopfli)) {
             $hasZopfli = is_executable(__DIR__.'/zopfli');
         }
+        if (is_null($hasBrotli)) {
+            $hasBrotli = is_executable(BROTLI_PATH);
+        }
         $o = [];
-        $ret = 0;
+        $ret = $retBrotli = 0;
         $zaPath = "$aPath.gz";
         $zPath = "$path.gz";
+        $baPath = "$aPath.br";
+        $bPath = "$path.br";
 
         if (is_string($zippedVersion)) {
             $dataPath = tempnam('/tmp', 'atomiczipdata');
@@ -1056,12 +1062,21 @@ function AtomicFilePutContents($path, $data, $zippedVersion = false) {
         }
 
         exec(($hasZopfli ? escapeshellcmd(__DIR__.'/zopfli') : 'gzip') . ' -c ' . escapeshellarg($dataPath) . ' > ' . escapeshellarg($zaPath), $o, $ret);
+        if ($hasBrotli && $ret == 0) {
+            exec(escapeshellcmd(BROTLI_PATH) . ' --input ' . escapeshellarg($dataPath) . ' > ' . escapeshellarg($baPath), $o, $retBrotli);
+        }
 
         if (is_string($zippedVersion)) {
             unlink($dataPath);
         }
 
         if ($ret != 0) {
+            if (file_exists($baPath)) {
+                unlink($baPath);
+            }
+            if (file_exists($bPath)) {
+                unlink($bPath);
+            }
             if (file_exists($zaPath)) {
                 unlink($zaPath);
             }
@@ -1073,6 +1088,17 @@ function AtomicFilePutContents($path, $data, $zippedVersion = false) {
             touch($aPath, $tm); // wipes out fractional seconds
             touch($zaPath, $tm); // identical time to $aPath
             rename($zaPath, $zPath);
+            if ($retBrotli != 0) {
+                if (file_exists($baPath)) {
+                    unlink($baPath);
+                }
+                if (file_exists($bPath)) {
+                    unlink($bPath);
+                }
+            } else {
+                touch($baPath, $tm); // identical time to $aPath
+                rename($baPath, $bPath);
+            }
         }
     }
     rename($aPath, $path);
