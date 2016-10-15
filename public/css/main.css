@@ -242,6 +242,7 @@ input.battle-net {
 #subscription-description { line-height: 1.5em }
 #subscription-settings > div, #subscription-description { max-width: 900px; margin: 2em auto }
 #subscription-settings .instruction { margin: 1em; line-height: 1.4em }
+#subscription-settings .warning { color: red }
 
 #subscription-messages { position: relative; height: 320px; line-height: 18px; border: 1px solid #999 }
 #subscription-messages > div { overflow-y: auto; }

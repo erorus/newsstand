@@ -75,6 +75,13 @@ var TUJ_Subscription = function ()
         settingsParent.append(settingsPaid);
         ShowPaidSettings(settingsPaid);
 
+        if (subData.watchlimits.used / subData.watchlimits.total >= 0.9) {
+            var settingsLimits = libtuj.ce('div');
+            settingsLimits.id = 'subscription-watchlimits';
+            settingsParent.append(settingsLimits);
+            ShowWatchLimits(settingsLimits);
+        }
+
         var settingsWatches = libtuj.ce('div');
         settingsWatches.id = 'subscription-watches';
         settingsParent.append(settingsWatches);
@@ -382,7 +389,23 @@ var TUJ_Subscription = function ()
                 btn.disabled = false;
             }
         });
+    }
 
+    function ShowWatchLimits(dest)
+    {
+        var h = libtuj.ce('h3');
+        dest.appendChild(h);
+        $(h).text(tuj.lang.marketNotifications);
+
+        var d = libtuj.ce('div');
+        d.className = 'instruction warning';
+        dest.appendChild(d);
+
+        if (subData.watchlimits.used >= subData.watchlimits.total) {
+            $(d).text(libtuj.sprintf(tuj.lang.watchLimitExceeded, subData.watchlimits.used, subData.watchlimits.total));
+        } else {
+            $(d).text(libtuj.sprintf(tuj.lang.watchLimitNear, subData.watchlimits.used, subData.watchlimits.total));
+        }
     }
 
     function ShowWatches(dest)

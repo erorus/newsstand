@@ -599,6 +599,8 @@
     "quantityUnderZero": "menge ist nie unter 0.",
     "priceAboveZero": "Preis ist immer übre 0.",
     "buyMoreThanZero": "Du must eine Menge über 0 kaufen.",
+    "watchLimitNear": "Notice: You have set {1} notifications. You are approaching the limit of {2} notifications.",
+    "watchLimitExceeded": "You have set {1} notifications. Before you add more, you must delete some to stay under the limit of {2} notifications.",
 
     "tellMeAboutNewAuctions": "benachrichtige mich über neue Auktionen von:",
     "orBetter": "oder besser",

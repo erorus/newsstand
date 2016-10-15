@@ -44,6 +44,7 @@ if (isset($_POST['settings'])) {
         'email' => GetSubEmail($loginState),
         'messages' => GetSubMessages($loginState),
         'watches' => GetWatches($loginState),
+        'watchlimits' => GetWatchLimits($loginState),
         'rares' => GetRareWatches($loginState),
         'reports' => GetReports($loginState),
         'paid' => GetIsPaid($loginState),
@@ -853,6 +854,17 @@ function GetWatchCount($userId, $db = null) {
     MCSet(SUBSCRIPTION_WATCH_COUNT_CACHEKEY . $userId, $cnt);
 
     return $cnt;
+}
+
+function GetWatchLimits($loginState)
+{
+    $userId = $loginState['id'];
+
+    return [
+        'used' => GetWatchCount($userId),
+        'total' => SUBSCRIPTION_WATCH_LIMIT_TOTAL,
+        'per' => SUBSCRIPTION_WATCH_LIMIT_PER,
+    ];
 }
 
 function GetWatches($loginState)
