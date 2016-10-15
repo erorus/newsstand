@@ -612,10 +612,12 @@ function GetWatch($loginState, $type, $id)
 {
     $userId = $loginState['id'];
 
+    $totalWatchRemaining = max(0, SUBSCRIPTION_WATCH_LIMIT_TOTAL - GetWatchCount($userId));
+
     $json = [];
     $id = intval($id, 10);
     if (!$id) {
-        return ['maximum' => SUBSCRIPTION_WATCH_LIMIT_PER, 'watches' => $json];
+        return ['maximum' => min($totalWatchRemaining, SUBSCRIPTION_WATCH_LIMIT_PER), 'watches' => $json];
     }
 
     $cacheKeyPrefix = defined('SUBSCRIPTION_' . strtoupper($type) . '_CACHEKEY') ?
@@ -625,7 +627,7 @@ function GetWatch($loginState, $type, $id)
     $cacheKey = $cacheKeyPrefix . $userId . '_' . $id;
     $json = MCGet($cacheKey);
     if ($json !== false) {
-        return ['maximum' => SUBSCRIPTION_WATCH_LIMIT_PER, 'watches' => $json];
+        return ['maximum' => min($totalWatchRemaining + count($json), SUBSCRIPTION_WATCH_LIMIT_PER), 'watches' => $json];
     }
 
     $db = DBConnect();
@@ -638,7 +640,7 @@ function GetWatch($loginState, $type, $id)
 
     MCSet($cacheKey, $json);
 
-    return ['maximum' => SUBSCRIPTION_WATCH_LIMIT_PER, 'watches' => $json];
+    return ['maximum' => min($totalWatchRemaining + count($json), SUBSCRIPTION_WATCH_LIMIT_PER), 'watches' => $json];
 }
 
 function SetWatch($loginState, $type, $item, $bonusSet, $region, $house, $direction, $quantity, $price)
@@ -743,15 +745,7 @@ function SetWatch($loginState, $type, $item, $bonusSet, $region, $house, $direct
         return false;
     }
 
-    $cnt = 0;
-    $stmt = $db->prepare('select count(*) from tblUserWatch where user = ? and deleted is null');
-    $stmt->bind_param('i', $userId);
-    $stmt->execute();
-    $stmt->bind_result($cnt);
-    $stmt->fetch();
-    $stmt->close();
-
-    if ($cnt > SUBSCRIPTION_WATCH_LIMIT_TOTAL) {
+    if (GetWatchCount($userId, $db) >= SUBSCRIPTION_WATCH_LIMIT_TOTAL) {
         $db->rollback();
         MCDelete(SUBSCRIPTION_WATCH_LOCK_CACHEKEY . $userId);
         return false;
@@ -785,6 +779,7 @@ function SetWatch($loginState, $type, $item, $bonusSet, $region, $house, $direct
 
     MCDelete($cacheKeyPrefix . $userId . '_' . $item);
     MCDelete($cacheKeyPrefix . $userId);
+    MCDelete(SUBSCRIPTION_WATCH_COUNT_CACHEKEY . $userId);
 
     return true;
 }
@@ -832,8 +827,32 @@ function DeleteWatch($loginState, $watch)
         MCDelete(SUBSCRIPTION_SPECIES_CACHEKEY . $userId);
         $tr = ['type' => 'species', 'id' => $row['species']];
     }
+    MCDelete(SUBSCRIPTION_WATCH_COUNT_CACHEKEY . $userId);
 
     return $tr;
+}
+
+function GetWatchCount($userId, $db = null) {
+    $cnt = MCGet(SUBSCRIPTION_WATCH_COUNT_CACHEKEY . $userId);
+    if ($cnt !== false) {
+        return $cnt;
+    }
+
+    if (is_null($db)) {
+        $db = DBConnect();
+    }
+
+    $cnt = 0;
+    $stmt = $db->prepare('select count(*) from tblUserWatch where user = ? and deleted is null');
+    $stmt->bind_param('i', $userId);
+    $stmt->execute();
+    $stmt->bind_result($cnt);
+    $stmt->fetch();
+    $stmt->close();
+
+    MCSet(SUBSCRIPTION_WATCH_COUNT_CACHEKEY . $userId, $cnt);
+
+    return $cnt;
 }
 
 function GetWatches($loginState)
