@@ -710,7 +710,7 @@ function SetWatch($loginState, $type, $item, $bonusSet, $region, $house, $direct
     }
 
     $loops = 0;
-    while (!MCAdd(SUBSCRIPTION_WATCH_CACHEKEY . "lock_$userId", 1, 15)) {
+    while (!MCAdd(SUBSCRIPTION_WATCH_LOCK_CACHEKEY . $userId, 1, 15)) {
         usleep(250000);
         if ($loops++ >= 120) { // 30 seconds
             return false;
@@ -739,7 +739,7 @@ function SetWatch($loginState, $type, $item, $bonusSet, $region, $house, $direct
 
     if ($fail) {
         $db->rollback();
-        MCDelete(SUBSCRIPTION_WATCH_CACHEKEY . "lock_$userId");
+        MCDelete(SUBSCRIPTION_WATCH_LOCK_CACHEKEY . $userId);
         return false;
     }
 
@@ -753,7 +753,7 @@ function SetWatch($loginState, $type, $item, $bonusSet, $region, $house, $direct
 
     if ($cnt > SUBSCRIPTION_WATCH_LIMIT_TOTAL) {
         $db->rollback();
-        MCDelete(SUBSCRIPTION_WATCH_CACHEKEY . "lock_$userId");
+        MCDelete(SUBSCRIPTION_WATCH_LOCK_CACHEKEY . $userId);
         return false;
     }
 
@@ -772,12 +772,12 @@ function SetWatch($loginState, $type, $item, $bonusSet, $region, $house, $direct
 
     if ($cnt == 0) {
         $db->rollback();
-        MCDelete(SUBSCRIPTION_WATCH_CACHEKEY . "lock_$userId");
+        MCDelete(SUBSCRIPTION_WATCH_LOCK_CACHEKEY . $userId);
         return false;
     }
 
     $db->commit();
-    MCDelete(SUBSCRIPTION_WATCH_CACHEKEY . "lock_$userId");
+    MCDelete(SUBSCRIPTION_WATCH_LOCK_CACHEKEY . $userId);
 
     $cacheKeyPrefix = defined('SUBSCRIPTION_' . strtoupper($type) . '_CACHEKEY') ?
         constant('SUBSCRIPTION_' . strtoupper($type) . '_CACHEKEY') :
