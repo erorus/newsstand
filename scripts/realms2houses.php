@@ -66,7 +66,7 @@ foreach ($regions as $region => $realmListLocale) {
 
     $seenLocales = [];
 
-    $stmt = $db->prepare('INSERT INTO tblRealm (id, region, slug, name, locale) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=values(name), locale=values(locale)');
+    $stmt = $db->prepare('INSERT INTO tblRealm (id, region, slug, name, locale) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=values(name), locale=values(locale), ownerrealm=null');
     foreach ($realms['realms'] as $realm) {
         $seenLocales[$realm['locale']] = true;
         $stmt->bind_param('issss', $nextId, $region, $realm['slug'], $realm['name'], $realm['locale']);
@@ -120,7 +120,7 @@ foreach ($regions as $region => $realmListLocale) {
         }
     }
 
-    $stmt = $db->prepare('SELECT slug, house, name, ifnull(ownerrealm, replace(name, \' \', \'\')) AS ownerrealm FROM tblRealm WHERE region = ? AND locale is not null');
+    $stmt = $db->prepare('SELECT slug, house, name, ifnull(ownerrealm, name) AS ownerrealm FROM tblRealm WHERE region = ? AND locale is not null');
     $stmt->bind_param('s', $region);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -385,7 +385,7 @@ function GetLocalizedOwnerRealms($region, $locale)
             PrintImportantMessage("Region $region slug $slug returned ".count($realmJson['realms'])." realms. $url");
         }
 
-        $ownerRealm = str_replace(' ', '', $realmJson['realms'][0]['name']);
+        $ownerRealm = $realmJson['realms'][0]['name'];
         $sqlToRun[] = sprintf('UPDATE tblRealm SET ownerrealm = \'%s\' WHERE id = %d', $db->escape_string($ownerRealm), $realmId);
     }
     $stmt->close();
