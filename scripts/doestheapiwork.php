@@ -3,6 +3,9 @@
 require_once __DIR__.'/../incl/incl.php';
 require_once __DIR__.'/../incl/battlenet.incl.php';
 
+define('ZOPFLI_PATH', __DIR__.'/zopfli');
+define('BROTLI_PATH', __DIR__.'/brotli/bin/bro');
+
 use \Newsstand\HTTP;
 
 RunMeNTimes(1);
@@ -23,19 +26,8 @@ $file['finished'] = JSNow();
 
 if (!$caughtKill) {
     $fn = isset($argv[1]) ? $argv[1] : __DIR__.'/../theapi.work/times.json';
-    $pth = dirname($fn);
 
-    $fnTmp = tempnam($pth, 'doestheapiwork-writing');
-    $f = fopen($fnTmp, 'w');
-    fwrite($f, json_encode($file, JSON_NUMERIC_CHECK | JSON_UNESCAPED_UNICODE));
-    fclose($f);
-
-    chmod($fnTmp, 0644);
-
-    if (!rename($fnTmp, $fn)) {
-        DebugMessage("Could not rename $fnTmp to $fn", E_USER_WARNING);
-        unlink($fnTmp);
-    }
+    AtomicFilePutContents($fn, json_encode($file, JSON_NUMERIC_CHECK | JSON_UNESCAPED_UNICODE));
 }
 
 DebugMessage('Done! Started ' . TimeDiff($startTime, ['precision'=>'second']));
@@ -101,57 +93,60 @@ function FetchRegionData($region) {
         }
     }
 
-    $curlOpts = [
-        CURLOPT_RETURNTRANSFER  => true,
-        CURLOPT_FOLLOWLOCATION  => true,
-        CURLOPT_MAXREDIRS       => 2,
-        CURLOPT_TIMEOUT         => 10,
-        CURLOPT_ENCODING        => 'gzip',
-    ];
-
     $chunks = array_chunk($slugMap, 20, true);
     foreach ($chunks as $chunk) {
-        $mh = curl_multi_init();
-        curl_multi_setopt($mh, CURLMOPT_PIPELINING, 3);
-
-        $curls = [];
         DebugMessage("Fetching auction data for $region ".implode(', ', array_keys($chunk)));
+        $urls = [];
         foreach (array_keys($chunk) as $slug) {
-            $curls[$slug] = curl_init(GetBattleNetURL($region, 'wow/auction/data/' . $slug));
-            curl_setopt_array($curls[$slug], $curlOpts);
-            curl_multi_add_handle($mh, $curls[$slug]);
+            $urls[$slug] = GetBattleNetURL($region, 'wow/auction/data/' . $slug);
         }
 
-        $active = false;
         $started = JSNow();
-
-        while (CURLM_CALL_MULTI_PERFORM == ($mrc = curl_multi_exec($mh, $active)));
-
-        while ($active && $mrc == CURLM_OK) {
-            if (curl_multi_select($mh) != -1) {
-                while (CURLM_CALL_MULTI_PERFORM == ($mrc = curl_multi_exec($mh, $active)));
-            }
-            usleep(100000);
-        }
+        $dataUrls = [];
+        $jsons = FetchURLBatch($urls);
 
         foreach ($chunk as $slug => $slugs) {
-            curl_multi_remove_handle($mh, $curls[$slug]);
-            $json = json_decode(curl_multi_getcontent($curls[$slug]), true);
-            if (json_last_error() != JSON_ERROR_NONE) {
-                DebugMessage("Error decoding JSON string for $region $slug: " . json_last_error_msg(), E_USER_WARNING);
-                $json = [];
+            $json = [];
+            if (!isset($jsons[$slug])) {
+                DebugMessage("No HTTP response for $region $slug", E_USER_WARNING);
+            } else {
+                $json = json_decode($jsons[$slug], true);
+                if (json_last_error() != JSON_ERROR_NONE) {
+                    DebugMessage("Error decoding JSON string for $region $slug: " . json_last_error_msg(), E_USER_WARNING);
+                    $json = [];
+                }
             }
 
             $modified = isset($json['files'][0]['lastModified']) ? $json['files'][0]['lastModified'] : 0;
+            $url = isset($json['files'][0]['url']) ? $json['files'][0]['url'] : '';
+            if ($url) {
+                $dataUrls[$slug] = $url;
+            }
             foreach ($slugs as $connectedSlug) {
                 $results[$connectedSlug]['checked'] = $started;
                 $results[$connectedSlug]['modified'] = $modified;
             }
-
-            curl_close($curls[$slug]);
         }
 
-        curl_multi_close($mh);
+        $dataHeads = FetchURLBatch($dataUrls, [
+            CURLOPT_HEADER => true,
+            CURLOPT_NOBODY => true
+        ]);
+        foreach ($chunk as $slug => $slugs) {
+            $fileDate = 0;
+            if (isset($dataHeads[$slug])) {
+                if (preg_match('/(?:^|\n)Last-Modified: ([^\n]+)/i', $dataHeads[$slug], $res)) {
+                    $fileDate = strtotime($res[1]) * 1000;
+                } else {
+                    DebugMessage("Found no last-modified header for $region $slug at " . $dataUrls[$slug] . "\n" . $dataHeads[$slug], E_USER_WARNING);
+                }
+            } elseif (isset($dataUrls[$slug])) {
+                DebugMessage("Fetched no header for $region $slug at " . $dataUrls[$slug], E_USER_WARNING);
+            }
+            foreach ($slugs as $connectedSlug) {
+                $results[$connectedSlug]['file'] = $fileDate;
+            }
+        }
     }
 
     ksort($results);
@@ -159,3 +154,104 @@ function FetchRegionData($region) {
     return $results;
 }
 
+function FetchURLBatch($urls, $curlOpts = []) {
+    if (!$urls) {
+        return [];
+    }
+
+    $curlOpts = [
+        CURLOPT_RETURNTRANSFER  => true,
+        CURLOPT_FOLLOWLOCATION  => true,
+        CURLOPT_MAXREDIRS       => 2,
+        CURLOPT_TIMEOUT         => 10,
+        CURLOPT_ENCODING        => 'gzip',
+    ] + $curlOpts;
+
+    $mh = curl_multi_init();
+    curl_multi_setopt($mh, CURLMOPT_PIPELINING, 3);
+
+    $results = [];
+    $curls = [];
+
+    foreach ($urls as $k => $url) {
+        $curls[$k] = curl_init($url);
+        curl_setopt_array($curls[$k], $curlOpts);
+        curl_multi_add_handle($mh, $curls[$k]);
+    }
+
+    $active = false;
+    do {
+        while (CURLM_CALL_MULTI_PERFORM == ($mrc = curl_multi_exec($mh, $active)));
+        if ($active) {
+            usleep(100000);
+        }
+    } while ($active && $mrc == CURLM_OK);
+
+    foreach ($urls as $k => $url) {
+        curl_multi_remove_handle($mh, $curls[$k]);
+        $results[$k] = curl_multi_getcontent($curls[$k]);
+        curl_close($curls[$k]);
+    }
+
+    curl_multi_close($mh);
+
+    return $results;
+}
+
+function AtomicFilePutContents($path, $data) {
+    $aPath = "$path.atomic";
+    file_put_contents($aPath, $data);
+
+    static $hasZopfli = null, $hasBrotli = null;
+    if (is_null($hasZopfli)) {
+        $hasZopfli = is_executable(ZOPFLI_PATH);
+    }
+    if (is_null($hasBrotli)) {
+        $hasBrotli = is_executable(BROTLI_PATH);
+    }
+    $o = [];
+    $ret = $retBrotli = 0;
+    $zaPath = "$aPath.gz";
+    $zPath = "$path.gz";
+    $baPath = "$aPath.br";
+    $bPath = "$path.br";
+
+    $dataPath = $aPath;
+
+    exec(($hasZopfli ? escapeshellcmd(ZOPFLI_PATH) : 'gzip') . ' -c ' . escapeshellarg($dataPath) . ' > ' . escapeshellarg($zaPath), $o, $ret);
+    if ($hasBrotli && $ret == 0) {
+        exec(escapeshellcmd(BROTLI_PATH) . ' --input ' . escapeshellarg($dataPath) . ' > ' . escapeshellarg($baPath), $o, $retBrotli);
+    }
+
+    if ($ret != 0) {
+        if (file_exists($baPath)) {
+            unlink($baPath);
+        }
+        if (file_exists($bPath)) {
+            unlink($bPath);
+        }
+        if (file_exists($zaPath)) {
+            unlink($zaPath);
+        }
+        if (file_exists($zPath)) {
+            unlink($zPath);
+        }
+    } else {
+        $tm = filemtime($aPath);
+        touch($aPath, $tm); // wipes out fractional seconds
+        touch($zaPath, $tm); // identical time to $aPath
+        rename($zaPath, $zPath);
+        if ($retBrotli != 0) {
+            if (file_exists($baPath)) {
+                unlink($baPath);
+            }
+            if (file_exists($bPath)) {
+                unlink($bPath);
+            }
+        } else {
+            touch($baPath, $tm); // identical time to $aPath
+            rename($baPath, $bPath);
+        }
+    }
+    rename($aPath, $path);
+}

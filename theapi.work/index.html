@@ -131,11 +131,17 @@
                 }
                 failPrefix = '<b>' + region.toUpperCase() + ' ' + (row.name ? row.name : slug) + '</b>: ';
                 if (!row.modified) {
-                    failures.push(failPrefix + ' did not respond.');
+                    failures.push(failPrefix + 'data status did not respond.');
                     continue;
                 }
-                if (row.checked - row.modified > 90 * 60 * 1000) {
-                    failures.push(failPrefix + ' ' + PrettySeconds(Math.floor((row.checked - row.modified) / 1000)) + ' old.');
+                if (!row.file) {
+                    failures.push(failPrefix + 'data file unavailable.');
+                    continue;
+                }
+                if ((row.checked - row.modified > 90 * 60 * 1000) || (row.modified - 5 * 60 * 1000 > row.file)) {
+                    failures.push(failPrefix +
+                            'data status is ' + PrettySeconds(Math.floor((row.checked - row.modified) / 1000)) + ' old,<br>' +
+                            'data file is ' + PrettySeconds(Math.floor((row.checked - row.file) / 1000)) + ' old.');
                     continue;
                 }
                 if (row.canonical) {
