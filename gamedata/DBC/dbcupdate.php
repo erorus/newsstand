@@ -5,6 +5,7 @@ require_once 'db2/src/autoload.php';
 use \Erorus\DB2\Reader;
 
 error_reporting(E_ALL);
+ini_set('memory_limit', '384M');
 
 $locale = 'enus';
 $dirnm = __DIR__.'/current/enUS';
@@ -16,11 +17,13 @@ DBConnect();
 RunAndLogError('set session max_heap_table_size='.(1024*1024*1024));
 
 $fileDataReader = new Reader($dirnm . '/ManifestInterfaceData.db2');
+AssertDB2LayoutHash($fileDataReader, 0x4a072b71);
 $fileDataReader->setFieldNames(['path', 'name']);
 
 LogLine("GlobalStrings");
 $globalStrings = [];
 $reader = new Reader($dirnm . '/GlobalStrings.db2');
+AssertDB2LayoutHash($reader, 0xaa0e6518);
 $reader->setFieldNames(['key','value']);
 $x = 0; $recordCount = count($reader->getIds());
 foreach ($reader->generateRecords() as $rec) {
@@ -36,6 +39,7 @@ insert into tblDBCItemSubClass (class, subclass, name_$locale) values (?, ?, ?)
 on duplicate key update name_$locale = ifnull(values(name_$locale), name_$locale)
 EOF;
 $reader = new Reader($dirnm . '/ItemSubClass.db2');
+AssertDB2LayoutHash($reader, 0x2b6ecf61);
 $reader->setFieldNames([0=>'name', 1=>'plural', 3=>'class', 4=>'subclass']);
 RunAndLogError('truncate tblDBCItemSubClass');
 $stmt = $db->prepare($sql);
@@ -57,9 +61,11 @@ EchoProgress(false);
 unset($reader);
 
 $battlePetSpeciesReader = new Reader($dirnm . '/BattlePetSpecies.db2');
+AssertDB2LayoutHash($battlePetSpeciesReader, 0x294c6926);
 $battlePetSpeciesReader->setFieldNames([0=>'npcid', 1=>'iconid', 5=>'flags', 6=>'type', 7=>'category']);
 
 $creatureReader = new Reader($dirnm . '/Creature.db2');
+AssertDB2LayoutHash($creatureReader, 0xe4fd6645);
 $creatureReader->setFieldNames([4=>'name']);
 
 LogLine("tblDBCPet");
@@ -94,6 +100,7 @@ $stateFields = [
     20 => 'speed',
 ];
 $reader = new Reader($dirnm . '/BattlePetSpeciesState.db2');
+AssertDB2LayoutHash($reader, 0xafb2b852);
 $reader->setFieldNames([0=>'amount', 1=>'species', 2=>'state']);
 $reader->setFieldsSigned([0=>true]);
 $x = 0; $recordCount = count($reader->getIds());
@@ -117,6 +124,7 @@ $name = '+ ' . $globalStrings['EMPTY_SOCKET_PRISMATIC'];
 RunAndLogError($stmt->execute());
 
 $reader = new Reader($dirnm . '/ItemNameDescription.db2');
+AssertDB2LayoutHash($reader, 0x5c280fe0);
 $reader->setFieldNames(['name']);
 $x = 0; $recordCount = count($reader->getIds());
 foreach ($reader->generateRecords() as $id => $rec) {
@@ -132,6 +140,7 @@ unset($reader);
 
 LogLine("ScalingStatDistribution");
 $reader = new Reader($dirnm . '/ScalingStatDistribution.db2');
+AssertDB2LayoutHash($reader, 0x1429d0b8);
 $reader->setFieldNames(['curve', 'minlevel', 'maxlevel']);
 $distCurves = [];
 $x = 0; $recordCount = count($reader->getIds());
@@ -144,6 +153,7 @@ unset($reader);
 
 LogLine("tblDBCItemBonus");
 $reader = new Reader($dirnm . '/ItemBonus.db2');
+AssertDB2LayoutHash($reader, 0x8081f714);
 $reader->setFieldNames(['params', 'bonusid', 'changetype', 'prio']);
 $reader->setFieldsSigned([true]);
 $bonusRows = [];
@@ -233,6 +243,7 @@ unset($bonuses, $bonusRows);
 LogLine("tblDBCCurvePoint");
 
 $reader = new Reader($dirnm . '/CurvePoint.db2');
+AssertDB2LayoutHash($reader, 0x9a0f148d);
 $reader->setFieldNames(['pair', 'curve', 'step']);
 
 RunAndLogError('truncate table tblDBCCurvePoint');
@@ -255,8 +266,10 @@ unset($reader);
 
 LogLine("tblDBCItem");
 $itemReader = new Reader($dirnm . '/Item.db2');
+AssertDB2LayoutHash($itemReader, 0x9eabd639);
 $itemReader->setFieldNames(['iconfiledata', 'class', 'subclass']);
-$itemSparseReader = new Reader($dirnm . '/Item-sparse.db2');
+$itemSparseReader = new Reader($dirnm . '/Item-sparse.db2', [13,14,15,16,17]);
+AssertDB2LayoutHash($itemSparseReader, 0xf62c72ee);
 $itemSparseReader->setFieldNames([
     0=>'flags',
     3=>'buyprice',
@@ -341,8 +354,10 @@ unset($sniffedReader);
 unset($itemSparseReader);
 
 $appearanceReader = new Reader($dirnm . '/ItemAppearance.db2');
+AssertDB2LayoutHash($appearanceReader, 0xda5b3c85);
 $appearanceReader->setFieldNames(['display', 'iconfiledata']);
 $modifiedAppearanceReader = new Reader($dirnm . '/ItemModifiedAppearance.db2');
+AssertDB2LayoutHash($modifiedAppearanceReader, 0xdfd4f953);
 $modifiedAppearanceReader->setFieldNames(['item', 'appearance', 'bonustype', 'index']);
 
 $sorted = [];
@@ -402,6 +417,7 @@ unset($sorted, $appearanceReader, $modifiedAppearanceReader);
 
 LogLine("tblDBCItemSpell");
 $reader = new Reader($dirnm . '/ItemEffect.db2');
+AssertDB2LayoutHash($reader, 0x874ee6d6);
 $reader->setFieldNames(['item', 'spell']);
 RunAndLogError('truncate table tblDBCItemSpell');
 $sql = 'insert ignore into tblDBCItemSpell (item, spell) values (?, ?)';
@@ -424,6 +440,7 @@ unset($reader);
 
 LogLine("tblDBCRandEnchants");
 $reader = new Reader($dirnm . '/ItemRandomSuffix.db2');
+AssertDB2LayoutHash($reader, 0xe2a58f9f);
 $reader->setFieldNames(['name']);
 RunAndLogError('truncate table tblDBCRandEnchants');
 $stmt = $db->prepare("insert into tblDBCRandEnchants (id, name_$locale) values (?, ?) on duplicate key update name_$locale = values(name_$locale)");
@@ -441,6 +458,7 @@ EchoProgress(false);
 unset($reader);
 
 $reader = new Reader($dirnm . '/ItemRandomProperties.db2');
+AssertDB2LayoutHash($reader, 0x76ca3b88);
 $reader->setFieldNames(['name']);
 $stmt = $db->prepare("insert into tblDBCRandEnchants (id, name_$locale) values (?, ?) on duplicate key update name_$locale = values(name_$locale)");
 $enchId = $name = null;
@@ -463,10 +481,10 @@ $stmt->close();
 
 LogLine("Making spell temp tables..");
 
-DB2TempTable('SpellIcon', ['iconpath']);
+DB2TempTable('SpellIcon', 0x290ce6ba, ['iconpath']);
 RunAndLogError('update ttblSpellIcon set iconpath = substring_index(iconpath,\'\\\\\',-1) where instr(iconpath,\'\\\\\') > 0');
 
-DB2TempTable('SpellEffect', [
+DB2TempTable('SpellEffect', 0x16763148, [
 	10=>'effecttypeid', //24 = create item, 53 = enchant, 157 = create tradeskill item
 	13=>'qtymade',
 	15=>'diesides',
@@ -475,43 +493,43 @@ DB2TempTable('SpellEffect', [
 	23=>'effectorder',
 	]);
 
-DB2TempTable('Spell', [
+DB2TempTable('Spell', 0xe5833c90, [
 	0=>'spellname',
 	2=>'longdescription',
     4=>'miscid',
 	]);
 
-DB2TempTable('SpellCooldowns', [
+DB2TempTable('SpellCooldowns', 0x8a2fb468, [
     0=>'spell',
     1=>'categorycooldown',
     2=>'individualcooldown',
 ]);
 
-DB2TempTable('SpellCategories', [
+DB2TempTable('SpellCategories', 0x781b3f38, [
     0=>'spell',
     2=>'categoryid',
     8=>'chargecategoryid',
 ]);
 
-DB2TempTable('SpellCategory', [
+DB2TempTable('SpellCategory', 0xe4524408, [
     1=>'chargecooldown',
     2=>'flags',
 ]);
 
 RunAndLogError('create temporary table ttblSpellCategory2 select * from ttblSpellCategory');
 
-DB2TempTable('SpellMisc', [
+DB2TempTable('SpellMisc', 0x238e7bd9, [
     6=>'iconid',
 ]);
 
-DB2TempTable('SpellReagents', [
+DB2TempTable('SpellReagents', 0x91dd8682, [
 	0=>'spell',
 	1=>'reagent',
 	2=>'reagentcount',
 ]);
 
-DB2TempTable('SkillLine', [0=>'linename',5=>'linecatid']);
-DB2TempTable('SkillLineAbility', [0=>'spellid',4=>'lineid',6=>'greyat',7=>'yellowat']);
+DB2TempTable('SkillLine', 0xd05f97db, [0=>'linename',5=>'linecatid']);
+DB2TempTable('SkillLineAbility', 0x33977235, [0=>'spellid',4=>'lineid',6=>'greyat',7=>'yellowat']);
 
 RunAndLogError('CREATE temporary TABLE `ttblDBCSkillLines` (`id` smallint unsigned NOT NULL, `name` char(50) NOT NULL, PRIMARY KEY (`id`)) ENGINE=memory');
 RunAndLogError('insert into ttblDBCSkillLines (select id, linename from ttblSkillLine where ((linecatid=11) or (linecatid=9 and (linename=\'Cooking\' or linename like \'Way of %\'))))');
@@ -744,7 +762,7 @@ function GetFileDataName($id) {
     return preg_replace('/\.blp$/', '', strtolower($row['name']));
 }
 
-function DB2TempTable($baseFile, $columns, $signedCols=[]) {
+function DB2TempTable($baseFile, $expectedHash, $columns, $signedCols=[]) {
     global $dirnm, $db;
 
     $filePath = "$dirnm/$baseFile.db2";
@@ -758,6 +776,9 @@ function DB2TempTable($baseFile, $columns, $signedCols=[]) {
 
     LogLine("ttbl$baseFile");
     $reader = new Reader($filePath);
+    if ($expectedHash) {
+        AssertDB2LayoutHash($reader, $expectedHash, $baseFile);
+    }
     $reader->setFieldNames($columns);
     $reader->setFieldsSigned($signedCols);
     $fieldTypes = $reader->getFieldTypes();
@@ -868,4 +889,11 @@ function DB2TempTable($baseFile, $columns, $signedCols=[]) {
     }
     EchoProgress(false);
     unset($reader);
+}
+
+function AssertDB2LayoutHash(Reader $reader, $expectedHash, $filename = 'DB2') {
+    if ($reader->getLayoutHash() != $expectedHash) {
+        LogLine("Warning: Expected $filename hash " . str_pad(dechex($expectedHash), 8, '0', STR_PAD_LEFT) . " but found " . str_pad(dechex($reader->getLayoutHash()), 8, '0', STR_PAD_LEFT));
+        //exit(1);
+    }
 }

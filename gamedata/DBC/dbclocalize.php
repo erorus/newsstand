@@ -84,7 +84,7 @@ EOF;
     unset($reader);
 
     LogLine("$locale tblDBCItem");
-    $reader = new Reader($dirnm . '/Item-sparse.db2');
+    $reader = new Reader($dirnm . '/Item-sparse.db2', [13,14,15,16,17]);
     $reader->setFieldNames([13 => 'name']);
     $stmt = $db->prepare("insert into tblDBCItem (id, name_$locale) values (?, ?) on duplicate key update name_$locale = ifnull(values(name_$locale), name_$locale)");
     $id = $name = null;
