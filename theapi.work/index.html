@@ -41,7 +41,7 @@
     function PrettySeconds(s) {
         s = parseInt(s, 10);
 
-        if (s <= 0) {
+        if (s <= 1) {
             return 'Immediately';
         }
         if (s <= 90) {
@@ -49,16 +49,16 @@
         }
         var m = Math.round(s/60);
         if (m <= 90) {
-            return '' + m + ' minutes';
+            return '' + m + ' minute' + (m == 1 ? '' : 's');
         }
         var h = Math.floor(m/60);
         m = m % 60;
         if (h <= 36) {
-            return '' + h + ' hours, ' + m + ' minutes';
+            return '' + h + ' hour' + (h == 1 ? '' : 's') + ', ' + m + ' minute' + (m == 1 ? '' : 's');
         }
         var d = Math.floor(h/24);
         h = h % 24;
-        return '' + d + ' days, ' + h + ' hours';
+        return '' + d + ' day' + (d == 1 ? '' : 's') + ', ' + h + ' hour' + (h == 1 ? '' : 's');
     }
 
     function ShowLastBit() {
@@ -139,9 +139,15 @@
                     continue;
                 }
                 if ((row.checked - row.modified > 90 * 60 * 1000) || (row.modified - 5 * 60 * 1000 > row.file)) {
-                    failures.push(failPrefix +
-                            'data status is ' + PrettySeconds(Math.floor((row.checked - row.modified) / 1000)) + ' old,<br>' +
-                            'data file is ' + PrettySeconds(Math.floor((row.checked - row.file) / 1000)) + ' old.');
+                    if (row.modified != row.file) {
+                        failures.push(
+                                failPrefix +
+                                'data status is ' + PrettySeconds(Math.floor((row.checked - row.modified) / 1000)) + ' old,<br>' +
+                                'data file is ' + PrettySeconds(Math.floor((row.checked - row.file) / 1000)) + ' old.'
+                        );
+                    } else {
+                        failures.push(failPrefix + PrettySeconds(Math.floor((row.checked - row.modified) / 1000)) + ' old');
+                    }
                     continue;
                 }
                 if (row.canonical) {
