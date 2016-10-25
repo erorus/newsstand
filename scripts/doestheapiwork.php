@@ -5,6 +5,7 @@ require_once __DIR__.'/../incl/battlenet.incl.php';
 
 define('ZOPFLI_PATH', __DIR__.'/zopfli');
 define('BROTLI_PATH', __DIR__.'/brotli/bin/bro');
+define('REALM_CHUNK_SIZE', 15);
 
 use \Newsstand\HTTP;
 
@@ -93,7 +94,7 @@ function FetchRegionData($region) {
         }
     }
 
-    $chunks = array_chunk($slugMap, 20, true);
+    $chunks = array_chunk($slugMap, REALM_CHUNK_SIZE, true);
     foreach ($chunks as $chunk) {
         DebugMessage("Fetching auction data for $region ".implode(', ', array_keys($chunk)));
         $urls = [];
