@@ -171,7 +171,7 @@ function FetchURLBatch($urls, $curlOpts = []) {
     static $mh = false;
     if ($mh === false) {
         $mh = curl_multi_init();
-        curl_multi_setopt($mh, CURLMOPT_PIPELINING, 3);
+        curl_multi_setopt($mh, CURLMOPT_PIPELINING, 2);
     }
 
     $results = [];
