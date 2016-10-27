@@ -14,6 +14,11 @@ CatchKill();
 
 $startTime = time();
 
+$connectionTracking = [
+    'created' => 0,
+    'requests' => 0,
+];
+
 $file = [];
 $file['note'] = 'Brought to you by https://does.theapi.work/';
 $file['started'] = JSNow();
@@ -31,6 +36,7 @@ if (!$caughtKill) {
     AtomicFilePutContents($fn, json_encode($file, JSON_NUMERIC_CHECK | JSON_UNESCAPED_UNICODE));
 }
 
+DebugMessage("Opened {$connectionTracking['created']} connections to service {$connectionTracking['requests']} requests.");
 DebugMessage('Done! Started ' . TimeDiff($startTime, ['precision'=>'second']));
 
 function JSNow() {
@@ -160,6 +166,8 @@ function FetchURLBatch($urls, $curlOpts = []) {
         return [];
     }
 
+    global $connectionTracking;
+
     $curlOpts = [
         CURLOPT_RETURNTRANSFER  => true,
         CURLOPT_FOLLOWLOCATION  => true,
@@ -171,7 +179,10 @@ function FetchURLBatch($urls, $curlOpts = []) {
     static $mh = false;
     if ($mh === false) {
         $mh = curl_multi_init();
-        curl_multi_setopt($mh, CURLMOPT_PIPELINING, 2);
+        // old curl forces pipelining on one connection if we ask for it and the server supports it
+        // this is slower than just opening multiple connections like we want to with curl_multi
+        // also, old curl doesn't interpret the http2 flag properly, and thinks we want pipelining if we just set "2" here
+        curl_multi_setopt($mh, CURLMOPT_PIPELINING, 0);
     }
 
     $results = [];
@@ -193,6 +204,9 @@ function FetchURLBatch($urls, $curlOpts = []) {
 
     foreach ($urls as $k => $url) {
         $results[$k] = curl_multi_getcontent($curls[$k]);
+        $connectionTracking['created'] += curl_getinfo($curls[$k], CURLINFO_NUM_CONNECTS);
+        $connectionTracking['requests']++;
+
         curl_multi_remove_handle($mh, $curls[$k]);
         curl_close($curls[$k]);
     }
