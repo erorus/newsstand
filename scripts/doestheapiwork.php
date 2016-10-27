@@ -5,7 +5,7 @@ require_once __DIR__.'/../incl/battlenet.incl.php';
 
 define('ZOPFLI_PATH', __DIR__.'/zopfli');
 define('BROTLI_PATH', __DIR__.'/brotli/bin/bro');
-define('REALM_CHUNK_SIZE', 15);
+define('REALM_CHUNK_SIZE', 12);
 
 use \Newsstand\HTTP;
 
@@ -168,8 +168,11 @@ function FetchURLBatch($urls, $curlOpts = []) {
         CURLOPT_ENCODING        => 'gzip',
     ] + $curlOpts;
 
-    $mh = curl_multi_init();
-    curl_multi_setopt($mh, CURLMOPT_PIPELINING, 3);
+    static $mh = false;
+    if ($mh === false) {
+        $mh = curl_multi_init();
+        curl_multi_setopt($mh, CURLMOPT_PIPELINING, 3);
+    }
 
     $results = [];
     $curls = [];
@@ -189,12 +192,10 @@ function FetchURLBatch($urls, $curlOpts = []) {
     } while ($active && $mrc == CURLM_OK);
 
     foreach ($urls as $k => $url) {
-        curl_multi_remove_handle($mh, $curls[$k]);
         $results[$k] = curl_multi_getcontent($curls[$k]);
+        curl_multi_remove_handle($mh, $curls[$k]);
         curl_close($curls[$k]);
     }
-
-    curl_multi_close($mh);
 
     return $results;
 }
