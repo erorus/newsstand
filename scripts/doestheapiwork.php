@@ -138,7 +138,7 @@ function FetchRegionData($region) {
             if (isset($dataHeads[$slug])) {
                 if (preg_match('/(?:^|\n)Last-Modified: ([^\n]+)/i', $dataHeads[$slug], $res)) {
                     $fileDate = strtotime($res[1]) * 1000;
-                } else {
+                } elseif ($dataHeads[$slug]) {
                     DebugMessage("Found no last-modified header for $region $slug at " . $dataUrls[$slug] . "\n" . $dataHeads[$slug], E_USER_WARNING);
                 }
             } elseif (isset($dataUrls[$slug])) {
