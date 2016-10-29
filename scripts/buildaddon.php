@@ -59,8 +59,7 @@ otherwise it'll define a function that does what *I think* the official function
 
 ]]
 
-if GetDetailedItemLevelInfo then return end
-
+local addonName, addonTable = ...
 
 EOF;
 
@@ -150,7 +149,7 @@ local function GetCurvePoint(curveId, point)
     return lastValue
 end
 
-GetDetailedItemLevelInfo = GetDetailedItemLevelInfo or function(item)
+addonTable.GetDetailedItemLevelInfo = function(item)
     local _, link, _, origLevel = GetItemInfo(item)
     if not link then
         return nil, nil, nil
@@ -167,6 +166,7 @@ GetDetailedItemLevelInfo = GetDetailedItemLevelInfo or function(item)
 
     local effectiveLevel, previewLevel, curve
     effectiveLevel = origLevel
+    previewLevel = 0
 
     for y = 1,numBonuses,1 do
         local bonus = tonumber(itemStringParts[14+y],10) or 0

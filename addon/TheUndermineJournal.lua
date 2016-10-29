@@ -149,7 +149,7 @@ local function getBreedFromPetLink(link)
 end
 
 local lastMarketInfo = {}
-local GetDetailedItemLevelInfo = GetDetailedItemLevelInfo
+local GetDetailedItemLevelInfo = addonTable.GetDetailedItemLevelInfo
 
 --[[
     pass a table as the second argument to wipe and reuse that table
