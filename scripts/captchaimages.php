@@ -154,7 +154,7 @@ for ($x = 0; $x < count($auctionJson['auctions']['auctions']); $x++) {
             continue;
         }
 
-        $imgUrl = "http://$region.battle.net/static-render/$region/" . preg_replace('/-avatar\.jpg$/', '-inset.jpg', $cjson['thumbnail']);
+        $imgUrl = "http://render-$region.worldofwarcraft.com/character/" . preg_replace('/-avatar\.jpg$/', '-inset.jpg', $cjson['thumbnail']);
         DebugMessage("Fetching $imgUrl");
         $img = \Newsstand\HTTP::Get($imgUrl);
 
