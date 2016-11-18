@@ -503,7 +503,6 @@ var wowtoken = {
         var hcdata = { buy: [], timeleft: {}, navigator: [], pct: {}, pctchart: [], realPrices: [] };
         var maxPrice = 0;
         var o, showLabel, direction = 0, newDirection = 0, lastLabel = -1;
-        var priceLowerBound = 0;
         var priceUpperBound = 100000;
         var colors = {
             'line': '#000000',
@@ -513,8 +512,7 @@ var wowtoken = {
 
         switch (region) {
             case 'NA':
-                priceLowerBound = 20000;
-                priceUpperBound = 80000;
+                priceUpperBound = 100000;
                 colors = {
                     'line': '#0000ff',
                     'fill': 'rgba(204,204,255,0.6)',
@@ -522,7 +520,6 @@ var wowtoken = {
                 };
                 break;
             case 'EU':
-                priceLowerBound = 40000;
                 priceUpperBound = 140000;
                 colors = {
                     'line': '#ff0000',
@@ -531,7 +528,6 @@ var wowtoken = {
                 }
                 break;
             case 'CN':
-                priceLowerBound = 60000;
                 priceUpperBound = 240000;
                 colors = {
                     'line': '#00cc00',
@@ -540,7 +536,6 @@ var wowtoken = {
                 }
                 break;
             case 'TW':
-                priceLowerBound = 60000;
                 priceUpperBound = 240000;
                 colors = {
                     'line': '#cccc00',
@@ -549,7 +544,6 @@ var wowtoken = {
                 }
                 break;
             case 'KR':
-                priceLowerBound = 60000;
                 priceUpperBound = 240000;
                 colors = {
                     'line': '#00cccc',
@@ -724,7 +718,7 @@ var wowtoken = {
                             color: 'black'
                         }
                     },
-                    min: priceLowerBound / priceUpperBound * 32,
+                    min: 0,
                     max: 32,
                     floor: 0,
                     tickInterval: 1,
