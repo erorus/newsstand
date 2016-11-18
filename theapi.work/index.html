@@ -158,7 +158,7 @@
                 failures.push('<b>' + region.toUpperCase() + '</b> realm list did not respond.');
                 percentages.push('<b>' + region.toUpperCase() + '</b>: 0% working');
             } else {
-                percentages.push('<b>' + region.toUpperCase() + '</b>: ' + Math.round(successful / total * 100) + '% working');
+                percentages.push('<b>' + region.toUpperCase() + '</b>: ' + Math.floor(successful / total * 100) + '% working');
             }
         }
         var srt = function(a,b) { return a.localeCompare(b); };
