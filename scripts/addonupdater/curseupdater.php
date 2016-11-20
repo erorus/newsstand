@@ -80,7 +80,7 @@ if (!$latestVersion) {
 
 $metaData = [
     'changelog' => sprintf('Automatic data update for %s', date('l, F j, Y')),
-    'gameVersions' => [GetLatestGameVersionID()],
+    'gameVersions' => [$latestVersion],
     'releaseType' => 'alpha',
 ];
 
