@@ -119,7 +119,7 @@ class HTTP
         $data = curl_exec($ch);
         $errMsg = curl_error($ch);
         if ($errMsg) {
-            DebugMessage("cURL error fetching $url - " . curl_errno($ch) . " $errMsg", E_USER_NOTICE);
+            trigger_error(sprintf("cURL error fetching %s - %d %s", $url, curl_errno($ch), $errMsg), E_USER_NOTICE);
             return false;
         }
 
@@ -155,7 +155,6 @@ class HTTP
                 } else {
                     $delay = max(0, strtotime($headers['Retry-After']) - time());
                 }
-                DebugMessage("Asked to wait $delay seconds for $url", E_USER_NOTICE);
                 if ($delay > 0 && $delay <= 10) {
                     sleep($delay);
                     $isRetry = true;

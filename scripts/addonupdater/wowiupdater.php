@@ -1,6 +1,6 @@
 <?php
 
-require_once(__DIR__.'/wowiupdater.credentials.php');
+require_once(__DIR__.'/credentials.php');
 
 date_default_timezone_set('UTC');
 

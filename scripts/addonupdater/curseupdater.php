@@ -1,41 +1,48 @@
 <?php
 
+require_once(__DIR__.'/credentials.php');
+require_once(__DIR__.'/../../incl/NewsstandHTTP.incl.php');
+
+use \Newsstand\HTTP;
+
 date_default_timezone_set('UTC');
 
-// http://wow.curseforge.com/game-versions.json
-//$gameversion = 149; //4.0.6
-
-if ($argc < 2) {
+if (count($argv) < 2) {
     echo "Run curseupdater.sh\n";
     exit(1);
 }
 
-$fpath = $argv[1];
+fwrite(STDERR, "Starting Curse Updater..\n");
 
-if (substr($fpath,-1) != '/') $fpath .= '/';
-$filpath = $fpath.'TheUndermineJournal.zip';
+$zipPath = $argv[1];
 
-//echo "\n-----\n$fpath\n-----\n";
-
-if (!file_exists($filpath)) {
-    echo "Could not find $filpath\n";
-    exit(2);
+if (!file_exists($zipPath)) {
+    fwrite(STDERR, 'File does not exist: '.$zipPath."\n");
+    exit(1);
 }
 
-$versionjson = `wget -O - --quiet "https://wow.curseforge.com/game-versions.json"`;
-$json = json_decode($versionjson,true,12);
-krsort($json);
-foreach ($json as $vers => $o)
-    if (!$o['is_development']) {
-        $gameversion = $vers;
-        break;
+function GetLatestGameVersionID() {
+    $url = sprintf("https://wow.curseforge.com/api/game/versions?token=%s", CURSEFORGE_API_TOKEN);
+    $json = HTTP::Get($url);
+    if (!$json) {
+        trigger_error("Empty response from curseforge game versions");
+        return false;
     }
-
-/*
-echo $gameversion."\n";
-print_r($o);
-die();
-*/
+    $json = json_decode($json, true);
+    if (json_last_error() != JSON_ERROR_NONE) {
+        trigger_error("Invalid json response from curseforge game versions");
+        return false;
+    }
+    if (!count($json) || !isset($json[0]['id']) || !isset($json[0]['name'])) {
+        trigger_error("Unknown json response from curseforge game versions");
+        return false;
+    }
+    usort($json, function($a,$b){
+        return version_compare($a['name'], $b['name']);
+    });
+    $latest = array_pop($json);
+    return $latest['id'];
+}
 
 function mimeset(&$a) {
     do {
@@ -52,7 +59,6 @@ function mimeset(&$a) {
 
     } while ($foundit);
 
-    //echo "Boundary: $boundary\n";
     $tr = '';
 
     foreach ($a as $i)
@@ -64,31 +70,61 @@ function mimeset(&$a) {
 
     $tr .= "--$boundary--\r\n\r\n";
 
-    return $tr;
+    return [$tr, $boundary];
 }
 
-$m = array();
+$latestVersion = GetLatestGameVersionID();
+if (!$latestVersion) {
+    exit(1);
+}
 
-$fil = file_get_contents($filpath);
-$version = date('oW');
-$m[] = array('data' => $fil, 'headers' => array('Content-Disposition' => 'form-data; name="file"; filename="TheUndermineJournal.zip"', 'Content-Type' => 'application/zip', 'Content-Transfer-Encoding' => 'binary'));
+$metaData = [
+    'changelog' => sprintf('Automatic data update for %s', date('l, F j, Y')),
+    'gameVersions' => [GetLatestGameVersionID()],
+    'releaseType' => 'alpha',
+];
 
-$m[] = array('data' => 'The Undermine Journal', 'headers' => array('Content-Disposition' => 'form-data; name="name"', 'Content-Type' => 'text/plain;charset=UTF-8'));
-$m[] = array('data' => $gameversion, 'headers' => array('Content-Disposition' => 'form-data; name="game_versions"', 'Content-Type' => 'text/plain;charset=UTF-8'));
-$m[] = array('data' => 'r', 'headers' => array('Content-Disposition' => 'form-data; name="file_type"', 'Content-Type' => 'text/plain;charset=UTF-8'));
-$m[] = array('data' => 'Automatic data update for '.date('l, F j, Y'), 'headers' => array('Content-Disposition' => 'form-data; name="change_log"', 'Content-Type' => 'text/plain;charset=UTF-8'));
-$m[] = array('data' => 'plain', 'headers' => array('Content-Disposition' => 'form-data; name="change_markup_type"', 'Content-Type' => 'text/plain;charset=UTF-8'));
+$postFields = [];
+$postFields[] = [
+    'data' => file_get_contents($zipPath),
+    'headers' => [
+        'Content-Disposition' => 'form-data; name="file"; filename="TheUndermineJournal.zip"',
+        'Content-Type' => 'application/zip',
+        'Content-Transfer-Encoding' => 'binary',
+        ]
+];
+$postFields[] = [
+    'data' => json_encode($metaData),
+    'headers' => [
+        'Content-Disposition' => 'form-data; name="metadata"',
+        'Content-Type' => 'application/json;charset=UTF-8',
+    ]
+];
 
-$m[] = array('data' => '', 'headers' => array('Content-Disposition' => 'form-data; name="known_caveats"', 'Content-Type' => 'text/plain;charset=UTF-8'));
-$m[] = array('data' => 'plain', 'headers' => array('Content-Disposition' => 'form-data; name="caveats_markup_type"', 'Content-Type' => 'text/plain;charset=UTF-8'));
+list($toPost, $boundary) = mimeset($postFields);
+unset($postFields);
 
-$t = mimeset($m);
+fwrite(STDERR, sprintf("Starting upload of %d bytes..\n", strlen($toPost)));
 
-file_put_contents($fpath.'topost.txt',$t);
+$f = tempnam('/tmp', 'curseupdater');
+file_put_contents($f, $toPost);
+$cmd = sprintf('%s --server-response -O - --header %s --header %s --post-file %s %s',
+    escapeshellcmd('wget'),
+    escapeshellarg(sprintf('Content-Type: multipart/form-data; boundary=%s', $boundary)),
+    escapeshellarg(sprintf('X_API_Key: %s', CURSEFORGE_API_TOKEN)),
+    escapeshellarg($f),
+    escapeshellarg('https://wow.curseforge.com/api/projects/undermine-journal/upload-file'));
+passthru($cmd);
 
-preg_match('/--([a-z]+)/',$t,$res);
-$boundary = $res[1];
+/*
+$responseHeaders = [];
 
-echo $boundary;
+$result = HTTP::Post('https://wow.curseforge.com/api/projects/undermine-journal/upload-file', $toPost, [
+    sprintf('Content-Type: multipart/form-data; boundary=%s', $boundary),
+    sprintf('X_API_Key: %s', CURSEFORGE_API_TOKEN),
+], $responseHeaders);
 
-exit(0);
+print_r($responseHeaders);
+echo "\n---\n";
+echo $result;
+*/
