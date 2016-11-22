@@ -1,6 +1,6 @@
 <?php
 
-require_once(__DIR__.'/credentials.php');
+require_once(__DIR__.'/credentials.incl.php');
 require_once(__DIR__.'/../../incl/NewsstandHTTP.incl.php');
 
 use \Newsstand\HTTP;

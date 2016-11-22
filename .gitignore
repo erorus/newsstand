@@ -16,7 +16,7 @@ public/donate.bitcoin.inc
 scripts/realms2houses_cache/*
 scripts/zopfli
 scripts/*.credentials.sh
-scripts/addonupdater/credentials.php
+scripts/addonupdater/credentials.incl.php
 
 public/globalprices.json
 addon/MarketData*.lua
