@@ -81,7 +81,7 @@ if (!$latestVersion) {
 $metaData = [
     'changelog' => sprintf('Automatic data update for %s', date('l, F j, Y')),
     'gameVersions' => [$latestVersion],
-    'releaseType' => 'alpha',
+    'releaseType' => 'release',
 ];
 
 $postFields = [];
@@ -106,25 +106,27 @@ unset($postFields);
 
 fwrite(STDERR, sprintf("Starting upload of %d bytes..\n", strlen($toPost)));
 
-$f = tempnam('/tmp', 'curseupdater');
-file_put_contents($f, $toPost);
-$cmd = sprintf('%s --server-response -O - --header %s --header %s --post-file %s %s',
-    escapeshellcmd('wget'),
-    escapeshellarg(sprintf('Content-Type: multipart/form-data; boundary=%s', $boundary)),
-    escapeshellarg(sprintf('X_API_Key: %s', CURSEFORGE_API_TOKEN)),
-    escapeshellarg($f),
-    escapeshellarg('https://wow.curseforge.com/api/projects/undermine-journal/upload-file'));
-passthru($cmd);
-
-/*
 $responseHeaders = [];
 
-$result = HTTP::Post('https://wow.curseforge.com/api/projects/undermine-journal/upload-file', $toPost, [
+$result = HTTP::Post(sprintf('https://wow.curseforge.com/api/projects/%d/upload-file', CURSEFORGE_PROJECT_ID), $toPost, [
     sprintf('Content-Type: multipart/form-data; boundary=%s', $boundary),
-    sprintf('X_API_Key: %s', CURSEFORGE_API_TOKEN),
+    sprintf('X-Api-Token: %s', CURSEFORGE_API_TOKEN),
 ], $responseHeaders);
 
-print_r($responseHeaders);
-echo "\n---\n";
-echo $result;
-*/
+$json = [];
+if ($result) {
+    $json = json_decode($result, true);
+    if (json_last_error() != JSON_ERROR_NONE) {
+        $json = [];
+    }
+}
+if (isset($json['id'])) {
+    fwrite(STDERR, sprintf("Uploaded as file ID %d\n", $json['id']));
+} else {
+    fwrite(STDERR, "Error received from server.\n");
+    if (isset($responseHeaders['responseCode'])) {
+        fwrite(STDERR, sprintf("Received response code %d\n", $responseHeaders['responseCode']));
+    }
+    fwrite(STDERR, $result);
+    fwrite(STDERR, "\n");
+}
