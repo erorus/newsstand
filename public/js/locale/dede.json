@@ -579,7 +579,7 @@
     "emailAddressRemovedError": "Wir haben die alte Adresse aus unserem System gelöscht, konnten sie aber nicht mit der neuen von Dir angegebenen Adresse ersetzen..",
     "emailAddressRemovedBounce": "Wir haben Deine EMail-Adresse aus unserem System entfernt, da wir von dem Mail-Server eine Fehlermeldung dieser Adresse erhielten oder weil du deine E-Mail in unserem System geblockt hast.",
     "emailVerificationResent": "E-Mail-Bestätigungsanfrage nochmal gesendet.",
-    "emailVerificationResentMessage": "Wir haben den Bestätigungscode nochmal an %s gesendet.<br><br>Bitte schaue in Deinem Postfach (und dem Spam-Ordner) nach und trage den Code ein.",
+    "emailVerificationResentMessage": "Wir haben den Bestätigungscode nochmal an %s gesendet.<br><br>Bitte schaue in Deinem Postfach nach und trage den Code ein.",
     "emailAddressVerified": "E-Mail-Adresse bestätigt",
     "emailAddressVerifiedMessage": "Du hast bestätigt, das die E-Mail-Adresse unter deiner ontrolle ist und The Undermine Journal wird alle künftigen Nachrichten an diese Adresse senden..",
 
@@ -610,7 +610,7 @@
     "includingCrafted": "hergestellte Gegenstände einschließen",
     "includingVendor": "Händler-Gegenstände einschließen",
     "notSeenForXDays": "Nicht mehr gesehen seit: ",
-    "visitUnusualCategory": "Besuche <a href=\"{1}\">die ungewöhnliche Gegenstände Kategorie</a> um nach seltenen Gegenständen Ausschau zu halten!",
+    "visitUnusualCategory": "Besuche die Kategorie '<a href=\"{1}\">ungewöhnliche Gegenstände</a>', um nach seltenen Gegenständen Ausschau zu halten!",
 
     "subscriptionWelcomeSubject": "Genieße Dein Abonnement!",
     "subscriptionWelcomeMessage": "Willkommen auf Deiner Abonnement-Seite auf <nobr>The Undermine Journal</nobr>. Dane für das anmelden.<br/><br/>Auf dieser Seite findest Du die neusten Nachrichten, welche wir dir gesendet haben. Ebenso sind hier Deine Benarichtigungseinstellungen und weitere Webseiten-Einstellungen zu finden.",
@@ -618,14 +618,14 @@
     "subscriptionTimeAddedMessage": "Dein bezahltes Abonnement wurde verlängert.",
     "subscriptionTimeRemovedMessage": "Dein Abonnement wurde verkürzt: Möglicherweise gab es eine Rückerstatung oder Rückbuchung. Wenn dies von Dir unbeabsichtigt war, melde dich bitte <a href=\"https://theunderminejournal.com/#subscription\">in dein Konto an</a> und kontaktiere uns (in Englisch) über das Kontaktformular.",
 
-    "paidExpires": "Dein bezahltes Abonnement endet in {1}.",
+    "paidExpires": "Dein bezahltes Abonnement endet: {1}.",
     "freeSubscriptionAccount": "Du nutzt das kostenlose Abonnement.",
     "clickToExtendSubscription": "Zahlmethode wählen, um das Abonnement um {1} Tage für {2} zu verlängern. Bemerke: Es kann eine Stunde oder mehr dauern, bis die Zahlung verarbeitet wurde.",
     "payWithBitcoin": "Mit Bitcoin bezahlen",
 
     "notificationPeriod": "Häufigkeit der Benachrichtungen",
     "notificationPeriodDesc": "Bevorzugte Zeitspanne zwischen den einzelnen Marktbenachrichtigungen.",
-    "notificationPeriodNext": "Die nächste Benachrichtigung wird {1}.",
+    "notificationPeriodNext": "Nächste Benachrichtigung in: {1}",
     "asap": "sofort",
     "paidOnly": "nur bez. Abo"
 }
