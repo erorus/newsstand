@@ -109,7 +109,7 @@ var TUJ_BattlePet = function ()
         var dta = BattlePetBreedData(dtaAll, breeds);
 
         var ta = libtuj.ce('a');
-        ta.href = 'http://' + tuj.lang.wowheadDomain + '.wowhead.com/npc=' + dta.stats.npc;
+        ta.href = tuj.lang.wowheadDomain == 'www' ? ('http://www.wowdb.com/npcs/' + dta.stats.npc) : ('http://' + tuj.lang.wowheadDomain + '.wowhead.com/npc=' + dta.stats.npc);
         ta.target = '_blank';
         ta.rel = 'noopener noreferrer';
         ta.className = 'battlepet'
