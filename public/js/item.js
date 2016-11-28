@@ -149,9 +149,7 @@ var TUJ_Item = function ()
         var fullItemName = '[' + dta.stats[bonusSet]['name_' + tuj.locale] + ']' + ((dta.stats[bonusSet].bonusurl && dta.stats[bonusSet]['bonustag_' + tuj.locale]) ? ' ' + dta.stats[bonusSet]['bonustag_' + tuj.locale] : '');
 
         var ta = libtuj.ce('a');
-        ta.href = tuj.lang.wowheadDomain == 'www' ?
-            ('http://www.wowdb.com/items/' + itemId) :
-            ('http://' + tuj.lang.wowheadDomain + '.wowhead.com/item=' + itemId + (dta.stats[bonusSet].bonusurl ? '&bonus=' + dta.stats[bonusSet].bonusurl : ''));
+        ta.href = 'http://' + tuj.lang.wowheadDomain + '.wowhead.com/item=' + itemId + (dta.stats[bonusSet].bonusurl ? '&bonus=' + dta.stats[bonusSet].bonusurl : '');
         ta.target = '_blank';
         ta.rel = 'noopener noreferrer';
         ta.className = 'item'
@@ -2887,12 +2885,7 @@ var TUJ_Item = function ()
                     td.appendChild(s);
                 }
                 a = libtuj.ce('a');
-                a.href = tuj.lang.wowheadDomain == 'www' ?
-                    ('http://www.wowdb.com/items/' + data.stats[bonusSet].id) :
-                    ('http://' + tuj.lang.wowheadDomain + '.wowhead.com/item=' + data.stats[bonusSet].id + (auc.bonuses ? '&bonus=' + auc.bonuses : '') + (auc.lootedlevel ? '&lvl=' + auc.lootedlevel : ''));
-                if (tuj.lang.wowheadDomain == 'www') {
-                    a.rel = 'item=' + data.stats[bonusSet].id + (auc.bonuses ? '&bonus=' + auc.bonuses : '') + (auc.lootedlevel ? '&lvl=' + auc.lootedlevel : '');
-                }
+                a.href = 'http://' + tuj.lang.wowheadDomain + '.wowhead.com/item=' + data.stats[bonusSet].id + (auc.bonuses ? '&bonus=' + auc.bonuses : '') + (auc.lootedlevel ? '&lvl=' + auc.lootedlevel : '');
                 td.appendChild(a);
                 $(a).text('[' + data.stats[bonusSet]['name_' + tuj.locale] + (auc['bonusname_' + tuj.locale] ? ' ' + auc['bonusname_' + tuj.locale].substr(0, auc['bonusname_' + tuj.locale].indexOf('|') >= 0 ? auc['bonusname_' + tuj.locale].indexOf('|') : auc['bonusname_' + tuj.locale].length) : '') + (auc['randname_' + tuj.locale] ? ' ' + auc['randname_' + tuj.locale] : '') + ']' + (auc['bonustag_' + tuj.locale] ? ' ' : ''));
                 if (auc['bonustag_' + tuj.locale]) {
