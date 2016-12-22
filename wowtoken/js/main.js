@@ -80,10 +80,10 @@ var wowtoken = {
         createdForms: false,
         regionMinMax: {
             'na': [20000, 120000, 1000],
-            'eu': [40000, 120000, 1000],
-            'cn': [40000, 240000, 3000],
+            'eu': [40000, 160000, 1000],
+            'cn': [100000, 300000, 3000],
             'tw': [100000, 240000, 3000],
-            'kr': [100000, 240000, 3000]
+            'kr': [100000, 300000, 3000]
         },
 
         Check: function() {
@@ -520,7 +520,7 @@ var wowtoken = {
                 };
                 break;
             case 'EU':
-                priceUpperBound = 140000;
+                priceUpperBound = 160000;
                 colors = {
                     'line': '#ff0000',
                     'fill': 'rgba(255,204,204,0.6)',
@@ -528,7 +528,7 @@ var wowtoken = {
                 }
                 break;
             case 'CN':
-                priceUpperBound = 240000;
+                priceUpperBound = 300000;
                 colors = {
                     'line': '#00cc00',
                     'fill': 'rgba(178,230,178,0.6)',
@@ -544,7 +544,7 @@ var wowtoken = {
                 }
                 break;
             case 'KR':
-                priceUpperBound = 240000;
+                priceUpperBound = 340000;
                 colors = {
                     'line': '#00cccc',
                     'fill': 'rgba(178,230,230,0.6)',
