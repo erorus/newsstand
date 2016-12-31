@@ -320,18 +320,19 @@ var TUJ_BattlePet = function ()
             }
         }
         for (x = 1; x < breeds.length; x++) {
-            if (dta.stats.quantity == 0) {
-                if (dtaAll.stats[breeds[x]].quantity || (dtaAll.stats[breeds[x]].price < dta.stats.price)) {
-                    dta.stats.price = dtaAll.stats[breeds[x]].price;
-                }
-            }
-            else {
-                if (dtaAll.stats[breeds[x]].quantity && (dtaAll.stats[breeds[x]].price < dta.stats.price)) {
-                    dta.stats.price = dtaAll.stats[breeds[x]].price;
+            if (dtaAll.stats[breeds[x]].price) {
+                if (dta.stats.quantity == 0) {
+                    if (dtaAll.stats[breeds[x]].quantity || (dtaAll.stats[breeds[x]].price < dta.stats.price)) {
+                        dta.stats.price = dtaAll.stats[breeds[x]].price;
+                    }
+                } else {
+                    if (dtaAll.stats[breeds[x]].quantity && (dtaAll.stats[breeds[x]].price < dta.stats.price)) {
+                        dta.stats.price = dtaAll.stats[breeds[x]].price;
+                    }
                 }
             }
             dta.stats.quantity += dtaAll.stats[breeds[x]].quantity;
-            if (!dta.stats.lastseen || dta.stats.lastseen < dtaAll.stats[breeds[x]].lastseen) {
+            if (dtaAll.stats[breeds[x]].lastseen && (!dta.stats.lastseen || dta.stats.lastseen < dtaAll.stats[breeds[x]].lastseen)) {
                 dta.stats.lastseen = dtaAll.stats[breeds[x]].lastseen;
             }
         }
