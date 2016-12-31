@@ -522,25 +522,27 @@ var TUJ_BattlePet = function ()
             td.appendChild(document.createTextNode(tuj.lang.lastSeen));
             td = libtuj.ce('td');
             tr.appendChild(td);
-            td.appendChild(libtuj.FormatDate(data.stats.lastseen));
+            td.appendChild(data.stats.lastseen ? libtuj.FormatDate(data.stats.lastseen) : document.createTextNode(tuj.lang.unknown));
         }
 
-        tr = libtuj.ce('tr');
-        t.appendChild(tr);
-        tr.className = 'spacer';
-        td = libtuj.ce('td');
-        td.colSpan = spacerColSpan;
-        tr.appendChild(td);
+        if (data.stats.price) {
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+            tr.className = 'spacer';
+            td = libtuj.ce('td');
+            td.colSpan = spacerColSpan;
+            tr.appendChild(td);
 
-        tr = libtuj.ce('tr');
-        t.appendChild(tr);
-        tr.className = 'current-price';
-        td = libtuj.ce('th');
-        tr.appendChild(td);
-        td.appendChild(document.createTextNode(tuj.lang.currentPrice));
-        td = libtuj.ce('td');
-        tr.appendChild(td);
-        td.appendChild(libtuj.FormatPrice(data.stats.price));
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+            tr.className = 'current-price';
+            td = libtuj.ce('th');
+            tr.appendChild(td);
+            td.appendChild(document.createTextNode(tuj.lang.currentPrice));
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.appendChild(libtuj.FormatPrice(data.stats.price));
+        }
 
         var prices = [], x;
 
