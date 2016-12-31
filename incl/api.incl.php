@@ -522,6 +522,31 @@ function GetSiteRegion()
     return (isset($_SERVER['HTTP_HOST']) && (preg_match('/^eu./i', $_SERVER['HTTP_HOST']) > 0)) ? 'EU' : 'US';
 }
 
+function GetRealmById($realm) {
+    $key = 'realm_by_id_' . $realm;
+
+    if (($tr = MCGet($key)) !== false) {
+        return $tr;
+    }
+
+    $db = DBConnect();
+
+    $sql = 'select * from tblRealm where id = ?';
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('i', $realm);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $tr = DBMapArray($result, null);
+    if (count($tr)) {
+        $tr = $tr[0];
+    }
+    $stmt->close();
+
+    MCSet($key, $tr);
+
+    return $tr;
+}
+
 function GetRealms($region)
 {
     global $db;

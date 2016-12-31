@@ -95,7 +95,20 @@ var TUJ_Seller = function ()
             r.region.toLowerCase(), r.locale.substr(0, 2).toLowerCase(), r.slug, dta.stats.name);
         sellerLink.appendChild(document.createTextNode(dta.stats.name));
 
-        $('#page-title').empty().append(document.createTextNode(tuj.lang.seller + ': ')).append(sellerLink);
+        var thumbnail, thumbnailLink = '';
+        if (dta.stats.thumbnail) {
+            thumbnail = libtuj.ce('img');
+            thumbnail.src = libtuj.sprintf('https://render-{1}.worldofwarcraft.com/character/{2}',
+                r.region.toLowerCase(), dta.stats.thumbnail);
+            thumbnail.style.marginRight = '0.1em';
+            thumbnail.style.verticalAlign = 'top';
+            thumbnail.style.border = '0';
+            thumbnailLink = libtuj.ce('a');
+            thumbnailLink.href = sellerLink.href;
+            thumbnailLink.appendChild(thumbnail);
+        }
+
+        $('#page-title').empty().append(thumbnailLink).append(document.createTextNode(tuj.lang.seller + ': ')).append(sellerLink);
         tuj.SetTitle(tuj.lang.seller + ': ' + dta.stats.name);
 
         var d, cht, h;

@@ -3,6 +3,7 @@
 require_once('../../incl/incl.php');
 require_once('../../incl/memcache.incl.php');
 require_once('../../incl/api.incl.php');
+require_once('../../incl/battlenet.incl.php');
 
 mb_internal_encoding("UTF-8");
 
@@ -58,6 +59,10 @@ function SellerStats($house, $realm, $seller)
         $tr = $tr[0];
     }
     $stmt->close();
+
+    if ($tr) {
+        $tr['thumbnail'] = SellerThumbnail($realm, $seller);
+    }
 
     MCSetHouse($house, $key, $tr);
 
@@ -243,3 +248,22 @@ EOF;
     return $tr;
 }
 
+function SellerThumbnail($realmId, $seller) {
+    $key = 'seller_thumbnail_' . $realmId . '_' . $seller;
+
+    if (($tr = MCGet($key)) !== false) {
+        return $tr;
+    }
+
+    $realmRec = GetRealmById($realmId);
+    $region = strtolower($realmRec['region']);
+
+    $url = GetBattleNetURL($region, sprintf("wow/character/%s/%s", $realmRec['slug'], $seller));
+    $json = json_decode(\Newsstand\HTTP::Get($url), true);
+
+    $tr = isset($json['thumbnail']) ? $json['thumbnail'] : '';
+
+    MCSet($key, $tr, 6 * 60 * 60);
+
+    return $tr;
+}
