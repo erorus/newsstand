@@ -506,6 +506,7 @@
 
     "logIn": "Iniciar sesión",
     "logOut": "Cerrar sesión",
+    "notYou": "¿No tú?",
 
     "logInBattleNet": "Entra con Battle.net",
     "loggedInAs": "Estás conectado como <b>{1}</b>.",

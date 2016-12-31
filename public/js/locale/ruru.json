@@ -527,6 +527,7 @@
 
     "logIn": "Log in",
     "logOut": "Log out",
+    "notYou": "Not you?",
 
     "logInBattleNet": "Log in with Battle.net",
     "loggedInAs": "You are logged in as <b>{1}</b>.",
