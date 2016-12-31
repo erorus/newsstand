@@ -31,7 +31,7 @@ function PetStats($house, $species)
 {
     global $db;
 
-    $key = 'battlepet_stats_l_' . $species;
+    $key = 'battlepet_stats_' . $species;
     if (($tr = MCGetHouse($house, $key)) !== false) {
         return $tr;
     }
@@ -57,6 +57,23 @@ EOF;
     }
     unset($breedRow);
     $stmt->close();
+
+    if (count($tr)) {
+        $allBreeds = PetBreeds($species);
+        if (count($allBreeds) > count($tr)) {
+            reset($tr);
+            $templateRow = array_merge(current($tr), [
+                'price' => null,
+                'quantity' => 0,
+                'lastseen' => null,
+            ]);
+            foreach ($allBreeds as $breed) {
+                if (!isset($tr[$breed])) {
+                    $tr[$breed] = array_merge($templateRow, ['breed' => $breed]);
+                }
+            }
+        }
+    }
 
     MCSetHouse($house, $key, $tr);
 
@@ -188,4 +205,31 @@ EOF;
     MCSet($key, $tr);
 
     return $tr;
+}
+
+function PetBreeds($species) {
+    global $db;
+
+    $key = 'battlepet_breeds_' . $species;
+    if (($breeds = MCGet($key)) !== false) {
+        return $breeds;
+    }
+
+    $breeds = [];
+
+    DBConnect();
+
+    $sql = 'select distinct breed from tblPetSummary where species = ?';
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('i', $species);
+    $stmt->execute();
+    $stmt->bind_result($breed);
+    while ($stmt->fetch()) {
+        $breeds[] = $breed;
+    }
+    $stmt->close();
+
+    MCSet($key, $breeds);
+
+    return $breeds;
 }

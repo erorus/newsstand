@@ -90,7 +90,7 @@ var TUJ_BattlePet = function ()
 
         var x, y, breeds = [];
         for (x in dtaAll.stats) {
-            if (dtaAll.stats.hasOwnProperty(x)) {
+            if (x && dtaAll.stats.hasOwnProperty(x)) {
                 breeds.push(x);
             }
         }
