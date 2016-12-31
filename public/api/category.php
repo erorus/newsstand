@@ -754,7 +754,7 @@ function CategoryResult_alchemy($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => $expansions[count($expansions) - 1] . ' Buff Potions',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (SELECT xx.id from (select xic.id, group_concat(se.description) dd FROM tblDBCSpell xs JOIN tblDBCItem xic on xs.crafteditem=xic.id LEFT JOIN tblDBCItemSpell dis on dis.item=xic.id LEFT JOIN tblDBCSpell se on se.id=dis.spell WHERE xs.skillline=171 and xic.level > ' . $expansionLevels[count($expansionLevels) - 2] . ' and xic.class=0 and xic.subclass=1 group by xic.id) xx where xx.dd like \'%increas%\') xyz on xyz.id = i.id'])
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (SELECT xx.id from (select xic.id, group_concat(se.description) dd FROM tblDBCSpell xs JOIN tblDBCItem xic on xs.crafteditem=xic.id LEFT JOIN tblDBCItemSpell dis on dis.item=xic.id LEFT JOIN tblDBCSpell se on se.id=dis.spell WHERE xs.skillline=171 and xic.level > ' . $expansionLevels[count($expansionLevels) - 2] . ' and xic.class=0 and xic.subclass=1 group by xic.id) xx where (xx.dd like \'%increas%\' or xx.id in (127843,127844))) xyz on xyz.id = i.id'])
         ]
     ];
 
@@ -790,6 +790,7 @@ where (xx.dd not like '%increas%' or (xx.dd like '%speed%' and xx.dd not like '%
 and xx.dd not like '%restor%'
 and xx.dd not like '%heal%'
 and xx.dd not like '%regenerate%'
+and xx.id not in (127843,127844)
 ) xyz on xyz.id = i.id
 EOF;
 
