@@ -89,7 +89,13 @@ var TUJ_Seller = function ()
         dta.auctions = libtuj.HydrateData(dta.auctions);
         dta.petAuctions = libtuj.HydrateData(dta.petAuctions);
 
-        $('#page-title').empty().append(document.createTextNode(tuj.lang.seller + ': ' + dta.stats.name));
+        var r = tuj.realms[dta.stats.realm];
+        var sellerLink = libtuj.ce('a');
+        sellerLink.href = libtuj.sprintf('http://{1}.battle.net/wow/{2}/character/{3}/{4}/advanced',
+            r.region.toLowerCase(), r.locale.substr(0, 2).toLowerCase(), r.slug, dta.stats.name);
+        sellerLink.appendChild(document.createTextNode(dta.stats.name));
+
+        $('#page-title').empty().append(document.createTextNode(tuj.lang.seller + ': ')).append(sellerLink);
         tuj.SetTitle(tuj.lang.seller + ': ' + dta.stats.name);
 
         var d, cht, h;
