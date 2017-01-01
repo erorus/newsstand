@@ -56,43 +56,47 @@ PopulateLocaleCols($json['items'], [
 
 json_return($json);
 
-function SearchItems($house, $search, $locale)
+function SearchItems($house, $search, $locale, $withSuffixesRemoved = false)
 {
     global $db;
 
-    $suffixes = MCGet('search_itemsuffixes_' . $locale);
-    if ($suffixes === false) {
-        $sql = <<<EOF
-SELECT lower(suffix)
-FROM tblDBCItemRandomSuffix
-where locale='$locale'
-union
-select lower(ind.`desc_$locale`)
-from tblDBCItemBonus ib
-join tblDBCItemNameDescription ind on ind.id = ib.nameid
-where ind.`desc_$locale` is not null
+    $terms = mb_ereg_replace('\s+', '%', " $search ");
+
+    if ($withSuffixesRemoved) {
+        $suffixes = MCGet('search_itemsuffixes_' . $locale);
+        if ($suffixes === false) {
+            $sql = <<<EOF
+    SELECT lower(suffix)
+    FROM tblDBCItemRandomSuffix
+    where locale='$locale'
+    union
+    select lower(ind.`desc_$locale`)
+    from tblDBCItemBonus ib
+    join tblDBCItemNameDescription ind on ind.id = ib.nameid
+    where ind.`desc_$locale` is not null
 EOF;
 
-        $stmt = $db->prepare($sql);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $suffixes = DBMapArray($result, null);
-        $stmt->close();
+            $stmt = $db->prepare($sql);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $suffixes = DBMapArray($result, null);
+            $stmt->close();
 
-        MCSet('search_itemsuffixes_' . $locale, $suffixes, 86400);
-    }
+            MCSet('search_itemsuffixes_' . $locale, $suffixes, 86400);
+        }
 
-    $terms = mb_ereg_replace('\s+', '%', " $search ");
-    $nameSearch = "i.name_$locale like ?";
+        $terms = '';
+        $barewords = mb_ereg_replace('^\s+|\s+$', '', mb_ereg_replace(' {2,}', ' ', mb_ereg_replace('[^ \w\'\.]', '', $search)));
 
-    $terms2 = '';
+        for ($x = 0; $x < count($suffixes); $x++) {
+            if (substr($barewords, -1 * strlen($suffixes[$x])) == $suffixes[$x]) {
+                $terms = '%' . mb_ereg_replace(' ', '%', mb_substr($barewords, 0, mb_strlen($barewords) - mb_strlen($suffixes[$x]) - 1)) . '%';
+                break;
+            }
+        }
 
-    $barewords = mb_ereg_replace('^\s+|\s+$', '', mb_ereg_replace(' {2,}', ' ', mb_ereg_replace('[^ \w\'\.]', '', $search)));
-
-    for ($x = 0; $x < count($suffixes); $x++) {
-        if (substr($barewords, -1 * strlen($suffixes[$x])) == $suffixes[$x]) {
-            $terms2 = '%' . mb_ereg_replace(' ', '%', mb_substr($barewords, 0, mb_strlen($barewords) - mb_strlen($suffixes[$x]) - 1)) . '%';
-            $nameSearch = "(i.name_$locale like ? or i.name_$locale like ?)";
+        if (!$terms) {
+            return [];
         }
     }
 
@@ -122,7 +126,7 @@ from (
     ifnull(s.bonusset,0) bonusset, i.level
     from tblDBCItem i
     left join tblItemSummary s on s.house=? and s.item=i.id
-    where $nameSearch
+    where i.name_$locale like ?
     and (s.item is not null or ifnull(i.auctionable,1) = 1)
     group by i.id, ifnull(s.bonusset,0)
     limit ?
@@ -133,15 +137,16 @@ EOF;
     $limit = 50 * mb_strlen(mb_ereg_replace('\s+', '', $search));
 
     $stmt = $db->prepare($sql);
-    if ($terms2 == '') {
-        $stmt->bind_param('iisi', $house, $house, $terms, $limit);
-    } else {
-        $stmt->bind_param('iissi', $house, $house, $terms, $terms2, $limit);
-    }
+    $stmt->bind_param('iisi', $house, $house, $terms, $limit);
     $stmt->execute();
     $result = $stmt->get_result();
     $tr = $result->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
+
+    if (!$tr && !$withSuffixesRemoved) {
+        $tr = SearchItems($house, $search, $locale, true);
+    }
+
     return $tr;
 }
 
