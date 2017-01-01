@@ -22,7 +22,7 @@ define('CATEGORY_FLAGS_ALLOW_CRAFTED', 1);
 define('CATEGORY_FLAGS_DENY_NONCRAFTED', 2);
 define('CATEGORY_FLAGS_WITH_BONUSES', 4);
 
-define('CATEGORY_MAX_OBLITERUM', 7);
+define('CATEGORY_MAX_OBLITERUM', 8);
 define('CATEGORY_OBLITERUM_ZERO_TAG', 13256);
 
 BotCheck();
@@ -512,6 +512,57 @@ function CategoryResult_unusuals($house)
                     'hiddenCols'  => ['avgprice' => true],
                     'visibleCols' => ['globalmedian' => true],
                     'sort'        => 'lowprice'
+                ]
+            ],
+        ]
+    ];
+}
+
+function CategoryResult_auction($house)
+{
+    return [
+        'name'    => 'Ancient Trading Mechanism',
+        'results' => [
+            [
+                'name' => 'ItemList',
+                'data' => [
+                    'name'  => 'Modules',
+                    'items' => CategoryRegularItemList($house, 'i.id in (118375,118376,118377,118378,118379)')
+                ]
+            ],
+            [
+                'name' => 'ItemList',
+                'data' => [
+                    'name'  => 'Arcane Crystal Module',
+                    'items' => CategoryRegularItemList($house, 'i.id in (118344,118345,118346,118347)')
+                ]
+            ],
+            [
+                'name' => 'ItemList',
+                'data' => [
+                    'name'  => 'Auction Control Module',
+                    'items' => CategoryRegularItemList($house, 'i.id in (118197,118331,118332)')
+                ]
+            ],
+            [
+                'name' => 'ItemList',
+                'data' => [
+                    'name'  => 'Universal Language Module',
+                    'items' => CategoryRegularItemList($house, 'i.id in (118333,118334,118335)')
+                ]
+            ],
+            [
+                'name' => 'ItemList',
+                'data' => [
+                    'name'  => 'Super Cooling Module',
+                    'items' => CategoryRegularItemList($house, 'i.id in (118336,118337,118338,118339)')
+                ]
+            ],
+            [
+                'name' => 'ItemList',
+                'data' => [
+                    'name'  => 'Cyclical Power Module',
+                    'items' => CategoryRegularItemList($house, 'i.id in (118340,118341,118342,118343)')
                 ]
             ],
         ]
