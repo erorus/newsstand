@@ -82,16 +82,16 @@ EOF;
         MCSet('search_itemsuffixes_' . $locale, $suffixes, 86400);
     }
 
-    $terms = preg_replace('/\s+/', '%', " $search ");
+    $terms = mb_ereg_replace('\s+', '%', " $search ");
     $nameSearch = "i.name_$locale like ?";
 
     $terms2 = '';
 
-    $barewords = trim(preg_replace('/ {2,}/', ' ', preg_replace('/[^ a-zA-Z0-9\'\.]/', '', $search)));
+    $barewords = mb_ereg_replace('^\s+|\s+$', '', mb_ereg_replace(' {2,}', ' ', mb_ereg_replace('[^ \w\'\.]', '', $search)));
 
     for ($x = 0; $x < count($suffixes); $x++) {
         if (substr($barewords, -1 * strlen($suffixes[$x])) == $suffixes[$x]) {
-            $terms2 = '%' . str_replace(' ', '%', substr($barewords, 0, -1 * strlen($suffixes[$x]) - 1)) . '%';
+            $terms2 = '%' . mb_ereg_replace(' ', '%', mb_substr($barewords, 0, mb_strlen($barewords) - mb_strlen($suffixes[$x]) - 1)) . '%';
             $nameSearch = "(i.name_$locale like ? or i.name_$locale like ?)";
         }
     }
@@ -130,7 +130,7 @@ from (
 left join tblBonusSet bs on results.bonusset = bs.`set`
 group by results.id, results.bonusset
 EOF;
-    $limit = 50 * strlen(preg_replace('/\s/', '', $search));
+    $limit = 50 * mb_strlen(mb_ereg_replace('\s+', '', $search));
 
     $stmt = $db->prepare($sql);
     if ($terms2 == '') {
@@ -172,7 +172,7 @@ function SearchBattlePets($house, $search, $locale)
 {
     global $db;
 
-    $terms = preg_replace('/\s+/', '%', " $search ");
+    $terms = mb_ereg_replace('\s+', '%', " $search ");
 
     $sql = <<<EOF
 select i.id, i.icon, i.type, i.npc,
@@ -200,7 +200,7 @@ and not i.flags & 0x10
 group by i.id
 limit ?
 EOF;
-    $limit = 50 * strlen(preg_replace('/\s/', '', $search));
+    $limit = 50 * mb_strlen(mb_ereg_replace('\s+', '', $search));
 
     $stmt = $db->prepare($sql);
     $stmt->bind_param('iisi', $house, $house, $terms, $limit);
