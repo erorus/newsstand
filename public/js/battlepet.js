@@ -345,11 +345,11 @@ var TUJ_BattlePet = function ()
             for (x = 0; x < breeds.length && baseBreed == -1; x++) {
                 if (dtaAll.history.hasOwnProperty(breeds[x])) {
                     baseBreed = x;
-                    for (y = 0; h = dtaAll.history[breeds[0]][y]; y++) {
+                    for (var y = 0; h = dtaAll.history[breeds[x]][y]; y++) {
                         o = {};
-                        for (x in h) {
-                            if (h.hasOwnProperty(x)) {
-                                o[x] = h[x];
+                        for (z in h) {
+                            if (h.hasOwnProperty(z)) {
+                                o[z] = h[z];
                             }
                         }
                         delete o.breed;
@@ -426,11 +426,11 @@ var TUJ_BattlePet = function ()
             for (x = 0; x < breeds.length && baseBreed == -1; x++) {
                 if (dtaAll.globalnow.hasOwnProperty(breeds[x])) {
                     baseBreed = x;
-                    for (y = 0; h = dtaAll.globalnow[breeds[0]][y]; y++) {
+                    for (y = 0; h = dtaAll.globalnow[breeds[x]][y]; y++) {
                         o = {};
-                        for (x in h) {
-                            if (h.hasOwnProperty(x)) {
-                                o[x] = h[x];
+                        for (z in h) {
+                            if (h.hasOwnProperty(z)) {
+                                o[z] = h[z];
                             }
                         }
                         dta.globalnow[o.house] = o;
