@@ -284,15 +284,21 @@ $itemSparseReader->setFieldNames([
     45=>'requiredlevel',
     52=>'binds',
 ]);
-$sniffedReader = null;
-if (file_exists($adbDirNm.'/Item-sparse.adb')) {
+$adbReaders = [];
+$adbPaths = glob($adbDirNm.'/Item-sparse.adb*');
+foreach ($adbPaths as $adbPath) {
     try {
-        $sniffedReader = new Reader($adbDirNm.'/Item-sparse.adb', $itemSparseReader);
+        $adbReader = new Reader($adbPath, $itemSparseReader);
     } catch (Exception $e) {
-        LogLine("Warning: could not open Item-sparse.adb: " .$e->getMessage());
-        $sniffedReader = null;
+        LogLine("Warning: could not open $adbPath: " .$e->getMessage());
+        $adbReader = null;
     }
+    if ($adbReader) {
+        array_unshift($adbReaders, $adbReader);
+    }
+    unset($adbReader);
 }
+unset($adbPaths);
 
 RunAndLogError('truncate table tblDBCItem');
 $sql = <<<'EOF'
@@ -316,9 +322,14 @@ foreach ($itemReader->generateRecords() as $recId => $rec) {
     EchoProgress(++$x / $recordCount);
     $sniffed = false;
     $sparseRec = $itemSparseReader->getRecord($recId);
-    if (is_null($sparseRec) && isset($sniffedReader)) {
-        $sparseRec = $sniffedReader->getRecord($recId);
+    if (is_null($sparseRec)) {
         $sniffed = true;
+        foreach ($adbReaders as $adbReader) {
+            $sparseRec = $adbReader->getRecord($recId);
+            if (!is_null($sparseRec)) {
+                break;
+            }
+        }
     }
     if (is_null($sparseRec)) {
         continue;
@@ -350,7 +361,7 @@ foreach ($itemReader->generateRecords() as $recId => $rec) {
 $stmt->close();
 EchoProgress(false);
 unset($itemReader);
-unset($sniffedReader);
+unset($adbReaders);
 unset($itemSparseReader);
 
 $appearanceReader = new Reader($dirnm . '/ItemAppearance.db2');
