@@ -35,7 +35,8 @@ local function SniffItems()
     if _ then
         SeenItemMessage(itemLink, curId)
     else
-        print("Fetching", curId, ""..scanIndex..'/'..#addonTable.missingItems, '('..math.floor(scanIndex/#addonTable.missingItems*100)..'%)');
+        local remaining = SecondsToTime((#addonTable.missingItems - scanIndex) * 0.3)
+        print("Fetching", curId, ""..scanIndex..'/'..#addonTable.missingItems, '('..math.floor(scanIndex/#addonTable.missingItems*100)..'% '..remaining..')');
     end
     scanIndex = scanIndex + 1
     C_Timer.After(0.3, SniffItems)
