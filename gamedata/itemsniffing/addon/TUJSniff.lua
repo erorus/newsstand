@@ -13,9 +13,15 @@ local function onEvent(self,event,arg)
     if event == "GET_ITEM_INFO_RECEIVED" then
         SeenItemMessage(nil, arg)
     end
+    if event == "ADDON_LOADED" then
+        if TUJSniff_Last then
+            print("TUJSniff: last scan index: " .. TUJSniff_Last)
+        end
+    end
 end
 
 eventframe:RegisterEvent("GET_ITEM_INFO_RECEIVED")
+eventframe:RegisterEvent("ADDON_LOADED")
 eventframe:SetScript("OnEvent", onEvent)
 
 local scanIndex = 1
@@ -38,6 +44,7 @@ local function SniffItems()
         local remaining = SecondsToTime((#addonTable.missingItems - scanIndex) * 0.3)
         print("Fetching", curId, ""..scanIndex..'/'..#addonTable.missingItems, '('..math.floor(scanIndex/#addonTable.missingItems*100)..'% '..remaining..')');
     end
+    TUJSniff_Last = scanIndex
     scanIndex = scanIndex + 1
     C_Timer.After(0.3, SniffItems)
 end

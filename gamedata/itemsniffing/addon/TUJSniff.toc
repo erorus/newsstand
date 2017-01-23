@@ -1,7 +1,8 @@
-## Interface: 70000
+## Interface: 70100
 ## Title: TUJ Sniff
 ## Version: 1.0
 ## DefaultState: disabled
+## SavedVariables: TUJSniff_Last
 
 ItemDefs.lua
 TUJSniff.lua
