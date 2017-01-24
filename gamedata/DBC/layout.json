@@ -1,0 +1,231 @@
+{
+    "ManifestInterfaceData": {
+        "hash": 1241983857,
+        "names": {
+            "0": "path",
+            "1": "name"
+        }
+    },
+    "GlobalStrings": {
+        "hash": 2853070104,
+        "names": {
+            "0": "key",
+            "1": "value"
+        }
+    },
+    "ItemSubClass": {
+        "hash": 728682337,
+        "names": {
+            "0": "name",
+            "1": "plural",
+            "3": "class",
+            "4": "subclass"
+        }
+    },
+    "BattlePetSpecies": {
+        "hash": 692873510,
+        "names": {
+            "0": "npcid",
+            "1": "iconid",
+            "5": "flags",
+            "6": "type",
+            "7": "category"
+        }
+    },
+    "Creature": {
+        "hash": 3841812037,
+        "names": {
+            "4": "name"
+        }
+    },
+    "BattlePetSpeciesState": {
+        "hash": 2947725394,
+        "names": {
+            "0": "amount",
+            "1": "species",
+            "2": "state"
+        },
+        "signed": {
+            "0": true
+        }
+    },
+    "ItemNameDescription": {
+        "hash": 1546129376,
+        "names": {
+            "0": "name"
+        }
+    },
+    "ScalingStatDistribution": {
+        "hash": 338284728,
+        "names": {
+            "0": "curve",
+            "1": "minlevel",
+            "2": "maxlevel"
+        }
+    },
+    "ItemBonus": {
+        "hash": 2156001044,
+        "names": {
+            "0": "params",
+            "1": "bonusid",
+            "2": "changetype",
+            "3": "prio"
+        },
+        "signed": {
+            "0": true
+        }
+    },
+    "CurvePoint": {
+        "hash": 2584679565,
+        "names": {
+            "0": "pair",
+            "1": "curve",
+            "2": "step"
+        }
+    },
+    "Item": {
+        "hash": 2662061625,
+        "names": {
+            "0": "iconfiledata",
+            "1": "class",
+            "2": "subclass"
+        }
+    },
+    "Item-sparse": {
+        "strings": {
+            "0": 13,
+            "1": 14,
+            "2": 15,
+            "3": 16,
+            "4": 17
+        },
+        "hash": 4130108142,
+        "names": {
+            "0": "flags",
+            "3": "buyprice",
+            "4": "sellprice",
+            "9": "stacksize",
+            "13": "name",
+            "22": "level",
+            "23": "requiredskill",
+            "42": "quality",
+            "43": "buycount",
+            "44": "type",
+            "45": "requiredlevel",
+            "52": "binds"
+        }
+    },
+    "ItemAppearance": {
+        "hash": 3663412357,
+        "names": {
+            "0": "display",
+            "1": "iconfiledata"
+        }
+    },
+    "ItemModifiedAppearance": {
+        "hash": 3755276627,
+        "names": {
+            "0": "item",
+            "1": "appearance",
+            "2": "bonustype",
+            "3": "index"
+        }
+    },
+    "ItemEffect": {
+        "hash": 2270095062,
+        "names": {
+            "0": "item",
+            "1": "spell"
+        }
+    },
+    "ItemRandomSuffix": {
+        "hash": 3802501023,
+        "names": {
+            "0": "name"
+        }
+    },
+    "ItemRandomProperties": {
+        "hash": 1992965000,
+        "names": {
+            "0": "name"
+        }
+    },
+    "SpellIcon": {
+        "hash": 688711354,
+        "names": {
+            "0": "iconpath"
+        }
+    },
+    "SpellEffect": {
+        "hash": 376844616,
+        "names": {
+            "10": "effecttypeid",
+            "13": "qtymade",
+            "15": "diesides",
+            "16": "itemcreated",
+            "22": "spellid",
+            "23": "effectorder"
+        }
+    },
+    "Spell": {
+        "hash": 3850583184,
+        "names": {
+            "0": "spellname",
+            "2": "longdescription",
+            "4": "miscid"
+        }
+    },
+    "SpellCooldowns": {
+        "hash": 2318382184,
+        "names": {
+            "0": "spell",
+            "1": "categorycooldown",
+            "2": "individualcooldown"
+        }
+    },
+    "SpellCategories": {
+        "hash": 2015051576,
+        "names": {
+            "0": "spell",
+            "2": "categoryid",
+            "8": "chargecategoryid"
+        }
+    },
+    "SpellCategory": {
+        "hash": 3830596616,
+        "names": {
+            "1": "chargecooldown",
+            "2": "flags"
+        }
+    },
+    "SpellMisc": {
+        "hash": 596540377,
+        "names": {
+            "6": "iconid"
+        }
+    },
+    "SpellReagents": {
+        "hash": 2447214210,
+        "names": {
+            "0": "spell",
+            "1": "reagent",
+            "2": "reagentcount"
+        }
+    },
+    "SkillLine": {
+        "hash": 3495925723,
+        "names": {
+            "0": "linename",
+            "5": "linecatid"
+        }
+    },
+    "SkillLineAbility": {
+        "hash": 865563189,
+        "names": {
+            "0": "spellid",
+            "4": "lineid",
+            "6": "greyat",
+            "7": "yellowat"
+        }
+    }
+}

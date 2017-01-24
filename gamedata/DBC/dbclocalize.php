@@ -1,9 +1,7 @@
 <?php
 
-require_once '../../incl/incl.php';
-require_once 'db2/src/autoload.php';
-
-use \Erorus\DB2\Reader;
+require_once __DIR__ . '/../../incl/incl.php';
+require_once __DIR__ . '/dbc.incl.php';
 
 $LOCALES = ['dede','eses','frfr','itit','ptbr','ruru'];
 
@@ -28,8 +26,7 @@ foreach ($LOCALES as $locale) {
 
     LogLine("$locale GlobalStrings");
     $globalStrings = [];
-    $reader = new Reader($dirnm . '/GlobalStrings.db2');
-    $reader->setFieldNames(['key','value']);
+    $reader = CreateDB2Reader('GlobalStrings');
     foreach ($reader->generateRecords() as $rec) {
         $globalStrings[$rec['key']] = $rec['value'];
     }
@@ -44,8 +41,7 @@ foreach ($LOCALES as $locale) {
     $name = '+ ' . $globalStrings['EMPTY_SOCKET_PRISMATIC'];
     $stmt->execute();
 
-    $reader = new Reader($dirnm . '/ItemNameDescription.db2');
-    $reader->setFieldNames(['name']);
+    $reader = CreateDB2Reader('ItemNameDescription');
     $x = 0; $recordCount = count($reader->getIds());
     foreach ($reader->generateRecords() as $id => $rec) {
         EchoProgress(++$x/$recordCount);
@@ -63,8 +59,7 @@ foreach ($LOCALES as $locale) {
 insert into tblDBCItemSubClass (class, subclass, name_$locale) values (?, ?, ?)
 on duplicate key update name_$locale = ifnull(values(name_$locale), name_$locale)
 EOF;
-    $reader = new Reader($dirnm . '/ItemSubClass.db2');
-    $reader->setFieldNames([0=>'name', 1=>'plural', 3=>'class', 4=>'subclass']);
+    $reader = CreateDB2Reader('ItemSubClass');
     $stmt = $db->prepare($sql);
     $classs = $subclass = $name = null;
     $stmt->bind_param('iis', $classs, $subclass, $name);
@@ -84,8 +79,7 @@ EOF;
     unset($reader);
 
     LogLine("$locale tblDBCItem");
-    $reader = new Reader($dirnm . '/Item-sparse.db2', [13,14,15,16,17]);
-    $reader->setFieldNames([13 => 'name']);
+    $reader = CreateDB2Reader('Item-sparse');
     $stmt = $db->prepare("insert into tblDBCItem (id, name_$locale) values (?, ?) on duplicate key update name_$locale = ifnull(values(name_$locale), name_$locale)");
     $id = $name = null;
     $stmt->bind_param('is', $id, $name);
@@ -105,8 +99,7 @@ EOF;
     $stmt->close();
 
     LogLine("$locale tblDBCRandEnchants");
-    $reader = new Reader($dirnm . '/ItemRandomSuffix.db2');
-    $reader->setFieldNames(['name']);
+    $reader = CreateDB2Reader('ItemRandomSuffix');
     $stmt = $db->prepare("insert into tblDBCRandEnchants (id, name_$locale) values (?, ?) on duplicate key update name_$locale = ifnull(values(name_$locale), name_enus)");
     $enchId = $name = null;
     $stmt->bind_param('is', $enchId, $name);
@@ -124,8 +117,7 @@ EOF;
     EchoProgress(false);
     unset($reader);
 
-    $reader = new Reader($dirnm . '/ItemRandomProperties.db2');
-    $reader->setFieldNames(['name']);
+    $reader = CreateDB2Reader('ItemRandomProperties');
     $stmt = $db->prepare("insert into tblDBCRandEnchants (id, name_$locale) values (?, ?) on duplicate key update name_$locale = ifnull(values(name_$locale), name_enus)");
     $enchId = $name = null;
     $stmt->bind_param('is', $enchId, $name);
@@ -149,10 +141,8 @@ EOF;
 
     LogLine("$locale tblDBCPet");
 
-    $battlePetReader = new Reader($dirnm . '/BattlePetSpecies.db2');
-    $battlePetReader->setFieldNames(['npc']);
-    $creatureReader = new Reader($dirnm . '/Creature.db2');
-    $creatureReader->setFieldNames([4=>'name']);
+    $battlePetReader = CreateDB2Reader('BattlePetSpecies');
+    $creatureReader = CreateDB2Reader('Creature');
     $stmt = $db->prepare("insert into tblDBCPet (id, name_$locale) values (?, ?) on duplicate key update name_$locale = values(name_$locale)");
     $species = $name = null;
     $stmt->bind_param('is', $species, $name);
@@ -160,7 +150,7 @@ EOF;
     foreach ($battlePetReader->generateRecords() as $id => $rec) {
         EchoProgress(++$x/$recordCount);
         $species = $id;
-        $creature = $creatureReader->getRecord($rec['npc']);
+        $creature = $creatureReader->getRecord($rec['npcid']);
         if (is_null($creature)) {
             continue;
         }
@@ -178,24 +168,3 @@ EOF;
 
 /* */
 LogLine("Done.\n");
-
-function LogLine($msg) {
-	if ($msg == '') return;
-	if (substr($msg, -1, 1)=="\n") $msg = substr($msg, 0, -1);
-	echo "\n".date('H:i:s').' '.$msg;
-}
-
-function EchoProgress($frac) {
-    static $lastStr = false;
-    if ($frac === false) {
-        $lastStr = false;
-        return;
-    }
-
-    $str = str_pad(number_format($frac * 100, 1) . '%', 6, ' ', STR_PAD_LEFT);
-    if ($str === $lastStr) {
-        return;
-    }
-
-    echo ($lastStr === false) ? " " : str_repeat(chr(8), strlen($lastStr)), $lastStr = $str;
-}
