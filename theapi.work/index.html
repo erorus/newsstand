@@ -138,6 +138,10 @@
                     failures.push(failPrefix + 'data file unavailable.');
                     continue;
                 }
+                if (row.datamissing) {
+                    failures.push(failPrefix + 'absent from data file.');
+                    continue;
+                }
                 if ((row.checked - row.modified > 90 * 60 * 1000) || (row.modified - 5 * 60 * 1000 > row.file)) {
                     if (row.modified != row.file) {
                         failures.push(

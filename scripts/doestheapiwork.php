@@ -137,21 +137,43 @@ function FetchRegionData($region) {
 
         $dataHeads = FetchURLBatch($dataUrls, [
             CURLOPT_HEADER => true,
-            CURLOPT_NOBODY => true
+            CURLOPT_RANGE => '0-2048',
         ]);
         foreach ($chunk as $slug => $slugs) {
             $fileDate = 0;
+            $found = [];
             if (isset($dataHeads[$slug])) {
-                if (preg_match('/(?:^|\n)Last-Modified: ([^\n]+)/i', $dataHeads[$slug], $res)) {
+                $header = substr($dataHeads[$slug], 0, strpos($dataHeads[$slug], "\r\n\r\n"));
+                $body = substr($dataHeads[$slug], strlen($header) + 4);
+
+                if (preg_match('/(?:^|\n)Last-Modified: ([^\n\r]+)/i', $header, $res)) {
                     $fileDate = strtotime($res[1]) * 1000;
-                } elseif ($dataHeads[$slug]) {
-                    DebugMessage("Found no last-modified header for $region $slug at " . $dataUrls[$slug] . "\n" . $dataHeads[$slug], E_USER_WARNING);
+                } elseif ($header) {
+                    DebugMessage("Found no last-modified header for $region $slug at " . $dataUrls[$slug] . "\n" . $header, E_USER_WARNING);
+                }
+
+                if (preg_match('/"realms":\s*(\[[^\]]*\])/', $body, $res)) {
+                    $dataRealms = json_decode($res[1], true);
+                    if (json_last_error() != JSON_ERROR_NONE) {
+                        DebugMessage("JSON error decoding realms from $region $slug data file\n$body", E_USER_WARNING);
+                    } else {
+                        foreach ($dataRealms as $dataRealm) {
+                            if (isset($dataRealm['slug'])) {
+                                $found[$dataRealm['slug']] = $dataRealm;
+                            }
+                        }
+                    }
+                } else {
+                    DebugMessage("Found no realms section in data file for $region $slug\n$body", E_USER_WARNING);
                 }
             } elseif (isset($dataUrls[$slug])) {
-                DebugMessage("Fetched no header for $region $slug at " . $dataUrls[$slug], E_USER_WARNING);
+                DebugMessage("Fetched no data file for $region $slug at " . $dataUrls[$slug], E_USER_WARNING);
             }
             foreach ($slugs as $connectedSlug) {
                 $results[$connectedSlug]['file'] = $fileDate;
+                if (!isset($found[$connectedSlug])) {
+                    $results[$connectedSlug]['datamissing'] = true;
+                }
             }
         }
     }
@@ -173,8 +195,11 @@ function FetchURLBatch($urls, $curlOpts = []) {
         CURLOPT_FOLLOWLOCATION  => true,
         CURLOPT_MAXREDIRS       => 2,
         CURLOPT_TIMEOUT         => 10,
-        CURLOPT_ENCODING        => 'gzip',
     ] + $curlOpts;
+
+    if (!isset($curlOpts[CURLOPT_RANGE]) && !isset($curlOpts[CURLOPT_ENCODING])) {
+        $curlOpts[CURLOPT_ENCODING] = 'gzip';
+    }
 
     static $mh = false;
     if ($mh === false) {
