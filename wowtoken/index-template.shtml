@@ -30,13 +30,13 @@
         <meta name="theme-color" content="#ffffff">
         <link href="css/mui.min.css" rel="stylesheet" type="text/css">
         <link href='https://fonts.googleapis.com/css?family=Roboto:400,700|Roboto+Slab:700' rel='stylesheet' type='text/css'>
-        <link href="css/main.css?12" rel="stylesheet" type="text/css">
+        <link href="css/main.css?13" rel="stylesheet" type="text/css">
         <link rel="preload" href="snapshot.json" as="script">
         <link rel="preload" href="wowtoken.json" as="script">
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js" defer></script>
         <script type="text/javascript" src="js/highcharts-custom.js?2" defer></script>
         <script type="text/javascript" src="js/main.js?31" defer></script>
-        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <script async src="//delivery.e.switchadhub.com/adserver/sat.js"></script>
     </head>
     <body>
         <div class="mui-container">
@@ -88,14 +88,9 @@
                 </ul>
             </div>
 
-            <ins class="adsbygoogle"
-                 style="display:block"
-                 data-ad-client="ca-pub-1018837251546750"
-                 data-ad-slot="2933007114"
-                 data-ad-format="auto"></ins>
-            <script>
-                (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
+            <!-- Ad Unit [7043] Leaderboard -->
+            <div id="switch_placeholder_2b189a4879764c6f2324b37c91d181e3" class="switch_placeholder"></div>
+            <script> (__scads = window.__scads || []).push({"z":7043,"targetId":"switch_placeholder_2b189a4879764c6f2324b37c91d181e3","domain":"delivery.e.switchadhub.com","width":"0","height":"0"}); </script>
 
             <div class="mui-panel realm-panel" id="na-panel">
                 <h2>North American Realms</h2>
@@ -175,6 +170,27 @@
                     <li>Timing resolution is only when we observed changes.</li>
                 </ul>
 
+            </div>
+
+            <div class="mui-panel extra-panel" id="privacy-panel">
+                <h2>Privacy Policy</h2>
+                <b>Analytics</b><br>
+                <p>We’ve implemented Google Analytics based on Display Advertising (e.g. Remarketing, Google Display Network Impression Reporting, the DoubleClick Campaign Manager integration and Google Analytics Demographics and Interest Reporting).</p>
+
+                <p>We and third-party vendors, including Google, will use this remarketing information and data based on previous visits to our site to serve relevant messages across the web.</p>
+
+                <p>You can opt out of Google's use of cookies by visiting Google's <a href="https://www.google.com/settings/ads">Ads Settings</a>.</p>
+
+                <p>Alternatively, you can opt out of a third-party vendor's use of cookies by visiting the <a href="https://www.networkadvertising.org/managing/opt_out.asp">Network Advertising Initiative opt out page</a>.</p>
+
+                <b>3rd-Party Cookies</b><br>
+                <p>We use cookies on our website in order to provide enhanced functionality to users, such as user accounts and saved preferences. We also use cookies to ensure that you see the most relevant ads and limit the number of times we show you the same advertisements.</p>
+                <p>If you continue to use this site, we'll assume you are happy to accept these cookies. Some of the adverts carried on our websites are delivered by third party servers and in doing so they may leave cookies on your machine.</p>
+                <p>You may opt-out of these cookies by following these links:</p>
+
+                MediaMind opt-out: <a href="http://ds.serving-sys.com/OBA/Europe/Opt-out.aspx">http://ds.serving-sys.com/OBA/Europe/Opt-out.aspx</a><br>
+                FlashTalking opt-out: <a href="http://www.flashtalking.com/cookieOptOut.html">http://www.flashtalking.com/cookieOptOut.html</a><br>
+                MindShare opt-out: <a href="http://www.mindshareworld.com/privacy">http://www.mindshareworld.com/privacy</a>
             </div>
 
             <div id="trademarks">World of Warcraft, Warcraft and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc. in the U.S. and/or other countries.</div>
