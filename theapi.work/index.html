@@ -107,7 +107,7 @@
         forcedRefresh = 0;
 
         var failures = [];
-        var failPrefix;
+        var failPrefix, chainedFail;
         var row;
         var slugCount;
         var percentages = [];
@@ -124,12 +124,17 @@
                 if (!response.regions[region].hasOwnProperty(slug)) {
                     continue;
                 }
+                chainedFail = false;
                 slugCount++;
                 row = response.regions[region][slug];
                 if (row.canonical) {
                     total++;
                 }
                 failPrefix = '<b>' + region.toUpperCase() + ' ' + (row.name ? row.name : slug) + '</b>: ';
+                if (row.realmmissing) {
+                    failPrefix += 'missing from realm list. ';
+                    chainedFail = true;
+                }
                 if (!row.modified) {
                     failures.push(failPrefix + 'data status did not respond.');
                     continue;
@@ -139,7 +144,7 @@
                     continue;
                 }
                 if (row.datamissing) {
-                    failures.push(failPrefix + 'absent from data file.');
+                    failures.push(failPrefix + 'absent from ' + (response.regions[region].hasOwnProperty(row.datamissing) ? response.regions[region][row.datamissing].name : row.datamissing) + ' data file.');
                     continue;
                 }
                 if ((row.checked - row.modified > 90 * 60 * 1000) || (row.modified - 5 * 60 * 1000 > row.file)) {
@@ -152,6 +157,10 @@
                     } else {
                         failures.push(failPrefix + PrettySeconds(Math.floor((row.checked - row.modified) / 1000)) + ' old');
                     }
+                    continue;
+                }
+                if (chainedFail) {
+                    failures.push(failPrefix);
                     continue;
                 }
                 if (row.canonical) {
