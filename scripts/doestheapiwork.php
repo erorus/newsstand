@@ -665,6 +665,11 @@ function FetchRegionData($region) {
                 }
             }
 
+            $error = false;
+            if (isset($json['status']) && $json['status'] == 'nok' && isset($json['reason'])) {
+                $error = $json['reason'];
+            }
+
             $modified = isset($json['files'][0]['lastModified']) ? $json['files'][0]['lastModified'] : 0;
             $url = isset($json['files'][0]['url']) ? $json['files'][0]['url'] : '';
             if ($url) {
@@ -673,6 +678,9 @@ function FetchRegionData($region) {
             foreach ($slugs as $connectedSlug) {
                 $results[$connectedSlug]['checked'] = $started;
                 $results[$connectedSlug]['modified'] = $modified;
+                if ($error) {
+                    $results[$connectedSlug]['statuserror'] = $error;
+                }
             }
         }
 

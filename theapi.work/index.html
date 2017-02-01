@@ -135,6 +135,10 @@
                     failPrefix += 'missing from realm list. ';
                     chainedFail = true;
                 }
+                if (row.statuserror) {
+                    failures.push(failPrefix + row.statuserror);
+                    continue;
+                }
                 if (!row.modified) {
                     failures.push(failPrefix + 'data status did not respond.');
                     continue;
