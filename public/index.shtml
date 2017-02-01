@@ -382,7 +382,7 @@
                                 <a href="js/locale/ruru.json" class="highlight">Russian</a></li>
                             <li>(Optional) Download the English locale file if you want a reference: <a href="js/locale/enus.json" class="highlight">English</a></li>
                             <li>Change values in the locale file that need translations. You don't have to change them all, just do whatever ones you want.</li>
-                            <li>EMail me at <b>localization at theunderminejournal dot com</b>, and attach your updated locale file.</li>
+                            <li>EMail me at <b>loca<span class="logged-in-only logged-out-only">lization</span>les at the<span class="logged-in-only logged-out-only">token</span>underminejournal dot com</b>, and attach your updated locale file.</li>
                         </ol>
                         <p>That's it! We will find the updated lines from your file, and update the website with them soon after.</p>
                         <p><i>Subscribers who are helpful with localization may receive some paid subscription time free of charge.</i></p>
