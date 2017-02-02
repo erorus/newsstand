@@ -912,9 +912,23 @@ function UserThrottleCount($reset = false)
         $memcache->set($kCount, 1, false, THROTTLE_PERIOD * 2);
         return $returned = 1;
     }
-    $memcache->increment($kCount);
 
-    return $returned = ++$vals[$kCount];
+    if (!preg_match_all('/([^;,]+)(?:[^,]+)?(?:,|$)/',
+        isset($_SERVER["HTTP_ACCEPT_ENCODING"]) ? str_replace(' ', '', strtolower($_SERVER["HTTP_ACCEPT_ENCODING"])) : '', $encodings)) {
+        $encodings = [1=>[]];
+    }
+    $encodings = array_flip($encodings[1]);
+
+    $amount = 1;
+    if (!isset($encodings['br'])) {
+        $amount *= 2;
+    }
+    if (!isset($encodings['gzip'])) {
+        $amount *= 5;
+    }
+    $memcache->increment($kCount, $amount);
+
+    return $returned = $vals[$kCount] + $amount;
 }
 
 function HouseETag($house, $includeFetches = false)
