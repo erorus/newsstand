@@ -51,10 +51,11 @@
                 <h2>What is this I don't even</h2>
                 <ul class="faq">
                     <li><b>What is a WoW Token?</b> The WoW Token is an item in World of Warcraft.</li>
-                    <li><b>What do I do with it?</b> There are <b>only two things</b> you can do with a WoW Token:
+                    <li><b>What do I do with it?</b> There are <b>only three things</b> you can do with a WoW Token:
                         <ol>
                             <li>Buy one with money from the in-game Shop, then sell it in the Auction House for gold.</li>
                             <li>Buy one with gold from the Auction House, then use it to add 30 days of game time to your subscription.</li>
+                            <li>Buy one with gold from the Auction House, then use it to add money to your Battle.net Balance.</li>
                         </ol>
                     </li>
                     <li><b>How much money does it cost?</b> You buy it from the in-game shop.
@@ -69,7 +70,7 @@
                     <li><b>How much gold does it cost?</b> It varies over time (that's what this site is for), but the cost is the same for every realm in your region, from Aegwynn to Zuluhed. I'll say that again. <b>It costs the same on every realm.</b></li>
                     <li><b>Can I buy it with money then use it myself?</b> No, you can only sell that one on the Auction House. Plus, that would be dumb, it would be the most expensive way to add game time. If you want game time for money, <a href="https://us.battle.net/shop/en/product/world-of-warcraft-game-time">buy game time directly</a>.</li>
                     <li><b>Can I buy one to give to a friend?</b> No, like it says up there, either buy one with money and sell it for gold, or buy one with gold and use it yourself. That's it.</li>
-                    <li><b>Can I buy one with gold and resell it later?</b> No, all you can do are those 2 things mentioned above. That's it. Blizzard locked this thing down. Don't overcomplicate this.</li>
+                    <li><b>Can I buy one with gold then resell it later?</b> No, all you can do are those three things mentioned above. That's it. Blizzard locked this thing down. Don't overcomplicate this.</li>
                     <li><b>I don't have a sub right now, but I know I have the gold.</b> Just log in to the game, and on the character select screen, there's someplace to buy a token and use the gold from your characters.</li>
                     <li><b>I'm still confused. Can you run me through that again?</b> Try reading <a href="http://www.wowhead.com/guides/wow-token">Wowhead's guide</a> about the WoW Token.</li>
                 </ul>
@@ -77,15 +78,26 @@
                 <ul>
                     <li>The WoW Token is an in-game item.</li>
                     <li>You can buy one from Blizzard for $20, &euro;20, &pound;15, CN&yen;75, NT$500, or &#8361;22,000 and sell it in the AH.</li>
-                    <li>You can buy one in the AH and use it for 30 days of game time.</li>
-                    <li>The gold price is the same for all realms, and is shown in the charts on this site.</li>
+                    <li>You can buy one in the AH and use it to add 30 days of game time -or- redeem it for $15 Battle.net Balance.</li>
+                    <li>The gold price is the same for all realms in a region, and is shown in the charts on this site.</li>
                 </ul>
-                <h2>Limitations</h2>
+                <h2>Token Limitations</h2>
                 <ul>
                     <li>A maximum of 10 Tokens per week may be purchased for real money from the in-game Shop, to be sold on the Auction House for gold.</li>
-                    <li>A maximum of 36 Tokens every 24 months may be purchased for gold via the Auction House, to be used for game time.</li>
+                    <li>A maximum of 36 Tokens every 24 months may be purchased for gold via the Auction House, to be used for game time or Battle.net Balance.</li>
                     <li>Players may only have one type of Token in their inventory at one time. If any character on a Battle.net account is currently holding a Token purchased from the in-game Shop, that player will not be able to purchase a Token from the Auction House. Likewise, if any character is holding a Token purchased from the Auction House, that player will not be able to purchase a Token from the in-game Shop.</li>
                     <li>Players may hold a maximum of 10 Tokens in their inventory at one time. This limit is shared across all characters on the Battle.net account.</li>
+                </ul>
+                <h2>Battle.net Balance Restrictions</h2>
+                <ul>
+                    <li>Funds added to Battle.net Balance are not refundable (except as otherwise provided by law), and cannot be converted into cash. Battle.net Balance can only be used to buy designated Blizzard Entertainment products and services.</li>
+                    <li>Battle.net Balance can only be purchased and used with your country's currency.</li>
+                    <li>Battle.net Balance is non-transferable. However, the Battle.net Shop allows you to purchase some items (such as digital games and World of Warcraft game time) as gifts you can share with others.</li>
+                    <li>You can't use Battle.net Balance to purchase items from the Blizzard Gear Store, in-game products for Hearthstone on mobile devices, or World of Warcraft subscriptions—though you can buy game time in the Battle.net Shop.</li>
+                    <li>If you are not using a Battle.net Authenticator, you will be limited to a specific balance.</li>
+                    <li>Battle.net Balance can't be combined with another payment method to make purchases.</li>
+                    <li>As with any payment method, local taxes may apply to purchases made with Battle.net Balance.</li>
+                    <li>You cannot make partial payments with Battle.net Balance. If you don't have sufficient balance to cover the purchase, you must add additional Battle.net Balance funds or use another method of payment.</li>
                 </ul>
             </div>
 
