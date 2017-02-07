@@ -79,11 +79,11 @@ var wowtoken = {
         isSubscribed: false,
         createdForms: false,
         regionMinMax: {
-            'na': [20000, 120000, 1000],
-            'eu': [40000, 160000, 1000],
+            'na': [20000, 160000, 1000],
+            'eu': [40000, 240000, 1000],
             'cn': [100000, 300000, 3000],
             'tw': [100000, 240000, 3000],
-            'kr': [100000, 300000, 3000]
+            'kr': [100000, 360000, 3000]
         },
 
         Check: function() {
@@ -512,7 +512,7 @@ var wowtoken = {
 
         switch (region) {
             case 'NA':
-                priceUpperBound = 100000;
+                priceUpperBound = 160000;
                 colors = {
                     'line': '#0000ff',
                     'fill': 'rgba(204,204,255,0.6)',
@@ -520,7 +520,7 @@ var wowtoken = {
                 };
                 break;
             case 'EU':
-                priceUpperBound = 160000;
+                priceUpperBound = 240000;
                 colors = {
                     'line': '#ff0000',
                     'fill': 'rgba(255,204,204,0.6)',
@@ -528,7 +528,7 @@ var wowtoken = {
                 }
                 break;
             case 'CN':
-                priceUpperBound = 300000;
+                priceUpperBound = 360000;
                 colors = {
                     'line': '#00cc00',
                     'fill': 'rgba(178,230,178,0.6)',
@@ -536,7 +536,7 @@ var wowtoken = {
                 }
                 break;
             case 'TW':
-                priceUpperBound = 240000;
+                priceUpperBound = 300000;
                 colors = {
                     'line': '#cccc00',
                     'fill': 'rgba(230,230,178,0.6)',
@@ -544,7 +544,7 @@ var wowtoken = {
                 }
                 break;
             case 'KR':
-                priceUpperBound = 340000;
+                priceUpperBound = 360000;
                 colors = {
                     'line': '#00cccc',
                     'fill': 'rgba(178,230,230,0.6)',

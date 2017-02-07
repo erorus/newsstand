@@ -35,7 +35,7 @@
         <link rel="preload" href="wowtoken.json" as="script">
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js" defer></script>
         <script type="text/javascript" src="js/highcharts-custom.js?2" defer></script>
-        <script type="text/javascript" src="js/main.js?31" defer></script>
+        <script type="text/javascript" src="js/main.js?32" defer></script>
         <script async src="//delivery.e.switchadhub.com/adserver/sat.js"></script>
     </head>
     <body>
