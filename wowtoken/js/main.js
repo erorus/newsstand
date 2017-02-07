@@ -496,7 +496,7 @@ var wowtoken = {
         if (wowtoken.timeouts.loadUpdate) {
             window.clearTimeout(wowtoken.timeouts.loadUpdate);
         }
-        wowtoken.timeouts.loadUpdate = window.setTimeout(wowtoken.LoadUpdate, 600000);
+        //wowtoken.timeouts.loadUpdate = window.setTimeout(wowtoken.LoadUpdate, 600000);
     },
 
     ShowChart: function(region, dta, dest) {
