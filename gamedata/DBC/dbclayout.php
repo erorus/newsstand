@@ -22,7 +22,7 @@ foreach ($files as $filenm) {
     }
 }
 if ($failed) {
-    fwrite(STDERR, "\n");
+    LogLine("Quitting.\n ");
     exit(1);
 }
 foreach ($files as $filenm) {
@@ -33,7 +33,7 @@ foreach ($files as $filenm) {
 }
 
 if ($newLayout) {
-    fwrite(STDERR, "\n");
+    LogLine("Done.\n ");
     echo json_encode($newLayout, JSON_NUMERIC_CHECK | JSON_PRETTY_PRINT | JSON_FORCE_OBJECT);
 }
 
