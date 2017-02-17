@@ -9,7 +9,7 @@ $dbLayout = json_decode(file_get_contents(__DIR__ . '/layout.json'), true);
 function LogLine($msg) {
     if ($msg == '') return;
     if (substr($msg, -1, 1)=="\n") $msg = substr($msg, 0, -1);
-    echo "\n".date('H:i:s').' '.$msg;
+    fwrite(STDERR, "\n".date('H:i:s').' '.$msg);
 }
 
 function EchoProgress($frac) {
@@ -27,7 +27,7 @@ function EchoProgress($frac) {
     echo ($lastStr === false) ? " " : str_repeat(chr(8), strlen($lastStr)), $lastStr = $str;
 }
 
-function CreateDB2Reader($name) {
+function CreateDB2Reader($name, $skipLayout = false) {
     global $dbLayout, $dirnm;
 
     if (!isset($dbLayout[$name])) {
@@ -49,6 +49,10 @@ function CreateDB2Reader($name) {
         $reader = new Reader($filePath, $layout['strings']);
     } else {
         $reader = new Reader($filePath);
+    }
+
+    if ($skipLayout) {
+        return $reader;
     }
 
     if (isset($layout['hash']) && $reader->getLayoutHash() != $layout['hash']) {
