@@ -2,6 +2,8 @@
 require_once __DIR__ . '/../../incl/incl.php';
 require_once __DIR__ . '/dbc.incl.php';
 
+use \Erorus\DB2\Reader;
+
 define('DIFFERENT_VALUES', 5);
 define('MAX_ROWS_CHECKED', 100);
 
@@ -36,15 +38,18 @@ if ($newLayout) {
 }
 
 function CheckLayout($filenm) {
-    global $dirnm, $dbLayout;
+    global $dbLayout;
+
+    if (isset($dbLayout[$filenm]['strings'])) {
+        // TODO: strings handling
+        return $dbLayout[$filenm];
+    }
 
     LogLine(sprintf('Loading %s (current)', $filenm));
-    $dirnm = __DIR__.'/current/enUS';
-    $currentReader = CreateDB2Reader($filenm, true);
+    $currentReader = new Reader(__DIR__.'/current/enUS/'.$filenm.'.db2');
 
     LogLine(sprintf('Loading %s (new)', $filenm));
-    $dirnm = __DIR__.'/new/enUS';
-    $newReader = CreateDB2Reader($filenm, true);
+    $newReader = new Reader(__DIR__.'/new/enUS/'.$filenm.'.db2');
 
     $fieldsToCheck = array_keys($dbLayout[$filenm]['names']);
     if (isset($dbLayout[$filenm]['strings'])) {

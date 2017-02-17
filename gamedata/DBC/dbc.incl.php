@@ -27,7 +27,7 @@ function EchoProgress($frac) {
     echo ($lastStr === false) ? " " : str_repeat(chr(8), strlen($lastStr)), $lastStr = $str;
 }
 
-function CreateDB2Reader($name, $skipLayout = false) {
+function CreateDB2Reader($name) {
     global $dbLayout, $dirnm;
 
     if (!isset($dbLayout[$name])) {
@@ -49,10 +49,6 @@ function CreateDB2Reader($name, $skipLayout = false) {
         $reader = new Reader($filePath, $layout['strings']);
     } else {
         $reader = new Reader($filePath);
-    }
-
-    if ($skipLayout) {
-        return $reader;
     }
 
     if (isset($layout['hash']) && $reader->getLayoutHash() != $layout['hash']) {
