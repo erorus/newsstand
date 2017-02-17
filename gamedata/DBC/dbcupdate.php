@@ -243,9 +243,9 @@ unset($reader);
 
 LogLine("tblDBCItem");
 $itemReader = CreateDB2Reader('Item');
-$itemSparseReader = CreateDB2Reader('Item-sparse');
+$itemSparseReader = CreateDB2Reader('ItemSparse');
 $adbReaders = [];
-$adbPaths = glob($adbDirNm.'/Item-sparse.adb*');
+$adbPaths = glob($adbDirNm.'/ItemSparse.adb*');
 foreach ($adbPaths as $adbPath) {
     try {
         $adbReader = new Reader($adbPath, $itemSparseReader);

@@ -91,7 +91,7 @@
             "2": "subclass"
         }
     },
-    "Item-sparse": {
+    "ItemSparse": {
         "strings": {
             "0": 13,
             "1": 14,

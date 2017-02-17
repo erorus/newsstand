@@ -11,7 +11,7 @@ DBFilesClient\ItemModifiedAppearance.db2
 DBFilesClient\ItemNameDescription.db2
 DBFilesClient\ItemRandomProperties.db2
 DBFilesClient\ItemRandomSuffix.db2
-DBFilesClient\Item-sparse.db2
+DBFilesClient\ItemSparse.db2
 DBFilesClient\ItemSubClass.db2
 DBFilesClient\ManifestInterfaceData.db2
 DBFilesClient\ScalingStatDistribution.db2

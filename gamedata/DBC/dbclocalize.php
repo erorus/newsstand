@@ -79,7 +79,7 @@ EOF;
     unset($reader);
 
     LogLine("$locale tblDBCItem");
-    $reader = CreateDB2Reader('Item-sparse');
+    $reader = CreateDB2Reader('ItemSparse');
     $stmt = $db->prepare("insert into tblDBCItem (id, name_$locale) values (?, ?) on duplicate key update name_$locale = ifnull(values(name_$locale), name_$locale)");
     $id = $name = null;
     $stmt->bind_param('is', $id, $name);
