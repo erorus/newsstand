@@ -150,12 +150,6 @@
             "0": "name"
         }
     },
-    "SpellIcon": {
-        "hash": 688711354,
-        "names": {
-            "0": "iconpath"
-        }
-    },
     "SpellEffect": {
         "hash": 376844616,
         "names": {

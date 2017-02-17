@@ -353,7 +353,6 @@ CREATE TABLE IF NOT EXISTS `tblDBCRandEnchants` (
 CREATE TABLE IF NOT EXISTS `tblDBCSpell` (
   `id` mediumint(8) unsigned NOT NULL,
   `name` varchar(128) COLLATE utf8_unicode_ci NOT NULL,
-  `icon` varchar(128) COLLATE utf8_unicode_ci NOT NULL,
   `description` varchar(512) COLLATE utf8_unicode_ci NOT NULL,
   `cooldown` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `skillline` smallint(5) unsigned DEFAULT NULL,

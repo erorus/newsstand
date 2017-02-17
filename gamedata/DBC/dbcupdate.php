@@ -442,9 +442,6 @@ $stmt->close();
 
 LogLine("Making spell temp tables..");
 
-DB2TempTable('SpellIcon');
-RunAndLogError('update ttblSpellIcon set iconpath = substring_index(iconpath,\'\\\\\',-1) where instr(iconpath,\'\\\\\') > 0');
-
 DB2TempTable('SpellEffect'); //effect type id 24 = create item, 53 = enchant, 157 = create tradeskill item
 DB2TempTable('Spell');
 DB2TempTable('SpellCooldowns');
@@ -484,8 +481,8 @@ EOF;
 
 RunAndLogError('truncate tblDBCSpell');
 $sql = <<<EOF
-insert into tblDBCSpell (id,name,icon,description,cooldown,qtymade,yellow,skillline,crafteditem)
-(select distinct s.id, s.spellname, si.iconpath, s.longdescription,
+insert into tblDBCSpell (id,name,description,cooldown,qtymade,yellow,skillline,crafteditem)
+(select distinct s.id, s.spellname, s.longdescription,
     greatest(
         ifnull(cd.categorycooldown * if(c.flags & 8, 86400, 1),0),
         ifnull(cd.individualcooldown * if(c.flags & 8, 86400, 1),0),
@@ -494,7 +491,6 @@ insert into tblDBCSpell (id,name,icon,description,cooldown,qtymade,yellow,skilll
     sla.yellowat,sla.lineid,if(se.itemcreated=0,null,se.itemcreated)
 from ttblSpell s
 left join ttblSpellMisc sm on s.miscid=sm.id
-left join ttblSpellIcon si on si.id=sm.iconid
 left join ttblSpellCooldowns cd on cd.spell = s.id
 left join ttblSpellCategories cs on cs.spell = s.id
 left join ttblSpellCategory c on c.id = cs.categoryid
@@ -506,9 +502,9 @@ where se.effecttypeid in (24,53,157))
 EOF;
 RunAndLogError($sql);
 
-$sql = 'insert ignore into tblDBCSpell (id,name,icon,description) ';
-$sql .= ' (select distinct s.id, s.spellname, si.iconpath, s.longdescription ';
-$sql .= ' from ttblSpell s left join ttblSpellMisc sm on s.miscid=sm.id left join ttblSpellIcon si on si.id=sm.iconid ';
+$sql = 'insert ignore into tblDBCSpell (id,name,description) ';
+$sql .= ' (select distinct s.id, s.spellname, s.longdescription ';
+$sql .= ' from ttblSpell s left join ttblSpellMisc sm on s.miscid=sm.id ';
 $sql .= ' join tblDBCItemSpell dis on dis.spell=s.id) ';
 RunAndLogError($sql);
 
