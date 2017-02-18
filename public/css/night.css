@@ -5,6 +5,8 @@ a {color: white}
 
 #topcorner input {border: 0; box-shadow: 0.3em 0.3em #222 }
 
+#front-page .banned { color: #FF6666 }
+
 #progress-page div { background-image: url("../images/progress.dark.gif"); }
 
 #search-page table, table.auctionlist, table.category { border-color: #666 }

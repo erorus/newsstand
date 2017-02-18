@@ -1298,6 +1298,8 @@ var TUJ = function ()
             return;
         }
 
+        var showAPIDownAlert = false;
+
         if (houseInfo[house].timestamps.lastupdate) {
             var d = libtuj.ce();
             d.appendChild(document.createTextNode(self.lang.updated + ' '));
@@ -1315,6 +1317,11 @@ var TUJ = function ()
                 d.appendChild(document.createTextNode(self.lang.lastChecked + ' '));
                 d.appendChild(libtuj.FormatDate(houseInfo[house].timestamps.lastcheck.ts, false, 'minute'));
                 ru.appendChild(d);
+
+                showAPIDownAlert =
+                    houseInfo[house].timestamps.lastupdate &&
+                    (houseInfo[house].timestamps.lastupdate < (Date.now() / 1000 - 172800)) && // last update over 48 hours ago
+                    (houseInfo[house].timestamps.lastcheck.ts > (Date.now() / 1000 - 2100));   // checked at least 35 mins ago
             }
             if (houseInfo[house].timestamps.lastcheck.json) {
                 if (houseInfo[house].timestamps.lastcheck.json.hasOwnProperty('reason')) {
@@ -1405,7 +1412,7 @@ var TUJ = function ()
             $('#front-page-banned').hide();
             if (self.banned.isbanned) {
                 var banHTML = '';
-                banHTML += libtuj.sprintf(self.lang.ipIsBanned, self.banned.ip ? '(' + self.banned.ip + ')' : '');
+                banHTML += '<b>' + libtuj.sprintf(self.lang.ipIsBanned, self.banned.ip ? '(' + self.banned.ip + ')' : '') + '</b>';
 
                 switch (self.banned.reason) {
                     case 'cbl':
@@ -1426,6 +1433,14 @@ var TUJ = function ()
                 banHTML += '<br><br>' + libtuj.sprintf(self.lang.bannedContact, tuj.BuildHash({page: 'contact', id: undefined}));
 
                 $('#front-page-banned').html(banHTML).show();
+            } else if (showAPIDownAlert) {
+                var alertHTML = '';
+
+                alertHTML += '<b>Auction House data is not being updated.</b>';
+                alertHTML += '<br><br>This is probably due to an issue with the Battle.net API. Such issues are out of our control.';
+                alertHTML += ' You can check <span class="nowrap"><a href="https://does.theapi.work">Does the API work?</a></span> and <a href="https://www.tradeskillmaster.com/wow-api">TradeSkillMaster</a> for independent verification of the API status.';
+
+                $('#front-page-banned').html(alertHTML).show();
             }
         }
     }
@@ -1728,7 +1743,7 @@ var TUJ = function ()
             } else {
                 darkSheet = libtuj.ce('link');
                 darkSheet.rel = 'stylesheet';
-                darkSheet.href = tujCDNPrefix + 'css/night.css?3';
+                darkSheet.href = tujCDNPrefix + 'css/night.css?4';
                 darkSheet.id = 'dark-sheet';
                 document.getElementsByTagName('head')[0].appendChild(darkSheet);
             }

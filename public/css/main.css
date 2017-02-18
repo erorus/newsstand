@@ -89,7 +89,8 @@ abbr:hover.full-date { border-bottom: 1px dotted }
 .news.no-margin { margin: 0 }
 .center { margin: 2em auto; text-align: center }
 .news hr, .center hr { margin: 30px 0 }
-#front-page .banned { color: red; border: 2px solid red; padding: 2em; display: none }
+#front-page .banned { color: #990000; border-left: 2px solid red; padding: 1em; display: none }
+#front-page .banned b { color: red }
 #front-page .top-list { float: left; margin: 2em 2em 2em 0; line-height: 1.4em }
 #front-page .top-list h3 { margin: 0 0 1em }
 #front-page .top-list a{text-decoration: none}
