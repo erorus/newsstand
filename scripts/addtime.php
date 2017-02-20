@@ -31,8 +31,11 @@ if ($user > 0) {
 function AddToCurrentSubs($seconds, $message) {
     $allGood = true;
 
+    $dt = date('Y-m-d H:i:s', time() - $seconds);
+
     $db = DBConnect(true);
-    $stmt = $db->prepare('select id from tblUser where paiduntil > now()');
+    $stmt = $db->prepare('select id from tblUser where paiduntil > ?');
+    $stmt->bind_param('s', $dt);
     $stmt->execute();
     $user = null;
     $stmt->bind_result($user);
