@@ -106,7 +106,7 @@ SELECT r.house, r.region, r.canonical, sch.nextcheck scheduled, hc.nextcheck del
 FROM tblRealm r
 left join tblHouseCheck hc on hc.house = r.house
 left join (
-        select deltas.house, timestampadd(second, least(ifnull(min(delta)+15-120, 45*60), 150*60), max(deltas.updated)) nextcheck, max(deltas.updated) lastupdate, min(delta) mindelta, round(avg(delta)) avgdelta, max(delta) maxdelta
+        select deltas.house, timestampadd(second, least(ifnull(min(delta)+15-120, 45*60), 150*60), max(deltas.updated)) nextcheck, max(deltas.updated) lastupdate, least(min(delta), 150*60) mindelta, round(avg(delta)) avgdelta, max(delta) maxdelta
         from (
             select sn.updated,
             if(@prevhouse = sn.house and sn.updated > timestampadd(hour, -72, now()), unix_timestamp(sn.updated) - @prevdate, null) delta,

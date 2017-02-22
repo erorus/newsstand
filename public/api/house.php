@@ -54,7 +54,7 @@ function HouseTimestamps($house)
 select unix_timestamp(timestampadd(second, least(ifnull(min(delta)+15, 45*60), 150*60), max(deltas.updated))) scheduled,
 unix_timestamp(hc.nextcheck),
 unix_timestamp(max(deltas.updated)) lastupdate,
-min(delta) mindelta,
+least(min(delta), 150*60) mindelta,
 round(avg(delta)) avgdelta,
 max(delta) maxdelta,
 unix_timestamp(hc.lastcheck),
