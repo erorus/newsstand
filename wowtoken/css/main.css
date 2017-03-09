@@ -113,8 +113,17 @@ div.hc {
     margin-top: 10px;
 }
 
-.switch_placeholder {
-    margin: 10px auto;
+.adsbygoogle {
+    width: 320px;
+    height: 100px;
+    margin: 0 auto 20px;
+}
+
+@media (min-width:500px) {
+    .adsbygoogle { width: 468px; height: 60px; }
+}
+@media (min-width:800px) {
+    .adsbygoogle { width: 728px; height: 90px; }
 }
 
 .range-bar { position: relative; display: inline-block; margin: 0 0.25em; width: 33%; width: calc(33% - 0.5em); height: 1.2em; vertical-align: middle;
