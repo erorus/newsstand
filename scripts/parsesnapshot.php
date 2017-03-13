@@ -444,15 +444,21 @@ function ParseAuctionData($house, $snapshot, &$json)
                 $bonuses = array_unique($bonuses, SORT_NUMERIC);
                 sort($bonuses, SORT_NUMERIC);
 
-                if ($bonuses && isset($observedWithoutBonusesCache[$auction['item']])) {
-                    $reportBonuses = $bonuses;
+                $usefulBonuses = [];
+                foreach ($bonuses as $bonus) {
+                    if (isset($usefulBonusesCache[$bonus])) {
+                        $usefulBonuses[$bonus] = $bonus;
+                    }
+                }
+
+                if ($usefulBonuses && isset($observedWithoutBonusesCache[$auction['item']])) {
                     if ($observedWithoutBonusesCache[$auction['item']] >= OBSERVED_WITHOUT_BONUSES_LIMIT) {
                         $bonuses = []; // remove bonuses attached to auction, they probably don't belong
                     }
                     if (!isset($existingIds[$auction['auc']])) { // new auction
                         DebugMessage(sprintf(
-                            'House %s new item %d has bonuses %s, first auction with bonuses after %d observations, %s new bonuses!',
-                            str_pad($house, 5, ' ', STR_PAD_LEFT), $auction['item'], implode(',', $reportBonuses),
+                            'House %s new item %d has useful bonuses %s, first auction with them after %d observations, %s bonuses!',
+                            str_pad($house, 5, ' ', STR_PAD_LEFT), $auction['item'], implode(':', $usefulBonuses),
                             $observedWithoutBonusesCache[$auction['item']], $bonuses ? 'using' : 'ignoring'));
                     }
                 }
