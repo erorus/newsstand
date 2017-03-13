@@ -14,6 +14,7 @@ CatchKill();
 define('SNAPSHOT_PATH', '/var/newsstand/snapshots/parse/');
 define('MAX_BONUSES', 6); // is a count, 1 through N
 define('ITEM_ID_PAD', 7); // min number of chars for item id, for sorting infokeys
+define('OBSERVED_WITHOUT_BONUSES_LIMIT', 500); // if we see this many auctions of an item without any having bonuses, assume the item doesn't get bonuses
 
 define('EXISTING_SQL', 'SELECT a.id, a.bid, a.buy, a.timeleft+0 timeleft, concat_ws(\':\', lpad(a.item,' . ITEM_ID_PAD . ',\'0\'), ifnull(ae.bonusset,0)) infokey FROM tblAuction a LEFT JOIN tblAuctionExtra ae on a.house=ae.house and a.id=ae.id WHERE a.house = ?');
 define('EXISTING_COL_BID', 0);
@@ -84,6 +85,25 @@ $id = null;
 $stmt->bind_result($id);
 while ($stmt->fetch()) {
     $enoughBonusesSeenCache[$id] = $id;
+}
+$stmt->close();
+
+$observedWithoutBonusesCache = [];
+$sql = <<<'EOF'
+select i.id, ibs.observed
+from tblDBCItem i
+join tblItemBonusesSeen ibs on ibs.item = i.id and ibs.bonus1 = 0
+left join tblItemBonusesSeen ibs2 on ibs2.item = i.id and ibs2.bonus1 != 0
+where i.class in (2,4)
+and i.auctionable = 1
+and ibs2.item is null
+EOF;
+$stmt = $db->prepare($sql);
+$stmt->execute();
+$id = $observed = null;
+$stmt->bind_result($id, $observed);
+while ($stmt->fetch()) {
+    $observedWithoutBonusesCache[$id] = $observed;
 }
 $stmt->close();
 
@@ -240,7 +260,7 @@ function ParseAuctionData($house, $snapshot, &$json)
     global $maxPacketSize;
     global $houseRegionCache;
     global $equipBaseItemLevel;
-    global $usefulBonusesCache, $enoughBonusesSeenCache;
+    global $usefulBonusesCache, $enoughBonusesSeenCache, $observedWithoutBonusesCache;
     global $TIMELEFT_ENUM;
 
     $snapshotString = date('Y-m-d H:i:s', $snapshot);
@@ -423,6 +443,19 @@ function ParseAuctionData($house, $snapshot, &$json)
                 }
                 $bonuses = array_unique($bonuses, SORT_NUMERIC);
                 sort($bonuses, SORT_NUMERIC);
+
+                if ($bonuses && isset($observedWithoutBonusesCache[$auction['item']])) {
+                    $reportBonuses = $bonuses;
+                    if ($observedWithoutBonusesCache[$auction['item']] >= OBSERVED_WITHOUT_BONUSES_LIMIT) {
+                        $bonuses = []; // remove bonuses attached to auction, they probably don't belong
+                    }
+                    if (!isset($existingIds[$auction['auc']])) { // new auction
+                        DebugMessage(sprintf(
+                            'House %s new item %d has bonuses %s, first auction with bonuses after %d observations, %s new bonuses!',
+                            str_pad($house, 5, ' ', STR_PAD_LEFT), $auction['item'], implode(',', $reportBonuses),
+                            $observedWithoutBonusesCache[$auction['item']], $bonuses ? 'using' : 'ignoring'));
+                    }
+                }
 
                 $bonusSet = $bonuses ? GetBonusSet($bonuses) : 0;
                 $bonusItemLevel = GetBonusItemLevel($bonuses, $equipBaseItemLevel[$auction['item']], $auction['lootedLevel']);
