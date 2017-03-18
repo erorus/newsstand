@@ -155,8 +155,8 @@ EOF;
     <title>Extra: The Undermine Journal</title>
 
     <link rel="stylesheet" href="https://theunderminejournal.com/css/wowhead/basic.css?1">
-    <script type="text/javascript" src="https://theunderminejournal.com/js/wowhead/power.js?2"></script>
-    <script type="text/javascript" src="https://theunderminejournal.com/js/wowhead/basic.js"></script>
+    <script type="text/javascript" src="https://theunderminejournal.com/js/wowhead/power.js?3"></script>
+    <script type="text/javascript" src="https://theunderminejournal.com/js/wowhead/basic.js?2"></script>
 
     <style type="text/css">
         body{min-width:40em;font-size:14px;color:#333;margin:0;font-family:sans-serif}

@@ -1,3 +1,3 @@
 <?php
 
-header('Location: multirealm.php');
+header('Location: badbonus.php');
