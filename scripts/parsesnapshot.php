@@ -358,11 +358,13 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     $sqlStart = 'REPLACE INTO tblAuction (house, id, item, quantity, bid, buy, seller, timeleft) VALUES ';
     $sqlStartPet = 'REPLACE INTO tblAuctionPet (house, id, species, breed, `level`, quality) VALUES ';
-    $sqlStartBadBonus = 'REPLACE INTO tblAuctionBadBonus (house, id';
+    $sqlStartBadBonus = 'INSERT INTO tblAuctionBadBonus (house, id, firstseen, lastseen';
+    $sqlEndBadBonus = ' ON DUPLICATE KEY UPDATE lastseen = values(lastseen)';
     $sqlStartExtra = 'REPLACE INTO tblAuctionExtra (house, id, `rand`, `seed`, `context`, `lootedlevel`, `level`, `bonusset`';
     for ($x = 1; $x <= MAX_BONUSES; $x++) {
         $sqlStartExtra .= ", bonus$x";
         $sqlStartBadBonus .= ", bonus$x";
+        $sqlEndBadBonus .= ", bonus$x = values(bonus$x)";
     }
     $sqlStartExtra .= ') VALUES ';
     $sqlStartBadBonus .= ') VALUES ';
@@ -463,10 +465,10 @@ function ParseAuctionData($house, $snapshot, &$json)
                         for ($y = count($bonuses); $y < MAX_BONUSES; $y++) {
                             $bonuses[] = 'null';
                         }
-                        $thisSql = sprintf('(%u,%u,%s)', $house, $auction['auc'], implode(',',$bonuses));
+                        $thisSql = sprintf('(%u,%u,\'%s\',\'%s\',%s)', $house, $auction['auc'], $snapshotString, $snapshotString, implode(',',$bonuses));
 
-                        if (strlen($sqlBadBonus) + 5 + strlen($thisSql) > $maxPacketSize) {
-                            $delayedAuctionSql[] = $sqlBadBonus; // delayed since tblAuction row must be inserted first for foreign key
+                        if (strlen($sqlBadBonus) + 5 + strlen($thisSql) + strlen($sqlEndBadBonus) > $maxPacketSize) {
+                            $delayedAuctionSql[] = $sqlBadBonus . $sqlEndBadBonus; // delayed since tblAuction row must be inserted first for foreign key
                             $sqlBadBonus = '';
                         }
                         $sqlBadBonus .= ($sqlBadBonus == '' ? $sqlStartBadBonus : ',') . $thisSql;
@@ -686,7 +688,7 @@ function ParseAuctionData($house, $snapshot, &$json)
         }
 
         if ($sqlBadBonus != '') {
-            $delayedAuctionSql[] = $sqlBadBonus;
+            $delayedAuctionSql[] = $sqlBadBonus . $sqlEndBadBonus;
         }
 
         if (count($delayedAuctionSql)) {
