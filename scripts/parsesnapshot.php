@@ -358,11 +358,14 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     $sqlStart = 'REPLACE INTO tblAuction (house, id, item, quantity, bid, buy, seller, timeleft) VALUES ';
     $sqlStartPet = 'REPLACE INTO tblAuctionPet (house, id, species, breed, `level`, quality) VALUES ';
+    $sqlStartBadBonus = 'REPLACE INTO tblAuctionBadBonus (house, id';
     $sqlStartExtra = 'REPLACE INTO tblAuctionExtra (house, id, `rand`, `seed`, `context`, `lootedlevel`, `level`, `bonusset`';
     for ($x = 1; $x <= MAX_BONUSES; $x++) {
         $sqlStartExtra .= ", bonus$x";
+        $sqlStartBadBonus .= ", bonus$x";
     }
     $sqlStartExtra .= ') VALUES ';
+    $sqlStartBadBonus .= ') VALUES ';
     $sqlStartBonusesSeen = 'INSERT INTO tblItemBonusesSeen (item, bonusset, bonus1, bonus2, bonus3, bonus4, observed) VALUES ';
     $sqlEndBonusesSeen = ' ON DUPLICATE KEY UPDATE observed = observed + 1';
     $sqlStartLevelsSeen = 'INSERT IGNORE INTO tblItemLevelsSeen (item, bonusset, `level`) VALUES ';
@@ -410,7 +413,7 @@ function ParseAuctionData($house, $snapshot, &$json)
         DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " getting $sellerCount seller IDs");
         GetSellerIds($region, $sellerInfo, $snapshot);
 
-        $sql = $sqlPet = $sqlExtra = $sqlBonusesSeen = $sqlLevelsSeen = '';
+        $sql = $sqlPet = $sqlExtra = $sqlBadBonus = $sqlBonusesSeen = $sqlLevelsSeen = '';
         $delayedAuctionSql = [];
 
         DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " parsing $auctionCount auctions");
@@ -453,6 +456,17 @@ function ParseAuctionData($house, $snapshot, &$json)
 
                 if ($usefulBonuses && isset($observedWithoutBonusesCache[$auction['item']])) {
                     if ($observedWithoutBonusesCache[$auction['item']] >= OBSERVED_WITHOUT_BONUSES_LIMIT) {
+                        for ($y = count($bonuses); $y < MAX_BONUSES; $y++) {
+                            $bonuses[] = 'null';
+                        }
+                        $thisSql = sprintf('(%u,%u,%s)', $house, $auction['auc'], implode(',',$bonuses));
+
+                        if (strlen($sqlBadBonus) + 5 + strlen($thisSql) > $maxPacketSize) {
+                            $delayedAuctionSql[] = $sqlBadBonus; // delayed since tblAuction row must be inserted first for foreign key
+                            $sqlBadBonus = '';
+                        }
+                        $sqlBadBonus .= ($sqlBadBonus == '' ? $sqlStartBadBonus : ',') . $thisSql;
+
                         $bonuses = []; // remove bonuses attached to auction, they probably don't belong
                     }
                     if (!isset($existingIds[$auction['auc']])) { // new auction
@@ -667,13 +681,17 @@ function ParseAuctionData($house, $snapshot, &$json)
             $delayedAuctionSql[] = $sqlExtra;
         }
 
+        if ($sqlBadBonus != '') {
+            $delayedAuctionSql[] = $sqlBadBonus;
+        }
+
         if (count($delayedAuctionSql)) {
             DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating tblAuctionExtra, tblAuctionPet");
         }
         while (count($delayedAuctionSql)) {
             DBQueryWithError($ourDb, array_pop($delayedAuctionSql));
         }
-        unset($sqlBonusesSeen, $sqlLevelsSeen, $sqlPet, $sqlExtra, $delayedAuctionSql);
+        unset($sqlBonusesSeen, $sqlLevelsSeen, $sqlPet, $sqlExtra, $sqlBadBonus, $delayedAuctionSql);
 
         $sql = <<<EOF
 insert ignore into tblAuctionRare (house, id, prevseen) (
