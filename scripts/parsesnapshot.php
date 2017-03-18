@@ -447,6 +447,10 @@ function ParseAuctionData($house, $snapshot, &$json)
                 $bonuses = array_unique($bonuses, SORT_NUMERIC);
                 sort($bonuses, SORT_NUMERIC);
 
+                if (count($bonuses) > MAX_BONUSES) {
+                    array_splice($bonuses, MAX_BONUSES);
+                }
+
                 $usefulBonuses = [];
                 foreach ($bonuses as $bonus) {
                     if (isset($usefulBonusesCache[$bonus])) {
