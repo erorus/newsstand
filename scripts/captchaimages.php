@@ -23,7 +23,7 @@ $auctionJson = '';
 $retries = 0;
 while (!$auctionJson) {
     heartbeat();
-    if ($caughtKill) {
+    if (CatchKill()) {
         exit;
     }
     if ($retries++ > 10) {
@@ -82,7 +82,7 @@ EOF;
 }
 
 heartbeat();
-if ($caughtKill) {
+if (CatchKill()) {
     exit;
 }
 
@@ -99,7 +99,7 @@ for ($x = 0; $x < count($auctionJson['auctions']['auctions']); $x++) {
     }
 
     heartbeat();
-    if ($caughtKill) {
+    if (CatchKill()) {
         exit;
     }
 
@@ -136,7 +136,7 @@ for ($x = 0; $x < count($auctionJson['auctions']['auctions']); $x++) {
 
     for ($y = 0; $y < count($json['members']); $y++) {
         heartbeat();
-        if ($caughtKill) {
+        if (CatchKill()) {
             exit;
         }
 

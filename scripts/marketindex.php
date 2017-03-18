@@ -63,10 +63,10 @@ function CatchUp($region) {
 }
 
 function IndexRegionDay($region, $timestamp) {
-    global $db, $indexCategories, $caughtKill;
+    global $db, $indexCategories;
 
     heartbeat();
-    if ($caughtKill) {
+    if (CatchKill()) {
         exit;
     }
 
@@ -94,7 +94,7 @@ ORDER BY 1
 EOF;
     foreach ($indexCategories as $catName => $catItems) {
         heartbeat();
-        if ($caughtKill) {
+        if (CatchKill()) {
             exit;
         }
 

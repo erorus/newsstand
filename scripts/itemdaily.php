@@ -25,9 +25,9 @@ DebugMessage('Done! Started ' . TimeDiff($startTime));
 
 function AddDailyData()
 {
-    global $db, $caughtKill;
+    global $db;
 
-    if ($caughtKill) {
+    if (CatchKill()) {
         return;
     }
 
@@ -134,7 +134,7 @@ EOF;
 
     foreach ($houses as $houseRow) {
         heartbeat();
-        if ($caughtKill) {
+        if (CatchKill()) {
             return;
         }
 

@@ -37,7 +37,7 @@ $items = DBMapArray($result, null);
 $stmt->close();
 
 heartbeat();
-if ($caughtKill) {
+if (CatchKill()) {
     exit;
 }
 
@@ -61,7 +61,7 @@ for ($z = 0; $z < $itemsCount; $z++) {
     $item = $items[$z]['item'];
     $bonusSet = $items[$z]['bonusset'];
 
-    if ($caughtKill) {
+    if (CatchKill()) {
         break;
     }
 
@@ -112,13 +112,13 @@ for ($z = 0; $z < $itemsCount; $z++) {
     }
 }
 
-if (!$caughtKill) {
+if (!CatchKill()) {
     heartbeat();
     DebugMessage("Deleting old working rows");
     $db->query('DELETE FROM tblItemGlobalWorking WHERE `when` < timestampadd(DAY, -1, now())');
 }
 
-if (!$caughtKill) {
+if (!CatchKill()) {
     heartbeat();
     DebugMessage("Updating tblItemGlobal rows");
     $db->query('REPLACE INTO tblItemGlobal (SELECT `item`, `bonusset`, `region`, avg(`median`), avg(`mean`), avg(`stddev`) FROM tblItemGlobalWorking GROUP BY `item`, `bonusset`, `region`)');
@@ -130,8 +130,8 @@ DebugMessage('Done! Started ' . TimeDiff($startTime));
 
 function UpdateGlobalDataJson()
 {
-    global $caughtKill, $db;
-    if ($caughtKill) {
+    global $db;
+    if (CatchKill()) {
         return;
     }
 

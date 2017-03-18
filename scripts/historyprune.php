@@ -26,9 +26,9 @@ DebugMessage('Done! Started ' . TimeDiff($startTime));
 
 function CleanOldData()
 {
-    global $db, $caughtKill;
+    global $db;
 
-    if ($caughtKill) {
+    if (CatchKill()) {
         return;
     }
 
@@ -51,7 +51,7 @@ function CleanOldData()
 
     for ($hx = 0; $hx < count($houses); $hx++) {
         heartbeat();
-        if ($caughtKill) {
+        if (CatchKill()) {
             return;
         }
 
@@ -82,17 +82,17 @@ function CleanOldData()
             $cutoffDateHourly = $ssDate;
         }
 
-        if (!$caughtKill) {
+        if (!CatchKill()) {
             $rowCount = DeleteLimitLoop($db, sprintf($sqlPatternHourly, 'Item', $house, $cutoffDateHourly));
             DebugMessage("$rowCount item hourly history rows deleted from house $house since $cutoffDateHourly");
         }
 
-        if (!$caughtKill) {
+        if (!CatchKill()) {
             $rowCount = DeleteLimitLoop($db, sprintf($sqlPatternHourly, 'Pet', $house, $cutoffDateHourly));
             DebugMessage("$rowCount pet hourly history rows deleted from house $house since $cutoffDateHourly");
         }
 
-        if (!$caughtKill) {
+        if (!CatchKill()) {
             $rowCount = DeleteLimitLoop($db, sprintf($sqlPatternDaily, $house, $cutOffDateDaily));
             DebugMessage("$rowCount item history daily rows deleted from house $house since $cutOffDateDaily");
         }
@@ -100,7 +100,7 @@ function CleanOldData()
         MCHouseUnlock($house);
     }
 
-    if ($caughtKill) {
+    if (CatchKill()) {
         return;
     }
 
@@ -108,7 +108,7 @@ function CleanOldData()
 
     for ($hx = 0; $hx < count($houses); $hx++) {
         heartbeat();
-        if ($caughtKill) {
+        if (CatchKill()) {
             return;
         }
 
@@ -125,7 +125,7 @@ function CleanOldData()
         MCHouseUnlock($house);
     }
 
-    if ($caughtKill) {
+    if (CatchKill()) {
         return;
     }
 
@@ -151,7 +151,7 @@ function CleanOldData()
 
     for ($hx = 0; $hx < count($houses); $hx++) {
         heartbeat();
-        if ($caughtKill) {
+        if (CatchKill()) {
             return;
         }
 
@@ -170,10 +170,8 @@ function CleanOldData()
 }
 
 function DeleteLimitLoop($db, $query, $limit = 5000) {
-    global $caughtKill;
-
     $rowCount = 0;
-    if ($caughtKill) {
+    if (CatchKill()) {
         return $rowCount;
     }
 
@@ -182,7 +180,7 @@ function DeleteLimitLoop($db, $query, $limit = 5000) {
         heartbeat();
         $ok = $db->real_query($query);
         $rowCount += $affectedRows = $db->affected_rows;
-    } while (!$caughtKill && $ok && ($affectedRows >= $limit));
+    } while (!CatchKill() && $ok && ($affectedRows >= $limit));
 
     return $rowCount;
 }

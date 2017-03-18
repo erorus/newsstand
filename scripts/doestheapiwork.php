@@ -545,13 +545,13 @@ $file['note'] = 'Brought to you by https://does.theapi.work/';
 $file['started'] = JSNow();
 foreach (['us','eu'] as $region) {
     $file['regions'][$region] = FetchRegionData($region);
-    if ($caughtKill) {
+    if (CatchKill()) {
         break;
     }
 }
 $file['finished'] = JSNow();
 
-if (!$caughtKill) {
+if (!CatchKill()) {
     $fn = isset($argv[1]) ? $argv[1] : __DIR__.'/../theapi.work/times.json';
 
     AtomicFilePutContents($fn, json_encode($file, JSON_NUMERIC_CHECK | JSON_UNESCAPED_UNICODE));
@@ -565,8 +565,6 @@ function JSNow() {
 }
 
 function FetchRegionData($region) {
-    global $caughtKill;
-
     $region = trim(strtolower($region));
 
     $results = [];
@@ -605,7 +603,7 @@ function FetchRegionData($region) {
     $slugMap = [];
 
     foreach ($json['realms'] as $realmRow) {
-        if ($caughtKill) {
+        if (CatchKill()) {
             break;
         }
         if (!isset($realmRow['slug'])) {

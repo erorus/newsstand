@@ -19,9 +19,9 @@ if (APIMaintenance()) {
 }
 
 $loopStart = time();
-while ((!$caughtKill) && (time() < ($loopStart + 60 * 30))) {
+while ((!CatchKill()) && (time() < ($loopStart + 60 * 30))) {
     heartbeat();
-    if ($caughtKill || APIMaintenance()) {
+    if (CatchKill() || APIMaintenance()) {
         break;
     }
     $hadFile = NextMailFile();

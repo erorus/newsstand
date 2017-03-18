@@ -237,10 +237,10 @@ function BuildBonusSets()
 
 function BuildAddonData($region)
 {
-    global $db, $caughtKill;
+    global $db;
 
     heartbeat();
-    if ($caughtKill)
+    if (CatchKill())
         return;
 
     DebugMessage("Starting region $region");;
@@ -341,7 +341,7 @@ EOF;
 
     for ($hx = 0; $hx < count($houses); $hx++) {
         heartbeat();
-        if ($caughtKill)
+        if (CatchKill())
             return;
 
         DebugMessage('Finding item prices in house '.$houses[$hx].' ('.round($hx/count($houses)*100).'%) '.round(memory_get_usage()/1048576));
@@ -422,7 +422,7 @@ EOF;
 
     for ($hx = 0; $hx < count($houses); $hx++) {
         heartbeat();
-        if ($caughtKill)
+        if (CatchKill())
             return;
 
         DebugMessage('Finding pet prices in house '.$houses[$hx].' ('.round($hx/count($houses)*100).'%) '.round(memory_get_usage()/1048576));
@@ -459,7 +459,7 @@ EOF;
     }
 
     heartbeat();
-    if ($caughtKill)
+    if (CatchKill())
         return;
 
     DebugMessage('Making lua strings');
@@ -469,7 +469,7 @@ EOF;
     $dataFuncIndex = 0;
     foreach ($item_global as $item => $globalPriceList) {
         heartbeat();
-        if ($caughtKill)
+        if (CatchKill())
             return;
 
         $globalPrices = array_values(unpack('L*',$globalPriceList));
@@ -572,7 +572,7 @@ EOF;
     }
 
     heartbeat();
-    if ($caughtKill)
+    if (CatchKill())
         return;
 
     DebugMessage('Setting realm indexes');
@@ -594,7 +594,7 @@ EOF;
     }
 
     heartbeat();
-    if ($caughtKill)
+    if (CatchKill())
         return;
 
     DebugMessage('Building final lua');

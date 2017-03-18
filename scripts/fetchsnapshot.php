@@ -34,10 +34,10 @@ CatchKill();
 
 $loopStart = time();
 $toSleep = 0;
-while ((!$caughtKill) && (time() < ($loopStart + 60 * 30))) {
+while ((!CatchKill()) && (time() < ($loopStart + 60 * 30))) {
     heartbeat();
     sleep(min($toSleep, 30));
-    if ($caughtKill) {
+    if (CatchKill()) {
         break;
     }
     ob_start();

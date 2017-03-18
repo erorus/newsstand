@@ -147,10 +147,10 @@ unset($nonsense);
 
 $loopStart = time();
 $toSleep = 0;
-while ((!$caughtKill) && (time() < ($loopStart + 60 * 30))) {
+while ((!CatchKill()) && (time() < ($loopStart + 60 * 30))) {
     heartbeat();
     sleep(min($toSleep, 10));
-    if ($caughtKill || APIMaintenance()) {
+    if (CatchKill() || APIMaintenance()) {
         break;
     }
     ob_start();

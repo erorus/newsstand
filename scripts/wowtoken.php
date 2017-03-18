@@ -72,7 +72,7 @@ $regionNames = [
 $loopStart = time();
 $loops = 0;
 $gotData = [];
-while ((!$caughtKill) && (time() < ($loopStart + 60))) {
+while ((!CatchKill()) && (time() < ($loopStart + 60))) {
     heartbeat();
     if (!($region = NextDataFile())) {
         break;

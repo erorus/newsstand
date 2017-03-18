@@ -81,7 +81,7 @@ DebugMessage('Done! Started ' . TimeDiff($startTime));
 
 function GetNewModels($limit = 20)
 {
-    global $db, $caughtKill;
+    global $db;
 
     $sql = <<<EOF
     select distinct `display`
@@ -102,7 +102,7 @@ EOF;
     $started = time();
     for ($x = 0; $x < $cd && $fetched < $limit; $x++) {
         heartbeat();
-        if ($caughtKill) {
+        if (CatchKill()) {
             break;
         }
         if (($started + (5 * 60)) < time()) {

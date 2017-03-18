@@ -37,7 +37,7 @@ $regions = [
 
 foreach ($regions as $region => $realmListLocale) {
     heartbeat();
-    if ($caughtKill) {
+    if (CatchKill()) {
         break;
     }
     if (isset($argv[1]) && $argv[1] != $region) {
@@ -104,18 +104,18 @@ foreach ($regions as $region => $realmListLocale) {
         if ($locale == $realmListLocale) {
             continue;
         }
-        if ($caughtKill) {
+        if (CatchKill()) {
             break;
         }
         GetLocalizedOwnerRealms($region, $locale);
     }
-    if ($caughtKill) {
+    if (CatchKill()) {
         break;
     }
 
     if (in_array($region, ['US','EU'])) {
         GetRealmPopulation($region);
-        if ($caughtKill) {
+        if (CatchKill()) {
             break;
         }
     }
@@ -135,7 +135,7 @@ foreach ($regions as $region => $realmListLocale) {
 
     foreach ($bySlug as $row) {
         heartbeat();
-        if ($caughtKill) {
+        if (CatchKill()) {
             break 2;
         }
 
@@ -205,7 +205,7 @@ foreach ($regions as $region => $realmListLocale) {
     }
 
     heartbeat();
-    if ($caughtKill) {
+    if (CatchKill()) {
         break;
     }
 
@@ -353,7 +353,7 @@ function GetDataRealms($region, $hash)
 
 function GetLocalizedOwnerRealms($region, $locale)
 {
-    global $db, $caughtKill;
+    global $db;
 
     $realmId = 0;
     $slug = '';
@@ -364,7 +364,7 @@ function GetLocalizedOwnerRealms($region, $locale)
     $stmt->bind_result($realmId, $slug);
     while ($stmt->fetch()) {
         heartbeat();
-        if ($caughtKill) {
+        if (CatchKill()) {
             return;
         }
 
@@ -389,13 +389,13 @@ function GetLocalizedOwnerRealms($region, $locale)
         $sqlToRun[] = sprintf('UPDATE tblRealm SET ownerrealm = \'%s\' WHERE id = %d', $db->escape_string($ownerRealm), $realmId);
     }
     $stmt->close();
-    if ($caughtKill) {
+    if (CatchKill()) {
         return;
     }
 
     foreach ($sqlToRun as $sql) {
         heartbeat();
-        if ($caughtKill) {
+        if (CatchKill()) {
             return;
         }
         if (!$db->real_query($sql)) {
@@ -406,7 +406,7 @@ function GetLocalizedOwnerRealms($region, $locale)
 
 function GetRealmPopulation($region)
 {
-    global $db, $caughtKill;
+    global $db;
 
     $json = \Newsstand\HTTP::Get('https://realmpop.com/' . strtolower($region) . '.json');
     if (!$json) {
@@ -414,7 +414,7 @@ function GetRealmPopulation($region)
         return;
     }
 
-    if ($caughtKill) {
+    if (CatchKill()) {
         return;
     }
 
@@ -433,7 +433,7 @@ function GetRealmPopulation($region)
     $bySlug = DBMapArray($result);
     $stmt->close();
 
-    if ($caughtKill) {
+    if (CatchKill()) {
         return;
     }
 
@@ -451,9 +451,9 @@ function GetRealmPopulation($region)
 
 function CleanOldHouses()
 {
-    global $db, $caughtKill;
+    global $db;
 
-    if ($caughtKill) {
+    if (CatchKill()) {
         return;
     }
 
@@ -466,13 +466,13 @@ function CleanOldHouses()
 
     $sql = 'DELETE FROM tblAuction WHERE house = %d LIMIT 2000';
     foreach ($oldIds as $oldId) {
-        if ($caughtKill) {
+        if (CatchKill()) {
             return;
         }
 
         PrintImportantMessage('Clearing out auctions from old house ' . $oldId);
 
-        while (!$caughtKill) {
+        while (!CatchKill()) {
             heartbeat();
             $ok = $db->real_query(sprintf($sql, $oldId));
             if (!$ok || $db->affected_rows == 0) {
@@ -481,7 +481,7 @@ function CleanOldHouses()
         }
     }
 
-    if ($caughtKill) {
+    if (CatchKill()) {
         return;
     }
 
@@ -495,7 +495,7 @@ function CleanOldHouses()
         $db->real_query(sprintf('DELETE FROM tblHouseCheck WHERE house IN (%s)', implode(',', $oldIds)));
     }
 
-    if ($caughtKill) {
+    if (CatchKill()) {
         return;
     }
 
@@ -508,13 +508,13 @@ function CleanOldHouses()
 
     $sql = 'DELETE FROM tblItemHistoryHourly WHERE house = %d LIMIT 2000';
     foreach ($oldIds as $oldId) {
-        if ($caughtKill) {
+        if (CatchKill()) {
             return;
         }
 
         PrintImportantMessage('Clearing out item history from old house ' . $oldId);
 
-        while (!$caughtKill) {
+        while (!CatchKill()) {
             heartbeat();
             $ok = $db->real_query(sprintf($sql, $oldId));
             if (!$ok || $db->affected_rows == 0) {
@@ -523,7 +523,7 @@ function CleanOldHouses()
         }
     }
 
-    if ($caughtKill) {
+    if (CatchKill()) {
         return;
     }
 
@@ -536,13 +536,13 @@ function CleanOldHouses()
 
     $sql = 'DELETE FROM tblItemSummary WHERE house = %d LIMIT 2000';
     foreach ($oldIds as $oldId) {
-        if ($caughtKill) {
+        if (CatchKill()) {
             return;
         }
 
         PrintImportantMessage('Clearing out item summary from old house ' . $oldId);
 
-        while (!$caughtKill) {
+        while (!CatchKill()) {
             heartbeat();
             $ok = $db->real_query(sprintf($sql, $oldId));
             if (!$ok || $db->affected_rows == 0) {
@@ -551,7 +551,7 @@ function CleanOldHouses()
         }
     }
 
-    if ($caughtKill) {
+    if (CatchKill()) {
         return;
     }
 
@@ -564,13 +564,13 @@ function CleanOldHouses()
 
     $sql = 'DELETE FROM tblPetHistoryHourly WHERE house = %d LIMIT 2000';
     foreach ($oldIds as $oldId) {
-        if ($caughtKill) {
+        if (CatchKill()) {
             return;
         }
 
         PrintImportantMessage('Clearing out pet history from old house ' . $oldId);
 
-        while (!$caughtKill) {
+        while (!CatchKill()) {
             heartbeat();
             $ok = $db->real_query(sprintf($sql, $oldId));
             if (!$ok || $db->affected_rows == 0) {
@@ -579,7 +579,7 @@ function CleanOldHouses()
         }
     }
 
-    if ($caughtKill) {
+    if (CatchKill()) {
         return;
     }
 
@@ -592,13 +592,13 @@ function CleanOldHouses()
 
     $sql = 'DELETE FROM tblPetSummary WHERE house = %d LIMIT 2000';
     foreach ($oldIds as $oldId) {
-        if ($caughtKill) {
+        if (CatchKill()) {
             return;
         }
 
         PrintImportantMessage('Clearing out pet summary from old house ' . $oldId);
 
-        while (!$caughtKill) {
+        while (!CatchKill()) {
             heartbeat();
             $ok = $db->real_query(sprintf($sql, $oldId));
             if (!$ok || $db->affected_rows == 0) {
@@ -607,7 +607,7 @@ function CleanOldHouses()
         }
     }
 
-    if ($caughtKill) {
+    if (CatchKill()) {
         return;
     }
 
@@ -620,13 +620,13 @@ function CleanOldHouses()
 
     $sql = 'DELETE FROM tblSnapshot WHERE house = %d LIMIT 2000';
     foreach ($oldIds as $oldId) {
-        if ($caughtKill) {
+        if (CatchKill()) {
             return;
         }
 
         PrintImportantMessage('Clearing out snapshots from old house ' . $oldId);
 
-        while (!$caughtKill) {
+        while (!CatchKill()) {
             heartbeat();
             $ok = $db->real_query(sprintf($sql, $oldId));
             if (!$ok || $db->affected_rows == 0) {

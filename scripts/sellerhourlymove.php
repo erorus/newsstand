@@ -20,9 +20,9 @@ DebugMessage('Done! Started ' . TimeDiff($startTime));
 
 function AddHourlyData()
 {
-    global $db, $caughtKill;
+    global $db;
 
-    if ($caughtKill) {
+    if (CatchKill()) {
         return;
     }
 
@@ -38,7 +38,7 @@ EOF;
 
     for ($hour = 0; $hour < 24; $hour++) {
         heartbeat();
-        if ($caughtKill) {
+        if (CatchKill()) {
             break;
         }
 
