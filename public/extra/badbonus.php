@@ -183,7 +183,7 @@ EOF;
 
         <p>Some auctions are shown with incorrect bonuses in the Battle.net API data, the armory auction house, and probably also the mobile auction house.</p>
 
-        <p>Below is a listing of some auctions we observed with bad bonuses. These auctions show items with titles, tags, or levels which do not appear in-game.</p>
+        <p>Below is a listing of some current auctions we observed with bad bonuses. These auctions show items with titles, tags, or levels which do not appear in-game.</p>
     </div>
 
     <div class="maintable">
