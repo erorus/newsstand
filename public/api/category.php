@@ -707,7 +707,7 @@ function CategoryResult_skinning($house)
             $lsql .= ' and i.id != 110610';
         }
         if ($x == 5) {
-            $lsql .= ' or i.id = 110610';
+            $lsql .= ' and i.id in (110609, 110610)';
         }
         if ($x == 6) {
             $lsql .= ' or i.id in (124113,124115)';
