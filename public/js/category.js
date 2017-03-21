@@ -1425,7 +1425,7 @@ var TUJ_Category = function ()
             tr.appendChild(td);
             td.colSpan = 6;
 
-            var sluggedName = data.name.toLowerCase().replace(/[^ a-z0-9]/, '');
+            var sluggedName = data.name.toLowerCase().replace(/[^ a-z0-9_]/, '');
             for (x = 0; x < sluggedName.length; x++) {
                 if (sluggedName.substr(x, 1) == ' ') {
                     sluggedName = sluggedName.substr(0, x) + sluggedName.substr(x+1, 1).toUpperCase() + sluggedName.substr(x+2);

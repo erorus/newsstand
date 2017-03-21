@@ -588,7 +588,7 @@ function CategoryResult_archaeology($house)
 function CategoryResult_blood($house)
 {
     return [
-        'name'    => 'blood',
+        'name'    => 'category_blood',
         'results' => [
             [
                 'name' => 'ItemList',
