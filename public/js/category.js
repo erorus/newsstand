@@ -756,7 +756,7 @@ var TUJ_Category = function ()
             return abbr;
         };
 
-        var titleColSpan = 4;
+        var titleColSpan = 3;
         var titleTd;
 
         t = libtuj.ce('table');
@@ -801,6 +801,7 @@ var TUJ_Category = function ()
 
         if (data.amounts) {
             tr.appendChild(libtuj.ce('th'));
+            titleColSpan++;
         }
 
         td = libtuj.ce('th');
