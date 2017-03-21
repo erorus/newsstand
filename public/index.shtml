@@ -76,6 +76,7 @@
                     <div class="sidebar" id="category-sidebar">
                         <a rel="deals">Deals</a>
                         <a rel="unusuals">Unusuals</a>
+                        <a rel="blood">Blood of Sargeras</a>
                         <br/>
 
                         <a rel="blacksmithing">Blacksmithing</a>

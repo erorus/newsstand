@@ -585,6 +585,22 @@ function CategoryResult_archaeology($house)
     ];
 }
 
+function CategoryResult_blood($house)
+{
+    return [
+        'name'    => 'blood',
+        'results' => [
+            [
+                'name' => 'ItemList',
+                'data' => [
+                    'name'  => 'category_blood',
+                    'items' => CategoryRegularItemList($house, 'i.id in (124117,124101,124437,124107,124118,124102,124113,124108,124119,124103,124115,124109,124120,124104,124440,124110,124121,124105,124441,124111,124439,123918,123919,124112,142117)')
+                ]
+            ],
+        ]
+    ];
+}
+
 function CategoryResult_mining($house)
 {
     return [
