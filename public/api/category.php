@@ -587,6 +587,34 @@ function CategoryResult_archaeology($house)
 
 function CategoryResult_blood($house)
 {
+    $amounts = [
+        124117 => 10,
+        124101 => 10,
+        124437 => 10,
+        124107 => 10,
+        124118 => 10,
+        124102 => 10,
+        124113 => 10,
+        124108 => 10,
+        124119 => 10,
+        124103 => 10,
+        124115 => 10,
+        124109 => 10,
+        124120 => 10,
+        124104 => 10,
+        124440 => 10,
+        124110 => 10,
+        124121 => 10,
+        124105 => 3,
+        124441 => 3,
+        124111 => 10,
+        124439 => 20,
+        123918 => 10,
+        123919 => 5,
+        124112 => 10,
+        142117 => 10,
+    ];
+
     return [
         'name'    => 'category_blood',
         'results' => [
@@ -594,7 +622,8 @@ function CategoryResult_blood($house)
                 'name' => 'ItemList',
                 'data' => [
                     'name'  => 'category_blood',
-                    'items' => CategoryRegularItemList($house, 'i.id in (124117,124101,124437,124107,124118,124102,124113,124108,124119,124103,124115,124109,124120,124104,124440,124110,124121,124105,124441,124111,124439,123918,123919,124112,142117)')
+                    'items' => CategoryRegularItemList($house, 'i.id in (' . implode(',', array_keys($amounts)) . ')'),
+                    'amounts' => $amounts,
                 ]
             ],
         ]

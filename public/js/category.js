@@ -741,6 +741,21 @@ var TUJ_Category = function ()
             data['sort'] = '';
         }
 
+        var getAmountByItem = function(amounts, id) {
+            return amounts ? (amounts[id] || amounts[0] || 1) : 1;
+        };
+
+        var abbrPriceAmount = function(price, amount) {
+            if (amount == 1) {
+                return libtuj.FormatPrice(price);
+            }
+
+            var abbr = libtuj.ce('abbr');
+            abbr.title = '' + amount + ' x ' + libtuj.FormatPrice(price, true);
+            abbr.appendChild(libtuj.FormatPrice(price * amount));
+            return abbr;
+        };
+
         var titleColSpan = 4;
         var titleTd;
 
@@ -757,7 +772,7 @@ var TUJ_Category = function ()
             tr.appendChild(td);
             titleTd = td;
 
-            var sluggedName = data.name.replace(/[^ a-zA-Z0-9\.-]/, '');
+            var sluggedName = data.name.replace(/[^ a-zA-Z0-9\.-_]/, '');
             for (x = 0; x < sluggedName.length; x++) {
                 if (sluggedName.substr(x, 1) == ' ') {
                     sluggedName = sluggedName.substr(0, x) + sluggedName.substr(x+1, 1).toUpperCase() + sluggedName.substr(x+2);
@@ -783,6 +798,10 @@ var TUJ_Category = function ()
 
         tr = libtuj.ce('tr');
         t.appendChild(tr);
+
+        if (data.amounts) {
+            tr.appendChild(libtuj.ce('th'));
+        }
 
         td = libtuj.ce('th');
         td.className = 'name';
@@ -891,7 +910,7 @@ var TUJ_Category = function ()
                 data.items.sort(function (a, b)
                 {
                     return ((a.price ? 0 : 1) - (b.price ? 0 : 1)) ||
-                        (b.price - a.price) ||
+                        (b.price * getAmountByItem(data.amounts, b.id) - a.price * getAmountByItem(data.amounts, a.id)) ||
                         a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]);
                 });
         }
@@ -899,6 +918,15 @@ var TUJ_Category = function ()
         for (x = 0; item = data.items[x]; x++) {
             tr = libtuj.ce('tr');
             t.appendChild(tr);
+
+            var amount = 1;
+            if (data.amounts) {
+                td = libtuj.ce('td');
+                td.className = 'quantity';
+                tr.appendChild(td);
+                amount = getAmountByItem(data.amounts, item.id);
+                td.appendChild(libtuj.FormatQuantity(amount));
+            }
 
             td = libtuj.ce('td');
             td.className = 'icon';
@@ -938,28 +966,28 @@ var TUJ_Category = function ()
                 td = libtuj.ce('td');
                 td.className = 'price';
                 tr.appendChild(td);
-                td.appendChild(libtuj.FormatPrice(item.bid));
+                td.appendChild(abbrPriceAmount(item.bid, amount));
             }
 
             if (!data.hiddenCols.price) {
                 td = libtuj.ce('td');
                 td.className = 'price';
                 tr.appendChild(td);
-                td.appendChild(libtuj.FormatPrice(item.price));
+                td.appendChild(abbrPriceAmount(item.price, amount));
             }
 
             if (!data.hiddenCols.avgprice) {
                 td = libtuj.ce('td');
                 td.className = 'price';
                 tr.appendChild(td);
-                td.appendChild(libtuj.FormatPrice(item.avgprice));
+                td.appendChild(abbrPriceAmount(item.avgprice, amount));
             }
 
             if (data.visibleCols.globalmedian) {
                 td = libtuj.ce('td');
                 td.className = 'price';
                 tr.appendChild(td);
-                td.appendChild(libtuj.FormatPrice(item.globalmedian));
+                td.appendChild(abbrPriceAmount(item.globalmedian, amount));
             }
 
             if (!data.hiddenCols.lastseen) {
@@ -983,7 +1011,7 @@ var TUJ_Category = function ()
                 a = libtuj.ce('a');
                 td.appendChild(a);
                 a.href = tuj.BuildHash({realm: data.compareTo, page: 'item', id: item.id + (item.tagurl ? '.'+item.tagurl : '')});
-                a.appendChild(libtuj.FormatPrice(item.compareTo.avgprice || item.compareTo.price));
+                a.appendChild(abbrPriceAmount(item.compareTo.avgprice || item.compareTo.price, amount));
             }
         }
 
