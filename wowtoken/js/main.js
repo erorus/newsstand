@@ -83,7 +83,7 @@ var wowtoken = {
             'eu': [40000, 240000, 1000],
             'cn': [100000, 300000, 3000],
             'tw': [100000, 240000, 3000],
-            'kr': [100000, 360000, 3000]
+            'kr': [100000, 400000, 5000]
         },
 
         Check: function() {
@@ -544,7 +544,7 @@ var wowtoken = {
                 }
                 break;
             case 'KR':
-                priceUpperBound = 360000;
+                priceUpperBound = 400000;
                 colors = {
                     'line': '#00cccc',
                     'fill': 'rgba(178,230,230,0.6)',
