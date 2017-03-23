@@ -415,47 +415,6 @@ var wowtoken = {
         wowtoken.LoadUpdate();
         wowtoken.Notification.Check();
         wowtoken.LoadHistory();
-        wowtoken.AdCheck();
-    },
-
-    AdCheck: function()
-    {
-        var tries = 0;
-
-        var report = function(shown) {
-            $.ajax({
-                url: '/shown.php',
-                method: 'POST',
-                data: {
-                    'shown': shown ? 1 : 0
-                },
-            });
-        };
-
-        var f = function() {
-            var retry = false;
-            if (typeof window.adsbygoogle == 'object') {
-                if (window.adsbygoogle.hasOwnProperty('length')) {
-                    retry = true;
-                } else {
-                    if (window.adsbygoogle.loaded) {
-                        report(true);
-                    } else {
-                        report();
-                    }
-                }
-            } else {
-                report();
-            }
-            if (retry) {
-                if (tries++ < 3) {
-                    window.setTimeout(f, 5000);
-                } else {
-                    report();
-                }
-            }
-        };
-        f();
     },
 
     EUCheck: function()

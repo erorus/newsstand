@@ -35,8 +35,17 @@
         <link rel="preload" href="wowtoken.json" as="script">
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js" defer></script>
         <script type="text/javascript" src="js/highcharts-custom.js?2" defer></script>
-        <script type="text/javascript" src="js/main.js?34" defer></script>
-        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <script type="text/javascript" src="js/main.js?35" defer></script>
+        <script type="text/javascript">
+            function blockWarn() {
+                var e = document.getElementsByClassName('realm-panel');
+                for (x = e.length - 1; x >= 0; x--) {
+                    e[x].parentNode.removeChild(e[x]);
+                }
+                document.getElementById('block-warn').style.display = '';
+            }
+        </script>
+        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js" onerror="window.setTimeout(blockWarn,1);"></script>
     </head>
     <body>
         <div class="mui-container">
@@ -114,6 +123,10 @@
             <script>
                 (adsbygoogle = window.adsbygoogle || []).push({});
             </script>
+
+            <div class="mui-panel" id="block-warn" style="background-color: #FFCCCC; text-align: center; display: none">
+                Please don't block ads.
+            </div>
 
             <div class="mui-panel realm-panel" id="na-panel">
                 <h2>North American Realms</h2>
