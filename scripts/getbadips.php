@@ -6,6 +6,7 @@ require_once('../incl/incl.php');
 require_once('../incl/api.incl.php');
 
 $logFileName = isset($argv[1]) ? $argv[1] : '../logs/access.log';
+$lookFor = isset($argv[2]) ? $argv[2] : '"GET /api/';
 
 if (!file_exists($logFileName)) {
     DebugMessage("Can't find log file: $logFileName\n");
@@ -17,7 +18,7 @@ $ipHits = [];
 $fh = fopen($logFileName, 'r');
 if ($fh) {
     while (($line = fgets($fh, 4096)) !== false) {
-        if ((strpos($line, '"GET /api/') !== false)) { //} && (strpos($line, '(X11; Ubuntu; Linux i686; rv:25.0') !== false)) {
+        if ((strpos($line, $lookFor) !== false)) { //} && (strpos($line, '(X11; Ubuntu; Linux i686; rv:25.0') !== false)) {
             preg_match('/^\S+/', $line, $res);
             if (!isset($ipHits[$res[0]])) {
                 $ipHits[$res[0]] = 0;
