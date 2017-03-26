@@ -473,9 +473,10 @@ var wowtoken = {
         var dest;
         for (var region in d.history) {
             if (d.history[region].length) {
-                dest = document.getElementById('hc-'+region.toLowerCase());
-                dest.className = 'hc';
-                wowtoken.ShowChart(region, d.history[region], dest);
+                if (dest = document.getElementById('hc-'+region.toLowerCase())) {
+                    dest.className = 'hc';
+                    wowtoken.ShowChart(region, d.history[region], dest);
+                }
             }
         }
     },
