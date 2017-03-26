@@ -410,6 +410,17 @@ var wowtoken = {
 
     Main: function ()
     {
+        var s = document.createElement('script');
+        s.src = '//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
+        $(s).on('error', function() {
+            var e = document.getElementsByClassName('realm-panel');
+            for (var x = e.length - 1; x >= 0; x--) {
+                e[x].parentNode.removeChild(e[x]);
+            }
+            document.getElementById('block-warn').style.display = '';
+        });
+        document.getElementsByTagName('head')[0].appendChild(s);
+
         wowtoken.LastVisitCheck();
         wowtoken.EUCheck();
         wowtoken.LoadUpdate();
