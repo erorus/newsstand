@@ -416,6 +416,21 @@ var wowtoken = {
             document.getElementById('block-warn').style.display = '';
         };
 
+        var test = function() {
+            var divs = $('ins.adsbygoogle');
+            if (!divs.length || divs[0].style.display == 'none') {
+                fail();
+                return false;
+            }
+            return true;
+        };
+
+        window.setTimeout(test, 500);
+        window.setTimeout(test, 1000);
+        window.setTimeout(test, 2500);
+        window.setTimeout(test, 5000);
+        window.setTimeout(test, 10000);
+
         var s = document.createElement('script');
         s.src = '//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
         $(s).on('error', fail);
@@ -426,10 +441,7 @@ var wowtoken = {
                 fail();
             }
 
-            var divs = $('ins.adsbygoogle');
-            if (!divs.length || divs[0].style.display == 'none') {
-                fail();
-            } else {
+            if (test()) {
                 wowtoken.LoadUpdate();
                 wowtoken.Notification.Check();
                 wowtoken.LoadHistory();
