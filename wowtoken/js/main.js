@@ -420,10 +420,11 @@ var wowtoken = {
         s.src = '//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
         $(s).on('error', fail);
         $(s).on('load', function() {
-            if (typeof window.adsbygoogle != 'object' || typeof window.adsbygoogle.push != 'function') {
+            try {
+                window.adsbygoogle.push({});
+            } catch (e) {
                 fail();
             }
-            window.adsbygoogle.push({});
 
             var divs = $('ins.adsbygoogle');
             if (!divs.length || divs[0].style.display == 'none') {
