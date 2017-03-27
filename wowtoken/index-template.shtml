@@ -35,7 +35,7 @@
         <link rel="preload" href="wowtoken.json" as="script">
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js" defer></script>
         <script type="text/javascript" src="js/highcharts-custom.js?2" defer></script>
-        <script type="text/javascript" src="js/main.js?36" defer></script>
+        <script type="text/javascript" src="js/main.js?37" defer></script>
     </head>
     <body>
         <div class="mui-container">
@@ -110,9 +110,6 @@
                  data-ad-client="ca-pub-1018837251546750"
                  data-ad-slot="2933007114"
                  data-ad-format="auto"></ins>
-            <script>
-                (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
 
             <div class="mui-panel" id="block-warn" style="background-color: #FFCCCC; text-align: center; display: none">
                 Please don't block ads.

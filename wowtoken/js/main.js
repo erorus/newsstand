@@ -17,8 +17,6 @@ var wowtoken = {
         'kr': 'KR',
     },
 
-    timeouts: {},
-
     NumberCommas: function(v) {
         return v.toFixed().split("").reverse().join("").replace(/(\d{3})(?=\d)/g, '$1,').split("").reverse().join("");
     },
@@ -410,22 +408,36 @@ var wowtoken = {
 
     Main: function ()
     {
-        var s = document.createElement('script');
-        s.src = '//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
-        $(s).on('error', function() {
+        var fail = function() {
             var e = document.getElementsByClassName('realm-panel');
             for (var x = e.length - 1; x >= 0; x--) {
                 e[x].parentNode.removeChild(e[x]);
             }
             document.getElementById('block-warn').style.display = '';
+        };
+
+        var s = document.createElement('script');
+        s.src = '//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
+        $(s).on('error', fail);
+        $(s).on('load', function() {
+            if (typeof window.adsbygoogle != 'object' || typeof window.adsbygoogle.push != 'function') {
+                fail();
+            }
+            window.adsbygoogle.push({});
+
+            var divs = $('ins.adsbygoogle');
+            if (!divs.length || divs[0].style.display == 'none') {
+                fail();
+            } else {
+                wowtoken.LoadUpdate();
+                wowtoken.Notification.Check();
+                wowtoken.LoadHistory();
+            }
         });
         document.getElementsByTagName('head')[0].appendChild(s);
 
         wowtoken.LastVisitCheck();
         wowtoken.EUCheck();
-        wowtoken.LoadUpdate();
-        wowtoken.Notification.Check();
-        wowtoken.LoadHistory();
     },
 
     EUCheck: function()
@@ -483,11 +495,6 @@ var wowtoken = {
 
     LoadUpdate: function ()
     {
-        if (wowtoken.timeouts.loadUpdate) {
-            window.clearTimeout(wowtoken.timeouts.loadUpdate);
-            delete wowtoken.timeouts.loadUpdate;
-        }
-
         $.ajax({
             success: wowtoken.ParseUpdate,
             url: '/snapshot.json'
@@ -505,10 +512,6 @@ var wowtoken = {
                 $('#'+region+'-'+attrib+'-left').css('left', d[region].formatted[attrib] + '%');
             }
         }
-        if (wowtoken.timeouts.loadUpdate) {
-            window.clearTimeout(wowtoken.timeouts.loadUpdate);
-        }
-        //wowtoken.timeouts.loadUpdate = window.setTimeout(wowtoken.LoadUpdate, 600000);
     },
 
     ShowChart: function(region, dta, dest) {
