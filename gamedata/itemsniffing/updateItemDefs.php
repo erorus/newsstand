@@ -21,7 +21,7 @@ function BuildItemDefs() {
 
     DebugMessage("Item ID count: ".count($idMap));
 
-    $sparseDB2 = new Reader(__DIR__.'/../DBC/current/enUS/Item-sparse.db2', [13,14,15,16,17]);
+    $sparseDB2 = new Reader(__DIR__.'/../DBC/current/enUS/ItemSparse.db2');
     $ids = $sparseDB2->getIds();
     unset($sparseDB2);
 

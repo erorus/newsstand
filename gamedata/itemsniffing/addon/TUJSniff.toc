@@ -1,4 +1,4 @@
-## Interface: 70100
+## Interface: 70200
 ## Title: TUJ Sniff
 ## Version: 1.0
 ## DefaultState: disabled
