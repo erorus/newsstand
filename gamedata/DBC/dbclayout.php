@@ -13,7 +13,7 @@ $newLayout = [];
 $files = array_keys($dbLayout);
 $failed = false;
 foreach ($files as $filenm) {
-    foreach (['current','new'] as $d) {
+    foreach (['old','current'] as $d) {
         if (!file_exists(__DIR__ . "/$d/enUS/$filenm.db2")) {
             LogLine(sprintf('Could not find %s %s', $d, $filenm));
             $failed = true;
@@ -39,26 +39,26 @@ if ($newLayout) {
 function CheckLayout($filenm) {
     global $dbLayout;
 
-    LogLine(sprintf('Loading %s (current)', $filenm));
-    $currentReader = new Reader(__DIR__.'/current/enUS/'.$filenm.'.db2',
+    LogLine(sprintf('Loading %s (old)', $filenm));
+    $oldReader = new Reader(__DIR__.'/old/enUS/'.$filenm.'.db2',
         isset($dbLayout[$filenm]['strings']) ? $dbLayout[$filenm]['strings'] : null);
 
     $fieldsToCheck = array_keys($dbLayout[$filenm]['names']);
     $vals = [];
-    $keys = $currentReader->getIds();
+    $keys = $oldReader->getIds();
     shuffle($keys);
     for ($x = 0; $x < count($keys) && $x < MAX_ROWS_CHECKED; $x++) {
-        $rec = $currentReader->getRecord($keys[$x]);
+        $rec = $oldReader->getRecord($keys[$x]);
 
         foreach ($fieldsToCheck as $field) {
             $vals[$field][$keys[$x]] = ValueHash($rec[$field]);
         }
     }
 
-    unset($currentReader);
+    unset($oldReader);
 
-    LogLine(sprintf('Loading %s (new)', $filenm));
-    $newReader = new Reader(__DIR__.'/new/enUS/'.$filenm.'.db2');
+    LogLine(sprintf('Loading %s (current)', $filenm));
+    $newReader = new Reader(__DIR__.'/current/enUS/'.$filenm.'.db2');
 
     $map = [];
     $newFieldCount = $newReader->getFieldCount();
