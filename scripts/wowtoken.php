@@ -193,7 +193,36 @@ function ParseTokenData($region, $snapshot, &$lua)
     $stmt->execute();
     $stmt->close();
 
+    if (isset($lua['buildings'])) {
+        ParseBuildingData($region, $snapshotString, $lua['buildings']);
+    }
+
     return $lua['region'];
+}
+
+function ParseBuildingData($region, $snapshotString, $buildings)
+{
+    global $db;
+
+    $buildingId = $state = $contrib = $buff1 = $buff2 = null;
+
+    $sql = 'replace into tblBuilding (`region`, `when`, `id`, `state`, `contributed`, `buff1`, `buff2`) values (?, ?, ?, ?, ?, ?, ?)';
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('ssiidii', $region, $snapshotString, $buildingId, $state, $contrib, $buff1, $buff2);
+    foreach ($buildings as $id => $data) {
+        if (!is_array($data) || !isset($data['state'])) {
+            continue;
+        }
+        $buildingId = $id + 1; // lua starts counting at 1
+        $state = $data['state'];
+        $contrib = isset($data['contributed']) ? $data['contributed'] : null;
+        $buff1 = isset($data['buffs'][0]) ? $data['buffs'][0] : null;
+        $buff2 = isset($data['buffs'][1]) ? $data['buffs'][1] : null;
+
+        $stmt->execute();
+        DebugMessage(sprintf("%s building %d with state %d contrib %f buffs %d %d (%s)", $region, $buildingId, $state, $contrib, $buff1, $buff2, $data['name']));
+    }
+    $stmt->close();
 }
 
 function LuaDecode($rawLua) {

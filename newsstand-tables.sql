@@ -148,6 +148,23 @@ CREATE TABLE IF NOT EXISTS `tblBonusSet` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `tblBuilding`
+--
+
+CREATE TABLE IF NOT EXISTS `tblBuilding` (
+  `region` enum('US','EU','CN','TW','KR') COLLATE utf8_unicode_ci NOT NULL,
+  `when` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `id` tinyint(3) UNSIGNED NOT NULL,
+  `state` tinyint(3) UNSIGNED NOT NULL,
+  `contributed` double DEFAULT NULL,
+  `buff1` mediumint(8) UNSIGNED DEFAULT NULL,
+  `buff2` mediumint(8) UNSIGNED DEFAULT NULL,
+  PRIMARY KEY (`region`,`when`,`id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `tblCaptcha`
 --
 
