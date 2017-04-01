@@ -198,12 +198,38 @@ function ParseTokenData($region, $snapshot, &$lua)
 
 function LuaDecode($rawLua) {
     $tr = [];
-    $c = preg_match_all('/\["([^"]+)"\] = ("[^"]+"|\d+),/', $rawLua, $res);
-    if (!$c) {
-        return false;
+
+    $json = '';
+
+    $path = __DIR__ . '/JSON.lua';
+    $lua = $rawLua . "\nlocal JSON = (loadfile \"$path\")()\nprint(JSON:encode(TUJWoWToken))\n";
+
+    $desc = [
+        ['pipe', 'r'],
+        ['pipe', 'w'],
+        STDERR
+    ];
+    $pipes = [];
+
+    $r = proc_open('lua', $desc, $pipes);
+    if (is_resource($r)) {
+        fwrite($pipes[0], $lua);
+        fclose($pipes[0]);
+
+        $json = stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+
+        $ret = proc_close($r);
+        if ($ret != 0) {
+            $json = '';
+        }
     }
-    for ($x = 0; $x < $c; $x++) {
-        $tr[$res[1][$x]] = trim($res[2][$x],'"');
+
+    if ($json) {
+        $tr = json_decode($json, true);
+        if (json_last_error() != JSON_ERROR_NONE) {
+            $tr = [];
+        }
     }
 
     return $tr;
