@@ -156,6 +156,7 @@ CREATE TABLE IF NOT EXISTS `tblBuilding` (
   `when` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `id` tinyint(3) UNSIGNED NOT NULL,
   `state` tinyint(3) UNSIGNED NOT NULL,
+  `next` timestamp NULL DEFAULT NULL,
   `contributed` double DEFAULT NULL,
   `buff1` mediumint(8) UNSIGNED DEFAULT NULL,
   `buff2` mediumint(8) UNSIGNED DEFAULT NULL,

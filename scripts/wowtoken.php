@@ -204,11 +204,11 @@ function ParseBuildingData($region, $snapshotString, $buildings)
 {
     global $db;
 
-    $buildingId = $state = $contrib = $buff1 = $buff2 = null;
+    $buildingId = $state = $contrib = $buff1 = $buff2 = $timeNext = null;
 
-    $sql = 'replace into tblBuilding (`region`, `when`, `id`, `state`, `contributed`, `buff1`, `buff2`) values (?, ?, ?, ?, ?, ?, ?)';
+    $sql = 'replace into tblBuilding (`region`, `when`, `id`, `state`, `contributed`, `next`, `buff1`, `buff2`) values (?, ?, ?, ?, ?, ?, ?, ?)';
     $stmt = $db->prepare($sql);
-    $stmt->bind_param('ssiidii', $region, $snapshotString, $buildingId, $state, $contrib, $buff1, $buff2);
+    $stmt->bind_param('ssiidsii', $region, $snapshotString, $buildingId, $state, $contrib, $timeNext, $buff1, $buff2);
     foreach ($buildings as $id => $data) {
         if (!is_array($data) || !isset($data['state'])) {
             continue;
@@ -216,11 +216,12 @@ function ParseBuildingData($region, $snapshotString, $buildings)
         $buildingId = $id + 1; // lua starts counting at 1
         $state = $data['state'];
         $contrib = isset($data['contributed']) ? $data['contributed'] : null;
+        $timeNext = (isset($data['timeNext']) && $data['timeNext']) ? date('Y-m-d H:i:s', $data['timeNext']) : null;
         $buff1 = isset($data['buffs'][0]) ? $data['buffs'][0] : null;
         $buff2 = isset($data['buffs'][1]) ? $data['buffs'][1] : null;
 
         $stmt->execute();
-        DebugMessage(sprintf("%s building %d with state %d contrib %f buffs %d %d (%s)", $region, $buildingId, $state, $contrib, $buff1, $buff2, $data['name']));
+        DebugMessage(sprintf("%s building %d with state %d until %s contrib %f buffs %d %d (%s)", $region, $buildingId, $state, $timeNext, $contrib, $buff1, $buff2, $data['name']));
     }
     $stmt->close();
 }
