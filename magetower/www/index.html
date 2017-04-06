@@ -2,53 +2,89 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=780px">
     <title>MageTower.info</title>
     <style type="text/css">
         body {
             font-family: sans-serif;
-            margin: 40px auto;
+            margin: 40px auto 10px;
             max-width: 780px;
             line-height: 1.6;
             font-size: 16px;
+            background-color: #202f2a;
             color: #444;
-            padding: 0 10px
+            padding: 0 10px;
+            background-image: url(brokenfade.jpg);
+            background-repeat: no-repeat;
+            background-size: contain;
         }
 
         h1, h2, h3 {
-            line-height: 1.2
+            line-height: 1.2;
+            color: #593;
+        }
+
+        h1 {
+            margin: 3em 1em;
+            color: #bf9;
+            font-size: 250%;
         }
 
         #lastupdate {
-            margin: 2em 0 0
+            margin: 2em 0 0;
+            text-align: center;
+            color: #CCC;
         }
 
         #result h2 {
-            margin: 1em 0 0;
-            border-top: 1px solid black;
-            padding-top: 1em
+            margin: 0;
         }
 
         #result table {
             width: 100%;
-            border-spacing: 0;
+            border-spacing: 2px;
             margin-bottom: 2em
         }
 
         #result td {
             vertical-align: top;
-            padding: 0.5em 0;
+            padding: 1.5em 0;
             text-align: center;
-            line-height: 2em
+            line-height: 2em;
+            background-color: #EEE;
         }
 
         #result tr.buildings td {
             width: 33%;
-            padding: 0.5em 0.5em 0
+            padding: 1.5em 0.5em 2em;
+            line-height: 2.5em;
+        }
+
+        #result tr.region-name td {
+            border-radius: 10px 10px 0 0;
+        }
+
+        #result tr.buildings td:first-child {
+            border-radius: 0 0 0 10px;
+        }
+
+        #result tr.buildings td:last-child {
+            border-radius: 0 0 10px 0;
+        }
+
+        #result tr.separator td {
+            background-color: transparent;
+            height: 3em;
+        }
+
+        #result tr.separator:first-child td {
+            height: 0;
         }
 
         #result div.name {
-            font-weight: bold
+            font-weight: bold;
+            color: #222;
+            margin-bottom: 1em;
         }
 
         #result div.status {
@@ -60,7 +96,7 @@
         }
 
         #result div.hours::before {
-            content: "\00a0\2022\00a0"
+            content: "\00a0\00a0\2022\00a0\00a0"
         }
 
         #result div.buffs {
@@ -72,15 +108,12 @@
     </style>
 </head>
 <body>
+    <noscript><p><b>You'll need Javascript for this one, sorry.</b></p></noscript>
+
     <h1>MageTower.info</h1>
 
-    <noscript>You'll need Javascript for this one, sorry.</noscript>
-
-    Here are your buildings on the Broken Shore:<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;their status, completion percentage, time remaining, and perks.
-
-    <div id="lastupdate"></div>
     <div id="result"></div>
+    <div id="lastupdate"></div>
 
     <script type="text/javascript" src="main.js"></script>
 </body>

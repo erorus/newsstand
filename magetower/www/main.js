@@ -105,7 +105,7 @@ function ReadJson(response) {
         if (amt > 72) {
             return '>72 hours';
         }
-        return '~' + amt + ' hours';
+        return '' + amt + ' hours';
     };
 
     var niceBuffs = function(buffs) {
@@ -124,6 +124,15 @@ function ReadJson(response) {
         }
 
         tr = document.createElement('tr');
+        tr.className = 'separator';
+        tbl.appendChild(tr);
+
+        td = document.createElement('td');
+        tr.appendChild(td);
+        td.colSpan = 3;
+
+        tr = document.createElement('tr');
+        tr.className = 'region-name';
         tbl.appendChild(tr);
 
         td = document.createElement('td');
@@ -172,6 +181,7 @@ function ReadJson(response) {
 
             td.appendChild(makeDiv(niceBuffs([buildingData.buff1, buildingData.buff2]), 'buffs'));
         }
+
     }
 
     var resultDiv = document.getElementById('result');
