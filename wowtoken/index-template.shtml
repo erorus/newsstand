@@ -117,6 +117,11 @@
                 The ad helps to pay for the cost of updating this page and dozens of other sites which use our free public data API.
             </div>
 
+            <div class="mui-panel" id="magetower-promo" style="background-color: #FFD">
+                <h2>Broken Shore Building Status</h2>
+                <b>New:</b> Check out <a href="https://magetower.info/">MageTower.info</a> for up-to-date Broken Shore building progress in your region!
+            </div>
+
             <div class="mui-panel realm-panel" id="na-panel">
                 <h2>North American Realms</h2>
                 <!--#include virtual="NA.incl.html"-->
