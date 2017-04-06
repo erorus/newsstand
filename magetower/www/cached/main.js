@@ -106,7 +106,7 @@ function ReadJson(response) {
         if (amt > 72) {
             return '>72 hours';
         }
-        return '' + amt + ' hours';
+        return '' + amt + ' hour' + (amt == 1 ? '' : 's');
     };
 
     var niceBuffs = function(buffs) {
