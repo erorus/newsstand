@@ -87,6 +87,7 @@ while ((!CatchKill()) && (time() < ($loopStart + 60))) {
 $forceBuild = (isset($argv[1]) && $argv[1] == 'build');
 if ($gotData || $forceBuild) {
     BuildIncludes(array_keys($timeZones));
+    BuildMageTowerIncludes(array_keys($timeZones));
     SendTweets($forceBuild ? array_keys($timeZones) : array_unique($gotData));
     SendAndroidNotifications(array_unique($gotData));
     DebugMessage('Done! Started ' . TimeDiff($startTime));
@@ -429,6 +430,49 @@ EOF;
             unlink($htmlPath);
         }
     }
+}
+
+function BuildMageTowerIncludes($regions) {
+    global $db;
+
+    $sql = <<<'EOF'
+select z.id, unix_timestamp(z.`when`) dt, z.state, z.contributed, z.buff1, z.buff2, 
+timestampdiff(hour,now(),ifnull(z.`next`,timestampadd(second, (1 - z.contributed) / ((z.contributed - t.contributed) / (unix_timestamp(z.`when`) - unix_timestamp(t.`when`))), z.`when`))) `contributed_hours`,
+unix_timestamp(z.lastChange) lastchange
+from (
+	select n.*,
+		(select max(`when`)
+		from tblBuilding o
+		where o.region = n.region
+		and o.id = n.id
+		and o.`when` <= timestampadd(hour, -6, n.`when`)
+		and o.state = n.state) oldWhen,
+	(select max(`when`) from tblBuilding c where c.id = n.id and c.region = n.region and c.state != n.state) lastchange
+	from tblBuilding n
+	join (select region, id, max(`when`) `when` from tblBuilding group by region, id) latest on n.region = latest.region and n.id = latest.id and n.`when` = latest.`when`
+	where n.region = ?
+) z
+left join tblBuilding t on t.region = z.region and t.id = z.id and t.`when` = z.oldWhen
+EOF;
+
+    $json = [
+        'attention' => 'This file is not to be used anywhere except magetower.info. Do not fetch this file via any script or bot.',
+        'timestamp' => time(),
+    ];
+    foreach ($regions as $region) {
+        $stmt = $db->prepare($sql);
+        $stmt->bind_param('s', $region);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        while ($row = $result->fetch_assoc()) {
+            $json['update'][$region][$row['id']] = $row;
+            unset($json['update'][$region][$row['id']]['id']);
+        }
+        $result->close();
+        $stmt->close();
+    }
+
+    AtomicFilePutContents(__DIR__.'/../magetower/data/snapshot.json', json_encode($json, JSON_NUMERIC_CHECK), true);
 }
 
 function DurationString($s) {
@@ -1120,6 +1164,8 @@ function AtomicFilePutContents($path, $data, $zippedVersion = false) {
         exec(($hasZopfli ? escapeshellcmd(__DIR__.'/zopfli') : 'gzip') . ' -c ' . escapeshellarg($dataPath) . ' > ' . escapeshellarg($zaPath), $o, $ret);
         if ($hasBrotli && $ret == 0) {
             exec(escapeshellcmd(BROTLI_PATH) . ' --input ' . escapeshellarg($dataPath) . ' > ' . escapeshellarg($baPath), $o, $retBrotli);
+        } else {
+            $retBrotli = 1;
         }
 
         if (is_string($zippedVersion)) {

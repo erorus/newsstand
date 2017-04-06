@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MageTower.info</title>
+    <style type="text/css">
+        body{font-family: sans-serif; margin:40px auto;max-width:780px;line-height:1.6;font-size:16px;color:#444;padding:0 10px}
+        h1,h2,h3{line-height:1.2}
+
+        #lastupdate { margin: 2em 0 }
+
+        #result h2 { margin: 2em 0 0}
+
+        #result table { width: 100%; border-spacing: 0; margin-bottom: 2em }
+        #result td {padding: 0.5em}
+        #result td.name { font-style: italic }
+        #result td.status { font-weight: bold }
+        #result td.percentage, #result td.hours { text-align: right }
+        #result td.buffs { font-size: 70%; max-width: 12em; height: 3.2em }
+    </style>
+</head>
+<body>
+    <h1>MageTower.info</h1>
+
+    <noscript>You'll need Javascript for this one, sorry.</noscript>
+
+    Here are your buildings on the Broken Shore:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;their status, completion percentage, time remaining, and perks.
+
+    <div id="lastupdate"></div>
+    <div id="result"></div>
+
+    <script type="text/javascript" src="main.js"></script>
+</body>
+</html>
