@@ -40,7 +40,7 @@ function ReadJson(response) {
 
     document.getElementById('lastupdate').innerHTML = 'Last updated: ' + PrettySeconds(Math.floor((Date.now() - response.timestamp * 1000) / 1000)) + ' ago (' + (new Date(response.timestamp * 1000)).toLocaleString() + ')';
 
-    var td, tr, tbl = document.createElement('table');
+    var d, td, tr, tbl = document.createElement('table');
 
     var regions = {
         'US': 'North America',
@@ -64,11 +64,12 @@ function ReadJson(response) {
     };
 
     var status = {
-        1: 'Under Construction',
-        2: 'Active',
-        3: 'Under Attack',
-        4: 'Destroyed',
+        1: {'shape': 'diamond', 'name': 'Under Construction'},
+        2: {'shape': 'star', 'name': 'Active'},
+        3: {'shape': 'skull', 'name': 'Under Attack'},
+        4: {'shape': 'cross', 'name': 'Destroyed'},
     };
+
 
     var buffDescriptions = {
         237137: 'Artifact Power from<br>dungeons and raids',
@@ -157,7 +158,20 @@ function ReadJson(response) {
             tr.appendChild(td);
 
             td.appendChild(makeDiv(buildingName, 'name'));
-            td.appendChild(makeDiv(status[buildingData.state] || ('Unknown: ' + buildingData.state), 'status'));
+
+            if (status.hasOwnProperty(buildingData.state)) {
+                d = makeDiv(status[buildingData.state].name, 'status');
+                var s = document.createElement('span');
+                s.className = 'shape ' + status[buildingData.state].shape;
+                d.insertBefore(s, d.firstChild);
+                d.appendChild(s.cloneNode());
+            } else {
+                d = makeDiv('Unknown: ' + buildingData.state, 'status');
+                var s = document.createElement('span');
+                s.className = 'shape moon';
+                d.insertBefore(s, d.firstChild);
+            }
+            td.appendChild(d);
 
             var days = 1;
 
