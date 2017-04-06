@@ -150,19 +150,19 @@ function ReadJson(response) {
             td.appendChild(makeDiv(buildingName, 'name'));
             td.appendChild(makeDiv(status[buildingData.state] || ('Unknown: ' + buildingData.state), 'status'));
 
+            var days = 1;
+
             switch (buildingData.state) {
                 case 1: // under construction
                     td.appendChild(makeDiv(Math.round(buildingData.contributed * 100) + '%', 'percentage'));
                     td.appendChild(makeDiv(niceHours(buildingData.contributed_hours), 'hours'));
                     break;
                 case 2: // active
-                    td.appendChild(makeDiv(Math.round((Date.now() / 1000 - buildingData.lastchange) / 1728) + '%', 'percentage'));
-                    td.appendChild(makeDiv(niceHours(Math.floor(((buildingData.lastchange + 172800) * 1000 - Date.now()) / 1000 / 3600)), 'hours'));
-                    break;
+                    days = 2;
                 case 3: // under attack
                 case 4: // destroyed
-                    td.appendChild(makeDiv(Math.round((Date.now() / 1000 - buildingData.lastchange) / 864) + '%', 'percentage'));
-                    td.appendChild(makeDiv(niceHours(Math.floor(((buildingData.lastchange + 86400) * 1000 - Date.now()) / 1000 / 3600)), 'hours'));
+                    td.appendChild(makeDiv(Math.round((Date.now() / 1000 - buildingData.lastchange) / (864 * days)) + '%', 'percentage'));
+                    td.appendChild(makeDiv(niceHours(Math.floor(((buildingData.lastchange + (86400 * days)) * 1000 - Date.now()) / 1000 / 3600)), 'hours'));
                     break;
                 default:
                     td.appendChild(makeDiv(false, 'percentage'));
