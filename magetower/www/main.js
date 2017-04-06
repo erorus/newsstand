@@ -71,32 +71,31 @@ function ReadJson(response) {
     };
 
     var buffDescriptions = {
-        237137: 'Artifact Power from dungeons and raids',
-        237139: 'Artifact Power from world quests',
-        240979: 'Reputation bonus with Armies of Legionfall',
+        237137: 'Artifact Power from<br>dungeons and raids',
+        237139: 'Artifact Power from<br>world quests',
+        240979: 'Reputation bonus with<br>Armies of Legionfall',
         240980: 'Waterwalk while mounted',
 
         239966: 'Bonus Legionfall War Supplies',
         240986: 'Legendary follower equipment',
-        240989: 'Defiled Augment Rune from world quests',
-        240987: '10% primary stat bonus in Broken Shore',
+        240989: 'Defiled Augment Rune<br>from world quests',
+        240987: '10% primary stat bonus<br>in Broken Shore',
 
-        239967: 'Daily free Seal of Broken Fate',
-        239968: 'Refund chance for Seal of Broken Fate',
+        239967: 'Daily free<br>Seal of Broken Fate',
+        239968: 'Refund chance for<br>Seal of Broken Fate',
         239969: 'Bonus Nethershards',
         240985: 'Interact while mounted',
     }
 
-    var makeTd = function(txt, className) {
-        var td = document.createElement('td');
+    var makeDiv = function(txt, className) {
+        var d = document.createElement('div');
         if (txt) {
-            var t = document.createTextNode(txt);
-            td.appendChild(t);
+            d.innerHTML = txt;
         }
         if (className) {
-            td.className = className;
+            d.className = className;
         }
-        return td;
+        return d;
     };
 
     var niceHours = function(amt) {
@@ -106,14 +105,14 @@ function ReadJson(response) {
         if (amt > 72) {
             return '>72 hours';
         }
-        return '' + amt + ' hours';
+        return '~' + amt + ' hours';
     };
 
     var niceBuffs = function(buffs) {
         var s = '';
         for (var x = 0; x < buffs.length; x++) {
             if (buffDescriptions.hasOwnProperty(buffs[x])) {
-                s += (s ? ', ' : '') + buffDescriptions[buffs[x]];
+                s += (s ? '<br>' : '') + buffDescriptions[buffs[x]];
             }
         }
         return s;
@@ -129,11 +128,15 @@ function ReadJson(response) {
 
         td = document.createElement('td');
         tr.appendChild(td);
-        td.colSpan = 5;
+        td.colSpan = 3;
 
         var h = document.createElement('h2');
         h.appendChild(document.createTextNode(regions[region]));
         td.appendChild(h);
+
+        tr = document.createElement('tr');
+        tr.className = 'buildings';
+        tbl.appendChild(tr);
 
         for (var buildingName in buildings) {
             if (!response.update[region].hasOwnProperty(buildings[buildingName])) {
@@ -141,33 +144,33 @@ function ReadJson(response) {
             }
             var buildingData = response.update[region][buildings[buildingName]];
 
-            tr = document.createElement('tr');
-            tbl.appendChild(tr);
+            td = document.createElement('td');
+            tr.appendChild(td);
 
-            tr.appendChild(makeTd(buildingName, 'name'));
-            tr.appendChild(makeTd(status[buildingData.state] || ('Unknown: ' + buildingData.state), 'status'));
+            td.appendChild(makeDiv(buildingName, 'name'));
+            td.appendChild(makeDiv(status[buildingData.state] || ('Unknown: ' + buildingData.state), 'status'));
 
             switch (buildingData.state) {
                 case 1: // under construction
-                    tr.appendChild(makeTd(Math.round(buildingData.contributed * 100) + '%', 'percentage'));
-                    tr.appendChild(makeTd(niceHours(buildingData.contributed_hours), 'hours'));
+                    td.appendChild(makeDiv(Math.round(buildingData.contributed * 100) + '%', 'percentage'));
+                    td.appendChild(makeDiv(niceHours(buildingData.contributed_hours), 'hours'));
                     break;
                 case 2: // active
-                    tr.appendChild(makeTd(Math.round((Date.now() / 1000 - buildingData.lastchange) / 1728) + '%', 'percentage'));
-                    tr.appendChild(makeTd(niceHours(Math.floor(((buildingData.lastchange + 172800) * 1000 - Date.now()) / 1000 / 3600)), 'hours'));
+                    td.appendChild(makeDiv(Math.round((Date.now() / 1000 - buildingData.lastchange) / 1728) + '%', 'percentage'));
+                    td.appendChild(makeDiv(niceHours(Math.floor(((buildingData.lastchange + 172800) * 1000 - Date.now()) / 1000 / 3600)), 'hours'));
                     break;
                 case 3: // under attack
                 case 4: // destroyed
-                    tr.appendChild(makeTd(Math.round((Date.now() / 1000 - buildingData.lastchange) / 864) + '%', 'percentage'));
-                    tr.appendChild(makeTd(niceHours(Math.floor(((buildingData.lastchange + 86400) * 1000 - Date.now()) / 1000 / 3600)), 'hours'));
+                    td.appendChild(makeDiv(Math.round((Date.now() / 1000 - buildingData.lastchange) / 864) + '%', 'percentage'));
+                    td.appendChild(makeDiv(niceHours(Math.floor(((buildingData.lastchange + 86400) * 1000 - Date.now()) / 1000 / 3600)), 'hours'));
                     break;
                 default:
-                    tr.appendChild(makeTd(false, 'percentage'));
-                    tr.appendChild(makeTd(false, 'hours'));
+                    td.appendChild(makeDiv(false, 'percentage'));
+                    td.appendChild(makeDiv(false, 'hours'));
                     break;
             }
 
-            tr.appendChild(makeTd(niceBuffs([buildingData.buff1, buildingData.buff2]), 'buffs'));
+            td.appendChild(makeDiv(niceBuffs([buildingData.buff1, buildingData.buff2]), 'buffs'));
         }
     }
 

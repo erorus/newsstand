@@ -5,19 +5,70 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>MageTower.info</title>
     <style type="text/css">
-        body{font-family: sans-serif; margin:40px auto;max-width:780px;line-height:1.6;font-size:16px;color:#444;padding:0 10px}
-        h1,h2,h3{line-height:1.2}
+        body {
+            font-family: sans-serif;
+            margin: 40px auto;
+            max-width: 780px;
+            line-height: 1.6;
+            font-size: 16px;
+            color: #444;
+            padding: 0 10px
+        }
 
-        #lastupdate { margin: 2em 0 }
+        h1, h2, h3 {
+            line-height: 1.2
+        }
 
-        #result h2 { margin: 2em 0 0}
+        #lastupdate {
+            margin: 2em 0 0
+        }
 
-        #result table { width: 100%; border-spacing: 0; margin-bottom: 2em }
-        #result td {padding: 0.5em}
-        #result td.name { font-style: italic }
-        #result td.status { font-weight: bold }
-        #result td.percentage, #result td.hours { text-align: right }
-        #result td.buffs { font-size: 70%; max-width: 12em; height: 3.2em }
+        #result h2 {
+            margin: 1em 0 0;
+            border-top: 1px solid black;
+            padding-top: 1em
+        }
+
+        #result table {
+            width: 100%;
+            border-spacing: 0;
+            margin-bottom: 2em
+        }
+
+        #result td {
+            vertical-align: top;
+            padding: 0.5em 0;
+            text-align: center;
+            line-height: 2em
+        }
+
+        #result tr.buildings td {
+            width: 33%;
+            padding: 0.5em 0.5em 0
+        }
+
+        #result div.name {
+            font-weight: bold
+        }
+
+        #result div.status {
+            font-style: italic
+        }
+
+        #result div.percentage, #result div.hours {
+            display: inline-block
+        }
+
+        #result div.hours::before {
+            content: "\00a0\2022\00a0"
+        }
+
+        #result div.buffs {
+            font-size: 70%;
+            width: 13em;
+            margin: 0 auto;
+            line-height: 1.5em
+        }
     </style>
 </head>
 <body>
