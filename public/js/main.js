@@ -411,7 +411,7 @@ var libtuj = {
         },
         ShowSubstitutes: function ()
         {
-            var html = "<div>The Undermine Journal's servers cost over $100 every month.</div><div>We rely on ads, donations, and paid subscriptions to pay our bills.</div><div><br>Please <a href=\"" + tuj.BuildHash({'page':'subscription', 'id': ''}) + "\">try a paid subscription</a> or <a href=\"" + tuj.BuildHash({'page':'donate', 'id': ''}) + "\">consider a donation</a> to keep the site online. Thank you.</div>";
+            var html = "<div>The Undermine Journal's servers cost over $100 every month.</div><div>We rely on simple Google AdSense ads and paid subscriptions to pay our bills.</div><div><br>Please whitelist ads here or <a href=\"" + tuj.BuildHash({'page':'subscription', 'id': ''}) + "\">purchase a paid subscription</a> to keep the site online. Thank you.</div>";
             $('div.ad').removeClass('ad').addClass('adsubstitute').html(html);
         },
         onWindowLoad: function () {
@@ -526,8 +526,8 @@ if (!Date.now) {
 var TUJ = function ()
 {
     var validRegions = ['US','EU'];
-    var validPages = ['', 'search', 'item', 'seller', 'battlepet', 'contact', 'donate', 'category', 'transmog', 'subscription', 'policy'];
-    var pagesNeedRealm = [true, true, true, true, true, false, false, true, true, false, false];
+    var validPages = ['', 'search', 'item', 'seller', 'battlepet', 'contact', 'category', 'transmog', 'subscription', 'policy'];
+    var pagesNeedRealm = [true, true, true, true, true, false, true, true, false, false];
     var houseInfo = {};
     var drawnRegion = -1;
     var loggedInUser = false;
@@ -1198,7 +1198,7 @@ var TUJ = function ()
             $('#login-info').removeClass('logged-out-only').addClass('logged-in-only').empty().append(subLink).append(logoutLink);
         }
 
-        var bottomBarLink, bottomBarLinks = ['contact','donate','subscription','policy','addon','localization'];
+        var bottomBarLink, bottomBarLinks = ['contact','subscription','policy','addon','localization'];
         for (var x = 0, linkName; linkName = bottomBarLinks[x]; x++) {
             bottomBarLink = $('#bottom-bar a.' + linkName);
             bottomBarLink[0].href = self.BuildHash({page: linkName, id: undefined});

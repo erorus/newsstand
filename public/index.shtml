@@ -303,46 +303,10 @@
                             <tr><td>Cost</td><td>Free</td><td>$5.00 per 60 days</td></tr>
                         </table>
 
-                        <h3>What about SMS notifications, or import/export strings, or other options?</h3>
-                        Just like the rest of this site, our services are always evolving, and we will consider offering more services as user demand and developer time align. <a href="http://stormspire.net/official-forum-undermine-journal/?referrerid=380" class="highlight">Please visit our forum</a> and let us know what you'd like to see!
-
                         <h3>Anything else I should know?</h3>
                         We offer no warranty for this service, and as always, we rely on the Battle.net API to obtain the data to send notifications. You should review our Terms and Privacy Policy, linked in the footer below, as you will need to confirm your acceptance of it when you log in for the first time. Finally, while the website and emails are localized in many languages, we can only offer customer support in English.
                     </div>
                     <div id="subscription-settings"></div>
-                </div>
-                <div class="page" id="donate-page">
-                    <div class="news" id="donate-thanks">
-                        Thank you so much for your generous contribution!<p>We're glad we could provide a valuable service to you,<br>and we will do our best to sustain and improve The Undermine Journal.
-                    </div>
-                    <div class="news">
-                        The services of The Undermine Journal are provided at no cost to the public, despite significant monthly bills for keeping the servers online and running. The ads you see on our data pages help to cover these costs of doing business, but they do not cover the time spent by staff on maintenance and new features.<p>
-
-                        Just as a quick reminder, here are some services we provide that you can't find anywhere else:
-                        <ul>
-                            <li>Hourly chart resolution for the past 2 weeks</li>
-                            <li>OHLC pricing charts for stackable items for the past 90 days</li>
-                            <li>Separate pricing for item bonus levels (Heroic, Warforged, Mythic...)</li>
-                            <li>Battle pet support, with separate pricing for different breeds</li>
-                            <li>Localized item and pet names, and site text, in 7 languages</li>
-                            <li>Transmog buying gallery</li>
-                            <li>List of rarely-seen items for sale</li>
-                            <li>Seller posting patterns</li>
-                            <li><a href="http://stormspire.net/official-forum-undermine-journal/15527-undermine-journal-addon.html?referrerid=380">Simple pricing addon</a></li>
-                            <li><a href="https://newswire.theunderminejournal.com">Raw database access</a> for developers</li>
-                        </ul>
-
-                        We strive to provide a valuable service, and we would appreciate any contribution you make towards the continued operation of this site.<p>
-
-                        <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
-                            <input type="hidden" name="cmd" value="_s-xclick">
-                            <input type="hidden" name="hosted_button_id" value="RH5C3YCJVGEU6">
-                        </form>
-
-                        <!--#include virtual="donate.bitcoin.inc" -->
-
-                        Note: This donation information is not related to any paid subscription on this site. You should log in to your subscription to renew it on your subscription page.
-                    </div>
                 </div>
                 <div class="page page-generic" id="addon-page">
                     <div class="lazy-image float-right" data-src="images/compressed/addon.png"></div>
@@ -395,7 +359,6 @@
         <div id="bottom-bar">
             <a class="dark-only">Light Theme</a><a class="light-only">Dark Theme</a> -
             <a class="subscription">Subscription</a> -
-            <a class="donate">Donate</a> -
             <a class="contact">Contact</a> -
             <a href="http://stormspire.net/official-forum-undermine-journal/?referrerid=380">Forum</a> -
             <a class="localization">Localization</a> -
