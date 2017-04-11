@@ -9,7 +9,6 @@ ini_set('memory_limit', '384M');
 
 $locale = 'enus';
 $dirnm = __DIR__.'/current/enUS';
-$adbDirNm = __DIR__.'/ADB';
 
 LogLine("Starting!");
 
@@ -244,21 +243,15 @@ unset($reader);
 LogLine("tblDBCItem");
 $itemReader = CreateDB2Reader('Item');
 $itemSparseReader = CreateDB2Reader('ItemSparse');
-$adbReaders = [];
-$adbPaths = glob($adbDirNm.'/ItemSparse.adb*');
-foreach ($adbPaths as $adbPath) {
+$dbCacheReader = false;
+if (file_exists($dirnm . '/DBCache.bin')) {
     try {
-        $adbReader = new Reader($adbPath, $itemSparseReader);
+        $dbCacheReader = $itemSparseReader->loadDBCache($dirnm . '/DBCache.bin');
     } catch (Exception $e) {
-        LogLine("Warning: could not open $adbPath: " .$e->getMessage());
-        $adbReader = null;
+        LogLine("Warning: could not open $dirnm/DBCache.bin: " .$e->getMessage());
+        $dbCacheReader = false;
     }
-    if ($adbReader) {
-        array_unshift($adbReaders, $adbReader);
-    }
-    unset($adbReader);
 }
-unset($adbPaths);
 
 RunAndLogError('truncate table tblDBCItem');
 $sql = <<<'EOF'
@@ -282,14 +275,9 @@ foreach ($itemReader->generateRecords() as $recId => $rec) {
     EchoProgress(++$x / $recordCount);
     $sniffed = false;
     $sparseRec = $itemSparseReader->getRecord($recId);
-    if (is_null($sparseRec)) {
+    if (is_null($sparseRec) && $dbCacheReader) {
         $sniffed = true;
-        foreach ($adbReaders as $adbReader) {
-            $sparseRec = $adbReader->getRecord($recId);
-            if (!is_null($sparseRec)) {
-                break;
-            }
-        }
+        $sparseRec = $dbCacheReader->getRecord($recId);
     }
     if (is_null($sparseRec)) {
         continue;
@@ -321,7 +309,7 @@ foreach ($itemReader->generateRecords() as $recId => $rec) {
 $stmt->close();
 EchoProgress(false);
 unset($itemReader);
-unset($adbReaders);
+unset($dbCacheReader);
 unset($itemSparseReader);
 
 $appearanceReader = CreateDB2Reader('ItemAppearance');
