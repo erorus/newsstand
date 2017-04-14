@@ -1,20 +1,23 @@
 # Newsstand
 
 [The Undermine Journal](https://theunderminejournal.com) shows you Auction House statistics and data from World of Warcraft.
+
 [WoW Token Info](https://wowtoken.info) shows you prices and historical statistics of the WoW Token in World of Warcraft.
+
+[MageTower.info](https://magetower.info) shows you dynamic building status in World of Warcraft.
 
 Newsstand is the codename for this, the second major version of The Undermine Journal. It is designed to be a one-page app, building pages via a few javascript modules, and fetching data from the server via JSON APIs.
 
-WoW Token Info was added later as a small site on the same backend server, though its operations are mostly separate from The Undermine Journal.
+WoW Token Info and MageTower.info were added later as small sites on the same backend server, though their operations are mostly separate from The Undermine Journal.
 
 ## System Requirements
 
 Newsstand is currently hosted on a dedicated server with 16GB of memory, a quad core CPU, and a 256GB SSD for the database. It runs:
- - CentOS 6.6
- - nginx 1.9
+ - CentOS 6.9
+ - nginx 1.12
  - MySQL 5.5
  - Memcached 1.4.4
- - PHP 5.6
+ - PHP 7.1
 
 ## How It Works
 
