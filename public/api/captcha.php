@@ -9,8 +9,8 @@ if (isset($_GET['throttletest'])) {
     $kTime = sprintf($k, 'time');
     $kCount = sprintf($k, 'count');
 
-    $memcache->set($kTime, time(), false, THROTTLE_PERIOD);
-    $memcache->set($kCount, THROTTLE_MAXHITS + 1, false, THROTTLE_PERIOD * 2);
+    MCSet($kTime, time(), THROTTLE_PERIOD);
+    MCSet($kCount, THROTTLE_MAXHITS + 1, THROTTLE_PERIOD * 2);
 }
 
 if (!isset($_GET['answer'])) {
@@ -22,7 +22,7 @@ if (($details = MCGet($cacheKey)) === false) {
     json_return(array());
 }
 
-$memcache->delete($cacheKey);
+MCDelete($cacheKey);
 if ($_GET['answer'] == $details['answer']) {
     UserThrottleCount(true);
     json_return(array());

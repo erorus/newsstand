@@ -61,7 +61,7 @@ function BnetGet()
 function ShowMemcacheStats() {
     global $memcache;
 
-    $status = $memcache->getstats();
+    $status = current($memcache->getStats());
     echo '<h1>Memcache</h1>';
     echo "<table>";
 

@@ -265,7 +265,7 @@ foreach ($regions as $region => $realmListLocale) {
         }
         MCHouseUnlock();
     }
-    $memcache->delete('realms_' . $region);
+    MCDelete('realms_' . $region);
 }
 
 //CleanOldHouses();

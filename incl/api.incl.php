@@ -895,21 +895,19 @@ function UserThrottleCount($reset = false)
         return $returned;
     }
 
-    global $memcache;
-
     $k = 'throttle_%s_' . $_SERVER['REMOTE_ADDR'];
     $kTime = sprintf($k, 'time');
     $kCount = sprintf($k, 'count');
 
     if ($reset) {
-        $memcache->delete($kTime);
+        MCDelete($kTime);
         return $returned = 0;
     }
 
-    $vals = $memcache->get(array($kTime, $kCount));
-    $memcache->set($kTime, time(), false, THROTTLE_PERIOD);
+    $vals = MCGet([$kTime, $kCount]);
+    MCSet($kTime, time(), THROTTLE_PERIOD);
     if (!isset($vals[$kTime]) || !isset($vals[$kCount]) || ($vals[$kTime] < time() - THROTTLE_PERIOD)) {
-        $memcache->set($kCount, 1, false, THROTTLE_PERIOD * 2);
+        MCSet($kCount, 1, THROTTLE_PERIOD * 2);
         return $returned = 1;
     }
 
@@ -926,7 +924,7 @@ function UserThrottleCount($reset = false)
     if (!isset($encodings['gzip'])) {
         $amount *= 5;
     }
-    $memcache->increment($kCount, $amount);
+    MCIncrement($kCount, $amount);
 
     return $returned = $vals[$kCount] + $amount;
 }
