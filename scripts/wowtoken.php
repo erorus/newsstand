@@ -699,7 +699,7 @@ function Retweet($tweetId, $accountName) {
         $didWork = false;
     }
 
-    $ri = $oauth->getLastResponseInfo();
+    $ri = FixNullKeys($oauth->getLastResponseInfo());
     $r = $oauth->getLastResponse();
 
     if ($didWork && ($ri['http_code'] == '200')) {
@@ -779,7 +779,7 @@ function SendTweet($region, $tweetData, $chartUrl, $lastTweetData)
         $didWork = false;
     }
 
-    $ri = $oauth->getLastResponseInfo();
+    $ri = FixNullKeys($oauth->getLastResponseInfo());
     $r = $oauth->getLastResponse();
 
     if ($didWork && ($ri['http_code'] == '200')) {

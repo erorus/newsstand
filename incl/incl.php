@@ -48,9 +48,11 @@ function DebugMessage($message, $debugLevel = E_USER_NOTICE)
     }
 
     if (PHP_SAPI == 'cli') {
-        if ($debugLevel == E_USER_NOTICE) {
-            echo date('Y-m-d H:i:s') . " $myPid $message\n";
-        } else {
+        echo date('Y-m-d H:i:s') . " $myPid $message\n";
+        if ($debugLevel != E_USER_NOTICE) {
+            if (strpos($message, "\n") !== false) {
+                $message = substr($message, 0, strpos($message, "\n") - 1);
+            }
             trigger_error("\n" . date('Y-m-d H:i:s') . " $myPid $message\n", $debugLevel);
         }
     } elseif ($debugLevel != E_USER_NOTICE) {
@@ -426,4 +428,12 @@ function GetLang($lang) {
     $locales[$lang] = $json;
 
     return $locales[$lang];
+}
+
+function FixNullKeys($a) {
+    $r = [];
+    foreach ($a as $k => $v) {
+        $r[trim($k)] = $v;
+    }
+    return $r;
 }
