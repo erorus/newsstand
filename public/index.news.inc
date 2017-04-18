@@ -1,1 +1,0 @@
-<div class="news"><b>New:</b> Check out <a href="https://magetower.info">MageTower.info</a> for the latest Broken Shore building status in your region.</div>
