@@ -82,7 +82,7 @@ EOF;
     return $tr;
 }
 
-function BuildDataIntervalsTable(&$rows)
+function BuildDataIntervalsTable($rows)
 {
     $tr = <<<EOF
 <table border="1" cellspacing="0" cellpadding="5">
