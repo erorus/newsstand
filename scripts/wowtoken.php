@@ -472,7 +472,7 @@ EOF;
         $stmt->close();
     }
 
-    AtomicFilePutContents(__DIR__.'/../magetower/data/snapshot.json', json_encode($json, JSON_NUMERIC_CHECK), true);
+    AtomicFilePutContents(__DIR__.'/../magetower/data/20170419.json', json_encode($json, JSON_NUMERIC_CHECK), true);
 }
 
 function DurationString($s) {
