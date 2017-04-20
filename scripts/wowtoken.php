@@ -301,7 +301,6 @@ function BuildIncludes($regions)
 EOF;
 
     $json = [];
-    $historyJson = [];
     $historyJsonFull = [];
     $csv = "Region,UTC Date,Buy Price\r\n"; //,Time Left
 
@@ -344,13 +343,8 @@ EOF;
         }
 
         $historyJsonFull[$fileRegion] = BuildHistoryData($region);
-        $historyJson[$fileRegion] = [];
-        $cutOff = time() - 259200; // 72 hours
         $prevPrice = -1;
         foreach ($historyJsonFull[$fileRegion] as $row) {
-            if ($row[0] > $cutOff) {
-                $historyJson[$fileRegion][] = $row;
-            }
             if ($row[1] != $prevPrice) {
                 $prevPrice = $row[1];
                 $csv .= "$fileRegion,".date('Y-m-d H:i:s', $row[0]).",{$row[1]}\r\n"; //,{$row[2]}
@@ -403,7 +397,7 @@ EOF;
             'attention' => 'Please see usage guidelines on https://wowtoken.info/',
             'note' => 'Data is truncated since it was fetched without gzip encoding.',
             'update' => $json,
-            'history' => $historyJson
+            'history' => []
             ], JSON_NUMERIC_CHECK),
         json_encode([
             'attention' => 'Please see usage guidelines on https://wowtoken.info/',
