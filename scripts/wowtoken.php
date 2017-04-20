@@ -305,12 +305,13 @@ EOF;
     $historyJsonFull = [];
     $csv = "Region,UTC Date,Buy Price\r\n"; //,Time Left
 
+    $regionHtml = [];
+
     foreach ($regions as $region) {
         $fileRegion = strtoupper($region);
         if ($fileRegion == 'US') {
             $fileRegion = 'NA';
         }
-        $filenm = __DIR__.'/../wowtoken/www/'.$fileRegion.'.incl.html';
 
         $sql = 'select * from tblWowToken w where region = ? and `when` = (select max(w2.`when`) from tblWowToken w2 where w2.region = ?)';
         $stmt = $db->prepare($sql);
@@ -392,12 +393,12 @@ EOF;
                 return $m[0];
             }, $htmlFormat);
 
-        AtomicFilePutContents($filenm, $html);
+        $regionHtml[$fileRegion] = $html;
     }
 
-    AtomicFilePutContents(__DIR__.'/../wowtoken/www/snapshot.json', json_encode($json, JSON_NUMERIC_CHECK), true);
-    AtomicFilePutContents(__DIR__.'/../wowtoken/www/snapshot-history.csv', $csv, true);
-    AtomicFilePutContents(__DIR__.'/../wowtoken/www/snapshot-history.json',
+    AtomicFilePutContents(__DIR__.'/../wowtoken/data/snapshot.json', json_encode($json, JSON_NUMERIC_CHECK), true);
+    AtomicFilePutContents(__DIR__.'/../wowtoken/data/snapshot-history.csv', $csv, true);
+    AtomicFilePutContents(__DIR__.'/../wowtoken/data/snapshot-history.json',
         json_encode([
             'attention' => 'Please see usage guidelines on https://wowtoken.info/',
             'note' => 'Data is truncated since it was fetched without gzip encoding.',
@@ -410,25 +411,14 @@ EOF;
             'history' => $historyJsonFull
             ], JSON_NUMERIC_CHECK));
 
-    $shtmlPath = __DIR__.'/../wowtoken/www/index-template.shtml';
+    $shtmlPath = __DIR__.'/../wowtoken/index-template.shtml';
     if (file_exists($shtmlPath)) {
         $shtml = file_get_contents($shtmlPath);
-        $shtmlPath = str_replace('-template', '', $shtmlPath);
-        $html = preg_replace_callback('/<!--#include virtual="([^"]+)"-->/', function($m) {
-                $path = __DIR__.'/../wowtoken/www/'.$m[1];
-                if (file_exists($path)) {
-                    return file_get_contents($path);
-                }
-                return '';
+        $html = preg_replace_callback('/<!--#include virtual="([^"]+)"-->/', function($m) use ($regionHtml) {
+            $region = substr($m[1], 0, strpos($m[1], '.'));
+            return isset($regionHtml[$region]) ? $regionHtml[$region] : '';
             }, $shtml);
-        AtomicFilePutContents($shtmlPath, $html);
-
-        $htmlPath = preg_replace('/\.shtml$/', '.html', $shtmlPath);
-        if (strpos($html, '<!--#') === false) {
-            AtomicFilePutContents($htmlPath, $html);
-        } else {
-            unlink($htmlPath);
-        }
+        AtomicFilePutContents(__DIR__.'/../wowtoken/www/index.html', $html);
     }
 }
 
