@@ -24,13 +24,13 @@ addon/BonusSets.lua
 addon/GetDetailedItemLevelInfo.lua
 addon/*.zip
 
-wowtoken/*.incl.html
-wowtoken/css/*.css.map
-wowtoken/*.json
-wowtoken/*.csv
-wowtoken/index.html
-wowtoken/index.shtml
-wowtoken/snapshot*.gz
-wowtoken/snapshot*.br
+wowtoken/www/*.incl.html
+wowtoken/www/css/*.css.map
+wowtoken/www/*.json
+wowtoken/www/*.csv
+wowtoken/www/index.html
+wowtoken/www/index.shtml
+wowtoken/www/snapshot*.gz
+wowtoken/www/snapshot*.br
 
 theapi.work/times.json
