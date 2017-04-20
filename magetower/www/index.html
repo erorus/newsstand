@@ -18,7 +18,7 @@
             padding: 0 10px;
             background-image: url(cached/brokenfade.jpg);
             background-repeat: no-repeat;
-            background-size: contain;
+            background-size: 100% auto;
         }
 
         h1 {
@@ -26,6 +26,13 @@
             color: #bf9;
             font-size: 300%;
             line-height: 1.2;
+        }
+
+        .error {
+            color: #bf9 !important;
+            font-size: 125%;
+            font-style: italic;
+            text-align: center;
         }
 
         #result {
@@ -36,13 +43,13 @@
     <link href="cached/main.css?1" rel="stylesheet">
 </head>
 <body>
-    <noscript><p><b>You'll need Javascript for this one, sorry.</b></p></noscript>
-
     <h1>MageTower.info</h1>
+
+    <noscript><p class="error">You'll need Javascript for this one, sorry.</p></noscript>
 
     <div id="result"></div>
     <div id="lastupdate"></div>
 
-    <script type="text/javascript" src="cached/main.js?3"></script>
+    <script type="text/javascript" src="cached/main.js?4"></script>
 </body>
 </html>
