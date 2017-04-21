@@ -278,23 +278,23 @@ function BuildIncludes($regions)
                     <tbody>
                         <tr>
                             <td>Buy Price</td>
-                            <td class="buy-price" id="##region##-buy">##buy##</td>
+                            <td class="buy-price" id="##region##-buy"></td>
                         </tr>
                         <tr>
                             <td style="vertical-align: bottom">24-Hour Range</td>
                             <td>
-                                <span id="##region##-24min">##24min##</span>
-                                <div class="range-bar"><div class="range-point" style="left: ##24pct##%" id="##region##-24pct-left"></div></div>
-                                <span id="##region##-24max">##24max##</span>
+                                <span id="##region##-24min"></span>
+                                <div class="range-bar"><div class="range-point" id="##region##-24pct-left"></div></div>
+                                <span id="##region##-24max"></span>
                             </td>
                         </tr>
                         <tr>
                             <td>API Result</td>
-                            <td id="##region##-result">##result##</td>
+                            <td id="##region##-result"></td>
                         </tr>
                         <tr>
                             <td>Updated</td>
-                            <td id="##region##-updatedhtml">##updatedhtml##</td>
+                            <td id="##region##-updatedhtml"></td>
                         </tr>
                     </tbody>
                 </table>

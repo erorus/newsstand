@@ -489,7 +489,7 @@ var wowtoken = {
     {
         $.ajax({
             success: wowtoken.ShowHistory,
-            url: '/wowtoken.json'
+            url: '//data.wowtoken.info/wowtoken.json'
         });
     },
 
@@ -510,7 +510,7 @@ var wowtoken = {
     {
         $.ajax({
             success: wowtoken.ParseUpdate,
-            url: '/snapshot.json'
+            url: '//data.wowtoken.info/snapshot.json'
         });
     },
 
