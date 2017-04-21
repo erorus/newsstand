@@ -308,11 +308,6 @@ function BuildIncludes($regions)
         $d = new DateTime('now', timezone_open($timeZones[$region]));
         $d->setTimestamp(strtotime($tokenData['when']));
 
-        $sparkUrl = GetChartURL($region, $fileRegion);
-        if (!$sparkUrl) {
-            $sparkUrl = $blankImage;
-        }
-
         $historyJsonFull[$fileRegion] = BuildHistoryData($region);
         $prevPrice = -1;
         foreach ($historyJsonFull[$fileRegion] as $row) {
@@ -344,7 +339,6 @@ function BuildIncludes($regions)
                 'result' => isset($resultCodes[$tokenData['result']]) ? $resultCodes[$tokenData['result']] : ('Unknown: ' . $tokenData['result']),
                 'updated' => $d->format('M jS, Y g:ia T'),
                 'updatedhtml' => $d->format('M jS, Y g:ia\\&\\n\\b\\s\\p\\;T'),
-                'sparkurl' => $sparkUrl,
                 'region' => $fileRegion,
             ],
         ];
