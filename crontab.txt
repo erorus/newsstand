@@ -36,6 +36,8 @@ CRON_TZ="UTC"
 
 0 * * * * /var/newsstand/private/awstats/wwwroot/cgi-bin/awstats.pl -config=newsstand >/dev/null 2>&1
 0 * * * * /var/newsstand/private/awstats/wwwroot/cgi-bin/awstats.pl -config=wowtoken >/dev/null 2>&1
+0 * * * * /var/newsstand/private/awstats/wwwroot/cgi-bin/awstats.pl -config=theapi >/dev/null 2>&1
+0 * * * * /var/newsstand/private/awstats/wwwroot/cgi-bin/awstats.pl -config=magetower >/dev/null 2>&1
 
 10 7 * * 2,6 /var/newsstand/scripts/buildaddon.sh > /var/newsstand/logs/buildaddon.log 2>&1
 
@@ -45,8 +47,7 @@ CRON_TZ="UTC"
 */2 * * * * php /var/newsstand/scripts/wowtoken.php >> /var/newsstand/logs/wowtoken.log 2>&1
 59 0 * * * mv /var/newsstand/logs/wowtoken.log /var/newsstand/logs/wowtoken.yesterday.log
 
-20 1,9,17 * * * cp /var/newsstand/wowtoken/snapshot-history.json /var/newsstand/wowtoken/snapshot-history-old.json
-
-1,6,11,16,21,26,31,36,41,46,51,56 * * * * php /var/newsstand/scripts/doestheapiwork.php /var/newsstand/theapi.work/times.json > /var/newsstand/logs/theapi.times.log 2>&1
+6,16,26,36,46,56 * * * * php /var/newsstand/scripts/doestheapiwork.php /var/newsstand/theapi.work/times.json > /var/newsstand/logs/theapi.times.log 2>&1
 2,7,12,17,22,27,32,37,42,47,52,57 * * * * php /var/newsstand/scripts/rollingrestarts/rollingrestarts.php >> /var/newsstand/logs/rollingrestarts.log 2>&1
 
+5 */6 * * * /var/newsstand/scripts/copyoldjson.sh >/dev/null 2>&1
