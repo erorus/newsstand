@@ -354,13 +354,12 @@ function BuildIncludes($regions)
     AtomicFilePutContents(__DIR__.'/../wowtoken/data/snapshot-history.csv', $csv, true);
     AtomicFilePutContents(__DIR__.'/../wowtoken/data/snapshot-history.json',
         json_encode([
-            'attention' => 'Please see usage guidelines on https://wowtoken.info/',
-            'note' => 'Data is truncated since it was fetched without gzip encoding.',
+            'attention' => 'This API endpoint is deprecated. Do not use this for new projects. This may stop working at any time.',
             'update' => $json,
             'history' => []
             ], JSON_NUMERIC_CHECK),
         json_encode([
-            'attention' => 'Please see usage guidelines on https://wowtoken.info/',
+            'attention' => 'This API endpoint is deprecated. Do not use this for new projects. This may stop working at any time.',
             'update' => $json,
             'history' => $historyJsonFull
             ], JSON_NUMERIC_CHECK));
