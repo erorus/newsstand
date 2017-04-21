@@ -194,19 +194,19 @@ function ShowLogs()
         switch (basename($path)) {
             case 'backupdata.log':
             case 'backupuser.log':
-                passthru('grep -v '.escapeshellarg('^--').' '.escapeshellarg($path).' | tail -n 20');
+                passthru('grep -a -v '.escapeshellarg('^--').' '.escapeshellarg($path).' | tail -n 20');
                 break;
             case 'error.undermine.log':
             case 'error.theapi.log':
             case 'error.wowtoken.log':
-                echo DateCheckLog(shell_exec('grep -v '.escapeshellarg('SSL:').' '.escapeshellarg($path).' | tail -n 20'));
+                echo DateCheckLog(shell_exec('grep -a -v '.escapeshellarg('SSL:').' '.escapeshellarg($path).' | tail -n 20'));
                 break;
             case 'scripterrors.log':
-                echo DateCheckLog(shell_exec('grep -v '.escapeshellarg('worldofwarcraft.com/auction-data/').' '.escapeshellarg($path).' | tail -n 20'));
+                echo DateCheckLog(shell_exec('grep -a -v '.escapeshellarg('worldofwarcraft.com/auction-data/').' '.escapeshellarg($path).' | tail -n 20'));
                 break;
             case 'private.access.log':
             case 'error.private.log':
-                echo DateCheckLog(shell_exec('grep -v '.escapeshellarg('^'.$_SERVER['REMOTE_ADDR'].' ').' '.escapeshellarg($path).' | tail -n 20'));
+                echo DateCheckLog(shell_exec('grep -a -v '.escapeshellarg('^'.$_SERVER['REMOTE_ADDR'].' ').' '.escapeshellarg($path).' | tail -n 20'));
                 break;
             default:
                 echo DateCheckLog(shell_exec('tail -n 20 ' . escapeshellarg($path)));
