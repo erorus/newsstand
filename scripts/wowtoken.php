@@ -273,38 +273,9 @@ function BuildIncludes($regions)
 
     $blankImage = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
-    $htmlFormat = <<<EOF
-                <table class="results">
-                    <tbody>
-                        <tr>
-                            <td>Buy Price</td>
-                            <td class="buy-price" id="##region##-buy"></td>
-                        </tr>
-                        <tr>
-                            <td style="vertical-align: bottom">24-Hour Range</td>
-                            <td>
-                                <span id="##region##-24min"></span>
-                                <div class="range-bar"><div class="range-point" id="##region##-24pct-left"></div></div>
-                                <span id="##region##-24max"></span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>API Result</td>
-                            <td id="##region##-result"></td>
-                        </tr>
-                        <tr>
-                            <td>Updated</td>
-                            <td id="##region##-updatedhtml"></td>
-                        </tr>
-                    </tbody>
-                </table>
-EOF;
-
     $json = [];
     $historyJsonFull = [];
     $csv = "Region,UTC Date,Buy Price\r\n"; //,Time Left
-
-    $regionHtml = [];
 
     foreach ($regions as $region) {
         $fileRegion = strtoupper($region);
@@ -377,17 +348,6 @@ EOF;
                 'region' => $fileRegion,
             ],
         ];
-
-        $replacements = $json[$fileRegion]['formatted'];
-
-        $html = preg_replace_callback('/##([a-zA-Z0-9]+)##/', function ($m) use ($replacements) {
-                if (isset($replacements[$m[1]])) {
-                    return $replacements[$m[1]];
-                }
-                return $m[0];
-            }, $htmlFormat);
-
-        $regionHtml[$fileRegion] = $html;
     }
 
     AtomicFilePutContents(__DIR__.'/../wowtoken/data/snapshot.json', json_encode($json, JSON_NUMERIC_CHECK), true);
@@ -404,16 +364,6 @@ EOF;
             'update' => $json,
             'history' => $historyJsonFull
             ], JSON_NUMERIC_CHECK));
-
-    $shtmlPath = __DIR__.'/../wowtoken/index-template.shtml';
-    if (file_exists($shtmlPath)) {
-        $shtml = file_get_contents($shtmlPath);
-        $html = preg_replace_callback('/<!--#include virtual="([^"]+)"-->/', function($m) use ($regionHtml) {
-            $region = substr($m[1], 0, strpos($m[1], '.'));
-            return isset($regionHtml[$region]) ? $regionHtml[$region] : '';
-            }, $shtml);
-        AtomicFilePutContents(__DIR__.'/../wowtoken/www/index.html', $html);
-    }
 }
 
 function BuildMageTowerIncludes($regions) {

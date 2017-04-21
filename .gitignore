@@ -25,7 +25,6 @@ addon/GetDetailedItemLevelInfo.lua
 addon/*.zip
 
 wowtoken/www/css/*.css.map
-wowtoken/www/index.html
 wowtoken/data/
 
 theapi.work/times.json
