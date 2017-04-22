@@ -442,9 +442,8 @@ var wowtoken = {
             }
 
             if (test()) {
-                wowtoken.LoadUpdate();
-                wowtoken.Notification.Check();
                 wowtoken.LoadHistory();
+                wowtoken.Notification.Check();
             }
         });
         document.getElementsByTagName('head')[0].appendChild(s);
@@ -489,12 +488,14 @@ var wowtoken = {
     {
         $.ajax({
             success: wowtoken.ShowHistory,
-            url: '//data.wowtoken.info/wowtoken.json'
+            url: ((location.hostname.indexOf('wowtoken.info') >= 0) ? '//data.wowtoken.info/' : '') + 'wowtoken.json'
         });
     },
 
     ShowHistory: function (d)
     {
+        wowtoken.ParseUpdate(d.update);
+
         var dest;
         for (var region in d.history) {
             if (d.history[region].length) {
@@ -504,14 +505,6 @@ var wowtoken = {
                 }
             }
         }
-    },
-
-    LoadUpdate: function ()
-    {
-        $.ajax({
-            success: wowtoken.ParseUpdate,
-            url: '//data.wowtoken.info/snapshot.json'
-        });
     },
 
     ParseUpdate: function (d)
