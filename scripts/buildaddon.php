@@ -344,7 +344,7 @@ EOF;
         if (CatchKill())
             return;
 
-        DebugMessage('Finding item prices in house '.$houses[$hx].' ('.round($hx/count($houses)*100).'%) '.round(memory_get_usage()/1048576));
+        DebugMessage(sprintf('Finding item prices in house %d (%d%%) %dmb', $houses[$hx], round($hx/count($houses)*100), round(memory_get_usage()/1048576)));
 
         $stmt = $db->prepare($sql);
         $stmt->bind_param('i', $houses[$hx]);
@@ -425,7 +425,7 @@ EOF;
         if (CatchKill())
             return;
 
-        DebugMessage('Finding pet prices in house '.$houses[$hx].' ('.round($hx/count($houses)*100).'%) '.round(memory_get_usage()/1048576));
+        DebugMessage(sprintf('Finding item prices in house %d (%d%%) %dmb', $houses[$hx], round($hx/count($houses)*100), round(memory_get_usage()/1048576)));
 
         $stmt = $db->prepare($sql);
         $stmt->bind_param('i', $houses[$hx]);
@@ -462,7 +462,7 @@ EOF;
     if (CatchKill())
         return;
 
-    DebugMessage('Making lua strings');
+    DebugMessage(sprintf('Making lua strings %dmb', round(memory_get_usage()/1048576)));
 
     $priceLua = '';
     $luaLines = 0;
@@ -566,7 +566,7 @@ EOF;
             $luaLines = 0;
         }
     }
-    unset($items);
+    unset($items, $item_global, $item_avg, $item_recent, $item_stddev, $item_days);
     if ($luaLines > 0) {
         $priceLua .= "end\n";
     }
@@ -575,7 +575,7 @@ EOF;
     if (CatchKill())
         return;
 
-    DebugMessage('Setting realm indexes');
+    DebugMessage(sprintf('Setting realm indexes %dmb', round(memory_get_usage()/1048576)));
 
     $houseLookup = array_flip($houses);
 
@@ -597,7 +597,7 @@ EOF;
     if (CatchKill())
         return;
 
-    DebugMessage('Building final lua');
+    DebugMessage(sprintf('Building final lua %dmb', round(memory_get_usage()/1048576)));
     $dataAge = time();
 
     $lua = <<<EOF
@@ -649,7 +649,9 @@ end
 table.insert(addonTable.dataLoads, dataLoad)
 
 EOF;
+    unset($guidLua);
 
+    DebugMessage(sprintf('Returning result %dmb', round(memory_get_usage()/1048576)));
 
     return pack('CCC', 239, 187, 191).$lua.$priceLua.$luaEnd;
 }
