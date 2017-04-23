@@ -23,6 +23,7 @@ define('SNAPSHOT_PATH', '/home/wowtoken/pending/');
 define('TWEET_FREQUENCY_MINUTES', 360); // tweet at least every 6 hours
 define('PRICE_CHANGE_THRESHOLD', 0.15); // was 0.2, for 20% change required. 0 means tweet every change
 define('BROTLI_PATH', __DIR__.'/brotli/bin/bro');
+define('DYNAMIC_JSON_MAX_COUNT', 40);
 
 if (!DBConnect()) {
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
@@ -357,6 +358,36 @@ function BuildIncludes($regions)
             'update' => $json,
             'history' => $historyJsonFull
             ], JSON_NUMERIC_CHECK));
+
+    $randFile = bin2hex(random_bytes(16));
+    copy(__DIR__.'/../wowtoken/data/snapshot-history.json', sprintf(__DIR__.'/../wowtoken/data/dynamic/data/%s.json', $randFile));
+    foreach (['gz','br'] as $ext) {
+        if (file_exists(sprintf(__DIR__ . '/../wowtoken/data/snapshot-history.json.%s', $ext))) {
+            copy(sprintf(__DIR__ . '/../wowtoken/data/snapshot-history.json.%s', $ext),
+                sprintf(__DIR__ . '/../wowtoken/data/dynamic/data/%s.json.%s', $randFile, $ext));
+        }
+    }
+
+    MCDelete('wowtoken_latest');
+
+    $dynJsons = glob(__DIR__ . '/../wowtoken/data/dynamic/data/*.json');
+    if (count($dynJsons) > DYNAMIC_JSON_MAX_COUNT) {
+        $jsonDates = [];
+        foreach ($dynJsons as $jsonPath) {
+            $jsonDates[basename($jsonPath)] = filemtime($jsonPath);
+        }
+        asort($jsonDates, SORT_NUMERIC);
+        $jsonDates = array_keys($jsonDates);
+        array_splice($jsonDates, DYNAMIC_JSON_MAX_COUNT);
+        foreach ($jsonDates as $jsonFileName) {
+            foreach (['','.gz','.br'] as $ext) {
+                $jsonPath = sprintf(__DIR__ . '/../wowtoken/data/dynamic/data/%s%s', $jsonFileName, $ext);
+                if (file_exists($jsonPath)) {
+                    unlink($jsonPath);
+                }
+            }
+        }
+    }
 }
 
 function BuildMageTowerIncludes($regions) {

@@ -488,7 +488,7 @@ var wowtoken = {
     {
         $.ajax({
             success: wowtoken.ShowHistory,
-            url: ((location.hostname.indexOf('wowtoken.info') >= 0) ? '//data.wowtoken.info/' : '') + 'wowtoken.json'
+            url: ((location.hostname.indexOf('wowtoken.info') >= 0) ? '//data.wowtoken.info/' : 'wowtoken.json')
         });
     },
 
