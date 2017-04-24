@@ -46,7 +46,7 @@ function GetIPSnapshotFile() {
     }
 
     $snap = GetLatestSnapshotFile();
-    MCSet($key, $snap, 6*60*60);
+    MCSet($key, $snap, 3*60*60);
 
     return $snap;
 }
