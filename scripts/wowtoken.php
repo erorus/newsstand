@@ -376,9 +376,9 @@ function BuildIncludes($regions)
         foreach ($dynJsons as $jsonPath) {
             $jsonDates[basename($jsonPath)] = filemtime($jsonPath);
         }
-        asort($jsonDates, SORT_NUMERIC);
+        arsort($jsonDates, SORT_NUMERIC);
         $jsonDates = array_keys($jsonDates);
-        array_splice($jsonDates, DYNAMIC_JSON_MAX_COUNT);
+        array_splice($jsonDates, 0, DYNAMIC_JSON_MAX_COUNT);
         foreach ($jsonDates as $jsonFileName) {
             foreach (['','.gz','.br'] as $ext) {
                 $jsonPath = sprintf(__DIR__ . '/../wowtoken/data/dynamic/data/%s%s', $jsonFileName, $ext);
