@@ -360,11 +360,13 @@ function BuildIncludes($regions)
             ], JSON_NUMERIC_CHECK));
 
     $randFile = bin2hex(random_bytes(16));
-    copy(__DIR__.'/../wowtoken/data/snapshot-history.json', sprintf(__DIR__.'/../wowtoken/data/dynamic/data/%s.json', $randFile));
-    foreach (['gz','br'] as $ext) {
-        if (file_exists(sprintf(__DIR__ . '/../wowtoken/data/snapshot-history.json.%s', $ext))) {
-            copy(sprintf(__DIR__ . '/../wowtoken/data/snapshot-history.json.%s', $ext),
-                sprintf(__DIR__ . '/../wowtoken/data/dynamic/data/%s.json.%s', $randFile, $ext));
+    foreach (['','.gz','.br'] as $ext) {
+        $src = sprintf(__DIR__ . '/../wowtoken/data/snapshot-history.json%s', $ext);
+        $dest = sprintf(__DIR__ . '/../wowtoken/data/dynamic/data/%s.json%s', $randFile, $ext);
+
+        if (file_exists($src)) {
+            copy($src, $dest);
+            touch($dest, filemtime($src));
         }
     }
 
