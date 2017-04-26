@@ -756,7 +756,7 @@ var TUJ_Category = function ()
             return abbr;
         };
 
-        var titleColSpan = 3;
+        var titleColSpan = 2;
         var titleTd;
 
         t = libtuj.ce('table');
@@ -810,10 +810,13 @@ var TUJ_Category = function ()
         td.colSpan = 2;
         $(td).text(tuj.lang.name);
 
-        td = libtuj.ce('th');
-        td.className = 'quantity';
-        tr.appendChild(td);
-        $(td).text(tuj.lang.availableAbbrev);
+        if (!data.hiddenCols.quantity) {
+            td = libtuj.ce('th');
+            td.className = 'quantity';
+            tr.appendChild(td);
+            $(td).text(tuj.lang.availableAbbrev);
+            titleColSpan++;
+        }
 
         if (data.visibleCols.bid) {
             td = libtuj.ce('th');
@@ -958,10 +961,12 @@ var TUJ_Category = function ()
                 a.appendChild(s);
             }
 
-            td = libtuj.ce('td');
-            td.className = 'quantity';
-            tr.appendChild(td);
-            td.appendChild(libtuj.FormatQuantity(item.quantity));
+            if (!data.hiddenCols.quantity) {
+                td = libtuj.ce('td');
+                td.className = 'quantity';
+                tr.appendChild(td);
+                td.appendChild(libtuj.FormatQuantity(item.quantity));
+            }
 
             if (data.visibleCols.bid) {
                 td = libtuj.ce('td');

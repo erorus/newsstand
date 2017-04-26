@@ -409,6 +409,56 @@ EOF;
     return $tr;
 }
 
+function CategoryResult_minorstats($house) {
+    $result = [
+        'name'    => 'Minor Stats',
+        'results' => [],
+    ];
+    $stats = [
+        'Speed' => BONUS_STAT_SET_SPEED,
+        'Leech' => BONUS_STAT_SET_LEECH,
+        'Avoidance' => BONUS_STAT_SET_AVOIDANCE,
+        'Indestructible' => BONUS_STAT_SET_INDESTRUCTIBLE,
+    ];
+    $armorClasses = [
+        1 => 'Cloth',
+        2 => 'Leather',
+        3 => 'Mail',
+        4 => 'Plate',
+    ];
+
+    foreach ($stats as $statName => $statMask) {
+        foreach ($armorClasses as $subclassId => $className) {
+            $result['results'][] = [
+                'name' => 'ItemList',
+                'data' => [
+                    'name'       => sprintf('%s %s', $statName, $className),
+                    'items'      => CategoryBonusAuctionList($house, [
+                        'joins' => 'join tblDBCItemBonus ib on ib.id in (ae.bonus1, ae.bonus2, ae.bonus3, ae.bonus4, ae.bonus5, ae.bonus6)',
+                        'where' => sprintf('ib.statmask & %d and i.class = 4 and i.subclass = %d and i.type != 16 ', $statMask, $subclassId),
+                    ]),
+                    'hiddenCols' => ['lastseen' => true, 'quantity' => true],
+                    'sort'       => 'lowprice'
+                ]
+            ];
+        }
+        $result['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'       => sprintf('%s Other', $statName),
+                'items'      => CategoryBonusAuctionList($house, [
+                    'joins' => 'join tblDBCItemBonus ib on ib.id in (ae.bonus1, ae.bonus2, ae.bonus3, ae.bonus4, ae.bonus5, ae.bonus6)',
+                    'where' => sprintf('ib.statmask & %d and not (i.class = 4 and i.subclass in (%s) and i.type != 16)', $statMask, implode(',', array_keys($armorClasses))),
+                ]),
+                'hiddenCols' => ['lastseen' => true, 'quantity' => true],
+                'sort'       => 'lowprice'
+            ]
+        ];
+    }
+
+    return $result;
+}
+
 function CategoryResult_unusuals($house)
 {
     return [
@@ -2244,6 +2294,111 @@ EOF;
         } else {
             $tr[] = $unreferenced;
         }
+    }
+
+    $stmt->close();
+
+    MCSetHouse($house, $cacheKey, $tr);
+
+    if (!$skipLocales) {
+        PopulateLocaleCols($tr, [
+            ['func' => 'GetItemNames',     'key' => 'id',       'name' => 'name'],
+            ['func' => 'GetItemBonusTags', 'key' => 'bonusurl', 'name' => 'bonustag'],
+        ]);
+    }
+
+    return $tr;
+}
+
+function CategoryBonusAuctionList($house, $params)
+{
+    global $canCache;
+
+    $cacheKey = 'category_bal_' . md5(json_encode($params));
+
+    $skipLocales = is_array($params) && isset($params['locales']) && ($params['locales'] == false);
+
+    if ($canCache && (($tr = MCGetHouse($house, $cacheKey)) !== false)) {
+        if (!$skipLocales) {
+            PopulateLocaleCols($tr, [
+                ['func' => 'GetItemNames',     'key' => 'id',       'name' => 'name'],
+                ['func' => 'GetItemBonusTags', 'key' => 'bonusurl', 'name' => 'bonustag'],
+            ]);
+        }
+        return $tr;
+    }
+
+    $db = DBConnect();
+
+    if (is_array($params)) {
+        $cols = isset($params['cols']) ? (', ' . $params['cols']) : '';
+        $joins = isset($params['joins']) ? $params['joins'] : '';
+        $where = isset($params['where']) ? (' and ' . $params['where']) : '';
+    } else {
+        $cols = $joins = '';
+        $where = ($params == '') ? '' : (' and ' . $params);
+    }
+
+    $sql = <<<EOF
+select i.id, i.icon, i.class as classid, a.quantity, null lastseen, s.bonusset, i.level baselevel, 
+@level := ifnull(ae.level, ifnull((select ils.level from tblItemLevelsSeen ils where ils.item = i.id and ils.bonusset=s.bonusset order by if(ils.level=i.level,0,1), ils.level limit 1), i.level)) level,
+ifnull(a.buy, round(s.price * pow(1.15, (cast(@level as signed) - cast(i.level as signed))/15))) price, 
+round((select round(avg(case hours.h
+ when  0 then ihh.silver00 when  1 then ihh.silver01 when  2 then ihh.silver02 when  3 then ihh.silver03
+ when  4 then ihh.silver04 when  5 then ihh.silver05 when  6 then ihh.silver06 when  7 then ihh.silver07
+ when  8 then ihh.silver08 when  9 then ihh.silver09 when 10 then ihh.silver10 when 11 then ihh.silver11
+ when 12 then ihh.silver12 when 13 then ihh.silver13 when 14 then ihh.silver14 when 15 then ihh.silver15
+ when 16 then ihh.silver16 when 17 then ihh.silver17 when 18 then ihh.silver18 when 19 then ihh.silver19
+ when 20 then ihh.silver20 when 21 then ihh.silver21 when 22 then ihh.silver22 when 23 then ihh.silver23
+ else null end) * 100)
+ from tblItemHistoryHourly ihh,
+ (select  0 h union select  1 h union select  2 h union select  3 h union
+  select  4 h union select  5 h union select  6 h union select  7 h union
+  select  8 h union select  9 h union select 10 h union select 11 h union
+  select 12 h union select 13 h union select 14 h union select 15 h union
+  select 16 h union select 17 h union select 18 h union select 19 h union
+  select 20 h union select 21 h union select 22 h union select 23 h) hours
+ where ihh.house = ? and ihh.item = i.id and ihh.bonusset = s.bonusset)
+ * pow(1.15,(cast(@level as signed) - cast(i.level as signed))/15)) avgprice,
+ifnull((select group_concat(distinct bs.tagid order by 1 separator '.') from tblBonusSet bs where bs.set = s.bonusset), '') tagurl,
+if(ae.id is null, (select concat_ws(':', nullif(ibs.bonus1,0), nullif(ibs.bonus2,0), nullif(ibs.bonus3,0), nullif(ibs.bonus4,0)) from tblItemBonusesSeen ibs where ibs.item=i.id and ibs.bonusset=s.bonusset order by ibs.observed desc limit 1), 
+	concat_ws(':', nullif(ae.bonus1,0), nullif(ae.bonus2,0), nullif(ae.bonus3,0), nullif(ae.bonus4,0), nullif(ae.bonus5,0), nullif(ae.bonus6,0))) bonusurl,
+ae.lootedlevel, ae.`rand`, ae.seed
+$cols
+from tblDBCItem i
+join tblAuction a on a.house = ? and a.item = i.id
+left join tblAuctionExtra ae on a.house = ae.house and a.id = ae.id
+join tblItemSummary s on s.item = i.id and s.house = a.house and s.bonusset = ifnull(ae.bonusset, 0)
+join tblItemGlobal g on g.item = i.id + 0 and g.bonusset = s.bonusset and g.region = ?
+$joins
+where ifnull(i.auctionable,1) = 1
+$where
+EOF;
+
+    $region = GetRegion($house);
+
+    $stmt = $db->stmt_init();
+    if (!$stmt->prepare($sql)) {
+        DebugMessage("Bad SQL: \n" . $sql, E_USER_ERROR);
+    }
+    $stmt->bind_param('iis', $house, $house, $region);
+    $stmt->execute();
+
+    $tr = [];
+    $row = [];
+    $params = [];
+    $fields = $stmt->result_metadata()->fetch_fields();
+    foreach ($fields as $field) {
+        $params[] = &$row[$field->name];
+    }
+    call_user_func_array([$stmt, 'bind_result'], $params);
+
+    while ($stmt->fetch()) {
+        $unreferenced = [];
+        foreach ($row as $k => $v) {
+            $unreferenced[$k] = $v;
+        }
+        $tr[] = $unreferenced;
     }
 
     $stmt->close();
