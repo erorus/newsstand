@@ -16,6 +16,11 @@ define('HISTORY_DAYS', 14);
 define('HISTORY_DAYS_DEEP', 93);
 define('SOCKET_FAKE_ITEM_NAME_DESC_ID', 10);
 
+define('BONUS_STAT_SET_SPEED', 1);
+define('BONUS_STAT_SET_LEECH', 2);
+define('BONUS_STAT_SET_AVOIDANCE', 4);
+define('BONUS_STAT_SET_INDESTRUCTIBLE', 8);
+
 $TIMELEFT_ENUM = [
     'SHORT'     => 1,
     'MEDIUM'    => 2,

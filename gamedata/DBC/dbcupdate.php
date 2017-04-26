@@ -155,6 +155,25 @@ foreach ($bonusRows as $row) {
             }
             $bonuses[$row['bonusid']]['itemlevel'] += $row['params'][0];
             break;
+        case 2: // stats
+            if (!isset($bonuses[$row['bonusid']]['statmask'])) {
+                $bonuses[$row['bonusid']]['statmask'] = 0;
+            }
+            switch ($row['params'][0]) {
+                case 61:
+                    $bonuses[$row['bonusid']]['statmask'] |= BONUS_STAT_SET_SPEED;
+                    break;
+                case 62:
+                    $bonuses[$row['bonusid']]['statmask'] |= BONUS_STAT_SET_LEECH;
+                    break;
+                case 63:
+                    $bonuses[$row['bonusid']]['statmask'] |= BONUS_STAT_SET_AVOIDANCE;
+                    break;
+                case 64:
+                    $bonuses[$row['bonusid']]['statmask'] |= BONUS_STAT_SET_INDESTRUCTIBLE;
+                    break;
+            }
+            break;
         case 3: // quality
             $bonuses[$row['bonusid']]['quality'] = $row['params'][0];
             break;
@@ -195,9 +214,9 @@ foreach ($bonusRows as $row) {
 }
 
 RunAndLogError('truncate table tblDBCItemBonus');
-$stmt = $db->prepare("insert into tblDBCItemBonus (id, quality, level, previewlevel, levelcurve, tagid, tagpriority, nameid, namepriority, socketmask) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-$id = $quality = $level = $previewLevel = $levelCurve = $tagPriority = $tagId = $nameId = $namePriority = $socketMask = null;
-$stmt->bind_param('iiiiiiiiii', $id, $quality, $level, $previewLevel, $levelCurve, $tagId, $tagPriority, $nameId, $namePriority, $socketMask);
+$stmt = $db->prepare("insert into tblDBCItemBonus (id, quality, level, previewlevel, levelcurve, tagid, tagpriority, nameid, namepriority, socketmask, statmask) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+$id = $quality = $level = $previewLevel = $levelCurve = $tagPriority = $tagId = $nameId = $namePriority = $socketMask = $statMask = null;
+$stmt->bind_param('iiiiiiiiiii', $id, $quality, $level, $previewLevel, $levelCurve, $tagId, $tagPriority, $nameId, $namePriority, $socketMask, $statMask);
 foreach ($bonuses as $bonusId => $bonusData) {
     $id = $bonusId;
     $quality = isset($bonusData['quality']) ? $bonusData['quality'] : null;
@@ -213,6 +232,7 @@ foreach ($bonuses as $bonusId => $bonusData) {
         $tagId = SOCKET_FAKE_ITEM_NAME_DESC_ID;
         $tagPriority = 250;
     }
+    $statMask = isset($bonusData['statmask']) ? $bonusData['statmask'] : 0;
     RunAndLogError($stmt->execute());
 }
 $stmt->close();
