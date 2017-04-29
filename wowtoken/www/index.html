@@ -276,6 +276,42 @@
                 <a href="https://magetower.info">MageTower.info</a> tracks the Broken Shore building status in every region.
             </div>
 
+            <div class="mui-panel extra-panel" id="api-panel">
+                <h2>Data Export</h2>
+                The data provided by WoW Token Info in the links below is made available under the <a href="http://opendatacommons.org/licenses/by/1.0">Open Data Commons Attribution License</a>.
+                You are free to share the data, to produce works from the data, and to modify and build upon the data, as long as you understand and follow the below conditions:<br><br>
+                <b>There is no warranty with this service, neither expressed nor implied.</b>
+                    <ul>
+                        <li>This is an unofficial service, provided by a guy with a computer at his house, automatically logging in to WoW 100 times a day.</li>
+                        <li>We may miss data updates due to the many factors out of our control. The update script might break, Blizzard might suspend the account (they've done it before), my cable modem might fail (thanks, Comcast!), solar flares...</li>
+                        <li>We may need to change the format of the data without warning. Though we'll try not to do that.</li>
+                        <li>This site may shut down at any time. We may be asked (or forced) to stop updates at Blizzard's request, or by any countermeasures they use.</li>
+                    </ul>
+                If you use data from this website for a public work, we ask that you mention and link to <a href="https://wowtoken.info/">https://wowtoken.info/</a> in your work.<br><br>
+                If your website has employees, then you probably don't want to rely on this, and should instead get your data from the game, like I do.<br><br>
+
+                <b><a href="https://data.wowtoken.info/wowtoken.json">JSON format</a> with history</b>
+                <ul>
+                    <li>Updates no more frequently than every 10 minutes. Please don't pull more often than that.</li>
+                    <li>Data points present when we observed changes, or every check during the past 72 hours.</li>
+                    <li>This is the same exact data source as what powers the tables and graphs above.</li>
+                </ul>
+
+                <b><a href="https://data.wowtoken.info/snapshot.json">JSON format with CORS</a> without history</b>
+                <ul>
+                    <li>Only the recent "update" portion of the wowtoken.json file above. No "history". Much smaller.</li>
+                    <li>Updates no more frequently than every 10 minutes (same time as the previous JSON).</li>
+                    <li>Has <b>Access-Control-Allow-Origin: *</b> header, so you can use it client-side with <a href="http://www.html5rocks.com/en/tutorials/cors/">CORS</a>.</li>
+                </ul>
+
+                <b><a href="https://data.wowtoken.info/wowtoken.csv">CSV format</a> with history</b>
+                <ul>
+                    <li>Updates whenever the JSON updates.</li>
+                    <li>Timing resolution is only when we observed changes.</li>
+                </ul>
+
+            </div>
+
             <div id="trademarks">World of Warcraft, Warcraft and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc. in the U.S. and/or other countries.</div>
         </div>
     </body>
