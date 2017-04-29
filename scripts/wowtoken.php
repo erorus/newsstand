@@ -345,14 +345,7 @@ function BuildIncludes($regions)
         ];
     }
 
-    AtomicFilePutContents(__DIR__.'/../wowtoken/data/snapshot.json',
-        json_encode(array_merge([
-            'attention' => 'This file updates only once every 10 minutes at best. Do not just spam this endpoint.',
-            'donate' => [
-                'text' => 'Was this useful? Want to throw me a couple bucks? Have a quick Paypal link. Thanks.',
-                'url' => 'https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=8Z9RWQTTNUNTN',
-            ],
-        ], $json), JSON_NUMERIC_CHECK), true);
+    AtomicFilePutContents(__DIR__.'/../wowtoken/data/snapshot.json', json_encode($json, JSON_NUMERIC_CHECK), true);
     AtomicFilePutContents(__DIR__.'/../wowtoken/data/snapshot-history.csv', $csv, true);
     AtomicFilePutContents(__DIR__.'/../wowtoken/data/snapshot-history.json',
         json_encode([
