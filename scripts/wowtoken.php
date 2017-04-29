@@ -349,47 +349,13 @@ function BuildIncludes($regions)
     AtomicFilePutContents(__DIR__.'/../wowtoken/data/snapshot-history.csv', $csv, true);
     AtomicFilePutContents(__DIR__.'/../wowtoken/data/snapshot-history.json',
         json_encode([
-            'attention' => 'This API endpoint is deprecated. Do not use this for new projects. This may stop working at any time.',
             'update' => $json,
             'history' => []
             ], JSON_NUMERIC_CHECK),
         json_encode([
-            'attention' => 'This API endpoint is deprecated. Do not use this for new projects. This may stop working at any time.',
             'update' => $json,
             'history' => $historyJsonFull
             ], JSON_NUMERIC_CHECK));
-
-    $randFile = bin2hex(random_bytes(16));
-    foreach (['','.gz','.br'] as $ext) {
-        $src = sprintf(__DIR__ . '/../wowtoken/data/snapshot-history.json%s', $ext);
-        $dest = sprintf(__DIR__ . '/../wowtoken/data/dynamic/data/%s.json%s', $randFile, $ext);
-
-        if (file_exists($src)) {
-            copy($src, $dest);
-            touch($dest, filemtime($src));
-        }
-    }
-
-    MCDelete('wowtoken_latest');
-
-    $dynJsons = glob(__DIR__ . '/../wowtoken/data/dynamic/data/*.json');
-    if (count($dynJsons) > DYNAMIC_JSON_MAX_COUNT) {
-        $jsonDates = [];
-        foreach ($dynJsons as $jsonPath) {
-            $jsonDates[basename($jsonPath)] = filemtime($jsonPath);
-        }
-        arsort($jsonDates, SORT_NUMERIC);
-        $jsonDates = array_keys($jsonDates);
-        array_splice($jsonDates, 0, DYNAMIC_JSON_MAX_COUNT);
-        foreach ($jsonDates as $jsonFileName) {
-            foreach (['','.gz','.br'] as $ext) {
-                $jsonPath = sprintf(__DIR__ . '/../wowtoken/data/dynamic/data/%s%s', $jsonFileName, $ext);
-                if (file_exists($jsonPath)) {
-                    unlink($jsonPath);
-                }
-            }
-        }
-    }
 }
 
 function BuildMageTowerIncludes($regions) {
