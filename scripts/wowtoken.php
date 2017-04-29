@@ -350,11 +350,19 @@ function BuildIncludes($regions)
     AtomicFilePutContents(__DIR__.'/../wowtoken/data/snapshot-history.json',
         json_encode([
             'attention' => 'This file updates only once every 10 minutes at best. Do not just spam this endpoint.',
+            'donate' => [
+                'text' => 'Was this useful? Want to throw me a couple bucks? Have a quick Paypal link. Thanks.',
+                'url' => 'https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=8Z9RWQTTNUNTN',
+            ],
             'update' => $json,
             'history' => 'Want price history? Download this URL with gzip encoding.',
             ], JSON_NUMERIC_CHECK),
         json_encode([
             'attention' => 'This file updates only once every 10 minutes at best. Do not just spam this endpoint.',
+            'donate' => [
+                'text' => 'Was this useful? Want to throw me a couple bucks? Have a quick Paypal link. Thanks.',
+                'url' => 'https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=8Z9RWQTTNUNTN',
+            ],
             'update' => $json,
             'history' => $historyJsonFull
             ], JSON_NUMERIC_CHECK));
@@ -385,6 +393,10 @@ EOF;
 
     $json = [
         'attention' => 'This file updates only once every 10 minutes at best. Do not just spam this endpoint.',
+        'donate' => [
+            'text' => 'Was this useful? Want to throw me a couple bucks? Have a quick Paypal link. Thanks.',
+            'url' => 'https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RAC97YTN953VU',
+        ],
         'timestamp' => time(),
     ];
     foreach ($regions as $region) {
