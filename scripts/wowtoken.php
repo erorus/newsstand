@@ -349,10 +349,12 @@ function BuildIncludes($regions)
     AtomicFilePutContents(__DIR__.'/../wowtoken/data/snapshot-history.csv', $csv, true);
     AtomicFilePutContents(__DIR__.'/../wowtoken/data/snapshot-history.json',
         json_encode([
+            'attention' => 'This file updates only once every 10 minutes at best. Do not just spam this endpoint.',
             'update' => $json,
-            'history' => []
+            'history' => 'Want price history? Download this URL with gzip encoding.',
             ], JSON_NUMERIC_CHECK),
         json_encode([
+            'attention' => 'This file updates only once every 10 minutes at best. Do not just spam this endpoint.',
             'update' => $json,
             'history' => $historyJsonFull
             ], JSON_NUMERIC_CHECK));
@@ -382,6 +384,7 @@ left join tblBuilding t on t.region = z.region and t.id = z.id and t.`when` = z.
 EOF;
 
     $json = [
+        'attention' => 'This file updates only once every 10 minutes at best. Do not just spam this endpoint.',
         'timestamp' => time(),
     ];
     foreach ($regions as $region) {
