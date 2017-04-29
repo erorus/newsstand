@@ -382,7 +382,6 @@ left join tblBuilding t on t.region = z.region and t.id = z.id and t.`when` = z.
 EOF;
 
     $json = [
-        'attention' => 'This file is not to be used anywhere except magetower.info. Do not fetch this file via any script or bot.',
         'timestamp' => time(),
     ];
     foreach ($regions as $region) {
@@ -398,7 +397,7 @@ EOF;
         $stmt->close();
     }
 
-    AtomicFilePutContents(__DIR__.'/../magetower/data/20170419.json', json_encode($json, JSON_NUMERIC_CHECK), true);
+    AtomicFilePutContents(__DIR__.'/../magetower/data/magetower.json', json_encode($json, JSON_NUMERIC_CHECK), true);
 }
 
 function DurationString($s) {

@@ -30,7 +30,7 @@ function FetchJson() {
 
     var req = new XMLHttpRequest();
     if (!req) return;
-    req.open('GET',(location.hostname == 'magetower.info' ? '//data.magetower.info/' : '') + '20170419.json',true);
+    req.open('GET',(location.hostname == 'magetower.info' ? '//data.magetower.info/' : '') + 'magetower.json',true);
     req.onreadystatechange = function () {
         if (req.readyState != 4) return;
         if (req.status != 200) {
