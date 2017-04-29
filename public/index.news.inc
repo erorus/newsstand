@@ -1,1 +1,0 @@
-<div class="news"><h3>Prefer Donations or Ads?</h3>Would you rather see ads on The Undermine Journal, or donate funds instead? Please <a href="https://www.surveymonkey.com/r/7SK7XTY" target="_blank">take our survey</a> and let us know!</div>
