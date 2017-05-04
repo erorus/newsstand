@@ -950,7 +950,7 @@ var TUJ_Category = function ()
             for (x = 0; item = data.items[x]; x++) {
                 if (!distinctItems.hasOwnProperty(item.id)) {
                     distinctItems[item.id] = true;
-                    i.value = (i.value ? i.value + ',' : '') + 'item:' + item.id;
+                    i.value = (i.value ? i.value + ';' : '') + 'item:' + item.id;
                 }
             }
 
