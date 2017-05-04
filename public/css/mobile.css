@@ -50,3 +50,5 @@ body {min-width: 18em}
 .notifications-insert ul {margin-left: -3em}
 input[type="button"] {margin:1em}
 th.quantity:first-child {font-size: 0}
+
+span.import-toggle {display: none}

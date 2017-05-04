@@ -650,6 +650,14 @@ var TUJ_Category = function ()
         return ourData;
     }
 
+    function MakeImportStringDisplayFunction(tr, inpt, btn) {
+        return function() {
+            tr.style.display = '';
+            btn.style.display = 'none';
+            inpt.select();
+        };
+    }
+
     function CategoryResult(hash, dta, resultsContainer)
     {
         if (hash) {
@@ -874,7 +882,9 @@ var TUJ_Category = function ()
             titleColSpan++;
         }
 
-        titleTd.colSpan = titleColSpan;
+        if (titleTd) {
+            titleTd.colSpan = titleColSpan;
+        }
 
         switch (data['sort']) {
             case 'none':
@@ -917,6 +927,38 @@ var TUJ_Category = function ()
                         (b.price * getAmountByItem(data.amounts, b.id) - a.price * getAmountByItem(data.amounts, a.id)) ||
                         a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]);
                 });
+        }
+
+
+        if (titleTd) {
+            tr = libtuj.ce('tr');
+            tr.style.display = 'none';
+            t.insertBefore(tr, titleTd.parentNode.nextSibling);
+
+            td = libtuj.ce('th');
+            td.className = 'import-string';
+            td.colSpan = titleColSpan;
+            tr.appendChild(td);
+
+            var i = libtuj.ce('input');
+            i.type = 'input';
+            i.readOnly = true;
+            $(i).on('click', function(){ this.select(); });
+            td.appendChild(i);
+
+            var distinctItems = {};
+            for (x = 0; item = data.items[x]; x++) {
+                if (!distinctItems.hasOwnProperty(item.id)) {
+                    distinctItems[item.id] = true;
+                    i.value = (i.value ? i.value + ',' : '') + 'item:' + item.id;
+                }
+            }
+
+            x = libtuj.ce('span');
+            x.className = 'import-toggle';
+            titleTd.appendChild(x);
+            x.appendChild(document.createTextNode('TSM'));
+            $(x).on('click', MakeImportStringDisplayFunction(tr, i, x));
         }
 
         for (x = 0; item = data.items[x]; x++) {

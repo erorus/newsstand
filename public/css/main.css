@@ -103,12 +103,16 @@ abbr:hover.full-date { border-bottom: 1px dotted }
 #search-page table td, table.auctionlist td, table.category td {padding: 0.2em 0.4em}
 #search-page tr:hover td, table.auctionlist tr:hover td, table.category tr:hover td, td.hover {background-color: #EEE}
 
-#search-page th.title, table.category th.title { font-size: 125% }
+#search-page th.title, table.category th.title { font-size: 125%; position: relative }
 
 table.auctionlist { margin: 0 auto }
 table.auctionlist td.price abbr { border-bottom: 0 }
 table.auctionlist td.price abbr:hover { border-bottom: 1px dotted }
 table.auctionlist td.seller, table.auctionlist th.seller { text-align: left; vertical-align: top }
+
+span.import-toggle { position: absolute; top: 5px; right: 5px; border: 1px solid #999; border-radius: 5px; padding: 2px; font-size: 50%; cursor: pointer }
+table.category th.import-string { padding-left: 0; padding-right: 0 }
+table.category th.import-string input { width: 100%; border: 0 }
 
 tr.blank { height: 0.5em }
 td.price abbr { text-decoration: none }
