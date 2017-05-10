@@ -408,6 +408,8 @@ var wowtoken = {
 
     Main: function ()
     {
+        var abg;
+
         var fail = function() {
             var e = document.getElementsByClassName('realm-panel');
             for (var x = e.length - 1; x >= 0; x--) {
@@ -417,8 +419,13 @@ var wowtoken = {
         };
 
         var test = function() {
+            if (abg && abg != window.adsbygoogle) {
+                fail();
+                return false;
+            }
+
             var divs = $('ins.adsbygoogle');
-            if (!divs.length || divs[0].style.display == 'none') {
+            if (divs.length != 1 || divs[0].style.display != 'block') {
                 fail();
                 return false;
             }
@@ -435,6 +442,7 @@ var wowtoken = {
         s.src = '//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
         $(s).on('error', fail);
         $(s).on('load', function() {
+            abg = window.adsbygoogle;
             try {
                 window.adsbygoogle.push({});
             } catch (e) {
