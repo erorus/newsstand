@@ -78,9 +78,15 @@ function CheckPaypalPost() {
         LogPaypalError("Received request without txn_id at Paypal IPN. IP: ".(isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown'));
         return 'HTTP/1.0 404 Not Found';
     }
-    if (!isset($_POST['business']) || !in_array(strtolower(trim($_POST['business'])), $PAYPAL_BUSINESSES)) {
+
+    $business = isset($_POST['business']) ? strtolower(trim($_POST['business'])) : false;
+    if (!$business || !isset($PAYPAL_BUSINESSES[$business])) {
         LogPaypalError('Received invalid business from Paypal IPN: "'.(isset($_POST['business']) ? $_POST['business'] : '').'"');
         return 'HTTP/1.0 420 Not Verified';
+    }
+    if (!$PAYPAL_BUSINESSES[$business]) {
+        LogPaypalMessage("Ignoring business address " . strtolower(trim($_POST['business'])));
+        return 'Ignore';
     }
 
     $rawPost = file_get_contents('php://input');
