@@ -1,3 +1,4 @@
+$(document).ready((new function() {
 var wowtoken = {
 
     timeLeftMap: {
@@ -836,6 +837,8 @@ var wowtoken = {
             ]
         });
     }
-}
+};
 
-$(document).ready(wowtoken.Main);
+this.Main = wowtoken.Main;
+
+}).Main);
