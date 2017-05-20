@@ -941,7 +941,7 @@ var TUJ_Category = function ()
             tr.appendChild(td);
 
             var i = libtuj.ce('input');
-            i.type = 'input';
+            i.type = 'text';
             i.readOnly = true;
             $(i).on('click', function(){ this.select(); });
             td.appendChild(i);
