@@ -433,11 +433,6 @@ var wowtoken = {
             return true;
         };
 
-        if (document.createElement.prototype) {
-            fail();
-            return;
-        }
-
         window.setTimeout(test, 500);
         window.setTimeout(test, 1000);
         window.setTimeout(test, 2500);
