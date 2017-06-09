@@ -417,19 +417,38 @@ var wowtoken = {
                 e[x].parentNode.removeChild(e[x]);
             }
             document.getElementById('block-warn').style.display = '';
+            return false;
         };
+
+        var pixelRegex = /^\d+px$/;
 
         var test = function() {
             if (abg && abg != window.adsbygoogle) {
-                fail();
-                return false;
+                return fail();
             }
 
             var divs = $('ins.adsbygoogle');
-            if (divs.length != 1 || divs[0].style.display != 'block') {
-                fail();
-                return false;
+            if (divs.length != 1) {
+                return fail();
             }
+
+            var s = window.getComputedStyle(divs[0]);
+            if (s.display != 'block') {
+                return fail();
+            }
+            if (s.position != 'static') {
+                return fail();
+            }
+            if (s.overflowY != 'visible' || s.overflowX != 'visible' || s.overflow != 'visible') {
+                return fail();
+            }
+            if (!pixelRegex.test(s.height) || parseInt(s.height,10) < 50) {
+                return fail();
+            }
+            if (!pixelRegex.test(s.width) || parseInt(s.width,10) < 100) {
+                return fail();
+            }
+
             return true;
         };
 
