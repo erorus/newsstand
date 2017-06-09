@@ -442,6 +442,9 @@ var wowtoken = {
             if (s.overflowY != 'visible' || s.overflowX != 'visible' || s.overflow != 'visible') {
                 return fail();
             }
+            if (s.opacity != '1') {
+                return fail();
+            }
             if (!pixelRegex.test(s.height) || parseInt(s.height,10) < 50) {
                 return fail();
             }
