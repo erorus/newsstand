@@ -882,21 +882,26 @@ var TUJ_Subscription = function ()
         $('#subscription-login').empty().html(libtuj.sprintf(tuj.lang.loggedInAs, userName) + ' ').append(logOutBNet).append(' ').append(logOut);
     }
 
+    function BattleNetLogOutCleanup() {
+        this.parentNode.removeChild(this);
+        tuj.LogOut();
+    }
+
     function LogOutOfBattleNet(region) {
         // uses xhr and withCredentials to send a logout GET request to battle.net
         // this will fail CORS, but hopefully the battle.net cookies will still be reset.
 
         var url = 'https://%s.battle.net/login/logout?app=com-root'.replace('%s', region.toLowerCase());
 
-        $.ajax({
-            method: 'GET',
-            url: url,
-            xhrFields: {
-                withCredentials: true
-            },
-            success: tuj.LogOut,
-            error: tuj.LogOut, // error is expected, since the logout page does not have cors headers
-        });
+        var i = document.createElement('img');
+        $(i).on('error', BattleNetLogOutCleanup).on('load', BattleNetLogOutCleanup);
+        i.style.position = 'absolute';
+        i.style.left = '-10px';
+        i.style.top = '-10px';
+        i.style.width = '1px';
+        i.style.height = '1px';
+        i.src = url;
+        document.getElementsByTagName('body')[0].appendChild(i);
     }
 
     function ShowLoginForm()
