@@ -886,7 +886,7 @@ var TUJ_Subscription = function ()
         // uses xhr and withCredentials to send a logout GET request to battle.net
         // this will fail CORS, but hopefully the battle.net cookies will still be reset.
 
-        var url = 'https://%s.battle.net/login/en/logout?app=com-root'.replace('%s', region.toLowerCase());
+        var url = 'https://%s.battle.net/login/logout?app=com-root'.replace('%s', region.toLowerCase());
 
         $.ajax({
             method: 'GET',
