@@ -44,7 +44,7 @@ var TUJ_Policy = function ()
         policyAccept.empty();
 
         var s = libtuj.ce('span');
-        s.appendChild(document.createTextNode(tuj.lang.confirmPolicyAcceptance))
+        s.appendChild(document.createTextNode(tuj.lang.confirmPolicyAcceptance));
         policyAccept[0].appendChild(s);
 
         var f = libtuj.ce('form');
@@ -56,7 +56,7 @@ var TUJ_Policy = function ()
         l.appendChild(i);
         i.type = 'checkbox';
         i.name = 'accept-terms';
-        l.appendChild(document.createTextNode(tuj.lang.acceptPolicyCheckbox))
+        l.appendChild(document.createTextNode(tuj.lang.acceptPolicyCheckbox));
 
         var l = libtuj.ce('label');
         f.appendChild(l);
@@ -64,13 +64,14 @@ var TUJ_Policy = function ()
         l.appendChild(i);
         i.type = 'checkbox';
         i.name = 'accept-english';
-        l.appendChild(document.createTextNode(tuj.lang.acceptSupportEnglish))
+        l.appendChild(document.createTextNode(tuj.lang.acceptSupportEnglish));
 
         var i = libtuj.ce('input');
         f.appendChild(i);
-        i.type = 'submit';
+        i.type = 'button';
         i.className = 'button';
         i.value = tuj.lang.submit;
+        $(i).on('click', OnSubmitPolicyAcceptance.bind(f));
 
         var i = libtuj.ce('input');
         f.appendChild(i);
