@@ -974,7 +974,7 @@ var TUJ = function ()
             }
             pendingCSRFProtectedRequests = [];
         });
-        i.src = '/api/csrf.txt';
+        i.src = '/api/csrf.html';
         document.body.appendChild(i);
     }
 
