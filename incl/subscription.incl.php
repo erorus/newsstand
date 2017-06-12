@@ -105,13 +105,13 @@ function GetLoginState($logOut = false) {
 
     if ($logOut) {
         setcookie(SUBSCRIPTION_LOGIN_COOKIE, '', time() - SUBSCRIPTION_SESSION_LENGTH, '/api/', '', true, true);
-        setcookie(SUBSCRIPTION_CSRF_COOKIE, '', 0, '/api/csrf.txt', '', true, false);
+        setcookie(SUBSCRIPTION_CSRF_COOKIE, '', 0, '/api/csrf/', '', true, false);
         return [];
     }
 
     if (!headers_sent()) {
         setcookie(SUBSCRIPTION_LOGIN_COOKIE, $state, time() + SUBSCRIPTION_SESSION_LENGTH, '/api/', '', true, true);
-        setcookie(SUBSCRIPTION_CSRF_COOKIE, strtr(base64_encode(hash_hmac('sha256', $stateBytes, SUBSCRIPTION_CSRF_HMAC_KEY, true)), '+/=', '-_.'), 0, '/api/csrf.txt', '', true, false);
+        setcookie(SUBSCRIPTION_CSRF_COOKIE, strtr(base64_encode(hash_hmac('sha256', $stateBytes, SUBSCRIPTION_CSRF_HMAC_KEY, true)), '+/=', '-_.'), 0, '/api/csrf/', '', true, false);
     }
 
     return $userInfo;
