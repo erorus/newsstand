@@ -555,7 +555,7 @@ var wowtoken = {
         var hcdata = { buy: [], timeleft: {}, navigator: [], pct: {}, pctchart: [], realPrices: [] };
         var maxPrice = 0;
         var o, showLabel, direction = 0, newDirection = 0, lastLabel = -1;
-        var priceUpperBound = 100000;
+        var priceUpperBound = 0;
         var colors = {
             'line': '#000000',
             'fill': 'rgba(51,51,51,0.6)',
@@ -564,7 +564,6 @@ var wowtoken = {
 
         switch (region) {
             case 'NA':
-                priceUpperBound = 160000;
                 colors = {
                     'line': '#0000ff',
                     'fill': 'rgba(204,204,255,0.6)',
@@ -572,7 +571,6 @@ var wowtoken = {
                 };
                 break;
             case 'EU':
-                priceUpperBound = 300000;
                 colors = {
                     'line': '#ff0000',
                     'fill': 'rgba(255,204,204,0.6)',
@@ -580,7 +578,6 @@ var wowtoken = {
                 }
                 break;
             case 'CN':
-                priceUpperBound = 500000;
                 colors = {
                     'line': '#00cc00',
                     'fill': 'rgba(178,230,178,0.6)',
@@ -588,7 +585,6 @@ var wowtoken = {
                 }
                 break;
             case 'TW':
-                priceUpperBound = 400000;
                 colors = {
                     'line': '#cccc00',
                     'fill': 'rgba(230,230,178,0.6)',
@@ -596,7 +592,6 @@ var wowtoken = {
                 }
                 break;
             case 'KR':
-                priceUpperBound = 500000;
                 colors = {
                     'line': '#00cccc',
                     'fill': 'rgba(178,230,230,0.6)',
@@ -609,6 +604,13 @@ var wowtoken = {
         };
 
         for (var x = 0; x < dta.length; x++) {
+            if (priceUpperBound < data[x][1]) {
+                priceUpperBound = data[x][1];
+            }
+        }
+        priceUpperBound = (Math.round(priceUpperBound / 20000) + 1) * 20000;
+
+        for (x = 0; x < dta.length; x++) {
             o = {
                 x: dta[x][0]*1000,
                 y: dta[x][1],
