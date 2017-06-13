@@ -604,8 +604,8 @@ var wowtoken = {
         };
 
         for (var x = 0; x < dta.length; x++) {
-            if (priceUpperBound < data[x][1]) {
-                priceUpperBound = data[x][1];
+            if (priceUpperBound < dta[x][1]) {
+                priceUpperBound = dta[x][1];
             }
         }
         priceUpperBound = (Math.round(priceUpperBound / 20000) + 1) * 20000;
