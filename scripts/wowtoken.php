@@ -147,14 +147,6 @@ function NextDataFile()
     $snapshot = intval($res[1], 10);
     $region = $res[2];
 
-    DebugMessage(
-        "Region $region data file from " . TimeDiff(
-            $snapshot, array(
-                'parts'     => 2,
-                'precision' => 'second'
-            )
-        )
-    );
     $lua = LuaDecode(fread($handle, filesize(SNAPSHOT_PATH . $fileName)));
 
     ftruncate($handle, 0);
