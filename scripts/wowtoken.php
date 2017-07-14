@@ -94,8 +94,8 @@ if ($gotData || $forceBuild) {
     BuildMageTowerIncludes(array_keys($timeZones));
     SendTweets($forceBuild ? array_keys($timeZones) : array_keys($gotData));
     SendAndroidNotifications(array_keys($gotData));
-    DebugMessage('Done! Started ' . TimeDiff($startTime));
 }
+DebugMessage('Done! Started ' . TimeDiff($startTime));
 
 function NextDataFile()
 {
@@ -177,6 +177,9 @@ function ParseTokenData($region, $snapshot, &$lua)
         DebugMessage("Region $region $snapshot data file does not have snapshot or region!", E_USER_WARNING);
         return false;
     }
+
+    DebugMessage(sprintf('New token lua file for region %s returned new data (from %d seconds ago)', $region, time() - $lua['now']), E_USER_NOTICE);
+
     $snapshotString = date('Y-m-d H:i:s', $lua['now']);
     foreach (['selltime', 'market', 'result', 'selltimeraw'] as $col) {
         if (!isset($lua[$col])) {
@@ -226,7 +229,7 @@ function ParseBuildingData($region, $snapshotString, $buildings)
         $buff2 = isset($data['buffs'][1]) ? $data['buffs'][1] : null;
 
         $stmt->execute();
-        DebugMessage(sprintf("%s building %d with state %d until %s contrib %f buffs %d %d (%s)", $region, $buildingId, $state, $timeNext, $contrib, $buff1, $buff2, $data['name']));
+        //DebugMessage(sprintf("%s building %d with state %d until %s contrib %f buffs %d %d (%s)", $region, $buildingId, $state, $timeNext, $contrib, $buff1, $buff2, $data['name']));
     }
     $stmt->close();
 }
@@ -290,7 +293,7 @@ function CheckTokenAPI($regions)
         }
 
         if ($lastRecord['last_updated'] > time() - API_CHECK_INTERVAL) {
-            //DebugMessage(sprintf('Skipping token API check for %s, last updated %d seconds ago', $region, time() - $lastRecord['last_updated']), E_USER_NOTICE);
+            DebugMessage(sprintf('Skipping token API check for %s, last updated %d seconds ago', $region, time() - $lastRecord['last_updated']), E_USER_NOTICE);
             continue;
         }
 
@@ -301,12 +304,12 @@ function CheckTokenAPI($regions)
 
         $data = json_decode($json, true);
         if (json_last_error() != JSON_ERROR_NONE) {
-            //DebugMessage(sprintf('Invalid JSON from token API in region %s: %s', $region, json_last_error_msg()), E_USER_WARNING);
+            DebugMessage(sprintf('Invalid JSON from token API in region %s: %s', $region, json_last_error_msg()), E_USER_NOTICE);
             continue;
         }
 
         if (!isset($data['last_updated']) || !isset($data['price'])) {
-            //DebugMessage(sprintf('Token API in region %s returned incomplete json', $region), E_USER_WARNING);
+            DebugMessage(sprintf('Token API in region %s returned incomplete json', $region), E_USER_NOTICE);
             continue;
         }
 
@@ -315,6 +318,8 @@ function CheckTokenAPI($regions)
         if (($data['last_updated'] == $lastRecord['last_updated']) && (!isset($lastRecord['price']) || $lastRecord['price'] == $data['price'])) {
             continue;
         }
+
+        DebugMessage(sprintf('Token API in region %s returned new data (%d copper, updated %d seconds ago)', $region, $lastRecord['price'], time() - $data['last_updated']), E_USER_NOTICE);
 
         $gotData[$region] = $region;
 
