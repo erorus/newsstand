@@ -10,11 +10,12 @@ chdir(__DIR__);
 
 $startTime = time();
 
-require_once('../incl/incl.php');
-require_once('../incl/memcache.incl.php');
-require_once('../incl/heartbeat.incl.php');
-require_once('../incl/wowtoken-twitter.credentials.php');
-require_once('../incl/android.gcm.credentials.php');
+require_once __DIR__ . '/../incl/incl.php';
+require_once __DIR__ . '/../incl/memcache.incl.php';
+require_once __DIR__ . '/../incl/heartbeat.incl.php';
+require_once __DIR__ . '/../incl/battlenet.incl.php';
+require_once __DIR__ . '/../incl/wowtoken-twitter.credentials.php';
+require_once __DIR__ . '/../incl/android.gcm.credentials.php';
 
 RunMeNTimes(1);
 CatchKill();
@@ -24,6 +25,7 @@ define('TWEET_FREQUENCY_MINUTES', 360); // tweet at least every 6 hours
 define('PRICE_CHANGE_THRESHOLD', 0.15); // was 0.2, for 20% change required. 0 means tweet every change
 define('BROTLI_PATH', __DIR__.'/brotli/bin/bro');
 define('DYNAMIC_JSON_MAX_COUNT', 40);
+define('API_CHECK_INTERVAL', 870); // skip checking API if it was last updated fewer than this many seconds ago
 
 if (!DBConnect()) {
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
@@ -79,18 +81,19 @@ while ((!CatchKill()) && (time() < ($loopStart + 60))) {
         break;
     }
     if ($region !== true) {
-        $gotData[] = $region;
+        $gotData[$region] = $region;
     }
     if ($loops++ > 30) {
         break;
     }
 }
+$gotData = array_merge($gotData, CheckTokenAPI(['US','EU','TW','KR']));
 $forceBuild = (isset($argv[1]) && $argv[1] == 'build');
 if ($gotData || $forceBuild) {
     BuildIncludes(array_keys($timeZones));
     BuildMageTowerIncludes(array_keys($timeZones));
-    SendTweets($forceBuild ? array_keys($timeZones) : array_unique($gotData));
-    SendAndroidNotifications(array_unique($gotData));
+    SendTweets($forceBuild ? array_keys($timeZones) : array_keys($gotData));
+    SendAndroidNotifications(array_keys($gotData));
     DebugMessage('Done! Started ' . TimeDiff($startTime));
 }
 
@@ -152,7 +155,7 @@ function NextDataFile()
             )
         )
     );
-    $lua = LuaDecode(fread($handle, filesize(SNAPSHOT_PATH . $fileName)), true);
+    $lua = LuaDecode(fread($handle, filesize(SNAPSHOT_PATH . $fileName)));
 
     ftruncate($handle, 0);
     fclose($handle);
@@ -267,6 +270,65 @@ function LuaDecode($rawLua) {
     return $tr;
 }
 
+function CheckTokenAPI($regions)
+{
+    global $db;
+
+    $gotData = [];
+
+    foreach ($regions as $region) {
+        if (CatchKill()) {
+            return $gotData;
+        }
+
+        $cachekey = 'tokenapi-' . $region;
+        $lastRecord = MCGet($cachekey);
+        if ($lastRecord === false) {
+            $lastRecord = [
+                'last_updated' => 0
+            ];
+        }
+
+        if ($lastRecord['last_updated'] > time() - API_CHECK_INTERVAL) {
+            //DebugMessage(sprintf('Skipping token API check for %s, last updated %d seconds ago', $region, time() - $lastRecord['last_updated']), E_USER_NOTICE);
+            continue;
+        }
+
+        $json = \Newsstand\HTTP::Get(GetBattleNetUrl($region, '/data/wow/token/'));
+        if (!$json) {
+            continue;
+        }
+
+        $data = json_decode($json, true);
+        if (json_last_error() != JSON_ERROR_NONE) {
+            //DebugMessage(sprintf('Invalid JSON from token API in region %s: %s', $region, json_last_error_msg()), E_USER_WARNING);
+            continue;
+        }
+
+        if (!isset($data['last_updated']) || !isset($data['price'])) {
+            //DebugMessage(sprintf('Token API in region %s returned incomplete json', $region), E_USER_WARNING);
+            continue;
+        }
+
+        MCSet($cachekey, $data);
+
+        if (($data['last_updated'] == $lastRecord['last_updated']) && (!isset($lastRecord['price']) || $lastRecord['price'] == $data['price'])) {
+            continue;
+        }
+
+        $gotData[$region] = $region;
+
+        $snapshotString = date('Y-m-d H:i:s', $data['last_updated']);
+
+        $stmt = $db->prepare('replace into tblWowToken (`region`, `when`, `marketgold`) values (?, ?, floor(?/10000))');
+        $stmt->bind_param('ssi', $region, $snapshotString, $data['price']);
+        $stmt->execute();
+        $stmt->close();
+    }
+
+    return $gotData;
+}
+
 function BuildIncludes($regions)
 {
     global $db;
@@ -284,7 +346,7 @@ function BuildIncludes($regions)
             $fileRegion = 'NA';
         }
 
-        $sql = 'select * from tblWowToken w where region = ? and `when` = (select max(w2.`when`) from tblWowToken w2 where w2.region = ?)';
+        $sql = 'select region, `when`, marketgold, timeleft, timeleftraw, ifnull(result, 1) result from tblWowToken w where region = ? and `when` = (select max(w2.`when`) from tblWowToken w2 where w2.region = ?)';
         $stmt = $db->prepare($sql);
         $stmt->bind_param('ss', $region, $region);
         $stmt->execute();
@@ -437,7 +499,7 @@ function BuildImageURI($s) {
 function BuildHistoryData($region) {
     global $db;
 
-    $sql = 'select unix_timestamp(`when`) `dt`, `marketgold` `buy` from tblWowToken where region = ? and `result` = 1 order by `when` asc'; // and `when` < timestampadd(minute, -70, now())
+    $sql = 'select unix_timestamp(`when`) `dt`, `marketgold` `buy` from tblWowToken where region = ? and ifnull(`result`, 1) = 1 order by `when` asc'; // and `when` < timestampadd(minute, -70, now())
     $stmt = $db->prepare($sql);
     $stmt->bind_param('s', $region);
     $stmt->execute();
@@ -484,7 +546,7 @@ function SendTweets($regions)
             }
         }
 
-        $sql = 'select * from tblWowToken w where region = ? order by `when` desc limit 2';
+        $sql = 'select region, `when`, marketgold, timeleft, timeleftraw, ifnull(result, 1) result from tblWowToken w where region = ? order by `when` desc limit 2';
         $stmt = $db->prepare($sql);
         $stmt->bind_param('s', $region);
         $stmt->execute();
@@ -529,7 +591,7 @@ from (
             SELECT `when`, marketgold market
             FROM `tblWowToken`
             WHERE region = ?
-            and result=1
+            and ifnull(result, 1)=1
             order by `when` desc
             limit 100
         ) aa, (select @prev := null) ab
@@ -759,7 +821,7 @@ function GetChartURL($region, $regionName = '') {
 SELECT 1440 - floor((unix_timestamp() - unix_timestamp(`when`)) / 60) x, marketgold y
 FROM `tblWowToken`
 WHERE region = ?
-and result = 1
+and ifnull(result, 1) = 1
 and `when` >= timestampadd(minute, -1460, now())
 EOF;
     $stmt = $db->prepare($sql);
@@ -940,7 +1002,7 @@ function SendAndroidNotifications($regions)
             $properRegion = 'NA';
         }
 
-        $sql = 'select * from tblWowToken w where region = ? order by `when` desc limit 2';
+        $sql = 'select region, `when`, marketgold, timeleft, timeleftraw, ifnull(result, 1) result from tblWowToken w where region = ? order by `when` desc limit 2';
         $stmt = $db->prepare($sql);
         $stmt->bind_param('s', $region);
         $stmt->execute();
