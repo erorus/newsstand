@@ -101,7 +101,7 @@ function CheckTokenAPI($regions)
         }
 
         if ($lastRecord['last_updated'] > time() - API_CHECK_INTERVAL) {
-            DebugMessage(sprintf('Skipping token API check for %s, last updated ', $region, TimeDiff($lastRecord['last_updated'])), E_USER_NOTICE);
+            DebugMessage(sprintf('Skipping token API check for %s, last updated %s', $region, TimeDiff($lastRecord['last_updated'])), E_USER_NOTICE);
             continue;
         }
 
