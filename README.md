@@ -4,11 +4,9 @@
 
 [WoW Token Info](https://wowtoken.info) shows you prices and historical statistics of the WoW Token in World of Warcraft.
 
-[MageTower.info](https://magetower.info) shows you dynamic building status in World of Warcraft.
-
 Newsstand is the codename for this, the second major version of The Undermine Journal. It is designed to be a one-page app, building pages via a few javascript modules, and fetching data from the server via JSON APIs.
 
-WoW Token Info and MageTower.info were added later as small sites on the same backend server, though their operations are mostly separate from The Undermine Journal.
+WoW Token Info was added later as a small site on the same backend server, though its operations are mostly separate from The Undermine Journal.
 
 ## System Requirements
 
@@ -34,7 +32,7 @@ Look at crontab.txt for the variety of `scripts/` that keep the site updated.
  - `itemdaily.php` updates the daily prices table (which powers the OHLC charts) for each stackable item, based on the snapshot data.
  - `historyprune.php` prunes the detailed (hourly) snapshot history, removing data older than 2 weeks old.
  - `buildaddon.sh` runs the expensive addon build process, which saves some average pricing data for every item on every realm into the in-game addon.
- - `wowtoken.php` fetches the WoW Token pricing data placed by the bot server, saves it to the database, and generates the json and csv files.
+ - `wowtoken.php` fetches the WoW Token pricing data from the API, saves it to the database, and generates the json and csv files.
 
 ## How am I expected to clone this?
 
