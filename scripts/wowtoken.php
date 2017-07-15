@@ -106,6 +106,7 @@ function CheckTokenAPI($regions)
 
         $json = \Newsstand\HTTP::Get(GetBattleNetUrl($region, '/data/wow/token/'));
         if (!$json) {
+            DebugMessage(sprintf('Empty response from token API in region %s', $region), E_USER_NOTICE);
             continue;
         }
 
@@ -123,10 +124,11 @@ function CheckTokenAPI($regions)
         MCSet($cachekey, $data);
 
         if (($data['last_updated'] == $lastRecord['last_updated']) && isset($lastRecord['price']) && ($lastRecord['price'] == $data['price'])) {
+            DebugMessage(sprintf('Token API in region %s returned same data (%d copper, updated %s)', $region, $data['price'], TimeDiff($data['last_updated'], ['precision' => 'second'])), E_USER_NOTICE);
             continue;
         }
 
-        DebugMessage(sprintf('Token API in region %s returned new data (%d copper, updated %d seconds ago)', $region, $lastRecord['price'], time() - $data['last_updated']), E_USER_NOTICE);
+        DebugMessage(sprintf('Token API in region %s returned new data (%d copper, updated %s)', $region, $data['price'], TimeDiff($data['last_updated'], ['precision' => 'second'])), E_USER_NOTICE);
 
         $gotData[$region] = $region;
 
