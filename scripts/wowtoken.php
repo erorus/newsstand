@@ -72,8 +72,6 @@ $regionNames = [
     'KR' => 'Korean',
 ];
 
-$loopStart = time();
-$loops = 0;
 $gotData = CheckTokenAPI(array_keys($timeZones));
 $forceBuild = (isset($argv[1]) && $argv[1] == 'build');
 if ($gotData || $forceBuild) {
