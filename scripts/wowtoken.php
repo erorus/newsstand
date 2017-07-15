@@ -20,7 +20,6 @@ require_once __DIR__ . '/../incl/android.gcm.credentials.php';
 RunMeNTimes(1);
 CatchKill();
 
-define('SNAPSHOT_PATH', '/home/wowtoken/pending/');
 define('TWEET_FREQUENCY_MINUTES', 360); // tweet at least every 6 hours
 define('PRICE_CHANGE_THRESHOLD', 0.15); // was 0.2, for 20% change required. 0 means tweet every change
 define('BROTLI_PATH', __DIR__.'/brotli/bin/bro');
@@ -79,7 +78,7 @@ if ($gotData || $forceBuild) {
     SendTweets($forceBuild ? array_keys($timeZones) : array_keys($gotData));
     SendAndroidNotifications(array_keys($gotData));
 }
-DebugMessage('Done! Started ' . TimeDiff($startTime));
+DebugMessage('Done! Started ' . TimeDiff($startTime, ['precision' => 'second']));
 
 function CheckTokenAPI($regions)
 {
@@ -123,7 +122,7 @@ function CheckTokenAPI($regions)
 
         MCSet($cachekey, $data);
 
-        if (($data['last_updated'] == $lastRecord['last_updated']) && (!isset($lastRecord['price']) || $lastRecord['price'] == $data['price'])) {
+        if (($data['last_updated'] == $lastRecord['last_updated']) && isset($lastRecord['price']) && ($lastRecord['price'] == $data['price'])) {
             continue;
         }
 
@@ -133,7 +132,7 @@ function CheckTokenAPI($regions)
 
         $snapshotString = date('Y-m-d H:i:s', $data['last_updated']);
 
-        $stmt = $db->prepare('replace into tblWowToken (`region`, `when`, `marketgold`) values (?, ?, floor(?/10000))');
+        $stmt = $db->prepare('replace into tblWowToken (`region`, `when`, `marketgold`) values (?, ?, round(?/10000))');
         $stmt->bind_param('ssi', $region, $snapshotString, $data['price']);
         $stmt->execute();
         $stmt->close();
