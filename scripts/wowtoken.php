@@ -226,7 +226,8 @@ function BuildIncludes($regions)
     AtomicFilePutContents(__DIR__.'/../wowtoken/data/snapshot-history.csv', $csv, true);
     AtomicFilePutContents(__DIR__.'/../wowtoken/data/snapshot-history.json',
         json_encode([
-            'attention' => 'This file updates only once every 10 minutes at best. Do not just spam this endpoint.',
+            'attention' => 'Each region updates only once every 20 minutes at best. Do not just spam fetch this URL.',
+            'source' => 'You can get current data direct from Blizzard via their API: https://dev.battle.net/io-docs (Select "WoW Game Data" in the dropdown.)',
             'donate' => [
                 'text' => 'Was this useful? Want to throw me a couple bucks? Have a quick Paypal link. Thanks.',
                 'url' => 'https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=8Z9RWQTTNUNTN',
@@ -235,7 +236,8 @@ function BuildIncludes($regions)
             'history' => 'Want price history? Download this URL with gzip encoding.',
             ], JSON_NUMERIC_CHECK),
         json_encode([
-            'attention' => 'This file updates only once every 10 minutes at best. Do not just spam this endpoint.',
+            'attention' => 'Each region updates only once every 20 minutes at best. Do not just spam fetch this URL.',
+            'source' => 'You can get current data direct from Blizzard via their API: https://dev.battle.net/io-docs (Select "WoW Game Data" in the dropdown.)',
             'donate' => [
                 'text' => 'Was this useful? Want to throw me a couple bucks? Have a quick Paypal link. Thanks.',
                 'url' => 'https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=8Z9RWQTTNUNTN',
