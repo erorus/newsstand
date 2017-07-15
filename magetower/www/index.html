@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=700px">
     <title>MageTower.info</title>
     <link rel="shortcut icon" type="image/png" href="favicon.png">
-    <link rel="dns-prefetch" href="//data.magetower.info">
     <style type="text/css">
         body {
-            font-family: sans-serif;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 400;
             margin: 40px auto 10px;
             max-width: 780px;
             line-height: 1.6;
@@ -22,6 +22,7 @@
         }
 
         h1 {
+            font-weight: 800;
             margin: 2em 1em;
             color: #bf9;
             font-size: 300%;
@@ -31,25 +32,19 @@
         .error {
             color: #bf9 !important;
             font-size: 125%;
-            font-style: italic;
             text-align: center;
         }
 
-        #result {
-            visibility: hidden
+        .error a {
+            color: #dfb;
         }
     </style>
     <link href="https://fonts.googleapis.com/css?family=Montserrat:400,400i,600,800" rel="stylesheet">
-    <link href="cached/main.css?1" rel="stylesheet">
 </head>
 <body>
     <h1>MageTower.info</h1>
 
-    <noscript><p class="error">You'll need Javascript for this one, sorry.</p></noscript>
+    <p class="error">This site is closed.<br>Visit <a href="http://www.wowhead.com/">Wowhead</a> for the current building status.</p>
 
-    <div id="result"></div>
-    <div id="lastupdate"></div>
-
-    <script type="text/javascript" src="cached/main.js?5"></script>
 </body>
 </html>
