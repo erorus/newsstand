@@ -25,7 +25,7 @@ define('TWEET_FREQUENCY_MINUTES', 360); // tweet at least every 6 hours
 define('PRICE_CHANGE_THRESHOLD', 0.15); // was 0.2, for 20% change required. 0 means tweet every change
 define('BROTLI_PATH', __DIR__.'/brotli/bin/bro');
 define('DYNAMIC_JSON_MAX_COUNT', 40);
-define('API_CHECK_INTERVAL', 870); // skip checking API if it was last updated fewer than this many seconds ago
+define('API_CHECK_INTERVAL', 1080); // skip checking API if it was last updated fewer than this many seconds ago
 
 if (!DBConnect()) {
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
@@ -101,7 +101,7 @@ function CheckTokenAPI($regions)
         }
 
         if ($lastRecord['last_updated'] > time() - API_CHECK_INTERVAL) {
-            DebugMessage(sprintf('Skipping token API check for %s, last updated %d seconds ago', $region, time() - $lastRecord['last_updated']), E_USER_NOTICE);
+            DebugMessage(sprintf('Skipping token API check for %s, last updated ', $region, TimeDiff($lastRecord['last_updated'])), E_USER_NOTICE);
             continue;
         }
 
