@@ -549,6 +549,12 @@ foreach (['us','eu'] as $region) {
         break;
     }
 }
+foreach (['us','eu','tw','kr'] as $region) {
+    if (CatchKill()) {
+        break;
+    }
+    $file['tokens'][$region] = FetchTokenData($region);
+}
 $file['finished'] = JSNow();
 
 if (!CatchKill()) {
@@ -564,6 +570,36 @@ function JSNow() {
     return floor(microtime(true) * 1000);
 }
 
+function FetchTokenData($region) {
+    $result = [
+        'checked' => JSNow()
+    ];
+
+    $outHeaders = [];
+    $json = \Newsstand\HTTP::Get(GetBattleNetUrl($region, '/data/wow/token/'), [], $outHeaders);
+    if (!$json) {
+        $result['status'] = 'HTTP ' . $outHeaders['responseCode'];
+        if (isset($outHeaders['X-Mashery-Error-Code'])) {
+            $result['status'] = 'Mashery: ' . $outHeaders['X-Mashery-Error-Code'];
+        }
+        return $result;
+    }
+
+    $data = json_decode($json, true);
+    if (json_last_error() != JSON_ERROR_NONE) {
+        $result['status'] = 'Invalid JSON response';
+        return $result;
+    }
+
+    if (!isset($data['last_updated']) || !isset($data['price'])) {
+        $result['status'] = 'Missing fields in JSON response';
+        return $result;
+    }
+
+    $result['modified'] = $data['last_updated'] * 1000;
+    return $result;
+}
+
 function FetchRegionData($region) {
     $region = trim(strtolower($region));
 
@@ -575,12 +611,12 @@ function FetchRegionData($region) {
     $jsonString = HTTP::Get($url);
     $json = json_decode($jsonString, true);
     if (json_last_error() != JSON_ERROR_NONE) {
-        DebugMessage("Error decoding ".strlen($jsonString)." length JSON string for $region: ".json_last_error_msg(), E_USER_WARNING);
+        DebugMessage("Error decoding ".strlen($jsonString)." length JSON string for $region: ".json_last_error_msg());
         return $results;
     }
     $showWhenMissing = true;
     if (!isset($json['realms'])) {
-        DebugMessage("Did not find realms in realm status JSON for $region", E_USER_WARNING);
+        DebugMessage("Did not find realms in realm status JSON for $region");
         $json['realms'] = [];
         $showWhenMissing = false;
     }
@@ -653,12 +689,12 @@ function FetchRegionData($region) {
 
         foreach ($chunk as $slug => $slugs) {
             $json = [];
-            if (!isset($jsons[$slug])) {
-                DebugMessage("No HTTP response for $region $slug", E_USER_WARNING);
+            if (!isset($jsons[$slug]) || !$jsons[$slug]) {
+                DebugMessage("No HTTP response for $region $slug");
             } else {
                 $json = json_decode($jsons[$slug], true);
                 if (json_last_error() != JSON_ERROR_NONE) {
-                    DebugMessage("Error decoding JSON string for $region $slug: " . json_last_error_msg(), E_USER_WARNING);
+                    DebugMessage("Error decoding JSON string for $region $slug: " . json_last_error_msg());
                     $json = [];
                 }
             }
@@ -696,13 +732,13 @@ function FetchRegionData($region) {
                 if (preg_match('/(?:^|\n)Last-Modified: ([^\n\r]+)/i', $header, $res)) {
                     $fileDate = strtotime($res[1]) * 1000;
                 } elseif ($header) {
-                    DebugMessage("Found no last-modified header for $region $slug at " . $dataUrls[$slug] . "\n" . $header, E_USER_WARNING);
+                    DebugMessage("Found no last-modified header for $region $slug at " . $dataUrls[$slug] . "\n" . $header);
                 }
 
                 if (preg_match('/"realms":\s*(\[[^\]]*\])/', $body, $res)) {
                     $dataRealms = json_decode($res[1], true);
                     if (json_last_error() != JSON_ERROR_NONE) {
-                        DebugMessage("JSON error decoding realms from $region $slug data file\n$body", E_USER_WARNING);
+                        DebugMessage("JSON error decoding realms from $region $slug data file\n$body");
                     } else {
                         foreach ($dataRealms as $dataRealm) {
                             if (isset($dataRealm['slug'])) {
@@ -711,10 +747,10 @@ function FetchRegionData($region) {
                         }
                     }
                 } else {
-                    DebugMessage("Found no realms section in data file for $region $slug\n$body", E_USER_WARNING);
+                    DebugMessage("Found no realms section in data file for $region $slug\n$body");
                 }
             } elseif (isset($dataUrls[$slug])) {
-                DebugMessage("Fetched no data file for $region $slug at " . $dataUrls[$slug], E_USER_WARNING);
+                DebugMessage("Fetched no data file for $region $slug at " . $dataUrls[$slug]);
             }
             foreach ($slugs as $connectedSlug) {
                 $results[$connectedSlug]['file'] = $fileDate;

@@ -108,11 +108,12 @@
 
         var failures = [];
         var failPrefix, chainedFail;
-        var row;
+        var row, region;
         var slugCount;
         var percentages = [];
         var successful, total;
-        for (var region in response.regions) {
+
+        for (region in response.regions) {
             if (!response.regions.hasOwnProperty(region)) {
                 continue;
             }
@@ -178,9 +179,31 @@
                 percentages.push('<b>' + region.toUpperCase() + '</b>: ' + Math.floor(successful / total * 100) + '% working');
             }
         }
+
+        for (region in response.tokens) {
+            if (!response.tokens.hasOwnProperty(region)) {
+                continue;
+            }
+
+            row = response.tokens[region];
+            failPrefix = ' <b>' + region.toUpperCase() + ' WoW Token Prices</b>: ';
+            if (row.status) {
+                percentages.push('<b>' + region.toUpperCase() + ' tokens</b>: broken');
+                failures.push(failPrefix + row.status);
+                continue;
+            }
+
+            if (row.checked - row.modified > 30 * 60 * 1000) {
+                percentages.push('<b>' + region.toUpperCase() + ' tokens</b>: broken');
+                failures.push(failPrefix + ' data is ' + PrettySeconds(Math.floor((row.checked - row.modified) / 1000)) + ' old.')
+                continue;
+            }
+
+            //percentages.push('<b>' + region.toUpperCase() + ' tokens</b>: working');
+        }
+
         var srt = function(a,b) { return a.localeCompare(b); };
         failures.sort(srt);
-        percentages.sort(srt);
 
         if (failures.length == 0) {
             resultDiv.appendChild(document.createTextNode('Yes'));
@@ -192,7 +215,7 @@
             var li, ul = document.createElement('ol');
             for (var x = 0; x < failures.length; x++) {
                 li = document.createElement('li');
-                li.innerHTML = failures[x];
+                li.innerHTML = failures[x].replace(/^\s+/, '');
                 ul.appendChild(li);
             }
 
