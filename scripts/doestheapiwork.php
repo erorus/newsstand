@@ -582,6 +582,17 @@ function FetchTokenData($region) {
         if (isset($outHeaders['X-Mashery-Error-Code'])) {
             $result['status'] = 'Mashery: ' . $outHeaders['X-Mashery-Error-Code'];
         }
+        if (isset($outHeaders['Content-Type']) && ($outHeaders['Content-Type'] == 'application/json;charset=UTF-8')) {
+            $data = json_decode($outHeaders['body'], true);
+            if (json_last_error() != JSON_ERROR_NONE) {
+                if (isset($data['type'])) {
+                    $result['status'] = 'Blizzard: ' . $data['type'];
+                    if (isset($data['detail'])) {
+                        $result['status'] .= ' (' . $data['detail'] . ')';
+                    }
+                }
+            }
+        }
         return $result;
     }
 
