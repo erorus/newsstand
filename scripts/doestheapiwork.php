@@ -777,7 +777,7 @@ function FetchRegionData($region) {
     return $results;
 }
 
-function FetchURLBatch($urls, $curlOpts = []) {
+function FetchURLBatch($urls, $origCurlOpts = []) {
     if (!$urls) {
         return [];
     }
@@ -788,8 +788,8 @@ function FetchURLBatch($urls, $curlOpts = []) {
         CURLOPT_RETURNTRANSFER  => true,
         CURLOPT_FOLLOWLOCATION  => true,
         CURLOPT_MAXREDIRS       => 2,
-        CURLOPT_TIMEOUT         => 10,
-    ] + $curlOpts;
+        CURLOPT_TIMEOUT         => 6,
+    ] + $origCurlOpts;
 
     if (!isset($curlOpts[CURLOPT_RANGE]) && !isset($curlOpts[CURLOPT_ENCODING])) {
         $curlOpts[CURLOPT_ENCODING] = 'gzip';
@@ -828,6 +828,25 @@ function FetchURLBatch($urls, $curlOpts = []) {
 
         curl_multi_remove_handle($mh, $curls[$k]);
         curl_close($curls[$k]);
+    }
+
+    static $isRetrying = false;
+    if (!$isRetrying) {
+        $toRetry = [];
+        foreach ($results as $k => $v) {
+            if (!$v) {
+                $toRetry[$k] = $urls[$k];
+            }
+        }
+        if ($toRetry) {
+            $isRetrying = true;
+            DebugMessage('Retrying ' . implode(', ', array_keys($toRetry)));
+            $more = FetchURLBatch($toRetry, $origCurlOpts);
+            foreach ($more as $k => $v) {
+                $results[$k] = $v;
+            }
+            $isRetrying = false;
+        }
     }
 
     return $results;
