@@ -20,6 +20,7 @@ require_once __DIR__ . '/../incl/android.gcm.credentials.php';
 RunMeNTimes(1);
 CatchKill();
 
+define('SNAPSHOT_PATH', '/home/wowtoken/pending/');
 define('TWEET_FREQUENCY_MINUTES', 360); // tweet at least every 6 hours
 define('PRICE_CHANGE_THRESHOLD', 0.15); // was 0.2, for 20% change required. 0 means tweet every change
 define('BROTLI_PATH', __DIR__.'/brotli/bin/bro');
@@ -71,7 +72,22 @@ $regionNames = [
     'KR' => 'Korean',
 ];
 
-$gotData = CheckTokenAPI(array_keys($timeZones));
+$loopStart = time();
+$loops = 0;
+$gotData = [];
+while ((!CatchKill()) && (time() < ($loopStart + 60))) {
+    heartbeat();
+    if (!($region = NextDataFile())) {
+        break;
+    }
+    if ($region !== true) {
+        $gotData[$region] = $region;
+    }
+    if ($loops++ > 30) {
+        break;
+    }
+}
+$gotData = array_merge($gotData, CheckTokenAPI(['US','EU','TW','KR']));
 $forceBuild = (isset($argv[1]) && $argv[1] == 'build');
 if ($gotData || $forceBuild) {
     BuildIncludes(array_keys($timeZones));
@@ -79,6 +95,144 @@ if ($gotData || $forceBuild) {
     SendAndroidNotifications(array_keys($gotData));
 }
 DebugMessage('Done! Started ' . TimeDiff($startTime, ['precision' => 'second']));
+
+function NextDataFile()
+{
+    $dir = scandir(substr(SNAPSHOT_PATH, 0, -1), SCANDIR_SORT_ASCENDING);
+    $gotFile = false;
+    $wait = false;
+    foreach ($dir as $fileName) {
+        if (preg_match('/^(\d+)-(US|EU|CN|TW|KR)\.lua$/', $fileName, $res)) {
+            if (filemtime(SNAPSHOT_PATH . $fileName) > (time() - 5)) {
+                $wait = true;
+                continue;
+            }
+
+            if (filesize(SNAPSHOT_PATH . $fileName) == 0) {
+                continue;
+            }
+
+            if (($handle = fopen(SNAPSHOT_PATH . $fileName, 'rb')) === false) {
+                continue;
+            }
+
+            if (!flock($handle, LOCK_EX | LOCK_NB)) {
+                fclose($handle);
+                continue;
+            }
+
+            if (feof($handle)) {
+                fclose($handle);
+                unlink(SNAPSHOT_PATH . $fileName);
+                continue;
+            }
+
+            $gotFile = $fileName;
+            break;
+        }
+    }
+    unset($dir);
+
+    if ($wait && !$gotFile) {
+        heartbeat();
+        sleep(5);
+        return true;
+    }
+
+    if (!$gotFile) {
+        return false;
+    }
+
+    $snapshot = intval($res[1], 10);
+    $region = $res[2];
+
+    $lua = LuaDecode(fread($handle, filesize(SNAPSHOT_PATH . $fileName)));
+
+    ftruncate($handle, 0);
+    fclose($handle);
+    unlink(SNAPSHOT_PATH . $fileName);
+
+    if (!$lua) {
+        DebugMessage("Region $region $snapshot data file corrupted!", E_USER_WARNING);
+        return true;
+    }
+
+    return ParseTokenData($region, $snapshot, $lua);
+}
+
+function ParseTokenData($region, $snapshot, &$lua)
+{
+    global $db;
+
+    if (!isset($lua['now']) || !isset($lua['region'])) {
+        DebugMessage("Region $region $snapshot data file does not have snapshot or region!", E_USER_WARNING);
+        return false;
+    }
+
+    DebugMessage(sprintf('New token lua file for region %s returned new data (from %d seconds ago)', $region, time() - $lua['now']), E_USER_NOTICE);
+
+    $snapshotString = date('Y-m-d H:i:s', $lua['now']);
+    foreach (['selltime', 'market', 'result', 'selltimeraw'] as $col) {
+        if (!isset($lua[$col])) {
+            $lua[$col] = null;
+        }
+    }
+
+    $sql = 'replace into tblWowToken (`region`, `when`, `marketgold`, `timeleft`, `timeleftraw`, `result`) values (?, ?, round(?/10000), ?, ?, ?)';
+
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('ssiiii',
+        $lua['region'],
+        $snapshotString,
+        $lua['market'],
+        $lua['selltime'],
+        $lua['selltimeraw'],
+        $lua['result']
+    );
+    $stmt->execute();
+    $stmt->close();
+
+    return $lua['region'];
+}
+
+function LuaDecode($rawLua) {
+    $tr = [];
+
+    $json = '';
+
+    $path = __DIR__ . '/JSON.lua';
+    $lua = $rawLua . "\nlocal JSON = (loadfile \"$path\")()\nprint(JSON:encode(TUJWoWToken))\n";
+
+    $desc = [
+        ['pipe', 'r'],
+        ['pipe', 'w'],
+        STDERR
+    ];
+    $pipes = [];
+
+    $r = proc_open('lua', $desc, $pipes);
+    if (is_resource($r)) {
+        fwrite($pipes[0], $lua);
+        fclose($pipes[0]);
+
+        $json = stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+
+        $ret = proc_close($r);
+        if ($ret != 0) {
+            $json = '';
+        }
+    }
+
+    if ($json) {
+        $tr = json_decode($json, true);
+        if (json_last_error() != JSON_ERROR_NONE) {
+            $tr = [];
+        }
+    }
+
+    return $tr;
+}
 
 function CheckTokenAPI($regions)
 {
