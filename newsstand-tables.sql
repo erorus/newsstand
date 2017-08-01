@@ -222,7 +222,8 @@ CREATE TABLE IF NOT EXISTS `tblDBCItem` (
   `requiredskill` smallint(5) unsigned DEFAULT NULL,
   `display` mediumint(8) unsigned DEFAULT NULL,
   `flags` set('pvp','notransmog','sniffed') COLLATE utf8_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `display` (`display`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
