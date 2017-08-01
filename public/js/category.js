@@ -780,7 +780,7 @@ var TUJ_Category = function ()
             tr.appendChild(td);
             titleTd = td;
 
-            var sluggedName = data.name.replace(/[^ a-zA-Z0-9\.-_]/, '');
+            var sluggedName = data.name.replace(/[^ a-zA-Z0-9\.\-_]/, '');
             for (x = 0; x < sluggedName.length; x++) {
                 if (sluggedName.substr(x, 1) == ' ') {
                     sluggedName = sluggedName.substr(0, x) + sluggedName.substr(x+1, 1).toUpperCase() + sluggedName.substr(x+2);
@@ -907,6 +907,15 @@ var TUJ_Category = function ()
                     return ((b.globalmedian - b.price) - (a.globalmedian - a.price)) ||
                         ((a.price ? 0 : 1) - (b.price ? 0 : 1)) ||
                         (a.price - b.price) ||
+                        a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]);
+                });
+                break;
+
+            case 'globalmedian':
+                data.items.sort(function (a, b)
+                {
+                    return ((a.globalmedian ? 0 : 1) - (b.globalmedian ? 0 : 1)) ||
+                        (b.globalmedian - a.globalmedian) ||
                         a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]);
                 });
                 break;

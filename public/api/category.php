@@ -25,6 +25,24 @@ define('CATEGORY_FLAGS_WITH_BONUSES', 4);
 define('CATEGORY_MAX_OBLITERUM', 8);
 define('CATEGORY_OBLITERUM_ZERO_TAG', 13256);
 
+define('ABSENT_TRANSMOG_SQL', '
+i.id in (
+    select z.id from (
+        select x.id, ifnull(sum(xis.quantity), 0) itmcount
+        from tblDBCItem as x
+        join tblDBCSpell xs on xs.crafteditem = x.id
+        join tblDBCItem xai on xai.display = x.display and xai.class = x.class
+        left join tblItemSummary xis on xis.item = xai.id and xis.house = %d
+        where xs.skillline = %d
+        and x.auctionable = 1
+        and x.quality > 1
+        and x.display is not null
+        and x.flags & 2 = 0
+        and x.class in (2, 4)
+        group by x.id) z
+    where z.itmcount = 0
+)');
+
 BotCheck();
 if ($canCache) {
     HouseETag($house);
@@ -1086,6 +1104,20 @@ function CategoryResult_leatherworking($house)
     }
 
     $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'        => 'Absent Transmog',
+            'hiddenCols'  => ['quantity' => true, 'price' => true, 'avgprice' => true],
+            'visibleCols' => ['globalmedian' => true],
+            'sort'        => 'globalmedian',
+            'items'       => CategoryRegularItemList($house, [
+                'where' => sprintf(ABSENT_TRANSMOG_SQL, $house, 165),
+                'cols'  => 'g.median globalmedian',
+            ])
+        ]
+    ];
+
+    $tr['results'][] = [
         'name' => 'RecipeList',
         'data' => [
             'name'  => 'Recipes',
@@ -1188,6 +1220,20 @@ function CategoryResult_blacksmithing($house)
             ]
         ];
     }
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'        => 'Absent Transmog',
+            'hiddenCols'  => ['quantity' => true, 'price' => true, 'avgprice' => true],
+            'visibleCols' => ['globalmedian' => true],
+            'sort'        => 'globalmedian',
+            'items'       => CategoryRegularItemList($house, [
+                'where' => sprintf(ABSENT_TRANSMOG_SQL, $house, 164),
+                'cols'  => 'g.median globalmedian',
+            ])
+        ]
+    ];
 
     $tr['results'][] = [
         'name' => 'RecipeList',
@@ -1348,6 +1394,20 @@ function CategoryResult_jewelcrafting($house)
     }
 
     $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'        => 'Absent Transmog',
+            'hiddenCols'  => ['quantity' => true, 'price' => true, 'avgprice' => true],
+            'visibleCols' => ['globalmedian' => true],
+            'sort'        => 'globalmedian',
+            'items'       => CategoryRegularItemList($house, [
+                'where' => sprintf(ABSENT_TRANSMOG_SQL, $house, 755),
+                'cols'  => 'g.median globalmedian',
+            ])
+        ]
+    ];
+
+    $tr['results'][] = [
         'name' => 'RecipeList',
         'data' => [
             'name'  => 'Recipes',
@@ -1485,6 +1545,20 @@ EOF;
     ];
 
     $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'        => 'Absent Transmog',
+            'hiddenCols'  => ['quantity' => true, 'price' => true, 'avgprice' => true],
+            'visibleCols' => ['globalmedian' => true],
+            'sort'        => 'globalmedian',
+            'items'       => CategoryRegularItemList($house, [
+                'where' => sprintf(ABSENT_TRANSMOG_SQL, $house, 202),
+                'cols'  => 'g.median globalmedian',
+            ])
+        ]
+    ];
+
+    $tr['results'][] = [
         'name' => 'RecipeList',
         'data' => [
             'name'  => 'Recipes',
@@ -1610,6 +1684,20 @@ function CategoryResult_tailoring($house)
             ]
         ];
     };
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'        => 'Absent Transmog',
+            'hiddenCols'  => ['quantity' => true, 'price' => true, 'avgprice' => true],
+            'visibleCols' => ['globalmedian' => true],
+            'sort'        => 'globalmedian',
+            'items'       => CategoryRegularItemList($house, [
+                'where' => sprintf(ABSENT_TRANSMOG_SQL, $house, 197),
+                'cols'  => 'g.median globalmedian',
+            ])
+        ]
+    ];
 
     $tr['results'][] = [
         'name' => 'RecipeList',
