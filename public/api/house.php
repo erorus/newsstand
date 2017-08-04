@@ -107,7 +107,7 @@ function HouseTopSellers($house)
 {
     global $db;
 
-    $cacheKey = 'house_topsellers2';
+    $cacheKey = 'house_topsellers3';
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
     }
@@ -124,7 +124,7 @@ join tblItemGlobal g on a.item = g.item and g.bonusset = ifnull(ae.bonusset, 0) 
 where a.item != 86400
 and a.house = ?
 group by a.seller
-order by sum(g.median * a.quantity) desc
+order by sum(least(ifnull(a.buy, a.bid), g.median * a.quantity)) desc
 limit 10
 EOF;
 
