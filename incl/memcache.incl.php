@@ -1,5 +1,9 @@
 <?php
 
+if (!class_exists('Memcached')) {
+    require_once __DIR__ . '/memcached-stub.incl.php';
+}
+
 $memcache = new Memcached;
 if (!$memcache->getServerList()) {
     $memcache->addServer('127.0.0.1', 11211);

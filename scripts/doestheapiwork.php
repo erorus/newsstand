@@ -578,7 +578,12 @@ function FetchTokenData($region) {
     $outHeaders = [];
     $json = \Newsstand\HTTP::Get(GetBattleNetUrl($region, '/data/wow/token/'), [], $outHeaders);
     if (!$json) {
-        $result['status'] = 'HTTP ' . $outHeaders['responseCode'];
+        if (isset($outHeaders['curlError'])) {
+            $result['status'] = $outHeaders['curlError'];
+        }
+        if (isset($outHeaders['responseCode'])) {
+            $result['status'] = 'HTTP ' . $outHeaders['responseCode'];
+        }
         if (isset($outHeaders['X-Mashery-Error-Code'])) {
             $result['status'] = 'Mashery: ' . $outHeaders['X-Mashery-Error-Code'];
         }

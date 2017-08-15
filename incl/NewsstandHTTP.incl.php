@@ -119,6 +119,7 @@ class HTTP
         $data = curl_exec($ch);
         $errMsg = curl_error($ch);
         if ($errMsg) {
+            $outHeaders['curlError'] = $errMsg;
             trigger_error(sprintf("cURL error fetching %s - %d %s", $url, curl_errno($ch), $errMsg), E_USER_NOTICE);
             return false;
         }
