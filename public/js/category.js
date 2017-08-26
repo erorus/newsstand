@@ -658,6 +658,170 @@ var TUJ_Category = function ()
         };
     }
 
+    function LoadCharacterPets(dta, realmSel, charInput, resultsDiv) {
+        var loadRealm = realmSel.selectedIndex == 0 ? false : realmSel.options[realmSel.selectedIndex].value;
+        var loadChar = charInput.value.replace(/\s+/g, '');
+
+        $(resultsDiv).empty();
+
+        if (!loadRealm || !loadChar) {
+            return;
+        }
+
+        var post = {
+            'char': loadChar,
+            'realm': loadRealm,
+        };
+
+        $('#progress-page').show();
+
+        $.ajax({
+            data: post,
+            success: function (d)
+            {
+                if (d.captcha) {
+                    tuj.AskCaptcha(d.captcha);
+                } else {
+                    if (d.pets) {
+                        ShowCharacterPets(dta, d.pets, loadChar, resultsDiv);
+                    }
+                }
+            },
+            error: function (xhr, stat, er)
+            {
+                if ((xhr.status == 503) && xhr.hasOwnProperty('responseJSON') && xhr.responseJSON && xhr.responseJSON.hasOwnProperty('maintenance')) {
+                    tuj.APIMaintenance(xhr.responseJSON.maintenance);
+                } else {
+                    alert('Error fetching page data: ' + stat + ' ' + er);
+                }
+            },
+            complete: function ()
+            {
+                $('#progress-page').hide();
+            },
+            url: 'api/characterpets.php'
+        });
+    }
+
+    function ShowCharacterPets(priceLookup, pets, charName, dest) {
+        var speciesList = [];
+        for (var s in pets) {
+            if (!pets.hasOwnProperty(s)) {
+                continue;
+            }
+            if (!priceLookup.hasOwnProperty(s)) {
+                continue;
+            }
+            speciesList.push(s);
+        }
+
+        speciesList.sort(function(a, b) {
+            return (priceLookup[b].price - priceLookup[a].price) ||
+                priceLookup[a]['name_' + tuj.locale].localeCompare(priceLookup[b]['name_' + tuj.locale]);
+        });
+
+        var tr, td, t = libtuj.ce('table');
+        dest.appendChild(t);
+        t.className = 'category category-battlepets';
+
+        tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.colSpan = 12;
+        $(td).text(charName.substr(0,1).toLocaleUpperCase() + charName.substr(1).toLocaleLowerCase());
+
+        tr = libtuj.ce('tr');
+        t.appendChild(tr);
+
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.colSpan = 2;
+        td.className = 'name';
+        $(td).text(tuj.lang.name);
+
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.className = 'quantity';
+        $(td).text(tuj.lang.availableAbbrev);
+
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.className = 'price';
+        $(td).text(tuj.lang.currentPriceAbbrev);
+
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.className = 'price';
+        $(td).text(tuj.lang.mean);
+
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.className = 'price';
+        $(td).text(tuj.lang.regional);
+
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.className = 'date';
+        $(td).text(tuj.lang.lastSeen);
+
+        var curIconTd, curNameTd, pet;
+        for (var x = 0; x < speciesList.length; x++) {
+            pet = priceLookup[speciesList[x]];
+
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+
+            curIconTd = td = libtuj.ce('td');
+            td.rowSpan = 1;
+            td.className = 'icon';
+            tr.appendChild(td);
+            var i = libtuj.ce('img');
+            td.appendChild(i);
+            i.className = 'icon';
+            i.src = libtuj.IconURL(pet.icon, 'medium');
+
+            curNameTd = td = libtuj.ce('td');
+            td.rowSpan = 1;
+            td.className = 'name';
+            tr.appendChild(td);
+            var a = libtuj.ce('a');
+            td.appendChild(a);
+            a.href = tuj.BuildHash({page: 'battlepet', id: pet.species});
+            a.rel = 'npc=' + pet.npc + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
+            $(a).text('[' + pet['name_' + tuj.locale] + ']');
+
+            td = libtuj.ce('td');
+            td.className = 'quantity';
+            tr.appendChild(td);
+            td.appendChild(libtuj.FormatQuantity(pet.quantity));
+
+            td = libtuj.ce('td');
+            td.className = 'price';
+            tr.appendChild(td);
+            td.appendChild(libtuj.FormatPrice(pet.price));
+
+            td = libtuj.ce('td');
+            td.className = 'price';
+            tr.appendChild(td);
+            td.appendChild(libtuj.FormatPrice(pet.avgprice));
+
+            td = libtuj.ce('td');
+            td.className = 'price';
+            tr.appendChild(td);
+            td.appendChild(libtuj.FormatPrice(pet.regionavgprice));
+
+            td = libtuj.ce('td');
+            td.className = 'date';
+            tr.appendChild(td);
+            td.appendChild(libtuj.FormatDate(pet.lastseen));
+
+            for (var y = pets[speciesList[x]]; y > 1; y--) {
+                t.appendChild(tr.cloneNode(true));
+            }
+        }
+    }
+
     function CategoryResult(hash, dta, resultsContainer)
     {
         if (hash) {
@@ -690,6 +854,8 @@ var TUJ_Category = function ()
         $('#page-title').empty().append(document.createTextNode(tuj.lang.category + ': ' + titleName));
         tuj.SetTitle(tuj.lang.category + ': ' + titleName);
 
+        var everySpecies = {};
+
         if (dta.hasOwnProperty('results')) {
             if (['custom', 'battlepets', 'deals', 'unusualItems'].indexOf(dta.name) < 0) {
                 var compareDiv = libtuj.ce('div');
@@ -705,20 +871,50 @@ var TUJ_Category = function ()
                 btn.value = tuj.lang.submit;
                 compareDiv.appendChild(btn);
                 $(btn).on('click', LoadComparedRealm.bind(btn, dta, sel, resultsDiv));
+            } else if (dta.name == 'battlepets') {
+                var loadPetsDiv = libtuj.ce('div');
+                loadPetsDiv.className = 'custom-textarea center';
+                resultsDiv.append(loadPetsDiv);
+                loadPetsDiv.appendChild(document.createTextNode("Load pets from:"));
+
+                var sel = MakeRealmCompareSelBox(params.realm);
+                loadPetsDiv.appendChild(sel);
+
+                var inbox = libtuj.ce('input');
+                inbox.style.width = '15em';
+                inbox.style.margin = '0 1em';
+                inbox.maxLength = 12;
+                inbox.placeholder = tuj.lang.name;
+                loadPetsDiv.appendChild(inbox);
+
+                var btn = libtuj.ce('input');
+                btn.type = 'button';
+                btn.value = tuj.lang.submit;
+                loadPetsDiv.appendChild(btn);
+
+                var charPetsResults = libtuj.ce('div');
+                resultsDiv.append(charPetsResults);
             }
 
             resultsDiv.append(libtuj.Ads.Add('8323200718'));
 
-            var f, resultCount = 0;
+            var r, f, resultCount = 0;
             for (var x = 0; f = dta.results[x]; x++) {
                 if (resultFunctions.hasOwnProperty(f.name)) {
                     var d = libtuj.ce();
                     d.className = 'category-' + f.name.toLowerCase();
                     resultsDiv.append(d);
-                    if (resultFunctions[f.name](f.data, d) && (++resultCount == 5)) {
+                    if ((r = resultFunctions[f.name](f.data, d)) && (++resultCount == 5)) {
                         resultsDiv.append(libtuj.Ads.Add('2276667118'));
                     }
+                    if (f.name == 'BattlePetList') {
+                        $.extend(everySpecies, r);
+                    }
                 }
+            }
+
+            if (dta.name == 'battlepets' && everySpecies) {
+                $(btn).on('click', LoadCharacterPets.bind(btn, everySpecies, sel, inbox, charPetsResults));
             }
         }
 
@@ -1087,6 +1283,8 @@ var TUJ_Category = function ()
                 a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]);
         };
 
+        var everySpecies = {};
+
         for (petType in tuj.lang.petTypes) {
             if (!tuj.lang.petTypes.hasOwnProperty(petType)) {
                 continue;
@@ -1149,6 +1347,7 @@ var TUJ_Category = function ()
                 }
 
                 allSpecies.push(data[petType][species]);
+                everySpecies[species] = data[petType][species];
             }
 
             allSpecies.sort(speciesSort);
@@ -1205,7 +1404,7 @@ var TUJ_Category = function ()
 
         }
 
-
+        return everySpecies;
     };
 
     resultFunctions.FishTable = function (data, dest)
