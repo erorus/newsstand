@@ -124,7 +124,7 @@ function PetAuctions($house, $species)
 {
     global $db;
 
-    $key = 'battlepet_auctions2_' . $species;
+    $key = 'battlepet_auctions2s_' . $species;
     if (($tr = MCGetHouse($house, $key)) !== false) {
         return $tr;
     }
@@ -143,7 +143,7 @@ EOF;
     $stmt->bind_param('ii', $house, $species);
     $stmt->execute();
     $result = $stmt->get_result();
-    $tr = DBMapArray($result, array('breed', null));
+    $tr = DBMapArray($result, null);
     $stmt->close();
 
     MCSetHouse($house, $key, $tr);
