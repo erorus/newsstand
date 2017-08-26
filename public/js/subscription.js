@@ -590,7 +590,7 @@ var TUJ_Subscription = function ()
                 h = {page: 'item', id: item.item + (item.tagurl ? '.'+item.tagurl : '')};
             } else if (item.species) {
                 a.rel = 'npc=' + item.npc + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
-                h = {page: 'battlepet', id: item.species + (item.breed ? ('.'+item.breed) : '')};
+                h = {page: 'battlepet', id: item.species};
             }
             if (hashRealm) {
                 h.region = hashRegion;
@@ -604,7 +604,6 @@ var TUJ_Subscription = function ()
                 + (item['bonusname_' + tuj.locale] ? ' ' + item['bonusname_' + tuj.locale].substr(0, item['bonusname_' + tuj.locale].indexOf('|') >= 0 ? item['bonusname_' + tuj.locale].indexOf('|') : item['bonusname_' + tuj.locale].length) : '')
                 + ']'
                 + (item['bonustag_' + tuj.locale] ? ' ' : '')
-                + (item.hasOwnProperty('breed') ? (tuj.lang.breedsLookup.hasOwnProperty(item.breed) ? ' ' + tuj.lang.breedsLookup[item.breed] : '') : '')
             );
             if (item['bonustag_' + tuj.locale]) {
                 var tagspan = libtuj.ce('span');

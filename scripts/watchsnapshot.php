@@ -18,7 +18,6 @@ define('ARRAY_INDEX_BUYOUT', 1);
 define('ARRAY_INDEX_QUANTITY', 0);
 define('ARRAY_INDEX_AUCTIONS', 1);
 define('ARRAY_INDEX_MARKETPRICE', 2);
-define('ARRAY_INDEX_ALLBREEDS', -1);
 
 ini_set('memory_limit', '512M');
 
@@ -212,21 +211,13 @@ function ParseAuctionData($house, $snapshot, &$json)
                 } else {
                     $aucList = &$petBids;
                 }
-                if (!isset($aucList[$auction['petSpeciesId']][ARRAY_INDEX_ALLBREEDS])) {
-                    $aucList[$auction['petSpeciesId']][ARRAY_INDEX_ALLBREEDS] = $emptyItemInfo;
+                if (!isset($aucList[$auction['petSpeciesId']])) {
+                    $aucList[$auction['petSpeciesId']] = $emptyItemInfo;
                 }
                 if ($hasBuyout) {
-                    AuctionListInsert($aucList[$auction['petSpeciesId']][ARRAY_INDEX_ALLBREEDS][ARRAY_INDEX_AUCTIONS], $auction['quantity'], $auction['buyout']);
+                    AuctionListInsert($aucList[$auction['petSpeciesId']][ARRAY_INDEX_AUCTIONS], $auction['quantity'], $auction['buyout']);
                 }
-                $aucList[$auction['petSpeciesId']][ARRAY_INDEX_ALLBREEDS][ARRAY_INDEX_QUANTITY] += $auction['quantity'];
-
-                if (!isset($aucList[$auction['petSpeciesId']][$auction['petBreedId']])) {
-                    $aucList[$auction['petSpeciesId']][$auction['petBreedId']] = $emptyItemInfo;
-                }
-                if ($hasBuyout) {
-                    AuctionListInsert($aucList[$auction['petSpeciesId']][$auction['petBreedId']][ARRAY_INDEX_AUCTIONS], $auction['quantity'], $auction['buyout']);
-                }
-                $aucList[$auction['petSpeciesId']][$auction['petBreedId']][ARRAY_INDEX_QUANTITY] += $auction['quantity'];
+                $aucList[$auction['petSpeciesId']][ARRAY_INDEX_QUANTITY] += $auction['quantity'];
             } else {
                 if ($hasBuyout) {
                     $aucList = &$itemBuyouts;
@@ -266,7 +257,7 @@ function ParseAuctionData($house, $snapshot, &$json)
     $updateObserved = [];
     $watchesCount = 0;
     $sql = <<<'EOF'
-select uw.`user`, uw.seq, uw.item, uw.bonusset, uw.species, uw.breed, uw.direction, uw.quantity, uw.price,
+select uw.`user`, uw.seq, uw.item, uw.bonusset, uw.species, uw.direction, uw.quantity, uw.price,
     if(uw.observed is null, 0, 1) isset, if(uw.reported > uw.observed, 1, 0) wasreported
 from tblUserWatch uw
 join tblUser u on uw.user = u.id
@@ -303,21 +294,20 @@ EOF;
                 $watchSatisfied = WatchSatisfied($itemBuyouts[$itemInfoKey], $row['direction'], $row['quantity'], $row['price']);
             }
         } else if ($row['species']) {
-            $breed = $row['breed'] ?: ARRAY_INDEX_ALLBREEDS;
-            if (!isset($petBuyouts[$row['species']][$breed])) {
+            if (!isset($petBuyouts[$row['species']])) {
                 // none of this pet for sale
                 if (is_null($row['quantity'])) {
                     // market price notification, without quantity it does not change
                     continue;
                 }
-                if (is_null($row['price']) && $row['direction'] == 'Over' && $row['quantity'] == 0 && isset($petBids[$row['species']][$breed])) {
+                if (is_null($row['price']) && $row['direction'] == 'Over' && $row['quantity'] == 0 && isset($petBids[$row['species']])) {
                     // when no quantity avail for buyout, and we're looking for any quantity over X, check bids too
-                    $watchSatisfied = $petBids[$row['species']][$breed][ARRAY_INDEX_QUANTITY];
+                    $watchSatisfied = $petBids[$row['species']][ARRAY_INDEX_QUANTITY];
                 } else {
                     $watchSatisfied = WatchSatisfied($emptyItemInfo, $row['direction'], $row['quantity'], $row['price']);
                 }
             } else {
-                $watchSatisfied = WatchSatisfied($petBuyouts[$row['species']][$breed], $row['direction'], $row['quantity'], $row['price']);
+                $watchSatisfied = WatchSatisfied($petBuyouts[$row['species']], $row['direction'], $row['quantity'], $row['price']);
             }
         }
         if ($watchSatisfied === false) {

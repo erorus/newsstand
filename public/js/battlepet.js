@@ -3,7 +3,6 @@ var TUJ_BattlePet = function ()
     var params;
     var lastResults = [];
     var speciesId;
-    var breedId;
 
     this.load = function (inParams)
     {
@@ -15,10 +14,8 @@ var TUJ_BattlePet = function ()
         }
 
         speciesId = '' + params.id;
-        breedId = 0;
         if (speciesId.indexOf('.') > 0) {
             speciesId = ('' + params.id).substr(0, ('' + params.id).indexOf('.'));
-            breedId = ('' + params.id).substr(('' + params.id).indexOf('.') + 1);
         }
 
         var qs = {
@@ -71,10 +68,10 @@ var TUJ_BattlePet = function ()
         });
     }
 
-    function BattlePetResult(hash, dtaAll)
+    function BattlePetResult(hash, dta)
     {
         if (hash) {
-            lastResults.push({hash: hash, data: dtaAll});
+            lastResults.push({hash: hash, data: dta});
             while (lastResults.length > 10) {
                 lastResults.shift();
             }
@@ -84,18 +81,9 @@ var TUJ_BattlePet = function ()
         battlePetPage.empty();
         battlePetPage.show();
 
-        if (breedId && !dtaAll.stats.hasOwnProperty(breedId)) {
-            breedId = 0;
-        }
+        var x, y;
 
-        var x, y, breeds = [];
-        for (x in dtaAll.stats) {
-            if (x && dtaAll.stats.hasOwnProperty(x)) {
-                breeds.push(x);
-            }
-        }
-
-        if (breeds.length == 0) {
+        if (!dta.stats) {
             $('#page-title').empty().append(document.createTextNode(tuj.lang.battlepet + ': ' + params.id));
             tuj.SetTitle(tuj.lang.battlepet + ': ' + params.id);
 
@@ -106,8 +94,6 @@ var TUJ_BattlePet = function ()
             return;
         }
 
-        var dta = BattlePetBreedData(dtaAll, breeds);
-
         var ta = libtuj.ce('a');
         ta.href = 'http://' + tuj.lang.wowheadDomain + '.wowhead.com/npc=' + dta.stats.npc;
         ta.target = '_blank';
@@ -116,37 +102,13 @@ var TUJ_BattlePet = function ()
         var timg = libtuj.ce('img');
         ta.appendChild(timg);
         timg.src = libtuj.IconURL(dta.stats.icon, 'large');
-        var ttl = '[' + dta.stats['name_' + tuj.locale] + ']' + (breedId && breeds.length > 1 ? ' ' + tuj.lang.breedsLookup[breedId] : '');
+        var ttl = '[' + dta.stats['name_' + tuj.locale] + ']';
         ta.appendChild(document.createTextNode(ttl));
 
         $('#page-title').empty().append(ta);
         tuj.SetTitle(ttl);
 
         var d, cht, h, a;
-
-        if (breeds.length > 1) {
-            d = libtuj.ce();
-            d.className = 'battlepet-breeds';
-            battlePetPage.append(d);
-
-            a = libtuj.ce('a');
-            d.appendChild(a);
-            a.href = tuj.BuildHash({page: 'battlepet', id: '' + speciesId});
-            a.appendChild(document.createTextNode(tuj.lang.breedsLookup[0]));
-            if (breedId == 0) {
-                a.className = 'selected';
-            }
-
-            for (var x = 0; x < breeds.length; x++) {
-                a = libtuj.ce('a');
-                d.appendChild(a);
-                a.href = tuj.BuildHash({page: 'battlepet', id: '' + speciesId + '.' + breeds[x]});
-                a.appendChild(document.createTextNode(tuj.lang.breedsLookup[breeds[x]]));
-                if (breedId == breeds[x]) {
-                    a.className = 'selected';
-                }
-            }
-        }
 
         d = libtuj.ce();
         d.className = 'battlepet-stats';
@@ -259,15 +221,13 @@ var TUJ_BattlePet = function ()
             var cht = libtuj.ce();
             cht.className = 'notifications-insert';
             d.appendChild(cht);
-            GetBattlePetNotificationsList(speciesId, breedId ? breedId : -1, d);
+            GetBattlePetNotificationsList(speciesId, d);
         } else {
             d.className += ' logged-out-only';
 
             var globalQty = 0;
-            if (data.globalnow.hasOwnProperty(breedId) && data.globalnow[breedId].length) {
-                for (var x = 0, row; row = data.globalnow[breedId][x]; x++) {
-                    globalQty += row.quantity;
-                }
+            for (var x = 0, row; row = data.globalnow[x]; x++) {
+                globalQty += row.quantity;
             }
 
             if (globalQty < 100) {
@@ -275,7 +235,7 @@ var TUJ_BattlePet = function ()
             } else if (data.stats) {
                 if (data.stats.quantity < 5) {
                     d.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.wantToKnowAvail, fullPetName) + ' '));
-                } else if (data.history.hasOwnProperty(breedId) && data.history.length > 8) {
+                } else if (data.history.length > 8) {
                     var prices = [];
                     for (var x = 0; x < data.history.length; x++) {
                         prices.push(data.history[x].price);
@@ -297,201 +257,6 @@ var TUJ_BattlePet = function ()
         }
 
         return d;
-    }
-
-    function BattlePetBreedData(dtaAll, breeds)
-    {
-        var x, dta = {};
-        if (breedId) {
-            if (dtaAll.stats.hasOwnProperty(breedId)) {
-                dta.stats = dtaAll.stats[breedId];
-                dta.history = dtaAll.history[breedId] || [];
-                dta.auctions = dtaAll.auctions[breedId] || [];
-                dta.globalnow = dtaAll.globalnow[breedId] || [];
-                return dta;
-            }
-            breedId = 0;
-        }
-
-        dta.stats = {};
-        for (x in dtaAll.stats[breeds[0]]) {
-            if (dtaAll.stats[breeds[0]].hasOwnProperty(x)) {
-                dta.stats[x] = dtaAll.stats[breeds[0]][x];
-            }
-        }
-        for (x = 1; x < breeds.length; x++) {
-            if (dtaAll.stats[breeds[x]].price) {
-                if (dta.stats.quantity == 0) {
-                    if (dtaAll.stats[breeds[x]].quantity || (dtaAll.stats[breeds[x]].price < dta.stats.price)) {
-                        dta.stats.price = dtaAll.stats[breeds[x]].price;
-                    }
-                } else {
-                    if (dtaAll.stats[breeds[x]].quantity && (dtaAll.stats[breeds[x]].price < dta.stats.price)) {
-                        dta.stats.price = dtaAll.stats[breeds[x]].price;
-                    }
-                }
-            }
-            dta.stats.quantity += dtaAll.stats[breeds[x]].quantity;
-            if (dtaAll.stats[breeds[x]].lastseen && (!dta.stats.lastseen || dta.stats.lastseen < dtaAll.stats[breeds[x]].lastseen)) {
-                dta.stats.lastseen = dtaAll.stats[breeds[x]].lastseen;
-            }
-        }
-        delete dta.stats.breed;
-
-        var h, o, baseBreed, cur, grp, z, a;
-        if (breeds.length > 1) {
-            dta.history = {};
-            baseBreed = -1;
-            for (x = 0; x < breeds.length && baseBreed == -1; x++) {
-                if (dtaAll.history.hasOwnProperty(breeds[x])) {
-                    baseBreed = x;
-                    for (var y = 0; h = dtaAll.history[breeds[x]][y]; y++) {
-                        o = {};
-                        for (z in h) {
-                            if (h.hasOwnProperty(z)) {
-                                o[z] = h[z];
-                            }
-                        }
-                        delete o.breed;
-                        dta.history[o.snapshot] = o;
-                    }
-                }
-            }
-
-            if (baseBreed != -1) {
-                for (x = 0; x < breeds.length; x++) {
-                    if (x == baseBreed) {
-                        continue;
-                    }
-                    if (!dtaAll.history.hasOwnProperty(breeds[x])) {
-                        continue;
-                    }
-
-                    for (y = 0; y < dtaAll.history[breeds[x]].length; y++) {
-                        cur = dtaAll.history[breeds[x]][y];
-                        if (!dta.history.hasOwnProperty(cur.snapshot)) {
-                            o = {};
-                            for (z in cur) {
-                                if (cur.hasOwnProperty(z)) {
-                                    o[z] = cur[z];
-                                }
-                            }
-                            delete o.breed;
-                            dta.history[o.snapshot] = o;
-                            continue;
-                        }
-                        grp = dta.history[cur.snapshot];
-                        if (grp.quantity == 0) {
-                            if (cur.quantity || (cur.price < grp.price)) {
-                                grp.price = cur.price;
-                            }
-                        }
-                        else {
-                            if (cur.quantity && (cur.price < grp.price)) {
-                                grp.price = cur.price;
-                            }
-                        }
-                        grp.quantity += cur.quantity;
-                    }
-                }
-            }
-
-            a = [];
-            for (x in dta.history) {
-                if (dta.history.hasOwnProperty(x)) {
-                    a.push(dta.history[x]);
-                }
-            }
-            a.sort(function (b, c)
-            {
-                return b.snapshot - c.snapshot;
-            });
-
-            dta.history = a;
-        }
-        else {
-            dta.history = dtaAll.history[breeds[0]] || [];
-        }
-
-        dta.auctions = [];
-        for (x = 0; x < breeds.length; x++) {
-            if (dtaAll.auctions.hasOwnProperty(breeds[x])) {
-                dta.auctions = dta.auctions.concat(dtaAll.auctions[breeds[x]]);
-            }
-        }
-
-        if (breeds.length > 1) {
-            dta.globalnow = {};
-            baseBreed = -1;
-            for (x = 0; x < breeds.length && baseBreed == -1; x++) {
-                if (dtaAll.globalnow.hasOwnProperty(breeds[x])) {
-                    baseBreed = x;
-                    for (y = 0; h = dtaAll.globalnow[breeds[x]][y]; y++) {
-                        o = {};
-                        for (z in h) {
-                            if (h.hasOwnProperty(z)) {
-                                o[z] = h[z];
-                            }
-                        }
-                        dta.globalnow[o.house] = o;
-                    }
-                }
-            }
-
-            if (baseBreed != -1) {
-                for (x = 0; x < breeds.length; x++) {
-                    if (x == baseBreed) {
-                        continue;
-                    }
-                    if (!dtaAll.globalnow.hasOwnProperty(breeds[x])) {
-                        continue;
-                    }
-
-                    for (y = 0; y < dtaAll.globalnow[breeds[x]].length; y++) {
-                        cur = dtaAll.globalnow[breeds[x]][y];
-                        if (!dta.globalnow.hasOwnProperty(cur.house)) {
-                            o = {};
-                            for (z in cur) {
-                                if (cur.hasOwnProperty(z)) {
-                                    o[z] = cur[z];
-                                }
-                            }
-                            dta.globalnow[o.house] = o;
-                            continue;
-                        }
-
-                        grp = dta.globalnow[cur.house];
-                        if (grp.quantity == 0) {
-                            if (cur.quantity || (cur.price < grp.price)) {
-                                grp.price = cur.price;
-                            }
-                        }
-                        else {
-                            if (cur.quantity && (cur.price < grp.price)) {
-                                grp.price = cur.price;
-                            }
-                        }
-                        grp.quantity += cur.quantity;
-                        if (!grp.lastseen || grp.lastseen < cur.lastseen) {
-                            grp.lastseen = cur.lastseen;
-                        }
-                    }
-                }
-            }
-
-            a = [];
-            for (x in dta.globalnow) {
-                if (dta.globalnow.hasOwnProperty(x)) {
-                    a.push(dta.globalnow[x]);
-                }
-            }
-            dta.globalnow = a;
-        }
-        else {
-            dta.globalnow = dtaAll.globalnow[breeds[0]] || [];
-        }
-
-        return dta;
     }
 
     function BattlePetStats(data, dest)
@@ -653,16 +418,16 @@ var TUJ_BattlePet = function ()
         dest.appendChild(libtuj.Ads.Add('2419927914', 'box'));
     }
 
-    function GetBattlePetNotificationsList(speciesId, breedId, mainDiv)
+    function GetBattlePetNotificationsList(speciesId, mainDiv)
     {
         var self = this;
         tuj.SendCSRFProtectedRequest({
             data: {'getspecies': speciesId},
-            success: BattlePetNotificationsList.bind(self, speciesId, breedId, mainDiv),
+            success: BattlePetNotificationsList.bind(self, speciesId, mainDiv),
         });
     }
 
-    function BattlePetNotificationsList(speciesId, breedId, mainDiv, dta)
+    function BattlePetNotificationsList(speciesId, mainDiv, dta)
     {
         var dest = $(mainDiv).find('.notifications-insert');
         dest.empty();
@@ -671,9 +436,7 @@ var TUJ_BattlePet = function ()
         var ids = [];
         for (var k in dta.watches) {
             if (dta.watches.hasOwnProperty(k)) {
-                if (breedId == -1 || dta.watches[k].breed === null || breedId == dta.watches[k].breed) {
-                    ids.push(k);
-                }
+                ids.push(k);
             }
         }
         if (ids.length) {
@@ -687,12 +450,10 @@ var TUJ_BattlePet = function ()
 
                 var n = dta.watches[k];
 
-                var breedText = '(' + (n.breed ? tuj.lang.breedsLookup[n.breed] : tuj.lang.breedsLookup[0]) + ')';
-
                 var btn = libtuj.ce('input');
                 btn.type = 'button';
                 btn.value = tuj.lang.delete;
-                $(btn).on('click', BattlePetNotificationsDel.bind(btn, mainDiv, speciesId, breedId, n.seq));
+                $(btn).on('click', BattlePetNotificationsDel.bind(btn, mainDiv, speciesId, n.seq));
                 li.appendChild(btn);
 
                 if (n.house) {
@@ -700,7 +461,6 @@ var TUJ_BattlePet = function ()
                 } else if (n.region) {
                     li.appendChild(document.createTextNode(tuj.lang['realms' + n.region] + ': '));
                 }
-                li.appendChild(document.createTextNode(breedText + ' '));
                 if (n.price === null) {
                     li.appendChild(document.createTextNode(tuj.lang.availableQuantity + ' '));
                 } else {
@@ -788,7 +548,7 @@ var TUJ_BattlePet = function ()
         var btn = libtuj.ce('input');
         btn.type = 'button';
         btn.value = tuj.lang.add;
-        $(btn).on('click', BattlePetNotificationsAdd.bind(btn, mainDiv, speciesId, breedId, regionBox, underOver, qty, false));
+        $(btn).on('click', BattlePetNotificationsAdd.bind(btn, mainDiv, speciesId, regionBox, underOver, qty, false));
         d.appendChild(btn);
 
         // market price
@@ -829,7 +589,7 @@ var TUJ_BattlePet = function ()
         var btn = libtuj.ce('input');
         btn.type = 'button';
         btn.value = tuj.lang.add;
-        $(btn).on('click', BattlePetNotificationsAdd.bind(btn, mainDiv, speciesId, breedId, regionBox, underOver, null, price));
+        $(btn).on('click', BattlePetNotificationsAdd.bind(btn, mainDiv, speciesId, regionBox, underOver, null, price));
         d.appendChild(btn);
 
         // price to buy X
@@ -881,7 +641,7 @@ var TUJ_BattlePet = function ()
         var btn = libtuj.ce('input');
         btn.type = 'button';
         btn.value = tuj.lang.add;
-        $(btn).on('click', BattlePetNotificationsAdd.bind(btn, mainDiv, speciesId, breedId, regionBox, underOver, qty, price));
+        $(btn).on('click', BattlePetNotificationsAdd.bind(btn, mainDiv, speciesId, regionBox, underOver, qty, price));
         d.appendChild(btn);
 
         $(mainDiv).show();
@@ -894,13 +654,13 @@ var TUJ_BattlePet = function ()
         $parent.find('.notification-type-form-'+this.options[this.selectedIndex].value).show();
     }
 
-    function BattlePetNotificationsAdd(mainDiv, speciesId, breedId, regionBox, directionBox, qtyBox, priceBox)
+    function BattlePetNotificationsAdd(mainDiv, speciesId, regionBox, directionBox, qtyBox, priceBox)
     {
         var self = this;
         var o = {
             'setwatch': 'species',
             'id': speciesId,
-            'subid': breedId,
+            'subid': -1,
             'region': regionBox.options[regionBox.selectedIndex].value == 'region' ? tuj.validRegions[params.region] : '',
             'house': regionBox.options[regionBox.selectedIndex].value == 'house' ? tuj.realms[params.realm].house : '',
             'direction': directionBox.options[directionBox.selectedIndex].value,
@@ -943,16 +703,16 @@ var TUJ_BattlePet = function ()
 
         tuj.SendCSRFProtectedRequest({
             data: o,
-            success: BattlePetNotificationsList.bind(self, speciesId, breedId, mainDiv),
+            success: BattlePetNotificationsList.bind(self, speciesId, mainDiv),
         });
     }
 
-    function BattlePetNotificationsDel(mainDiv, speciesId, breedId, id)
+    function BattlePetNotificationsDel(mainDiv, speciesId, id)
     {
         var self = this;
         tuj.SendCSRFProtectedRequest({
             data: {'deletewatch': id},
-            success: BattlePetNotificationsList.bind(self, speciesId, breedId, mainDiv),
+            success: BattlePetNotificationsList.bind(self, speciesId, mainDiv),
         });
     }
 

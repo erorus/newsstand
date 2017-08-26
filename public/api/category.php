@@ -68,14 +68,11 @@ function CategoryResult_battlepets($house)
 {
     global $canCache;
 
-    $cacheKey = 'category_bpets';
+    $cacheKey = 'category_bpets2';
 
     if ($canCache && (($tr = MCGetHouse($house, $cacheKey)) !== false)) {
         foreach ($tr as &$species) {
-            foreach ($species as &$breeds) {
-                PopulateLocaleCols($breeds, [['func' => 'GetPetNames', 'key' => 'species', 'name' => 'name']], count($breeds) > 1);
-            }
-            unset($breeds);
+            PopulateLocaleCols($species, [['func' => 'GetPetNames', 'key' => 'species', 'name' => 'name']]);
         }
         unset($species);
         return ['name' => 'battlepets', 'results' => [['name' => 'BattlePetList', 'data' => $tr]]];
@@ -84,7 +81,7 @@ function CategoryResult_battlepets($house)
     $db = DBConnect();
 
     $sql = <<<EOF
-SELECT ps.species, ps.breed, ps.price, ps.quantity, ps.lastseen,
+SELECT ps.species, ps.price, ps.quantity, ps.lastseen,
 (select round(avg(case hours.h
     when  0 then ph.silver00 when  1 then ph.silver01 when  2 then ph.silver02 when  3 then ph.silver03
     when  4 then ph.silver04 when  5 then ph.silver05 when  6 then ph.silver06 when  7 then ph.silver07
@@ -100,7 +97,7 @@ SELECT ps.species, ps.breed, ps.price, ps.quantity, ps.lastseen,
      select 12 h union select 13 h union select 14 h union select 15 h union
      select 16 h union select 17 h union select 18 h union select 19 h union
      select 20 h union select 21 h union select 22 h union select 23 h) hours
-    where ph.house = ps.house and ph.species = ps.species and ph.breed = ps.breed) avgprice, 
+    where ph.house = ps.house and ph.species = ps.species) avgprice, 
 p.type, p.icon, p.npc, 0 regionavgprice
 FROM tblPetSummary ps
 JOIN tblDBCPet p on ps.species=p.id
@@ -117,30 +114,24 @@ EOF;
     if (($result === false) && ($errMsg = $db->error)) {
         DebugMessage("No result: $errMsg\n" . $sql, E_USER_ERROR);
     }
-    $tr = DBMapArray($result, array('type', 'species', 'breed'));
+    $tr = DBMapArray($result, array('type', 'species'));
     $stmt->close();
 
     $regional = CategoryBattlePetRegion(GetRegion($house));
     foreach ($tr as &$allSpecies) {
-        foreach ($allSpecies as $species => &$allBreeds) {
-            foreach ($allBreeds as $breed => &$row) {
-                if (isset($regional[$species][$breed])) {
-                    $row['regionavgprice'] = $regional[$species][$breed]['price'];
-                }
+        foreach ($allSpecies as $species => &$row) {
+            if (isset($regional[$species])) {
+                $row['regionavgprice'] = $regional[$species]['price'];
             }
-            unset($row);
         }
-        unset($allBreeds);
+        unset($row);
     }
     unset($allSpecies);
 
     MCSetHouse($house, $cacheKey, $tr);
 
     foreach ($tr as &$species) {
-        foreach ($species as &$breeds) {
-            PopulateLocaleCols($breeds, [['func' => 'GetPetNames', 'key' => 'species', 'name' => 'name']], count($breeds) > 1);
-        }
-        unset($breeds);
+        PopulateLocaleCols($species, [['func' => 'GetPetNames', 'key' => 'species', 'name' => 'name']]);
     }
     unset($species);
     return ['name' => 'battlepets', 'results' => [['name' => 'BattlePetList', 'data' => $tr]]];
@@ -150,7 +141,7 @@ function CategoryBattlePetRegion($region)
 {
     global $canCache;
 
-    $cacheKey = 'category_bpets_regional_'.$region;
+    $cacheKey = 'category_bpets2_regional_'.$region;
     if ($canCache && (($tr = MCGet($cacheKey)) !== false)) {
         return $tr;
     }
@@ -158,10 +149,10 @@ function CategoryBattlePetRegion($region)
     $db = DBConnect();
 
     $sql = <<<EOF
-select i.species, i.breed, round(avg(i.price)) price
+select i.species, round(avg(i.price)) price
 from `tblPetSummary` i
 join `tblRealm` r on i.house = r.house and r.region = ?
-group by i.species, i.breed
+group by i.species
 EOF;
 
     $stmt = $db->stmt_init();
@@ -174,7 +165,7 @@ EOF;
     if (($result === false) && ($errMsg = $db->error)) {
         DebugMessage("No result: $errMsg\n" . $sql, E_USER_ERROR);
     }
-    $tr = DBMapArray($result, array('species', 'breed'));
+    $tr = DBMapArray($result, array('species'));
     $stmt->close();
 
     MCSet($cacheKey, $tr, 60*60*6);

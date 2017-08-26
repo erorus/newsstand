@@ -632,7 +632,7 @@ function GetWatch($loginState, $type, $id)
     }
 
     $db = DBConnect();
-    $stmt = $db->prepare('SELECT seq, region, if(region is null, house, null) house, item, bonusset, species, breed, direction, quantity, price FROM tblUserWatch WHERE user=? and '.(($type == 'species') ? 'species' : 'item').'=? and deleted is null');
+    $stmt = $db->prepare('SELECT seq, region, if(region is null, house, null) house, item, bonusset, species, direction, quantity, price FROM tblUserWatch WHERE user=? and '.(($type == 'species') ? 'species' : 'item').'=? and deleted is null');
     $stmt->bind_param('ii', $userId, $id);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -649,14 +649,14 @@ function SetWatch($loginState, $type, $item, $bonusSet, $region, $house, $direct
     $userId = $loginState['id'];
 
     $type = ($type == 'species') ? 'species' : 'item';
-    $subType = ($type == 'species') ? 'breed' : 'bonusset';
+    $subType = ($type == 'species') ? false : 'bonusset';
 
     $item = intval($item, 10);
     if (!$item) {
         return false;
     }
     $bonusSet = intval($bonusSet, 10);
-    if ($bonusSet < 0) {
+    if ($bonusSet < 0 || !$subType) {
         $bonusSet = null;
     }
 
@@ -723,7 +723,7 @@ function SetWatch($loginState, $type, $item, $bonusSet, $region, $house, $direct
     $db = DBConnect();
     $db->begin_transaction();
 
-    $stmt = $db->prepare('select seq, region, house, direction, quantity, price from tblUserWatch where user = ? and '.$type.' = ? and ifnull('.$subType.',0) = ifnull(?,0) and deleted is null for update');
+    $stmt = $db->prepare('select seq, region, house, direction, quantity, price from tblUserWatch where user = ? and '.$type.' = ? and ifnull('.($subType ?: 'null').',0) = ifnull(?,0) and deleted is null for update');
     $stmt->bind_param('iii', $userId, $item, $bonusSet);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -759,8 +759,13 @@ function SetWatch($loginState, $type, $item, $bonusSet, $region, $house, $direct
 
     $seq = $db->insert_id;
 
-    $stmt = $db->prepare('insert into tblUserWatch (user, seq, region, house, '.$type.', '.$subType.', direction, quantity, price, created) values (?,?,?,?,?,?,?,?,?,NOW())');
-    $stmt->bind_param('iisiiisii', $userId, $seq, $region, $house, $item, $bonusSet, $direction, $quantity, $price);
+    if ($subType) {
+        $stmt = $db->prepare('insert into tblUserWatch (user, seq, region, house, ' . $type . ', ' . $subType . ', direction, quantity, price, created) values (?,?,?,?,?,?,?,?,?,NOW())');
+        $stmt->bind_param('iisiiisii', $userId, $seq, $region, $house, $item, $bonusSet, $direction, $quantity, $price);
+    } else {
+        $stmt = $db->prepare('insert into tblUserWatch (user, seq, region, house, ' . $type . ', direction, quantity, price, created) values (?,?,?,?,?,?,?,?,NOW())');
+        $stmt->bind_param('iisiisii', $userId, $seq, $region, $house, $item, $direction, $quantity, $price);
+    }
     $stmt->execute();
     $stmt->close();
     $cnt = $db->affected_rows;
@@ -911,7 +916,7 @@ EOF;
     if ($battlePets === false) {
         $sql = <<<EOF
 select uw.seq, uw.region, uw.house,
-    uw.species, uw.breed,
+    uw.species,
     p.icon, p.type, p.npc,
     uw.direction, uw.quantity, uw.price
 from tblUserWatch uw

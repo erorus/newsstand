@@ -1,6 +1,6 @@
 --[[
 
-TheUndermineJournal addon, v 4.7
+TheUndermineJournal addon, v 4.8
 https://theunderminejournal.com/
 
 You should be able to query this DB from other addons:
@@ -20,7 +20,6 @@ Prices are returned in copper, but accurate to the last *silver* (with coppers a
     o['bonuses']        -> if present, a colon-separated list of bonus IDs that were considered as uniquely identifying the item for pricing
 
     o['species']        -> the species of the battlepet you just passed in
-    o['breed']          -> the numeric breed ID of the battlepet
     o['quality']        -> the numeric quality/rarity of the battlepet
 
     o['age']            -> number of seconds since data was compiled
@@ -84,29 +83,8 @@ local function round(num)
 end
 
 local addonName, addonTable = ...
-local breedPoints = {
-    [3] = {0.5,0.5,0.5,["name"]="B/B"},
-    [4] = {0,2,0,["name"]="P/P"},
-    [5] = {0,0,2,["name"]="S/S"},
-    [6] = {2,0,0,["name"]="H/H"},
-    [7] = {0.9,0.9,0,["name"]="H/P"},
-    [8] = {0,0.9,0.9,["name"]="P/S"},
-    [9] = {0.9,0,0.9,["name"]="H/S"},
-    [10] = {0.4,0.9,0.4,["name"]="P/B"},
-    [11] = {0.4,0.4,0.9,["name"]="S/B"},
-    [12] = {0.9,0.4,0.4,["name"]="H/B"},
-}
-local breedQualities = {
-    [0] = 0.5,
-    [1] = 0.55,
-    [2] = 0.6,
-    [3] = 0.65,
-    [4] = 0.7,
-    [5] = 0.75,
-}
-local breedCandidates = {}
 
-local function getBreedFromPetLink(link)
+local function getSpeciesFromPetLink(link)
     local petString = string.match(link, "battlepet[%-?%d:]+")
     local _, speciesID, level, quality, health, power, speed = strsplit(":", petString)
 
@@ -117,35 +95,7 @@ local function getBreedFromPetLink(link)
     power = tonumber(power,10)
     speed = tonumber(speed,10)
 
-    if not breedQualities[quality] then return nil end
-
-    local speciesStats = addonTable.speciesStats[speciesID] or addonTable.speciesStats[0]
-    local qualityFactor = breedQualities[quality] * 2 * level
-    wipe(breedCandidates)
-
-    for breed, points in pairs(breedPoints) do
-        local breedHealth = round((8 + speciesStats[1] / 200 + points[1]) * 5 * qualityFactor + 100)
-        local breedPower = round((8 + speciesStats[2] / 200 + points[2]) * qualityFactor)
-        local breedSpeed = round((8 + speciesStats[3] / 200 + points[3]) * qualityFactor)
-
-        if (breedHealth == health) and (breedPower == power) and (breedSpeed == speed) then
-            tinsert(breedCandidates, breed)
-        end
-    end
-
-    local breed
-    if #breedCandidates == 1 then
-        breed = breedCandidates[1]
-    elseif #breedCandidates > 1 then
-        for i=1,#breedCandidates,1 do
-            local dataKey = speciesID.."b"..breedCandidates[i]
-            if addonTable.marketData[dataKey] then
-                breed = breedCandidates[i]
-            end
-        end
-    end
-
-    return breed, speciesID, level, quality, health, power, speed
+    return speciesID, level, quality, health, power, speed
 end
 
 local lastMarketInfo = {}
@@ -183,13 +133,12 @@ function TUJMarketInfo(item,...)
     end
 
     local _, link, dataKey
-    local iid, bonusSet, usedBonuses, species, breed, quality
+    local iid, bonusSet, usedBonuses, species, quality
     local priceFactor = 1
 
     if (strfind(item, 'battlepet:')) then
-        breed, species, _, quality = getBreedFromPetLink(item)
-        if not breed then return tr end
-        dataKey = species..'b'..breed
+        species, _, quality = getSpeciesFromPetLink(item)
+        dataKey = 's'..species
     else
         _, link = GetItemInfo(item)
         if not link then return tr end
@@ -262,7 +211,6 @@ function TUJMarketInfo(item,...)
     end
     if (species) then
         tr['species'] = species
-        tr['breed'] = breed
         tr['quality'] = quality
     end
 
@@ -332,15 +280,6 @@ local LibExtraTip = LibStub("LibExtraTip-1")
 
 local function buildExtraTip(tooltip, pricingData)
     local r,g,b = .9,.8,.5
-
-    if (pricingData['breed'] and breedPoints[pricingData['breed']] and qualityRGB[pricingData['quality']]) then
-        LibExtraTip:AddLine(tooltip,
-            "Breed " .. breedPoints[pricingData['breed']]["name"] .. " - Species " .. pricingData['species'],
-            qualityRGB[pricingData['quality']][1],
-            qualityRGB[pricingData['quality']][2],
-            qualityRGB[pricingData['quality']][3],
-            true)
-    end
 
     LibExtraTip:AddLine(tooltip," ",r,g,b,true)
 

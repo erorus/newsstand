@@ -751,7 +751,6 @@ CREATE TABLE IF NOT EXISTS `tblPet` (
 CREATE TABLE IF NOT EXISTS `tblPetHistoryHourly` (
   `house` smallint(5) unsigned NOT NULL,
   `species` smallint(5) unsigned NOT NULL,
-  `breed` tinyint(3) unsigned NOT NULL,
   `when` date NOT NULL,
   `silver00` int(10) unsigned DEFAULT NULL,
   `quantity00` smallint(5) unsigned DEFAULT NULL,
@@ -801,7 +800,7 @@ CREATE TABLE IF NOT EXISTS `tblPetHistoryHourly` (
   `quantity22` smallint(5) unsigned DEFAULT NULL,
   `silver23` int(10) unsigned DEFAULT NULL,
   `quantity23` smallint(5) unsigned DEFAULT NULL,
-  PRIMARY KEY (`house`,`species`,`breed`,`when`)
+  PRIMARY KEY (`house`,`species`,`when`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -813,11 +812,10 @@ CREATE TABLE IF NOT EXISTS `tblPetHistoryHourly` (
 CREATE TABLE IF NOT EXISTS `tblPetSummary` (
   `house` smallint(5) unsigned NOT NULL,
   `species` smallint(5) unsigned NOT NULL,
-  `breed` tinyint(3) unsigned NOT NULL,
   `price` decimal(11,0) NOT NULL DEFAULT '0',
   `quantity` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `lastseen` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  PRIMARY KEY (`house`,`species`,`breed`)
+  PRIMARY KEY (`house`,`species`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------

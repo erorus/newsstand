@@ -216,22 +216,6 @@ function BuildBonusSets()
     $stmt->close();
     $lua .= "}\n";
 
-    $stmt = $db->prepare('select id, concat_ws(\',\', ifnull(stamina,0), ifnull(power,0), ifnull(speed,0)) stats from tblDBCPet');
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $sets = DBMapArray($result);
-    $stmt->close();
-
-    $lua .= "addonTable.speciesStats = {\n";
-    $lua .= "\t[0]={0,0,0},\n";
-
-    foreach ($sets as $row) {
-        if ($row['stats'] != '0,0,0') {
-            $lua .= "\t[" . $row['id'] . ']={' . $row['stats'] . "},\n";
-        }
-    }
-
-    $lua .= "}\n";
     return $lua;
 }
 
@@ -286,11 +270,11 @@ EOF;
     $result->close();
     $stmt->close();
 
-    $stmt = $db->prepare('SELECT species, breed, avg(price) `mean`, stddev(price) `stddev` FROM tblPetSummary group by species, breed');
+    $stmt = $db->prepare('SELECT species, avg(price) `mean`, stddev(price) `stddev` FROM tblPetSummary group by species');
     $stmt->execute();
     $result = $stmt->get_result();
     while ($priceRow = $result->fetch_assoc()) {
-        $item = ''.$priceRow['species'].'b'.$priceRow['breed'];
+        $item = 's'.$priceRow['species'];
         $item_global[$item] = pack('LLL', 0, round($priceRow['mean']/100), round($priceRow['stddev']/100));
     }
     $result->close();
@@ -382,7 +366,7 @@ EOF;
     }
 
     $sql = <<<EOF
-SELECT tps.species, tps.breed,
+SELECT tps.species,
 datediff(now(), tps.lastseen) since,
 round(ifnull(avg(case hours.h
     when  0 then phh.silver00 when  1 then phh.silver01 when  2 then phh.silver02 when  3 then phh.silver03
@@ -415,9 +399,9 @@ join (select 0 h union select  1 h union select  2 h union select  3 h union
      select 12 h union select 13 h union select 14 h union select 15 h union
      select 16 h union select 17 h union select 18 h union select 19 h union
      select 20 h union select 21 h union select 22 h union select 23 h) hours
-left join tblPetHistoryHourly phh on phh.species=tps.species and phh.house = tps.house and phh.breed=tps.breed
+left join tblPetHistoryHourly phh on phh.species=tps.species and phh.house = tps.house
 WHERE tps.house = ?
-group by tps.species, tps.breed
+group by tps.species
 EOF;
 
     for ($hx = 0; $hx < count($houses); $hx++) {
@@ -432,7 +416,7 @@ EOF;
         $stmt->execute();
         $result = $stmt->get_result();
         while ($priceRow = $result->fetch_assoc()) {
-            $item = ''.$priceRow['species'].'b'.$priceRow['breed'];
+            $item = 's'.$priceRow['species'];
 
             if (!isset($item_avg[$item])) {
                 $item_avg[$item] = '';

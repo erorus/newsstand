@@ -281,7 +281,7 @@ function ParseAuctionData($house, $snapshot, &$json)
     }
     $stmt->close();
 
-    $stmt = $ourDb->prepare('SELECT id, species, breed FROM tblAuctionPet WHERE house = ?');
+    $stmt = $ourDb->prepare('SELECT id, species FROM tblAuctionPet WHERE house = ?');
     $stmt->bind_param('i', $house);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -491,15 +491,15 @@ function ParseAuctionData($house, $snapshot, &$json)
             }
             if ($auction['buyout'] != 0) {
                 if (isset($auction['petSpeciesId'])) {
-                    if (!isset($petInfo[$auction['petSpeciesId']][$auction['petBreedId']])) {
-                        $petInfo[$auction['petSpeciesId']][$auction['petBreedId']] = array('a' => array(), 'tq' => 0);
+                    if (!isset($petInfo[$auction['petSpeciesId']])) {
+                        $petInfo[$auction['petSpeciesId']] = array('a' => array(), 'tq' => 0);
                     }
 
-                    $petInfo[$auction['petSpeciesId']][$auction['petBreedId']]['a'][] = array(
+                    $petInfo[$auction['petSpeciesId']]['a'][] = array(
                         'q' => $auction['quantity'],
                         'p' => $auction['buyout']
                     );
-                    $petInfo[$auction['petSpeciesId']][$auction['petBreedId']]['tq'] += $auction['quantity'];
+                    $petInfo[$auction['petSpeciesId']]['tq'] += $auction['quantity'];
                 } else {
                     $itemInfoKey = str_pad($auction['item'], ITEM_ID_PAD, '0', STR_PAD_LEFT) . ":$bonusSet";
                     if (!isset($itemInfo[$itemInfoKey])) {
@@ -756,8 +756,8 @@ EOF;
 
     $preDeleted = count($petInfo);
     foreach ($existingPetIds as &$oldRow) {
-        if (!isset($petInfo[$oldRow['species']][$oldRow['breed']])) {
-            $petInfo[$oldRow['species']][$oldRow['breed']] = array('tq' => 0, 'a' => array());
+        if (!isset($petInfo[$oldRow['species']])) {
+            $petInfo[$oldRow['species']] = array('tq' => 0, 'a' => array());
         }
     }
     unset($oldRow);
@@ -1284,36 +1284,33 @@ function UpdatePetInfo($house, &$petInfo, $snapshot)
     $dateString = date('Y-m-d', $snapshot);
 
     $snapshotString = date('Y-m-d H:i:s', $snapshot);
-    $sqlStart = 'INSERT INTO tblPetSummary (house, species, breed, price, quantity, lastseen) VALUES ';
+    $sqlStart = 'INSERT INTO tblPetSummary (house, species, price, quantity, lastseen) VALUES ';
     $sqlEnd = ' on duplicate key update quantity=values(quantity), price=if(quantity=0,price,values(price)), lastseen=if(quantity=0,lastseen,values(lastseen))';
     $sql = '';
 
-    $sqlHistoryStart = sprintf('INSERT INTO tblPetHistoryHourly (house, species, breed, `when`, `silver%1$s`, `quantity%1$s`) VALUES ', $hour);
+    $sqlHistoryStart = sprintf('INSERT INTO tblPetHistoryHourly (house, species, `when`, `silver%1$s`, `quantity%1$s`) VALUES ', $hour);
     $sqlHistoryEnd = sprintf(' on duplicate key update `silver%1$s`=if(values(`quantity%1$s`) > ifnull(`quantity%1$s`,0), values(`silver%1$s`), `silver%1$s`), `quantity%1$s`=if(values(`quantity%1$s`) > ifnull(`quantity%1$s`,0), values(`quantity%1$s`), `quantity%1$s`)', $hour);
     $sqlHistory = '';
 
-    foreach ($petInfo as $species => &$breeds) {
-        foreach ($breeds as $breed => &$info) {
-            $price = GetMarketPrice($info);
-            $sqlBit = sprintf('(%d,%u,%u,%u,%u,\'%s\')', $house, $species, $breed, $price, $info['tq'], $snapshotString);
-            if (strlen($sql) + strlen($sqlBit) + strlen($sqlEnd) + 5 > $maxPacketSize) {
-                DBQueryWithError($db, $sql . $sqlEnd);
-                $sql = '';
-            }
-            $sql .= ($sql == '' ? $sqlStart : ',') . $sqlBit;
-
-            if ($info['tq'] > 0) {
-                $sqlHistoryBit = sprintf('(%d,%u,%u,\'%s\',%u,%u)', $house, $species, $breed, $dateString, round($price / 100), $info['tq']);
-                if (strlen($sqlHistory) + strlen($sqlHistoryBit) + strlen($sqlHistoryEnd) + 5 > $maxPacketSize) {
-                    DBQueryWithError($db, $sqlHistory . $sqlHistoryEnd);
-                    $sqlHistory = '';
-                }
-                $sqlHistory .= ($sqlHistory == '' ? $sqlHistoryStart : ',') . $sqlHistoryBit;
-            }
+    foreach ($petInfo as $species => &$info) {
+        $price = GetMarketPrice($info);
+        $sqlBit = sprintf('(%d,%u,%u,%u,\'%s\')', $house, $species, $price, $info['tq'], $snapshotString);
+        if (strlen($sql) + strlen($sqlBit) + strlen($sqlEnd) + 5 > $maxPacketSize) {
+            DBQueryWithError($db, $sql . $sqlEnd);
+            $sql = '';
         }
-        unset($info);
+        $sql .= ($sql == '' ? $sqlStart : ',') . $sqlBit;
+
+        if ($info['tq'] > 0) {
+            $sqlHistoryBit = sprintf('(%d,%u,\'%s\',%u,%u)', $house, $species, $dateString, round($price / 100), $info['tq']);
+            if (strlen($sqlHistory) + strlen($sqlHistoryBit) + strlen($sqlHistoryEnd) + 5 > $maxPacketSize) {
+                DBQueryWithError($db, $sqlHistory . $sqlHistoryEnd);
+                $sqlHistory = '';
+            }
+            $sqlHistory .= ($sqlHistory == '' ? $sqlHistoryStart : ',') . $sqlHistoryBit;
+        }
     }
-    unset($breeds);
+    unset($info);
 
     if ($sql != '') {
         DBQueryWithError($db, $sql . $sqlEnd);

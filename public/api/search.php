@@ -197,7 +197,7 @@ min(if(s.quantity>0,s.price,null)) price, sum(s.quantity) quantity, unix_timesta
      select 12 h union select 13 h union select 14 h union select 15 h union
      select 16 h union select 17 h union select 18 h union select 19 h union
      select 20 h union select 21 h union select 22 h union select 23 h) hours
-    where ph.house = ? and ph.species = i.id group by ph.breed order by 1 asc limit 1) avgprice
+    where ph.house = ? and ph.species = i.id) avgprice
 from tblDBCPet i
 left join tblPetSummary s on s.house=? and s.species=i.id
 where i.name_$locale like ?

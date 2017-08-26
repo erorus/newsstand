@@ -186,7 +186,7 @@ and uw.observed > ifnull(uw.reported, '2000-01-01')
 group by uw.seq
 union
 select 1 ispet, uw.seq, uw.region, uw.house,
-    uw.species, uw.breed, ifnull(uw.breed, '') breedurl,
+    uw.species, null breed, '' breedurl,
     p.name_%1$s name,
     null bonustag,
     p.type classorder,
@@ -228,11 +228,6 @@ EOF;
         );
 
         $bonusTag = $row['bonustag'];
-        if ($row['ispet']) {
-            if ($row['bonusset'] && isset($LANG['breedsLookup'][$row['bonusset']])) {
-                $bonusTag = $LANG['breedsLookup'][$row['bonusset']];
-            }
-        }
         if ($bonusTag) {
             $bonusTag = ' ' . $bonusTag;
         }
