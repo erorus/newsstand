@@ -144,6 +144,8 @@
     "recentSellersDesc": "Dieser Verkäufer bot kürzlich die größte Menge von {1}.",
     "auctionsByItemClass": "Auktionen nach Gegenstands-Klasse",
     "auctionsByItemClassDesc": "Zeigt die relative Anzahl von kürzlichen Auktionen dieses Verkäufers, gruppiert nach Gegenstands-Klasse und -Unterklasse.",
+    "regionalBreeds": "Regional Breeds",
+    "regionalBreedsDesc": "Here are the realms in the {1} region where each breed of this {2} is currently available.",
 
     "availableQuantity": "Verfügbare Menge",
     "availableAbbrev": "Verfügb.",

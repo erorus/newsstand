@@ -144,6 +144,8 @@
     "recentSellersDesc": "Estes vendedores postaram a maior quantidade de (1} recentemente.",
     "auctionsByItemClass": "Leilões por Classe de Item",
     "auctionsByItemClassDesc": "Isso mostra a quantidade relativa de leilões postados recentemente por este vendedor, agrupados por tipo classe e subclasse.",
+    "regionalBreeds": "Regional Breeds",
+    "regionalBreedsDesc": "Here are the realms in the {1} region where each breed of this {2} is currently available.",
 
     "availableQuantity": "Quantidade Disponível",
     "availableAbbrev": "Dispon.",

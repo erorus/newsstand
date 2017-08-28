@@ -23,6 +23,7 @@ $json = array(
     'history'   => PetHistory($house, $species),
     'auctions'  => PetAuctions($house, $species),
     'globalnow' => PetGlobalNow(GetRegion($house), $species),
+    'regionbreeds' => PetRegionBreeds(GetRegion($house), $species),
 );
 
 json_return($json);
@@ -175,6 +176,45 @@ EOF;
     $stmt->execute();
     $result = $stmt->get_result();
     $tr = DBMapArray($result, null);
+    $stmt->close();
+
+    MCSet($key, $tr);
+
+    return $tr;
+}
+
+function PetRegionBreeds($region, $species)
+{
+    global $db;
+
+    $key = 'battlepet_regionbreeds_' . $region . '_s' . $species;
+    if (($tr = MCGet($key)) !== false) {
+        return $tr;
+    }
+
+    DBConnect();
+
+    $sql = <<<EOF
+select a.house, ap.breed, ifnull(min(a.buy), min(a.bid)) price
+from tblAuction a
+join tblAuctionPet ap on a.house = ap.house and a.id = ap.id
+join tblRealm r on a.house = r.house and r.region = ?
+where ap.species = ?
+group by a.house, ap.breed
+EOF;
+
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('si', $region, $species);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $tr = DBMapArray($result, ['house','breed']);
+    foreach ($tr as &$a) {
+        foreach ($a as &$b) {
+            $b = $b['price'];
+        }
+        unset($b);
+    }
+    unset($a);
     $stmt->close();
 
     MCSet($key, $tr);

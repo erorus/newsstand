@@ -187,6 +187,48 @@ var TUJ_BattlePet = function ()
             BattlePetGlobalNowScatter(dta, cht);
         }
 
+        if (dta.regionbreeds) {
+            var breedMap = {};
+            var breedHitCount = 0;
+            for (x in dta.regionbreeds) {
+                if (!dta.regionbreeds.hasOwnProperty(x)) {
+                    continue;
+                }
+                for (y in dta.regionbreeds[x]) {
+                    if (!dta.regionbreeds[x].hasOwnProperty(y)) {
+                        continue;
+                    }
+                    if (!breedMap[y]) {
+                        breedMap[y] = true;
+                        breedHitCount++;
+                    }
+                    if (breedHitCount > 1) {
+                        break;
+                    }
+                }
+                if (breedHitCount > 1) {
+                    break;
+                }
+            }
+            if (breedHitCount > 1) {
+                d = libtuj.ce();
+                d.className = 'chart-section';
+                h = libtuj.ce('h2');
+                d.appendChild(h);
+                $(h).text(tuj.lang.regionalBreeds);
+                d.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.regionalBreedsDesc, tuj.validRegions[params.region], tuj.lang.battlepet)));
+
+                d.appendChild(libtuj.ce('br'));
+                d.appendChild(libtuj.ce('br'));
+
+                cht = libtuj.ce();
+                cht.className = 'auctionlist';
+                d.appendChild(cht);
+                battlePetPage.append(d);
+                BattlePetRegionalBreeds(dta, cht);
+            }
+        }
+
         battlePetPage.append(MakeNotificationsSection(dta, ttl));
 
         if (dta.auctions.length) {
@@ -1583,6 +1625,117 @@ var TUJ_BattlePet = function ()
         }
 
         dest.appendChild(t);
+    }
+
+    function BattlePetRegionalBreeds(dta, dest)
+    {
+        var sortedBreeds = [], sortedHouses = [];
+        var seenBreeds = {};
+        for (var house in dta.regionbreeds) {
+            if (!dta.regionbreeds.hasOwnProperty(house)) {
+                continue;
+            }
+            sortedHouses.push(house);
+            for (var breed in dta.regionbreeds[house]) {
+                if (!dta.regionbreeds[house].hasOwnProperty(breed)) {
+                    continue;
+                }
+                if (!seenBreeds.hasOwnProperty(breed)) {
+                    seenBreeds[breed] = {};
+                    sortedBreeds.push(parseInt(breed,10));
+                }
+                seenBreeds[breed] = true;
+            }
+        }
+
+        var houseToRealm = {};
+        for (var x in tuj.realms) {
+            house = tuj.realms[x].house;
+            if (!houseToRealm.hasOwnProperty(house) ||
+                (tuj.realms[houseToRealm[house]].name.localeCompare(tuj.realms[x].name) > 0)) {
+                houseToRealm[house] = x;
+            }
+        }
+
+        sortedBreeds.sort();
+        sortedHouses.sort(function(a,b){
+            return tuj.realms[houseToRealm[a]].name.localeCompare(tuj.realms[houseToRealm[b]].name);
+        });
+
+        var t, tr, td;
+        t = libtuj.ce('table');
+        t.className = 'auctionlist';
+
+        tr = libtuj.ce('tr');
+        t.appendChild(tr);
+
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.addEventListener('click', BreedTableSort);
+        td.style.cursor = 'pointer';
+        td.className = 'realm';
+        $(td).text(tuj.lang['realms' + tuj.validRegions[params.region]]);
+
+        for (var x = 0; x < sortedBreeds.length; x++) {
+            td = libtuj.ce('th');
+            tr.appendChild(td);
+            td.addEventListener('click', BreedTableSort);
+            td.style.cursor = 'pointer';
+            td.className = 'price';
+            $(td).text(tuj.lang.breedsLookup[sortedBreeds[x]]);
+        }
+
+        var s, a, realm, y = 0;
+        for (house in dta.regionbreeds) {
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.className = 'realm';
+            td.dataset.sortValue = y++;
+            td.style.fontSize = '75%';
+
+            a = libtuj.ce('a');
+            td.appendChild(a);
+
+            a.href = tuj.BuildHash({'realm': houseToRealm[house], 'page': 'battlepet', 'id': params.id})
+            a.innerHTML = libtuj.GetRealmsForHouse(house);
+
+            for (x = 0; x < sortedBreeds.length; x++) {
+                td = libtuj.ce('td');
+                tr.appendChild(td);
+                td.className = 'price';
+
+                if (!dta.regionbreeds[house].hasOwnProperty(sortedBreeds[x])) {
+                    td.dataset.sortValue = 0;
+                    continue;
+                }
+
+                td.appendChild(libtuj.FormatPrice(td.dataset.sortValue = dta.regionbreeds[house][sortedBreeds[x]]));
+            }
+        }
+
+        dest.appendChild(t);
+    }
+
+    function BreedTableSort() {
+        var th = this;
+        var t = th.parentNode.parentNode;
+
+        for (var cellIndex = 0; cellIndex < th.parentNode.childNodes.length && th.parentNode.childNodes[cellIndex] != th; cellIndex++);
+
+        var trs = Array.from(t.getElementsByTagName('tr'));
+        trs.splice(0, 1);
+
+        trs.sort(function(a,b){
+            return (cellIndex ? b.childNodes[cellIndex].dataset.sortValue - a.childNodes[cellIndex].dataset.sortValue : 0) ||
+                a.childNodes[0].dataset.sortValue - b.childNodes[0].dataset.sortValue;
+        });
+
+        for (x = 0; x < trs.length; x++) {
+            trs[x].parentNode.appendChild(trs[x]);
+        }
     }
 
     this.load(tuj.params);
