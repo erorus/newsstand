@@ -71,6 +71,9 @@ foreach ($battlePetSpeciesReader->generateRecords() as $recId => $rec) {
 
     $type = $rec['type'];
     $icon = GetFileDataName($rec['iconid']);
+    if (is_null($icon)) {
+        $icon = 'inv_misc_questionmark';
+    }
     $npc = $rec['npcid'];
     $category = $rec['category'];
     $flags = $rec['flags'];

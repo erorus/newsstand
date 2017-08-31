@@ -1,20 +1,20 @@
 {
     "ManifestInterfaceData": {
-        "hash": 149580489,
+        "hash": 2657045657,
         "names": {
             "0": "path",
             "1": "name"
         }
     },
     "GlobalStrings": {
-        "hash": 2799008219,
+        "hash": 748939806,
         "names": {
             "0": "key",
             "1": "value"
         }
     },
     "ItemSubClass": {
-        "hash": 1180078957,
+        "hash": 3671665255,
         "names": {
             "0": "name",
             "1": "plural",
@@ -23,7 +23,7 @@
         }
     },
     "BattlePetSpecies": {
-        "hash": 480667497,
+        "hash": 1260783186,
         "names": {
             "0": "npcid",
             "1": "iconid",
@@ -33,13 +33,13 @@
         }
     },
     "Creature": {
-        "hash": 2420430607,
+        "hash": 2705025817,
         "names": {
             "4": "name"
         }
     },
     "BattlePetSpeciesState": {
-        "hash": 986213589,
+        "hash": 3745503420,
         "names": {
             "0": "amount",
             "1": "species",
@@ -50,13 +50,13 @@
         }
     },
     "ItemNameDescription": {
-        "hash": 84511078,
+        "hash": 376835028,
         "names": {
             "0": "name"
         }
     },
     "ScalingStatDistribution": {
-        "hash": 3305297737,
+        "hash": 3738468998,
         "names": {
             "0": "curve",
             "1": "minlevel",
@@ -64,7 +64,7 @@
         }
     },
     "ItemBonus": {
-        "hash": 594552132,
+        "hash": 3777999264,
         "names": {
             "0": "params",
             "1": "bonusid",
@@ -76,7 +76,7 @@
         }
     },
     "CurvePoint": {
-        "hash": 1151435742,
+        "hash": 4083634923,
         "names": {
             "0": "pair",
             "1": "curve",
@@ -84,7 +84,7 @@
         }
     },
     "Item": {
-        "hash": 3235855577,
+        "hash": 234670141,
         "names": {
             "0": "iconfiledata",
             "1": "class",
@@ -92,7 +92,7 @@
         }
     },
     "ItemSparse": {
-        "hash": 752510874,
+        "hash": 3143366484,
         "names": {
             "0": "flags",
             "3": "buycount",
@@ -116,14 +116,14 @@
         }
     },
     "ItemAppearance": {
-        "hash": 304023227,
+        "hash": 114514521,
         "names": {
             "0": "display",
             "1": "iconfiledata"
         }
     },
     "ItemModifiedAppearance": {
-        "hash": 2751332049,
+        "hash": 2670748091,
         "names": {
             "0": "item",
             "1": "appearance",
@@ -132,26 +132,26 @@
         }
     },
     "ItemEffect": {
-        "hash": 3888446281,
+        "hash": 1458613772,
         "names": {
             "0": "item",
             "1": "spell"
         }
     },
     "ItemRandomSuffix": {
-        "hash": 2188267542,
+        "hash": 2513090597,
         "names": {
             "0": "name"
         }
     },
     "ItemRandomProperties": {
-        "hash": 2104446684,
+        "hash": 3061020152,
         "names": {
             "0": "name"
         }
     },
     "SpellEffect": {
-        "hash": 3603988445,
+        "hash": 3464380983,
         "names": {
             "2": "spellid",
             "3": "effecttypeid",
@@ -162,7 +162,7 @@
         }
     },
     "Spell": {
-        "hash": 3959192367,
+        "hash": 2612638758,
         "names": {
             "0": "spellname",
             "2": "longdescription",
@@ -170,7 +170,7 @@
         }
     },
     "SpellCooldowns": {
-        "hash": 2516215775,
+        "hash": 1241709446,
         "names": {
             "0": "spell",
             "1": "categorycooldown",
@@ -178,7 +178,7 @@
         }
     },
     "SpellCategories": {
-        "hash": 3507389655,
+        "hash": 3333209826,
         "names": {
             "0": "spell",
             "2": "categoryid",
@@ -186,20 +186,20 @@
         }
     },
     "SpellCategory": {
-        "hash": 224478880,
+        "hash": 3932218244,
         "names": {
             "1": "chargecooldown",
             "2": "flags"
         }
     },
     "SpellMisc": {
-        "hash": 3474277738,
+        "hash": 1308211675,
         "names": {
             "6": "iconid"
         }
     },
     "SpellReagents": {
-        "hash": 1458431403,
+        "hash": 73647752,
         "names": {
             "0": "spell",
             "1": "reagent",
@@ -207,14 +207,14 @@
         }
     },
     "SkillLine": {
-        "hash": 466691007,
+        "hash": 1065257135,
         "names": {
             "0": "linename",
             "4": "linecatid"
         }
     },
     "SkillLineAbility": {
-        "hash": 1385648258,
+        "hash": 3852226303,
         "names": {
             "0": "spellid",
             "3": "lineid",
