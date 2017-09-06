@@ -697,7 +697,7 @@ function CategoryResult_mining($house)
             [
                 'name' => 'ItemList',
                 'data' => ['name'  => 'Broken Isles Ore',
-                           'items' => CategoryRegularItemList($house, 'i.id in (123918,123919,124444)')
+                           'items' => CategoryRegularItemList($house, 'i.id in (123918,123919,124444,151564)')
                 ]
             ],
             [
@@ -839,7 +839,7 @@ function CategoryResult_herbalism($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Legion Herbs',
-            'items' => CategoryRegularItemList($house, 'i.id in (128304,124106,124105,124104,124103,124102,124101)'),
+            'items' => CategoryRegularItemList($house, 'i.id in (128304,124106,124105,124104,124103,124102,124101,151565)'),
         ],
     ];
 
@@ -979,6 +979,14 @@ function CategoryResult_leatherworking($house)
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
+            'name'  => 'Fiendish',
+            'items' => CategoryBonusItemList($house, 'i.id in (151578, 151577)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
             'name'  => 'Warhide Leather',
             'items' => CategoryBonusItemList($house, 'i.id between 128876 and 128883')
         ]
@@ -1024,7 +1032,7 @@ function CategoryResult_leatherworking($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Legion Other',
-            'items' => CategoryRegularItemList($house, 'i.id in (129956,142406,129958,129960,129961,131746)'),
+            'items' => CategoryRegularItemList($house, 'i.id in (129956,142406,129958,129960,129961,131746,151566)'),
         ]
     ];
 
@@ -1184,7 +1192,7 @@ function CategoryResult_blacksmithing($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Legion Other',
-            'items' => CategoryRegularItemList($house, 'i.id in (137686,124461,123956,136708)')
+            'items' => CategoryRegularItemList($house, 'i.id in (137686,124461,123956,136708,151576,151239)')
         ]
     ];
 
@@ -1249,6 +1257,14 @@ function CategoryResult_jewelcrafting($house)
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
+            'name'  => 'Legion ' . $qualities[4] . ' Uncut Gems',
+            'items' => CategoryRegularItemList($house, '(i.id between 151718 and 151722 or i.id in (151579))')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
             'name'  => 'Legion ' . $qualities[3] . ' Uncut Gems',
             'items' => CategoryRegularItemList($house, '(i.id between 130178 and 130183 or i.id in (130245))')
         ]
@@ -1266,7 +1282,7 @@ function CategoryResult_jewelcrafting($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Legion ' . $qualities[4] . ' Cut Gems',
-            'items' => CategoryRegularItemList($house, 'i.id between 130246 and 130248')
+            'items' => CategoryRegularItemList($house, '(i.id between 130246 and 130248 or i.id in (151584, 151583, 151585, 151580))')
         ]
     ];
 
@@ -1313,6 +1329,14 @@ function CategoryResult_jewelcrafting($house)
             ]
         ];
     }
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => '885 Crowns',
+            'items' => CategoryBonusItemList($house, 'i.id between 151587 and 151590')
+        ]
+    ];
 
     $tr['results'][] = [
         'name' => 'ItemList',
@@ -1459,7 +1483,7 @@ function CategoryResult_engineering($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Legion Other',
-            'items' => CategoryRegularItemList($house, 'i.id in (132509,132510,132511,132513,132514,132515,132516,132517,132518,132519,132982,134125,136606)')
+            'items' => CategoryRegularItemList($house, 'i.id in (132509,132510,132511,132513,132514,132515,132516,132517,132518,132519,132982,134125,136606,151651,151652)')
         ]
     ];
 
@@ -1572,7 +1596,7 @@ function CategoryResult_tailoring($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Common Cloth',
-            'items' => CategoryRegularItemList($house, 'i.id in (2589,2592,4306,4338,14047,21877,33470,53010,72988,111557,124437)')
+            'items' => CategoryRegularItemList($house, 'i.id in (2589,2592,4306,4338,14047,21877,33470,53010,72988,111557,124437,151567)')
         ]
     ];
 
@@ -1640,7 +1664,7 @@ function CategoryResult_tailoring($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Legion Other',
-            'items' => CategoryRegularItemList($house, 'i.id in (137556,137557,137558,139503)')
+            'items' => CategoryRegularItemList($house, 'i.id in (137556,137557,137558,139503,247807)')
         ]
     ];
 
@@ -1933,7 +1957,7 @@ function CategoryResult_cooking($house)
 
     $foods = [
         'Legion Fish' => '133607, 124107, 124109, 124108, 124110, 124111, 124112',
-        'Legion Food' => '142334, 133681, 133579, 133578, 133577, 133576, 133575, 133574, 133573, 133572, 133571, 133570, 133569, 133568, 133567, 133566, 133565, 133564, 133563, 133562, 133561, 133557',
+        'Legion Food' => '142334, 133681, 133579, 133578, 133577, 133576, 133575, 133574, 133573, 133572, 133571, 133570, 133569, 133568, 133567, 133566, 133565, 133564, 133563, 133562, 133561, 133557, 152564',
     ];
 
     foreach ($foods as $name => $sql) {
