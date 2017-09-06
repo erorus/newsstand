@@ -1664,7 +1664,7 @@ function CategoryResult_tailoring($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Legion Other',
-            'items' => CategoryRegularItemList($house, 'i.id in (137556,137557,137558,139503,151571)')
+            'items' => CategoryBonusItemList($house, 'i.id in (137556,137557,137558,139503,151571)')
         ]
     ];
 
