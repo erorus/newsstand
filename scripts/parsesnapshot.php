@@ -601,7 +601,9 @@ function ParseAuctionData($house, $snapshot, &$json)
                 $auction['quantity'],
                 $auction['bid'],
                 $auction['buyout'],
-                $auction['owner'] == '???' ? 0 : $sellerInfo[$auction['ownerRealm']][$auction['owner']]['id'],
+                $auction['owner'] == '???' ? 0 :
+                    (isset($sellerInfo[$auction['ownerRealm']][$auction['owner']]) ?
+                        $sellerInfo[$auction['ownerRealm']][$auction['owner']]['id'] : 0),
                 $auction['timeLeft']
             );
             if (strlen($sql) + 5 + strlen($thisSql) > $maxPacketSize) {
@@ -1038,7 +1040,7 @@ function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
 
         $realmId = $ownerRealmCache[$region][$realmName]['id'];
 
-        $sqlStart = "SELECT name, id FROM tblSeller WHERE realm = $realmId AND name IN (";
+        $sqlStart = "SELECT name, if(lastseen is null, null, id) id FROM tblSeller WHERE realm = $realmId AND name IN (";
         $sql = $sqlStart;
         $namesInQuery = 0;
         $names = array_keys($sellerInfo[$realmName]);
@@ -1063,8 +1065,12 @@ function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
 
                 for ($n = 0; $n < count($someIds); $n++) {
                     if (isset($sellerInfo[$realmName][$someIds[$n]['name']])) {
-                        $sellerInfo[$realmName][$someIds[$n]['name']]['id'] = $someIds[$n]['id'];
                         $foundNames++;
+                        if (is_null($someIds[$n]['id'])) {
+                            unset($sellerInfo[$realmName][$someIds[$n]['name']]);
+                            continue;
+                        }
+                        $sellerInfo[$realmName][$someIds[$n]['name']]['id'] = $someIds[$n]['id'];
                         if ($sellerInfo[$realmName][$someIds[$n]['name']]['new'] > 0) {
                             $lastSeenIds[] = $someIds[$n]['id'];
                         }
@@ -1095,8 +1101,12 @@ function GetSellerIds($region, &$sellerInfo, $snapshot, $afterInsert = false)
 
             for ($n = 0; $n < count($someIds); $n++) {
                 if (isset($sellerInfo[$realmName][$someIds[$n]['name']])) {
-                    $sellerInfo[$realmName][$someIds[$n]['name']]['id'] = $someIds[$n]['id'];
                     $foundNames++;
+                    if (is_null($someIds[$n]['id'])) {
+                        unset($sellerInfo[$realmName][$someIds[$n]['name']]);
+                        continue;
+                    }
+                    $sellerInfo[$realmName][$someIds[$n]['name']]['id'] = $someIds[$n]['id'];
                     if ($sellerInfo[$realmName][$someIds[$n]['name']]['new'] > 0) {
                         $lastSeenIds[] = $someIds[$n]['id'];
                     }

@@ -136,7 +136,7 @@ function PetAuctions($house, $species)
 SELECT ap.breed, quantity, bid, buy, ap.level, ap.quality, s.realm sellerrealm, ifnull(s.name, '???') sellername
 FROM `tblAuction` a
 JOIN `tblAuctionPet` ap on a.house = ap.house and a.id = ap.id
-left join tblSeller s on a.seller=s.id
+left join tblSeller s on a.seller=s.id and s.lastseen is not null
 WHERE a.house=? and a.item=82800 and ap.species=?
 EOF;
 

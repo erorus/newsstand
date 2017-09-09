@@ -49,7 +49,7 @@ function SellerStats($house, $realm, $seller)
 
     $db = DBConnect();
 
-    $sql = 'SELECT * FROM tblSeller s WHERE realm = ? AND name = ?';
+    $sql = 'SELECT * FROM tblSeller s WHERE realm = ? AND name = ? AND lastseen is not null';
     $stmt = $db->prepare($sql);
     $stmt->bind_param('is', $realm, $seller);
     $stmt->execute();

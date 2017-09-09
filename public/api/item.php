@@ -324,7 +324,7 @@ function ItemSellers($house, $item)
 {
     global $db;
 
-    $cacheKey = 'item_sellers3_' . $item;
+    $cacheKey = 'item_sellers_' . $item;
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
@@ -336,7 +336,7 @@ function ItemSellers($house, $item)
 select sum(sih.quantity) quantity, sum(if(sih.snapshot > timestampadd(hour, -97, now()), sih.quantity, 0)) recentquantity,
 unix_timestamp(max(sih.snapshot)) lastseen, s.realm sellerrealm, ifnull(s.name, '???') sellername
 from tblSellerItemHistory sih
-join tblSeller s on sih.seller = s.id
+left join tblSeller s on sih.seller = s.id and s.lastseen is not null
 where sih.house = ?
 and sih.item = ?
 group by sih.seller
@@ -360,7 +360,7 @@ function ItemAuctions($house, $item)
 {
     global $db;
 
-    $cacheKey = 'item_auctions_lb3_' . $item;
+    $cacheKey = 'item_auctions_' . $item;
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         foreach ($tr as &$rows) {
@@ -383,7 +383,7 @@ s.realm sellerrealm, ifnull(s.name, '???') sellername,
 concat_ws(':',ae.bonus1,ae.bonus2,ae.bonus3,ae.bonus4,ae.bonus5,ae.bonus6) bonuses
 FROM `tblAuction` a
 join tblDBCItem i on a.item=i.id
-left join tblSeller s on a.seller=s.id
+left join tblSeller s on a.seller=s.id and s.lastseen is not null
 left join tblAuctionExtra ae on ae.house=a.house and ae.id=a.id
 left join tblDBCRandEnchants re on re.id = ae.rand
 WHERE a.house=? and a.item=?

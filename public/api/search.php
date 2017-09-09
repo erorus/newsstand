@@ -161,6 +161,7 @@ select s.id, r.id realm, s.name, unix_timestamp(s.firstseen) firstseen, unix_tim
 from tblSeller s
 join tblRealm r on s.realm=r.id and r.house=?
 where convert(s.name using utf8) collate utf8_unicode_ci like ?
+and s.lastseen is not null
 limit 50
 EOF;
 

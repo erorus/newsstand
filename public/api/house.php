@@ -17,7 +17,7 @@ $json = array(
     'sellers'       => HouseTopSellers($house),
     'mostAvailable' => HouseMostAvailable($house),
     'deals'         => HouseDeals($house),
-    'sellerbots'    => HouseBotSellers($house),
+    'sellerbots'    => [], //HouseBotSellers($house),
 );
 
 $json = json_encode($json, JSON_NUMERIC_CHECK);
@@ -123,6 +123,7 @@ join tblRealm r on s.realm = r.id
 join tblItemGlobal g on a.item = g.item and g.bonusset = ifnull(ae.bonusset, 0) and g.region = r.region
 where a.item != 86400
 and a.house = ?
+and s.lastseen is not null
 group by a.seller
 order by sum(least(ifnull(a.buy, a.bid), g.median * a.quantity)) desc
 limit 10

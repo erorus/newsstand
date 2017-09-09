@@ -863,7 +863,7 @@ CREATE TABLE IF NOT EXISTS `tblSeller` (
   `realm` smallint(5) unsigned NOT NULL,
   `name` char(12) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
   `firstseen` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `lastseen` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `lastseen` timestamp NULL DEFAULT '0000-00-00 00:00:00',
   PRIMARY KEY (`id`),
   UNIQUE KEY `realmname` (`realm`,`name`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=33485149 ;
