@@ -171,6 +171,15 @@ table.highcharts-tuj-tooltip td + td {padding-left: 0.4em}
 
 a.sellerbot::after { content: 'BOT'; font-size: 80%; padding: 0 2px; background-color: #900; color: white; border-radius: 2px; margin: 0 4px; position: relative; top: -1px }
 
+#seller-page .seller-stats .ad { margin-top: 0 }
+#seller-page .seller-stats { position: relative; text-align: right; font-size: 110%; display: inline-block; width: 100% }
+#seller-page .seller-stats table { max-width: 25em; float: left; margin: 0 0 1em; font-size: 100% }
+#seller-page .seller-stats tr.spacer td { height: 0.5em }
+#seller-page .seller-stats td { text-align: right }
+#seller-page .seller-stats th { text-align: left; padding-right: 3em }
+#seller-page .seller-stats td.rank { font-size: 75%; font-style: italic; vertical-align: top; padding-left: 0.5em }
+#seller-page .seller-stats td.rank::before { content: '#'; }
+
 #seller-page .ad { margin-top: 0 }
 #seller-page .chart-section { margin: 2em 0 }
 #seller-page .chart { width: 100%; height: 22em; margin-top: 1em }

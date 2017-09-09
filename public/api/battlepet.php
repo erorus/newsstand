@@ -195,7 +195,7 @@ function PetRegionBreeds($region, $species)
     DBConnect();
 
     $sql = <<<EOF
-select a.house, ap.breed, ifnull(min(a.buy), min(a.bid)) price
+select a.house, ap.breed, min(if(a.buy = 0, a.bid, a.buy)) price
 from tblAuction a
 join tblAuctionPet ap on a.house = ap.house and a.id = ap.id
 join tblRealm r on a.house = r.house and r.region = ?

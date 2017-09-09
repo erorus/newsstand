@@ -85,8 +85,8 @@ var libtuj = {
         if (typeof amt == 'number') {
             amt = Math.round(amt);
             if (amt >= 100) {// 1s
-                if (shorter && amt >= 10000000) { // 100g
-                    g = Math.round(amt / 10000);
+                if (shorter && amt >= 10000000) { // 1000g
+                    g = Math.round(amt / 10000).toLocaleString();
                 } else {
                     g = (amt / 10000).toFixed(2);
                 }

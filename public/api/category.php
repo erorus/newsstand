@@ -2704,9 +2704,9 @@ function CategoryUnusualItemList($house, $unusualSql, $flags = 0)
     $params = [
         'where' => $unusualSql . $craftedSql . ' and s.bonusset=0',
         'joins' => 'join tblAuction a on a.house=s.house and a.item=i.id join tblAuctionRare ar on ar.house=a.house and ar.id=a.id',
-        'colsUpper'        => 'g.median * pow(1.15,(@level - cast(i.level as signed))/15) globalmedian, min(ar.prevseen) `lastseenover`, min(ifnull(a.buy/a.quantity, a.bid/a.quantity) * pow(1.15,(@level - cast(i.level as signed))/15)) `priceover`',
+        'colsUpper'        => 'g.median * pow(1.15,(@level - cast(i.level as signed))/15) globalmedian, min(ar.prevseen) `lastseenover`, min(if(a.buy = 0, a.bid, a.buy) / a.quantity * pow(1.15,(@level - cast(i.level as signed))/15)) `priceover`',
         'colsLowerOutside' => 'g.median * pow(1.15,(@level - cast(r2.baselevel as signed))/15) globalmedian, r2.lastseenover, r2.priceover * pow(1.15,(@level - cast(r2.baselevel as signed))/15) priceover',
-        'colsLowerInside'  => 'min(ar.prevseen) `lastseenover`, min(ifnull(a.buy/a.quantity, a.bid/a.quantity)) `priceover`',
+        'colsLowerInside'  => 'min(ar.prevseen) `lastseenover`, min(if(a.buy = 0, a.bid, a.buy) / a.quantity) `priceover`',
         'outside' => 'lastseenover as lastseen, priceover as price',
     ];
 

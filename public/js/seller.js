@@ -113,7 +113,12 @@ var TUJ_Seller = function ()
 
         var d, cht, h;
 
-        sellerPage.append(libtuj.Ads.Add('3896661119'));
+        if (dta.stats.hasOwnProperty('auctions')) {
+            d = libtuj.ce();
+            d.className = 'seller-stats';
+            sellerPage.append(d);
+            SellerStats(dta, d);
+        }
 
         if (tuj.SellerIsBot(dta.stats.realm, dta.stats.name)) {
             d = libtuj.ce();
@@ -198,6 +203,113 @@ var TUJ_Seller = function ()
         libtuj.Ads.Show();
     }
 
+    function SellerStats(data, dest)
+    {
+        var t, tr, td, abbr;
+
+        $(dest).empty();
+
+        t = libtuj.ce('table');
+        dest.appendChild(t);
+
+        tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        tr.className = 'auctions';
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.appendChild(document.createTextNode(tuj.lang.numberOfAuctions));
+        td = libtuj.ce('td');
+        tr.appendChild(td);
+        td.appendChild(libtuj.FormatQuantity(data.stats.auctions));
+
+        if (data.stats.auctions > 0) {
+            td = libtuj.ce('td');
+            td.className = 'rank';
+            tr.appendChild(td);
+            td.appendChild(document.createTextNode(data.stats.auctionsrank));
+
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+            tr.className = 'total-value';
+            td = libtuj.ce('th');
+            tr.appendChild(td);
+            td.appendChild(document.createTextNode(tuj.lang.price));
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.appendChild(libtuj.FormatPrice(data.stats.uservalue, false, true));
+            td = libtuj.ce('td');
+            td.className = 'rank';
+            tr.appendChild(td);
+            td.appendChild(document.createTextNode(data.stats.uservaluerank));
+
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+            tr.className = 'spacer';
+            td = libtuj.ce('td');
+            td.colSpan = 3;
+            tr.appendChild(td);
+
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+            tr.className = 'total-value';
+            td = libtuj.ce('th');
+            tr.appendChild(td);
+            td.appendChild(document.createTextNode(tuj.lang.marketPrice));
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.appendChild(libtuj.FormatPrice(data.stats.marketvalue, false, true));
+            td = libtuj.ce('td');
+            td.className = 'rank';
+            tr.appendChild(td);
+            td.appendChild(document.createTextNode(data.stats.marketvaluerank));
+
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+            tr.className = 'total-value';
+            td = libtuj.ce('th');
+            tr.appendChild(td);
+            td.appendChild(document.createTextNode(tuj.lang.regionPrice));
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.appendChild(libtuj.FormatPrice(data.stats.regionmedian, false, true));
+            td = libtuj.ce('td');
+            td.className = 'rank';
+            tr.appendChild(td);
+            td.appendChild(document.createTextNode(data.stats.regionmedianrank));
+        }
+
+        tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        tr.className = 'spacer';
+        td = libtuj.ce('td');
+        td.colSpan = 3;
+        tr.appendChild(td);
+
+        tr = libtuj.ce('tr');
+        t.appendChild(tr);
+        tr.className = 'last-seen';
+        td = libtuj.ce('th');
+        tr.appendChild(td);
+        td.appendChild(document.createTextNode(tuj.lang.firstSeen));
+        td = libtuj.ce('td');
+        tr.appendChild(td);
+        td.appendChild(libtuj.FormatDate(data.stats.firstseen));
+
+        if (data.stats.auctions == 0) {
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+            tr.className = 'last-seen';
+            td = libtuj.ce('th');
+            tr.appendChild(td);
+            td.appendChild(document.createTextNode(tuj.lang.lastSeen));
+            td = libtuj.ce('td');
+            tr.appendChild(td);
+            td.appendChild(libtuj.FormatDate(data.stats.lastseen));
+        }
+
+        dest.appendChild(libtuj.Ads.Add('9719254490', 'box'));
+    }
+
     function SellerHistoryChart(data, dest)
     {
         var hcdata = {total: [], newAuc: [], max: 0};
@@ -275,7 +387,7 @@ var TUJ_Seller = function ()
                 {
                     var tr = '<b>' + Highcharts.dateFormat('%a %b %e %Y, %l:%M%P', this.x) + '</b>';
                     tr += '<br><span style="color: #000099">' + tuj.lang.total + ': ' + libtuj.FormatQuantity(this.points[0].y, true) + '</span>';
-                    tr += '<br><span style="color: #990000">' + tuj.lang['new'] + ': ' + libtuj.FormatQuantity(this.points[1].y, true) + '</span>';
+                    tr += '<br><span style="color: #990000">' + tuj.lang['new'] + ': ' + libtuj.FormatQuantity(this.points[1] ? this.points[1].y : 0, true) + '</span>';
                     return tr;
                 }
             },

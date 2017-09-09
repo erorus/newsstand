@@ -126,7 +126,7 @@ left join tblPetGlobal pg on ap.species = pg.species and pg.region = r.region an
 where a.house = ?
 and s.lastseen is not null
 group by a.seller
-order by sum(least(ifnull(a.buy, a.bid), ifnull(g.median, pg.median) * a.quantity)) desc
+order by sum(least(if(a.buy = 0, a.bid, a.buy), ifnull(g.median, pg.median) * a.quantity)) desc
 limit 10
 EOF;
 

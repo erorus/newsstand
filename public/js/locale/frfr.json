@@ -149,6 +149,7 @@
 
     "availableQuantity": "Quantité disponible",
     "availableAbbrev": "Dispo",
+    "firstSeen": "Vu pour la première fois",
     "lastSeen": "Vu pour la dernière fois",
     "currentPrice": "Prix actuel",
     "currentPriceAbbrev": "Actuel",

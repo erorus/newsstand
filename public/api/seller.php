@@ -34,6 +34,8 @@ $json = array(
     'petAuctions' => SellerPetAuctions($house, $sellerRow['id']),
 );
 
+unset($json['stats']['id']);
+
 json_return($json);
 
 function SellerStats($house, $realm, $seller)
@@ -41,7 +43,7 @@ function SellerStats($house, $realm, $seller)
     $seller = mb_ereg_replace(' ', '', $seller);
     $seller = mb_strtoupper(mb_substr($seller, 0, 1)) . mb_strtolower(mb_substr($seller, 1));
 
-    $key = 'seller_stats_' . $realm . '_' . $seller;
+    $key = 'seller_stats_r_' . $realm . '_' . $seller;
 
     if (($tr = MCGetHouse($house, $key)) !== false) {
         return $tr;
@@ -49,7 +51,13 @@ function SellerStats($house, $realm, $seller)
 
     $db = DBConnect();
 
-    $sql = 'SELECT * FROM tblSeller s WHERE realm = ? AND name = ? AND lastseen is not null';
+    $sql = <<<'EOF'
+    SELECT id, realm, name, unix_timestamp(firstseen) firstseen, unix_timestamp(lastseen) lastseen 
+    FROM tblSeller
+    WHERE realm = ?
+    AND name = ?
+    AND lastseen is not null
+EOF;
     $stmt = $db->prepare($sql);
     $stmt->bind_param('is', $realm, $seller);
     $stmt->execute();
@@ -62,11 +70,138 @@ function SellerStats($house, $realm, $seller)
 
     if ($tr) {
         $tr['thumbnail'] = SellerThumbnail($realm, $seller);
+        $tr = $tr + SellerRank($house, $tr['id']);
     }
 
     MCSetHouse($house, $key, $tr);
 
     return $tr;
+}
+
+function SellerRank($house, $seller) {
+    // uncached: only called (and cached) from SellerStats
+
+    $db = DBConnect();
+
+    $sql = <<<'EOF'
+select ifnull(sum(if(a.buy = 0, a.bid, a.buy)),0) uservalue,
+ifnull(sum(ifnull(s.price, ps.price) * a.quantity),0) marketvalue,
+ifnull(sum(ifnull(g.median, pg.median) * a.quantity),0) regionmedian,
+count(*) auctions
+from tblAuction a
+join tblRealm r on r.house = a.house and r.canonical is not null
+left join tblAuctionExtra ae on ae.id = a.id and ae.house = a.house
+left join tblItemSummary s on a.item = s.item and s.bonusset = ifnull(ae.bonusset, 0) and s.house = a.house and a.item != %1$d
+left join tblItemGlobal g on a.item = g.item and g.bonusset = ifnull(ae.bonusset, 0) and g.region = r.region and a.item != %1$d
+left join tblAuctionPet ap on ap.id = a.id and ap.house = a.house
+left join tblPetSummary ps on ap.species = ps.species and ps.house = a.house and a.item = %1$d
+left join tblPetGlobal pg on ap.species = pg.species and pg.region = r.region and a.item = %1$d
+where a.seller = ?
+EOF;
+
+    $stmt = $db->prepare(sprintf($sql, BATTLE_PET_CAGE_ITEM));
+    $stmt->bind_param('i', $seller);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $tr = DBMapArray($result, null);
+    $stmt->close();
+
+    if (count($tr)) {
+        $tr = $tr[0];
+
+        foreach (['auctions', 'uservalue', 'marketvalue', 'regionmedian'] as $t) {
+            if ($tr[$t]) {
+                $tr[$t.'rank'] = SellerRankByType($t, $house, $tr[$t]);
+            }
+        }
+    }
+
+    return $tr;
+}
+
+function SellerRankByType($type, $house, $amount) {
+    $sqls = [];
+
+    $sqls['auctions'] = <<<'EOF'
+    select count(*)
+    from tblAuction a
+    where a.house = ?
+    group by a.seller
+    order by 1 desc
+EOF;
+
+    $sqls['uservalue'] = <<<'EOF'
+    select sum(if(a.buy = 0, a.bid, a.buy))
+    from tblAuction a
+    where a.house = ?
+    group by a.seller
+    order by 1 desc
+EOF;
+
+    $sqls['marketvalue'] = <<<'EOF'
+    select sum(ifnull(s.price, ps.price) * a.quantity)
+    from tblAuction a
+    left join tblAuctionExtra ae on ae.id = a.id and ae.house = a.house
+    left join tblItemSummary s on a.item = s.item and s.bonusset = ifnull(ae.bonusset, 0) and s.house = a.house and a.item != %1$d
+    left join tblAuctionPet ap on ap.id = a.id and ap.house = a.house
+    left join tblPetSummary ps on ap.species = ps.species and ps.house = a.house and a.item = %1$d
+    where a.house = ?
+    group by a.seller
+    order by 1 desc
+EOF;
+
+    $sqls['regionmedian'] = <<<'EOF'
+    select sum(ifnull(g.median, pg.median) * a.quantity)
+    from tblAuction a
+    join tblRealm r on r.house = a.house and r.canonical is not null
+    left join tblAuctionExtra ae on ae.id = a.id and ae.house = a.house
+    left join tblItemGlobal g on a.item = g.item and g.bonusset = ifnull(ae.bonusset, 0) and g.region = r.region and a.item != %1$d
+    left join tblAuctionPet ap on ap.id = a.id and ap.house = a.house
+    left join tblPetGlobal pg on ap.species = pg.species and pg.region = r.region and a.item = %1$d
+    where a.house = ?
+    group by a.seller
+    order by 1 desc
+EOF;
+
+    if (!isset($sqls[$type])) {
+        return 0;
+    }
+
+    $key = 'seller_rank_' . $type;
+
+    if (($ranks = MCGetHouse($house, $key)) === false) {
+        $sql = $sqls[$type];
+
+        $db = DBConnect();
+
+        $stmt = $db->prepare(sprintf($sql, BATTLE_PET_CAGE_ITEM));
+        $stmt->bind_param('i', $house);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $ranks  = DBMapArray($result, null);
+        $stmt->close();
+
+        MCSetHouse($house, $key, $ranks);
+    }
+
+    // search for amount within ranks
+
+    $lo = 0;
+    $hi = count($ranks) - 1;
+
+    while ($lo <= $hi) {
+        $mid = (int)(($hi - $lo) / 2) + $lo;
+
+        if ($amount > $ranks[$mid]) {
+            $hi = $mid - 1;
+        } elseif ($amount < $ranks[$mid]) {
+            $lo = $mid + 1;
+        } else {
+            return $mid + 1;
+        }
+    }
+
+    return $lo + 1;
 }
 
 function SellerHistory($house, $seller)
