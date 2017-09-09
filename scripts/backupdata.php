@@ -21,6 +21,7 @@ $tables = [
         'tblItemLevelsSeen'     => '1=1',
         'tblItemSummary'        => '1=1',
         'tblPet'                => '1=1',
+        'tblPetGlobal'          => '1=1',
         'tblPetSummary'         => '1=1',
         'tblRealm'              => '1=1',
         'tblSnapshot'           => '1=1',

@@ -51,6 +51,7 @@ function GetDataTables() {
         'tblItemLevelsSeen' => '1=1',
         'tblItemSummary' => 'house='.$house,
         'tblPet' => '1=1',
+        'tblPetGlobal' => '1=1',
         'tblPetHistoryHourly' => 'house='.$house,
         'tblPetSummary' => 'house='.$house,
         'tblRealm' => '1=1',

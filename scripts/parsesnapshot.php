@@ -709,11 +709,11 @@ left join tblAuctionExtra ae on ae.house=a.house and ae.id=a.id
 left join tblItemSummary tis on tis.house=a.house and tis.item=a.item and tis.bonusset=ifnull(ae.bonusset,0)
 where a.house = %d
 and a.id > %d
-and a.item not in (82800)
+and a.item != %d
 %s
 and ifnull(tis.lastseen, '2000-01-01') < timestampadd(day,-14,'%s'))
 EOF;
-        $sql = sprintf($sql, $house, $lastMax, $hasRollOver ? ' and a.id < 0x20000000 ' : '', $snapshotString);
+        $sql = sprintf($sql, $house, $lastMax, BATTLE_PET_CAGE_ITEM, $hasRollOver ? ' and a.id < 0x20000000 ' : '', $snapshotString);
         DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating tblAuctionRare");
         DBQueryWithError($ourDb, $sql);
     }

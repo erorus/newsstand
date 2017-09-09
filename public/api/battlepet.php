@@ -137,10 +137,10 @@ SELECT ap.breed, quantity, bid, buy, ap.level, ap.quality, s.realm sellerrealm, 
 FROM `tblAuction` a
 JOIN `tblAuctionPet` ap on a.house = ap.house and a.id = ap.id
 left join tblSeller s on a.seller=s.id and s.lastseen is not null
-WHERE a.house=? and a.item=82800 and ap.species=?
+WHERE a.house=? and a.item=%d and ap.species=?
 EOF;
 
-    $stmt = $db->prepare($sql);
+    $stmt = $db->prepare(sprintf($sql, BATTLE_PET_CAGE_ITEM));
     $stmt->bind_param('ii', $house, $species);
     $stmt->execute();
     $result = $stmt->get_result();

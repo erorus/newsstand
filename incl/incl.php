@@ -21,6 +21,8 @@ define('BONUS_STAT_SET_LEECH', 2);
 define('BONUS_STAT_SET_AVOIDANCE', 4);
 define('BONUS_STAT_SET_INDESTRUCTIBLE', 8);
 
+define('BATTLE_PET_CAGE_ITEM', 82800);
+
 $TIMELEFT_ENUM = [
     'SHORT'     => 1,
     'MEDIUM'    => 2,

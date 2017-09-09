@@ -184,12 +184,12 @@ from (
     left join tblAuctionExtra ae on ae.house=a.house and ae.id=a.id
     left join tblBonusSet bs on ae.bonusset = bs.set
     WHERE a.seller = ?
-    and a.item != 82800
+    and a.item != %d
     group by a.id
 ) results
 EOF;
 
-    $stmt = $db->prepare($sql);
+    $stmt = $db->prepare(sprintf($sql, BATTLE_PET_CAGE_ITEM));
     $stmt->bind_param('i', $seller);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -230,10 +230,10 @@ where ap2.house=a.house and ap2.species = ap.species and ap2.level >= ap.level a
 FROM `tblAuction` a
 JOIN `tblAuctionPet` ap on a.house = ap.house and a.id = ap.id
 JOIN `tblDBCPet` `p` on `p`.`id` = `ap`.`species`
-WHERE a.house = ? and a.seller = ? and a.item = 82800
+WHERE a.house = ? and a.seller = ? and a.item = %d
 EOF;
 
-    $stmt = $db->prepare($sql);
+    $stmt = $db->prepare(sprintf($sql, BATTLE_PET_CAGE_ITEM));
     $stmt->bind_param('ii', $house, $seller);
     $stmt->execute();
     $result = $stmt->get_result();

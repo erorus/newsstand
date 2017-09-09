@@ -745,6 +745,37 @@ CREATE TABLE IF NOT EXISTS `tblPet` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `tblPetGlobal`
+--
+
+CREATE TABLE IF NOT EXISTS `tblPetGlobal` (
+  `species` smallint(5) unsigned NOT NULL,
+  `region` enum('US','EU','CN','TW','KR') COLLATE utf8_unicode_ci NOT NULL,
+  `median` decimal(11,0) unsigned NOT NULL,
+  `mean` decimal(11,0) unsigned NOT NULL,
+  `stddev` decimal(11,0) unsigned NOT NULL,
+  PRIMARY KEY (`species`,`region`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tblPetGlobalWorking`
+--
+
+CREATE TABLE IF NOT EXISTS `tblPetGlobalWorking` (
+  `when` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `region` enum('US','EU','CN','TW','KR') COLLATE utf8_unicode_ci NOT NULL,
+  `species` smallint(5) unsigned NOT NULL,
+  `median` decimal(11,0) unsigned NOT NULL,
+  `mean` decimal(11,0) unsigned NOT NULL,
+  `stddev` decimal(11,0) unsigned NOT NULL,
+  PRIMARY KEY (`when`,`region`,`species`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `tblPetHistoryHourly`
 --
 
