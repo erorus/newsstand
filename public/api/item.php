@@ -49,7 +49,6 @@ function ItemStats($house, $item)
     DBConnect();
 
     $localeCols = LocaleColumns('i.name');
-    $bonusTags = LocaleColumns('ifnull(group_concat(distinct ind.`desc%1$s` separator \' \'),\'\') bonustag%1$s', true);
     $sql = <<<EOF
 select i.id, $localeCols, i.icon, i.display, i.class as classid, i.subclass, i.quality, 
 i.level, i.stacksize, i.binds, i.buyfromvendor, i.selltovendor, i.auctionable,
@@ -57,13 +56,11 @@ s.price, s.quantity, s.lastseen,
 ifnull((select group_concat(ils.`level` order by 1 separator ',') from tblItemLevelsSeen ils where ils.item = i.id and ils.bonusset = ifnull(s.bonusset, 0)),'') levels, 
 ifnull(s.bonusset,0) bonusset, ifnull(GROUP_CONCAT(distinct bs.tagid ORDER BY 1 SEPARATOR '.'), '') tagurl,
 ifnull((select concat_ws(':', nullif(bonus1,0), nullif(bonus2,0), nullif(bonus3,0), nullif(bonus4,0)) 
- FROM `tblItemBonusesSeen` ibs WHERE ibs.item=i.id and ibs.bonusset=s.bonusset order by ibs.observed desc limit 1),'') bonusurl,
-$bonusTags,
+    FROM `tblItemBonusesSeen` ibs WHERE ibs.item=i.id and ibs.bonusset=s.bonusset order by ibs.observed desc limit 1),'') bonusurl,
 ivc.copper vendorprice, ivc.npc vendornpc, ivc.npccount vendornpccount
 from tblDBCItem i
 left join tblItemSummary s on s.house = %d and s.item = i.id
 left join tblBonusSet bs on s.bonusset = bs.`set`
-left join tblDBCItemNameDescription ind on ind.id = bs.tagid
 left join tblDBCItemVendorCost ivc on ivc.item = i.id
 where i.id = %d
 group by s.bonusset

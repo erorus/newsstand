@@ -66,7 +66,6 @@ CREATE TABLE IF NOT EXISTS `tblAuctionExtra` (
   `context` tinyint(3) unsigned NOT NULL,
   `lootedlevel` tinyint(3) unsigned DEFAULT NULL,
   `level` smallint(5) unsigned DEFAULT NULL,
-  `bonusset` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `bonus1` smallint(5) unsigned DEFAULT NULL,
   `bonus2` smallint(5) unsigned DEFAULT NULL,
   `bonus3` smallint(5) unsigned DEFAULT NULL,
@@ -131,18 +130,6 @@ CREATE TABLE IF NOT EXISTS `tblBitPayTransactions` (
   `updated` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   PRIMARY KEY (`id`),
   KEY `user` (`user`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `tblBonusSet`
---
-
-CREATE TABLE IF NOT EXISTS `tblBonusSet` (
-  `set` tinyint(3) unsigned NOT NULL,
-  `tagid` mediumint(8) unsigned NOT NULL,
-  PRIMARY KEY (`set`,`tagid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -454,26 +441,12 @@ CREATE TABLE IF NOT EXISTS `tblHouseCheck` (
 
 CREATE TABLE IF NOT EXISTS `tblItemBonusesSeen` (
   `item` mediumint(8) unsigned NOT NULL,
-  `bonusset` tinyint(3) unsigned NOT NULL,
   `bonus1` smallint(5) unsigned NOT NULL DEFAULT '0',
   `bonus2` smallint(5) unsigned NOT NULL DEFAULT '0',
   `bonus3` smallint(5) unsigned NOT NULL DEFAULT '0',
   `bonus4` smallint(5) unsigned NOT NULL DEFAULT '0',
   `observed` int(10) unsigned NOT NULL DEFAULT '0',
-  PRIMARY KEY (`item`,`bonusset`,`bonus1`,`bonus2`,`bonus3`,`bonus4`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `tblItemLevelsSeen`
---
-
-CREATE TABLE IF NOT EXISTS `tblItemLevelsSeen` (
-  `item` mediumint(8) unsigned NOT NULL,
-  `bonusset` tinyint(3) unsigned NOT NULL,
-  `level` smallint(5) unsigned NOT NULL,
-  PRIMARY KEY (`item`,`bonusset`,`level`)
+  PRIMARY KEY (`item`,`bonus1`,`bonus2`,`bonus3`,`bonus4`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -484,12 +457,12 @@ CREATE TABLE IF NOT EXISTS `tblItemLevelsSeen` (
 
 CREATE TABLE IF NOT EXISTS `tblItemExpired` (
   `item` mediumint(8) unsigned NOT NULL,
-  `bonusset` tinyint(3) unsigned NOT NULL,
+  `level` smallint(5) unsigned NOT NULL,
   `house` smallint(5) unsigned NOT NULL,
   `when` date NOT NULL,
   `created` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `expired` mediumint(8) unsigned NOT NULL DEFAULT '0',
-  PRIMARY KEY (`house`,`item`,`bonusset`,`when`)
+  PRIMARY KEY (`house`,`item`,`level`,`when`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -500,12 +473,12 @@ CREATE TABLE IF NOT EXISTS `tblItemExpired` (
 
 CREATE TABLE IF NOT EXISTS `tblItemGlobal` (
   `item` mediumint(8) unsigned NOT NULL,
-  `bonusset` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `level` smallint(5) unsigned NOT NULL DEFAULT '0',
   `region` enum('US','EU','CN','TW','KR') COLLATE utf8_unicode_ci NOT NULL,
   `median` decimal(11,0) unsigned NOT NULL,
   `mean` decimal(11,0) unsigned NOT NULL,
   `stddev` decimal(11,0) unsigned NOT NULL,
-  PRIMARY KEY (`item`,`bonusset`,`region`)
+  PRIMARY KEY (`item`,`level`,`region`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -518,11 +491,11 @@ CREATE TABLE IF NOT EXISTS `tblItemGlobalWorking` (
   `when` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `region` enum('US','EU','CN','TW','KR') COLLATE utf8_unicode_ci NOT NULL,
   `item` mediumint(8) unsigned NOT NULL,
-  `bonusset` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `level` smallint(5) unsigned NOT NULL DEFAULT '0',
   `median` decimal(11,0) unsigned NOT NULL,
   `mean` decimal(11,0) unsigned NOT NULL,
   `stddev` decimal(11,0) unsigned NOT NULL,
-  PRIMARY KEY (`when`,`region`,`item`,`bonusset`)
+  PRIMARY KEY (`when`,`region`,`item`,`level`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -555,7 +528,7 @@ CREATE TABLE IF NOT EXISTS `tblItemHistoryDaily` (
 CREATE TABLE IF NOT EXISTS `tblItemHistoryHourly` (
   `house` smallint(5) unsigned NOT NULL,
   `item` mediumint(8) unsigned NOT NULL,
-  `bonusset` tinyint(3) unsigned NOT NULL,
+  `level` smallint(5) unsigned NOT NULL,
   `when` date NOT NULL,
   `silver00` int(10) unsigned DEFAULT NULL,
   `quantity00` mediumint(8) unsigned DEFAULT NULL,
@@ -605,7 +578,7 @@ CREATE TABLE IF NOT EXISTS `tblItemHistoryHourly` (
   `quantity22` mediumint(8) unsigned DEFAULT NULL,
   `silver23` int(10) unsigned DEFAULT NULL,
   `quantity23` mediumint(8) unsigned DEFAULT NULL,
-  PRIMARY KEY (`house`,`item`,`bonusset`,`when`)
+  PRIMARY KEY (`house`,`item`,`level`,`when`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -617,7 +590,7 @@ CREATE TABLE IF NOT EXISTS `tblItemHistoryHourly` (
 CREATE TABLE IF NOT EXISTS `tblItemHistoryMonthly` (
   `item` mediumint(8) unsigned NOT NULL,
   `house` smallint(5) unsigned NOT NULL,
-  `bonusset` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `level` smallint(5) unsigned NOT NULL DEFAULT '0',
   `month` tinyint(3) unsigned NOT NULL,
   `mktslvr01` int(10) unsigned DEFAULT NULL,
   `qty01` smallint(5) unsigned DEFAULT NULL,
@@ -681,7 +654,7 @@ CREATE TABLE IF NOT EXISTS `tblItemHistoryMonthly` (
   `qty30` smallint(5) unsigned DEFAULT NULL,
   `mktslvr31` int(10) unsigned DEFAULT NULL,
   `qty31` smallint(5) unsigned DEFAULT NULL,
-  PRIMARY KEY (`item`,`house`,`bonusset`,`month`)
+  PRIMARY KEY (`item`,`house`,`level`,`month`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -693,12 +666,12 @@ CREATE TABLE IF NOT EXISTS `tblItemHistoryMonthly` (
 CREATE TABLE IF NOT EXISTS `tblItemSummary` (
   `house` smallint(5) unsigned NOT NULL,
   `item` mediumint(9) NOT NULL,
-  `bonusset` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `level` smallint(5) unsigned NOT NULL DEFAULT '0',
   `price` decimal(11,0) NOT NULL DEFAULT '0',
   `quantity` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `lastseen` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `age` tinyint(3) unsigned NOT NULL DEFAULT '0',
-  PRIMARY KEY (`house`,`item`,`bonusset`)
+  PRIMARY KEY (`house`,`item`,`level`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -1078,11 +1051,11 @@ CREATE TABLE IF NOT EXISTS `tblUserRareReport` (
   `user` mediumint(8) unsigned NOT NULL,
   `house` smallint(5) unsigned NOT NULL,
   `item` mediumint(8) unsigned NOT NULL,
-  `bonusset` tinyint(3) unsigned NOT NULL,
+  `level` smallint(5) unsigned NOT NULL,
   `prevseen` timestamp NULL DEFAULT NULL,
   `price` decimal(11,0) NOT NULL,
   `snapshot` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  PRIMARY KEY (`user`,`house`,`item`,`bonusset`),
+  PRIMARY KEY (`user`,`house`,`item`,`level`),
   KEY `house` (`house`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
@@ -1115,7 +1088,7 @@ CREATE TABLE IF NOT EXISTS `tblUserWatch` (
   `region` enum('US','EU') COLLATE utf8_unicode_ci DEFAULT NULL,
   `house` smallint(5) unsigned DEFAULT NULL,
   `item` mediumint(8) unsigned DEFAULT NULL,
-  `bonusset` tinyint(3) unsigned DEFAULT NULL,
+  `level` smallint(5) unsigned DEFAULT NULL,
   `species` smallint(5) unsigned DEFAULT NULL,
   `breed` tinyint(3) unsigned DEFAULT NULL,
   `direction` enum('Under','Over') COLLATE utf8_unicode_ci NOT NULL,
@@ -1189,10 +1162,10 @@ CREATE TABLE IF NOT EXISTS `tblWowTokenSubs` (
 
 CREATE TABLE IF NOT EXISTS `ttblRareStageTemplate` (
   `item` mediumint(8) unsigned NOT NULL,
-  `bonusset` tinyint(3) unsigned NOT NULL,
+  `level` smallint(5) unsigned NOT NULL,
   `price` decimal(11,0) NOT NULL,
   `lastseen` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`item`,`bonusset`)
+  PRIMARY KEY (`item`,`level`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
