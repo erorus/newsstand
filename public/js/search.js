@@ -89,13 +89,10 @@ var TUJ_Search = function ()
         var t, tr, td, i, a, x;
 
         if (dta.items) {
-            for (x = 0; item = dta.items[x]; x++) {
-                item.sortlevel = item.level + (isNaN(item['bonustag_' + tuj.locale]) ? 0 : parseInt(item['bonustag_' + tuj.locale], 10));
-            }
             dta.items.sort(function (a, b) {
                 return tujConstants.itemClassOrder[a.classid] - tujConstants.itemClassOrder[b.classid] ||
                     a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]) ||
-                    a.sortlevel - b.sortlevel;
+                    a.level - b.level;
             });
 
             var lastClass = -1;
@@ -175,15 +172,9 @@ var TUJ_Search = function ()
                 tr.appendChild(td);
                 a = libtuj.ce('a');
                 td.appendChild(a);
-                a.rel = 'item=' + item.id + (item.bonusurl ? '&bonus=' + item.bonusurl : (item.basebonus ? '&bonus=' + item.basebonus : '')) + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
-                a.href = tuj.BuildHash({page: 'item', id: item.id + (item.tagurl ? '.'+item.tagurl : '')});
-                $(a).text('[' + item['name_' + tuj.locale] + (item['bonusname_' + tuj.locale] ? ' ' + item['bonusname_' + tuj.locale].substr(0, item['bonusname_' + tuj.locale].indexOf('|') >= 0 ? item['bonusname_' + tuj.locale].indexOf('|') : item['bonusname_' + tuj.locale].length) : '') + ']' + (item['bonustag_' + tuj.locale] ? ' ' : ''));
-                if (item['bonustag_' + tuj.locale]) {
-                    var tagspan = libtuj.ce('span');
-                    tagspan.className = 'nowrap';
-                    $(tagspan).text(item['bonustag_' + tuj.locale]);
-                    a.appendChild(tagspan);
-                }
+                a.rel = 'item=' + item.id + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
+                a.href = tuj.BuildHash({page: 'item', id: item.id});
+                $(a).text('[' + item['name_' + tuj.locale] + ']');
                 lastResultName = AddToSearched(a, item['name_' + tuj.locale]);
 
                 td = libtuj.ce('td');
