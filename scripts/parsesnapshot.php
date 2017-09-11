@@ -13,14 +13,14 @@ CatchKill();
 
 define('SNAPSHOT_PATH', '/var/newsstand/snapshots/parse/');
 define('MAX_BONUSES', 6); // is a count, 1 through N
-define('ITEM_ID_PAD', 7); // min number of chars for item id, for sorting infokeys
 define('OBSERVED_WITHOUT_BONUSES_LIMIT', 500); // if we see this many auctions of an item without any having bonuses, assume the item doesn't get bonuses
 
-define('EXISTING_SQL', 'SELECT a.id, a.bid, a.buy, a.timeleft+0 timeleft, concat_ws(\':\', lpad(a.item,' . ITEM_ID_PAD . ',\'0\'), ifnull(ae.level,0)) infokey FROM tblAuction a LEFT JOIN tblAuctionExtra ae on a.house=ae.house and a.id=ae.id WHERE a.house = ?');
+define('EXISTING_SQL', 'SELECT a.id, a.bid, a.buy, a.timeleft+0 timeleft, a.item, ifnull(ae.level,0) level FROM tblAuction a LEFT JOIN tblAuctionExtra ae on a.house=ae.house and a.id=ae.id WHERE a.house = ?');
 define('EXISTING_COL_BID', 0);
 define('EXISTING_COL_BUY', 1);
 define('EXISTING_COL_TIMELEFT', 2);
-define('EXISTING_COL_INFOKEY', 3);
+define('EXISTING_COL_ITEM', 3);
+define('EXISTING_COL_LEVEL', 4);
 
 define('DB_LOCK_SEEN_BONUSES', 'update_seen_bonuses');
 
@@ -263,10 +263,10 @@ function ParseAuctionData($house, $snapshot, &$json)
     $stmt = $ourDb->prepare(EXISTING_SQL);
     $stmt->bind_param('i', $house);
     $stmt->execute();
-    $id = $bid = $buy = $timeLeft = $infoKey = null;
-    $stmt->bind_result($id, $bid, $buy, $timeLeft, $infoKey);
+    $id = $bid = $buy = $timeLeft = $item = $level = null;
+    $stmt->bind_result($id, $bid, $buy, $timeLeft, $item, $level);
     while ($stmt->fetch()) {
-        $existingIds[$id] = [$bid, $buy, $timeLeft, $infoKey];
+        $existingIds[$id] = [$bid, $buy, $timeLeft, $item, $level];
     }
     $stmt->close();
 
@@ -423,7 +423,6 @@ function ParseAuctionData($house, $snapshot, &$json)
             }
 
             $totalAuctions++;
-            $itemInfoKey = false;
             $bonuses = [];
             $bonusItemLevel = $equipBaseItemLevel[$auction['item']] ?? 0;
             if (!isset($auction['petSpeciesId']) && isset($equipBaseItemLevel[$auction['item']])) {
@@ -486,16 +485,15 @@ function ParseAuctionData($house, $snapshot, &$json)
                     );
                     $petInfo[$auction['petSpeciesId']]['tq'] += $auction['quantity'];
                 } else {
-                    $itemInfoKey = str_pad($auction['item'], ITEM_ID_PAD, '0', STR_PAD_LEFT) . ":" . $bonusItemLevel;
-                    if (!isset($itemInfo[$itemInfoKey])) {
-                        $itemInfo[$itemInfoKey] = array('a' => array(), 'tq' => 0);
+                    if (!isset($itemInfo[$auction['item']][$bonusItemLevel])) {
+                        $itemInfo[$auction['item']][$bonusItemLevel] = array('a' => array(), 'tq' => 0);
                     }
 
-                    $itemInfo[$itemInfoKey]['a'][] = array(
+                    $itemInfo[$auction['item']][$bonusItemLevel]['a'][] = array(
                         'q'   => $auction['quantity'],
                         'p'   => $auction['buyout'],
                     );
-                    $itemInfo[$itemInfoKey]['tq'] += $auction['quantity'];
+                    $itemInfo[$auction['item']][$bonusItemLevel]['tq'] += $auction['quantity'];
                 }
             }
 
@@ -510,11 +508,11 @@ function ParseAuctionData($house, $snapshot, &$json)
             } else {
                 // new auction
                 if ($auction['buyout'] != 0) {
-                    if ($itemInfoKey !== false) {
-                        if (!isset($expiredItemInfo['n'][$itemInfoKey])) {
-                            $expiredItemInfo['n'][$itemInfoKey] = 0;
+                    if (!isset($auction['petSpeciesId'])) {
+                        if (!isset($expiredItemInfo['n'][$auction['item']][$bonusItemLevel])) {
+                            $expiredItemInfo['n'][$auction['item']][$bonusItemLevel] = 0;
                         }
-                        $expiredItemInfo['n'][$itemInfoKey]++;
+                        $expiredItemInfo['n'][$auction['item']][$bonusItemLevel]++;
                     }
                 }
                 if (isset($equipBaseItemLevel[$auction['item']])) {
@@ -681,10 +679,10 @@ EOF;
             if (($oldRow[EXISTING_COL_BUY] > 0) && ($oldRow[EXISTING_COL_TIMELEFT] > 0) && ($oldRow[EXISTING_COL_TIMELEFT] <= $expiredLength)) {
                 // probably expired item with buyout
                 $expiredPosted = date('Y-m-d', $snapshot - GetAuctionAge($existingId, $snapshot, $snapshotList));
-                if (!isset($expiredItemInfo[$expiredPosted][$oldRow[EXISTING_COL_INFOKEY]])) {
-                    $expiredItemInfo[$expiredPosted][$oldRow[EXISTING_COL_INFOKEY]] = 0;
+                if (!isset($expiredItemInfo[$expiredPosted][$oldRow[EXISTING_COL_ITEM]][$oldRow[EXISTING_COL_LEVEL]])) {
+                    $expiredItemInfo[$expiredPosted][$oldRow[EXISTING_COL_ITEM]][$oldRow[EXISTING_COL_LEVEL]] = 0;
                 }
-                $expiredItemInfo[$expiredPosted][$oldRow[EXISTING_COL_INFOKEY]]++;
+                $expiredItemInfo[$expiredPosted][$oldRow[EXISTING_COL_ITEM]][$oldRow[EXISTING_COL_LEVEL]]++;
             }
         }
     }
@@ -694,15 +692,15 @@ EOF;
 
     $preDeleted = count($itemInfo);
     foreach ($existingIds as $existingId => &$oldRow) {
-        if ((!isset($existingPetIds[$existingId])) && (!isset($itemInfo[$oldRow[EXISTING_COL_INFOKEY]]))) {
-            list($itemId, $level) = explode(':', $oldRow[EXISTING_COL_INFOKEY]);
-            $rareDeletes[$level][] = $itemId;
-            $itemInfo[$oldRow[EXISTING_COL_INFOKEY]] = array('tq' => 0, 'a' => array());
+        if ((!isset($existingPetIds[$existingId])) && (!isset($itemInfo[$oldRow[EXISTING_COL_ITEM]][$oldRow[EXISTING_COL_LEVEL]]))) {
+            $rareDeletes[$level][] = $oldRow[EXISTING_COL_ITEM];
+            $itemInfo[$oldRow[EXISTING_COL_ITEM]][$oldRow[EXISTING_COL_LEVEL]] = array('tq' => 0, 'a' => array());
         }
     }
     unset($oldRow);
     DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating " . count($itemInfo) . " item info (including " . (count($itemInfo) - $preDeleted) . " no longer available)");
     UpdateItemInfo($house, $itemInfo, $snapshot);
+    unset($itemInfo);
 
     $sql = 'delete from tblUserRareReport where house = %d and level = %d and item in (%s)';
     foreach ($rareDeletes as $level => $itemIds) {
@@ -735,16 +733,18 @@ EOF;
 
             $snapshotDay = date('Y-m-d', $snapshot);
             $expiredCount = 0;
-            foreach ($expiredItemInfo['n'] as $infoKey => $createdCount) {
-                $keyParts = explode(':', $infoKey);
-                $sqlPart = sprintf('(%u, %u, %u, \'%s\', %u, %u)', $keyParts[0], $keyParts[1], $house, $snapshotDay, $createdCount, $expiredCount);
+            foreach ($expiredItemInfo['n'] as $itemId => $levels) {
+                foreach ($levels as $level => $createdCount) {
+                    $sqlPart  = sprintf('(%u, %u, %u, \'%s\', %u, %u)', $itemId, $level, $house,
+                        $snapshotDay, $createdCount, $expiredCount);
 
-                if (strlen($sql) + 10 + strlen($sqlPart) + strlen($sqlEnd) > $maxPacketSize) {
-                    DBQueryWithError($ourDb, $sql . $sqlEnd);
-                    $sql = '';
+                    if (strlen($sql) + 10 + strlen($sqlPart) + strlen($sqlEnd) > $maxPacketSize) {
+                        DBQueryWithError($ourDb, $sql . $sqlEnd);
+                        $sql = '';
+                    }
+
+                    $sql .= ($sql == '' ? $sqlStart : ',') . $sqlPart;
                 }
-
-                $sql .= ($sql == '' ? $sqlStart : ',') . $sqlPart;
             }
             unset($expiredItemInfo['n']);
         }
@@ -758,16 +758,18 @@ EOF;
         $snapshotDays = array_keys($expiredItemInfo);
         foreach ($snapshotDays as $snapshotDay) {
             //DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " adding expired auctions from $snapshotDay for ".count($expiredItemInfo[$snapshotDay])." items");
-            foreach ($expiredItemInfo[$snapshotDay] as $infoKey => $expiredCount) {
-                $keyParts = explode(':', $infoKey);
-                $sqlPart = sprintf('(%u, %u, %u, \'%s\', %u, %u)', $keyParts[0], $keyParts[1], $house, $snapshotDay, $createdCount, $expiredCount);
+            foreach ($expiredItemInfo[$snapshotDay] as $itemId => $levels) {
+                foreach ($levels as $level => $expiredCount) {
+                    $sqlPart  = sprintf('(%u, %u, %u, \'%s\', %u, %u)', $itemId, $level, $house,
+                        $snapshotDay, $createdCount, $expiredCount);
 
-                if (strlen($sql) + 10 + strlen($sqlPart) + strlen($sqlEnd) > $maxPacketSize) {
-                    DBQueryWithError($ourDb, $sql . $sqlEnd);
-                    $sql = '';
+                    if (strlen($sql) + 10 + strlen($sqlPart) + strlen($sqlEnd) > $maxPacketSize) {
+                        DBQueryWithError($ourDb, $sql . $sqlEnd);
+                        $sql = '';
+                    }
+
+                    $sql .= ($sql == '' ? $sqlStart : ',') . $sqlPart;
                 }
-
-                $sql .= ($sql == '' ? $sqlStart : ',') . $sqlPart;
             }
         }
 
@@ -1090,7 +1092,7 @@ function UpdateSellerInfo(&$sellerInfo, $house, $snapshot)
     }
 }
 
-function UpdateItemInfo($house, &$itemInfo, $snapshot, $substitutePrices = false)
+function UpdateItemInfo($house, $itemInfo, $snapshot)
 {
     global $db, $maxPacketSize;
 
@@ -1104,68 +1106,115 @@ function UpdateItemInfo($house, &$itemInfo, $snapshot, $substitutePrices = false
     $sqlEnd = ' on duplicate key update quantity=values(quantity), price=if(quantity=0,price,values(price)), lastseen=if(quantity=0,lastseen,values(lastseen))';
     $sql = '';
 
-    $sqlHistoryStart = sprintf('INSERT INTO tblItemHistoryHourly (house, item, level, `when`, `silver%1$s`, `quantity%1$s`) VALUES ', $hour);
-    $sqlHistoryEnd = sprintf(' on duplicate key update `silver%1$s`=if(values(`quantity%1$s`) > ifnull(`quantity%1$s`,0), values(`silver%1$s`), `silver%1$s`), `quantity%1$s`=if(values(`quantity%1$s`) > ifnull(`quantity%1$s`,0), values(`quantity%1$s`), `quantity%1$s`)', $hour);
-    $sqlHistory = '';
-
-    $sqlDeepStart = sprintf('INSERT INTO tblItemHistoryMonthly (house, item, level, mktslvr%1$s, qty%1$s, `month`) VALUES ', $day);
-    $sqlDeepEnd = sprintf(' on duplicate key update mktslvr%1$s=if(values(qty%1$s) > ifnull(qty%1$s,0), values(mktslvr%1$s), mktslvr%1$s), qty%1$s=if(values(qty%1$s) > ifnull(qty%1$s,0), values(qty%1$s), qty%1$s)', $day);
-    $sqlDeep = '';
-
-    if ($substitutePrices) {
-        $sqlEnd = ' on duplicate key update quantity=values(quantity), price=values(price), lastseen=values(lastseen)';
-        $sqlDeepEnd = sprintf(' on duplicate key update mktslvr%1$s=ifnull(least(values(mktslvr%1$s), mktslvr%1$s), values(mktslvr%1$s)), qty%1$s=if(values(qty%1$s) >= ifnull(qty%1$s,0), values(qty%1$s), qty%1$s)', $day);
-    }
-
-    ksort($itemInfo); // improves insert performance(?)
+    ksort($itemInfo, SORT_NUMERIC); // improves insert performance(?)
     $itemRows = 0;
 
-    foreach ($itemInfo as $itemKey => &$info) {
-        list($item, $level) = explode(':', $itemKey, 2);
-        if ($substitutePrices) {
-            $price = $info['price'];
-        } else {
+    foreach ($itemInfo as $item => $levels) {
+        ksort($levels);
+
+        foreach ($levels as $level => $info) {
             $price = GetMarketPrice($info);
-        }
 
-        $sqlBit = sprintf('(%d,%u,%u,%u,%u,\'%s\')', $house, $item, $level, $price, $info['tq'], $snapshotString);
-        if (strlen($sql) + strlen($sqlBit) + strlen($sqlEnd) + 5 > $maxPacketSize) {
-            DBQueryWithError($db, $sql . $sqlEnd);
-            $sql = '';
-        }
-        $sql .= ($sql == '' ? $sqlStart : ',') . $sqlBit;
-
-        if ($substitutePrices || ($info['tq'] > 0)) {
-            $itemRows++;
-
-            $price = round($price / 100);
-
-            $sqlHistoryBit = sprintf('(%d,%u,%u,\'%s\',%u,%u)', $house, $item, $level, $dateString, $price, $info['tq']);
-            if (($itemRows % 1000 == 0) || strlen($sqlHistory) + strlen($sqlHistoryBit) + strlen($sqlHistoryEnd) + 5 > $maxPacketSize) {
-                DBQueryWithError($db, $sqlHistory . $sqlHistoryEnd);
-                $sqlHistory = '';
+            $sqlBit = sprintf('(%d,%u,%u,%u,%u,\'%s\')', $house, $item, $level, $price, $info['tq'], $snapshotString);
+            if (strlen($sql) + strlen($sqlBit) + strlen($sqlEnd) + 5 > $maxPacketSize) {
+                DBQueryWithError($db, $sql . $sqlEnd);
+                $sql = '';
             }
-            $sqlHistory .= ($sqlHistory == '' ? $sqlHistoryStart : ',') . $sqlHistoryBit;
-
-            $sqlDeepBit = sprintf('(%d,%u,%u,%u,%u,%u)', $house, $item, $level, $price, $info['tq'], $month);
-            if (($itemRows % 1000 == 0) || strlen($sqlDeep) + strlen($sqlDeepBit) + strlen($sqlDeepEnd) + 5 > $maxPacketSize) {
-                DBQueryWithError($db, $sqlDeep . $sqlDeepEnd);
-                $sqlDeep = '';
-            }
-            $sqlDeep .= ($sqlDeep == '' ? $sqlDeepStart : ',') . $sqlDeepBit;
+            $sql .= ($sql == '' ? $sqlStart : ',') . $sqlBit;
         }
     }
-    unset($info);
 
     if ($sql != '') {
         DBQueryWithError($db, $sql . $sqlEnd);
     }
-    if ($sqlHistory != '') {
-        DBQueryWithError($db, $sqlHistory . $sqlHistoryEnd);
-    }
-    if ($sqlDeep != '') {
-        DBQueryWithError($db, $sqlDeep . $sqlDeepEnd);
-    }
+
+    DBQueryWithError($db, 'create temporary table ttblPriceAdjustment like ttblItemSummaryTemplate');
+
+    // "when my qty > 0, everyone with lower ilevel is capped at my price"
+    DBQueryWithError($db, 'truncate ttblPriceAdjustment');
+
+    $sql = <<<'EOF'
+insert into ttblPriceAdjustment
+(select s1.item, s1.level, min(s2.price)
+from tblItemSummary s1
+join tblItemSummary s2 on
+	s2.house = s1.house and
+    s2.item = s1.item and
+    s2.level > s1.level
+where s1.house = ? and s2.price < s1.price and s2.quantity > 0
+group by s1.item, s1.level)
+EOF;
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('i', $house);
+    $stmt->execute();
+    $stmt->close();
+
+    $updateSql = <<<'EOF'
+update tblItemSummary, ttblPriceAdjustment
+set tblItemSummary.price = ttblPriceAdjustment.price
+where tblItemSummary.house = ?
+and tblItemSummary.item = ttblPriceAdjustment.item
+and tblItemSummary.level = ttblPriceAdjustment.level
+EOF;
+    $stmt = $db->prepare($updateSql);
+    $stmt->bind_param('i', $house);
+    $stmt->execute();
+    $stmt->close();
+
+    // "when my qty > 0, everyone with higher ilvl and qty=0 gets at least my price"
+    DBQueryWithError($db, 'truncate ttblPriceAdjustment');
+
+    $sql = <<<'EOF'
+insert into ttblPriceAdjustment
+(select s1.item, s1.level, max(s2.price)
+from tblItemSummary s1
+join tblItemSummary s2 on
+	s2.house = s1.house and
+    s2.item = s1.item and
+    s2.level < s1.level
+where s1.house = ? and s2.price > s1.price and s2.quantity > 0 and s1.quantity = 0
+group by s1.item, s1.level)
+EOF;
+
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('i', $house);
+    $stmt->execute();
+    $stmt->close();
+
+    $stmt = $db->prepare($updateSql);
+    $stmt->bind_param('i', $house);
+    $stmt->execute();
+    $stmt->close();
+
+    DBQueryWithError($db, 'drop temporary table ttblPriceAdjustment');
+
+    // update history tables from summary data
+
+    $sql = <<<'EOF'
+INSERT INTO tblItemHistoryHourly (house, item, level, `when`, `silver%1$s`, `quantity%1$s`)
+    (SELECT s.house, s.item, s.level, ?, round(s.price/100), s.quantity FROM tblItemSummary s WHERE s.house = ?)
+ON DUPLICATE KEY UPDATE
+    `silver%1$s`=if(values(`quantity%1$s`) > ifnull(`quantity%1$s`,0), values(`silver%1$s`), `silver%1$s`),
+    `quantity%1$s`=if(values(`quantity%1$s`) > ifnull(`quantity%1$s`,0), values(`quantity%1$s`), `quantity%1$s`)
+EOF;
+
+    $stmt = $db->prepare(sprintf($sql, $hour));
+    $stmt->bind_param('si', $dateString, $house);
+    $stmt->execute();
+    $stmt->close();
+
+    $sql = <<<'EOF'
+INSERT INTO tblItemHistoryMonthly (house, item, level, `month`, mktslvr%1$s, qty%1$s)
+    (select s.house, s.item, s.level, ?, round(s.price/100), s.quantity FROM tblItemSummary s WHERE s.house = ?)
+ON DUPLICATE KEY UPDATE
+    mktslvr%1$s=if(values(qty%1$s) > ifnull(qty%1$s,0), values(mktslvr%1$s), mktslvr%1$s),
+    qty%1$s=if(values(qty%1$s) > ifnull(qty%1$s,0), values(qty%1$s), qty%1$s)
+EOF;
+
+    $stmt = $db->prepare(sprintf($sql, $day));
+    $stmt->bind_param('si', $month, $house);
+    $stmt->execute();
+    $stmt->close();
 }
 
 function UpdatePetInfo($house, &$petInfo, $snapshot)

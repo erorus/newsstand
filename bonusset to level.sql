@@ -1,12 +1,12 @@
 delete from tblAuction;
-ALTER TABLE `tblAuctionExtra` DROP ` bonusset `;
+ALTER TABLE `tblAuctionExtra` DROP `bonusset`;
 DROP TABLE tblBonusSet;
 DROP TABLE tblItemLevelsSeen;
 
 insert ignore into `tblItemBonusesSeen` (item, bonusset, bonus1, bonus2, bonus3, bonus4, observed)
 (select s2.item, 0, s2.bonus1, s2.bonus2, s2.bonus3, s2.bonus4, s2.observed from tblItemBonusesSeen s2 WHERE s2.bonusset != 0);
 delete from tblItemBonusesSeen where bonusset != 0;
-ALTER TABLE `tblItemBonusesSeen` DROP ` bonusset `;
+ALTER TABLE `tblItemBonusesSeen` DROP `bonusset`;
 
 CREATE TABLE `tblItemExpired_new` (
   `item` mediumint(8) UNSIGNED NOT NULL,
