@@ -409,7 +409,7 @@ EOF;
         if (CatchKill())
             return;
 
-        DebugMessage(sprintf('Finding item prices in house %d (%d%%) %dmb', $houses[$hx], round($hx/count($houses)*100), round(memory_get_usage()/1048576)));
+        DebugMessage(sprintf('Finding pet prices in house %d (%d%%) %dmb', $houses[$hx], round($hx/count($houses)*100), round(memory_get_usage()/1048576)));
 
         $stmt = $db->prepare($sql);
         $stmt->bind_param('i', $houses[$hx]);
