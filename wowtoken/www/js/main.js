@@ -430,10 +430,6 @@ var wowtoken = {
                 return fail();
             }
 
-            if ('prototype' in window.getComputedStyle) {
-                return fail();
-            }
-
             var s = window.getComputedStyle(divs[0]);
             if (s.display != 'block') {
                 return fail();
