@@ -1,0 +1,3 @@
+<div class="news">We're trying out a new CDN provider to improve performance for visitors outside of North America.<br><br>
+    If you have any issues using this site, please let us know via <a href="http://stormspire.net/official-forum-undermine-journal/?referrerid=380">the Forum</a>,
+    <a href="https://twitter.com/UndermineJrnl">@UndermineJrnl on Twitter</a>, or <a href="/#contact">the Contact form</a>.</div>
