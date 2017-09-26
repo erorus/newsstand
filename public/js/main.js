@@ -877,7 +877,7 @@ var TUJ = function ()
                     LoadLocale('enus', true);
                 }
             },
-            url: 'js/locale/' + locName + '.json?' + window.tujLocaleVersion
+            url: tujCDNPrefix + 'js/locale/' + locName + '.json?' + window.tujLocaleVersion
         });
     }
 
