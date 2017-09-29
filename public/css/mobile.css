@@ -9,6 +9,10 @@ body {min-width: 18em}
 #topcorner {position: relative; top: auto; right: auto; width: auto; height: auto}
 .region-pick span {display: none}
 
+#favorite-realms { position: relative; margin: 0.5em 0; display: none; visibility: visible; }
+#favorite-realms a { margin: 1em 0.5em }
+#topcorner .region-realm:hover #favorite-realms.with-realms { display: block }
+
 #main {padding: 0 1em 7em}
 #main a {padding: 0.5em}
 #main a.rss-icon {padding-left: 1.25em}

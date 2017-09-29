@@ -1234,12 +1234,18 @@ var TUJ = function ()
             d.className = 'no-realm-hide';
             form.className = 'no-realm-hide';
 
-            $('#topcorner .region-realm').after(d).after(form);
+            $('#topcorner .region-realm').after(d).before(form);
 
             libtuj.Searched.Update();
         } else {
             $('#topcorner form input')[0].placeholder = self.lang.search;
         }
+
+        if (!$('#realm-favstar').data('init')) {
+            $('#realm-favstar').data('init', 'y');
+            $('#realm-favstar').on('click', ToggleRealmFavstar);
+        }
+        $('#realm-favstar').removeClass('on off');
 
         if (self.params.realm) {
             var house = self.realms[self.params.realm].house;
@@ -1265,9 +1271,97 @@ var TUJ = function ()
             } else {
                 SetHouseInfo(house);
             }
+
+            var favRealms = libtuj.Storage.Get('favorite-realms') || [];
+            $('#realm-favstar').addClass('off');
+            for (var x = 0; x < favRealms.length; x++) {
+                if (self.realms.hasOwnProperty(favRealms[x]) && self.realms[favRealms[x]].house == house) {
+                    $('#realm-favstar').removeClass('off').addClass('on');
+                    break;
+                }
+            }
+
+            var lost = [];
+            if (favRealms.length > 20) {
+                lost = favRealms.splice(20);
+                libtuj.Storage.Set('favorite-realms', favRealms);
+                favRealms = favRealms.concat(lost);
+            }
+
+            favRealms = favRealms.filter(function(m) { return m != self.params.realm; });
+            favRealms.sort(function(a, b){
+                var aRegion = -1, bRegion = -1;
+                for (var x = 0; x < tuj.allRealms.length; x++) {
+                    if (tuj.allRealms[x].hasOwnProperty(a)) aRegion = x;
+                    if (tuj.allRealms[x].hasOwnProperty(b)) bRegion = x;
+                }
+                if (aRegion != bRegion) {
+                    return aRegion < bRegion ? -1 : 1;
+                }
+                if (aRegion == -1 || bRegion == -1) {
+                    return 0;
+                }
+                return tuj.allRealms[aRegion][a].name.localeCompare(tuj.allRealms[bRegion][b].name);
+            });
+
+            var $fr = $('#favorite-realms');
+            $fr.removeClass('with-realms').empty();
+            if (favRealms.length) {
+                for (var rg, r, x = 0; r = favRealms[x]; x++) {
+                    rg = false;
+                    for (y = 0; y < tuj.allRealms.length; y++) {
+                        if (tuj.allRealms[y].hasOwnProperty(r)) {
+                            rg = y;
+                            break;
+                        }
+                    }
+                    if (rg === false) {
+                        continue;
+                    }
+
+                    var a = libtuj.ce('a');
+                    if (lost.indexOf(r) < 0) {
+                        a.href = self.BuildHash({region: rg, realm: r});
+                    } else {
+                        a.style.textDecoration = 'line-through';
+                    }
+                    a.appendChild(document.createTextNode(validRegions[rg] + ' ' + tuj.allRealms[rg][r].name));
+                    $fr.append(a);
+                }
+
+                $fr.addClass('with-realms');
+            }
         } else {
             $('#realm-updated').empty();
         }
+    }
+
+    function ToggleRealmFavstar() {
+        var house = self.realms[self.params.realm].house;
+
+        var favRealms = libtuj.Storage.Get('favorite-realms') || [];
+
+        favRealms = favRealms.filter(function(r){
+            var region = false;
+            for (var x in tuj.allRealms) {
+                if (!tuj.allRealms.hasOwnProperty(x)) {
+                    continue;
+                }
+                if (tuj.allRealms[x].hasOwnProperty(r)) {
+                    region = x;
+                    break;
+                }
+            }
+            return (region !== false) && (region != self.params.region || self.realms[r].house != house);
+        });
+
+        if (!$(this).hasClass('on')) {
+            favRealms.unshift(self.params.realm);
+        }
+
+        libtuj.Storage.Set('favorite-realms', favRealms);
+
+        UpdateSidebar();
     }
 
     function SetHouseInfo(house, dta)
@@ -1743,7 +1837,7 @@ var TUJ = function ()
             } else {
                 darkSheet = libtuj.ce('link');
                 darkSheet.rel = 'stylesheet';
-                darkSheet.href = tujCDNPrefix + 'css/night.css?4';
+                darkSheet.href = tujCDNPrefix + 'css/night.css?5';
                 darkSheet.id = 'dark-sheet';
                 document.getElementsByTagName('head')[0].appendChild(darkSheet);
             }

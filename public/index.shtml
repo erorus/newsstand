@@ -41,6 +41,8 @@
                         <div class="region-realm no-realm-hide">
                             <a class="region"></a>
                             <a class="realm"></a>
+                            <span id="realm-favstar"><span class="star-lit">&#x2605;</span><span class="star-dark">&#x2606;</span></span>
+                            <div id="favorite-realms"></div>
                         </div>
                         <div id="region-pick-US" class="region-pick">
                             <span>US Region</span>
