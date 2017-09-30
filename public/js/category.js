@@ -927,7 +927,7 @@ var TUJ_Category = function ()
 
     resultFunctions.ItemList = function (data, dest)
     {
-        var item, x, t, td, th, tr, a, i;
+        var item, x, t, td, th, tr, a, i, comparePrice, pct;
 
         if (!data.items.length) {
             return false;
@@ -1077,6 +1077,11 @@ var TUJ_Category = function ()
             td.className = 'price';
             tr.appendChild(td);
             $(td).text(tuj.realms[data.compareTo].name);
+            titleColSpan++;
+
+            td = libtuj.ce('th');
+            td.className = 'quantity';
+            tr.appendChild(td);
             titleColSpan++;
         }
 
@@ -1269,7 +1274,29 @@ var TUJ_Category = function ()
                 a = libtuj.ce('a');
                 td.appendChild(a);
                 a.href = tuj.BuildHash({realm: data.compareTo, page: 'item', id: item.id + (item.tagurl ? '.'+item.tagurl : '')});
-                a.appendChild(abbrPriceAmount(item.compareTo.avgprice || item.compareTo.price, amount));
+                comparePrice = item.compareTo.avgprice || item.compareTo.price;
+                a.appendChild(abbrPriceAmount(comparePrice, amount));
+
+                pct = (item.quantity ? item.price : (item.avgprice || item.price)) / comparePrice * 100;
+                if (!isNaN(pct)) {
+                    pct = Math.min(pct, 999);
+
+                    td = libtuj.ce('td');
+                    td.className = 'quantity ';
+                    if (pct < 50) {
+                        td.className += 'pct-low';
+                    } else if (pct < 80) {
+                        td.className += 'pct-mid';
+                    } else if (pct < 110) {
+                        td.className += 'pct-normal';
+                    } else if (pct < 135) {
+                        td.className += 'pct-high';
+                    } else {
+                        td.className += 'pct-veryhigh';
+                    }
+                    tr.appendChild(td);
+                    td.appendChild(libtuj.FormatQuantity(pct));
+                }
             }
         }
 

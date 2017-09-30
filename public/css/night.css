@@ -23,6 +23,12 @@ a {color: white}
 .money-silver::after { color: #E6E6E6 }
 .money-copper::after { color: #C8602C }
 
+.pct-low      { color: #2992FF }
+.pct-mid      { color: #16FF16 }
+.pct-normal   { color: #FFFF00 }
+.pct-high     { color: #FF9218 }
+.pct-veryhigh { color: #FF0000 }
+
 table.category-fish .price {border-left-color: #444}
 
 #transmog-results .transmog-box:hover { background-color: #444 }

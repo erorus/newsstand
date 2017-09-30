@@ -238,6 +238,12 @@ img.captcha-button.selected { border-color: #006600 }
 .money-silver::after { content: "s " }
 .money-copper::after { content: "c" }
 
+.pct-low      { color: #2175CC }
+.pct-mid      { color: #12CC12 }
+.pct-normal   { color: #CCCC00 }
+.pct-high     { color: #CC7513 }
+.pct-veryhigh { color: #CC0000 }
+
 table.category-fish tr.subheading th {text-align: center}
 table.category-fish .price {border-left: 1px solid #CCC}
 
