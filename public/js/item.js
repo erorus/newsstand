@@ -184,9 +184,11 @@ var TUJ_Item = function ()
         itemPage.append(d);
         ItemStats(dta, d);
 
+        var consecSections = 0;
+
         if (dta.history.hasOwnProperty(bonusSet) && dta.history[bonusSet].length >= 4) {
             d = libtuj.ce();
-            d.className = 'chart-section';
+            d.className = 'chart-section section' + (consecSections++);
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text(tuj.lang.snapshots);
@@ -200,7 +202,7 @@ var TUJ_Item = function ()
 
         if (dta.monthly.hasOwnProperty(bonusSet) && dta.monthly[bonusSet].length >= 14) {
             d = libtuj.ce();
-            d.className = 'chart-section';
+            d.className = 'chart-section section' + (consecSections++);
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text(tuj.lang.dailySummary);
@@ -214,7 +216,7 @@ var TUJ_Item = function ()
 
         if (dta.daily.length >= 14) {
             d = libtuj.ce();
-            d.className = 'chart-section';
+            d.className = 'chart-section section' + (consecSections++);
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text(tuj.lang.dailyDetails);
@@ -228,7 +230,7 @@ var TUJ_Item = function ()
 
         if (dta.hasOwnProperty('expired') && dta.expired.hasOwnProperty(bonusSet) && dta.expired[bonusSet].length >= 7) {
             d = libtuj.ce();
-            d.className = 'chart-section';
+            d.className = 'chart-section section' + (consecSections++);
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text(tuj.lang.auctionCount);
@@ -242,7 +244,7 @@ var TUJ_Item = function ()
 
         if (dta.history.hasOwnProperty(bonusSet) && dta.history[bonusSet].length >= 14) {
             d = libtuj.ce();
-            d.className = 'chart-section';
+            d.className = 'chart-section section' + (consecSections++);
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text(tuj.lang.pricingHeatMap);
@@ -259,7 +261,7 @@ var TUJ_Item = function ()
             }
             if (doHeatMap) {
                 d = libtuj.ce();
-                d.className = 'chart-section';
+                d.className = 'chart-section section' + (consecSections++);
                 h = libtuj.ce('h2');
                 d.appendChild(h);
                 $(h).text(tuj.lang.quantityHeatMap);
@@ -273,10 +275,11 @@ var TUJ_Item = function ()
         }
 
         itemPage.append(libtuj.Ads.Add('3753400314'));
+        consecSections = 0;
 
         if (dta.globalmonthly.hasOwnProperty(bonusSet) && dta.globalmonthly[bonusSet].length >= 28) {
             d = libtuj.ce();
-            d.className = 'chart-section';
+            d.className = 'chart-section section' + (consecSections++);
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text(tuj.lang.regionalDailySummary);
@@ -290,7 +293,7 @@ var TUJ_Item = function ()
 
         if (dta.globalnow.hasOwnProperty(bonusSet) && dta.globalnow[bonusSet].length > 0) {
             d = libtuj.ce();
-            d.className = 'chart-section';
+            d.className = 'chart-section section' + (consecSections++);
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text(tuj.lang.regionalPrices);
@@ -302,7 +305,7 @@ var TUJ_Item = function ()
             ItemGlobalNowColumns(dta, cht);
 
             d = libtuj.ce();
-            d.className = 'chart-section';
+            d.className = 'chart-section section' + (consecSections++);
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text(tuj.lang.pricePopScatter);
@@ -322,7 +325,7 @@ var TUJ_Item = function ()
 
         if (dta.hasOwnProperty('sellers') && dta.sellers.length > 2) {
             d = libtuj.ce();
-            d.className = 'chart-section';
+            d.className = 'chart-section section' + (consecSections++);
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text(tuj.lang.recentSellers);
@@ -334,7 +337,7 @@ var TUJ_Item = function ()
             ItemRecentSellersColumns(dta, cht);
         }
 
-        itemPage.append(MakeNotificationsSection(dta, fullItemName));
+        itemPage.append(MakeNotificationsSection(dta, fullItemName, consecSections++));
 
         if (dta.auctions.hasOwnProperty(bonusSet)) {
             dta.auctions[bonusSet] = libtuj.HydrateData(dta.auctions[bonusSet]);
@@ -342,7 +345,8 @@ var TUJ_Item = function ()
 
         if (dta.auctions.hasOwnProperty(bonusSet) && dta.auctions[bonusSet].length) {
             d = libtuj.ce();
-            d.className = 'chart-section';
+            d.className = 'chart-section long';
+            consecSections = 0;
             h = libtuj.ce('h2');
             d.appendChild(h);
 
@@ -368,10 +372,10 @@ var TUJ_Item = function ()
         return level ? Math.pow(1.15, (level - baseLevel) / 15) : 1;
     }
 
-    function MakeNotificationsSection(data, fullItemName)
+    function MakeNotificationsSection(data, fullItemName, consecSection)
     {
         var d = libtuj.ce();
-        d.className = 'chart-section';
+        d.className = 'chart-section section' + (consecSection);
         var h = libtuj.ce('h2');
         d.appendChild(h);
         $(h).text(tuj.lang.marketNotifications);

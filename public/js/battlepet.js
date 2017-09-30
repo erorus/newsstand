@@ -115,9 +115,11 @@ var TUJ_BattlePet = function ()
         battlePetPage.append(d);
         BattlePetStats(dta, d);
 
+        var consecSections = 0;
+
         if (dta.history.length >= 4) {
             d = libtuj.ce();
-            d.className = 'chart-section';
+            d.className = 'chart-section section' + (consecSections++);
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text(tuj.lang.snapshots);
@@ -131,7 +133,7 @@ var TUJ_BattlePet = function ()
 
         if (dta.history.length >= 14) {
             d = libtuj.ce();
-            d.className = 'chart-section';
+            d.className = 'chart-section section' + (consecSections++);
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text(tuj.lang.pricingHeatMap);
@@ -143,7 +145,7 @@ var TUJ_BattlePet = function ()
             BattlePetPriceHeatMap(dta, cht);
 
             d = libtuj.ce();
-            d.className = 'chart-section';
+            d.className = 'chart-section section' + (consecSections++);
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text(tuj.lang.quantityHeatMap);
@@ -157,7 +159,7 @@ var TUJ_BattlePet = function ()
 
         if (dta.globalnow.length > 0) {
             d = libtuj.ce();
-            d.className = 'chart-section';
+            d.className = 'chart-section section' + (consecSections++);
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text(tuj.lang.regionalPrices);
@@ -169,7 +171,7 @@ var TUJ_BattlePet = function ()
             BattlePetGlobalNowColumns(dta, cht);
 
             d = libtuj.ce();
-            d.className = 'chart-section';
+            d.className = 'chart-section section' + (consecSections++);
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text(tuj.lang.pricePopScatter);
@@ -212,7 +214,7 @@ var TUJ_BattlePet = function ()
             }
             if (breedHitCount > 1) {
                 d = libtuj.ce();
-                d.className = 'chart-section';
+                d.className = 'chart-section section' + (consecSections++);
                 h = libtuj.ce('h2');
                 d.appendChild(h);
                 $(h).text(tuj.lang.regionalBreeds);
@@ -229,11 +231,11 @@ var TUJ_BattlePet = function ()
             }
         }
 
-        battlePetPage.append(MakeNotificationsSection(dta, ttl));
+        battlePetPage.append(MakeNotificationsSection(dta, ttl, consecSections++));
 
         if (dta.auctions.length) {
             d = libtuj.ce();
-            d.className = 'chart-section';
+            d.className = 'chart-section long';
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text(tuj.lang.currentAuctions);
@@ -250,10 +252,10 @@ var TUJ_BattlePet = function ()
         libtuj.Ads.Show();
     }
 
-    function MakeNotificationsSection(data, fullPetName)
+    function MakeNotificationsSection(data, fullPetName, consecSection)
     {
         var d = libtuj.ce();
-        d.className = 'chart-section';
+        d.className = 'chart-section section' + consecSection;
         var h = libtuj.ce('h2');
         d.appendChild(h);
         $(h).text(tuj.lang.marketNotifications);
