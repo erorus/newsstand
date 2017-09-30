@@ -1,0 +1,34 @@
+#item-page .chart-section,
+#battlepet-page .chart-section {
+    width: calc(50% - 1em);
+    display: inline-block;
+    vertical-align: top;
+}
+
+#item-page .chart-section.section1,
+#item-page .chart-section.section3,
+#item-page .chart-section.section5,
+#item-page .chart-section.section7,
+#item-page .chart-section.section9,
+#item-page .chart-section.section11,
+#item-page .chart-section.section13,
+#item-page .chart-section.section15,
+
+#battlepet-page .chart-section.section1,
+#battlepet-page .chart-section.section3,
+#battlepet-page .chart-section.section5,
+#battlepet-page .chart-section.section7,
+#battlepet-page .chart-section.section9,
+#battlepet-page .chart-section.section11,
+#battlepet-page .chart-section.section13,
+#battlepet-page .chart-section.section15 {
+    margin-left: 2em;
+}
+
+#item-page .chart-section.long,
+#seller-page .chart-section,
+#battlepet-page .chart-section.long {
+    width: 50%;
+    display: block;
+    margin: 2em auto;
+}
