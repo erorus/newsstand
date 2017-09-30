@@ -133,7 +133,7 @@ td.price abbr { text-decoration: none }
 
 td.breed, th.breed,
 td.quality, th.quality,
-td.name, th.name { text-align: left }
+td.name, th.name { text-align: left; cursor: default }
 td.icon, th.icon { width: 1.5em; height: 1.5em; padding-right: 0 ! important }
 td.icon img, th.icon img { border-radius: 3px; }
 img.icon {width: 1.5em; height: 1.5em}
@@ -141,6 +141,7 @@ td.price, th.price,
 td.quantity, th.quantity,
 td.level, th.level,
 td.date, th.date { text-align: right; cursor: default }
+th.sortable { cursor: pointer; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none }
 table.category-battlepets td.icon, table.category-battlepets td.name { vertical-align: top }
 
 td.price > span, th.price > span { white-space: nowrap }

@@ -1004,7 +1004,9 @@ var TUJ_Category = function ()
         t.appendChild(tr);
 
         if (data.amounts) {
-            tr.appendChild(libtuj.ce('th'));
+            td = libtuj.ce('th');
+            td.className = 'quantity';
+            tr.appendChild(td);
             titleColSpan++;
         }
 
@@ -1081,6 +1083,8 @@ var TUJ_Category = function ()
         if (titleTd) {
             titleTd.colSpan = titleColSpan;
         }
+
+        libtuj.TableSort.Make(t);
 
         switch (data['sort']) {
             case 'none':
@@ -1207,6 +1211,7 @@ var TUJ_Category = function ()
                 s.appendChild(document.createTextNode(item.level));
                 a.appendChild(s);
             }
+            $(a).data('sort', a.textContent);
 
             if (!data.hiddenCols.quantity) {
                 td = libtuj.ce('td');
@@ -1339,6 +1344,8 @@ var TUJ_Category = function ()
             td.className = 'date';
             $(td).text(tuj.lang.lastSeen);
 
+            libtuj.TableSort.Make(t);
+
             allSpecies = [];
 
             for (species in data[petType]) {
@@ -1375,6 +1382,7 @@ var TUJ_Category = function ()
                 a.href = tuj.BuildHash({page: 'battlepet', id: allSpecies[x].species});
                 a.rel = 'npc=' + allSpecies[x].npc + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
                 $(a).text('[' + allSpecies[x]['name_' + tuj.locale] + ']');
+                $(a).data('sort', a.textContent);
 
                 td = libtuj.ce('td');
                 td.className = 'quantity';
@@ -1601,6 +1609,8 @@ var TUJ_Category = function ()
         tr.appendChild(td);
         $(td).text(tuj.lang.price);
 
+        libtuj.TableSort.Make(t);
+
         data.map.sort(function(a, b) {
             var recipeA = data.recipes[a.recipe];
             var craftedA = data.crafted[a.crafted];
@@ -1663,6 +1673,7 @@ var TUJ_Category = function ()
                 $(tagspan).text(item['bonustag_' + tuj.locale]);
                 a.appendChild(tagspan);
             }
+            $(a).data('sort', a.textContent);
 
             td = libtuj.ce('td');
             td.className = 'quantity';

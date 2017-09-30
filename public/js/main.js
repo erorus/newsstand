@@ -102,6 +102,7 @@ var libtuj = {
 
         var s = libtuj.ce('span');
         s.className = 'price';
+        $(s).data('sort', v ? amt : 0);
         if (v) {
             if (g) {
                 s.appendChild(document.createTextNode(g));
@@ -136,6 +137,7 @@ var libtuj = {
 
         var sp = libtuj.ce('span');
         sp.className = 'price full';
+        $(sp).data('sort', v ? amt : 0);
         if (v) {
             var s2 = libtuj.ce('span');
             if (g) {
@@ -165,6 +167,7 @@ var libtuj = {
         }
 
         var s = libtuj.ce('span');
+        $(s).data('sort', v ? Number(amt) : 0);
         if (v) {
             s.appendChild(document.createTextNode(v));
         }
@@ -224,6 +227,7 @@ var libtuj = {
         }
 
         var s = libtuj.ce('span');
+        $(s).data('sort', v ? dt.valueOf() : 0);
         if (v) {
             a = libtuj.ce('abbr');
             a.className = 'full-date';
@@ -247,6 +251,7 @@ var libtuj = {
         }
 
         var s = libtuj.ce('span');
+        $(s).data('sort', v ? diff : 0);
         if (v) {
             s.className = 'age';
             s.appendChild(document.createTextNode(v));
@@ -333,6 +338,84 @@ var libtuj = {
             }
         }
         return o.data;
+    },
+    TableSort: {
+        Make: function(table) {
+            var $th, tr, idx, ths = table.getElementsByTagName('th');
+            for (var th, x = 0; th = ths[x]; x++) {
+                $th = $(th);
+                if (!($th.hasClass('name') || $th.hasClass('price') || $th.hasClass('quantity') || $th.hasClass('date') || $th.hasClass('level'))) {
+                    continue;
+                }
+                idx = 0;
+                tr = th.parentNode;
+                for (var y = 0; y < tr.childNodes.length; y++) {
+                    if (tr.childNodes[y] == th) {
+                        break;
+                    }
+                    if (tr.childNodes[y].colSpan && parseInt(tr.childNodes[y].colSpan, 10) > 1) {
+                        idx += parseInt(tr.childNodes[y].colSpan, 10);
+                    } else {
+                        idx++;
+                    }
+                }
+                if (y >= tr.childNodes.length) {
+                    continue;
+                }
+                $th.on('click', libtuj.TableSort.Sort.bind(th, idx));
+                $th.addClass('sortable');
+            }
+        },
+        getRowSortValue: function(tr, idx, colSpan) {
+            var r, eles, td, tds = tr.getElementsByTagName('td');
+            for (var x = idx; x < idx + colSpan; x++) {
+                td = tds[x];
+                if (!td) {
+                    continue;
+                }
+                eles = Array.from($(td).find('*'));
+                for (var y = 0; y < eles.length; y++) {
+                    r = $(eles[y]).data('sort');
+                    if (typeof r != 'undefined') {
+                        return r;
+                    }
+                }
+            }
+            return undefined;
+        },
+        Sort: function(idx) {
+            var th = this;
+            var colSpan = parseInt(th.colSpan || 1, 10);
+            var t = th.parentNode.parentNode;
+
+            var trs = Array.from(t.getElementsByTagName('tr'));
+            trs = trs.filter(function(tr){
+                return tr.getElementsByTagName('td').length > 0;
+            });
+
+            var curSort = $(t).data('sorted');
+            var backwards = (curSort == idx + 1) ? -1 : 1;
+            $(t).data('sorted', (idx + 1) * backwards);
+
+            trs.sort(function(a,b){
+                var aVal = libtuj.TableSort.getRowSortValue(a, idx, colSpan);
+                var bVal = libtuj.TableSort.getRowSortValue(b, idx, colSpan);
+                if (typeof aVal == 'undefined' || typeof bVal == 'undefined') {
+                    return 0;
+                }
+                if (aVal == bVal) {
+                    return 0;
+                }
+                if (!isNaN(aVal) && !isNaN(bVal)) {
+                    return (Number(aVal) < Number(bVal) ? -1 : 1) * backwards;
+                }
+                return ('' + aVal).localeCompare('' + bVal) * backwards;
+            });
+
+            for (var x = 0; x < trs.length; x++) {
+                trs[x].parentNode.appendChild(trs[x]);
+            }
+        }
     },
     Searched: {
         key: 'searched-list-',
