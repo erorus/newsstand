@@ -989,7 +989,7 @@ var TUJ = function ()
     };
 
     this.UserSeesAds = function() {
-        return !(loggedInUser && loggedInUser.hasOwnProperty('ads') && !loggedInUser.ads);
+        return false;
     };
 
     this.UserAcceptsTerms = function() {
