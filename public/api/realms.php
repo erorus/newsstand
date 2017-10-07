@@ -15,6 +15,7 @@ $loginState = ['ads' => true];
 if (isset($_POST['getuser'])) {
     $loginState = RedactLoginState(GetLoginState());
 }
+$loginState['ads'] = false;
 
 json_return([
     'version' => API_VERSION,
