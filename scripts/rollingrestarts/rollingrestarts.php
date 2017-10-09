@@ -181,6 +181,7 @@ function AbbreviateForTweet($msg) {
     $msg = preg_replace('/Update: /', '', $msg);
     $msg = preg_replace('/(?:the )?world of warcraft (realms|servers|players)/i', '$1', $msg);
     $msg = preg_replace('/world of warcraft(?: in-game)? shop/i', 'in-game shop', $msg);
+    $msg = preg_replace('/ affecting world of warcraft\./i', '.', $msg);
     $msg = str_replace(' has been brought offline', ' is offline', $msg);
     $msg = preg_replace_callback('/We will be performing (\w)/', $PregCallbackInitCap, $msg);
     $msg = preg_replace_callback('/We(?: wi|\')ll be (\w)/', $PregCallbackInitCap, $msg);
@@ -193,7 +194,7 @@ function AbbreviateForTweet($msg) {
     $msg = preg_replace('/0(\d:\d\d)/', '$1', $msg);
     $msg = preg_replace_callback('/(\d:\d\d) ?(am|pm)/i', $PregCallbackLowerAMPM, $msg);
     $msg = preg_replace('/ ?\((P[SD]T)\),?/', ' $1', $msg);
-    $msg = preg_replace('/We are aware of (?:the )?/', 'There\'s ', $msg);
+    $msg = preg_replace('/^We are (aware of|investigating) (?:the )?/', 'There\'s ', $msg);
     $msg = preg_replace('/Players (are experiencing|may experience) /', 'There\'s ', $msg);
     $msg = str_replace(' as a result of ', ' due to ', $msg);
     $msg = preg_replace('/internet service provider/i', 'ISP', $msg);
@@ -211,7 +212,7 @@ function AbbreviateForTweet($msg) {
     $msg = preg_replace('/,? and( we)? are working to bring it back online\./', '.', $msg);
     $msg = preg_replace('/We are( investigating( the cause| these reports)| monitoring this situation)( and we thank you for your patience)?( and will provide( updates| further information) as( they (are|become)| it becomes) available)?\. ?/', '', $msg);
     $msg = preg_replace('/(Our realm technicians|We) are working on a resolution\. ?/', '', $msg);
-    $msg = preg_replace('/We apologi(ze|es) for any inconvenience( this may cause)?( and thank you for your patience while this is being resolved)?\./', '', $msg);
+    $msg = preg_replace('/(We apologi(ze|es)|Apologies) for any inconvenience( this may cause| caused)?( and thank you for your patience while this is being resolved)?\./', '', $msg);
     $msg = preg_replace('/An in-game notice[^\.]+\./', '', $msg);
     $msg = preg_replace('/Thank you for( your)? (patience|understanding)[\.!]/', '', $msg);
 
