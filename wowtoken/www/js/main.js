@@ -453,7 +453,6 @@ var wowtoken = {
             return true;
         };
 
-        /*
         window.setTimeout(test, 500);
         window.setTimeout(test, 1000);
         window.setTimeout(test, 2500);
@@ -477,13 +476,9 @@ var wowtoken = {
             }
         });
         document.getElementsByTagName('head')[0].appendChild(s);
-        */
 
         wowtoken.LastVisitCheck();
         wowtoken.EUCheck();
-
-        wowtoken.LoadHistory();
-        wowtoken.Notification.Check();
     },
 
     EUCheck: function()
