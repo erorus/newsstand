@@ -632,7 +632,7 @@ function GetWatch($loginState, $type, $id)
     }
 
     $db = DBConnect();
-    $stmt = $db->prepare('SELECT seq, region, if(region is null, house, null) house, item, bonusset, species, direction, quantity, price FROM tblUserWatch WHERE user=? and '.(($type == 'species') ? 'species' : 'item').'=? and deleted is null');
+    $stmt = $db->prepare('SELECT seq, region, if(region is null, house, null) house, item, level, species, direction, quantity, price FROM tblUserWatch WHERE user=? and '.(($type == 'species') ? 'species' : 'item').'=? and deleted is null');
     $stmt->bind_param('ii', $userId, $id);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -644,20 +644,20 @@ function GetWatch($loginState, $type, $id)
     return ['maximum' => min($totalWatchRemaining + count($json), SUBSCRIPTION_WATCH_LIMIT_PER), 'watches' => $json];
 }
 
-function SetWatch($loginState, $type, $item, $bonusSet, $region, $house, $direction, $quantity, $price)
+function SetWatch($loginState, $type, $item, $level, $region, $house, $direction, $quantity, $price)
 {
     $userId = $loginState['id'];
 
     $type = ($type == 'species') ? 'species' : 'item';
-    $subType = ($type == 'species') ? false : 'bonusset';
+    $subType = ($type == 'species') ? false : 'level';
 
     $item = intval($item, 10);
     if (!$item) {
         return false;
     }
-    $bonusSet = intval($bonusSet, 10);
-    if ($bonusSet < 0 || !$subType) {
-        $bonusSet = null;
+    $level = intval($level, 10);
+    if ($level < 0 || !$subType) {
+        $level = null;
     }
 
     $house = intval($house, 10);
@@ -724,7 +724,7 @@ function SetWatch($loginState, $type, $item, $bonusSet, $region, $house, $direct
     $db->begin_transaction();
 
     $stmt = $db->prepare('select seq, region, house, direction, quantity, price from tblUserWatch where user = ? and '.$type.' = ? and ifnull('.($subType ?: 'null').',0) = ifnull(?,0) and deleted is null for update');
-    $stmt->bind_param('iii', $userId, $item, $bonusSet);
+    $stmt->bind_param('iii', $userId, $item, $level);
     $stmt->execute();
     $result = $stmt->get_result();
     $curWatches = DBMapArray($result);
@@ -761,7 +761,7 @@ function SetWatch($loginState, $type, $item, $bonusSet, $region, $house, $direct
 
     if ($subType) {
         $stmt = $db->prepare('insert into tblUserWatch (user, seq, region, house, ' . $type . ', ' . $subType . ', direction, quantity, price, created) values (?,?,?,?,?,?,?,?,?,NOW())');
-        $stmt->bind_param('iisiiisii', $userId, $seq, $region, $house, $item, $bonusSet, $direction, $quantity, $price);
+        $stmt->bind_param('iisiiisii', $userId, $seq, $region, $house, $item, $level, $direction, $quantity, $price);
     } else {
         $stmt = $db->prepare('insert into tblUserWatch (user, seq, region, house, ' . $type . ', direction, quantity, price, created) values (?,?,?,?,?,?,?,?,NOW())');
         $stmt->bind_param('iisiisii', $userId, $seq, $region, $house, $item, $direction, $quantity, $price);
@@ -881,15 +881,11 @@ function GetWatches($loginState)
     if ($items === false) {
         $sql = <<<EOF
 select uw.seq, uw.region, uw.house,
-    uw.item, uw.bonusset,
-    ifnull(GROUP_CONCAT(bs.`tagid` ORDER BY 1 SEPARATOR '.'), '') tagurl,
-    ifnull((select concat_ws(':', nullif(bonus1,0), nullif(bonus2,0), nullif(bonus3,0), nullif(bonus4,0)) 
-     FROM `tblItemBonusesSeen` ibs WHERE ibs.item=i.id and ibs.bonusset=uw.bonusset order by ibs.observed desc limit 1),'') bonusurl,
-    i.level, i.icon, i.class,
+    uw.item, uw.level,
+    i.icon, i.class,
     uw.direction, uw.quantity, uw.price
 from tblUserWatch uw
 join tblDBCItem i on uw.item = i.id
-left join tblBonusSet bs on uw.bonusset = bs.`set`
 where uw.user = ?
 and uw.deleted is null
 group by uw.seq
@@ -908,7 +904,6 @@ EOF;
 
     PopulateLocaleCols($items, [
         ['func' => 'GetItemNames',          'key' => 'item',   'name' => 'name'],
-        ['func' => 'GetItemBonusTagsByTag', 'key' => 'tagurl', 'name' => 'bonustag'],
     ], true);
 
     $cacheKey = SUBSCRIPTION_SPECIES_CACHEKEY . $userId;

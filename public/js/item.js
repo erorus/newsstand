@@ -326,7 +326,7 @@ var TUJ_Item = function ()
             var cht = libtuj.ce();
             cht.className = 'notifications-insert';
             d.appendChild(cht);
-            GetItemNotificationsList(itemId, levels.length > 1 ? level : -1, d);
+            GetItemNotificationsList(itemId, d);
         } else {
             d.className += ' logged-out-only';
 
@@ -386,10 +386,14 @@ var TUJ_Item = function ()
 
         stack = 0; // disable stack size since they're an unusable "200"
 
-        $(dest).empty();
+        var existingAd = $(dest).children('.existing-ad');
+        existingAd = existingAd.length > 0 ? existingAd[0] : null;
+
+        $(dest).children('table').remove();
+        $(dest).children('.transmog-img').remove();
 
         t = libtuj.ce('table');
-        dest.appendChild(t);
+        dest.insertBefore(t, existingAd);
 
         if (stack) {
             t.className = 'with-stack';
@@ -733,22 +737,24 @@ var TUJ_Item = function ()
             var i = libtuj.ce();
             i.className = 'transmog-img';
             i.style.backgroundImage = 'url(' + tujCDNPrefix + 'models/' + data.stats[level].display + '.png)';
-            dest.appendChild(i);
+            dest.insertBefore(i, existingAd);
         }
 
-        dest.appendChild(libtuj.Ads.Add('9943194718', 'box'));
+        if (!existingAd) {
+            dest.appendChild(libtuj.Ads.Add('9943194718', 'box existing-ad'));
+        }
     }
 
-    function GetItemNotificationsList(itemId, lvl, mainDiv)
+    function GetItemNotificationsList(itemId, mainDiv)
     {
         var self = this;
         tuj.SendCSRFProtectedRequest({
             data: {'getitem': itemId},
-            success: ItemNotificationsList.bind(self, itemId, lvl, mainDiv),
+            success: ItemNotificationsList.bind(self, itemId, mainDiv),
         });
     }
 
-    function ItemNotificationsList(itemId, lvl, mainDiv, dta)
+    function ItemNotificationsList(itemId, mainDiv, dta)
     {
         var dest = $(mainDiv).find('.notifications-insert');
         dest.empty();
@@ -757,9 +763,7 @@ var TUJ_Item = function ()
         var ids = [];
         for (var k in dta.watches) {
             if (dta.watches.hasOwnProperty(k)) {
-                if (lvl == -1 || dta.watches[k].level === null || lvl == dta.watches[k].level) {
-                    ids.push(k);
-                }
+                ids.push(k);
             }
         }
         if (ids.length) {
@@ -776,13 +780,16 @@ var TUJ_Item = function ()
                 var btn = libtuj.ce('input');
                 btn.type = 'button';
                 btn.value = tuj.lang.delete;
-                $(btn).on('click', ItemNotificationsDel.bind(btn, mainDiv, itemId, lvl, n.seq));
+                $(btn).on('click', ItemNotificationsDel.bind(btn, mainDiv, itemId, n.seq));
                 li.appendChild(btn);
 
                 if (n.house) {
                     li.appendChild(document.createTextNode(libtuj.GetRealmsForHouse(n.house) + ': '));
                 } else if (n.region) {
                     li.appendChild(document.createTextNode(tuj.lang['realms' + n.region] + ': '));
+                }
+                if (levels.length > 1) {
+                    li.appendChild(document.createTextNode(tuj.lang.level + ' ' + n.level + '+ '));
                 }
                 if (n.price === null) {
                     li.appendChild(document.createTextNode(tuj.lang.availableQuantity + ' '));
@@ -871,7 +878,7 @@ var TUJ_Item = function ()
         var btn = libtuj.ce('input');
         btn.type = 'button';
         btn.value = tuj.lang.add;
-        $(btn).on('click', ItemNotificationsAdd.bind(btn, mainDiv, itemId, lvl, regionBox, underOver, qty, false));
+        $(btn).on('click', ItemNotificationsAdd.bind(btn, mainDiv, itemId, regionBox, underOver, qty, false));
         d.appendChild(btn);
 
         // market price
@@ -912,7 +919,7 @@ var TUJ_Item = function ()
         var btn = libtuj.ce('input');
         btn.type = 'button';
         btn.value = tuj.lang.add;
-        $(btn).on('click', ItemNotificationsAdd.bind(btn, mainDiv, itemId, lvl, regionBox, underOver, null, price));
+        $(btn).on('click', ItemNotificationsAdd.bind(btn, mainDiv, itemId, regionBox, underOver, null, price));
         d.appendChild(btn);
 
         // price to buy X
@@ -964,7 +971,7 @@ var TUJ_Item = function ()
         var btn = libtuj.ce('input');
         btn.type = 'button';
         btn.value = tuj.lang.add;
-        $(btn).on('click', ItemNotificationsAdd.bind(btn, mainDiv, itemId, lvl, regionBox, underOver, qty, price));
+        $(btn).on('click', ItemNotificationsAdd.bind(btn, mainDiv, itemId, regionBox, underOver, qty, price));
         d.appendChild(btn);
 
         $(mainDiv).show();
@@ -977,13 +984,13 @@ var TUJ_Item = function ()
         $parent.find('.notification-type-form-'+this.options[this.selectedIndex].value).show();
     }
 
-    function ItemNotificationsAdd(mainDiv, itemId, lvl, regionBox, directionBox, qtyBox, priceBox)
+    function ItemNotificationsAdd(mainDiv, itemId, regionBox, directionBox, qtyBox, priceBox)
     {
         var self = this;
         var o = {
             'setwatch': 'item',
             'id': itemId,
-            'subid': lvl,
+            'subid': level,
             'region': regionBox.options[regionBox.selectedIndex].value == 'region' ? tuj.validRegions[params.region] : '',
             'house': regionBox.options[regionBox.selectedIndex].value == 'house' ? tuj.realms[params.realm].house : '',
             'direction': directionBox.options[directionBox.selectedIndex].value,
@@ -1026,16 +1033,16 @@ var TUJ_Item = function ()
 
         tuj.SendCSRFProtectedRequest({
             data: o,
-            success: ItemNotificationsList.bind(self, itemId, lvl, mainDiv),
+            success: ItemNotificationsList.bind(self, itemId, mainDiv),
         });
     }
 
-    function ItemNotificationsDel(mainDiv, itemId, lvl, id)
+    function ItemNotificationsDel(mainDiv, itemId, id)
     {
         var self = this;
         tuj.SendCSRFProtectedRequest({
             data: {'deletewatch': id},
-            success: ItemNotificationsList.bind(self, itemId, lvl, mainDiv),
+            success: ItemNotificationsList.bind(self, itemId, mainDiv),
         });
     }
 

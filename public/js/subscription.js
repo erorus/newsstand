@@ -586,8 +586,8 @@ var TUJ_Subscription = function ()
             a = libtuj.ce('a');
             td.appendChild(a);
             if (item.item) {
-                a.rel = 'item=' + item.item + (item.bonusurl ? '&bonus=' + item.bonusurl : (item.basebonus ? '&bonus=' + item.basebonus : '')) + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
-                h = {page: 'item', id: item.item + (item.tagurl ? '.'+item.tagurl : '')};
+                a.rel = 'item=' + item.item + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
+                h = {page: 'item', id: item.item};
             } else if (item.species) {
                 a.rel = 'npc=' + item.npc + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
                 h = {page: 'battlepet', id: item.species};
@@ -600,16 +600,13 @@ var TUJ_Subscription = function ()
                 h.realm = undefined;
             }
             a.href = tuj.BuildHash(h);
-            $(a).text('[' + item['name_' + tuj.locale]
-                + (item['bonusname_' + tuj.locale] ? ' ' + item['bonusname_' + tuj.locale].substr(0, item['bonusname_' + tuj.locale].indexOf('|') >= 0 ? item['bonusname_' + tuj.locale].indexOf('|') : item['bonusname_' + tuj.locale].length) : '')
-                + ']'
-                + (item['bonustag_' + tuj.locale] ? ' ' : '')
-            );
-            if (item['bonustag_' + tuj.locale]) {
-                var tagspan = libtuj.ce('span');
-                tagspan.className = 'nowrap';
-                $(tagspan).text(item['bonustag_' + tuj.locale]);
-                a.appendChild(tagspan);
+            $(a).text('[' + item['name_' + tuj.locale] + ']');
+
+            if (item.level) {
+                var s = libtuj.ce('span');
+                s.className = 'level';
+                s.appendChild(document.createTextNode(item.level + '+'));
+                td.appendChild(s);
             }
 
             td = libtuj.ce('td');

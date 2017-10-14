@@ -7,6 +7,7 @@ $startTime = time();
 require_once('../incl/incl.php');
 require_once('../incl/heartbeat.incl.php');
 require_once('../incl/memcache.incl.php');
+require_once('../incl/BonusItemLevel.incl.php');
 
 RunMeNTimes(2);
 CatchKill();
@@ -96,35 +97,7 @@ while ($stmt->fetch()) {
 }
 $stmt->close();
 
-$bonusCurveCache = [];
-$stmt = $db->prepare('select id, levelcurve from tblDBCItemBonus where levelcurve is not null');
-$stmt->execute();
-$id = $curve = null;
-$stmt->bind_result($id, $curve);
-while ($stmt->fetch()) {
-    $bonusCurveCache[$id] = $curve;
-}
-$stmt->close();
-
-$curvePointCache = [];
-$stmt = $db->prepare('select curve, `key`, `value` from tblDBCCurvePoint cp join (select distinct levelcurve from tblDBCItemBonus) curves on cp.curve = curves.levelcurve order by curve, `step`');
-$stmt->execute();
-$curve = $key = $value = null;
-$stmt->bind_result($curve, $key, $value);
-while ($stmt->fetch()) {
-    $curvePointCache[$curve][$key] = $value;
-}
-$stmt->close();
-
-$bonusLevelCache = [];
-$stmt = $db->prepare('select id, level from tblDBCItemBonus where level is not null');
-$stmt->execute();
-$id = $level = null;
-$stmt->bind_result($id, $level);
-while ($stmt->fetch()) {
-    $bonusLevelCache[$id] = $level;
-}
-$stmt->close();
+\Newsstand\BonusItemLevel::init($db);
 
 $maxPacketSize = 0;
 $stmt = $db->prepare('show variables like \'max_allowed_packet\'');
@@ -471,7 +444,7 @@ function ParseAuctionData($house, $snapshot, &$json)
                     }
                 }
 
-                $bonusItemLevel = GetBonusItemLevel($bonuses, $equipBaseItemLevel[$auction['item']], $auction['lootedLevel']);
+                $bonusItemLevel = \Newsstand\BonusItemLevel::GetBonusItemLevel($bonuses, $equipBaseItemLevel[$auction['item']], $auction['lootedLevel']);
             }
             if ($auction['buyout'] != 0) {
                 if (isset($auction['petSpeciesId'])) {
@@ -809,49 +782,6 @@ EOF;
     MCSetHouse($house, 'ts', $snapshot);
 
     DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " finished with $totalAuctions auctions in " . round(microtime(true) - $startTimer, 2) . " sec");
-}
-
-function GetBonusItemLevel($bonuses, $defaultItemLevel, $lootedLevel) {
-    global $bonusCurveCache, $bonusLevelCache;
-
-    $levelSum = $defaultItemLevel;
-
-    foreach ($bonuses as $bonus) {
-        if (isset($bonusCurveCache[$bonus])) {
-            return GetCurvePoint($bonusCurveCache[$bonus], $lootedLevel);
-        }
-        $levelSum += isset($bonusLevelCache[$bonus]) ? $bonusLevelCache[$bonus] : 0;
-    }
-
-    return $levelSum;
-}
-
-function GetCurvePoint($curve, $point) {
-    global $curvePointCache;
-    if (!isset($curvePointCache[$curve])) {
-        return null;
-    }
-
-    reset($curvePointCache[$curve]);
-    $lastKey = key($curvePointCache[$curve]);
-    $lastValue = $curvePointCache[$curve][$lastKey];
-
-    if ($lastKey > $point) {
-        return $lastValue;
-    }
-
-    foreach ($curvePointCache[$curve] as $key => $value) {
-        if ($point == $key) {
-            return $value;
-        }
-        if ($point < $key) {
-            return round(($value - $lastValue) / ($key - $lastKey) * ($point - $lastKey) + $lastValue);
-        }
-        $lastKey = $key;
-        $lastValue = $value;
-    }
-
-    return $lastValue;
 }
 
 function GetAuctionAge($id, $now, &$snapshotList)
