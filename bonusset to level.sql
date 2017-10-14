@@ -312,3 +312,9 @@ CREATE TABLE IF NOT EXISTS `ttblRareStageTemplate` (
   PRIMARY KEY (`item`,`level`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `ttblItemSummaryTemplate` (
+  `item` mediumint(9) NOT NULL,
+  `level` smallint(5) UNSIGNED NOT NULL DEFAULT '0',
+  `price` decimal(11,0) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`item`,`level`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;

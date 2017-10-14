@@ -3,9 +3,8 @@ var TUJ_Item = function ()
     var params;
     var lastResults = [];
     var itemId;
-    var bonusSet, tagUrl;
-    var bonusSets;
-    var priceLevel;
+    var levels;
+    var level;
 
     this.load = function (inParams)
     {
@@ -17,12 +16,9 @@ var TUJ_Item = function ()
         }
 
         itemId = '' + params.id;
-        bonusSet = 0;
-        tagUrl = '';
 
         if (itemId.indexOf('.') > 0) {
             itemId = ('' + params.id).substr(0, ('' + params.id).indexOf('.'));
-            tagUrl = ('' + params.id).substr(('' + params.id).indexOf('.') + 1);
         }
 
         var qs = {
@@ -99,83 +95,34 @@ var TUJ_Item = function ()
             return;
         }
 
-        bonusSets = [];
-        bonusSet = -1;
-        priceLevel = false;
+        levels = [];
+        level = false;
 
-        var tagUrlParts = tagUrl.replace(/[^\d\.]/,'').split('.');
-        var matchingParts, testingParts, alreadyMatchedParts = 0;
-        for (var bset in dta.stats) {
-            if (!dta.stats.hasOwnProperty(bset)) {
+        for (var lvl in dta.stats) {
+            if (!dta.stats.hasOwnProperty(lvl)) {
                 continue;
             }
-            bonusSets.push(bset);
-            if (bonusSets.length == 1) {
-                bonusSet = bset;
-            } else {
-                matchingParts = 0;
-                testingParts = ('' + dta.stats[bset].tagurl).split('.');
-                for (var x = 0; x < testingParts.length; x++) {
-                    for (var y = 0; y < tagUrlParts.length; y++) {
-                        if (testingParts[x] == tagUrlParts[y]) {
-                            matchingParts++;
-                            break;
-                        }
-                    }
-                }
-                if (matchingParts == testingParts.length && matchingParts > alreadyMatchedParts) {
-                    bonusSet = bset;
-                    alreadyMatchedParts = matchingParts;
-                }
+            levels.push(parseInt(lvl,10));
+            if (level === false) {
+                level = lvl;
             }
         }
-        if (dta.stats[bonusSet].levels.length) {
-            for (var x = 0, found = false; (!found) && (x < dta.stats[bonusSet].levels.length); x++) {
-                found |= dta.stats[bonusSet].levels[x] == dta.stats[bonusSet].level;
-            }
-            if (!found) {
-                priceLevel = dta.stats[bonusSet].levels[0];
-            }
-        }
-        if (dta.stats[bonusSet].tagurl != tagUrl) {
-            tuj.SetParams({page: 'item', id: '' + itemId + (dta.stats[bonusSet].tagurl ? ('.' + dta.stats[bonusSet].tagurl) : '')});
-            tagUrl = dta.stats[bonusSet].tagurl;
-        }
+        levels.sort();
 
-        bonusSets.sort(function(a,b) {
-            return (dta.stats[a].level - dta.stats[b].level) || dta.stats[a]['bonustag_' + tuj.locale].localeCompare(dta.stats[b]['bonustag_' + tuj.locale]) || a - b;
-        });
-
-        var fullItemName = '[' + dta.stats[bonusSet]['name_' + tuj.locale] + ']' + ((dta.stats[bonusSet].bonusurl && dta.stats[bonusSet]['bonustag_' + tuj.locale]) ? ' ' + dta.stats[bonusSet]['bonustag_' + tuj.locale] : '');
+        var fullItemName = '[' + dta.stats[level]['name_' + tuj.locale] + ']';
 
         var ta = libtuj.ce('a');
-        ta.href = 'http://' + tuj.lang.wowheadDomain + '.wowhead.com/item=' + itemId + (dta.stats[bonusSet].bonusurl ? '&bonus=' + dta.stats[bonusSet].bonusurl : '');
+        ta.href = 'http://' + tuj.lang.wowheadDomain + '.wowhead.com/item=' + itemId;
         ta.target = '_blank';
         ta.rel = 'noopener noreferrer';
-        ta.className = 'item'
+        ta.className = 'item';
         var timg = libtuj.ce('img');
         ta.appendChild(timg);
-        timg.src = libtuj.IconURL(dta.stats[bonusSet].icon, 'large');
+        timg.src = libtuj.IconURL(dta.stats[level].icon, 'large');
         ta.appendChild(document.createTextNode(fullItemName));
 
         $('#page-title').empty().append(ta);
         tuj.SetTitle(fullItemName);
-
-        if (bonusSets.length > 1) {
-            d = libtuj.ce();
-            d.className = 'item-bonussets';
-            itemPage.append(d);
-
-            for (var x = 0; x < bonusSets.length; x++) {
-                a = libtuj.ce('a');
-                d.appendChild(a);
-                a.href = tuj.BuildHash({page: 'item', id: '' + itemId + (dta.stats[bonusSets[x]].tagurl ? ('.' + dta.stats[bonusSets[x]].tagurl) : '')});
-                a.appendChild(document.createTextNode(dta.stats[bonusSets[x]]['bonustag_' + tuj.locale] || (bonusSets[x] == 0 ? tuj.lang.normal : '')));
-                if (bonusSet == bonusSets[x]) {
-                    a.className = 'selected';
-                }
-            }
-        }
 
         var d, cht, h;
 
@@ -184,7 +131,7 @@ var TUJ_Item = function ()
         itemPage.append(d);
         ItemStats(dta, d);
 
-        if (dta.history.hasOwnProperty(bonusSet) && dta.history[bonusSet].length >= 4) {
+        if (dta.history.hasOwnProperty(level) && dta.history[level].length >= 4) {
             d = libtuj.ce();
             d.className = 'chart-section';
             h = libtuj.ce('h2');
@@ -198,7 +145,7 @@ var TUJ_Item = function ()
             ItemHistoryChart(dta, cht);
         }
 
-        if (dta.monthly.hasOwnProperty(bonusSet) && dta.monthly[bonusSet].length >= 14) {
+        if (dta.monthly.hasOwnProperty(level) && dta.monthly[level].length >= 14) {
             d = libtuj.ce();
             d.className = 'chart-section';
             h = libtuj.ce('h2');
@@ -226,7 +173,7 @@ var TUJ_Item = function ()
             ItemDailyChart(dta, cht);
         }
 
-        if (dta.hasOwnProperty('expired') && dta.expired.hasOwnProperty(bonusSet) && dta.expired[bonusSet].length >= 7) {
+        if (dta.hasOwnProperty('expired') && dta.expired.hasOwnProperty(level) && dta.expired[level].length >= 7) {
             d = libtuj.ce();
             d.className = 'chart-section';
             h = libtuj.ce('h2');
@@ -240,7 +187,7 @@ var TUJ_Item = function ()
             ItemExpiredChart(dta, cht);
         }
 
-        if (dta.history.hasOwnProperty(bonusSet) && dta.history[bonusSet].length >= 14) {
+        if (dta.history.hasOwnProperty(level) && dta.history[level].length >= 14) {
             d = libtuj.ce();
             d.className = 'chart-section';
             h = libtuj.ce('h2');
@@ -254,8 +201,8 @@ var TUJ_Item = function ()
             ItemPriceHeatMap(dta, cht);
 
             var doHeatMap = false;
-            for (var x = 0; !doHeatMap && (x < dta.history[bonusSet].length); x++) {
-                doHeatMap |= !!dta.history[bonusSet][x].quantity;
+            for (var x = 0; !doHeatMap && (x < dta.history[level].length); x++) {
+                doHeatMap |= !!dta.history[level][x].quantity;
             }
             if (doHeatMap) {
                 d = libtuj.ce();
@@ -274,7 +221,7 @@ var TUJ_Item = function ()
 
         itemPage.append(libtuj.Ads.Add('3753400314'));
 
-        if (dta.globalmonthly.hasOwnProperty(bonusSet) && dta.globalmonthly[bonusSet].length >= 28) {
+        if (dta.globalmonthly.hasOwnProperty(level) && dta.globalmonthly[level].length >= 28) {
             d = libtuj.ce();
             d.className = 'chart-section';
             h = libtuj.ce('h2');
@@ -288,7 +235,7 @@ var TUJ_Item = function ()
             ItemGlobalMonthlyChart(dta, cht);
         }
 
-        if (dta.globalnow.hasOwnProperty(bonusSet) && dta.globalnow[bonusSet].length > 0) {
+        if (dta.globalnow.hasOwnProperty(level) && dta.globalnow[level].length > 0) {
             d = libtuj.ce();
             d.className = 'chart-section';
             h = libtuj.ce('h2');
@@ -326,7 +273,7 @@ var TUJ_Item = function ()
             h = libtuj.ce('h2');
             d.appendChild(h);
             $(h).text(tuj.lang.recentSellers);
-            d.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.recentSellersDesc, '[' + dta.stats[bonusSet]['name_' + tuj.locale] + ']')));
+            d.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.recentSellersDesc, '[' + dta.stats[level]['name_' + tuj.locale] + ']')));
             cht = libtuj.ce();
             cht.className = 'chart columns';
             d.appendChild(cht);
@@ -336,11 +283,9 @@ var TUJ_Item = function ()
 
         itemPage.append(MakeNotificationsSection(dta, fullItemName));
 
-        if (dta.auctions.hasOwnProperty(bonusSet)) {
-            dta.auctions[bonusSet] = libtuj.HydrateData(dta.auctions[bonusSet]);
-        }
+        dta.auctions = libtuj.HydrateData(dta.auctions);
 
-        if (dta.auctions.hasOwnProperty(bonusSet) && dta.auctions[bonusSet].length) {
+        if (dta.auctions.length) {
             d = libtuj.ce();
             d.className = 'chart-section';
             h = libtuj.ce('h2');
@@ -364,10 +309,6 @@ var TUJ_Item = function ()
         libtuj.Ads.Show();
     }
 
-    function PriceScalingFactor(level, baseLevel) {
-        return level ? Math.pow(1.15, (level - baseLevel) / 15) : 1;
-    }
-
     function MakeNotificationsSection(data, fullItemName)
     {
         var d = libtuj.ce();
@@ -381,26 +322,26 @@ var TUJ_Item = function ()
             var cht = libtuj.ce();
             cht.className = 'notifications-insert';
             d.appendChild(cht);
-            GetItemNotificationsList(itemId, bonusSets.length > 1 ? bonusSet : -1, d);
+            GetItemNotificationsList(itemId, levels.length > 1 ? level : -1, d);
         } else {
             d.className += ' logged-out-only';
 
             var globalQty = 0;
-            if (data.globalnow.hasOwnProperty(bonusSet) && data.globalnow[bonusSet].length) {
-                for (var x = 0, row; row = data.globalnow[bonusSet][x]; x++) {
+            if (data.globalnow.hasOwnProperty(level) && data.globalnow[level].length) {
+                for (var x = 0, row; row = data.globalnow[level][x]; x++) {
                     globalQty += row.quantity;
                 }
             }
 
             if (globalQty < 200) {
                 d.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.wantToKnowAvailAnywhere, fullItemName) + ' '));
-            } else if (data.stats.hasOwnProperty(bonusSet)) {
-                if (data.stats[bonusSet].quantity < 5) {
+            } else if (data.stats.hasOwnProperty(level)) {
+                if (data.stats[level].quantity < 5) {
                     d.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.wantToKnowAvail, fullItemName) + ' '));
-                } else if (data.history.hasOwnProperty(bonusSet) && data.history[bonusSet].length > 8) {
+                } else if (data.history.hasOwnProperty(level) && data.history[level].length > 8) {
                     var prices = [];
-                    for (var x = 0; x < data.history[bonusSet].length; x++) {
-                        prices.push(data.history[bonusSet][x].silver * 100);
+                    for (var x = 0; x < data.history[level].length; x++) {
+                        prices.push(data.history[level][x].silver * 100);
                     }
                     var priceMean = libtuj.Mean(prices);
                     var priceStdDev = libtuj.StdDev(prices, priceMean);
@@ -423,10 +364,7 @@ var TUJ_Item = function ()
 
     function ItemLevelChange(sel, data, statsDest)
     {
-        priceLevel = sel.options[sel.selectedIndex].value;
-        if (priceLevel == data.stats[bonusSet].level) {
-            priceLevel = false;
-        }
+        level = sel.options[sel.selectedIndex].value;
         ItemStats(data, statsDest);
 
         var priceHeatMapDest = document.getElementsByClassName('priceheatmap');
@@ -439,13 +377,12 @@ var TUJ_Item = function ()
     {
         var t, tr, td, abbr;
 
-        var stack = data.stats[bonusSet].stacksize > 1 ? data.stats[bonusSet].stacksize : 0;
+        var stack = data.stats[level].stacksize > 1 ? data.stats[level].stacksize : 0;
         var spacerColSpan = stack ? 3 : 2;
 
         stack = 0; // disable stack size since they're an unusable "200"
 
         $(dest).empty();
-        var priceScaling = PriceScalingFactor(priceLevel, data.stats[bonusSet].level);
 
         t = libtuj.ce('table');
         dest.appendChild(t);
@@ -466,7 +403,7 @@ var TUJ_Item = function ()
             td.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.stackof, stack)));
         }
 
-        if (data.stats[bonusSet].levels.length > 1) {
+        if (levels.length > 1) {
             tr = libtuj.ce('tr');
             t.appendChild(tr);
             tr.className = 'level-select';
@@ -478,11 +415,11 @@ var TUJ_Item = function ()
             td.colSpan = stack ? 2 : 1;
             var sel = libtuj.ce('select');
             $(sel).on('change', ItemLevelChange.bind(this, sel, data, dest));
-            for (var l, x=0; l = data.stats[bonusSet].levels[x]; x++) {
+            for (var l, x=0; l = levels[x]; x++) {
                 var opt = libtuj.ce('option');
                 opt.value = l;
                 opt.label = l;
-                if (l == priceLevel || (!priceLevel && l == data.stats[bonusSet].level)) {
+                if (l == level) {
                     opt.selected = true;
                 }
                 opt.appendChild(document.createTextNode(l));
@@ -506,14 +443,14 @@ var TUJ_Item = function ()
         td.appendChild(document.createTextNode(tuj.lang.availableQuantity));
         td = libtuj.ce('td');
         tr.appendChild(td);
-        td.appendChild(libtuj.FormatQuantity(data.stats[bonusSet].quantity));
+        td.appendChild(libtuj.FormatQuantity(data.stats[level].quantity));
         if (stack) {
             td = libtuj.ce('td');
             tr.appendChild(td);
-            td.appendChild(libtuj.FormatQuantity(Math.floor(data.stats[bonusSet].quantity / stack)));
+            td.appendChild(libtuj.FormatQuantity(Math.floor(data.stats[level].quantity / stack)));
         }
 
-        if (data.stats[bonusSet].quantity == 0) {
+        if (data.stats[level].quantity == 0) {
             tr = libtuj.ce('tr');
             t.appendChild(tr);
             tr.className = 'last-seen';
@@ -523,7 +460,7 @@ var TUJ_Item = function ()
             td = libtuj.ce('td');
             tr.appendChild(td);
             td.colSpan = stack ? 2 : 1;
-            td.appendChild(libtuj.FormatDate(data.stats[bonusSet].lastseen));
+            td.appendChild(libtuj.FormatDate(data.stats[level].lastseen));
         }
 
         tr = libtuj.ce('tr');
@@ -541,18 +478,18 @@ var TUJ_Item = function ()
         td.appendChild(document.createTextNode(tuj.lang.currentPrice));
         td = libtuj.ce('td');
         tr.appendChild(td);
-        td.appendChild(libtuj.FormatPrice(data.stats[bonusSet].price * priceScaling));
+        td.appendChild(libtuj.FormatPrice(data.stats[level].price));
         if (stack) {
             td = libtuj.ce('td');
             tr.appendChild(td);
-            td.appendChild(libtuj.FormatPrice(data.stats[bonusSet].price * stack * priceScaling));
+            td.appendChild(libtuj.FormatPrice(data.stats[level].price * stack));
         }
 
         var prices = [], x;
 
-        if (data.history.hasOwnProperty(bonusSet) && data.history[bonusSet].length > 8) {
-            for (x = 0; x < data.history[bonusSet].length; x++) {
-                prices.push(data.history[bonusSet][x].silver * 100);
+        if (data.history.hasOwnProperty(level) && data.history[level].length > 8) {
+            for (x = 0; x < data.history[level].length; x++) {
+                prices.push(data.history[level][x].silver * 100);
             }
         }
 
@@ -566,15 +503,15 @@ var TUJ_Item = function ()
             td.appendChild(document.createTextNode(tuj.lang.medianPrice));
             td = libtuj.ce('td');
             tr.appendChild(td);
-            td.appendChild(libtuj.FormatPrice(median = libtuj.Median(prices) * priceScaling));
+            td.appendChild(libtuj.FormatPrice(median = libtuj.Median(prices)));
             if (stack) {
                 td = libtuj.ce('td');
                 tr.appendChild(td);
                 td.appendChild(libtuj.FormatPrice(median * stack));
             }
 
-            var mn = libtuj.Mean(prices) * priceScaling;
-            var std = libtuj.StdDev(prices, mn) * priceScaling;
+            var mn = libtuj.Mean(prices);
+            var std = libtuj.StdDev(prices, mn);
             tr = libtuj.ce('tr');
             t.appendChild(tr);
             tr.className = 'mean-price';
@@ -613,7 +550,7 @@ var TUJ_Item = function ()
                 td.appendChild(libtuj.FormatPrice(std * stack));
             }
 
-            if (data.stats[bonusSet].hasOwnProperty('reagentprice') && data.stats[bonusSet].reagentprice) {
+            if (data.stats[level].hasOwnProperty('reagentprice') && data.stats[level].reagentprice) {
                 tr = libtuj.ce('tr');
                 t.appendChild(tr);
                 tr.className = 'spacer';
@@ -629,16 +566,16 @@ var TUJ_Item = function ()
                 td.appendChild(document.createTextNode(tuj.lang.craftingCost));
                 td = libtuj.ce('td');
                 tr.appendChild(td);
-                td.appendChild(libtuj.FormatPrice(data.stats[bonusSet].reagentprice));
+                td.appendChild(libtuj.FormatPrice(data.stats[level].reagentprice));
                 if (stack) {
                     td = libtuj.ce('td');
                     tr.appendChild(td);
-                    td.appendChild(libtuj.FormatPrice(data.stats[bonusSet].reagentprice * stack));
+                    td.appendChild(libtuj.FormatPrice(data.stats[level].reagentprice * stack));
                 }
             }
         }
 
-        if (data.globalnow.hasOwnProperty(bonusSet) && data.globalnow[bonusSet].length) {
+        if (data.globalnow.hasOwnProperty(level) && data.globalnow[level].length) {
             var globalStats = {
                 quantity: 0,
                 prices: [],
@@ -647,7 +584,7 @@ var TUJ_Item = function ()
 
             var headerPrefix = tuj.validRegions[params.region] + ' ';
             var row;
-            for (x = 0; row = data.globalnow[bonusSet][x]; x++) {
+            for (x = 0; row = data.globalnow[level][x]; x++) {
                 globalStats.quantity += row.quantity;
                 globalStats.prices.push(row.price);
                 globalStats.lastseen = (globalStats.lastseen < row.lastseen) ? row.lastseen : globalStats.lastseen;
@@ -684,14 +621,14 @@ var TUJ_Item = function ()
             td.appendChild(document.createTextNode(headerPrefix + tuj.lang.medianPrice));
             td = libtuj.ce('td');
             tr.appendChild(td);
-            td.appendChild(libtuj.FormatPrice(median = libtuj.Median(globalStats.prices) * priceScaling));
+            td.appendChild(libtuj.FormatPrice(median = libtuj.Median(globalStats.prices)));
             if (stack) {
                 td = libtuj.ce('td');
                 tr.appendChild(td);
                 td.appendChild(libtuj.FormatPrice(median * stack));
             }
 
-            var mn = libtuj.Mean(globalStats.prices) * priceScaling;
+            var mn = libtuj.Mean(globalStats.prices);
             tr = libtuj.ce('tr');
             t.appendChild(tr);
             tr.className = 'mean-price';
@@ -715,20 +652,20 @@ var TUJ_Item = function ()
         td.colSpan = spacerColSpan;
         tr.appendChild(td);
 
-        if (data.stats[bonusSet].vendorprice) {
+        if (data.stats[level].vendorprice) {
             tr = libtuj.ce('tr');
             t.appendChild(tr);
             tr.className = 'vendor';
             td = libtuj.ce('th');
             tr.appendChild(td);
-            if (data.stats[bonusSet].vendornpccount) {
+            if (data.stats[level].vendornpccount) {
                 var a = libtuj.ce('a');
-                a.href = 'http://' + tuj.lang.wowheadDomain + '.wowhead.com/item=' + data.stats[bonusSet].id + '#sold-by';
+                a.href = 'http://' + tuj.lang.wowheadDomain + '.wowhead.com/item=' + data.stats[level].id + '#sold-by';
                 a.rel = 'np';
-                if (data.stats[bonusSet].vendornpccount == 1) {
+                if (data.stats[level].vendornpccount == 1) {
                     a.appendChild(document.createTextNode(tuj.lang.soldByVendor));
                 } else {
-                    a.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.soldByVendorPlural, data.stats[bonusSet].vendornpccount)));
+                    a.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.soldByVendorPlural, data.stats[level].vendornpccount)));
                 }
                 td.appendChild(a);
             } else {
@@ -736,11 +673,11 @@ var TUJ_Item = function ()
             }
             td = libtuj.ce('td');
             tr.appendChild(td);
-            td.appendChild(libtuj.FormatPrice(data.stats[bonusSet].vendorprice));
+            td.appendChild(libtuj.FormatPrice(data.stats[level].vendorprice));
             if (stack) {
                 td = libtuj.ce('td');
                 tr.appendChild(td);
-                td.appendChild(libtuj.FormatPrice(data.stats[bonusSet].vendorprice * stack));
+                td.appendChild(libtuj.FormatPrice(data.stats[level].vendorprice * stack));
             }
         }
 
@@ -752,12 +689,12 @@ var TUJ_Item = function ()
         td.appendChild(document.createTextNode(tuj.lang.sellToVendor));
         td = libtuj.ce('td');
         tr.appendChild(td);
-        td.appendChild(data.stats[bonusSet].selltovendor ? libtuj.FormatPrice(data.stats[bonusSet].selltovendor) : document.createTextNode(tuj.lang.cannot));
+        td.appendChild(data.stats[level].selltovendor ? libtuj.FormatPrice(data.stats[level].selltovendor) : document.createTextNode(tuj.lang.cannot));
         if (stack) {
-            if (data.stats[bonusSet].selltovendor) {
+            if (data.stats[level].selltovendor) {
                 td = libtuj.ce('td');
                 tr.appendChild(td);
-                td.appendChild(libtuj.FormatPrice(data.stats[bonusSet].selltovendor * stack));
+                td.appendChild(libtuj.FormatPrice(data.stats[level].selltovendor * stack));
             }
             else {
                 td.colSpan = 2;
@@ -772,15 +709,15 @@ var TUJ_Item = function ()
         td.appendChild(document.createTextNode(tuj.lang.listingFee));
         td = libtuj.ce('td');
         tr.appendChild(td);
-        td.appendChild(libtuj.FormatPrice(Math.max(100, data.stats[bonusSet].selltovendor ? data.stats[bonusSet].selltovendor * 0.6 : 0)));
+        td.appendChild(libtuj.FormatPrice(Math.max(100, data.stats[level].selltovendor ? data.stats[level].selltovendor * 0.6 : 0)));
         if (stack) {
             td = libtuj.ce('td');
             tr.appendChild(td);
-            td.appendChild(libtuj.FormatPrice(Math.max(100, data.stats[bonusSet].selltovendor ? data.stats[bonusSet].selltovendor * 0.6 * stack : 0)));
+            td.appendChild(libtuj.FormatPrice(Math.max(100, data.stats[level].selltovendor ? data.stats[level].selltovendor * 0.6 * stack : 0)));
         }
 
         var showThumb = false;
-        switch (data.stats[bonusSet].classid) {
+        switch (data.stats[level].classid) {
             case 2:
             case 4:
                 showThumb = true;
@@ -788,26 +725,26 @@ var TUJ_Item = function ()
             default:
                 showThumb = false;
         }
-        if (showThumb && data.stats[bonusSet].hasOwnProperty('display') && data.stats[bonusSet].display) {
+        if (showThumb && data.stats[level].hasOwnProperty('display') && data.stats[level].display) {
             var i = libtuj.ce();
             i.className = 'transmog-img';
-            i.style.backgroundImage = 'url(' + tujCDNPrefix + 'models/' + data.stats[bonusSet].display + '.png)';
+            i.style.backgroundImage = 'url(' + tujCDNPrefix + 'models/' + data.stats[level].display + '.png)';
             dest.appendChild(i);
         }
 
         dest.appendChild(libtuj.Ads.Add('9943194718', 'box'));
     }
 
-    function GetItemNotificationsList(itemId, bonusSet, mainDiv)
+    function GetItemNotificationsList(itemId, lvl, mainDiv)
     {
         var self = this;
         tuj.SendCSRFProtectedRequest({
             data: {'getitem': itemId},
-            success: ItemNotificationsList.bind(self, itemId, bonusSet, mainDiv),
+            success: ItemNotificationsList.bind(self, itemId, lvl, mainDiv),
         });
     }
 
-    function ItemNotificationsList(itemId, bonusSet, mainDiv, dta)
+    function ItemNotificationsList(itemId, lvl, mainDiv, dta)
     {
         var dest = $(mainDiv).find('.notifications-insert');
         dest.empty();
@@ -816,7 +753,7 @@ var TUJ_Item = function ()
         var ids = [];
         for (var k in dta.watches) {
             if (dta.watches.hasOwnProperty(k)) {
-                if (bonusSet == -1 || dta.watches[k].bonusset === null || bonusSet == dta.watches[k].bonusset) {
+                if (lvl == -1 || dta.watches[k].level === null || lvl == dta.watches[k].level) {
                     ids.push(k);
                 }
             }
@@ -835,7 +772,7 @@ var TUJ_Item = function ()
                 var btn = libtuj.ce('input');
                 btn.type = 'button';
                 btn.value = tuj.lang.delete;
-                $(btn).on('click', ItemNotificationsDel.bind(btn, mainDiv, itemId, bonusSet, n.seq));
+                $(btn).on('click', ItemNotificationsDel.bind(btn, mainDiv, itemId, lvl, n.seq));
                 li.appendChild(btn);
 
                 if (n.house) {
@@ -930,7 +867,7 @@ var TUJ_Item = function ()
         var btn = libtuj.ce('input');
         btn.type = 'button';
         btn.value = tuj.lang.add;
-        $(btn).on('click', ItemNotificationsAdd.bind(btn, mainDiv, itemId, bonusSet, regionBox, underOver, qty, false));
+        $(btn).on('click', ItemNotificationsAdd.bind(btn, mainDiv, itemId, lvl, regionBox, underOver, qty, false));
         d.appendChild(btn);
 
         // market price
@@ -971,7 +908,7 @@ var TUJ_Item = function ()
         var btn = libtuj.ce('input');
         btn.type = 'button';
         btn.value = tuj.lang.add;
-        $(btn).on('click', ItemNotificationsAdd.bind(btn, mainDiv, itemId, bonusSet, regionBox, underOver, null, price));
+        $(btn).on('click', ItemNotificationsAdd.bind(btn, mainDiv, itemId, lvl, regionBox, underOver, null, price));
         d.appendChild(btn);
 
         // price to buy X
@@ -1023,7 +960,7 @@ var TUJ_Item = function ()
         var btn = libtuj.ce('input');
         btn.type = 'button';
         btn.value = tuj.lang.add;
-        $(btn).on('click', ItemNotificationsAdd.bind(btn, mainDiv, itemId, bonusSet, regionBox, underOver, qty, price));
+        $(btn).on('click', ItemNotificationsAdd.bind(btn, mainDiv, itemId, lvl, regionBox, underOver, qty, price));
         d.appendChild(btn);
 
         $(mainDiv).show();
@@ -1036,13 +973,13 @@ var TUJ_Item = function ()
         $parent.find('.notification-type-form-'+this.options[this.selectedIndex].value).show();
     }
 
-    function ItemNotificationsAdd(mainDiv, itemId, bonusSet, regionBox, directionBox, qtyBox, priceBox)
+    function ItemNotificationsAdd(mainDiv, itemId, lvl, regionBox, directionBox, qtyBox, priceBox)
     {
         var self = this;
         var o = {
             'setwatch': 'item',
             'id': itemId,
-            'subid': bonusSet,
+            'subid': lvl,
             'region': regionBox.options[regionBox.selectedIndex].value == 'region' ? tuj.validRegions[params.region] : '',
             'house': regionBox.options[regionBox.selectedIndex].value == 'house' ? tuj.realms[params.realm].house : '',
             'direction': directionBox.options[directionBox.selectedIndex].value,
@@ -1085,36 +1022,36 @@ var TUJ_Item = function ()
 
         tuj.SendCSRFProtectedRequest({
             data: o,
-            success: ItemNotificationsList.bind(self, itemId, bonusSet, mainDiv),
+            success: ItemNotificationsList.bind(self, itemId, lvl, mainDiv),
         });
     }
 
-    function ItemNotificationsDel(mainDiv, itemId, bonusSet, id)
+    function ItemNotificationsDel(mainDiv, itemId, lvl, id)
     {
         var self = this;
         tuj.SendCSRFProtectedRequest({
             data: {'deletewatch': id},
-            success: ItemNotificationsList.bind(self, itemId, bonusSet, mainDiv),
+            success: ItemNotificationsList.bind(self, itemId, lvl, mainDiv),
         });
     }
 
     function ItemHistoryChart(data, dest)
     {
-        var hcdata = {baseLevel: data.stats[bonusSet].level, price: [], priceMaxVal: 0, quantity: [], quantityMaxVal: 0, reagentPrice: [], tooltip: {}};
+        var hcdata = {price: [], priceMaxVal: 0, quantity: [], quantityMaxVal: 0, reagentPrice: [], tooltip: {}};
 
         var allPrices = [];
-        for (var x = 0; x < data.history[bonusSet].length; x++) {
-            hcdata.tooltip[data.history[bonusSet][x].snapshot * 1000] = [data.history[bonusSet][x].silver * 100, data.history[bonusSet][x].quantity];
-            hcdata.price.push([data.history[bonusSet][x].snapshot * 1000, data.history[bonusSet][x].silver * 100]);
-            hcdata.quantity.push([data.history[bonusSet][x].snapshot * 1000, data.history[bonusSet][x].quantity]);
-            if (hcdata.reagentPrice.length || data.history[bonusSet][x].hasOwnProperty('reagentprice')) {
-                hcdata.reagentPrice.push([data.history[bonusSet][x].snapshot * 1000, data.history[bonusSet][x].reagentprice]);
-                hcdata.tooltip[data.history[bonusSet][x].snapshot * 1000].push(data.history[bonusSet][x].reagentprice);
+        for (var x = 0; x < data.history[level].length; x++) {
+            hcdata.tooltip[data.history[level][x].snapshot * 1000] = [data.history[level][x].silver * 100, data.history[level][x].quantity];
+            hcdata.price.push([data.history[level][x].snapshot * 1000, data.history[level][x].silver * 100]);
+            hcdata.quantity.push([data.history[level][x].snapshot * 1000, data.history[level][x].quantity]);
+            if (hcdata.reagentPrice.length || data.history[level][x].hasOwnProperty('reagentprice')) {
+                hcdata.reagentPrice.push([data.history[level][x].snapshot * 1000, data.history[level][x].reagentprice]);
+                hcdata.tooltip[data.history[level][x].snapshot * 1000].push(data.history[level][x].reagentprice);
             }
-            if (data.history[bonusSet][x].quantity > hcdata.quantityMaxVal) {
-                hcdata.quantityMaxVal = data.history[bonusSet][x].quantity;
+            if (data.history[level][x].quantity > hcdata.quantityMaxVal) {
+                hcdata.quantityMaxVal = data.history[level][x].quantity;
             }
-            allPrices.push(data.history[bonusSet][x].silver * 100);
+            allPrices.push(data.history[level][x].silver * 100);
         }
 
         allPrices.sort(function (a, b)
@@ -1242,7 +1179,7 @@ var TUJ_Item = function ()
                 formatter: function ()
                 {
                     var tr = '<b>' + Highcharts.dateFormat('%a %b %e %Y, %l:%M%P', this.x) + '</b>';
-                    tr += '<br><span style="color: #000099">' + tuj.lang.marketPrice + ': ' + libtuj.FormatPrice(hcdata.tooltip[this.x][0] * PriceScalingFactor(priceLevel, hcdata.baseLevel), true) + '</span>';
+                    tr += '<br><span style="color: #000099">' + tuj.lang.marketPrice + ': ' + libtuj.FormatPrice(hcdata.tooltip[this.x][0], true) + '</span>';
                     tr += '<br><span style="color: #990000">' + tuj.lang.quantity + ': ' + libtuj.FormatQuantity(hcdata.tooltip[this.x][1], true) + '</span>';
                     if (hcdata.tooltip[this.x].length > 2) {
                         tr += '<br><span style="color: #009900">Crafting Cost: ' + libtuj.FormatPrice(hcdata.tooltip[this.x][2], true) + '</span>';
@@ -1275,39 +1212,39 @@ var TUJ_Item = function ()
 
     function ItemMonthlyChart(data, dest)
     {
-        var hcdata = {baseLevel: data.stats[bonusSet].level, price: [], priceMaxVal: 0, quantity: [], quantityMaxVal: 0, globalprice: [], ttLookup: {}};
+        var hcdata = {price: [], priceMaxVal: 0, quantity: [], quantityMaxVal: 0, globalprice: [], ttLookup: {}};
 
         var allPrices = [], dt, dtParts;
         var offset = (new Date()).getTimezoneOffset() * 60 * 1000;
         var earliestDate = Date.now();
-        for (var x = 0; x < data.monthly[bonusSet].length; x++) {
-            dtParts = data.monthly[bonusSet][x].date.split('-');
+        for (var x = 0; x < data.monthly[level].length; x++) {
+            dtParts = data.monthly[level][x].date.split('-');
             dt = Date.UTC(dtParts[0], parseInt(dtParts[1], 10) - 1, dtParts[2]) + offset;
             if (dt < earliestDate) {
                 earliestDate = dt;
             }
-            hcdata.price.push([dt, data.monthly[bonusSet][x].silver * 100]);
-            hcdata.quantity.push([dt, data.monthly[bonusSet][x].quantity]);
-            if (data.monthly[bonusSet][x].quantity > hcdata.quantityMaxVal) {
-                hcdata.quantityMaxVal = data.monthly[bonusSet][x].quantity;
+            hcdata.price.push([dt, data.monthly[level][x].silver * 100]);
+            hcdata.quantity.push([dt, data.monthly[level][x].quantity]);
+            if (data.monthly[level][x].quantity > hcdata.quantityMaxVal) {
+                hcdata.quantityMaxVal = data.monthly[level][x].quantity;
             }
-            allPrices.push(data.monthly[bonusSet][x].silver * 100);
+            allPrices.push(data.monthly[level][x].silver * 100);
             hcdata.ttLookup[dt] = {
-                'market': data.monthly[bonusSet][x].silver * 100,
-                'quantity': data.monthly[bonusSet][x].quantity,
+                'market': data.monthly[level][x].silver * 100,
+                'quantity': data.monthly[level][x].quantity,
             };
         }
-        for (var x = 0; x < data.globalmonthly[bonusSet].length; x++) {
-            dtParts = data.globalmonthly[bonusSet][x].date.split('-');
+        for (var x = 0; x < data.globalmonthly[level].length; x++) {
+            dtParts = data.globalmonthly[level][x].date.split('-');
             dt = Date.UTC(dtParts[0], parseInt(dtParts[1], 10) - 1, dtParts[2]) + offset;
             if (dt < earliestDate) {
                 continue;
             }
-            hcdata.globalprice.push([dt, data.globalmonthly[bonusSet][x].silver * 100]);
+            hcdata.globalprice.push([dt, data.globalmonthly[level][x].silver * 100]);
             if (!hcdata.ttLookup.hasOwnProperty(dt)) {
                 hcdata.ttLookup[dt] = {};
             }
-            hcdata.ttLookup[dt].region = data.globalmonthly[bonusSet][x].silver * 100;
+            hcdata.ttLookup[dt].region = data.globalmonthly[level][x].silver * 100;
         }
 
         allPrices.sort(function (a, b)
@@ -1441,14 +1378,13 @@ var TUJ_Item = function ()
                     if (!hcdata.ttLookup.hasOwnProperty(this.x)) {
                         return tr;
                     }
-                    var priceMult = PriceScalingFactor(priceLevel, hcdata.baseLevel);
 
                     var points = hcdata.ttLookup[this.x];
                     if (points.hasOwnProperty('market')) {
-                        tr += '<br><span style="color: #000099">' + tuj.lang.marketPrice + ': ' + libtuj.FormatPrice(points.market * priceMult, true) + '</span>';
+                        tr += '<br><span style="color: #000099">' + tuj.lang.marketPrice + ': ' + libtuj.FormatPrice(points.market, true) + '</span>';
                     }
                     if (points.hasOwnProperty('region')) {
-                        tr += '<br><span style="color: #009900">' + tuj.lang.regionPrice + ': ' + libtuj.FormatPrice(points.region * priceMult, true) + '</span>';
+                        tr += '<br><span style="color: #009900">' + tuj.lang.regionPrice + ': ' + libtuj.FormatPrice(points.region, true) + '</span>';
                     }
                     if (points.hasOwnProperty('quantity')) {
                         tr += '<br><span style="color: #990000">' + tuj.lang.quantity + ': ' + libtuj.FormatQuantity(points.quantity, true) + '</span>';
@@ -1506,24 +1442,24 @@ var TUJ_Item = function ()
 
     function ItemGlobalMonthlyChart(data, dest)
     {
-        var hcdata = {baseLevel: data.stats[bonusSet].level, price: [], priceMaxVal: 0, quantity: [], quantityMaxVal: 0, tooltip: {}};
+        var hcdata = {price: [], priceMaxVal: 0, quantity: [], quantityMaxVal: 0, tooltip: {}};
 
         var allPrices = [], dt, dtParts;
         var offset = (new Date()).getTimezoneOffset() * 60 * 1000;
         var earliestDate = Date.now();
-        for (var x = 0; x < data.globalmonthly[bonusSet].length; x++) {
-            dtParts = data.globalmonthly[bonusSet][x].date.split('-');
+        for (var x = 0; x < data.globalmonthly[level].length; x++) {
+            dtParts = data.globalmonthly[level][x].date.split('-');
             dt = Date.UTC(dtParts[0], parseInt(dtParts[1], 10) - 1, dtParts[2]) + offset;
             if (dt < earliestDate) {
                 earliestDate = dt;
             }
-            hcdata.tooltip[dt] = [data.globalmonthly[bonusSet][x].silver * 100, data.globalmonthly[bonusSet][x].quantity];
-            hcdata.price.push([dt, data.globalmonthly[bonusSet][x].silver * 100]);
-            hcdata.quantity.push([dt, data.globalmonthly[bonusSet][x].quantity]);
-            if (data.globalmonthly[bonusSet][x].quantity > hcdata.quantityMaxVal) {
-                hcdata.quantityMaxVal = data.globalmonthly[bonusSet][x].quantity;
+            hcdata.tooltip[dt] = [data.globalmonthly[level][x].silver * 100, data.globalmonthly[level][x].quantity];
+            hcdata.price.push([dt, data.globalmonthly[level][x].silver * 100]);
+            hcdata.quantity.push([dt, data.globalmonthly[level][x].quantity]);
+            if (data.globalmonthly[level][x].quantity > hcdata.quantityMaxVal) {
+                hcdata.quantityMaxVal = data.globalmonthly[level][x].quantity;
             }
-            allPrices.push(data.globalmonthly[bonusSet][x].silver * 100);
+            allPrices.push(data.globalmonthly[level][x].silver * 100);
         }
 
         allPrices.sort(function (a, b)
@@ -1654,7 +1590,7 @@ var TUJ_Item = function ()
                 formatter: function ()
                 {
                     var tr = '<b>' + Highcharts.dateFormat('%a %b %e %Y', this.x) + '</b>';
-                    tr += '<br><span style="color: #000099">' + tuj.lang.regionPrice + ': ' + libtuj.FormatPrice(hcdata.tooltip[this.x][0] * PriceScalingFactor(priceLevel, hcdata.baseLevel), true) + '</span>';
+                    tr += '<br><span style="color: #000099">' + tuj.lang.regionPrice + ': ' + libtuj.FormatPrice(hcdata.tooltip[this.x][0], true) + '</span>';
                     tr += '<br><span style="color: #990000">' + tuj.lang.quantity + ': ' + libtuj.FormatQuantity(hcdata.tooltip[this.x][1], true) + '</span>';
                     return tr;
                     // &lt;br/&gt;&lt;span style="color: #990000"&gt;Quantity: '+this.points[1].y+'&lt;/span&gt;<xsl:if test="itemgraphs/d[@matsprice != '']">&lt;br/&gt;&lt;span style="color: #999900"&gt;Materials Price: '+this.points[2].y.toFixed(2)+'g&lt;/span&gt;</xsl:if>';
@@ -1941,17 +1877,17 @@ var TUJ_Item = function ()
         var dt, dtParts;
         var offset = (new Date()).getTimezoneOffset() * 60 * 1000;
         var earliestDate = Date.now();
-        for (var x = 0; x < data.expired[bonusSet].length; x++) {
-            dtParts = data.expired[bonusSet][x].date.split('-');
+        for (var x = 0; x < data.expired[level].length; x++) {
+            dtParts = data.expired[level][x].date.split('-');
             dt = Date.UTC(dtParts[0], parseInt(dtParts[1], 10) - 1, dtParts[2]) + offset;
             if (dt < earliestDate) {
                 earliestDate = dt;
             }
-            hcdata.created.push([dt, data.expired[bonusSet][x].created]);
-            hcdata.expired.push([dt, data.expired[bonusSet][x].expired]);
+            hcdata.created.push([dt, data.expired[level][x].created]);
+            hcdata.expired.push([dt, data.expired[level][x].expired]);
 
-            if (data.expired[bonusSet][x].created > hcdata.maxVal) {
-                hcdata.maxVal = data.expired[bonusSet][x].created;
+            if (data.expired[level][x].created > hcdata.maxVal) {
+                hcdata.maxVal = data.expired[level][x].created;
             }
         }
         Highcharts.setOptions({
@@ -2066,8 +2002,6 @@ var TUJ_Item = function ()
             return s / a.length;
         };
 
-        var priceFactor = PriceScalingFactor(priceLevel, data.stats[bonusSet].level);
-
         var d, wkdy, hr, lastprice;
         for (wkdy = 0; wkdy < hcdata.categories.y.length; wkdy++) {
             hcdata.days[wkdy] = {};
@@ -2076,15 +2010,15 @@ var TUJ_Item = function ()
             }
         }
 
-        for (var x = 0; x < data.history[bonusSet].length; x++) {
+        for (var x = 0; x < data.history[level].length; x++) {
             if (typeof lastprice == 'undefined') {
-                lastprice = data.history[bonusSet][x].silver * 100 * priceFactor;
+                lastprice = data.history[level][x].silver * 100;
             }
 
-            var d = new Date(data.history[bonusSet][x].snapshot * 1000);
+            var d = new Date(data.history[level][x].snapshot * 1000);
             wkdy = 6 - d.getDay();
             hr = Math.floor(d.getHours() * hcdata.categories.x.length / 24);
-            hcdata.days[wkdy][hr].push(data.history[bonusSet][x].silver * 100 * priceFactor);
+            hcdata.days[wkdy][hr].push(data.history[level][x].silver * 100);
         }
 
         var p;
@@ -2200,15 +2134,15 @@ var TUJ_Item = function ()
             }
         }
 
-        for (var x = 0; x < data.history[bonusSet].length; x++) {
+        for (var x = 0; x < data.history[level].length; x++) {
             if (typeof lastqty == 'undefined') {
-                lastqty = data.history[bonusSet][x].quantity;
+                lastqty = data.history[level][x].quantity;
             }
 
-            var d = new Date(data.history[bonusSet][x].snapshot * 1000);
+            var d = new Date(data.history[level][x].snapshot * 1000);
             wkdy = 6 - d.getDay();
             hr = Math.floor(d.getHours() * hcdata.categories.x.length / 24);
-            hcdata.days[wkdy][hr].push(data.history[bonusSet][x].quantity);
+            hcdata.days[wkdy][hr].push(data.history[level][x].quantity);
         }
 
         var p;
@@ -2299,22 +2233,22 @@ var TUJ_Item = function ()
 
     function ItemGlobalNowColumns(data, dest)
     {
-        var hcdata = {baseLevel: data.stats[bonusSet].level, categories: [], price: [], quantity: [], lastseen: [], houses: []};
+        var hcdata = {categories: [], price: [], quantity: [], lastseen: [], houses: []};
         var allPrices = [];
         var allQuantities = [];
-        data.globalnow[bonusSet].sort(function (a, b)
+        data.globalnow[level].sort(function (a, b)
         {
             return (b.price - a.price) || (b.quantity - a.quantity);
         });
 
         var isThisHouse = false;
-        for (var x = 0; x < data.globalnow[bonusSet].length; x++) {
-            isThisHouse = data.globalnow[bonusSet][x].house == tuj.realms[params.realm].house;
+        for (var x = 0; x < data.globalnow[level].length; x++) {
+            isThisHouse = data.globalnow[level][x].house == tuj.realms[params.realm].house;
 
-            hcdata.categories.push(data.globalnow[bonusSet][x].house);
-            hcdata.quantity.push(data.globalnow[bonusSet][x].quantity);
+            hcdata.categories.push(data.globalnow[level][x].house);
+            hcdata.quantity.push(data.globalnow[level][x].quantity);
             hcdata.price.push(isThisHouse ? {
-                y: data.globalnow[bonusSet][x].price,
+                y: data.globalnow[level][x].price,
                 dataLabels: {
                     enabled: true,
                     formatter: function ()
@@ -2325,12 +2259,12 @@ var TUJ_Item = function ()
                     borderColor: '#000000',
                     borderRadius: 2,
                     borderWidth: 1
-                }} : data.globalnow[bonusSet][x].price);
-            hcdata.lastseen.push(data.globalnow[bonusSet][x].lastseen);
-            hcdata.houses.push(data.globalnow[bonusSet][x].house);
+                }} : data.globalnow[level][x].price);
+            hcdata.lastseen.push(data.globalnow[level][x].lastseen);
+            hcdata.houses.push(data.globalnow[level][x].house);
 
-            allQuantities.push(data.globalnow[bonusSet][x].quantity);
-            allPrices.push(data.globalnow[bonusSet][x].price);
+            allQuantities.push(data.globalnow[level][x].quantity);
+            allPrices.push(data.globalnow[level][x].price);
         }
 
         allPrices.sort(function (a, b)
@@ -2444,7 +2378,7 @@ var TUJ_Item = function ()
                 {
                     var realmNames = libtuj.GetRealmsForHouse(hcdata.houses[this.x], 40);
                     var tr = '<b>' + realmNames + '</b>';
-                    tr += '<br><span style="color: #000099">' + tuj.lang.marketPrice + ': ' + libtuj.FormatPrice(this.points[0].y * PriceScalingFactor(priceLevel, hcdata.baseLevel), true) + '</span>';
+                    tr += '<br><span style="color: #000099">' + tuj.lang.marketPrice + ': ' + libtuj.FormatPrice(this.points[0].y, true) + '</span>';
                     tr += '<br><span style="color: #990000">' + tuj.lang.quantity + ': ' + libtuj.FormatQuantity(this.points[1].y, true) + '</span>';
                     tr += '<br><span style="color: #990000">' + tuj.lang.lastSeen + ': ' + libtuj.FormatDate(hcdata.lastseen[this.x], true) + '</span>';
                     return tr;
@@ -2501,15 +2435,15 @@ var TUJ_Item = function ()
 
     function ItemGlobalNowScatter(data, dest)
     {
-        var hcdata = {baseLevel: data.stats[bonusSet].level, price: [], quantity: {}, lastseen: {}, houses: {}};
+        var hcdata = {price: [], quantity: {}, lastseen: {}, houses: {}};
         var allPrices = [];
 
         var o;
-        for (var x = 0; x < data.globalnow[bonusSet].length; x++) {
-            if (data.globalnow[bonusSet][x].house == tuj.realms[params.realm].house) {
+        for (var x = 0; x < data.globalnow[level].length; x++) {
+            if (data.globalnow[level][x].house == tuj.realms[params.realm].house) {
                 o = {
-                    x: libtuj.GetHousePopulation(data.globalnow[bonusSet][x].house),
-                    y: data.globalnow[bonusSet][x].price,
+                    x: libtuj.GetHousePopulation(data.globalnow[level][x].house),
+                    y: data.globalnow[level][x].price,
                     id: x,
                     marker: {
                         symbol: 'diamond'
@@ -2518,21 +2452,21 @@ var TUJ_Item = function ()
                 };
             } else {
                 o = {
-                    x: libtuj.GetHousePopulation(data.globalnow[bonusSet][x].house),
-                    y: data.globalnow[bonusSet][x].price,
+                    x: libtuj.GetHousePopulation(data.globalnow[level][x].house),
+                    y: data.globalnow[level][x].price,
                     id: x
                 };
-                if (data.globalnow[bonusSet][x].quantity == 0) {
+                if (data.globalnow[level][x].quantity == 0) {
                     o.color = tujConstants.siteColors[tuj.colorTheme].bluePriceFill;
                 }
             }
 
             hcdata.price.push(o);
-            hcdata.houses[x] = data.globalnow[bonusSet][x].house;
-            hcdata.quantity[x] = data.globalnow[bonusSet][x].quantity;
-            hcdata.lastseen[x] = data.globalnow[bonusSet][x].lastseen;
+            hcdata.houses[x] = data.globalnow[level][x].house;
+            hcdata.quantity[x] = data.globalnow[level][x].quantity;
+            hcdata.lastseen[x] = data.globalnow[level][x].lastseen;
 
-            allPrices.push(data.globalnow[bonusSet][x].price);
+            allPrices.push(data.globalnow[level][x].price);
         }
 
         allPrices.sort(function (a, b)
@@ -2620,7 +2554,7 @@ var TUJ_Item = function ()
                 {
                     var realmNames = libtuj.GetRealmsForHouse(hcdata.houses[this.point.id], 40);
                     var tr = '<b>' + realmNames + '</b>';
-                    tr += '<br><span style="color: #000099">' + tuj.lang.marketPrice + ': ' + libtuj.FormatPrice(this.point.y * PriceScalingFactor(priceLevel, hcdata.baseLevel), true) + '</span>';
+                    tr += '<br><span style="color: #000099">' + tuj.lang.marketPrice + ': ' + libtuj.FormatPrice(this.point.y, true) + '</span>';
                     tr += '<br><span style="color: #990000">' + tuj.lang.quantity + ': ' + libtuj.FormatQuantity(hcdata.quantity[this.point.id], true) + '</span>';
                     tr += '<br><span style="color: #990000">' + tuj.lang.lastSeen + ': ' + libtuj.FormatDate(hcdata.lastseen[this.point.id], true) + '</span>';
                     return tr;
@@ -2778,12 +2712,9 @@ var TUJ_Item = function ()
 
     function ItemAuctions(data, dest)
     {
-        var hasMultipleLevels = false, x, auc;
-        for (x = 0; (!hasMultipleLevels) && (auc = data.auctions[bonusSet][x]); x++) {
-            hasMultipleLevels |= data.auctions[bonusSet][x].level != data.stats[bonusSet].level;
-        }
-        var hasRand = hasMultipleLevels || (bonusSets.length > 1);
-        for (x = 0; (!hasRand) && (auc = data.auctions[bonusSet][x]); x++) {
+        var hasMultipleLevels = levels.length > 1, x, auc;
+        var hasRand = hasMultipleLevels;
+        for (x = 0; (!hasRand) && (auc = data.auctions[x]); x++) {
             hasRand |= !!auc.rand;
             hasRand |= !!auc.bonuses;
         }
@@ -2807,7 +2738,7 @@ var TUJ_Item = function ()
             $(td).text(tuj.lang.Name);
         }
 
-        if (data.stats[bonusSet].stacksize > 1) {
+        if (data.stats[level].stacksize > 1) {
             td = libtuj.ce('th');
             tr.appendChild(td);
             td.className = 'quantity';
@@ -2824,22 +2755,21 @@ var TUJ_Item = function ()
         td.className = 'price';
         $(td).text(tuj.lang.buyoutEach);
 
-        data.auctions[bonusSet].sort(function (a, b) {
-            return Math.floor((a.buy / PriceScalingFactor(a.level, data.stats[bonusSet].level)) / a.quantity) - Math.floor((b.buy / PriceScalingFactor(b.level, data.stats[bonusSet].level)) / b.quantity) ||
-                Math.floor((a.bid / PriceScalingFactor(a.level, data.stats[bonusSet].level)) / a.quantity) - Math.floor((b.bid / PriceScalingFactor(b.level, data.stats[bonusSet].level)) / b.quantity) ||
+        data.auctions.sort(function (a, b) {
+            return Math.floor(a.buy / a.quantity) - Math.floor(b.buy / b.quantity) ||
+                Math.floor(a.bid / a.quantity) - Math.floor(b.bid / b.quantity) ||
                 a.quantity - b.quantity ||
                 (tuj.realms[a.sellerrealm] ? tuj.realms[a.sellerrealm].name : '').localeCompare(tuj.realms[b.sellerrealm] ? tuj.realms[b.sellerrealm].name : '') ||
                 a.sellername.localeCompare(b.sellername) ||
-                (a['bonustag_' + tuj.locale] || "").localeCompare(b['bonustag_' + tuj.locale] || "") ||
                 (a['bonusname_' + tuj.locale] || "").localeCompare(b['bonusname_' + tuj.locale] || "") ||
                 (a['randname_' + tuj.locale] || "").localeCompare(b['randname_' + tuj.locale] || "");
         });
 
-        var s, a, stackable = data.stats[bonusSet].stacksize > 1;
+        var s, a, stackable = data.stats[level].stacksize > 1;
         var curRowSection, lastRowSection = false;
         var lastSellerTd = false;
 
-        for (x = 0; auc = data.auctions[bonusSet][x]; x++) {
+        for (x = 0; auc = data.auctions[x]; x++) {
             curRowSection = (auc.sellername + (auc.sellerrealm ? auc.sellerrealm : ''));
             if (x == 0 || lastRowSection != curRowSection) {
                 tr = libtuj.ce('tr');
@@ -2885,18 +2815,12 @@ var TUJ_Item = function ()
                     td.appendChild(s);
                 }
                 a = libtuj.ce('a');
-                a.href = 'http://' + tuj.lang.wowheadDomain + '.wowhead.com/item=' + data.stats[bonusSet].id + (auc.rand ? '&rand=' + auc.rand : '') + (auc.bonuses ? '&bonus=' + auc.bonuses : '') + (auc.lootedlevel ? '&lvl=' + auc.lootedlevel : '');
+                a.href = 'http://' + tuj.lang.wowheadDomain + '.wowhead.com/item=' + data.stats[level].id + (auc.rand ? '&rand=' + auc.rand : '') + (auc.bonuses ? '&bonus=' + auc.bonuses : '') + (auc.lootedlevel ? '&lvl=' + auc.lootedlevel : '');
                 td.appendChild(a);
-                $(a).text('[' + data.stats[bonusSet]['name_' + tuj.locale] + (auc['bonusname_' + tuj.locale] ? ' ' + auc['bonusname_' + tuj.locale].substr(0, auc['bonusname_' + tuj.locale].indexOf('|') >= 0 ? auc['bonusname_' + tuj.locale].indexOf('|') : auc['bonusname_' + tuj.locale].length) : '') + (auc['randname_' + tuj.locale] ? ' ' + auc['randname_' + tuj.locale] : '') + ']' + (auc['bonustag_' + tuj.locale] ? ' ' : ''));
-                if (auc['bonustag_' + tuj.locale]) {
-                    var tagspan = libtuj.ce('span');
-                    tagspan.className = 'nowrap';
-                    $(tagspan).text(auc['bonustag_' + tuj.locale]);
-                    a.appendChild(tagspan);
-                }
+                $(a).text('[' + data.stats[level]['name_' + tuj.locale] + (auc['bonusname_' + tuj.locale] ? ' ' + auc['bonusname_' + tuj.locale].substr(0, auc['bonusname_' + tuj.locale].indexOf('|') >= 0 ? auc['bonusname_' + tuj.locale].indexOf('|') : auc['bonusname_' + tuj.locale].length) : '') + (auc['randname_' + tuj.locale] ? ' ' + auc['randname_' + tuj.locale] : '') + ']');
             }
 
-            if (data.stats[bonusSet].stacksize > 1) {
+            if (data.stats[level].stacksize > 1) {
                 td = libtuj.ce('td');
                 tr.appendChild(td);
                 td.className = 'quantity';
