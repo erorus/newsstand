@@ -833,6 +833,8 @@ var TUJ = function ()
         }
 
         UpdateSidebar();
+        $('#page-title').empty();
+        self.SetTitle();
 
         window.scrollTo(0, 0);
 
@@ -1292,8 +1294,6 @@ var TUJ = function ()
         $('#bottom-bar a.light-only').html(self.lang.darkTheme);
 
         $('#title a')[0].href = self.BuildHash({page: undefined});
-        $('#page-title').empty();
-        self.SetTitle();
 
         if ($('#topcorner form').length == 0) {
             var form = libtuj.ce('form');
