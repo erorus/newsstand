@@ -902,7 +902,7 @@ var TUJ_Category = function ()
             for (var x = 0; f = dta.results[x]; x++) {
                 if (resultFunctions.hasOwnProperty(f.name)) {
                     var d = libtuj.ce();
-                    d.className = 'category-' + f.name.toLowerCase();
+                    d.className = 'category category-' + f.name.toLowerCase();
                     resultsDiv.append(d);
                     if ((r = resultFunctions[f.name](f.data, d)) && (++resultCount == 5)) {
                         resultsDiv.append(libtuj.Ads.Add('2276667118'));
@@ -927,7 +927,7 @@ var TUJ_Category = function ()
 
     resultFunctions.ItemList = function (data, dest)
     {
-        var item, x, t, td, th, tr, a, i;
+        var item, x, t, td, th, tr, a, i, comparePrice, pct;
 
         if (!data.items.length) {
             return false;
@@ -1004,7 +1004,9 @@ var TUJ_Category = function ()
         t.appendChild(tr);
 
         if (data.amounts) {
-            tr.appendChild(libtuj.ce('th'));
+            td = libtuj.ce('th');
+            td.className = 'quantity';
+            tr.appendChild(td);
             titleColSpan++;
         }
 
@@ -1076,11 +1078,18 @@ var TUJ_Category = function ()
             tr.appendChild(td);
             $(td).text(tuj.realms[data.compareTo].name);
             titleColSpan++;
+
+            td = libtuj.ce('th');
+            td.className = 'quantity';
+            tr.appendChild(td);
+            titleColSpan++;
         }
 
         if (titleTd) {
             titleTd.colSpan = titleColSpan;
         }
+
+        libtuj.TableSort.Make(t);
 
         switch (data['sort']) {
             case 'none':
@@ -1207,6 +1216,7 @@ var TUJ_Category = function ()
                 s.appendChild(document.createTextNode(item.level));
                 a.appendChild(s);
             }
+            $(a).data('sort', a.textContent);
 
             if (!data.hiddenCols.quantity) {
                 td = libtuj.ce('td');
@@ -1264,7 +1274,29 @@ var TUJ_Category = function ()
                 a = libtuj.ce('a');
                 td.appendChild(a);
                 a.href = tuj.BuildHash({realm: data.compareTo, page: 'item', id: item.id + (item.tagurl ? '.'+item.tagurl : '')});
-                a.appendChild(abbrPriceAmount(item.compareTo.avgprice || item.compareTo.price, amount));
+                comparePrice = item.compareTo.avgprice || item.compareTo.price;
+                a.appendChild(abbrPriceAmount(comparePrice, amount));
+
+                pct = (item.quantity ? item.price : (item.avgprice || item.price)) / comparePrice * 100;
+                if (!isNaN(pct)) {
+                    pct = Math.min(pct, 999);
+
+                    td = libtuj.ce('td');
+                    td.className = 'quantity ';
+                    if (pct < 50) {
+                        td.className += 'pct-low';
+                    } else if (pct < 80) {
+                        td.className += 'pct-mid';
+                    } else if (pct < 110) {
+                        td.className += 'pct-normal';
+                    } else if (pct < 135) {
+                        td.className += 'pct-high';
+                    } else {
+                        td.className += 'pct-veryhigh';
+                    }
+                    tr.appendChild(td);
+                    td.appendChild(libtuj.FormatQuantity(pct));
+                }
             }
         }
 
@@ -1339,6 +1371,8 @@ var TUJ_Category = function ()
             td.className = 'date';
             $(td).text(tuj.lang.lastSeen);
 
+            libtuj.TableSort.Make(t);
+
             allSpecies = [];
 
             for (species in data[petType]) {
@@ -1375,6 +1409,7 @@ var TUJ_Category = function ()
                 a.href = tuj.BuildHash({page: 'battlepet', id: allSpecies[x].species});
                 a.rel = 'npc=' + allSpecies[x].npc + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
                 $(a).text('[' + allSpecies[x]['name_' + tuj.locale] + ']');
+                $(a).data('sort', a.textContent);
 
                 td = libtuj.ce('td');
                 td.className = 'quantity';
@@ -1601,6 +1636,8 @@ var TUJ_Category = function ()
         tr.appendChild(td);
         $(td).text(tuj.lang.price);
 
+        libtuj.TableSort.Make(t);
+
         data.map.sort(function(a, b) {
             var recipeA = data.recipes[a.recipe];
             var craftedA = data.crafted[a.crafted];
@@ -1663,6 +1700,7 @@ var TUJ_Category = function ()
                 $(tagspan).text(item['bonustag_' + tuj.locale]);
                 a.appendChild(tagspan);
             }
+            $(a).data('sort', a.textContent);
 
             td = libtuj.ce('td');
             td.className = 'quantity';

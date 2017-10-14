@@ -35,15 +35,29 @@ h2 sub { display: block; font-weight: normal; font-size: 66%; margin-left: 2em }
 #topbar > div > div { padding: 2em }
 
 #topcorner div.region-pick { font-size: 125%; display: none }
-#topcorner .region-realm { font-size: 125% }
+#topcorner .region-realm { font-size: 125%; position: relative }
 #topcorner span.region { cursor: default }
+#realm-favstar { cursor: pointer; font-size: 1.2em }
+#realm-favstar span { display: none }
+#realm-favstar.on .star-lit { display: inline }
+#realm-favstar.off .star-dark { display: inline }
 
 #topcorner div.region-pick a { font-size: 80%; font-style: italic; display: block; margin: 0.5em 0; text-align: right }
 
 #topcorner form {margin: 0}
-#topcorner input {text-size: 150%; margin-top: 1em; padding: 0.5em; width: 100%; width: calc(100% - 1.5em); border: 0.25em solid #444; box-shadow: 0.3em 0.3em #999 }
+#topcorner input {text-size: 150%; margin: 1em 0; padding: 0.5em; width: 100%; width: calc(100% - 1.5em); border: 0.25em solid #444; box-shadow: 0.3em 0.3em #999 }
 
-#topcorner #realm-updated { margin-top: 1em; font-size: 75% }
+#favorite-realms {
+    position: absolute; z-index: 5;
+    border: 1px solid #444; padding: 0.25em;
+    box-shadow: 0.2em 0.2em rgba(153,153,153,0.5); background-color: white;
+    top: 100%; left: -1px; width: 100%; width: calc(100% - 0.5em);
+    visibility: hidden
+}
+#favorite-realms a { display: block; margin: 0.2em 0.5em; font-size: 75% }
+#topcorner .region-realm:hover #favorite-realms.with-realms { transition: visibility 0s 0.25s; visibility: visible }
+
+#topcorner #realm-updated { font-size: 75% }
 
 #topcorner .no-realm-hide { display: none }
 #topcorner.with-realm .no-realm-hide { display: block }
@@ -119,7 +133,7 @@ td.price abbr { text-decoration: none }
 
 td.breed, th.breed,
 td.quality, th.quality,
-td.name, th.name { text-align: left }
+td.name, th.name { text-align: left; cursor: default }
 td.icon, th.icon { width: 1.5em; height: 1.5em; padding-right: 0 ! important }
 td.icon img, th.icon img { border-radius: 3px; }
 img.icon {width: 1.5em; height: 1.5em}
@@ -127,6 +141,7 @@ td.price, th.price,
 td.quantity, th.quantity,
 td.level, th.level,
 td.date, th.date { text-align: right; cursor: default }
+th.sortable { cursor: pointer; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none }
 table.category-battlepets td.icon, table.category-battlepets td.name { vertical-align: top }
 
 td.price > span, th.price > span { white-space: nowrap }
@@ -222,6 +237,12 @@ img.captcha-button.selected { border-color: #006600 }
 .money-gold::after { content: "g " }
 .money-silver::after { content: "s " }
 .money-copper::after { content: "c" }
+
+.pct-low      { color: #2175CC }
+.pct-mid      { color: #12CC12 }
+.pct-normal   { color: #CCCC00 }
+.pct-high     { color: #CC7513 }
+.pct-veryhigh { color: #CC0000 }
 
 table.category-fish tr.subheading th {text-align: center}
 table.category-fish .price {border-left: 1px solid #CCC}

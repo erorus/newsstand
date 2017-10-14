@@ -409,7 +409,7 @@ EOF;
         if (CatchKill())
             return;
 
-        DebugMessage(sprintf('Finding item prices in house %d (%d%%) %dmb', $houses[$hx], round($hx/count($houses)*100), round(memory_get_usage()/1048576)));
+        DebugMessage(sprintf('Finding pet prices in house %d (%d%%) %dmb', $houses[$hx], round($hx/count($houses)*100), round(memory_get_usage()/1048576)));
 
         $stmt = $db->prepare($sql);
         $stmt->bind_param('i', $houses[$hx]);
@@ -448,13 +448,15 @@ EOF;
 
     DebugMessage(sprintf('Making lua strings %dmb', round(memory_get_usage()/1048576)));
 
-    $priceLua = '';
+    $priceLuaHandle = fopen('php://temp/maxmemory:0', 'r+');
     $luaLines = 0;
     $dataFuncIndex = 0;
     foreach ($item_global as $item => $globalPriceList) {
         heartbeat();
-        if (CatchKill())
+        if (CatchKill()) {
+            fclose($priceLuaHandle);
             return;
+        }
 
         $globalPrices = array_values(unpack('L*',$globalPriceList));
         $prices = isset($item_avg[$item]) ? array_values(unpack('L*',$item_avg[$item])) : [];
@@ -542,22 +544,29 @@ EOF;
         }
         if ($luaLines == 0) {
             $dataFuncIndex++;
-            $priceLua .= "dataFuncs[$dataFuncIndex] = function()\n";
+            fwrite($priceLuaHandle, "dataFuncs[$dataFuncIndex] = function()\n");
         }
-        $priceLua .= sprintf("addonTable.marketData['%s']=crop(%d,%s)\n", $item, $priceBytes, luaQuote($priceString));
+        fwrite($priceLuaHandle, sprintf("addonTable.marketData['%s']=crop(%d,%s)\n", $item, $priceBytes, luaQuote($priceString)));
         if (++$luaLines >= 2000) {
-            $priceLua .= "end\n";
+            fwrite($priceLuaHandle, "end\n");
             $luaLines = 0;
         }
     }
     unset($items, $item_global, $item_avg, $item_recent, $item_stddev, $item_days);
     if ($luaLines > 0) {
-        $priceLua .= "end\n";
+        fwrite($priceLuaHandle, "end\n");
     }
 
     heartbeat();
-    if (CatchKill())
+    if (CatchKill()) {
+        fclose($priceLuaHandle);
         return;
+    }
+
+    DebugMessage(sprintf('Getting lua strings from temp stream %dmb', round(memory_get_usage()/1048576)));
+
+    $priceLua = stream_get_contents($priceLuaHandle, -1, 0);
+    fclose($priceLuaHandle);
 
     DebugMessage(sprintf('Setting realm indexes %dmb', round(memory_get_usage()/1048576)));
 

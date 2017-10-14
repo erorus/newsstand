@@ -704,6 +704,8 @@ var TUJ_Seller = function ()
                 a.quantity - b.quantity;
         });
 
+        libtuj.TableSort.Make(t);
+
         var s, a, stackable, i;
         for (var x = 0, auc; auc = data.auctions[x]; x++) {
             stackable = auc.stacksize > 1;
@@ -738,6 +740,7 @@ var TUJ_Seller = function ()
                 s.appendChild(document.createTextNode(auc.level));
                 td.appendChild(s);
             }
+            $(a).data('sort', a.textContent);
 
             td = libtuj.ce('td');
             tr.appendChild(td);
@@ -779,6 +782,10 @@ var TUJ_Seller = function ()
             td.className = 'quantity';
             if (auc.cheaper) {
                 td.appendChild(libtuj.FormatQuantity(auc.cheaper));
+            } else {
+                s = libtuj.ce('span');
+                $(s).data('sort', 0);
+                td.appendChild(s);
             }
         }
 
@@ -830,6 +837,8 @@ var TUJ_Seller = function ()
         td.className = 'quantity';
         $(td).text(tuj.lang.cheaper);
 
+        libtuj.TableSort.Make(t);
+
         data.petAuctions.sort(function (a, b)
         {
             return a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]) ||
@@ -860,6 +869,7 @@ var TUJ_Seller = function ()
             a.href = tuj.BuildHash({page: 'battlepet', id: auc.species});
             td.appendChild(a);
             $(a).text('[' + auc['name_' + tuj.locale] + ']');
+            $(a).data('sort', a.textContent);
 
             td = libtuj.ce('td');
             tr.appendChild(td);
@@ -901,6 +911,10 @@ var TUJ_Seller = function ()
             td.className = 'quantity';
             if (auc.cheaper) {
                 td.appendChild(libtuj.FormatQuantity(auc.cheaper));
+            } else {
+                s = libtuj.ce('span');
+                $(s).data('sort', 0);
+                td.appendChild(s);
             }
         }
 
