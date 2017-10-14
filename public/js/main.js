@@ -467,13 +467,16 @@ var libtuj = {
             }
 
             if (adversalSize) {
-                ad.dataset.adversalElement = adversalSize;
-                ad.dataset.upTransform = 'false';
+                var adversalDiv = libtuj.ce();
+                ad.appendChild(adversalDiv);
+
+                adversalDiv.dataset.adversalElement = adversalSize;
+                adversalDiv.dataset.upTransform = 'false';
 
                 var s = libtuj.ce('script');
                 s.src = '//go.adversal.com/do?id=' + slot;
                 s.async = true;
-                ad.appendChild(s);
+                adversalDiv.appendChild(s);
             } else {
                 var ins = libtuj.ce('ins');
                 ad.appendChild(ins);
