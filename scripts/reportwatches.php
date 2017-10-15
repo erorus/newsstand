@@ -171,24 +171,20 @@ function ReportUserWatches($now, $userRow)
 
     $sql = <<<'EOF'
 select 0 ispet, uw.seq, uw.region, uw.house,
-    uw.item, uw.bonusset, ifnull(GROUP_CONCAT(distinct bs.`tagid` ORDER BY 1 SEPARATOR '.'), '') tagurl,
+    uw.item, uw.level,
     i.name_%1$s name,
-    ifnull(group_concat(distinct ind.`desc_%1$s` separator ' '),'') bonustag,
     case i.class %2$s else 999 end classorder,
     uw.direction, uw.quantity, uw.price, uw.currently
 from tblUserWatch uw
 join tblDBCItem i on uw.item = i.id
-left join tblBonusSet bs on uw.bonusset = bs.`set`
-left join tblDBCItemNameDescription ind on ind.id = bs.tagid
 where uw.user = ?
 and uw.deleted is null
 and uw.observed > ifnull(uw.reported, '2000-01-01')
 group by uw.seq
 union
 select 1 ispet, uw.seq, uw.region, uw.house,
-    uw.species, null breed, '' breedurl,
+    uw.species, null breed,
     p.name_%1$s name,
-    null bonustag,
     p.type classorder,
     uw.direction, uw.quantity, uw.price, uw.currently
 from tblUserWatch uw
@@ -196,7 +192,7 @@ JOIN tblDBCPet p on uw.species=p.id
 where uw.user = ?
 and uw.deleted is null
 and uw.observed > ifnull(uw.reported, '2000-01-01')
-order by if(region is null, 0, 1), house, region, ispet, classorder, name, bonustag, seq
+order by if(region is null, 0, 1), house, region, ispet, classorder, name, seq
 EOF;
 
     $sql = sprintf($sql, $locale, $itemClassOrderSql);
@@ -219,21 +215,15 @@ EOF;
             $message .= '<br><b>' . $houseNameCache[$prevHouse]['names'] . '</b><br><br>';
         }
 
-        $url = sprintf('https://theunderminejournal.com/#%s/%s/%s/%s%s',
+        $url = sprintf('https://theunderminejournal.com/#%s/%s/%s/%s',
             strtolower($houseNameCache[$prevHouse]['region']),
             $houseNameCache[$prevHouse]['slug'],
             $row['ispet'] ? 'battlepet' : 'item',
-            $row['item'],
-            $row['tagurl'] ? ('.' . $row['tagurl']) : ''
+            $row['item']
         );
 
-        $bonusTag = $row['bonustag'];
-        if ($bonusTag) {
-            $bonusTag = ' ' . $bonusTag;
-        }
-
-        $lastItem = sprintf('[%s]%s', $row['name'], $bonusTag);
-        $message .= sprintf('<a href="%s">[%s]%s</a>', $url, $row['name'], $bonusTag);
+        $lastItem = sprintf('[%s]', $row['name']);
+        $message .= sprintf('<a href="%s">[%s]</a>', $url, $row['name']);
 
         $direction = $LANG[strtolower($row['direction'])];
 
@@ -292,27 +282,23 @@ function ReportUserRares($now, $userRow)
     $db->begin_transaction();
 
     $sql = <<<'EOF'
-select z.house, z.item, z.bonusset, max(z.snapshot) snapshot,
-    ifnull(group_concat(distinct bs.`tagid` ORDER BY 1 SEPARATOR '.'), '') tagurl,
+select z.house, z.item, max(z.snapshot) snapshot,
     z.name, z.class, z.level, z.quality,
-    ifnull(group_concat(distinct ind.`desc_%1$s` separator ' '), '') bonustag,
     z.prevseen,
     z.price, z.median, z.mean, z.stddev, z.region,
     case z.class %2$s else 999 end classorder
 from (
-    SELECT rr.house, rr.item, rr.bonusset, rr.prevseen, rr.price, unix_timestamp(rr.snapshot) snapshot,
+    SELECT rr.house, rr.item, rr.level, rr.prevseen, rr.price, unix_timestamp(rr.snapshot) snapshot,
     i.name_%1$s name, i.class, i.level, i.quality,
     ig.median, ig.mean, ig.stddev, ig.region
     FROM tblUserRareReport rr
     join tblDBCItem i on i.id = rr.item
     join tblRealm r on r.house = rr.house and r.canonical is not null
-    left join tblItemGlobal ig on ig.item = rr.item and ig.bonusset = rr.bonusset and ig.region = r.region 
+    left join tblItemGlobal ig on ig.item = rr.item and ig.level = rr.level and ig.region = r.region
     where rr.user = ?
     ) z
-left join tblBonusSet bs on z.bonusset = bs.`set`
-left join tblDBCItemNameDescription ind on bs.tagid = ind.id
-group by z.house, z.item, z.bonusset
-order by house, prevseen, classorder, name, bonustag;
+group by z.house, z.item
+order by house, prevseen, classorder, name;
 EOF;
 
     $sql = sprintf($sql, $locale, $itemClassOrderSql);
@@ -337,21 +323,15 @@ EOF;
             $message .= '<br><b>' . $houseNameCache[$prevHouse]['names'] . '</b><br><br>';
         }
 
-        $url = sprintf('https://theunderminejournal.com/#%s/%s/%s/%s%s',
+        $url = sprintf('https://theunderminejournal.com/#%s/%s/%s/%s',
             strtolower($houseNameCache[$prevHouse]['region']),
             $houseNameCache[$prevHouse]['slug'],
             'item',
-            $row['item'],
-            $row['tagurl'] ? ('.' . $row['tagurl']) : ''
+            $row['item']
         );
 
-        $bonusTag = $row['bonustag'];
-        if ($bonusTag) {
-            $bonusTag = ' ' . $bonusTag;
-        }
-
-        $lastItem = sprintf('[%s]%s', $row['name'], $bonusTag);
-        $message .= sprintf('<a href="%s">[%s]%s</a>', $url, $row['name'], $bonusTag);
+        $lastItem = sprintf('[%s]', $row['name']);
+        $message .= sprintf('<a href="%s">[%s]</a>', $url, $row['name']);
         $message .= sprintf(' (%s %d %s %s) - ',
             $LANG['level'], $row['level'],
             isset($LANG['qualities'][$row['quality']]) ? $LANG['qualities'][$row['quality']] : '',

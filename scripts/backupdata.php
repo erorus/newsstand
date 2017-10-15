@@ -11,7 +11,6 @@ DebugMessage("Starting $backupSet backup");
 
 $tables = [
     'data' => [
-        'tblBonusSet'           => '1=1',
         'tblBuilding'           => '1=1',
         'tblHouseCheck'         => '1=1',
         'tblItemBonusesSeen'    => '1=1',

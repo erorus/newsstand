@@ -40,7 +40,7 @@ function UpdateGlobalItems()
 {
     global $db, $regions;
 
-    $stmt = $db->prepare('SELECT DISTINCT item, bonusset FROM tblItemSummary');
+    $stmt = $db->prepare('SELECT DISTINCT item, level FROM tblItemSummary');
     $stmt->execute();
     $result = $stmt->get_result();
     $items  = DBMapArray($result, null);
@@ -52,7 +52,7 @@ function UpdateGlobalItems()
     SELECT price
     FROM tblItemSummary ih, tblRealm r
     WHERE item = ?
-    and bonusset = ?
+    and level = ?
     and r.region = ?
     and r.canonical is not null
     and ih.house = r.house
@@ -64,7 +64,7 @@ END;
     $now        = date('Y-m-d H:i:s');
     for ($z = 0; $z < $itemsCount; $z++) {
         $item     = $items[$z]['item'];
-        $bonusSet = $items[$z]['bonusset'];
+        $level = $items[$z]['level'];
 
         if (CatchKill()) {
             return;
@@ -76,7 +76,7 @@ END;
 
         foreach ($regions as $region) {
             $stmt = $db->prepare($sql);
-            $stmt->bind_param('iis', $item, $bonusSet, $region);
+            $stmt->bind_param('iis', $item, $level, $region);
             $stmt->execute();
             $prices = [];
             $price  = null;
@@ -110,8 +110,8 @@ END;
                 $median = round(($prices[(int)floor($cnt / 2) - 1] + $prices[(int)floor($cnt / 2)]) / 2);
             }
 
-            $stmt = $db->prepare('INSERT INTO tblItemGlobalWorking (`region`, `when`, `item`, `bonusset`, `median`, `mean`, `stddev`) VALUES (?, ?, ?, ?, ?, ?, ?)');
-            $stmt->bind_param('ssiiiii', $region, $now, $item, $bonusSet, $median, $mean, $stdDev);
+            $stmt = $db->prepare('INSERT INTO tblItemGlobalWorking (`region`, `when`, `item`, `level`, `median`, `mean`, `stddev`) VALUES (?, ?, ?, ?, ?, ?, ?)');
+            $stmt->bind_param('ssiiiii', $region, $now, $item, $level, $median, $mean, $stdDev);
             $stmt->execute();
             $stmt->close();
         }
@@ -123,7 +123,7 @@ END;
 
     heartbeat();
     DebugMessage("Updating tblItemGlobal rows");
-    $db->query('REPLACE INTO tblItemGlobal (SELECT `item`, `bonusset`, `region`, avg(`median`), avg(`mean`), avg(`stddev`) FROM tblItemGlobalWorking GROUP BY `item`, `bonusset`, `region`)');
+    $db->query('REPLACE INTO tblItemGlobal (SELECT `item`, `level`, `region`, avg(`median`), avg(`mean`), avg(`stddev`) FROM tblItemGlobalWorking GROUP BY `item`, `level`, `region`)');
 
     $db->query(sprintf('DELETE FROM tblItemGlobal WHERE item=%d', BATTLE_PET_CAGE_ITEM));
 }
@@ -226,7 +226,7 @@ function UpdateGlobalDataJson()
     heartbeat();
     DebugMessage("Updating global data json");
 
-    $stmt = $db->prepare('SELECT item, floor(avg(median)) median FROM tblItemGlobal where bonusset=0 group by item');
+    $stmt = $db->prepare('SELECT item, floor(avg(median)) median FROM tblItemGlobal group by item');
     $stmt->execute();
     $result = $stmt->get_result();
     $prices = DBMapArray($result, null);
