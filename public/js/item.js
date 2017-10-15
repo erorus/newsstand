@@ -757,7 +757,7 @@ var TUJ_Item = function ()
         }
 
         if (!existingAd) {
-            dest.appendChild(libtuj.Ads.Add('9943194718', 'box existing-ad'));
+            dest.appendChild(libtuj.Ads.Add('10145332', 'box existing-ad', '336x280'));
         }
     }
 
