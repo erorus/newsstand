@@ -214,7 +214,7 @@ var TUJ_Item = function ()
                 $(h).text(tuj.lang.quantityHeatMap);
                 d.appendChild(document.createTextNode(tuj.lang.quantityHeatMapDesc));
                 cht = libtuj.ce();
-                cht.className = 'chart heatmap';
+                cht.className = 'chart heatmap qtyheatmap';
                 d.appendChild(cht);
                 itemPage.append(d);
                 ItemQuantityHeatMap(dta, cht);
@@ -246,7 +246,7 @@ var TUJ_Item = function ()
             $(h).text(tuj.lang.regionalPrices);
             d.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.regionalPricesDesc, tuj.lang.item, tuj.validRegions[params.region])));
             cht = libtuj.ce();
-            cht.className = 'chart columns';
+            cht.className = 'chart columns globalnow';
             d.appendChild(cht);
             itemPage.append(d);
             ItemGlobalNowColumns(dta, cht);
@@ -264,7 +264,7 @@ var TUJ_Item = function ()
             $(d).append(libtuj.sprintf(tuj.lang.pricePopScatterDesc, a.outerHTML));
 
             cht = libtuj.ce();
-            cht.className = 'chart scatter';
+            cht.className = 'chart scatter globalnow';
             d.appendChild(cht);
             itemPage.append(d);
             ItemGlobalNowScatter(dta, cht);
@@ -371,9 +371,25 @@ var TUJ_Item = function ()
         level = sel.options[sel.selectedIndex].value;
         ItemStats(data, statsDest);
 
-        var priceHeatMapDest = document.getElementsByClassName('priceheatmap');
-        if (priceHeatMapDest.length) {
-            ItemPriceHeatMap(data, priceHeatMapDest[0]);
+        var rebuild = {
+            '.history':             ItemHistoryChart,
+            '.priceheatmap':        ItemPriceHeatMap,
+            '.qtyheatmap':          ItemQuantityHeatMap,
+            '.monthly':             ItemGlobalMonthlyChart,
+            '.globalnow.columns':   ItemGlobalNowColumns,
+            '.globalnow.scatter':   ItemGlobalNowScatter,
+        };
+
+        var chartDest;
+        var $page = $('#item-page');
+        for (var cls in rebuild) {
+            if (!rebuild.hasOwnProperty(cls)) {
+                continue;
+            }
+            chartDest = $page.find('.chart'+cls);
+            if (chartDest.length) {
+                rebuild[cls](data, chartDest[0]);
+            }
         }
     }
 
