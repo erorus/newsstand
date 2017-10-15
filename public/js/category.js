@@ -1281,7 +1281,7 @@ var TUJ_Category = function ()
                 tr.appendChild(td);
                 a = libtuj.ce('a');
                 td.appendChild(a);
-                a.href = tuj.BuildHash({realm: data.compareTo, page: 'item', id: item.id + (item.tagurl ? '.'+item.tagurl : '')});
+                a.href = tuj.BuildHash({realm: data.compareTo, page: 'item', id: item.id});
                 comparePrice = item.compareTo.avgprice || item.compareTo.price;
                 a.appendChild(abbrPriceAmount(comparePrice, amount));
 
@@ -1700,7 +1700,7 @@ var TUJ_Category = function ()
             a = libtuj.ce('a');
             td.appendChild(a);
             a.rel = 'item=' + item.id + (item.bonusurl ? '&bonus=' + item.bonusurl : (item.basebonus ? '&bonus=' + item.basebonus : '')) + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
-            a.href = tuj.BuildHash({page: 'item', id: item.id + (item.tagurl ? '.'+item.tagurl : '')});
+            a.href = tuj.BuildHash({page: 'item', id: item.id});
             $(a).text('[' + item['name_' + tuj.locale] + (item['bonusname_' + tuj.locale] ? ' ' + item['bonusname_' + tuj.locale].substr(0, item['bonusname_' + tuj.locale].indexOf('|') >= 0 ? item['bonusname_' + tuj.locale].indexOf('|') : item['bonusname_' + tuj.locale].length) : '') + ']');
             $(a).data('sort', a.textContent);
 
@@ -1744,7 +1744,7 @@ var TUJ_Category = function ()
                 a = libtuj.ce('a');
                 td.appendChild(a);
                 a.rel = 'item=' + crafted.id + (crafted.bonusurl ? '&bonus=' + crafted.bonusurl : (crafted.basebonus ? '&bonus=' + crafted.basebonus : '')) + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
-                a.href = tuj.BuildHash({page: 'item', id: crafted.id + (crafted.tagurl ? '.'+crafted.bonusurl : '')});
+                a.href = tuj.BuildHash({page: 'item', id: crafted.id});
                 a.appendChild(libtuj.FormatPrice(crafted.price));
             }
         }
