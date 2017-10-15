@@ -16,9 +16,11 @@ var TUJ_Item = function ()
         }
 
         itemId = '' + params.id;
+        level = false;
 
         if (itemId.indexOf('.') > 0) {
             itemId = ('' + params.id).substr(0, ('' + params.id).indexOf('.'));
+            level = ('' + params.id).substr(('' + params.id).indexOf('.') + 1);
         }
 
         var qs = {
@@ -96,7 +98,7 @@ var TUJ_Item = function ()
         }
 
         levels = [];
-        level = false;
+        var foundLevel = false;
 
         for (var lvl in dta.stats) {
             if (!dta.stats.hasOwnProperty(lvl)) {
@@ -106,8 +108,13 @@ var TUJ_Item = function ()
             if (level === false) {
                 level = lvl;
             }
+            foundLevel |= level == lvl;
         }
         levels.sort();
+        if (!foundLevel || (('' + params.id).indexOf('.') > 0 && (dta.stats[level].baselevel == level))) {
+            tuj.SetParams({page: 'item', id: '' + itemId});
+            return;
+        }
 
         var fullItemName = '[' + dta.stats[level]['name_' + tuj.locale] + ']';
 
@@ -116,6 +123,9 @@ var TUJ_Item = function ()
         ta.target = '_blank';
         ta.rel = 'noopener noreferrer';
         ta.className = 'item';
+        if (level != dta.stats[level].baselevel) {
+            ta.dataset.wowhead = 'bonus=' + libtuj.LevelOffsetBonus(level - dta.stats[level].baselevel);
+        }
         var timg = libtuj.ce('img');
         ta.appendChild(timg);
         timg.src = libtuj.IconURL(dta.stats[level].icon, 'large');
@@ -366,31 +376,10 @@ var TUJ_Item = function ()
         return d;
     }
 
-    function ItemLevelChange(sel, data, statsDest)
+    function ItemLevelChange(sel, data)
     {
         level = sel.options[sel.selectedIndex].value;
-        ItemStats(data, statsDest);
-
-        var rebuild = {
-            '.history':             ItemHistoryChart,
-            '.priceheatmap':        ItemPriceHeatMap,
-            '.qtyheatmap':          ItemQuantityHeatMap,
-            '.monthly':             ItemGlobalMonthlyChart,
-            '.globalnow.columns':   ItemGlobalNowColumns,
-            '.globalnow.scatter':   ItemGlobalNowScatter,
-        };
-
-        var chartDest;
-        var $page = $('#item-page');
-        for (var cls in rebuild) {
-            if (!rebuild.hasOwnProperty(cls)) {
-                continue;
-            }
-            chartDest = $page.find('.chart'+cls);
-            if (chartDest.length) {
-                rebuild[cls](data, chartDest[0]);
-            }
-        }
+        tuj.SetParams({page: 'item', id: '' + itemId + (data.stats[level].baselevel != level ? '.' + level : '')});
     }
 
     function ItemStats(data, dest)
@@ -402,14 +391,10 @@ var TUJ_Item = function ()
 
         stack = 0; // disable stack size since they're an unusable "200"
 
-        var existingAd = $(dest).children('.existing-ad');
-        existingAd = existingAd.length > 0 ? existingAd[0] : null;
-
-        $(dest).children('table').remove();
-        $(dest).children('.transmog-img').remove();
+        $(dest).empty();
 
         t = libtuj.ce('table');
-        dest.insertBefore(t, existingAd);
+        dest.appendChild(t);
 
         if (stack) {
             t.className = 'with-stack';
@@ -438,7 +423,7 @@ var TUJ_Item = function ()
             tr.appendChild(td);
             td.colSpan = stack ? 2 : 1;
             var sel = libtuj.ce('select');
-            $(sel).on('change', ItemLevelChange.bind(this, sel, data, dest));
+            $(sel).on('change', ItemLevelChange.bind(this, sel, data));
             for (var l, x=0; l = levels[x]; x++) {
                 var opt = libtuj.ce('option');
                 opt.value = l;
@@ -753,12 +738,10 @@ var TUJ_Item = function ()
             var i = libtuj.ce();
             i.className = 'transmog-img';
             i.style.backgroundImage = 'url(' + tujCDNPrefix + 'models/' + data.stats[level].display + '.png)';
-            dest.insertBefore(i, existingAd);
+            dest.appendChild(i);
         }
 
-        if (!existingAd) {
-            dest.appendChild(libtuj.Ads.Add('10145332', 'box existing-ad', '336x280'));
-        }
+        dest.appendChild(libtuj.Ads.Add('10145332', 'box existing-ad', '336x280'));
     }
 
     function GetItemNotificationsList(itemId, mainDiv)

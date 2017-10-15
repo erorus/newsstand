@@ -40,7 +40,7 @@ function ItemStats($house, $item)
 {
     global $db;
 
-    $cacheKey = 'item_stats_l_' . $item;
+    $cacheKey = 'item_stats_l2_' . $item;
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
@@ -51,7 +51,7 @@ function ItemStats($house, $item)
     $localeCols = LocaleColumns('i.name');
     $sql = <<<EOF
 select i.id, $localeCols, i.icon, i.display, i.class as classid, i.subclass, i.quality, 
-i.level, i.stacksize, i.binds, i.buyfromvendor, i.selltovendor, i.auctionable,
+i.level baselevel, i.stacksize, i.binds, i.buyfromvendor, i.selltovendor, i.auctionable,
 s.price, s.quantity, s.lastseen, ifnull(s.level,0) level,
 ivc.copper vendorprice, ivc.npc vendornpc, ivc.npccount vendornpccount
 from tblDBCItem i

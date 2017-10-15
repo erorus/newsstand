@@ -79,6 +79,20 @@ var libtuj = {
         }
         return tujCDNPrefix + 'icon/' + size + '/' + nm.replace(/ /g, '-') + (size == 'tiny' ? '.png' : '.jpg');
     },
+    LevelOffsetBonus: function(offset)
+    {
+        offset = parseInt(offset, 10);
+        if (offset >= -400 && offset < -100) {
+            return 3229 + offset;
+        }
+        if (offset >= -100 && offset <= 200) {
+            return 1472 + offset;
+        }
+        if (offset > 200 && offset <= 400) {
+            return 2929 + offset;
+        }
+        return '';
+    },
     FormatPrice: function (amt, justValue, shorter)
     {
         var v = '', g, c;

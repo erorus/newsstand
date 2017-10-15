@@ -731,14 +731,17 @@ var TUJ_Seller = function ()
             td.className = 'name';
             a = libtuj.ce('a');
             a.rel = 'item=' + auc.item + (auc.rand ? '&rand=' + auc.rand : '') + (auc.bonuses ? '&bonus=' + auc.bonuses : '') + (auc.lootedlevel ? '&lvl=' + auc.lootedlevel : '') + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
-            a.href = tuj.BuildHash({page: 'item', id: auc.item});
+            a.href = tuj.BuildHash({page: 'item', id: auc.item + (auc.level && auc.baselevel != auc.level ? '.' + auc.level : '')});
             td.appendChild(a);
             $(a).text('[' + auc['name_' + tuj.locale] + (auc['bonusname_' + tuj.locale] ? ' ' + auc['bonusname_' + tuj.locale].substr(0, auc['bonusname_' + tuj.locale].indexOf('|') >= 0 ? auc['bonusname_' + tuj.locale].indexOf('|') : auc['bonusname_' + tuj.locale].length) : '') + (auc['randname_' + tuj.locale] ? ' ' + auc['randname_' + tuj.locale] : '') + ']');
-            if (auc.level) {
-                s = libtuj.ce('span');
+            if (auc.level && auc.level != auc.baselevel) {
+                var s = libtuj.ce('span');
                 s.className = 'level';
                 s.appendChild(document.createTextNode(auc.level));
-                td.appendChild(s);
+                a.appendChild(s);
+                if (!auc.bonuses) {
+                    a.rel += '&bonus=' + libtuj.LevelOffsetBonus(auc.level - auc.baselevel);
+                }
             }
             $(a).data('sort', a.textContent);
 
