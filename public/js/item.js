@@ -799,7 +799,7 @@ var TUJ_Item = function ()
             dest.appendChild(i);
         }
 
-        dest.appendChild(libtuj.Ads.Add('10145332', 'box', '336x280'));
+        dest.appendChild(libtuj.Ads.Add('9943194718', 'box'));
     }
 
     function GetItemNotificationsList(itemId, bonusSet, mainDiv)
