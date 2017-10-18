@@ -723,8 +723,8 @@ function SetWatch($loginState, $type, $item, $level, $region, $house, $direction
     $db = DBConnect();
     $db->begin_transaction();
 
-    $stmt = $db->prepare('select seq, region, house, direction, quantity, price from tblUserWatch where user = ? and '.$type.' = ? and ifnull('.($subType ?: 'null').',0) = ifnull(?,0) and deleted is null for update');
-    $stmt->bind_param('iii', $userId, $item, $level);
+    $stmt = $db->prepare('select seq, region, house, direction, quantity, price, ' . ($subType ?: 'null') . ' subtype from tblUserWatch where user = ? and '.$type.' = ? and deleted is null for update');
+    $stmt->bind_param('ii', $userId, $item);
     $stmt->execute();
     $result = $stmt->get_result();
     $curWatches = DBMapArray($result);
@@ -736,8 +736,8 @@ function SetWatch($loginState, $type, $item, $level, $region, $house, $direction
     $fail |= $cnt > SUBSCRIPTION_WATCH_LIMIT_PER;
 
     foreach ($curWatches as $curWatch) {
-        $fail |= !is_null($curWatch['region']) && ($curWatch['region'] == $region) && ($curWatch['direction'] == $direction) && ($curWatch['quantity'] == $quantity) && ($curWatch['price'] == $price);
-        $fail |= is_null($region) && is_null($curWatch['region']) && ($curWatch['house'] == $house) && ($curWatch['direction'] == $direction) && ($curWatch['quantity'] == $quantity) && ($curWatch['price'] == $price);
+        $fail |= !is_null($curWatch['region']) && ($curWatch['region'] == $region) && ($curWatch['direction'] == $direction) && ($curWatch['quantity'] == $quantity) && ($curWatch['price'] == $price) && ($subType && $level == $curWatch['subtype']);
+        $fail |= is_null($region) && is_null($curWatch['region']) && ($curWatch['house'] == $house) && ($curWatch['direction'] == $direction) && ($curWatch['quantity'] == $quantity) && ($curWatch['price'] == $price) && ($subType && $level == $curWatch['subtype']);
     }
 
     if ($fail) {

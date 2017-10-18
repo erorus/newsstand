@@ -32,7 +32,7 @@ define('SUBSCRIPTION_REPORTS_CACHEKEY', 'subreports_');
 define('SUBSCRIPTION_PAID_CACHEKEY', 'subpaid_');
 define('SUBSCRIPTION_SESSION_CACHEKEY', 'usersession_');
 
-define('SUBSCRIPTION_WATCH_LIMIT_PER', 5);
+define('SUBSCRIPTION_WATCH_LIMIT_PER', 8); // per species/item
 define('SUBSCRIPTION_WATCH_LIMIT_TOTAL', 1000);
 
 define('SUBSCRIPTION_RARE_LIMIT_HOUSE', 20); // max number of rare watches per house
