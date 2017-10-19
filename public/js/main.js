@@ -472,7 +472,7 @@ var libtuj = {
     Ads: {
         addCount: 0,
         adsWillShow: true,
-        Add: function (slot, cssClass, adversalSize)
+        Add: function (slot, cssClass)
         {
             var ad = libtuj.ce();
             ad.className = 'ad';
@@ -480,26 +480,13 @@ var libtuj = {
                 ad.className += ' ' + cssClass;
             }
 
-            if (adversalSize) {
-                var adversalDiv = libtuj.ce();
-                ad.appendChild(adversalDiv);
+            var ins = libtuj.ce('ins');
+            ad.appendChild(ins);
+            ins.className = 'adsbygoogle';
+            ins.setAttribute('data-ad-client', 'ca-pub-1018837251546750');
+            ins.setAttribute('data-ad-slot', slot);
 
-                adversalDiv.dataset.adversalElement = adversalSize;
-                adversalDiv.dataset.upTransform = 'false';
-
-                var s = libtuj.ce('script');
-                s.src = '//go.adversal.com/do?id=' + slot;
-                s.async = true;
-                adversalDiv.appendChild(s);
-            } else {
-                var ins = libtuj.ce('ins');
-                ad.appendChild(ins);
-                ins.className = 'adsbygoogle';
-                ins.setAttribute('data-ad-client', 'ca-pub-1018837251546750');
-                ins.setAttribute('data-ad-slot', slot);
-
-                libtuj.Ads.addCount++;
-            }
+            libtuj.Ads.addCount++;
 
             return ad;
         },
@@ -521,7 +508,7 @@ var libtuj = {
         },
         ShowSubstitutes: function ()
         {
-            var html = "<div>Please whitelist ads here or <a href=\"" + tuj.BuildHash({'page':'subscription', 'id': ''}) + "\">purchase a paid subscription</a> to keep the site online. Thank you.</div>";
+            var html = "<div>The Undermine Journal's servers cost over $100 every month.</div><div>We rely on simple Google AdSense ads and paid subscriptions to pay our bills.</div><div><br>Please whitelist ads here or <a href=\"" + tuj.BuildHash({'page':'subscription', 'id': ''}) + "\">purchase a paid subscription</a> to keep the site online. Thank you.</div>";
             $('div.ad').removeClass('ad').addClass('adsubstitute').html(html);
         },
         onWindowLoad: function () {
