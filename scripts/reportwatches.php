@@ -192,7 +192,7 @@ JOIN tblDBCPet p on uw.species=p.id
 where uw.user = ?
 and uw.deleted is null
 and uw.observed > ifnull(uw.reported, '2000-01-01')
-order by if(region is null, 0, 1), house, region, ispet, classorder, name, seq
+order by if(region is null, 0, 1), house, region, ispet, classorder, name, level, seq
 EOF;
 
     $sql = sprintf($sql, $locale, $itemClassOrderSql);
@@ -215,15 +215,19 @@ EOF;
             $message .= '<br><b>' . $houseNameCache[$prevHouse]['names'] . '</b><br><br>';
         }
 
-        $url = sprintf('https://theunderminejournal.com/#%s/%s/%s/%s',
+        $url = sprintf('https://theunderminejournal.com/#%s/%s/%s/%s%s',
             strtolower($houseNameCache[$prevHouse]['region']),
             $houseNameCache[$prevHouse]['slug'],
             $row['ispet'] ? 'battlepet' : 'item',
-            $row['item']
+            $row['item'],
+            $row['level'] ? '.' . $row['level'] : ''
         );
 
         $lastItem = sprintf('[%s]', $row['name']);
         $message .= sprintf('<a href="%s">[%s]</a>', $url, $row['name']);
+        if ($row['level']) {
+            $message .= sprintf(' %s %d+', $LANG['level'], $row['level']);
+        }
 
         $direction = $LANG[strtolower($row['direction'])];
 
@@ -288,8 +292,8 @@ select z.house, z.item, max(z.snapshot) snapshot,
     z.price, z.median, z.mean, z.stddev, z.region,
     case z.class %2$s else 999 end classorder
 from (
-    SELECT rr.house, rr.item, rr.level, rr.prevseen, rr.price, unix_timestamp(rr.snapshot) snapshot,
-    i.name_%1$s name, i.class, i.level, i.quality,
+    SELECT rr.house, rr.item, if(i.class in (2,4), rr.level, i.level) level, rr.prevseen, rr.price, unix_timestamp(rr.snapshot) snapshot,
+    i.name_%1$s name, i.class, i.quality,
     ig.median, ig.mean, ig.stddev, ig.region
     FROM tblUserRareReport rr
     join tblDBCItem i on i.id = rr.item

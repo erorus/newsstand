@@ -218,7 +218,7 @@ function ParseAuctionData($house, $snapshot, &$json)
                     $aucList = &$itemBids;
                 }
                 $bonusItemLevel = $equipBaseItemLevel[$auction['item']] ?? 0;
-                if ($bonusItemLevel) {
+                if ($bonusItemLevel && isset($auction['bonusLists'])) {
                     $bonuses = [];
                     for ($y = 0; $y < count($auction['bonusLists']); $y++) {
                         if (isset($auction['bonusLists'][$y]['bonusListId']) && $auction['bonusLists'][$y]['bonusListId']) {
@@ -268,7 +268,6 @@ function ParseAuctionData($house, $snapshot, &$json)
 
         ksort($bonusItemLevels);
         $prevLevels = [];
-        //$runningQty = 0;
         foreach ($bonusItemLevels as $itemLevel => &$info) {
             $myPrice = GetMarketPrice($info);
             foreach ($prevLevels as $prevLevel) {
@@ -277,7 +276,6 @@ function ParseAuctionData($house, $snapshot, &$json)
                 }
             }
             $prevLevels[] = $itemLevel;
-            //$runningQty = ($info[ARRAY_INDEX_QUANTITY] += $runningQty);
         }
         unset($info);
     }
@@ -313,15 +311,26 @@ EOF;
             $bidQtyAtAboveLevel = 0;
             $partialItemInfo = $emptyItemInfo;
             if (isset($itemBuyouts[$row['item']])) {
+                $multipleLevelsForSale = count($itemBuyouts[$row['item']]) > 1;
                 foreach ($itemBuyouts[$row['item']] as $level => $info) {
                     if ($level < $row['level']) {
                         continue;
                     }
                     $partialItemInfo[ARRAY_INDEX_QUANTITY] += $info[ARRAY_INDEX_QUANTITY];
-                    array_merge($partialItemInfo[ARRAY_INDEX_AUCTIONS], $info[ARRAY_INDEX_AUCTIONS]);
-                    if (!isset($partialItemInfo[ARRAY_INDEX_MARKETPRICE])) {
-                        $partialItemInfo[ARRAY_INDEX_MARKETPRICE] = $info[ARRAY_INDEX_MARKETPRICE];
+                    $partialItemInfo[ARRAY_INDEX_AUCTIONS] = array_merge($partialItemInfo[ARRAY_INDEX_AUCTIONS], $info[ARRAY_INDEX_AUCTIONS]);
+                    if ($multipleLevelsForSale) {
+                        if (!isset($partialItemInfo[ARRAY_INDEX_MARKETPRICE])) {
+                            if (!isset($info[ARRAY_INDEX_MARKETPRICE])) {
+                                DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " expected to find marketprice for item {$row['item']} level $level");
+                                DebugMessage(print_r($itemBuyouts[$row['item']], true));
+                            } else {
+                                $partialItemInfo[ARRAY_INDEX_MARKETPRICE] = $info[ARRAY_INDEX_MARKETPRICE];
+                            }
+                        }
                     }
+                }
+                if ($multipleLevelsForSale) {
+                    usort($partialItemInfo[ARRAY_INDEX_AUCTIONS], 'AuctionListComparitor');
                 }
             }
             if (isset($itemBids[$row['item']])) {
@@ -667,6 +676,16 @@ function GetMarketPrice(&$info, $inBuyCount = 0)
         return $info[ARRAY_INDEX_MARKETPRICE] = ceil($gp / $gq);
     }
     return $gp; // returns full price to buy $gq
+}
+
+function AuctionListComparitor($a, $b) {
+    $aPrice = is_array($a) ? floor($a[ARRAY_INDEX_BUYOUT] / $a[ARRAY_INDEX_QUANTITY] * 100) : $a;
+    $bPrice = is_array($b) ? floor($b[ARRAY_INDEX_BUYOUT] / $b[ARRAY_INDEX_QUANTITY] * 100) : $b;
+
+    if ($aPrice == $bPrice) {
+        return 0;
+    }
+    return $aPrice < $bPrice ? -1 : 1;
 }
 
 function DBQueryWithError(&$db, $sql)
