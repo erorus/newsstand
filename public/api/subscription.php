@@ -27,9 +27,11 @@ if (!ValidateCSRFProtectedRequest()) {
     json_return(false);
 }
 
+/*
 if (isset($_POST['bitpayinvoice'])) {
     json_return(CreateBitPayInvoice($loginState));
 }
+*/
 
 if (isset($_POST['newlocale'])) {
     json_return(SetSubLocale($loginState, strtolower($_POST['newlocale'])));

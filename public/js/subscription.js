@@ -358,6 +358,7 @@ var TUJ_Subscription = function ()
 
             dest.appendChild(f);
 
+            /*
             d = libtuj.ce('div');
             d.className = 'bitcoin';
 
@@ -368,6 +369,7 @@ var TUJ_Subscription = function ()
             d.appendChild(i);
 
             dest.appendChild(d);
+            */
         }
     }
 
