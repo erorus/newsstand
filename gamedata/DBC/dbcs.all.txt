@@ -329,6 +329,7 @@ DBFilesClient\ManifestInterfaceActionIcon.db2
 DBFilesClient\ManifestInterfaceData.db2
 DBFilesClient\ManifestInterfaceItemIcon.db2
 DBFilesClient\ManifestInterfaceTOCData.db2
+DBFilesClient\Map.db2
 DBFilesClient\MapCelestialBody.db2
 DBFilesClient\MapChallengeMode.db2
 DBFilesClient\MapDifficulty.db2
@@ -530,6 +531,7 @@ DBFilesClient\TerrainTypeSounds.db2
 DBFilesClient\TextureBlendSet.db2
 DBFilesClient\TextureFileData.db2
 DBFilesClient\TotemCategory.db2
+DBFilesClient\Toy.db2
 DBFilesClient\TradeSkillCategory.db2
 DBFilesClient\TradeSkillItem.db2
 DBFilesClient\TransformMatrix.db2
