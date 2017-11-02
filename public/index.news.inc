@@ -1,0 +1,1 @@
+We're testing a new tooltip script based on the Battle.net API instead of using Wowhead's. Please let us know if you notice any issues or any feedback you'd like to share.
