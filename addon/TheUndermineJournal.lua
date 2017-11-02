@@ -1,6 +1,6 @@
 --[[
 
-TheUndermineJournal addon, v 4.8
+TheUndermineJournal addon, v 5.0
 https://theunderminejournal.com/
 
 You should be able to query this DB from other addons:
@@ -17,7 +17,6 @@ Prices are returned in copper, but accurate to the last *silver* (with coppers a
     o['input']          -> the item/battlepet parameter you just passed in, verbatim
 
     o['itemid']         -> the ID of the item you just passed in
-    o['bonuses']        -> if present, a colon-separated list of bonus IDs that were considered as uniquely identifying the item for pricing
 
     o['species']        -> the species of the battlepet you just passed in
     o['quality']        -> the numeric quality/rarity of the battlepet
@@ -133,8 +132,7 @@ function TUJMarketInfo(item,...)
     end
 
     local _, link, dataKey
-    local iid, bonusSet, usedBonuses, species, quality
-    local priceFactor = 1
+    local iid, pricingLevel, species, quality
 
     if (strfind(item, 'battlepet:')) then
         species, _, quality = getSpeciesFromPetLink(item)
@@ -146,54 +144,25 @@ function TUJMarketInfo(item,...)
         local itemString = string.match(link, "item[%-?%d:]+")
         local itemStringParts = { strsplit(":", itemString) }
         iid = itemStringParts[2]
+        dataKey = iid
 
-        local numBonuses = tonumber(itemStringParts[14],10) or 0
-        bonusSet = 0
-
-        if numBonuses > 0 then
-            usedBonuses = {}
-            local tagIds = {}
-            for y = 1,numBonuses,1 do
-                for tagId,tagBonuses in pairs(addonTable.bonusTags) do
-                    if tContains(tagBonuses, itemStringParts[14+y]) then
-                        tinsert(tagIds, tagId)
-                        tinsert(usedBonuses, itemStringParts[14+y])
-                        break
+        pricingLevel = 0
+        local _, _, _, _, _, itemClass = GetItemInfoInstant(item)
+        if (itemClass == 2) or (itemClass == 4) then
+            local effectiveLevel, previewLevel, origLevel = GetDetailedItemLevelInfo(item)
+            pricingLevel = effectiveLevel
+            if not addonTable.marketData[dataKey .. 'x' .. pricingLevel] then
+                local low, high = math.min(effectiveLevel, previewLevel, origLevel), math.max(effectiveLevel, previewLevel, origLevel)
+                for i=low,high,1 do
+                    if addonTable.marketData[dataKey .. 'x' .. i] then
+                        pricingLevel = i
                     end
-                end
-            end
-
-            if #tagIds > 0 then
-                local matched = 0
-
-                for s,setTags in pairs(addonTable.bonusSets) do
-                    local matches = 0
-                    for x = 1,#setTags,1 do
-                        for y = 1,#tagIds,1 do
-                            if tagIds[y] == setTags[x] then
-                                matches = matches + 1
-                                break
-                            end
-                        end
-                    end
-                    if (matches > matched) and (matches == #setTags) then
-                        matched = matches
-                        bonusSet = s
-                    end
-                end
-            end
-
-            if GetDetailedItemLevelInfo then
-                local effectiveLevel, previewLevel, origLevel = GetDetailedItemLevelInfo(item)
-                if effectiveLevel and (effectiveLevel ~= origLevel) then
-                    priceFactor = 1.15^((effectiveLevel - origLevel) / 15)
                 end
             end
         end
 
-        dataKey = iid
-        if bonusSet > 0 then
-            dataKey = dataKey .. 'x' .. bonusSet
+        if pricingLevel > 0 then
+            dataKey = dataKey .. 'x' .. pricingLevel
         end
     end
 
@@ -205,9 +174,6 @@ function TUJMarketInfo(item,...)
     tr['input'] = item
     if (iid) then
         tr['itemid'] = tonumber(iid,10)
-        if bonusSet > 0 then
-            tr['bonuses'] = table.concat(usedBonuses, ':')
-        end
     end
     if (species) then
         tr['species'] = species
@@ -222,26 +188,26 @@ function TUJMarketInfo(item,...)
 
     local offset = 2
 
-    tr['globalMedian'] = round(char2dec(string.sub(dta, offset, offset+priceSize-1)) * priceFactor) * 100
+    tr['globalMedian'] = round(char2dec(string.sub(dta, offset, offset+priceSize-1))) * 100
     if tr['globalMedian'] == 0 then tr['globalMedian'] = nil end
     offset = offset + priceSize
 
-    tr['globalMean'] = round(char2dec(string.sub(dta, offset, offset+priceSize-1)) * priceFactor) * 100
+    tr['globalMean'] = round(char2dec(string.sub(dta, offset, offset+priceSize-1))) * 100
     offset = offset + priceSize
 
-    tr['globalStdDev'] = round(char2dec(string.sub(dta, offset, offset+priceSize-1)) * priceFactor) * 100
+    tr['globalStdDev'] = round(char2dec(string.sub(dta, offset, offset+priceSize-1))) * 100
     offset = offset + priceSize
 
     tr['days'] = string.byte(dta, offset, offset)
     offset = offset + 1
 
-    tr['market'] = round(char2dec(string.sub(dta, offset, offset+priceSize-1)) * priceFactor) * 100
+    tr['market'] = round(char2dec(string.sub(dta, offset, offset+priceSize-1))) * 100
     offset = offset + priceSize
 
-    tr['stddev'] = round(char2dec(string.sub(dta, offset, offset+priceSize-1)) * priceFactor) * 100
+    tr['stddev'] = round(char2dec(string.sub(dta, offset, offset+priceSize-1))) * 100
     offset = offset + priceSize
 
-    tr['recent'] = round(char2dec(string.sub(dta, offset, offset+priceSize-1)) * priceFactor) * 100
+    tr['recent'] = round(char2dec(string.sub(dta, offset, offset+priceSize-1))) * 100
     --offset = offset + priceSize
 
     wipe(lastMarketInfo)
@@ -367,9 +333,6 @@ local function onEvent(self,event,arg)
         else
             if not tooltipsEnabled then
                 print("The Undermine Journal - Tooltip prices disabled. Run /tujtooltip to toggle.")
-            end
-            if not GetDetailedItemLevelInfo then
-                print("The Undermine Journal - Warning: GetDetailedItemLevelInfo function not found. Item level scaling not available.")
             end
             LibExtraTip:AddCallback({type = "item", callback = onTooltipSetItem})
             LibExtraTip:AddCallback({type = "battlepet", callback = onTooltipSetItem})
