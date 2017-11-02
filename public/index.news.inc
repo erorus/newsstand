@@ -1,1 +1,3 @@
-We're testing a new tooltip script based on the Battle.net API instead of using Wowhead's. Please let us know if you notice any issues or any feedback you'd like to share.
+<div class="news">We're testing a new tooltip script based on the Battle.net API instead of using Wowhead's.<br>
+    Please let us know via <a href="http://stormspire.net/official-forum-undermine-journal/?referrerid=380" style="white-space: nowrap">the Forum</a>,
+    <a href="https://twitter.com/UndermineJrnl" style="white-space: nowrap">@UndermineJrnl on Twitter</a>, or <a href="/#contact" style="white-space: nowrap">the Contact form</a> if you notice any issues or any feedback you'd like to share.</div>
