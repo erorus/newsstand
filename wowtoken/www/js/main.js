@@ -464,6 +464,11 @@ var wowtoken = {
         $(s).on('error', fail);
         $(s).on('load', function() {
             abg = window.adsbygoogle;
+
+            if (!abg.loaded || !abg.push || abg.push.name == 'push') fail();
+
+            if (abg.push.toString().replace(/\s+/g,'').length < 25) fail();
+
             try {
                 window.adsbygoogle.push({});
             } catch (e) {
