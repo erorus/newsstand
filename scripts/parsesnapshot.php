@@ -675,7 +675,6 @@ EOF;
     UpdateItemInfo($house, $itemInfo, $snapshot, $prevSnapshot);
     unset($itemInfo);
 
-    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " resetting UserRareReport");
     $sql = 'delete from tblUserRareReport where house = %d and level = %d and item in (%s)';
     foreach ($rareDeletes as $level => $itemIds) {
         $chunked = array_chunk($itemIds, 200);
@@ -684,7 +683,6 @@ EOF;
         }
     }
 
-    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " preparing pet info");
     $preDeleted = count($petInfo);
     foreach ($existingPetIds as &$oldRow) {
         if (!isset($petInfo[$oldRow['species']])) {
@@ -1121,7 +1119,6 @@ EOF;
     DBQueryWithError($db, 'drop temporary table ttblPriceAdjustment');
 
     // update history tables from summary data
-    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating hourly item history");
 
     $prevSnapshotString = date('Y-m-d H:i:s', $prevSnapshot);
     $sql = <<<'EOF'
