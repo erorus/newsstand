@@ -675,6 +675,7 @@ EOF;
     UpdateItemInfo($house, $itemInfo, $snapshot, $prevSnapshot);
     unset($itemInfo);
 
+    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " resetting UserRareReport");
     $sql = 'delete from tblUserRareReport where house = %d and level = %d and item in (%s)';
     foreach ($rareDeletes as $level => $itemIds) {
         $chunked = array_chunk($itemIds, 200);
@@ -683,6 +684,7 @@ EOF;
         }
     }
 
+    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " preparing pet info");
     $preDeleted = count($petInfo);
     foreach ($existingPetIds as &$oldRow) {
         if (!isset($petInfo[$oldRow['species']])) {
@@ -1057,8 +1059,6 @@ function UpdateItemInfo($house, $itemInfo, $snapshot, $prevSnapshot)
     if ($sql != '') {
         DBQueryWithError($db, $sql . $sqlEnd);
     }
-
-    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " performing itemlevel price adjustments");
 
     DBQueryWithError($db, 'create temporary table ttblPriceAdjustment like ttblItemSummaryTemplate');
 
