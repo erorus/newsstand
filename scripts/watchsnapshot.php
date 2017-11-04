@@ -8,6 +8,7 @@ require_once('../incl/incl.php');
 require_once('../incl/heartbeat.incl.php');
 require_once('../incl/memcache.incl.php');
 require_once('../incl/subscription.incl.php');
+require_once('../incl/BonusItemLevel.incl.php');
 
 RunMeNTimes(2);
 CatchKill();
@@ -36,25 +37,17 @@ $result = $stmt->get_result();
 $houseRegionCache = DBMapArray($result);
 $stmt->close();
 
-$auctionExtraItemsCache = [];
-$stmt = $db->prepare('SELECT id FROM tblDBCItem WHERE `class` in (2,4) AND `auctionable` = 1');
+$equipBaseItemLevel = [];
+$stmt = $db->prepare('SELECT id, level FROM tblDBCItem WHERE `class` in (2,4) AND `auctionable` = 1');
 $stmt->execute();
-$z = null;
-$stmt->bind_result($z);
+$id = $level = null;
+$stmt->bind_result($id, $level);
 while ($stmt->fetch()) {
-    $auctionExtraItemsCache[$z] = $z;
+    $equipBaseItemLevel[$id] = $level;
 }
 $stmt->close();
 
-$bonusTagIdCache = [];
-$stmt = $db->prepare('SELECT id, tagid FROM tblDBCItemBonus WHERE tagid IS NOT NULL ORDER BY 1');
-$stmt->execute();
-$id = $tagId = null;
-$stmt->bind_result($id, $tagId);
-while ($stmt->fetch()) {
-    $bonusTagIdCache[$id] = $tagId;
-}
-$stmt->close();
+\Newsstand\BonusItemLevel::init($db);
 
 $maxPacketSize = 0;
 $stmt = $db->prepare('show variables like \'max_allowed_packet\'');
@@ -153,7 +146,7 @@ function ParseAuctionData($house, $snapshot, &$json)
 {
     global $maxPacketSize;
     global $houseRegionCache;
-    global $auctionExtraItemsCache;
+    global $equipBaseItemLevel;
 
     $snapshotString = date('Y-m-d H:i:s', $snapshot);
     $startTimer = microtime(true);
@@ -224,31 +217,69 @@ function ParseAuctionData($house, $snapshot, &$json)
                 } else {
                     $aucList = &$itemBids;
                 }
-                $bonusSet = 0;
-                if (isset($auctionExtraItemsCache[$auction['item']]) && isset($auction['bonusLists'])) {
-                    $bonusSet = GetBonusSet($auction['bonusLists']);
+                $bonusItemLevel = $equipBaseItemLevel[$auction['item']] ?? 0;
+                if ($bonusItemLevel && isset($auction['bonusLists'])) {
+                    $bonuses = [];
+                    for ($y = 0; $y < count($auction['bonusLists']); $y++) {
+                        if (isset($auction['bonusLists'][$y]['bonusListId']) && $auction['bonusLists'][$y]['bonusListId']) {
+                            $bonuses[] = intval($auction['bonusLists'][$y]['bonusListId'],10);
+                        }
+                    }
+                    $bonuses = array_unique($bonuses, SORT_NUMERIC);
+                    sort($bonuses, SORT_NUMERIC);
+
+                    if (count($bonuses)) {
+                        $auction['lootedLevel'] = null;
+                        if (isset($auction['modifiers'])) {
+                            foreach ($auction['modifiers'] as $modObj) {
+                                if (isset($modObj['type']) && ($modObj['type'] == 9)) {
+                                    $auction['lootedLevel'] = intval($modObj['value']);
+                                }
+                            }
+                        }
+                        $bonusItemLevel = \Newsstand\BonusItemLevel::GetBonusItemLevel($bonuses,
+                            $equipBaseItemLevel[$auction['item']], $auction['lootedLevel']);
+                    }
                 }
-                $itemInfoKey = $auction['item'] . ":$bonusSet";
-                if (!isset($aucList[$itemInfoKey])) {
-                    $aucList[$itemInfoKey] = $emptyItemInfo;
+                if (!isset($aucList[$auction['item']][$bonusItemLevel])) {
+                    $aucList[$auction['item']][$bonusItemLevel] = $emptyItemInfo;
                 }
 
-                AuctionListInsert($aucList[$itemInfoKey][ARRAY_INDEX_AUCTIONS], $auction['quantity'], $hasBuyout ? $auction['buyout'] : $auction['bid']);
-                $aucList[$itemInfoKey][ARRAY_INDEX_QUANTITY] += $auction['quantity'];
+                AuctionListInsert($aucList[$auction['item']][$bonusItemLevel][ARRAY_INDEX_AUCTIONS], $auction['quantity'], $hasBuyout ? $auction['buyout'] : $auction['bid']);
+                $aucList[$auction['item']][$bonusItemLevel][ARRAY_INDEX_QUANTITY] += $auction['quantity'];
 
                 if ($isNewAuction) {
-                    if (!isset($oldAuctionItems[$itemInfoKey])) {
-                        $newAuctionItems[$itemInfoKey] = true;
+                    if (!isset($oldAuctionItems[$auction['item']][$bonusItemLevel])) {
+                        $newAuctionItems[$auction['item']][$bonusItemLevel] = true;
                     }
                 } else {
-                    $oldAuctionItems[$itemInfoKey] = true;
-                    unset($newAuctionItems[$itemInfoKey]);
+                    $oldAuctionItems[$auction['item']][$bonusItemLevel] = true;
+                    unset($newAuctionItems[$auction['item']][$bonusItemLevel]);
                 }
             }
         }
     }
     unset($json, $jsonAuctions, $oldAuctionItems);
-    $newAuctionItems = array_keys($newAuctionItems);
+
+    foreach ($itemBuyouts as $itemId => &$bonusItemLevels) {
+        if (count($bonusItemLevels) <= 1) {
+            continue;
+        }
+
+        ksort($bonusItemLevels);
+        $prevLevels = [];
+        foreach ($bonusItemLevels as $itemLevel => &$info) {
+            $myPrice = GetMarketPrice($info);
+            foreach ($prevLevels as $prevLevel) {
+                if ($bonusItemLevels[$prevLevel][ARRAY_INDEX_MARKETPRICE] > $myPrice) {
+                    $bonusItemLevels[$prevLevel][ARRAY_INDEX_MARKETPRICE] = $myPrice;
+                }
+            }
+            $prevLevels[] = $itemLevel;
+        }
+        unset($info);
+    }
+    unset($bonusItemLevels, $prevLevels);
 
     DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " found ".count($itemBuyouts)." distinct items, ".count($petBuyouts)." species, ".count($newAuctionItems)." new items");
 
@@ -257,7 +288,7 @@ function ParseAuctionData($house, $snapshot, &$json)
     $updateObserved = [];
     $watchesCount = 0;
     $sql = <<<'EOF'
-select uw.`user`, uw.seq, uw.item, uw.bonusset, uw.species, uw.direction, uw.quantity, uw.price,
+select uw.`user`, uw.seq, uw.item, uw.level, uw.species, uw.direction, uw.quantity, uw.price,
     if(uw.observed is null, 0, 1) isset, if(uw.reported > uw.observed, 1, 0) wasreported
 from tblUserWatch uw
 join tblUser u on uw.user = u.id
@@ -277,21 +308,52 @@ EOF;
         $watchSatisfied = false;
         $watchesCount++;
         if ($row['item']) {
-            $itemInfoKey = $row['item'] . ':' . ($row['bonusset'] ?: 0);
-            if (!isset($itemBuyouts[$itemInfoKey])) {
+            $bidQtyAtAboveLevel = 0;
+            $partialItemInfo = $emptyItemInfo;
+            if (isset($itemBuyouts[$row['item']])) {
+                $multipleLevelsForSale = count($itemBuyouts[$row['item']]) > 1;
+                foreach ($itemBuyouts[$row['item']] as $level => $info) {
+                    if ($level < $row['level']) {
+                        continue;
+                    }
+                    $partialItemInfo[ARRAY_INDEX_QUANTITY] += $info[ARRAY_INDEX_QUANTITY];
+                    $partialItemInfo[ARRAY_INDEX_AUCTIONS] = array_merge($partialItemInfo[ARRAY_INDEX_AUCTIONS], $info[ARRAY_INDEX_AUCTIONS]);
+                    if ($multipleLevelsForSale) {
+                        if (!isset($partialItemInfo[ARRAY_INDEX_MARKETPRICE])) {
+                            if (!isset($info[ARRAY_INDEX_MARKETPRICE])) {
+                                DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " expected to find marketprice for item {$row['item']} level $level");
+                                DebugMessage(print_r($itemBuyouts[$row['item']], true));
+                            } else {
+                                $partialItemInfo[ARRAY_INDEX_MARKETPRICE] = $info[ARRAY_INDEX_MARKETPRICE];
+                            }
+                        }
+                    }
+                }
+                if ($multipleLevelsForSale) {
+                    usort($partialItemInfo[ARRAY_INDEX_AUCTIONS], 'AuctionListComparitor');
+                }
+            }
+            if (isset($itemBids[$row['item']])) {
+                foreach ($itemBids[$row['item']] as $level => $info) {
+                    if ($level >= $row['level']) {
+                        $bidQtyAtAboveLevel += $info[ARRAY_INDEX_QUANTITY];
+                    }
+                }
+            }
+            if ($partialItemInfo[ARRAY_INDEX_QUANTITY] <= 0) {
                 // none of this item for sale
                 if (is_null($row['quantity'])) {
                     // market price notification, without quantity it does not change
                     continue;
                 }
-                if (is_null($row['price']) && $row['direction'] == 'Over' && $row['quantity'] == 0 && isset($itemBids[$itemInfoKey])) {
+                if (is_null($row['price']) && $row['direction'] == 'Over' && $row['quantity'] == 0 && $bidQtyAtAboveLevel) {
                     // when no quantity avail for buyout, and we're looking for any quantity over X, check bids too
-                    $watchSatisfied = $itemBids[$itemInfoKey][ARRAY_INDEX_QUANTITY];
+                    $watchSatisfied = $bidQtyAtAboveLevel;
                 } else {
                     $watchSatisfied = WatchSatisfied($emptyItemInfo, $row['direction'], $row['quantity'], $row['price']);
                 }
             } else {
-                $watchSatisfied = WatchSatisfied($itemBuyouts[$itemInfoKey], $row['direction'], $row['quantity'], $row['price']);
+                $watchSatisfied = WatchSatisfied($partialItemInfo, $row['direction'], $row['quantity'], $row['price']);
             }
         } else if ($row['species']) {
             if (!isset($petBuyouts[$row['species']])) {
@@ -360,23 +422,23 @@ EOF;
     // check unusual items
     $ok = DBQueryWithError($ourDb, 'create temporary table ttblRareStage like ttblRareStageTemplate');
     if ($ok) {
-        $sqlStart = 'insert into ttblRareStage (item, bonusset, price) values ';
+        $sqlStart = 'insert into ttblRareStage (item, level, price) values ';
         $sql = '';
-        foreach ($newAuctionItems as $itemInfoKey) {
-            list($itemId, $bonusSet) = explode(':', $itemInfoKey);
+        foreach ($newAuctionItems as $itemId => $bonusItemLevels) {
+            foreach ($bonusItemLevels as $bonusItemLevel => $zz) {
+                $thisSql = sprintf('(%d,%d,%s)', $itemId, $bonusItemLevel,
+                    isset($itemBuyouts[$itemId][$bonusItemLevel]) ?
+                        GetMarketPrice($itemBuyouts[$itemId][$bonusItemLevel]) :
+                        GetMarketPrice($itemBids[$itemId][$bonusItemLevel], 1)
+                );
 
-            $thisSql = sprintf('(%d,%d,%s)', $itemId, $bonusSet,
-                isset($itemBuyouts[$itemInfoKey]) ?
-                    GetMarketPrice($itemBuyouts[$itemInfoKey]) :
-                    GetMarketPrice($itemBids[$itemInfoKey], 1)
-                    );
-
-            if (strlen($sql) + 5 + strlen($thisSql) > $maxPacketSize) {
-                $ok &= DBQueryWithError($ourDb, $sql);
-                $queryCount++;
-                $sql = '';
+                if (strlen($sql) + 5 + strlen($thisSql) > $maxPacketSize) {
+                    $ok &= DBQueryWithError($ourDb, $sql);
+                    $queryCount++;
+                    $sql = '';
+                }
+                $sql .= ($sql == '' ? $sqlStart : ',') . $thisSql;
             }
-            $sql .= ($sql == '' ? $sqlStart : ',') . $thisSql;
         }
         if ($sql != '') {
             $ok &= DBQueryWithError($ourDb, $sql);
@@ -388,20 +450,20 @@ EOF;
 
         $sqls = [];
         $sqls[] = <<<'EOF'
-select rs.item, rs.bonusset, unix_timestamp(s.lastseen)
+select rs.item, rs.level, unix_timestamp(s.lastseen)
 from ttblRareStage rs
-join tblItemSummary s on rs.item = s.item and rs.bonusset = s.bonusset
+join tblItemSummary s on rs.item = s.item and rs.level = s.level
 where s.house = ?
 EOF;
         $sqls[] = <<<'EOF'
-select rs.item, rs.bonusset, max(unix_timestamp(ar.prevseen))
+select rs.item, rs.level, max(unix_timestamp(ar.prevseen))
 from ttblRareStage rs
 join tblAuction a on a.item = rs.item + 0
 join tblAuctionRare ar on ar.house = a.house and ar.id = a.id
 left join tblAuctionExtra ae on ae.house = a.house and ae.id = a.id
-where ifnull(ae.bonusset, 0) = rs.bonusset
+where ifnull(ae.level, rs.level) = rs.level
 and a.house = ?
-group by rs.item, rs.bonusset
+group by rs.item, rs.level
 EOF;
 
         $dated = [];
@@ -410,10 +472,10 @@ EOF;
             $stmt = $ourDb->prepare($sqls[$x]);
             $stmt->bind_param('i', $house);
             $stmt->execute();
-            $item = $bonusSet = $lastSeen = null;
-            $stmt->bind_result($item, $bonusSet, $lastSeen);
+            $item = $level = $lastSeen = null;
+            $stmt->bind_result($item, $level, $lastSeen);
             while ($stmt->fetch()) {
-                $k = "$item:$bonusSet";
+                $k = "$item:$level";
                 if (!isset($dated[$k])) {
                     if ($x == 0) {
                         $summaryRows++;
@@ -437,11 +499,11 @@ EOF;
 
         $ourDb->commit(); // end read txn
 
-        $item = $bonusSet = $lastSeen = null;
-        $stmt = $ourDb->prepare('update ttblRareStage set lastseen = from_unixtime(?) where item = ? and bonusset = ?');
-        $stmt->bind_param('iii', $lastSeen, $item, $bonusSet);
+        $item = $level = $lastSeen = null;
+        $stmt = $ourDb->prepare('update ttblRareStage set lastseen = from_unixtime(?) where item = ? and level = ?');
+        $stmt->bind_param('iii', $lastSeen, $item, $level);
         foreach ($dated as $k => $lastSeenVal) {
-            list($item, $bonusSet) = explode(':', $k);
+            list($item, $level) = explode(':', $k);
             $lastSeen = $lastSeenVal; // in case of byref weirdness
             $ok &= $stmt->execute();
             if ($ok) {
@@ -475,8 +537,8 @@ EOF;
     }
     if ($ok) {
         $sql = <<<'EOF'
-replace into tblUserRareReport (user, house, item, bonusset, prevseen, price, snapshot) (
-    SELECT ur.user, ur.house, rs.item, rs.bonusset, rs.lastseen, rs.price, ?
+replace into tblUserRareReport (user, house, item, level, prevseen, price, snapshot) (
+    SELECT ur.user, ur.house, rs.item, rs.level, rs.lastseen, rs.price, ?
     FROM ttblRareStage rs
     join tblUserRare ur
     join tblDBCItem i on i.id = rs.item and i.class = ur.itemclass and i.quality >= ur.minquality and i.level between ifnull(ur.minlevel, i.level) and ifnull(ur.maxlevel, i.level)
@@ -485,7 +547,7 @@ replace into tblUserRareReport (user, house, item, bonusset, prevseen, price, sn
     and (ur.flags & 1 > 0 or (select count(*) from tblDBCSpell sc where sc.crafteditem = rs.item) = 0)
     and (datediff(?, rs.lastseen) >= ur.days or rs.lastseen is null)
     and ur.house = ?
-    group by rs.item, rs.bonusset
+    group by rs.item, rs.level
 )
 EOF;
         $stmt = $ourDb->prepare($sql);
@@ -583,81 +645,6 @@ function AuctionListInsert(&$list, $qty, $buyout) {
     array_splice($list, $iMid, 0, [$auction]);
 }
 
-function GetBonusSet($bonusList)
-{
-    global $bonusTagIdCache, $db;
-    static $bonusSetCache = [];
-
-    $tagIds = [];
-    for ($y = 0; $y < count($bonusList); $y++) {
-        if (isset($bonusList[$y]['bonusListId'])) {
-            $bonus = intval($bonusList[$y]['bonusListId'],10);
-            if (isset($bonusTagIdCache[$bonus])) {
-                $tagIds[$bonusTagIdCache[$bonus]] = $bonusTagIdCache[$bonus];
-            }
-        }
-    }
-
-    if (count($tagIds) == 0) {
-        return 0;
-    }
-
-    sort($tagIds, SORT_NUMERIC);
-
-    // check local static cache
-    $tagIdsKey = implode(':', $tagIds);
-    if (isset($bonusSetCache[$tagIdsKey])) {
-        return $bonusSetCache[$tagIdsKey];
-    }
-
-    // not in cache, check db
-    if (!DBQueryWithError($db, 'lock tables tblBonusSet write')) {
-        return 0;
-    };
-
-    $stmt = $db->prepare('SELECT `set`, GROUP_CONCAT(`tagid` ORDER BY 1 SEPARATOR \':\') `tagidkey` from tblBonusSet GROUP BY `set`');
-    $stmt->execute();
-    $result = $stmt->get_result();
-    while ($row = $result->fetch_assoc()) {
-        $bonusSetCache[$row['tagidkey']] = $row['set'];
-    }
-    $result->close();
-    $stmt->close();
-
-    // check updated local cache now that we're synced with db
-    if (isset($bonusSetCache[$tagIdsKey])) {
-        DBQueryWithError($db, 'unlock tables');
-        return $bonusSetCache[$tagIdsKey];
-    }
-
-    // still don't have it, make a new one
-    $newSet = 0;
-
-    $stmt = $db->prepare('select ifnull(max(`set`),0)+1 from tblBonusSet');
-    $stmt->execute();
-    $stmt->bind_result($newSet);
-    $stmt->fetch();
-    $stmt->close();
-
-    if ($newSet) {
-        $sql = 'insert into tblBonusSet (`set`, `tagid`) VALUES ';
-        $x = 0;
-        foreach ($tagIds as $tagId) {
-            $sql .= ($x++ > 0 ? ',' : '') . sprintf('(%d,%d)', $newSet, $tagId);
-        }
-        if (!DBQueryWithError($db, $sql)) {
-            $newSet = 0;
-        }
-    }
-    DBQueryWithError($db, 'unlock tables');
-
-    if ($newSet) {
-        $bonusSetCache[$tagIdsKey] = $newSet;
-    }
-
-    return $newSet;
-}
-
 function GetMarketPrice(&$info, $inBuyCount = 0)
 {
     if (!$inBuyCount) {
@@ -689,6 +676,16 @@ function GetMarketPrice(&$info, $inBuyCount = 0)
         return $info[ARRAY_INDEX_MARKETPRICE] = ceil($gp / $gq);
     }
     return $gp; // returns full price to buy $gq
+}
+
+function AuctionListComparitor($a, $b) {
+    $aPrice = is_array($a) ? floor($a[ARRAY_INDEX_BUYOUT] / $a[ARRAY_INDEX_QUANTITY] * 100) : $a;
+    $bPrice = is_array($b) ? floor($b[ARRAY_INDEX_BUYOUT] / $b[ARRAY_INDEX_QUANTITY] * 100) : $b;
+
+    if ($aPrice == $bPrice) {
+        return 0;
+    }
+    return $aPrice < $bPrice ? -1 : 1;
 }
 
 function DBQueryWithError(&$db, $sql)

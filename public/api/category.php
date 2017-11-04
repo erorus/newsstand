@@ -22,9 +22,6 @@ define('CATEGORY_FLAGS_ALLOW_CRAFTED', 1);
 define('CATEGORY_FLAGS_DENY_NONCRAFTED', 2);
 define('CATEGORY_FLAGS_WITH_BONUSES', 4);
 
-define('CATEGORY_MAX_OBLITERUM', 8);
-define('CATEGORY_OBLITERUM_ZERO_TAG', 13256);
-
 define('ABSENT_TRANSMOG_SQL', '
 i.id in (
     select z.id from (
@@ -97,7 +94,7 @@ SELECT ps.species, ps.price, ps.quantity, ps.lastseen,
      select 12 h union select 13 h union select 14 h union select 15 h union
      select 16 h union select 17 h union select 18 h union select 19 h union
      select 20 h union select 21 h union select 22 h union select 23 h) hours
-    where ph.house = ps.house and ph.species = ps.species) avgprice, 
+    where ph.house = ps.house and ph.species = ps.species) avgprice,
 p.type, p.icon, p.npc, 0 regionavgprice
 FROM tblPetSummary ps
 JOIN tblDBCPet p on ps.species=p.id
@@ -255,7 +252,7 @@ function CategoryResult_deals($house)
                 'name' => 'ItemList',
                 'data' => [
                     'name'        => 'Armor/Weapons with Bonuses',
-                    'items'       => CategoryDealsItemList($house, 'i.class in (2,4) and tis.bonusset != 0', CATEGORY_FLAGS_ALLOW_CRAFTED | CATEGORY_FLAGS_WITH_BONUSES),
+                    'items'       => CategoryDealsItemList($house, 'i.class in (2,4) and tis.level != i.level', CATEGORY_FLAGS_ALLOW_CRAFTED | CATEGORY_FLAGS_WITH_BONUSES),
                     'hiddenCols'  => ['lastseen' => true],
                     'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
@@ -356,8 +353,9 @@ from (
         when 20 then ihh.silver20 when 21 then ihh.silver21 when 22 then ihh.silver22 when 23 then ihh.silver23
         else null end) * 100 sdprice
     from (
-        select i.id as item, min(a.bid/a.quantity) bidper
+        select i.id as item, ifnull(ae.level, if(i.class in (2,4), i.level, 0)) level, min(a.bid/a.quantity) bidper
         from tblAuction a
+        left join tblAuctionExtra ae on ae.house = a.house and ae.id = a.id
         join tblDBCItem i on i.id=a.item
         left join tblDBCItemVendorCost ivc on ivc.item=i.id
         where a.house=%1\$d
@@ -365,7 +363,7 @@ from (
         and i.quality > 0
         and ivc.copper is null
         group by i.id) ib
-    join tblItemHistoryHourly ihh on ihh.house=%1\$d and ihh.item = ib.item and ihh.bonusset = 0
+    join tblItemHistoryHourly ihh on ihh.house=%1\$d and ihh.item = ib.item and ihh.level = ib.level
     join (select 0 h union select  1 h union select  2 h union select  3 h union
          select  4 h union select  5 h union select  6 h union select  7 h union
          select  8 h union select  9 h union select 10 h union select 11 h union
@@ -389,7 +387,7 @@ EOF;
                     'joins' => sprintf($joins, $house, ''),
                     'where' => 'ifnull(lowbids.bid / g.median, 0) < 0.2',
                     'cols' => 'lowbids.bid, g.median globalmedian',
-                    'outside' => 'r2.bid, r2.globalmedian * pow(1.15,(cast(@level as signed) - cast(r2.baselevel as signed))/15) globalmedian',
+                    'outside' => 'r2.bid, r2.globalmedian',
                 ]
             ),
             'hiddenCols'  => ['price' => true, 'lastseen' => true],
@@ -992,19 +990,13 @@ function CategoryResult_leatherworking($house)
         ]
     ];
 
-    for ($x = CATEGORY_MAX_OBLITERUM; $x >= 0; $x--) {
-        $tagId = CATEGORY_OBLITERUM_ZERO_TAG + $x;
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'data' => [
-                'name'  => 'Dreadleather '.$x.'/'.CATEGORY_MAX_OBLITERUM,
-                'items' => CategoryBonusItemList($house, [
-                    'joins' => 'join tblBonusSet bs on bs.set = s.bonusset and bs.tagid = '.$tagId,
-                    'where' => 'i.id between 128884 and 128891',
-                ]),
-            ]
-        ];
-    }
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Dreadleather',
+            'items' => CategoryBonusItemList($house, 'i.id between 128884 and 128891'),
+        ]
+    ];
 
     $tr['results'][] = [
         'name' => 'ItemList',
@@ -1014,19 +1006,13 @@ function CategoryResult_leatherworking($house)
         ]
     ];
 
-    for ($x = CATEGORY_MAX_OBLITERUM; $x >= 0; $x--) {
-        $tagId = CATEGORY_OBLITERUM_ZERO_TAG + $x;
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'data' => [
-                'name'  => 'Gravenscale Mail '.$x.'/'.CATEGORY_MAX_OBLITERUM,
-                'items' => CategoryBonusItemList($house, [
-                    'joins' => 'join tblBonusSet bs on bs.set = s.bonusset and bs.tagid = '.$tagId,
-                    'where' => 'i.id between 128900 and 128907',
-                ]),
-            ]
-        ];
-    }
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Gravenscale Mail',
+            'items' => CategoryBonusItemList($house, 'i.id between 128900 and 128907'),
+        ]
+    ];
 
     $tr['results'][] = [
         'name' => 'ItemList',
@@ -1166,19 +1152,13 @@ function CategoryResult_blacksmithing($house)
         ]
     ];
 
-    for ($x = CATEGORY_MAX_OBLITERUM; $x >= 0; $x--) {
-        $tagId = CATEGORY_OBLITERUM_ZERO_TAG + $x;
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'data' => [
-                'name'  => 'Demonsteel '.$x.'/'.CATEGORY_MAX_OBLITERUM,
-                'items' => CategoryBonusItemList($house, [
-                    'joins' => 'join tblBonusSet bs on bs.set = s.bonusset and bs.tagid = '.$tagId,
-                    'where' => 'i.id between 123910 and 123917',
-                ]),
-            ]
-        ];
-    }
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Demonsteel',
+            'items' => CategoryBonusItemList($house, 'i.id between 123910 and 123917'),
+        ]
+    ];
 
     $tr['results'][] = [
         'name' => 'ItemList',
@@ -1302,33 +1282,21 @@ function CategoryResult_jewelcrafting($house)
         ]
     ];
 
-    for ($x = CATEGORY_MAX_OBLITERUM; $x >= 0; $x--) {
-        $tagId = CATEGORY_OBLITERUM_ZERO_TAG + $x;
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'data' => [
-                'name'  => sprintf('%d/%d Amulets', $x, CATEGORY_MAX_OBLITERUM),
-                'items' => CategoryBonusItemList($house, [
-                    'joins' => 'join tblBonusSet bs on bs.set = s.bonusset and bs.tagid = '.$tagId,
-                    'where' => 'i.id between 130233 and 130244',
-                ]),
-            ]
-        ];
-    }
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Amulets',
+            'items' => CategoryBonusItemList($house, 'i.id between 130233 and 130244'),
+        ]
+    ];
 
-    for ($x = CATEGORY_MAX_OBLITERUM; $x >= 0; $x--) {
-        $tagId = CATEGORY_OBLITERUM_ZERO_TAG + $x;
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'data' => [
-                'name'  => sprintf('%d/%d Rings', $x, CATEGORY_MAX_OBLITERUM),
-                'items' => CategoryBonusItemList($house, [
-                    'joins' => 'join tblBonusSet bs on bs.set = s.bonusset and bs.tagid = '.$tagId,
-                    'where' => 'i.id in (130229,130230,130231,136713)',
-                ]),
-            ]
-        ];
-    }
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Rings',
+            'items' => CategoryBonusItemList($house, 'i.id in (130229,130230,130231,136713)'),
+        ]
+    ];
 
     $tr['results'][] = [
         'name' => 'ItemList',
@@ -1441,19 +1409,13 @@ function CategoryResult_engineering($house)
 
     $tr = ['name' => 'engineering', 'results' => []];
 
-    for ($x = CATEGORY_MAX_OBLITERUM; $x >= 0; $x--) {
-        $tagId = CATEGORY_OBLITERUM_ZERO_TAG + $x;
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'data' => [
-                'name'  => 'Goggles '.$x.'/'.CATEGORY_MAX_OBLITERUM,
-                'items' => CategoryBonusItemList($house, [
-                    'joins' => 'join tblBonusSet bs on bs.set = s.bonusset and bs.tagid = '.$tagId,
-                    'where' => 'i.id between 132504 and 132507',
-                ]),
-            ]
-        ];
-    }
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Goggles',
+            'items' => CategoryBonusItemList($house, 'i.id between 132504 and 132507'),
+        ]
+    ];
 
     $tr['results'][] = [
         'name' => 'ItemList',
@@ -1600,19 +1562,13 @@ function CategoryResult_tailoring($house)
         ]
     ];
 
-    for ($x = CATEGORY_MAX_OBLITERUM; $x >= 0; $x--) {
-        $tagId = CATEGORY_OBLITERUM_ZERO_TAG + $x;
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'data' => [
-                'name'  => 'Imbued Silkweave Cloth '.$x.'/'.CATEGORY_MAX_OBLITERUM,
-                'items' => CategoryBonusItemList($house, [
-                    'joins' => 'join tblBonusSet bs on bs.set = s.bonusset and bs.tagid = '.$tagId,
-                    'where' => 'i.id between 126995 and 127002',
-                ]),
-            ]
-        ];
-    }
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Imbued Silkweave Cloth',
+            'items' => CategoryBonusItemList($house, 'i.id between 126995 and 127002'),
+        ]
+    ];
 
     $tr['results'][] = [
         'name' => 'ItemList',
@@ -1622,19 +1578,13 @@ function CategoryResult_tailoring($house)
         ]
     ];
 
-    for ($x = CATEGORY_MAX_OBLITERUM; $x >= 0; $x--) {
-        $tagId = CATEGORY_OBLITERUM_ZERO_TAG + $x;
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'data' => [
-                'name'  => 'Imbued Silkweave Cape '.$x.'/'.CATEGORY_MAX_OBLITERUM,
-                'items' => CategoryBonusItemList($house, [
-                    'joins' => 'join tblBonusSet bs on bs.set = s.bonusset and bs.tagid = '.$tagId,
-                    'where' => 'i.id in (127019,127020,127033,127034)',
-                ]),
-            ]
-        ];
-    }
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Imbued Silkweave Cape',
+            'items' => CategoryBonusItemList($house, 'i.id in (127019,127020,127033,127034)'),
+        ]
+    ];
 
     $tr['results'][] = [
         'name' => 'ItemList',
@@ -2009,7 +1959,7 @@ function CategoryGenericItemList($house, $params)
 {
     global $canCache;
 
-    $cacheKey = 'category_gil_b6_' . md5(json_encode($params));
+    $cacheKey = 'category_gil_l_' . md5(json_encode($params));
 
     $skipLocales = is_array($params) && isset($params['locales']) && ($params['locales'] == false);
 
@@ -2017,7 +1967,6 @@ function CategoryGenericItemList($house, $params)
         if (!$skipLocales) {
             PopulateLocaleCols($tr, [
                 ['func' => 'GetItemNames',          'key' => 'id',     'name' => 'name'],
-                ['func' => 'GetItemBonusTagsByTag', 'key' => 'tagurl', 'name' => 'bonustag'],
             ]);
         }
         return $tr;
@@ -2044,7 +1993,7 @@ function CategoryGenericItemList($house, $params)
     }
 
     $sql = <<<EOF
-select results.*,
+select results.*, $outside
 (select round(avg(case hours.h
         when  0 then ihh.silver00 when  1 then ihh.silver01 when  2 then ihh.silver02 when  3 then ihh.silver03
         when  4 then ihh.silver04 when  5 then ihh.silver05 when  6 then ihh.silver06 when  7 then ihh.silver07
@@ -2060,31 +2009,26 @@ select results.*,
          select 12 h union select 13 h union select 14 h union select 15 h union
          select 16 h union select 17 h union select 18 h union select 19 h union
          select 20 h union select 21 h union select 22 h union select 23 h) hours
-        where ihh.house = ? and ihh.item = results.id and ihh.bonusset = results.bonusset) * pow(1.15,(cast(results.level as signed) - cast(results.baselevel as signed))/15) avgprice, $outside
-ifnull(GROUP_CONCAT(bs.`tagid` ORDER BY 1 SEPARATOR '.'), '') tagurl
+        where ihh.house = ? and ihh.item = results.id and ihh.level = results.level) avgprice
 from (
-    select i.id, i.icon, i.class as classid,
-    ifnull(null + (@level := cast(ifnull((SELECT ils.level FROM `tblItemLevelsSeen` ils WHERE ils.item = i.id and ils.bonusset=ifnull(s.bonusset,0) order by if(ils.level=i.level,0,1), ils.level limit 1), i.level) as signed)), i.level) baselevel,
+    select i.id, i.icon, i.class as classid, i.level baselevel,
     s.quantity, unix_timestamp(s.lastseen) lastseen,
-    ifnull(s.bonusset,0) bonusset,
     null cheapestaucid,
-    s.price * pow(1.15,(@level - cast(i.level as signed))/15) price,
-    ifnull((select concat_ws(':', nullif(bonus1,0), nullif(bonus2,0), nullif(bonus3,0), nullif(bonus4,0))
-        FROM `tblItemBonusesSeen` ibs WHERE ibs.item=i.id and ibs.bonusset=ifnull(s.bonusset,0) order by ibs.observed desc limit 1),'') bonusurl,
-    @level level $colsUpper
+    s.price,
+    ifnull(s.level,if(i.class in (2,4), i.level, 0)) level
+    $colsUpper
     from tblDBCItem i
     left join tblItemSummary s on s.house=? and s.item=i.id
-    join tblItemGlobal g on g.item = i.id+0 and g.bonusset = ifnull(s.bonusset,0) and g.region = ?
+    join tblItemGlobal g on g.item = i.id+0 and g.level = ifnull(s.level,if(i.class in (2,4), i.level, 0)) and g.region = ?
     $joins
     where ifnull(i.auctionable,1) = 1
     and (i.class not in (2,4) or ifnull(s.quantity,0) = 0)
     $where $whereUpper
-    group by i.id, ifnull(s.bonusset,0)
+    group by i.id, ifnull(s.level,0)
 ) results
-left join tblBonusSet bs on results.bonusset = bs.`set`
-group by results.id, results.bonusset
+group by results.id, results.level
 union
-select results.*,
+select results.*, $outside
 (select round(avg(case hours.h
         when  0 then ihh.silver00 when  1 then ihh.silver01 when  2 then ihh.silver02 when  3 then ihh.silver03
         when  4 then ihh.silver04 when  5 then ihh.silver05 when  6 then ihh.silver06 when  7 then ihh.silver07
@@ -2100,21 +2044,20 @@ select results.*,
          select 12 h union select 13 h union select 14 h union select 15 h union
          select 16 h union select 17 h union select 18 h union select 19 h union
          select 20 h union select 21 h union select 22 h union select 23 h) hours
-        where ihh.house = ? and ihh.item = results.id and ihh.bonusset = results.bonusset) * pow(1.15,(cast(results.level as signed) - cast(results.baselevel as signed))/15) avgprice, $outside
-ifnull(GROUP_CONCAT(bs.`tagid` ORDER BY 1 SEPARATOR '.'), '') tagurl
+        where ihh.house = ? and ihh.item = results.id and ihh.level = results.level) avgprice
 from (
-    select r2.id, r2.icon, r2.classid, r2.baselevel, r2.quantity, r2.lastseen, r2.bonusset, r2.cheapestaucid,
-    a.buy price, concat_ws(':', ae.bonus1, ae.bonus2, ae.bonus3, ae.bonus4, ae.bonus5, ae.bonus6) bonusurl,
-    @level := ifnull(ae.level, r2.baselevel) level $colsLowerOutside
+    select r2.id, r2.icon, r2.classid, r2.baselevel, r2.quantity, r2.lastseen, r2.cheapestaucid,
+    a.buy price,
+    ifnull(ae.level, r2.level) level $colsLowerOutside
     from (
         select i.id, i.icon, i.class as classid, i.level baselevel,
-        s.quantity, unix_timestamp(s.lastseen) lastseen, s.bonusset,
+        s.quantity, unix_timestamp(s.lastseen) lastseen, s.level,
         (select a.id
             from tblAuction a
             left join tblAuctionExtra ae on a.house = ae.house and a.id = ae.id
             where a.house = ?
              and a.item = i.id
-             and ifnull(ae.bonusset,0) = s.bonusset
+             and ifnull(ae.level,0) = s.level
              and a.buy > 0
              order by a.buy
              limit 1) cheapestaucid $colsLowerInside
@@ -2125,15 +2068,14 @@ from (
         and i.class in (2,4)
         and ifnull(s.quantity,0) > 0
         $where
-        group by i.id, s.bonusset
+        group by i.id, s.level
     ) r2
-    join tblItemGlobal g on g.item = r2.id+0 and g.bonusset = r2.bonusset and g.region = ?
+    join tblItemGlobal g on g.item = r2.id+0 and g.level = r2.level and g.region = ?
     join tblAuction a on a.house = ? and a.id = r2.cheapestaucid
     left join tblAuctionExtra ae on ae.house = ? and ae.id = r2.cheapestaucid
     $whereLower
 ) results
-left join tblBonusSet bs on results.bonusset = bs.`set`
-group by results.id, results.bonusset
+group by results.id, results.level
 
 EOF;
 
@@ -2174,7 +2116,6 @@ EOF;
     if (!$skipLocales) {
         PopulateLocaleCols($tr, [
             ['func' => 'GetItemNames',          'key' => 'id',     'name' => 'name'],
-            ['func' => 'GetItemBonusTagsByTag', 'key' => 'tagurl', 'name' => 'bonustag'],
         ]);
     }
 
@@ -2185,7 +2126,7 @@ function CategoryRegularItemList($house, $params)
 {
     global $canCache;
 
-    $cacheKey = 'category_ril_' . md5(json_encode($params));
+    $cacheKey = 'category_ril_l_' . md5(json_encode($params));
 
     $skipLocales = is_array($params) && isset($params['locales']) && ($params['locales'] == false);
 
@@ -2229,20 +2170,18 @@ select results.*, $outside
          select 12 h union select 13 h union select 14 h union select 15 h union
          select 16 h union select 17 h union select 18 h union select 19 h union
          select 20 h union select 21 h union select 22 h union select 23 h) hours
-        where ihh.house = ? and ihh.item = results.id and ihh.bonusset = results.bonusset) avgprice
+        where ihh.house = ? and ihh.item = results.id and ihh.level = results.level) avgprice
 from (
-    select i.id, i.icon, i.class as classid, i.level,
-    s.quantity, unix_timestamp(s.lastseen) lastseen, s.price,
-    0 bonusset, '' bonusurl, '' tagurl $cols
+    select i.id, i.icon, i.class as classid, g.level,
+    s.quantity, unix_timestamp(s.lastseen) lastseen, s.price $cols
     from tblDBCItem i
-    left join tblItemSummary s on s.house = ? and s.item = i.id and s.bonusset = 0
-    join tblItemGlobal g on g.item = i.id+0 and g.bonusset = 0 and g.region = ?
+    join tblItemGlobal g on g.item = i.id+0 and g.level = if(i.class in (2,4), i.level, 0) and g.region = ?
+    left join tblItemSummary s on s.house = ? and s.item = i.id and s.level = g.level
     $joins
     where ifnull(i.auctionable,1) = 1
     $where
     group by i.id
 ) results
-left join tblBonusSet bs on results.bonusset = bs.`set`
 group by results.id
 EOF;
 
@@ -2252,7 +2191,7 @@ EOF;
     if (!$stmt->prepare($sql)) {
         DebugMessage("Bad SQL: \n" . $sql, E_USER_ERROR);
     }
-    $stmt->bind_param('iis', $house, $house, $region);
+    $stmt->bind_param('isi', $house, $region, $house);
     $stmt->execute();
 
     $tr = [];
@@ -2293,7 +2232,7 @@ function CategoryBonusItemList($house, $params)
 {
     global $canCache;
 
-    $cacheKey = 'category_bil_' . md5(json_encode($params));
+    $cacheKey = 'category_bil_l_' . md5(json_encode($params));
 
     $skipLocales = is_array($params) && isset($params['locales']) && ($params['locales'] == false);
 
@@ -2301,7 +2240,6 @@ function CategoryBonusItemList($house, $params)
         if (!$skipLocales) {
             PopulateLocaleCols($tr, [
                 ['func' => 'GetItemNames',     'key' => 'id',       'name' => 'name'],
-                ['func' => 'GetItemBonusTags', 'key' => 'bonusurl', 'name' => 'bonustag'],
             ]);
         }
         return $tr;
@@ -2322,10 +2260,9 @@ function CategoryBonusItemList($house, $params)
     }
 
     $sql = <<<EOF
-select r2.id, r2.icon, r2.classid, r2.quantity, r2.lastseen, r2.bonusset, r2.quantity, r2.lastseen, r2.baselevel,
-@level := ifnull(ae.level, ifnull((select ils.level from tblItemLevelsSeen ils where ils.item = r2.id and ils.bonusset=r2.bonusset order by if(ils.level=r2.baselevel,0,1), ils.level limit 1), r2.baselevel)) level,
-ifnull(a.buy, round(r2.price * pow(1.15, (cast(@level as signed) - cast(r2.baselevel as signed))/15))) price, 
-round((select round(avg(case hours.h
+select r2.id, r2.icon, r2.classid, r2.quantity, r2.lastseen, r2.level, r2.baselevel, r2.quantity, r2.lastseen,
+ifnull(a.buy, r2.price) price,
+(select round(avg(case hours.h
  when  0 then ihh.silver00 when  1 then ihh.silver01 when  2 then ihh.silver02 when  3 then ihh.silver03
  when  4 then ihh.silver04 when  5 then ihh.silver05 when  6 then ihh.silver06 when  7 then ihh.silver07
  when  8 then ihh.silver08 when  9 then ihh.silver09 when 10 then ihh.silver10 when 11 then ihh.silver11
@@ -2340,27 +2277,22 @@ round((select round(avg(case hours.h
   select 12 h union select 13 h union select 14 h union select 15 h union
   select 16 h union select 17 h union select 18 h union select 19 h union
   select 20 h union select 21 h union select 22 h union select 23 h) hours
- where ihh.house = ? and ihh.item = r2.id and ihh.bonusset = r2.bonusset)
- * pow(1.15,(cast(@level as signed) - cast(r2.baselevel as signed))/15)) avgprice,
-ifnull((select group_concat(distinct bs.tagid order by 1 separator '.') from tblBonusSet bs where bs.set = r2.bonusset), '') tagurl,
-if(ae.id is null, r2.defaultbonusurl, concat_ws(':', nullif(ae.bonus1,0), nullif(ae.bonus2,0), nullif(ae.bonus3,0), nullif(ae.bonus4,0), nullif(ae.bonus5,0), nullif(ae.bonus6,0))) bonusurl,
+ where ihh.house = ? and ihh.item = r2.id and ihh.level = r2.level) avgprice,
 $outside ae.lootedlevel, ae.`rand`, ae.seed
 from (
-select i.id, i.icon, i.class as classid, i.level baselevel,
-s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, s.bonusset, 
-(select concat_ws(':', nullif(ibs.bonus1,0), nullif(ibs.bonus2,0), nullif(ibs.bonus3,0), nullif(ibs.bonus4,0)) from tblItemBonusesSeen ibs where ibs.item=i.id and ibs.bonusset=s.bonusset order by ibs.observed desc limit 1) defaultbonusurl,
+select i.id, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, s.level, i.level as baselevel,
 (select a.id
     from tblAuction a
     left join tblAuctionExtra ae on a.house = ae.house and a.id = ae.id
     where a.house = ?
      and a.item = i.id
-     and ifnull(ae.bonusset,0) = s.bonusset
+     and ifnull(ae.level,if(i.class in (2,4), i.level, 0)) = s.level
      and a.buy > 0
      order by a.buy
      limit 1) cheapestaucid $cols
 from tblDBCItem i
 join tblItemSummary s on s.item = i.id and s.house = ?
-join tblItemGlobal g on g.item = i.id + 0 and g.bonusset = s.bonusset and g.region = ?
+join tblItemGlobal g on g.item = i.id + 0 and g.level = s.level and g.region = ?
 $joins
 where ifnull(i.auctionable,1) = 1
 $where
@@ -2406,7 +2338,6 @@ EOF;
     if (!$skipLocales) {
         PopulateLocaleCols($tr, [
             ['func' => 'GetItemNames',     'key' => 'id',       'name' => 'name'],
-            ['func' => 'GetItemBonusTags', 'key' => 'bonusurl', 'name' => 'bonustag'],
         ]);
     }
 
@@ -2417,7 +2348,7 @@ function CategoryBonusAuctionList($house, $params)
 {
     global $canCache;
 
-    $cacheKey = 'category_bal_' . md5(json_encode($params));
+    $cacheKey = 'category_bal_l_' . md5(json_encode($params));
 
     $skipLocales = is_array($params) && isset($params['locales']) && ($params['locales'] == false);
 
@@ -2425,7 +2356,6 @@ function CategoryBonusAuctionList($house, $params)
         if (!$skipLocales) {
             PopulateLocaleCols($tr, [
                 ['func' => 'GetItemNames',     'key' => 'id',       'name' => 'name'],
-                ['func' => 'GetItemBonusTags', 'key' => 'bonusurl', 'name' => 'bonustag'],
             ]);
         }
         return $tr;
@@ -2443,10 +2373,9 @@ function CategoryBonusAuctionList($house, $params)
     }
 
     $sql = <<<EOF
-select i.id, i.icon, i.class as classid, a.quantity, null lastseen, s.bonusset, i.level baselevel, 
-@level := ifnull(ae.level, ifnull((select ils.level from tblItemLevelsSeen ils where ils.item = i.id and ils.bonusset=s.bonusset order by if(ils.level=i.level,0,1), ils.level limit 1), i.level)) level,
-ifnull(a.buy, round(s.price * pow(1.15, (cast(@level as signed) - cast(i.level as signed))/15))) price, 
-round((select round(avg(case hours.h
+select i.id, i.icon, i.class as classid, a.quantity, null lastseen, s.level, i.level baselevel,
+ifnull(a.buy, s.price) price,
+(select round(avg(case hours.h
  when  0 then ihh.silver00 when  1 then ihh.silver01 when  2 then ihh.silver02 when  3 then ihh.silver03
  when  4 then ihh.silver04 when  5 then ihh.silver05 when  6 then ihh.silver06 when  7 then ihh.silver07
  when  8 then ihh.silver08 when  9 then ihh.silver09 when 10 then ihh.silver10 when 11 then ihh.silver11
@@ -2461,18 +2390,14 @@ round((select round(avg(case hours.h
   select 12 h union select 13 h union select 14 h union select 15 h union
   select 16 h union select 17 h union select 18 h union select 19 h union
   select 20 h union select 21 h union select 22 h union select 23 h) hours
- where ihh.house = ? and ihh.item = i.id and ihh.bonusset = s.bonusset)
- * pow(1.15,(cast(@level as signed) - cast(i.level as signed))/15)) avgprice,
-ifnull((select group_concat(distinct bs.tagid order by 1 separator '.') from tblBonusSet bs where bs.set = s.bonusset), '') tagurl,
-if(ae.id is null, (select concat_ws(':', nullif(ibs.bonus1,0), nullif(ibs.bonus2,0), nullif(ibs.bonus3,0), nullif(ibs.bonus4,0)) from tblItemBonusesSeen ibs where ibs.item=i.id and ibs.bonusset=s.bonusset order by ibs.observed desc limit 1), 
-	concat_ws(':', nullif(ae.bonus1,0), nullif(ae.bonus2,0), nullif(ae.bonus3,0), nullif(ae.bonus4,0), nullif(ae.bonus5,0), nullif(ae.bonus6,0))) bonusurl,
+ where ihh.house = ? and ihh.item = i.id and ihh.level = s.level) avgprice,
 ae.lootedlevel, ae.`rand`, ae.seed
 $cols
 from tblDBCItem i
 join tblAuction a on a.house = ? and a.item = i.id
 left join tblAuctionExtra ae on a.house = ae.house and a.id = ae.id
-join tblItemSummary s on s.item = i.id and s.house = a.house and s.bonusset = ifnull(ae.bonusset, 0)
-join tblItemGlobal g on g.item = i.id + 0 and g.bonusset = s.bonusset and g.region = ?
+join tblItemSummary s on s.item = i.id and s.house = a.house and s.level = ifnull(ae.level, i.level)
+join tblItemGlobal g on g.item = i.id + 0 and g.level = s.level and g.region = ?
 $joins
 where ifnull(i.auctionable,1) = 1
 $where
@@ -2511,7 +2436,6 @@ EOF;
     if (!$skipLocales) {
         PopulateLocaleCols($tr, [
             ['func' => 'GetItemNames',     'key' => 'id',       'name' => 'name'],
-            ['func' => 'GetItemBonusTags', 'key' => 'bonusurl', 'name' => 'bonustag'],
         ]);
     }
 
@@ -2522,7 +2446,7 @@ function CategoryDealsItemList($house, $dealsSql, $flags = 0)
 {
     global $canCache;
 
-    $cacheKey = 'category_di4_' . md5($dealsSql) . '_' . $flags;
+    $cacheKey = 'category_di_l_' . md5($dealsSql) . '_' . $flags;
 
     if ($canCache && (($iidList = MCGetHouse($house, $cacheKey)) !== false)) {
         return CategoryDealsItemListCached($house, $iidList, $flags);
@@ -2533,19 +2457,19 @@ function CategoryDealsItemList($house, $dealsSql, $flags = 0)
     $region = GetRegion($house);
 
     $fullSql = <<<EOF
-select aa.item, aa.bonusset,
+select aa.item, aa.level, aa.baselevel,
     (select a.id
     from tblAuction a
     left join tblAuctionExtra ae on ae.house=a.house and ae.id = a.id
     join tblDBCItem i on a.item = i.id
-    where a.buy > 0 and a.house=? and a.item=aa.item and ifnull(ae.bonusset,0) = aa.bonusset
-    order by (a.buy/pow(1.15,(cast(ifnull(ae.level, i.level) as signed) - cast(i.level as signed))/15))/a.quantity limit 1) cheapestid
+    where a.buy > 0 and a.house=? and a.item=aa.item and ifnull(ae.level, if(i.class in (2,4), i.level, 0)) = aa.level
+    order by a.buy/a.quantity limit 1) cheapestid
 from (
-    select ac.item, ac.bonusset, ac.c_total, ac.c_over, ac.price, gs.median
+    select ac.item, ac.level, ac.baselevel, ac.c_total, ac.c_over, ac.price, gs.median
     from (
-        select ab.item, ab.bonusset, count(*) c_total, sum(if(tis2.price > ab.price,1,0)) c_over, ab.price
+        select ab.item, ab.level, ab.baselevel, count(*) c_total, sum(if(tis2.price > ab.price,1,0)) c_over, ab.price
         from (
-            select tis.item, tis.bonusset, tis.price
+            select tis.item, tis.level, i.level baselevel, tis.price
             from tblItemSummary tis
             join tblDBCItem i on tis.item=i.id
             where tis.house = ?
@@ -2562,12 +2486,12 @@ EOF;
     }
     $fullSql .= <<<EOF
         ) ab
-        join tblItemSummary tis2 on tis2.item = ab.item and tis2.bonusset = ab.bonusset
+        join tblItemSummary tis2 on tis2.item = ab.item and tis2.level = ab.level
         join tblRealm r on r.house = tis2.house and r.canonical is not null
         where r.region = ?
-        group by ab.item, ab.bonusset
+        group by ab.item, ab.level
     ) ac
-    join tblItemGlobal gs on gs.item = ac.item and gs.bonusset = ac.bonusset and gs.region = ?
+    join tblItemGlobal gs on gs.item = ac.item and gs.level = ac.level and gs.region = ?
     where ((c_over/c_total) > 2/3 or c_total < 15)
 ) aa
 where median > 1500000
@@ -2604,8 +2528,8 @@ function CategoryDealsItemListCached($house, $iidList, $flags)
     $sortBy = [];
     $sql = '(';
     foreach ($iidList as $row) {
-        $sql .= (strlen($sql) == 1 ? '' : ' or ') . '(i.id = ' . $row['item'] . ' and s.bonusset = ' . $row['bonusset'] . ')';
-        $itemKey = $row['item'].':'.$row['bonusset'];
+        $sql .= (strlen($sql) == 1 ? '' : ' or ') . '(i.id = ' . $row['item'] . ' and s.level = ' . $row['level'] . ')';
+        $itemKey = $row['item'].':'.$row['level'];
         $sortBy[] = $itemKey;
         if (isset($row['cheapestid'])) {
             $auctionIds[$itemKey] = $row['cheapestid'];
@@ -2630,7 +2554,7 @@ function CategoryDealsItemListCached($house, $iidList, $flags)
 
     usort(
         $tr, function ($a, $b) use ($sortBy) {
-            return $sortBy[$a['id'].':'.$a['bonusset']] - $sortBy[$b['id'].':'.$b['bonusset']];
+            return $sortBy[$a['id'].':'.$a['level']] - $sortBy[$b['id'].':'.$b['level']];
         }
     );
 
@@ -2665,7 +2589,7 @@ function CategoryDealsItemListCached($house, $iidList, $flags)
 
     foreach ($tr as &$row) {
         $row['posted'] = null;
-        $itemKey = $row['id'].':'.$row['bonusset'];
+        $itemKey = $row['id'].':'.$row['level'];
         if (!isset($auctionIds[$itemKey])) {
             continue;
         }
@@ -2702,10 +2626,10 @@ function CategoryUnusualItemList($house, $unusualSql, $flags = 0)
     }
 
     $params = [
-        'where' => $unusualSql . $craftedSql . ' and s.bonusset=0',
+        'where' => $unusualSql . $craftedSql . ' and s.level in (0, i.level)',
         'joins' => 'join tblAuction a on a.house=s.house and a.item=i.id join tblAuctionRare ar on ar.house=a.house and ar.id=a.id',
-        'colsUpper'        => 'g.median * pow(1.15,(@level - cast(i.level as signed))/15) globalmedian, min(ar.prevseen) `lastseenover`, min(if(a.buy = 0, a.bid, a.buy) / a.quantity * pow(1.15,(@level - cast(i.level as signed))/15)) `priceover`',
-        'colsLowerOutside' => 'g.median * pow(1.15,(@level - cast(r2.baselevel as signed))/15) globalmedian, r2.lastseenover, r2.priceover * pow(1.15,(@level - cast(r2.baselevel as signed))/15) priceover',
+        'colsUpper'        => 'g.median globalmedian, min(ar.prevseen) `lastseenover`, min(if(a.buy = 0, a.bid, a.buy) / a.quantity) `priceover`',
+        'colsLowerOutside' => 'g.median globalmedian, r2.lastseenover, r2.priceover',
         'colsLowerInside'  => 'min(ar.prevseen) `lastseenover`, min(if(a.buy = 0, a.bid, a.buy) / a.quantity) `priceover`',
         'outside' => 'lastseenover as lastseen, priceover as price',
     ];

@@ -40,7 +40,7 @@ function ItemStats($house, $item)
 {
     global $db;
 
-    $cacheKey = 'item_stats_b4_' . $item;
+    $cacheKey = 'item_stats_l2_' . $item;
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
@@ -49,33 +49,24 @@ function ItemStats($house, $item)
     DBConnect();
 
     $localeCols = LocaleColumns('i.name');
-    $bonusTags = LocaleColumns('ifnull(group_concat(distinct ind.`desc%1$s` separator \' \'),\'\') bonustag%1$s', true);
     $sql = <<<EOF
 select i.id, $localeCols, i.icon, i.display, i.class as classid, i.subclass, i.quality, 
-i.level, i.stacksize, i.binds, i.buyfromvendor, i.selltovendor, i.auctionable,
-s.price, s.quantity, s.lastseen,
-ifnull((select group_concat(ils.`level` order by 1 separator ',') from tblItemLevelsSeen ils where ils.item = i.id and ils.bonusset = ifnull(s.bonusset, 0)),'') levels, 
-ifnull(s.bonusset,0) bonusset, ifnull(GROUP_CONCAT(distinct bs.tagid ORDER BY 1 SEPARATOR '.'), '') tagurl,
-ifnull((select concat_ws(':', nullif(bonus1,0), nullif(bonus2,0), nullif(bonus3,0), nullif(bonus4,0)) 
- FROM `tblItemBonusesSeen` ibs WHERE ibs.item=i.id and ibs.bonusset=s.bonusset order by ibs.observed desc limit 1),'') bonusurl,
-$bonusTags,
+i.level baselevel, i.stacksize, i.binds, i.buyfromvendor, i.selltovendor, i.auctionable,
+s.price, s.quantity, s.lastseen, ifnull(s.level,0) level,
 ivc.copper vendorprice, ivc.npc vendornpc, ivc.npccount vendornpccount
 from tblDBCItem i
 left join tblItemSummary s on s.house = %d and s.item = i.id
-left join tblBonusSet bs on s.bonusset = bs.`set`
-left join tblDBCItemNameDescription ind on ind.id = bs.tagid
 left join tblDBCItemVendorCost ivc on ivc.item = i.id
 where i.id = %d
-group by s.bonusset
+group by s.level
 EOF;
 
     $result = $db->query(sprintf($sql, $house, $item), MYSQLI_USE_RESULT);
-    $tr = DBMapArray($result, array('bonusset', null));
-    foreach ($tr as &$bonusRow) {
-        $bonusRow = array_pop($bonusRow);
-        $bonusRow['levels'] = explode(',', $bonusRow['levels']);
+    $tr = DBMapArray($result, array('level', null));
+    foreach ($tr as &$levelRow) {
+        $levelRow = array_pop($levelRow);
     }
-    unset($bonusRow);
+    unset($levelRow);
 
     MCSetHouse($house, $cacheKey, $tr);
 
@@ -86,7 +77,7 @@ function ItemHistory($house, $item)
 {
     global $db;
 
-    $key = 'item_history_' . $item;
+    $key = 'item_history_l_' . $item;
 
     if (($tr = MCGetHouse($house, $key)) !== false) {
         return $tr;
@@ -95,15 +86,15 @@ function ItemHistory($house, $item)
     DBConnect();
 
     $sql = <<<'EOF'
-select bonusset, snapshot, silver, quantity
+select level, snapshot, silver, quantity
 from (select
-    if(bonusset = @prevBonusSet, null, @price := null) resetprice,
-    (@prevBonusSet := bonusset) as bonusset,
+    if(level = @prevLevel, null, @price := null) resetprice,
+    (@prevLevel := level) as level,
     unix_timestamp(updated) snapshot,
     cast(if(quantity is null, @price, @price := silver) as unsigned) `silver`,
     ifnull(quantity,0) as quantity
-    from (select @price := null, @prevBonusSet := null) priceSetup,
-        (select `is`.bonusset, s.updated,
+    from (select @price := null, @prevLevel := null) priceSetup,
+        (select `is`.level, s.updated,
         case hour(s.updated)
             when 0 then ih.quantity00
             when 1 then ih.quantity01
@@ -158,21 +149,25 @@ from (select
             else null end as `silver`
         from tblSnapshot s
         join tblItemSummary `is` on `is`.house = s.house
-        left join tblItemHistoryHourly ih on date(s.updated) = ih.`when` and ih.house = `is`.house and ih.item = `is`.item and ih.bonusset = `is`.bonusset
+        left join tblItemHistoryHourly ih on date(s.updated) = ih.`when` and ih.house = `is`.house and ih.item = `is`.item and ih.level = `is`.level
         where `is`.item = %d and s.house = %d and s.updated >= timestampadd(day,-%d,now()) and s.flags & 1 = 0
-        group by `is`.bonusset, s.updated
-        order by `is`.bonusset, s.updated asc
+        group by `is`.level, s.updated
+        order by `is`.level, s.updated asc
         ) ordered
     ) withoutresets
 EOF;
 
     $result = $db->query(sprintf($sql, $item, $house, HISTORY_DAYS));
-    $tr = DBMapArray($result, ['bonusset', null]);
+    $tr = DBMapArray($result, ['level', null]);
 
     foreach ($tr as &$snapshots) {
         while (count($snapshots) > 0 && is_null($snapshots[0]['silver'])) {
             array_shift($snapshots);
         }
+        foreach ($snapshots as &$snapshot) {
+            unset($snapshot['level']);
+        }
+        unset($snapshot);
     }
     unset($snapshots);
 
@@ -225,7 +220,7 @@ function ItemHistoryMonthly($house, $item)
 {
     global $db;
 
-    $cacheKey = 'item_historymonthly_' . $house . '_' . $item;
+    $cacheKey = 'item_historymonthly_l_' . $house . '_' . $item;
 
     if (($tr = MCGet($cacheKey)) !== false) {
         return $tr;
@@ -244,11 +239,11 @@ EOF;
     $stmt->bind_param('ii', $house, $item);
     $stmt->execute();
     $result = $stmt->get_result();
-    $bonusRows = DBMapArray($result, array('bonusset', null));
+    $levelRows = DBMapArray($result, array('level', null));
     $stmt->close();
 
     $tr = [];
-    foreach ($bonusRows as $bonusSet => &$rows) {
+    foreach ($levelRows as $level => &$rows) {
         $prevPrice = 0;
         for ($x = 0; $x < count($rows); $x++) {
             $year = 2014 + floor(($rows[$x]['month'] - 1) / 12);
@@ -263,10 +258,11 @@ EOF;
                     continue;
                 }
                 if (!is_null($rows[$x]['mktslvr' . $day])) {
-                    $tr[$bonusSet][] = array('date'     => "$year-$month-$day",
-                                  'silver'   => $rows[$x]['mktslvr' . $day],
-                                  'quantity' => $rows[$x]['qty' . $day]
-                    );
+                    $tr[$level][] = [
+                        'date'     => "$year-$month-$day",
+                        'silver'   => $rows[$x]['mktslvr' . $day],
+                        'quantity' => $rows[$x]['qty' . $day]
+                    ];
                     $prevPrice = $rows[$x]['mktslvr' . $day];
                 } else {
                     if (!checkdate($monthNum, $dayNum, $year)) {
@@ -276,7 +272,7 @@ EOF;
                         break;
                     }
                     if ($prevPrice) {
-                        $tr[$bonusSet][] = array('date' => "$year-$month-$day", 'silver' => $prevPrice, 'quantity' => 0);
+                        $tr[$level][] = array('date' => "$year-$month-$day", 'silver' => $prevPrice, 'quantity' => 0);
                     }
                 }
             }
@@ -293,7 +289,7 @@ function ItemExpired($house, $item)
 {
     global $db;
 
-    $cacheKey = 'item_expired2_' . $house . '_' . $item;
+    $cacheKey = 'item_expired_l_' . $house . '_' . $item;
 
     if (($tr = MCGet($cacheKey)) !== false) {
         return $tr;
@@ -302,17 +298,17 @@ function ItemExpired($house, $item)
     DBConnect();
 
     $sql = <<<EOF
-select bonusset, `when` as `date`, `created`, `expired`
+select level, `when` as `date`, `created`, `expired`
 from tblItemExpired
 where house = ? and item = ? and `when` < timestampadd(day, -3, now())
-order by `bonusset`, `when`
+order by `level`, `when`
 EOF;
 
     $stmt = $db->prepare($sql);
     $stmt->bind_param('ii', $house, $item);
     $stmt->execute();
     $result = $stmt->get_result();
-    $tr = DBMapArray($result, ['bonusset', null]);
+    $tr = DBMapArray($result, ['level', null]);
     $stmt->close();
 
     MCSet($cacheKey, $tr, 60 * 60 * 8);
@@ -360,24 +356,21 @@ function ItemAuctions($house, $item)
 {
     global $db;
 
-    $cacheKey = 'item_auctions_' . $item;
+    $cacheKey = 'item_auctions_l_' . $item;
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
-        foreach ($tr as &$rows) {
-            PopulateLocaleCols($rows, [
-                ['func' => 'GetItemBonusNames', 'key' => 'bonuses', 'name' => 'bonusname'],
-                ['func' => 'GetItemBonusTags', 'key' => 'bonuses', 'name' => 'bonustag'],
-                ['func' => 'GetRandEnchantNames', 'key' => 'rand', 'name' => 'randname'],
-            ], true);
-        }
-        unset($rows);
+        PopulateLocaleCols($tr, [
+            ['func' => 'GetItemBonusNames', 'key' => 'bonuses', 'name' => 'bonusname'],
+            ['func' => 'GetRandEnchantNames', 'key' => 'rand', 'name' => 'randname'],
+        ], true);
+
         return $tr;
     }
 
     DBConnect();
 
     $sql = <<<EOF
-SELECT ifnull(ae.bonusset,0) bonusset, a.quantity, a.bid, a.buy, ifnull(ae.`rand`,0) `rand`, ifnull(ae.seed,0) `seed`, 
+SELECT a.quantity, a.bid, a.buy, ifnull(ae.`rand`,0) `rand`, ifnull(ae.seed,0) `seed`, 
 ifnull(@lootedLevel := ae.lootedlevel,0) `lootedlevel`, ifnull(ae.level, i.level) level,
 s.realm sellerrealm, ifnull(s.name, '???') sellername,
 concat_ws(':',ae.bonus1,ae.bonus2,ae.bonus3,ae.bonus4,ae.bonus5,ae.bonus6) bonuses
@@ -394,19 +387,16 @@ EOF;
     $stmt->bind_param('ii', $house, $item);
     $stmt->execute();
     $result = $stmt->get_result();
-    $tr = DBMapArray($result, array('bonusset', null));
+    $tr = DBMapArray($result, null);
     $stmt->close();
 
     MCSetHouse($house, $cacheKey, $tr);
 
-    foreach ($tr as &$rows) {
-        PopulateLocaleCols($rows, [
-            ['func' => 'GetItemBonusNames', 'key' => 'bonuses', 'name' => 'bonusname'],
-            ['func' => 'GetItemBonusTags', 'key' => 'bonuses', 'name' => 'bonustag'],
-            ['func' => 'GetRandEnchantNames', 'key' => 'rand', 'name' => 'randname'],
-        ], true);
-    }
-    unset($rows);
+    PopulateLocaleCols($tr, [
+        ['func' => 'GetItemBonusNames', 'key' => 'bonuses', 'name' => 'bonusname'],
+        ['func' => 'GetRandEnchantNames', 'key' => 'rand', 'name' => 'randname'],
+    ], true);
+
     return $tr;
 }
 
@@ -414,7 +404,7 @@ function ItemGlobalNow($region, $item)
 {
     global $db;
 
-    $key = 'item_globalnow3_' . $region . '_' . $item;
+    $key = 'item_globalnow_l_' . $region . '_' . $item;
     if (($tr = MCGet($key)) !== false) {
         return $tr;
     }
@@ -422,19 +412,27 @@ function ItemGlobalNow($region, $item)
     DBConnect();
 
     $sql = <<<EOF
-    SELECT i.bonusset, r.house, i.price, i.quantity, unix_timestamp(i.lastseen) as lastseen
+    SELECT i.level, r.house, i.price, i.quantity, unix_timestamp(i.lastseen) as lastseen
 FROM `tblItemSummary` i
 join tblRealm r on i.house = r.house and r.region = ? and r.canonical is not null
 WHERE i.item=?
-group by i.bonusset, r.house
+group by i.level, r.house
 EOF;
 
     $stmt = $db->prepare($sql);
     $stmt->bind_param('si', $region, $item);
     $stmt->execute();
     $result = $stmt->get_result();
-    $tr = DBMapArray($result, array('bonusset', null));
+    $tr = DBMapArray($result, array('level', null));
     $stmt->close();
+
+    foreach ($tr as &$levels) {
+        foreach ($levels as &$house) {
+            unset($house['level']);
+        }
+        unset($house);
+    }
+    unset($levels);
 
     MCSet($key, $tr, 60 * 60);
 
@@ -445,7 +443,7 @@ function ItemGlobalMonthly($region, $item)
 {
     global $db;
 
-    $key = 'item_globalmonthly2_' . $region . '_' . $item;
+    $key = 'item_globalmonthly_l_' . $region . '_' . $item;
     if (($tr = MCGet($key)) !== false) {
         return $tr;
     }
@@ -460,23 +458,23 @@ function ItemGlobalMonthly($region, $item)
 
 
     $sql = <<<EOF
-SELECT bonusset, month $sqlCols
+SELECT level, month $sqlCols
 FROM `tblItemHistoryMonthly` ihm
 join tblRealm r on ihm.house = r.house and r.region = ? and r.canonical is not null
 WHERE ihm.item=?
-group by bonusset, month
+group by level, month
 EOF;
 
     $stmt = $db->prepare($sql);
     $stmt->bind_param('si', $region, $item);
     $stmt->execute();
     $result = $stmt->get_result();
-    $bonusRows = DBMapArray($result, array('bonusset', null));
+    $levelRows = DBMapArray($result, array('level', null));
     $stmt->close();
 
     $tr = array();
     $today = strtotime(date('Y-m-d'));
-    foreach ($bonusRows as $bonusSet => &$rows) {
+    foreach ($levelRows as $level => &$rows) {
         $prevPrice = 0;
         for ($x = 0; $x < count($rows); $x++) {
             $year = 2014 + floor(($rows[$x]['month'] - 1) / 12);
@@ -491,10 +489,11 @@ EOF;
                     continue;
                 }
                 if (!is_null($rows[$x]['mkt' . $day])) {
-                    $tr[$bonusSet][] = array('date'     => "$year-$month-$day",
-                                  'silver'   => round($rows[$x]['mkt' . $day] / 100, 2),
-                                  'quantity' => $rows[$x]['qty' . $day]
-                    );
+                    $tr[$level][] = [
+                        'date'     => "$year-$month-$day",
+                        'silver'   => round($rows[$x]['mkt' . $day] / 100, 2),
+                        'quantity' => $rows[$x]['qty' . $day]
+                    ];
                     $prevPrice = round($rows[$x]['mkt' . $day] / 100, 2);
                 } else {
                     if (!checkdate($monthNum, $dayNum, $year)) {
@@ -504,7 +503,7 @@ EOF;
                         break;
                     }
                     if ($prevPrice) {
-                        $tr[$bonusSet][] = array('date' => "$year-$month-$day", 'silver' => $prevPrice, 'quantity' => 0);
+                        $tr[$level][] = array('date' => "$year-$month-$day", 'silver' => $prevPrice, 'quantity' => 0);
                     }
                 }
             }

@@ -19,14 +19,11 @@ BotCheck();
 HouseETag($house);
 
 $locale = GetLocale();
-$searchCacheKey = 'search_b2_' . $locale . '_' . md5($search);
+$searchCacheKey = 'search_l_' . $locale . '_' . md5($search);
 
 if ($json = MCGetHouse($house, $searchCacheKey)) {
-    PopulateLocaleCols($json['battlepets'], [['func' => 'GetPetNames', 'key' => 'id', 'name' => 'name']]);
-    PopulateLocaleCols($json['items'], [
-        ['func' => 'GetItemNames',          'key' => 'id',     'name' => 'name'],
-        ['func' => 'GetItemBonusTagsByTag', 'key' => 'tagurl', 'name' => 'bonustag'],
-    ]);
+    PopulateLocaleCols($json['battlepets'], [['func' => 'GetPetNames',  'key' => 'id', 'name' => 'name']]);
+    PopulateLocaleCols($json['items'],      [['func' => 'GetItemNames', 'key' => 'id', 'name' => 'name']]);
 
     json_return($json);
 }
@@ -48,11 +45,8 @@ foreach ($ak as $k) {
 
 MCSetHouse($house, $searchCacheKey, $json);
 
-PopulateLocaleCols($json['battlepets'], [['func' => 'GetPetNames', 'key' => 'id', 'name' => 'name']]);
-PopulateLocaleCols($json['items'], [
-    ['func' => 'GetItemNames',          'key' => 'id',     'name' => 'name'],
-    ['func' => 'GetItemBonusTagsByTag', 'key' => 'tagurl', 'name' => 'bonustag'],
-]);
+PopulateLocaleCols($json['battlepets'], [['func' => 'GetPetNames',  'key' => 'id', 'name' => 'name']]);
+PopulateLocaleCols($json['items'],      [['func' => 'GetItemNames', 'key' => 'id', 'name' => 'name']]);
 
 json_return($json);
 
@@ -117,22 +111,21 @@ select results.*,
          select 12 h union select 13 h union select 14 h union select 15 h union
          select 16 h union select 17 h union select 18 h union select 19 h union
          select 20 h union select 21 h union select 22 h union select 23 h) hours
-        where ihh.house = ? and ihh.item = results.id and ihh.bonusset = results.bonusset) avgprice,
-ifnull(GROUP_CONCAT(bs.`tagid` ORDER BY 1 SEPARATOR '.'), '') tagurl,
-ifnull((select concat_ws(':', nullif(bonus1,0), nullif(bonus2,0), nullif(bonus3,0), nullif(bonus4,0)) 
- FROM `tblItemBonusesSeen` ibs WHERE ibs.item=results.id and ibs.bonusset=results.bonusset order by ibs.observed desc limit 1),'') bonusurl
+        where ihh.house = ? and ihh.item = results.id and ihh.level = results.level) avgprice
 from (
-    select i.id, i.quality, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen,
-    ifnull(s.bonusset,0) bonusset, i.level
+    select i.id, i.quality, i.icon, i.class as classid,
+    group_concat(s.level order by 1 separator ',') levels,
+    ifnull(nullif(ifnull(min(if(s.quantity > 0, s.level, null)), min(s.level)),0), i.level) level,
+    ifnull(min(if(s.quantity > 0, s.price, null)), min(s.price)) price,
+    sum(s.quantity) quantity,
+    unix_timestamp(max(s.lastseen)) lastseen
     from tblDBCItem i
     left join tblItemSummary s on s.house=? and s.item=i.id
     where i.name_$locale like ?
     and (s.item is not null or ifnull(i.auctionable,1) = 1)
-    group by i.id, ifnull(s.bonusset,0)
+    group by i.id
     limit ?
 ) results
-left join tblBonusSet bs on results.bonusset = bs.`set`
-group by results.id, results.bonusset
 EOF;
     $limit = 50 * mb_strlen(mb_ereg_replace('\s+', '', $search));
 
@@ -142,6 +135,14 @@ EOF;
     $result = $stmt->get_result();
     $tr = $result->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
+
+    foreach ($tr as &$row) {
+        if (!is_null($row['levels']) && $row['levels'] != '0') {
+            $row['levels'] = explode(',', $row['levels']);
+        } else {
+            unset($row['levels']);
+        }
+    }
 
     if (!$tr && !$withSuffixesRemoved) {
         $tr = SearchItems($house, $search, $locale, true);

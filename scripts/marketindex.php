@@ -87,7 +87,7 @@ FROM `tblItemHistoryMonthly` `ihm`
 JOIN `tblRealm` `r` ON `r`.`house` = `ihm`.`house` AND `r`.`canonical` IS NOT NULL
 WHERE `r`.`region` = ?
 AND `ihm`.`item` IN (%2$s)
-AND `ihm`.`bonusset` = 0
+AND `ihm`.`level` = 0
 AND `ihm`.`month` = ?
 AND `mktslvr%1$s` IS NOT NULL
 ORDER BY 1

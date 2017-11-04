@@ -637,7 +637,7 @@ var TUJ_Category = function ()
                             continue;
                         }
                         if (ourSection.data.items[y].id == theirSection.data.items[z].id &&
-                            ourSection.data.items[y].bonusset == theirSection.data.items[z].bonusset) {
+                            ourSection.data.items[y].level == theirSection.data.items[z].level) {
                             ourSection.data.items[y].compareTo = theirSection.data.items[z];
                             delete theirSection.data.items[z];
                             break;
@@ -1175,6 +1175,15 @@ var TUJ_Category = function ()
             $(x).on('click', MakeImportStringDisplayFunction(tr, i, x));
         }
 
+        var nonUniques = {};
+        for (x = 0; item = data.items[x]; x++) {
+            if (nonUniques.hasOwnProperty(item.id)) {
+                nonUniques[item.id] = true;
+            } else {
+                nonUniques[item.id] = false;
+            }
+        }
+
         for (x = 0; item = data.items[x]; x++) {
             tr = libtuj.ce('tr');
             t.appendChild(tr);
@@ -1202,19 +1211,18 @@ var TUJ_Category = function ()
             a = libtuj.ce('a');
             td.appendChild(a);
             a.rel = 'item=' + item.id + (item.rand ? '&rand=' + item.rand : '') + (item.bonusurl ? '&bonus=' + item.bonusurl : '') + (item.lootedlevel ? '&lvl=' + item.lootedlevel : '') + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
-            a.href = tuj.BuildHash({page: 'item', id: item.id + (item.tagurl ? '.'+item.tagurl : '')});
-            $(a).text('[' + item['name_' + tuj.locale] + (item['bonusname_' + tuj.locale] ? ' ' + item['bonusname_' + tuj.locale].substr(0, item['bonusname_' + tuj.locale].indexOf('|') >= 0 ? item['bonusname_' + tuj.locale].indexOf('|') : item['bonusname_' + tuj.locale].length) : '') + ']' + (item['bonustag_' + tuj.locale] ? ' ' : ''));
-            if (item['bonustag_' + tuj.locale]) {
-                var tagspan = libtuj.ce('span');
-                tagspan.className = 'nowrap';
-                $(tagspan).text(item['bonustag_' + tuj.locale]);
-                a.appendChild(tagspan);
-            }
-            if (item.baselevel && (item.level != item.baselevel)) {
-                var s = libtuj.ce('span');
-                s.className = 'level';
-                s.appendChild(document.createTextNode(item.level));
-                a.appendChild(s);
+            a.href = tuj.BuildHash({page: 'item', id: item.id + ((item.level && item.level != item.baselevel) ? '.' + item.level : '')});
+            $(a).text('[' + item['name_' + tuj.locale] + (item['bonusname_' + tuj.locale] ? ' ' + item['bonusname_' + tuj.locale].substr(0, item['bonusname_' + tuj.locale].indexOf('|') >= 0 ? item['bonusname_' + tuj.locale].indexOf('|') : item['bonusname_' + tuj.locale].length) : '') + ']');
+            if (item.level && item.baselevel) {
+                if (nonUniques[item.id] || item.level != item.baselevel) {
+                    var s = libtuj.ce('span');
+                    s.className = 'level';
+                    s.appendChild(document.createTextNode(item.level));
+                    a.appendChild(s);
+                }
+                if (!item.bonusurl && item.level != item.baselevel) {
+                    a.rel += '&bonus=' + libtuj.LevelOffsetBonus(item.level - item.baselevel);
+                }
             }
             $(a).data('sort', a.textContent);
 
@@ -1273,7 +1281,7 @@ var TUJ_Category = function ()
                 tr.appendChild(td);
                 a = libtuj.ce('a');
                 td.appendChild(a);
-                a.href = tuj.BuildHash({realm: data.compareTo, page: 'item', id: item.id + (item.tagurl ? '.'+item.tagurl : '')});
+                a.href = tuj.BuildHash({realm: data.compareTo, page: 'item', id: item.id});
                 comparePrice = item.compareTo.avgprice || item.compareTo.price;
                 a.appendChild(abbrPriceAmount(comparePrice, amount));
 
@@ -1692,14 +1700,8 @@ var TUJ_Category = function ()
             a = libtuj.ce('a');
             td.appendChild(a);
             a.rel = 'item=' + item.id + (item.bonusurl ? '&bonus=' + item.bonusurl : (item.basebonus ? '&bonus=' + item.basebonus : '')) + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
-            a.href = tuj.BuildHash({page: 'item', id: item.id + (item.tagurl ? '.'+item.tagurl : '')});
-            $(a).text('[' + item['name_' + tuj.locale] + (item['bonusname_' + tuj.locale] ? ' ' + item['bonusname_' + tuj.locale].substr(0, item['bonusname_' + tuj.locale].indexOf('|') >= 0 ? item['bonusname_' + tuj.locale].indexOf('|') : item['bonusname_' + tuj.locale].length) : '') + ']' + (item['bonustag_' + tuj.locale] ? ' ' : ''));
-            if (item['bonustag_' + tuj.locale]) {
-                var tagspan = libtuj.ce('span');
-                tagspan.className = 'nowrap';
-                $(tagspan).text(item['bonustag_' + tuj.locale]);
-                a.appendChild(tagspan);
-            }
+            a.href = tuj.BuildHash({page: 'item', id: item.id});
+            $(a).text('[' + item['name_' + tuj.locale] + (item['bonusname_' + tuj.locale] ? ' ' + item['bonusname_' + tuj.locale].substr(0, item['bonusname_' + tuj.locale].indexOf('|') >= 0 ? item['bonusname_' + tuj.locale].indexOf('|') : item['bonusname_' + tuj.locale].length) : '') + ']');
             $(a).data('sort', a.textContent);
 
             td = libtuj.ce('td');
@@ -1742,7 +1744,7 @@ var TUJ_Category = function ()
                 a = libtuj.ce('a');
                 td.appendChild(a);
                 a.rel = 'item=' + crafted.id + (crafted.bonusurl ? '&bonus=' + crafted.bonusurl : (crafted.basebonus ? '&bonus=' + crafted.basebonus : '')) + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
-                a.href = tuj.BuildHash({page: 'item', id: crafted.id + (crafted.tagurl ? '.'+crafted.bonusurl : '')});
+                a.href = tuj.BuildHash({page: 'item', id: crafted.id});
                 a.appendChild(libtuj.FormatPrice(crafted.price));
             }
         }

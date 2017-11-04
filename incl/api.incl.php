@@ -3,7 +3,7 @@
 require_once('memcache.incl.php');
 require_once('incl.php');
 
-define('API_VERSION', 85);
+define('API_VERSION', 86);
 define('THROTTLE_PERIOD', 3600); // seconds
 define('THROTTLE_MAXHITS', 200);
 define('BANLIST_CACHEKEY', 'banlist_cidrs4');
@@ -193,110 +193,6 @@ function GetItemBonusNames($bonusGroups, $renamedTo = false)
         }
 
         $results[$bonusesKey] = $names;
-    }
-
-    return $results;
-}
-
-function GetItemBonusTags($bonusGroups, $renamedTo = false)
-{
-    $results = [];
-    foreach ($bonusGroups as $bonusesKey) {
-        $c = preg_match_all('/\d+/', $bonusesKey, $res);
-        $bonuses = [];
-        for ($x = 0; $x < $c; $x++) {
-            if ($res[0][$x]) {
-                $bonuses[] = $res[0][$x];
-            }
-        }
-
-        $bonuses = implode(',', array_filter($bonuses, 'is_numeric'));
-
-        $cacheKey = 'itembonustags2_' . $bonuses;
-
-        $names = MCGet($cacheKey);
-
-        if ($names === false) {
-            if ($bonuses) {
-                $db = DBConnect();
-
-                $sql = 'select ' . LocaleColumns('ifnull(group_concat(distinct ind.`desc%1$s` order by ib.tagpriority separator \' \'), \'\') bonustag%1$s', true);
-                $sql .= ' from tblDBCItemBonus ib left join tblDBCItemNameDescription ind on ib.tagid = ind.id where ib.id in (' . $bonuses . ')';
-                $stmt = $db->prepare($sql);
-                $stmt->execute();
-                $result = $stmt->get_result();
-                $names = $result->fetch_assoc();
-                $result->close();
-                $stmt->close();
-            }
-            if ($names === false) {
-                $names = [];
-            }
-            $names = array_filter($names);
-            MCSet($cacheKey, $names, 86400);
-        }
-
-        if ($renamedTo && $renamedTo != 'bonustag') {
-            $keys = array_keys($names);
-            foreach ($keys as $key) {
-                $names[str_replace('bonustag', $renamedTo, $key)] = $names[$key];
-                unset($names[$key]);
-            }
-        }
-
-        $results[$bonusesKey] = $names;
-    }
-
-    return $results;
-}
-
-function GetItemBonusTagsByTag($tagGroups, $renamedTo = false)
-{
-    $results = [];
-    foreach ($tagGroups as $tagsKey) {
-        $c = preg_match_all('/\d+/', $tagsKey, $res);
-        $tagIds = [];
-        for ($x = 0; $x < $c; $x++) {
-            if ($res[0][$x]) {
-                $tagIds[] = $res[0][$x];
-            }
-        }
-
-        $tagIds = implode(',', array_filter($tagIds, 'is_numeric'));
-
-        $cacheKey = 'itembonustagsbytag_' . $tagIds;
-
-        $names = MCGet($cacheKey);
-
-        if ($names === false) {
-            if ($tagIds) {
-                $db = DBConnect();
-
-                $sql = 'select ' . LocaleColumns('group_concat(distinct `desc%1$s` separator \' \') bonustag%1$s', true);
-                $sql .= ' from tblDBCItemNameDescription where id in (' . $tagIds . ')';
-                $stmt = $db->prepare($sql);
-                $stmt->execute();
-                $result = $stmt->get_result();
-                $names = $result->fetch_assoc();
-                $result->close();
-                $stmt->close();
-            }
-            if ($names === false) {
-                $names = [];
-            }
-            $names = array_filter($names);
-            MCSet($cacheKey, $names, 86400);
-        }
-
-        if ($renamedTo && $renamedTo != 'bonustag') {
-            $keys = array_keys($names);
-            foreach ($keys as $key) {
-                $names[str_replace('bonustag', $renamedTo, $key)] = $names[$key];
-                unset($names[$key]);
-            }
-        }
-
-        $results[$tagsKey] = $names;
     }
 
     return $results;

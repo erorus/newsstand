@@ -120,7 +120,7 @@ FROM tblAuction a
 join tblSeller s on a.seller = s.id
 join tblRealm r on s.realm = r.id
 left join tblAuctionExtra ae on ae.id = a.id and ae.house = a.house
-left join tblItemGlobal g on a.item = g.item and g.bonusset = ifnull(ae.bonusset, 0) and g.region = r.region and a.item != %1$d
+left join tblItemGlobal g on a.item = g.item and g.level = ifnull(ae.level, 0) and g.region = r.region and a.item != %1$d
 left join tblAuctionPet ap on ap.id = a.id and ap.house = a.house
 left join tblPetGlobal pg on ap.species = pg.species and pg.region = r.region and a.item = %1$d
 where a.house = ?
@@ -160,7 +160,6 @@ SELECT i.id
 FROM `tblItemSummary` tis
 join tblDBCItem i on tis.item = i.id
 WHERE house = ?
-and tis.bonusset = 0
 order by tis.quantity desc
 limit 10
 EOF;
@@ -195,7 +194,7 @@ function HouseDeals($house)
 SELECT i.id
 FROM `tblItemSummary` tis
 join tblDBCItem i on tis.item = i.id
-join tblItemGlobal g on g.item = tis.item and g.bonusset = tis.bonusset and g.region = ?
+join tblItemGlobal g on g.item = tis.item and g.level = tis.level and g.region = ?
 WHERE house = ?
 and tis.quantity > 0
 and i.quality > 0

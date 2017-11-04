@@ -43,7 +43,7 @@ function SellerStats($house, $realm, $seller)
     $seller = mb_ereg_replace(' ', '', $seller);
     $seller = mb_strtoupper(mb_substr($seller, 0, 1)) . mb_strtolower(mb_substr($seller, 1));
 
-    $key = 'seller_stats_r_' . $realm . '_' . $seller;
+    $key = 'seller_stats_r2_' . $realm . '_' . $seller;
 
     if (($tr = MCGetHouse($house, $key)) !== false) {
         return $tr;
@@ -52,7 +52,7 @@ function SellerStats($house, $realm, $seller)
     $db = DBConnect();
 
     $sql = <<<'EOF'
-    SELECT id, realm, name, unix_timestamp(firstseen) firstseen, unix_timestamp(lastseen) lastseen 
+    SELECT id, realm, name, unix_timestamp(firstseen) firstseen, unix_timestamp(lastseen) lastseen
     FROM tblSeller
     WHERE realm = ?
     AND name = ?
@@ -91,8 +91,8 @@ count(*) auctions
 from tblAuction a
 join tblRealm r on r.house = a.house and r.canonical is not null
 left join tblAuctionExtra ae on ae.id = a.id and ae.house = a.house
-left join tblItemSummary s on a.item = s.item and s.bonusset = ifnull(ae.bonusset, 0) and s.house = a.house and a.item != %1$d
-left join tblItemGlobal g on a.item = g.item and g.bonusset = ifnull(ae.bonusset, 0) and g.region = r.region and a.item != %1$d
+left join tblItemSummary s on a.item = s.item and s.level = ifnull(ae.level, 0) and s.house = a.house and a.item != %1$d
+left join tblItemGlobal g on a.item = g.item and g.level = ifnull(ae.level, 0) and g.region = r.region and a.item != %1$d
 left join tblAuctionPet ap on ap.id = a.id and ap.house = a.house
 left join tblPetSummary ps on ap.species = ps.species and ps.house = a.house and a.item = %1$d
 left join tblPetGlobal pg on ap.species = pg.species and pg.region = r.region and a.item = %1$d
@@ -142,7 +142,7 @@ EOF;
     select sum(ifnull(s.price, ps.price) * a.quantity)
     from tblAuction a
     left join tblAuctionExtra ae on ae.id = a.id and ae.house = a.house
-    left join tblItemSummary s on a.item = s.item and s.bonusset = ifnull(ae.bonusset, 0) and s.house = a.house and a.item != %1$d
+    left join tblItemSummary s on a.item = s.item and s.level = ifnull(ae.level, 0) and s.house = a.house and a.item != %1$d
     left join tblAuctionPet ap on ap.id = a.id and ap.house = a.house
     left join tblPetSummary ps on ap.species = ps.species and ps.house = a.house and a.item = %1$d
     where a.house = ?
@@ -155,7 +155,7 @@ EOF;
     from tblAuction a
     join tblRealm r on r.house = a.house and r.canonical is not null
     left join tblAuctionExtra ae on ae.id = a.id and ae.house = a.house
-    left join tblItemGlobal g on a.item = g.item and g.bonusset = ifnull(ae.bonusset, 0) and g.region = r.region and a.item != %1$d
+    left join tblItemGlobal g on a.item = g.item and g.level = ifnull(ae.level, 0) and g.region = r.region and a.item != %1$d
     left join tblAuctionPet ap on ap.id = a.id and ap.house = a.house
     left join tblPetGlobal pg on ap.species = pg.species and pg.region = r.region and a.item = %1$d
     where a.house = ?
@@ -291,12 +291,11 @@ EOF;
 
 function SellerAuctions($house, $seller)
 {
-    $cacheKey = 'seller_auctions_b3_' . $seller;
+    $cacheKey = 'seller_auctions_l2_' . $seller;
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         PopulateLocaleCols($tr, [
                 ['func' => 'GetItemNames',          'key' => 'item',    'name' => 'name'],
                 ['func' => 'GetItemBonusNames',     'key' => 'bonuses', 'name' => 'bonusname'],
-                ['func' => 'GetItemBonusTags',      'key' => 'bonuses', 'name' => 'bonustag'],
                 ['func' => 'GetRandEnchantNames',   'key' => 'rand',    'name' => 'randname'],
             ], true);
         return $tr;
@@ -305,19 +304,17 @@ function SellerAuctions($house, $seller)
     $db = DBConnect();
 
     $sql = <<<EOF
-select item, level, quality, class, subclass, icon, stacksize, quantity, bid, buy, `rand`, seed, lootedlevel, bonuses, tagurl,
-(SELECT ifnull(sum(quantity),0) from tblAuction a2 left join tblAuctionExtra ae2 on a2.house=ae2.house and a2.id=ae2.id where a2.house=results.house and a2.item=results.item and ifnull(ae2.bonusset,0) = ifnull(results.bonusset,0) and
+select item, level, baselevel, quality, class, subclass, icon, stacksize, quantity, bid, buy, `rand`, seed, lootedlevel, bonuses,
+(SELECT ifnull(sum(quantity),0) from tblAuction a2 left join tblAuctionExtra ae2 on a2.house=ae2.house and a2.id=ae2.id where a2.house=results.house and a2.item=results.item and ifnull(ae2.level,0) = ifnull(results.level,0) and
 ((results.buy > 0 and a2.buy > 0 and (a2.buy / a2.quantity < results.buy / results.quantity)) or (results.buy = 0 and (a2.bid / a2.quantity < results.bid / results.quantity)))) cheaper
 from (
-    SELECT a.item, nullif(ae.level,i.level) level, i.quality, i.class, i.subclass, i.icon, i.stacksize, a.quantity, a.bid, a.buy,
+    SELECT a.item, ae.level, i.quality, i.class, i.subclass, i.icon, i.stacksize, a.quantity, a.bid, a.buy,
     ifnull(ae.`rand`, 0) `rand`, ifnull(ae.seed,0) seed, ae.lootedlevel,
     concat_ws(':',ae.bonus1,ae.bonus2,ae.bonus3,ae.bonus4,ae.bonus5,ae.bonus6) bonuses,
-    ifnull(GROUP_CONCAT(distinct bs.`tagid` ORDER BY 1 SEPARATOR ':'), '') tagurl,
-    a.house, a.seller, ae.bonusset
+    a.house, a.seller, i.level baselevel
     FROM `tblAuction` a
     left join tblDBCItem i on a.item=i.id
     left join tblAuctionExtra ae on ae.house=a.house and ae.id=a.id
-    left join tblBonusSet bs on ae.bonusset = bs.set
     WHERE a.seller = ?
     and a.item != %d
     group by a.id
@@ -337,7 +334,6 @@ EOF;
     PopulateLocaleCols($tr, [
             ['func' => 'GetItemNames',          'key' => 'item',    'name' => 'name'],
             ['func' => 'GetItemBonusNames',     'key' => 'bonuses', 'name' => 'bonusname'],
-            ['func' => 'GetItemBonusTags',      'key' => 'bonuses', 'name' => 'bonustag'],
             ['func' => 'GetRandEnchantNames',   'key' => 'rand',    'name' => 'randname'],
         ], true);
 

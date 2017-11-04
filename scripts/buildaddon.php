@@ -31,7 +31,6 @@ $luaQuoteChange = [
 
 heartbeat();
 file_put_contents('../addon/GetDetailedItemLevelInfo.lua', BuildGetDetailedItemLevelInfo());
-file_put_contents('../addon/BonusSets.lua', BuildBonusSets());
 file_put_contents('../addon/MarketData-US.lua', BuildAddonData('US'));
 file_put_contents('../addon/MarketData-EU.lua', BuildAddonData('EU'));
 MakeZip($zipPath);
@@ -188,37 +187,6 @@ EOF;
     return $lua;
 }
 
-function BuildBonusSets()
-{
-    global $db;
-
-    $lua = "local addonName, addonTable = ...\n";
-
-    $lua .= "addonTable.bonusSets = {\n";
-    $stmt = $db->prepare('SELECT `set`, group_concat(tagid order by 1 separator \',\') tagids FROM `tblBonusSet` group by `set`');
-    $stmt->execute();
-    $k = $v = null;
-    $stmt->bind_result($k, $v);
-    while ($stmt->fetch()) {
-        $lua .= "\t[".$k.']={'.$v."},\n";
-    }
-    $stmt->close();
-    $lua .= "}\n";
-
-    $lua .= "addonTable.bonusTags = {\n";
-    $stmt = $db->prepare('SELECT tagid, concat(\'\'\'\', group_concat(id order by 1 separator \'\'\',\'\'\'), \'\'\'\') bonuses FROM `tblDBCItemBonus` WHERE tagid is not null group by tagid');
-    $stmt->execute();
-    $k = $v = null;
-    $stmt->bind_result($k, $v);
-    while ($stmt->fetch()) {
-        $lua .= "\t[".$k.']={'.$v."},\n";
-    }
-    $stmt->close();
-    $lua .= "}\n";
-
-    return $lua;
-}
-
 function BuildAddonData($region)
 {
     global $db;
@@ -252,7 +220,7 @@ and not (i.class = 0 and i.subclass = 5 and 0 = (select count(*) from tblDBCItem
 EOF;
 
     $sql = <<<EOF
-SELECT g.item, g.bonusset, g.median, g.mean, g.stddev
+SELECT g.item, g.level, g.median, g.mean, g.stddev
 FROM tblItemGlobal g
 join tblDBCItem i on g.item=i.id
 where g.region = ?
@@ -264,7 +232,7 @@ EOF;
     $stmt->execute();
     $result = $stmt->get_result();
     while ($priceRow = $result->fetch_assoc()) {
-        $item = ''.$priceRow['item'].($priceRow['bonusset'] != '0' ? ('x'.$priceRow['bonusset']) : '');
+        $item = ''.$priceRow['item'].($priceRow['level'] != '0' ? ('x'.$priceRow['level']) : '');
         $item_global[$item] = pack('LLL', round($priceRow['median']/100), round($priceRow['mean']/100), round($priceRow['stddev']/100));
     }
     $result->close();
@@ -281,7 +249,7 @@ EOF;
     $stmt->close();
 
     $sql = <<<EOF
-SELECT tis.item, tis.bonusset,
+SELECT tis.item, tis.level,
 datediff(now(), tis.lastseen) since,
 round(ifnull(avg(case hours.h
     when  0 then ihh.silver00 when  1 then ihh.silver01 when  2 then ihh.silver02 when  3 then ihh.silver03
@@ -316,11 +284,11 @@ join (select 0 h union select  1 h union select  2 h union select  3 h union
      select 12 h union select 13 h union select 14 h union select 15 h union
      select 16 h union select 17 h union select 18 h union select 19 h union
      select 20 h union select 21 h union select 22 h union select 23 h) hours
-left join tblItemHistoryHourly ihh on ihh.item = tis.item and ihh.house = tis.house and ihh.bonusset = tis.bonusset
+left join tblItemHistoryHourly ihh on ihh.item = tis.item and ihh.house = tis.house and ihh.level = tis.level
 left join tblDBCItemVendorCost ivc on ivc.item = i.id
 WHERE tis.house = ?
 $itemExcludeSql
-group by tis.item, tis.bonusset
+group by tis.item, tis.level
 EOF;
 
     for ($hx = 0; $hx < count($houses); $hx++) {
@@ -335,7 +303,7 @@ EOF;
         $stmt->execute();
         $result = $stmt->get_result();
         while ($priceRow = $result->fetch_assoc()) {
-            $item = ''.$priceRow['item'].($priceRow['bonusset'] != '0' ? ('x'.$priceRow['bonusset']) : '');
+            $item = ''.$priceRow['item'].($priceRow['level'] != '0' ? ('x'.$priceRow['level']) : '');
 
             if (!isset($item_avg[$item])) {
                 $item_avg[$item] = '';
@@ -351,7 +319,7 @@ EOF;
             }
 
             $prc = intval($priceRow['price'], 10);
-            $usingVendor = $priceRow['vendorprice'] && (intval($priceRow['vendorprice'],10) < $prc) && ($priceRow['bonusset'] == '0');
+            $usingVendor = $priceRow['vendorprice'] && (intval($priceRow['vendorprice'],10) < $prc) && ($priceRow['level'] == '0');
             if ($usingVendor) {
                 $prc = intval($priceRow['vendorprice'],10);
             }
@@ -666,7 +634,6 @@ function MakeZip($zipPath = false)
     $zip->addFromString("TheUndermineJournal/TheUndermineJournal.toc",$tocFile);
     RecursiveAddToZip($zip, '../addon/libs/', 'TheUndermineJournal/libs/');
     $zip->addFile('../addon/GetDetailedItemLevelInfo.lua',"TheUndermineJournal/GetDetailedItemLevelInfo.lua");
-    $zip->addFile('../addon/BonusSets.lua',"TheUndermineJournal/BonusSets.lua");
     $zip->addFile('../addon/TheUndermineJournal.lua',"TheUndermineJournal/TheUndermineJournal.lua");
     $zip->addFile('../addon/MarketData-US.lua',"TheUndermineJournal/MarketData-US.lua");
     $zip->addFile('../addon/MarketData-EU.lua',"TheUndermineJournal/MarketData-EU.lua");
