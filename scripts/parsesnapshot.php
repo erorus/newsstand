@@ -672,7 +672,7 @@ EOF;
     }
     unset($oldRow);
     DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating " . count($itemInfo) . " item info (including " . (count($itemInfo) - $preDeleted) . " no longer available)");
-    UpdateItemInfo($house, $itemInfo, $snapshot);
+    UpdateItemInfo($house, $itemInfo, $snapshot, $prevSnapshot);
     unset($itemInfo);
 
     $sql = 'delete from tblUserRareReport where house = %d and level = %d and item in (%s)';
@@ -1022,7 +1022,7 @@ function UpdateSellerInfo(&$sellerInfo, $house, $snapshot)
     }
 }
 
-function UpdateItemInfo($house, $itemInfo, $snapshot)
+function UpdateItemInfo($house, $itemInfo, $snapshot, $prevSnapshot)
 {
     global $db, $maxPacketSize;
 
@@ -1120,19 +1120,20 @@ EOF;
 
     // update history tables from summary data
 
+    $prevSnapshotString = date('Y-m-d H:i:s', $prevSnapshot);
     $sql = <<<'EOF'
 INSERT INTO tblItemHistoryHourly (house, item, level, `when`, `silver%1$s`, `quantity%1$s`)
     (SELECT s.house, s.item, s.level, ?, round(s.price/100), s.quantity
     FROM tblItemSummary s
     WHERE s.house = ?
-    AND s.item IN (SELECT s2.item FROM tblItemSummary s2 WHERE s2.house = ? AND s2.lastseen=?))
+    AND s.item IN (SELECT s2.item FROM tblItemSummary s2 WHERE s2.house = ? AND s2.lastseen>=?))
 ON DUPLICATE KEY UPDATE
     `silver%1$s`=if(values(`quantity%1$s`) > ifnull(`quantity%1$s`,0), values(`silver%1$s`), `silver%1$s`),
     `quantity%1$s`=if(values(`quantity%1$s`) > ifnull(`quantity%1$s`,0), values(`quantity%1$s`), `quantity%1$s`)
 EOF;
 
     $stmt = $db->prepare(sprintf($sql, $hour));
-    $stmt->bind_param('siis', $dateString, $house, $house, $snapshotString);
+    $stmt->bind_param('siis', $dateString, $house, $house, $prevSnapshotString);
     $stmt->execute();
     $stmt->close();
 
@@ -1141,14 +1142,14 @@ INSERT INTO tblItemHistoryMonthly (house, item, level, `month`, mktslvr%1$s, qty
     (SELECT s.house, s.item, s.level, ?, round(s.price/100), s.quantity
     FROM tblItemSummary s
     WHERE s.house = ?
-    AND s.item IN (SELECT s2.item FROM tblItemSummary s2 WHERE s2.house = ? AND s2.lastseen=?))
+    AND s.item IN (SELECT s2.item FROM tblItemSummary s2 WHERE s2.house = ? AND s2.lastseen>=?))
 ON DUPLICATE KEY UPDATE
     mktslvr%1$s=if(values(qty%1$s) > ifnull(qty%1$s,0), values(mktslvr%1$s), mktslvr%1$s),
     qty%1$s=if(values(qty%1$s) > ifnull(qty%1$s,0), values(qty%1$s), qty%1$s)
 EOF;
 
     $stmt = $db->prepare(sprintf($sql, $day));
-    $stmt->bind_param('siis', $month, $house, $house, $snapshotString);
+    $stmt->bind_param('siis', $month, $house, $house, $prevSnapshotString);
     $stmt->execute();
     $stmt->close();
 }
