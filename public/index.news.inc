@@ -1,3 +1,7 @@
-<div class="news">We're testing a new tooltip script based on the Battle.net API instead of using Wowhead's.<br>
-    Please let us know via <a href="http://stormspire.net/official-forum-undermine-journal/?referrerid=380" style="white-space: nowrap">the Forum</a>,
-    <a href="https://twitter.com/UndermineJrnl" style="white-space: nowrap">@UndermineJrnl on Twitter</a>, or <a href="/#contact" style="white-space: nowrap">the Contact form</a> if you notice any issues or any feedback you'd like to share.</div>
+<div class="news">
+    Item version pricing has changed.<br>
+    We no longer separate items by tags like "Heroic", "Thunderforged", etc.<br>
+    Instead, the pricing of different versions of items is based solely upon the item's level.<br><br>
+    There are a few additional rules for market pricing because of this change. Essentially, a version with a higher item level will never have a market price which is lower than the price of a lower item level version of that same item. This is explained more <a href="http://stormspire.net/official-forum-of-the-undermine-journal/19794-suggestion-different-way-pricing-items-variation.html">in this forum thread</a> and we encourage you to discuss it further if you have any questions.<br><br>
+    Finally, previous market notifications for items with versions have been marked as deleted. You are encouraged to create new market notifications for the items you're interested in by selecting the minimum item level you want, and setting quantity/price for those. Please send us a message via the forum or the contact form linked in the footer if you need any assistance.
+</div>
