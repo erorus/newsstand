@@ -1058,6 +1058,8 @@ function UpdateItemInfo($house, $itemInfo, $snapshot, $prevSnapshot)
         DBQueryWithError($db, $sql . $sqlEnd);
     }
 
+    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " performing itemlevel price adjustments");
+
     DBQueryWithError($db, 'create temporary table ttblPriceAdjustment like ttblItemSummaryTemplate');
 
     // "when my qty > 0, everyone with lower ilevel is capped at my price"
@@ -1119,6 +1121,7 @@ EOF;
     DBQueryWithError($db, 'drop temporary table ttblPriceAdjustment');
 
     // update history tables from summary data
+    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating hourly item history");
 
     $prevSnapshotString = date('Y-m-d H:i:s', $prevSnapshot);
     $sql = <<<'EOF'
@@ -1136,6 +1139,8 @@ EOF;
     $stmt->bind_param('siis', $dateString, $house, $house, $prevSnapshotString);
     $stmt->execute();
     $stmt->close();
+
+    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating monthly item history");
 
     $sql = <<<'EOF'
 INSERT INTO tblItemHistoryMonthly (house, item, level, `month`, mktslvr%1$s, qty%1$s)
