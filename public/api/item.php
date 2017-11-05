@@ -404,23 +404,25 @@ function ItemGlobalNow($region, $item)
 {
     global $db;
 
-    $key = 'item_globalnow_l_' . $region . '_' . $item;
+    $key = 'item_globalnow_l2_' . $region . '_' . $item;
     if (($tr = MCGet($key)) !== false) {
         return $tr;
     }
 
     DBConnect();
+    $goldCapIncreased = date('Y-m-d H:i:s', 1469016000 + (86400 * 2)); // july 20th 2016, plus 2 days for auctions to expire
 
     $sql = <<<EOF
     SELECT i.level, r.house, i.price, i.quantity, unix_timestamp(i.lastseen) as lastseen
 FROM `tblItemSummary` i
 join tblRealm r on i.house = r.house and r.region = ? and r.canonical is not null
 WHERE i.item=?
+and i.lastseen > ?
 group by i.level, r.house
 EOF;
 
     $stmt = $db->prepare($sql);
-    $stmt->bind_param('si', $region, $item);
+    $stmt->bind_param('sis', $region, $item, $goldCapIncreased);
     $stmt->execute();
     $result = $stmt->get_result();
     $tr = DBMapArray($result, array('level', null));
