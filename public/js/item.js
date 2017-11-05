@@ -105,13 +105,27 @@ var TUJ_Item = function ()
                 continue;
             }
             levels.push(parseInt(lvl,10));
-            if (level === false) {
-                level = lvl;
-            }
             foundLevel |= level == lvl;
         }
         levels.sort();
-        if (!foundLevel || (('' + params.id).indexOf('.') > 0 && (dta.stats[level].baselevel == level))) {
+        if (!foundLevel) {
+            if (level === false) {
+                // url didn't specify a level
+                if (dta.stats.hasOwnProperty(dta.stats[levels[0]].baselevel)) {
+                    // use the base level
+                    level = dta.stats[levels[0]].baselevel;
+                } else {
+                    // no stats for the real base level, use the first level for which we have stats
+                    tuj.SetParams({page: 'item', id: '' + itemId + '.' + levels[0]});
+                    return;
+                }
+            } else {
+                // didn't find the level specified in the URL in the list of levels for this house
+                tuj.SetParams({page: 'item', id: '' + itemId});
+                return;
+            }
+        } else if (dta.stats[level].baselevel == level) {
+            // the level specified in the URL is the base level, which makes it redundant. remove it.
             tuj.SetParams({page: 'item', id: '' + itemId});
             return;
         }
