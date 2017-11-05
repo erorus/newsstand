@@ -124,7 +124,7 @@ var TUJ_Item = function ()
                 tuj.SetParams({page: 'item', id: '' + itemId});
                 return;
             }
-        } else if (dta.stats[level].baselevel == level) {
+        } else if (level && dta.stats[level].baselevel == level) {
             // the level specified in the URL is the base level, which makes it redundant. remove it.
             tuj.SetParams({page: 'item', id: '' + itemId});
             return;
