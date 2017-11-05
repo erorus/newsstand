@@ -1134,8 +1134,8 @@ INSERT INTO tblItemHistoryHourly (house, item, level, `when`, `silver%1$s`, `qua
     WHERE s.house = ?
     AND s.item IN (SELECT s2.item FROM tblItemSummary s2 WHERE s2.house = ? AND s2.lastseen>=?))
 ON DUPLICATE KEY UPDATE
-    `silver%1$s`=if(values(`quantity%1$s`) > ifnull(`quantity%1$s`,0), values(`silver%1$s`), `silver%1$s`),
-    `quantity%1$s`=if(values(`quantity%1$s`) > ifnull(`quantity%1$s`,0), values(`quantity%1$s`), `quantity%1$s`)
+    `silver%1$s`=if(values(`quantity%1$s`) >= ifnull(`quantity%1$s`,0), values(`silver%1$s`), `silver%1$s`),
+    `quantity%1$s`=if(values(`quantity%1$s`) >= ifnull(`quantity%1$s`,0), values(`quantity%1$s`), `quantity%1$s`)
 EOF;
 
     $stmt = $db->prepare(sprintf($sql, $hour));
@@ -1152,8 +1152,8 @@ INSERT INTO tblItemHistoryMonthly (house, item, level, `month`, mktslvr%1$s, qty
     WHERE s.house = ?
     AND s.item IN (SELECT s2.item FROM tblItemSummary s2 WHERE s2.house = ? AND s2.lastseen>=?))
 ON DUPLICATE KEY UPDATE
-    mktslvr%1$s=if(values(qty%1$s) > ifnull(qty%1$s,0), values(mktslvr%1$s), mktslvr%1$s),
-    qty%1$s=if(values(qty%1$s) > ifnull(qty%1$s,0), values(qty%1$s), qty%1$s)
+    mktslvr%1$s=if(values(qty%1$s) >= ifnull(qty%1$s,0), values(mktslvr%1$s), mktslvr%1$s),
+    qty%1$s=if(values(qty%1$s) >= ifnull(qty%1$s,0), values(qty%1$s), qty%1$s)
 EOF;
 
     $stmt = $db->prepare(sprintf($sql, $day));
