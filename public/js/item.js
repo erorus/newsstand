@@ -137,7 +137,7 @@ var TUJ_Item = function ()
         ta.target = '_blank';
         ta.rel = 'noopener noreferrer';
         ta.className = 'item';
-        if (level != dta.stats[level].baselevel) {
+        if (level != dta.stats[level].baselevel || levels.length > 1) {
             ta.dataset.wowhead = 'bonus=' + libtuj.LevelOffsetBonus(level - dta.stats[level].baselevel);
         }
         var timg = libtuj.ce('img');
