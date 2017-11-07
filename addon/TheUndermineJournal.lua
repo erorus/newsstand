@@ -1,6 +1,6 @@
 --[[
 
-TheUndermineJournal addon, v 5.0
+TheUndermineJournal addon, v 5.1
 https://theunderminejournal.com/
 
 You should be able to query this DB from other addons:
@@ -152,7 +152,7 @@ function TUJMarketInfo(item,...)
             local effectiveLevel, previewLevel, origLevel = GetDetailedItemLevelInfo(item)
             pricingLevel = effectiveLevel
             if not addonTable.marketData[dataKey .. 'x' .. pricingLevel] then
-                local low, high = math.min(effectiveLevel, previewLevel, origLevel), math.max(effectiveLevel, previewLevel, origLevel)
+                local low, high = math.min(effectiveLevel, previewLevel or effectiveLevel, origLevel), math.max(effectiveLevel, previewLevel or effectiveLevel, origLevel)
                 for i=low,high,1 do
                     if addonTable.marketData[dataKey .. 'x' .. i] then
                         pricingLevel = i
