@@ -34,7 +34,7 @@
         <link rel="dns-prefetch" href="//data.wowtoken.info">
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js" defer></script>
         <script type="text/javascript" src="js/highcharts-custom.js?2" defer></script>
-        <script type="text/javascript" src="js/main.js?56" defer></script>
+        <script type="text/javascript" src="js/main.js?57" defer></script>
     </head>
     <body>
         <div class="mui-container">
@@ -172,6 +172,36 @@
                 </table>
                 <div id="hc-eu"></div>
                 <div id="ns-eu"></div>
+            </div>
+
+            <div class="mui-panel realm-panel" id="cn-panel">
+                <h2>Chinese Realms</h2>
+                <table class="results">
+                    <tbody>
+                    <tr>
+                        <td>Buy Price</td>
+                        <td class="buy-price" id="CN-buy"></td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align: bottom">24-Hour Range</td>
+                        <td>
+                            <span id="CN-24min"></span>
+                            <div class="range-bar"><div class="range-point" id="CN-24pct-left"></div></div>
+                            <span id="CN-24max"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Data Source</td>
+                        <td id="CN-source"></td>
+                    </tr>
+                    <tr>
+                        <td>Updated</td>
+                        <td id="CN-updatedhtml"></td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div id="hc-cn"></div>
+                <div id="ns-cn"></div>
             </div>
 
             <div class="mui-panel realm-panel" id="tw-panel">

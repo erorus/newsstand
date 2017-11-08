@@ -13,6 +13,7 @@ var wowtoken = {
     regions: {
         'na': 'NA',
         'eu': 'EU',
+        'cn': 'CN',
         'tw': 'TW',
         'kr': 'KR',
     },
@@ -79,6 +80,7 @@ var wowtoken = {
         regionMinMax: {
             'na': [60000, 200000, 2000],
             'eu': [150000, 300000, 2000],
+            'cn': [300000, 600000, 5000],
             'tw': [100000, 400000, 5000],
             'kr': [200000, 500000, 5000]
         },
@@ -578,6 +580,13 @@ var wowtoken = {
                     'line': '#ff0000',
                     'fill': 'rgba(255,204,204,0.6)',
                     'text': '#990000',
+                }
+                break;
+            case 'CN':
+                colors = {
+                    'line': '#00cc00',
+                    'fill': 'rgba(178,230,178,0.6)',
+                    'text': '#009900',
                 }
                 break;
             case 'TW':

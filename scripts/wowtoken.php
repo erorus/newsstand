@@ -45,7 +45,7 @@ $resultCodes = [
 $timeZones = [
     'US' => 'America/New_York',
     'EU' => 'Europe/Paris',
-//    'CN' => 'Asia/Shanghai',
+    'CN' => 'Asia/Shanghai',
     'TW' => 'Asia/Taipei',
     'KR' => 'Asia/Seoul',
 ];
@@ -67,7 +67,7 @@ $timeLeftNumbers = [
 $regionNames = [
     'NA' => 'North American',
     'EU' => 'European',
-//    'CN' => 'Chinese',
+    'CN' => 'Chinese',
     'TW' => 'Taiwanese',
     'KR' => 'Korean',
 ];
