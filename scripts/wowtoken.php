@@ -87,7 +87,7 @@ while ((!CatchKill()) && (time() < ($loopStart + 60))) {
         break;
     }
 }
-$gotData = array_merge($gotData, CheckTokenAPI(['US','EU','TW','KR']));
+$gotData = array_merge($gotData, CheckTokenAPI(['US','EU','CN','TW','KR']));
 $forceBuild = (isset($argv[1]) && $argv[1] == 'build');
 if ($gotData || $forceBuild) {
     BuildIncludes(array_keys($timeZones));
