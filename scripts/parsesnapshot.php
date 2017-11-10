@@ -1043,7 +1043,6 @@ function UpdateItemInfo($house, $itemInfo, $snapshot, $prevSnapshot)
     $sql = '';
 
     ksort($itemInfo, SORT_NUMERIC); // improves insert performance(?)
-    $itemRows = 0;
 
     foreach ($itemInfo as $item => $levels) {
         ksort($levels);
@@ -1062,6 +1061,16 @@ function UpdateItemInfo($house, $itemInfo, $snapshot, $prevSnapshot)
 
     if ($sql != '') {
         DBQueryWithError($db, $sql . $sqlEnd);
+    }
+
+    // ugly hack to clean up rows whose auctions we didn't notice went missing
+    $stmt = $db->prepare('update tblItemSummary set quantity = 0 where quantity > 0 and house = ? and lastseen < ?');
+    $stmt->bind_param('is', $house, $snapshotString);
+    $stmt->execute();
+    $howMany = $stmt->affected_rows;
+    $stmt->close();
+    if ($howMany > 0) {
+        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " fixed quantity for $howMany item summary rows which we didn't notice went missing");
     }
 
     DBQueryWithError($db, 'create temporary table ttblPriceAdjustment like ttblItemSummaryTemplate');
