@@ -19,7 +19,7 @@ BotCheck();
 HouseETag($house);
 
 $locale = GetLocale();
-$searchCacheKey = 'search_l_' . $locale . '_' . md5($search);
+$searchCacheKey = 'search_ls_' . $locale . '_' . md5($search);
 
 if ($json = MCGetHouse($house, $searchCacheKey)) {
     PopulateLocaleCols($json['battlepets'], [['func' => 'GetPetNames',  'key' => 'id', 'name' => 'name']]);
@@ -155,7 +155,10 @@ function SearchSellers($house, $search)
 {
     global $db;
 
+    $search = mb_ereg_replace('%', '', $search);
     $terms = mb_ereg_replace('\s+', '%', " $search ");
+    $exact = mb_ereg_replace('\s+', '', $search);
+    $first = $exact . '%';
 
     $sql = <<<EOF
 select s.id, r.id realm, s.name, unix_timestamp(s.firstseen) firstseen, unix_timestamp(s.lastseen) lastseen
@@ -163,11 +166,15 @@ from tblSeller s
 join tblRealm r on s.realm=r.id and r.house=?
 where convert(s.name using utf8) collate utf8_unicode_ci like ?
 and s.lastseen is not null
+order by
+    if(convert(s.name using utf8) collate utf8_unicode_ci = ?, 0, 1) asc,
+    if(convert(s.name using utf8) collate utf8_unicode_ci like ?, 0, 1) asc,
+    s.lastseen desc
 limit 50
 EOF;
 
     $stmt = $db->prepare($sql);
-    $stmt->bind_param('is', $house, $terms);
+    $stmt->bind_param('isss', $house, $terms, $exact, $first);
     $stmt->execute();
     $result = $stmt->get_result();
     $tr = $result->fetch_all(MYSQLI_ASSOC);
