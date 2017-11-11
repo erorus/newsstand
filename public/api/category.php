@@ -644,7 +644,7 @@ function CategoryResult_archaeology($house)
 
 function CategoryResult_blood($house)
 {
-    $amounts = [
+    $blood_amounts = [
         124117 => 10,
         124101 => 10,
         124437 => 10,
@@ -672,6 +672,20 @@ function CategoryResult_blood($house)
         142117 => 10,
     ];
 
+    $sargerite_amounts = [
+        152296 => 1,
+        151565 => 10,
+        151564 => 10,
+        151566 => 10,
+        151567 => 10,
+        151579 => 0.1,
+        151722 => 0.1,
+        151720 => 0.1,
+        151718 => 0.1,
+        151721 => 0.1,
+        151719 => 0.1,
+    ];
+
     return [
         'name'    => 'category_blood',
         'results' => [
@@ -679,8 +693,16 @@ function CategoryResult_blood($house)
                 'name' => 'ItemList',
                 'data' => [
                     'name'  => 'category_blood',
-                    'items' => CategoryRegularItemList($house, 'i.id in (' . implode(',', array_keys($amounts)) . ')'),
-                    'amounts' => $amounts,
+                    'items' => CategoryRegularItemList($house, 'i.id in (' . implode(',', array_keys($blood_amounts)) . ')'),
+                    'amounts' => $blood_amounts,
+                ]
+            ],
+            [
+                'name' => 'ItemList',
+                'data' => [
+                    'name'  => 'category_sargerite',
+                    'items' => CategoryRegularItemList($house, 'i.id in (' . implode(',', array_keys($sargerite_amounts)) . ')'),
+                    'amounts' => $sargerite_amounts,
                 ]
             ],
         ]

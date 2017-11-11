@@ -176,6 +176,9 @@ var libtuj = {
     FormatQuantity: function (amt, justValue)
     {
         var v = Number(Math.round(amt)).toLocaleString();
+        if (Math.round(amt * 100) % 100 != 0) {
+            v = Number(amt).toFixed(2);
+        }
         if (justValue) {
             return v;
         }
