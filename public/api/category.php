@@ -686,6 +686,24 @@ function CategoryResult_blood($house)
         151719 => 0.1,
     ];
 
+    $sargerite_items = CategoryRegularItemList($house, 'i.id in (124125,' . implode(',', array_keys($sargerite_amounts)) . ')');
+    $obliterum_item = false;
+    $primal_index = false;
+    for ($x = 0; $x < count($sargerite_items); $x++) {
+        if ($sargerite_items[$x]['id'] == 124125) {
+            $obliterum_item = $sargerite_items[$x];
+            array_splice($sargerite_items, $x--, 1);
+            continue;
+        }
+        if ($sargerite_items[$x]['id'] == 152296) {
+            $primal_index = $x;
+        }
+    }
+    if ($obliterum_item !== false && $primal_index !== false) {
+        $sargerite_items[$primal_index]['price'] -= ($obliterum_item['price'] ?? $obliterum_item['avgprice']);
+        $sargerite_items[$primal_index]['avgprice'] -= $obliterum_item['avgprice'];
+    }
+
     return [
         'name'    => 'category_blood',
         'results' => [
@@ -701,7 +719,7 @@ function CategoryResult_blood($house)
                 'name' => 'ItemList',
                 'data' => [
                     'name'  => 'category_sargerite',
-                    'items' => CategoryRegularItemList($house, 'i.id in (' . implode(',', array_keys($sargerite_amounts)) . ')'),
+                    'items' => $sargerite_items,
                     'amounts' => $sargerite_amounts,
                 ]
             ],
