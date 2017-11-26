@@ -10,7 +10,7 @@ require_once('../incl/memcache.incl.php');
 require_once('../incl/subscription.incl.php');
 require_once('../incl/BonusItemLevel.incl.php');
 
-RunMeNTimes(2);
+RunMeNTimes(1);
 CatchKill();
 
 define('SNAPSHOT_PATH', '/var/newsstand/snapshots/watch/');

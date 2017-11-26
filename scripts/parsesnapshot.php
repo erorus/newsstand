@@ -1158,8 +1158,9 @@ EOF;
 INSERT INTO tblItemHistoryMonthly (house, item, level, `month`, mktslvr%1$s, qty%1$s)
     (SELECT s.house, s.item, s.level, ?, round(s.price/100), s.quantity
     FROM tblItemSummary s
-    WHERE s.house = ?
-    AND s.item IN (SELECT s2.item FROM tblItemSummary s2 WHERE s2.house = ? AND s2.lastseen>=?))
+    JOIN tblItemSummary s2 on s2.item = s.item
+    WHERE s.house = ? and s2.house = ? and s2.lastseen>=?
+    GROUP BY s.house, s.item, s.level)
 ON DUPLICATE KEY UPDATE
     mktslvr%1$s=if(values(qty%1$s) >= ifnull(qty%1$s,0), values(mktslvr%1$s), mktslvr%1$s),
     qty%1$s=if(values(qty%1$s) >= ifnull(qty%1$s,0), values(qty%1$s), qty%1$s)
