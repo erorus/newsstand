@@ -1160,15 +1160,17 @@ INSERT INTO tblItemHistoryMonthly (item, house, level, `month`, mktslvr%1$s, qty
     (SELECT s.item, s.house, s.level, ?, round(s.price/100), s.quantity
     FROM tblItemSummary s
     JOIN tblItemSummary s2 on s2.item = s.item
+    LEFT JOIN tblItemHistoryMonthly ihm on ihm.item = s.item and ihm.house = s.house and ihm.level = s.level and ihm.month = ?
     WHERE s.house = ? and s2.house = ? and s2.lastseen>=?
+    AND (s.quantity > ifnull(ihm.qty%1$s, 0) OR (s.quantity = ihm.qty%1$s and round(s.price/100) != ihm.mktslvr%1$s))
     GROUP BY s.house, s.item, s.level)
 ON DUPLICATE KEY UPDATE
-    mktslvr%1$s=if(values(qty%1$s) >= ifnull(qty%1$s,0), values(mktslvr%1$s), mktslvr%1$s),
-    qty%1$s=if(values(qty%1$s) >= ifnull(qty%1$s,0), values(qty%1$s), qty%1$s)
+    mktslvr%1$s = values(mktslvr%1$s),
+    qty%1$s = values(qty%1$s)
 EOF;
 
     $stmt = $db->prepare(sprintf($sql, $day));
-    $stmt->bind_param('siis', $month, $house, $house, $prevSnapshotString);
+    $stmt->bind_param('iiiis', $month, $month, $house, $house, $prevSnapshotString);
     $stmt->execute();
     $stmt->close();
 }
