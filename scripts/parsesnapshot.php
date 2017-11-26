@@ -1140,8 +1140,9 @@ EOF;
 INSERT INTO tblItemHistoryHourly (house, item, level, `when`, `silver%1$s`, `quantity%1$s`)
     (SELECT s.house, s.item, s.level, ?, round(s.price/100), s.quantity
     FROM tblItemSummary s
-    WHERE s.house = ?
-    AND s.item IN (SELECT s2.item FROM tblItemSummary s2 WHERE s2.house = ? AND s2.lastseen>=?))
+    JOIN tblItemSummary s2 on s2.item = s.item
+    WHERE s.house = ? and s2.house = ? and s2.lastseen>=?
+    GROUP BY s.house, s.item, s.level)
 ON DUPLICATE KEY UPDATE
     `silver%1$s`=if(values(`quantity%1$s`) >= ifnull(`quantity%1$s`,0), values(`silver%1$s`), `silver%1$s`),
     `quantity%1$s`=if(values(`quantity%1$s`) >= ifnull(`quantity%1$s`,0), values(`quantity%1$s`), `quantity%1$s`)
@@ -1155,8 +1156,8 @@ EOF;
     DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating monthly item history");
 
     $sql = <<<'EOF'
-INSERT INTO tblItemHistoryMonthly (house, item, level, `month`, mktslvr%1$s, qty%1$s)
-    (SELECT s.house, s.item, s.level, ?, round(s.price/100), s.quantity
+INSERT INTO tblItemHistoryMonthly (item, house, level, `month`, mktslvr%1$s, qty%1$s)
+    (SELECT s.item, s.house, s.level, ?, round(s.price/100), s.quantity
     FROM tblItemSummary s
     JOIN tblItemSummary s2 on s2.item = s.item
     WHERE s.house = ? and s2.house = ? and s2.lastseen>=?
