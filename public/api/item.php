@@ -243,6 +243,7 @@ EOF;
     $stmt->close();
 
     $tr = [];
+    $today = strtotime(date('Y-m-d'));
     foreach ($levelRows as $level => &$rows) {
         $prevPrice = 0;
         for ($x = 0; $x < count($rows); $x++) {
@@ -268,7 +269,7 @@ EOF;
                     if (!checkdate($monthNum, $dayNum, $year)) {
                         break;
                     }
-                    if (strtotime("$year-$month-$day") > time()) {
+                    if (strtotime("$year-$month-$day") >= $today) {
                         break;
                     }
                     if ($prevPrice) {

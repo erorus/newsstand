@@ -156,6 +156,11 @@ EOF;
         }
 
         if ($rowCount >= 0) {
+            $rowCount = UpdateMonthlyTable($houseRow['house'], $houseRow['dt']);
+            DebugMessage("$rowCount monthly item rows updated for house {$houseRow['house']} for date {$houseRow['dt']}");
+        }
+
+        if ($rowCount >= 0) {
             $stmt = $db->prepare('INSERT INTO tblHouseCheck (house, lastdaily) VALUES (?, ?) ON DUPLICATE KEY UPDATE lastdaily = values(lastdaily)');
             $stmt->bind_param('is', $houseRow['house'], $houseRow['dt']);
             $stmt->execute();
@@ -164,4 +169,75 @@ EOF;
 
         MCHouseUnlock($houseRow['house']);
     }
+}
+
+function UpdateMonthlyTable($house, $dt) {
+    global $db;
+
+    $dtstamp = strtotime($dt);
+    $month = (intval(date('Y', $dtstamp), 10) - 2014) * 12 + intval(date('m', $dtstamp), 10);
+    $day = date('d', $dtstamp);
+
+    $toUpdate = [];
+
+    $sql = 'select * from tblItemHistoryHourly where house = ? and `when` = ?';
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('is', $house, $dt);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($row = $result->fetch_assoc()) {
+        $bestQty = 0;
+        $bestPrice = null;
+        for ($h = 0; $h <= 23; $h++) {
+            $hPad = sprintf('%02s', $h);
+            if (!is_null($row["quantity$hPad"]) && ($row["quantity$hPad"] >= $bestQty)) {
+                $bestQty = $row["quantity$hPad"];
+                $bestPrice = $row["silver$hPad"];
+            }
+        }
+        if (is_null($bestPrice)) {
+            continue;
+        }
+        $toUpdate[] = [$row['item'], $row['level'], $bestQty, $bestPrice];
+    }
+    $result->close();
+    $stmt->close();
+
+    $sql = <<<'EOF'
+insert ignore into tblItemHistoryMonthly (item, house, level, month)
+(SELECT s.item, ?, s.level, ?
+    FROM tblItemSummary s
+    JOIN tblItemSummary s2 on s2.item = s.item
+    LEFT JOIN tblItemHistoryMonthly ihm on ihm.item = s.item and ihm.house = ? and ihm.level = s.level and ihm.month = ?
+    WHERE s.house = ? and s2.house = ? and s2.lastseen >= ?
+    AND ihm.item is null)
+EOF;
+
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('iiiiiis', $house, $month, $house, $month, $house, $house, $dt);
+    $stmt->execute();
+    $stmt->close();
+
+    $sql = <<<'EOF'
+update tblItemHistoryMonthly
+set mktslvr%1$s = ?, qty%1$s = ?
+where item = ? and house = %2$d and level = ? and month = %3$d
+limit 1
+EOF;
+
+    $sql = sprintf($sql, $day, $house, $month);
+
+    $stmt = $db->prepare($sql);
+    $item = $level = $silver = $qty = null;
+    $stmt->bind_param('iiii', $silver, $qty, $item, $level);
+
+    $updated = 0;
+    foreach ($toUpdate as $data) {
+        list($item, $level, $qty, $silver) = $data;
+        $stmt->execute();
+        $updated += $stmt->affected_rows;
+    }
+    $stmt->close();
+
+    return $updated;
 }
