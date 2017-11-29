@@ -10,3 +10,6 @@
 [submodule "scripts/brotli"]
 	path = scripts/brotli
 	url = https://github.com/google/brotli
+[submodule "gamedata/DBC/casc"]
+	path = gamedata/DBC/casc
+	url = https://github.com/erorus/casc
