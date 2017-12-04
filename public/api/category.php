@@ -203,6 +203,7 @@ function CategoryResult_custom($house) {
                 'name' => 'ItemList',
                 'data' => [
                     'name' => 'itemClasses.' . $item['classid'],
+                    'dynamicItems' => 1,
                     'items' => []
                 ]
             ];
@@ -223,6 +224,7 @@ function CategoryResult_deals($house)
                 'data' => [
                     'name'        => 'Dropped Rare and Epic Armor/Weapons',
                     'items'       => CategoryDealsItemList($house, 'i.class in (2,4) and i.quality > 2', CATEGORY_FLAGS_WITH_BONUSES),
+                    'dynamicItems' => 1,
                     'hiddenCols'  => ['lastseen' => true],
                     'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
@@ -233,6 +235,7 @@ function CategoryResult_deals($house)
                 'data' => [
                     'name'        => 'Dropped Uncommon Armor/Weapons',
                     'items'       => CategoryDealsItemList($house, 'i.class in (2,4) and i.quality = 2', CATEGORY_FLAGS_WITH_BONUSES),
+                    'dynamicItems' => 1,
                     'hiddenCols'  => ['lastseen' => true],
                     'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
@@ -243,6 +246,7 @@ function CategoryResult_deals($house)
                 'data' => [
                     'name'        => 'Crafted Armor/Weapons',
                     'items'       => CategoryDealsItemList($house, 'i.class in (2,4)', CATEGORY_FLAGS_ALLOW_CRAFTED | CATEGORY_FLAGS_DENY_NONCRAFTED | CATEGORY_FLAGS_WITH_BONUSES),
+                    'dynamicItems' => 1,
                     'hiddenCols'  => ['lastseen' => true],
                     'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
@@ -253,6 +257,7 @@ function CategoryResult_deals($house)
                 'data' => [
                     'name'        => 'Armor/Weapons with Bonuses',
                     'items'       => CategoryDealsItemList($house, 'i.class in (2,4) and tis.level != i.level', CATEGORY_FLAGS_ALLOW_CRAFTED | CATEGORY_FLAGS_WITH_BONUSES),
+                    'dynamicItems' => 1,
                     'hiddenCols'  => ['lastseen' => true],
                     'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
@@ -263,6 +268,7 @@ function CategoryResult_deals($house)
                 'data' => [
                     'name'        => 'Dropped Common/Junk Armor/Weapons',
                     'items'       => CategoryDealsItemList($house, 'i.class in (2,4) and i.quality < 2', CATEGORY_FLAGS_WITH_BONUSES),
+                    'dynamicItems' => 1,
                     'hiddenCols'  => ['lastseen' => true],
                     'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
@@ -273,6 +279,7 @@ function CategoryResult_deals($house)
                 'data' => [
                     'name'        => 'Uncommon Recipes',
                     'items'       => CategoryDealsItemList($house, 'i.class = 9 and i.quality > 1'),
+                    'dynamicItems' => 1,
                     'hiddenCols'  => ['lastseen' => true],
                     'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
@@ -283,6 +290,7 @@ function CategoryResult_deals($house)
                 'data' => [
                     'name'        => 'Common Recipes',
                     'items'       => CategoryDealsItemList($house, 'i.class = 9 and i.quality <= 1'),
+                    'dynamicItems' => 1,
                     'hiddenCols'  => ['lastseen' => true],
                     'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
@@ -293,6 +301,7 @@ function CategoryResult_deals($house)
                 'data' => [
                     'name'        => 'Dropped Consumables',
                     'items'       => CategoryDealsItemList($house, 'i.class = 0'),
+                    'dynamicItems' => 1,
                     'hiddenCols'  => ['lastseen' => true],
                     'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
@@ -303,6 +312,7 @@ function CategoryResult_deals($house)
                 'data' => [
                     'name'        => 'Trade Goods',
                     'items'       => CategoryDealsItemList($house, 'i.class = 7'),
+                    'dynamicItems' => 1,
                     'hiddenCols'  => ['lastseen' => true],
                     'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
@@ -313,6 +323,7 @@ function CategoryResult_deals($house)
                 'data' => [
                     'name'        => 'Companion Deals',
                     'items'       => CategoryDealsItemList($house, 'i.class = 15 and i.subclass in (2,5)'),
+                    'dynamicItems' => 1,
                     'hiddenCols'  => ['lastseen' => true],
                     'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
@@ -323,6 +334,7 @@ function CategoryResult_deals($house)
                 'data' => [
                     'name'        => 'Miscellaneous Items',
                     'items'       => CategoryDealsItemList($house, '(i.class in (12,13) or (i.class=15 and i.subclass not in (2,5)))'),
+                    'dynamicItems' => 1,
                     'hiddenCols'  => ['lastseen' => true],
                     'visibleCols' => ['globalmedian' => true, 'posted' => true],
                     'sort'        => 'none'
@@ -390,6 +402,7 @@ EOF;
                     'outside' => 'r2.bid, r2.globalmedian',
                 ]
             ),
+            'dynamicItems' => 1,
             'hiddenCols'  => ['price' => true, 'lastseen' => true],
             'visibleCols' => ['bid' => true, 'globalmedian' => true],
             'sort'        => 'lowbids'
@@ -407,6 +420,7 @@ EOF;
                     'cols' => 'lowbids.bid, g.median globalmedian',
                 ]
             ),
+            'dynamicItems' => 1,
             'hiddenCols'  => ['price' => true, 'lastseen' => true],
             'visibleCols' => ['bid' => true, 'globalmedian' => true],
             'sort'        => 'lowbids'
@@ -444,6 +458,7 @@ function CategoryResult_minorstats($house) {
                         'joins' => 'join tblDBCItemBonus ib on ib.id in (ae.bonus1, ae.bonus2, ae.bonus3, ae.bonus4, ae.bonus5, ae.bonus6)',
                         'where' => sprintf('ib.statmask & %d and i.class = 4 and i.subclass = %d and i.type != 16 ', $statMask, $subclassId),
                     ]),
+                    'dynamicItems' => 1,
                     'hiddenCols' => ['lastseen' => true, 'quantity' => true],
                     'sort'       => 'lowprice'
                 ]
@@ -457,6 +472,7 @@ function CategoryResult_minorstats($house) {
                     'joins' => 'join tblDBCItemBonus ib on ib.id in (ae.bonus1, ae.bonus2, ae.bonus3, ae.bonus4, ae.bonus5, ae.bonus6)',
                     'where' => sprintf('ib.statmask & %d and not (i.class = 4 and i.subclass in (%s) and i.type != 16)', $statMask, implode(',', array_keys($armorClasses))),
                 ]),
+                'dynamicItems' => 1,
                 'hiddenCols' => ['lastseen' => true, 'quantity' => true],
                 'sort'       => 'lowprice'
             ]
@@ -476,6 +492,7 @@ function CategoryResult_unusuals($house)
                 'data' => [
                     'name'        => 'Dropped Rare and Epic Armor/Weapons',
                     'items'       => CategoryUnusualItemList($house, 'i.class in (2,4) and i.quality > 2'),
+                    'dynamicItems' => 1,
                     'hiddenCols'  => ['avgprice' => true],
                     'visibleCols' => ['globalmedian' => true],
                     'sort'        => 'lowprice'
@@ -486,6 +503,7 @@ function CategoryResult_unusuals($house)
                 'data' => [
                     'name'        => 'Dropped Uncommon Armor/Weapons',
                     'items'       => CategoryUnusualItemList($house, 'i.class in (2,4) and i.quality = 2'),
+                    'dynamicItems' => 1,
                     'hiddenCols'  => ['avgprice' => true],
                     'visibleCols' => ['globalmedian' => true],
                     'sort'        => 'lowprice'
@@ -496,6 +514,7 @@ function CategoryResult_unusuals($house)
                 'data' => [
                     'name'        => 'Dropped Common/Junk Armor/Weapons',
                     'items'       => CategoryUnusualItemList($house, 'i.class in (2,4) and i.quality < 2'),
+                    'dynamicItems' => 1,
                     'hiddenCols'  => ['avgprice' => true],
                     'visibleCols' => ['globalmedian' => true],
                     'sort'        => 'lowprice'
@@ -506,6 +525,7 @@ function CategoryResult_unusuals($house)
                 'data' => [
                     'name'        => 'Uncommon Recipes',
                     'items'       => CategoryUnusualItemList($house, 'i.class = 9 and i.quality > 1'),
+                    'dynamicItems' => 1,
                     'hiddenCols'  => ['avgprice' => true],
                     'visibleCols' => ['globalmedian' => true],
                     'sort'        => 'lowprice'
@@ -516,6 +536,7 @@ function CategoryResult_unusuals($house)
                 'data' => [
                     'name'        => 'Common Recipes',
                     'items'       => CategoryUnusualItemList($house, 'i.class = 9 and i.quality <= 1'),
+                    'dynamicItems' => 1,
                     'hiddenCols'  => ['avgprice' => true],
                     'visibleCols' => ['globalmedian' => true],
                     'sort'        => 'lowprice'
@@ -526,6 +547,7 @@ function CategoryResult_unusuals($house)
                 'data' => [
                     'name'        => 'Crafted Armor/Weapons',
                     'items'       => CategoryUnusualItemList($house, 'i.class in (2,4)', CATEGORY_FLAGS_ALLOW_CRAFTED | CATEGORY_FLAGS_DENY_NONCRAFTED),
+                    'dynamicItems' => 1,
                     'hiddenCols'  => ['avgprice' => true],
                     'visibleCols' => ['globalmedian' => true],
                     'sort'        => 'lowprice'
@@ -536,6 +558,7 @@ function CategoryResult_unusuals($house)
                 'data' => [
                     'name'        => 'Dropped Consumables',
                     'items'       => CategoryUnusualItemList($house, 'i.class = 0'),
+                    'dynamicItems' => 1,
                     'hiddenCols'  => ['avgprice' => true],
                     'visibleCols' => ['globalmedian' => true],
                     'sort'        => 'lowprice'
@@ -546,6 +569,7 @@ function CategoryResult_unusuals($house)
                 'data' => [
                     'name'        => 'Trade Goods',
                     'items'       => CategoryUnusualItemList($house, 'i.class = 7'),
+                    'dynamicItems' => 1,
                     'hiddenCols'  => ['avgprice' => true],
                     'visibleCols' => ['globalmedian' => true],
                     'sort'        => 'lowprice'
@@ -556,6 +580,7 @@ function CategoryResult_unusuals($house)
                 'data' => [
                     'name'        => 'Companion Deals',
                     'items'       => CategoryUnusualItemList($house, 'i.class = 15 and i.subclass in (2,5)'),
+                    'dynamicItems' => 1,
                     'hiddenCols'  => ['avgprice' => true],
                     'visibleCols' => ['globalmedian' => true],
                     'sort'        => 'lowprice'
@@ -566,6 +591,7 @@ function CategoryResult_unusuals($house)
                 'data' => [
                     'name'        => 'Miscellaneous Items',
                     'items'       => CategoryUnusualItemList($house, '(i.class in (12,13) or (i.class=15 and i.subclass not in (2,5)))'),
+                    'dynamicItems' => 1,
                     'hiddenCols'  => ['avgprice' => true],
                     'visibleCols' => ['globalmedian' => true],
                     'sort'        => 'lowprice'
@@ -1135,6 +1161,7 @@ function CategoryResult_leatherworking($house)
             'hiddenCols'  => ['quantity' => true, 'price' => true, 'avgprice' => true],
             'visibleCols' => ['globalmedian' => true],
             'sort'        => 'globalmedian',
+            'dynamicItems' => 1,
             'items'       => CategoryRegularItemList($house, [
                 'where' => sprintf(ABSENT_TRANSMOG_SQL, $house, 165),
                 'cols'  => 'g.median globalmedian',
@@ -1247,6 +1274,7 @@ function CategoryResult_blacksmithing($house)
             'hiddenCols'  => ['quantity' => true, 'price' => true, 'avgprice' => true],
             'visibleCols' => ['globalmedian' => true],
             'sort'        => 'globalmedian',
+            'dynamicItems' => 1,
             'items'       => CategoryRegularItemList($house, [
                 'where' => sprintf(ABSENT_TRANSMOG_SQL, $house, 164),
                 'cols'  => 'g.median globalmedian',
@@ -1423,6 +1451,7 @@ function CategoryResult_jewelcrafting($house)
             'hiddenCols'  => ['quantity' => true, 'price' => true, 'avgprice' => true],
             'visibleCols' => ['globalmedian' => true],
             'sort'        => 'globalmedian',
+            'dynamicItems' => 1,
             'items'       => CategoryRegularItemList($house, [
                 'where' => sprintf(ABSENT_TRANSMOG_SQL, $house, 755),
                 'cols'  => 'g.median globalmedian',
@@ -1568,6 +1597,7 @@ EOF;
             'hiddenCols'  => ['quantity' => true, 'price' => true, 'avgprice' => true],
             'visibleCols' => ['globalmedian' => true],
             'sort'        => 'globalmedian',
+            'dynamicItems' => 1,
             'items'       => CategoryRegularItemList($house, [
                 'where' => sprintf(ABSENT_TRANSMOG_SQL, $house, 202),
                 'cols'  => 'g.median globalmedian',
@@ -1697,6 +1727,7 @@ function CategoryResult_tailoring($house)
             'hiddenCols'  => ['quantity' => true, 'price' => true, 'avgprice' => true],
             'visibleCols' => ['globalmedian' => true],
             'sort'        => 'globalmedian',
+            'dynamicItems' => 1,
             'items'       => CategoryRegularItemList($house, [
                 'where' => sprintf(ABSENT_TRANSMOG_SQL, $house, 197),
                 'cols'  => 'g.median globalmedian',

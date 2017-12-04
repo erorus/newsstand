@@ -1160,11 +1160,12 @@ var TUJ_Category = function ()
             $(i).on('click', function(){ this.select(); });
             td.appendChild(i);
 
+            var tsmSep = data.dynamicItems ? ';' : ',';
             var distinctItems = {};
             for (x = 0; item = data.items[x]; x++) {
                 if (!distinctItems.hasOwnProperty(item.id)) {
                     distinctItems[item.id] = true;
-                    i.value = (i.value ? i.value + ',' : '') + 'i:' + item.id;
+                    i.value = (i.value ? i.value + tsmSep : '') + 'i:' + item.id;
                 }
             }
 
