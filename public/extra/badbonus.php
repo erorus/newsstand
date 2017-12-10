@@ -142,9 +142,7 @@ EOF;
     <meta name="viewport" content="width=560">
     <title>Extra: The Undermine Journal</title>
 
-    <link rel="stylesheet" href="https://theunderminejournal.com/css/wowhead/basic.css?1">
-    <script type="text/javascript" src="https://theunderminejournal.com/js/wowhead/power.js?3"></script>
-    <script type="text/javascript" src="https://theunderminejournal.com/js/wowhead/basic.js?2"></script>
+    <script src="https://wow.zamimg.com/widgets/power.js"></script>
 
     <style type="text/css">
         body{min-width:40em;font-size:14px;color:#333;margin:0;font-family:sans-serif}
