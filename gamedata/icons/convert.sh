@@ -59,7 +59,7 @@ renamepngs() {
         return
     fi
 
-    $prename -v -f -E 'y/A-Z/a-z/;y/ /-/;' current/origpng/*
+    $prename -v -f -E 'y/A-Z/a-z/;s/ //g;' current/origpng/*
     if [ $? -ne 0 ]; then
         echo "Failed rename!"
     fi

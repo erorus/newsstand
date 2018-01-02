@@ -77,7 +77,7 @@ var libtuj = {
         if (!nm) {
             nm = 'inv_misc_questionmark';
         }
-        return tujCDNPrefix + 'icon/' + size + '/' + nm.replace(/ /g, '-') + (size == 'tiny' ? '.png' : '.jpg');
+        return tujCDNPrefix + 'icon/' + size + '/' + nm.replace(/ /g, '') + (size == 'tiny' ? '.png' : '.jpg');
     },
     LevelOffsetBonus: function(offset)
     {
