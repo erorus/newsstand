@@ -501,7 +501,7 @@ insert into tblDBCSpell (id,name,description,cooldown,qtymade,yellow,skillline,c
     if(se.itemcreated=0,0,if(se.diesides=0,if(se.qtymade=0,1,se.qtymade),(se.qtymade * 2 + se.diesides + 1)/2)),
     sla.yellowat,sla.lineid,if(se.itemcreated=0,null,se.itemcreated)
 from ttblSpell s
-left join ttblSpellMisc sm on s.miscid=sm.id
+left join ttblSpellMisc sm on s.id=sm.spellid
 left join ttblSpellCooldowns cd on cd.spell = s.id
 left join ttblSpellCategories cs on cs.spell = s.id
 left join ttblSpellCategory c on c.id = cs.categoryid
@@ -515,7 +515,7 @@ RunAndLogError($sql);
 
 $sql = 'insert ignore into tblDBCSpell (id,name,description) ';
 $sql .= ' (select distinct s.id, s.spellname, s.longdescription ';
-$sql .= ' from ttblSpell s left join ttblSpellMisc sm on s.miscid=sm.id ';
+$sql .= ' from ttblSpell s left join ttblSpellMisc sm on s.id=sm.spellid ';
 $sql .= ' join tblDBCItemSpell dis on dis.spell=s.id) ';
 RunAndLogError($sql);
 
