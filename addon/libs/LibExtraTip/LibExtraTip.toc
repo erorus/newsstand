@@ -1,20 +1,16 @@
 ## Title: LibExtraTip |cff224477(lib)
 ## Notes: Assists in the management of additional tooltip information.
 ##
-## Interface: 60200
+## Interface: 70300
 ## LoadOnDemand: 0
 ##
-## Version: 5.21f.5566 (SanctimoniousSwamprat)
-## Revision: $Id: LibExtraTip.toc 391 2015-06-26 23:45:02Z dinesh $
+## Version: 7.6.5728 (TasmanianThylacine)
+## Revision: $Id: LibExtraTip.toc 432 2017-09-02 11:52:14Z brykrys $
 ## Author: Norganna's AddOns
 ## X-Part-Of: Libraries
 ## X-Category: Library
-## X-Max-Interface: 60200
+## X-Max-Interface: 70300
 ## X-URL: http://zip.norganna.org/libs/LibExtraTip/
 ## X-Feedback: http://forums.norganna.org
 ##
-## X-Curse-Packaged-Version: v3.4.11
-## X-Curse-Project-Name: TradeSkillMaster
-## X-Curse-Project-ID: tradeskill-master
-## X-Curse-Repository-ID: wow/tradeskill-master/mainline
 Load.xml

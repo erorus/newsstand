@@ -12,7 +12,7 @@
 --]]
 
 local LIBRARY_VERSION_MAJOR = "LibRevision"
-local LIBRARY_VERSION_MINOR = 2
+local LIBRARY_VERSION_MINOR = 3
 
 local lib = LibStub:NewLibrary(LIBRARY_VERSION_MAJOR, LIBRARY_VERSION_MINOR)
 if not lib then return end
@@ -27,7 +27,7 @@ end
 
 function lib:Set(url, revision, dev, ...)
 	local repo,file
-	if (not url and revision) then return end
+	if not (url and revision) then return end
 
 	local n = select("#", ...)
 	for i=1, n do
