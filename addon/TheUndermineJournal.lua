@@ -1,6 +1,6 @@
 --[[
 
-TheUndermineJournal addon, v 5.2
+TheUndermineJournal addon, v 5.3
 https://theunderminejournal.com/
 
 You should be able to query this DB from other addons:
@@ -97,7 +97,7 @@ local function getSpeciesFromPetLink(link)
     return speciesID, level, quality, health, power, speed
 end
 
-local lastMarketInfo, lastMarketInfoItem = {}
+local marketInfoCache, marketInfoCacheKeys, marketInfoCacheMaxDepth = {}, {}, 10
 local GetDetailedItemLevelInfo = addonTable.GetDetailedItemLevelInfo
 
 --[[
@@ -123,16 +123,29 @@ function TUJMarketInfo(item,...)
 
     if not addonTable.marketData then return tr end
 
-    if lastMarketInfoItem == item then
-        if not lastMarketInfo['input'] then return tr end
+    if marketInfoCache[item] then
+        if not marketInfoCache[item]['input'] then return tr end
         if not tr then tr = {} end
-        for k,v in pairs(lastMarketInfo) do
+        for k,v in pairs(marketInfoCache[item]) do
             tr[k] = v
         end
         return tr
     end
-    lastMarketInfoItem = item
-    wipe(lastMarketInfo)
+
+    if #marketInfoCacheKeys >= marketInfoCacheMaxDepth then
+        -- reuse oldest cache table
+        marketInfoCache[item] = marketInfoCache[marketInfoCacheKeys[1]]
+        wipe(marketInfoCache[item])
+
+        while #marketInfoCacheKeys >= marketInfoCacheMaxDepth do
+            marketInfoCache[marketInfoCacheKeys[1]] = nil
+            table.remove(marketInfoCacheKeys, 1)
+        end
+    else
+        -- add new table to cache
+        marketInfoCache[item] = {}
+    end
+    table.insert(marketInfoCacheKeys, item)
 
     local _, link, dataKey
     local iid, pricingLevel, species, quality
@@ -214,7 +227,7 @@ function TUJMarketInfo(item,...)
     --offset = offset + priceSize
 
     for k,v in pairs(tr) do
-        lastMarketInfo[k] = v
+        marketInfoCache[item][k] = v
     end
 
     return tr
