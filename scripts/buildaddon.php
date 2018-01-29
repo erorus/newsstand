@@ -629,7 +629,7 @@ function MakeZip($zipPath = false)
     }
 
     $tocFile = file_get_contents('../addon/TheUndermineJournal.toc');
-    $tocFile = sprintf($tocFile, date('D, F j'), date('Ymd'));
+    $tocFile = sprintf($tocFile, date('D, F j, Y'), date('Ymd'));
 
     $zip->addFromString("TheUndermineJournal/TheUndermineJournal.toc",$tocFile);
     RecursiveAddToZip($zip, '../addon/libs/', 'TheUndermineJournal/libs/');
