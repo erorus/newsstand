@@ -1,6 +1,6 @@
 --[[
 
-TheUndermineJournal addon, v 5.3
+TheUndermineJournal addon, v 5.4
 https://theunderminejournal.com/
 
 You should be able to query this DB from other addons:
@@ -97,7 +97,7 @@ local function getSpeciesFromPetLink(link)
     return speciesID, level, quality, health, power, speed
 end
 
-local marketInfoCache, marketInfoCacheKeys, marketInfoCacheMaxDepth = {}, {}, 10
+local marketInfoCache, marketInfoCacheKeys, marketInfoCacheMaxDepth = {}, {}, 16
 local GetDetailedItemLevelInfo = addonTable.GetDetailedItemLevelInfo
 
 --[[
@@ -124,6 +124,18 @@ function TUJMarketInfo(item,...)
     if not addonTable.marketData then return tr end
 
     if marketInfoCache[item] then
+        -- move this key to the top as most-recently-used
+        local curDepth = #marketInfoCacheKeys
+        if marketInfoCacheKeys[curDepth] ~= item then
+            for x=curDepth - 1, 1, -1 do
+                if marketInfoCacheKeys[x] == item then
+                    table.remove(marketInfoCacheKeys, x)
+                    table.insert(marketInfoCacheKeys, item)
+                    break
+                end
+            end
+        end
+
         if not marketInfoCache[item]['input'] then return tr end
         if not tr then tr = {} end
         for k,v in pairs(marketInfoCache[item]) do
