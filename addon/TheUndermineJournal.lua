@@ -100,6 +100,10 @@ end
 local marketInfoCache, marketInfoCacheKeys, marketInfoCacheMaxDepth = {}, {}, 16
 local GetDetailedItemLevelInfo = addonTable.GetDetailedItemLevelInfo
 
+local function InfoCacheKeyComparitor(x,y)
+    return marketInfoCache[x]['__queried'] < marketInfoCache[y]['__queried']
+end
+
 --[[
     pass a table as the second argument to wipe and reuse that table
     otherwise a new table will be created and returned
@@ -124,28 +128,19 @@ function TUJMarketInfo(item,...)
     if not addonTable.marketData then return tr end
 
     if marketInfoCache[item] then
-        -- move this key to the top as most-recently-used
-        local curDepth = #marketInfoCacheKeys
-        if marketInfoCacheKeys[curDepth] ~= item then
-            for x=curDepth - 1, 1, -1 do
-                if marketInfoCacheKeys[x] == item then
-                    table.remove(marketInfoCacheKeys, x)
-                    table.insert(marketInfoCacheKeys, item)
-                    break
-                end
-            end
-        end
-
+        marketInfoCache[item]['__queried'] = GetTime()
         if not marketInfoCache[item]['input'] then return tr end
         if not tr then tr = {} end
         for k,v in pairs(marketInfoCache[item]) do
             tr[k] = v
         end
+        tr['__queried'] = nil
         return tr
     end
 
     if #marketInfoCacheKeys >= marketInfoCacheMaxDepth then
         -- reuse oldest cache table
+        sort(marketInfoCacheKeys, InfoCacheKeyComparitor)
         marketInfoCache[item] = marketInfoCache[marketInfoCacheKeys[1]]
         wipe(marketInfoCache[item])
 
@@ -158,6 +153,7 @@ function TUJMarketInfo(item,...)
         marketInfoCache[item] = {}
     end
     table.insert(marketInfoCacheKeys, item)
+    marketInfoCache[item]['__queried'] = GetTime()
 
     local _, link, dataKey
     local iid, pricingLevel, species, quality
