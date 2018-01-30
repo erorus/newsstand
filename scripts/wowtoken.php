@@ -270,6 +270,10 @@ function CheckTokenAPI($regions)
             continue;
         }
 
+        if (isset($data['last_updated_timestamp'])) {
+            $data['last_updated'] = floor($data['last_updated_timestamp'] / 1000);
+        }
+
         if (!isset($data['last_updated']) || !isset($data['price'])) {
             DebugMessage(sprintf('Token API in region %s returned incomplete json', $region), E_USER_NOTICE);
             continue;

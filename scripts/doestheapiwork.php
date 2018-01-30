@@ -607,12 +607,16 @@ function FetchTokenData($region) {
         return $result;
     }
 
+    if (isset($data['last_updated_timestamp'])) {
+        $data['last_updated'] = floor($data['last_updated_timestamp'] / 1000);
+    }
+
     if (!isset($data['last_updated']) || !isset($data['price'])) {
         $result['status'] = 'Missing fields in JSON response';
         return $result;
     }
 
-    $result['modified'] = $data['last_updated'] * 1000;
+    $result['modified'] = $data['last_updated_timestamp'] ?? ($data['last_updated'] * 1000);
     return $result;
 }
 
