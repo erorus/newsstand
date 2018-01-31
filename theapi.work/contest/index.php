@@ -254,6 +254,7 @@ function GetGuesses() {
 select b.name, unix_timestamp(b.bet) bet from tblAPIBets b
 join (SELECT userid, max(placed) placed FROM `tblAPIBets` group by userid) maxes
 on b.userid = maxes.userid and b.placed = maxes.placed
+where b.bet > now()
 order by b.bet asc, b.placed asc
 EOF;
 
