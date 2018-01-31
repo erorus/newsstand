@@ -337,7 +337,7 @@ function GetDB() {
 
     <p>Log in with Battle.Net, then pick the date and time when you think the first auction house updates will return, for US and for EU. Each guess is valid for both regions. You can change your guess once per hour.</p>
 
-    <p>The two people (one for US realms, one for EU realms) who first come closest to the correct time <i>without going over</i> will receive a $20 Battle.net Balance code, just to keep things interesting.</p>
+    <p>The two people (one for US realms, one for EU realms) who first come closest to the correct time <i>without going over</i> can log back in here to receive a $20 Battle.net Balance code, just to keep things interesting.</p>
 
     <h3>Submit A Guess</h3>
     <div id="guessforms">
