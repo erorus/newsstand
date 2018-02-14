@@ -177,7 +177,7 @@ EOF;
 
 }
 
-function ShowResultForm() {
+function ShowResult() {
     global $user;
 
     echo <<<EOF
