@@ -164,7 +164,7 @@ EOF;
 
     $time = date(DATE_FORMAT);
 
-echo <<<EOF
+    echo <<<EOF
     <form method="POST" action="./">
         <input type="hidden" name="user" value="$userHash">
         The current time is $time UTC.<br>
@@ -175,6 +175,23 @@ echo <<<EOF
     </form>
 EOF;
 
+}
+
+function ShowResultForm() {
+    global $user;
+
+    echo <<<EOF
+    <p>Hello, <b>${user['tag']}</b>! <input type="button" value="Log Out" onclick="location.href='?logout=1';" style="margin-left: 5em"></p>
+EOF;
+
+    switch ($user['id']) {
+        case GUESS_WINNER_ID_1:
+        case GUESS_WINNER_ID_2:
+            echo sprintf('Congratulations on your winning guess! Please email me at %s with your battle tag and tell me if you want a US or an EU shop code to redeem your $20 prize.', GUESS_EMAIL_ADDRESS);
+            break;
+        default:
+            echo 'Sorry, the contest is over! But hey, the API is back, so that\'s nice.';
+    }
 }
 
 function SubmitGuess() {
@@ -334,29 +351,30 @@ function GetDB() {
     <h1>Does the API work? Contest</h1>
     <h2>for the <a href="https://dev.battle.net">Battle.net Auction House API</a></h2>
 
-    <p>The Battle.net Auction House API has been down for.. a long time. How about we have a friendly contest to guess when it will come back?</p>
+    <p>The Battle.net Auction House API was down for.. a long time. We had a friendly contest to guess when it will come back.</p>
 
-    <p>Log in with Battle.Net, then pick the date and time when you think the first auction house updates will return, for US and for EU. Each guess is valid for both regions. You can change your guess once per hour.</p>
+    <p>Participants would log in with Battle.Net, then pick the date and time when they thought the first auction house updates will return, for US and for EU. Each guess is valid for both regions. They could change their guesses once per hour.</p>
 
-    <p>The two people (one for US realms, one for EU realms) who first come closest to the correct time <i>without going over</i> can log back in here to receive a $20 Battle.net Balance code, just to keep things interesting.</p>
+    <p>The two people (one for US realms, one for EU realms) who first came closest to the correct time <i>without going over</i> can log back in here to receive a $20 Battle.net Balance code, just to keep things interesting.</p>
 
-    <h3>Submit A Guess</h3>
+    <p>We had 1,244 guesses from 922 players during the contest.</p>
+
+    <p>On Feb 14, 12:49pm UTC, <b>ThatDudeRyan#1205</b> guessed <b>Feb 14, 7:30pm UTC</b>. US Kel'Thuzad was the first US realm to get auction data at <b>7:51:11pm UTC</b>, so <b>ThatDudeRyan#1205</b> won the US contest!</p>
+
+    <p>On Feb 7, 8:34pm UTC, <b>Sorax#2674</b> guessed <b>Feb 14, 7:29:37pm UTC</b>. EU Area 52 was the first EU realm to get auction data at <b>7:56:42pm UTC</b>, so <b>Sorax#2674</b> won the EU contest!</p>
+
+    <p>The winners should log in below to find instructions on claiming their prize. The winners each have the choice of receiving a US or an EU Battle.net Balance code worth $20 USD.</p>
+
+    <h3>Log In with Battle.net</h3>
     <div id="guessforms">
     <?php
         if (!$user) {
             ShowLoginForm();
         } else {
-            ShowGuessForm();
+            ShowResult();
         }
     ?>
     </div>
-
-    <h3>Current Guesses</h3>
-    <table class="guess-table" cellspacing="0">
-        <tr><th>Player</th><th>Guess</th></tr>
-        <?php PrintGuesses(); ?>
-    </table>
-
 
     <h3>Brought to you by <a href="https://theunderminejournal.com">The Undermine Journal</a></h3>
 </body>
