@@ -85,6 +85,7 @@ while ($stmt->fetch()) {
 $stmt->close();
 
 $observedWithoutBonusesCache = [];
+/*
 $sql = <<<'EOF'
 select i.id, ibs.observed
 from tblDBCItem i
@@ -102,6 +103,7 @@ while ($stmt->fetch()) {
     $observedWithoutBonusesCache[$id] = $observed;
 }
 $stmt->close();
+*/
 
 \Newsstand\BonusItemLevel::init($db);
 
