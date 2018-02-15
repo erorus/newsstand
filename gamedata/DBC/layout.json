@@ -70,6 +70,9 @@
             "1": "bonusid",
             "2": "changetype",
             "3": "prio"
+        },
+        "signed": {
+            "0": true
         }
     },
     "CurvePoint": {
@@ -159,7 +162,7 @@
         }
     },
     "Spell": {
-        "hash": 4038449057,
+        "hash": 578019327,
         "names": {
             "0": "spellname",
             "2": "longdescription"
