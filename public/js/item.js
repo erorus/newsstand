@@ -2742,7 +2742,8 @@ var TUJ_Item = function ()
 
     function ItemAuctions(data, dest)
     {
-        var hasMultipleLevels = levels.length > 1, x, auc;
+        var x, auc;
+        var hasMultipleLevels = (levels.length > 1) || ([2,4].indexOf(data.stats[level].classid) >= 0);
         var hasRand = hasMultipleLevels;
         for (x = 0; (!hasRand) && (auc = data.auctions[x]); x++) {
             hasRand |= !!auc.rand;
