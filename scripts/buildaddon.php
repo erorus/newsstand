@@ -16,7 +16,7 @@ require_once('../incl/heartbeat.incl.php');
 RunMeNTimes(1);
 CatchKill();
 
-ini_set('memory_limit','256M');
+ini_set('memory_limit','768M');
 
 if (!DBConnect())
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
@@ -296,7 +296,7 @@ EOF;
         if (CatchKill())
             return;
 
-        DebugMessage(sprintf('Finding item prices in house %d (%d%%) %dmb', $houses[$hx], round($hx/count($houses)*100), round(memory_get_usage()/1048576)));
+        DebugMessage(sprintf('Finding item prices in house %d (%d%%) %dmb', $houses[$hx], round($hx/count($houses)*100), round(memory_get_usage(true)/1048576)));
 
         $stmt = $db->prepare($sql);
         $stmt->bind_param('i', $houses[$hx]);
@@ -377,7 +377,7 @@ EOF;
         if (CatchKill())
             return;
 
-        DebugMessage(sprintf('Finding pet prices in house %d (%d%%) %dmb', $houses[$hx], round($hx/count($houses)*100), round(memory_get_usage()/1048576)));
+        DebugMessage(sprintf('Finding pet prices in house %d (%d%%) %dmb', $houses[$hx], round($hx/count($houses)*100), round(memory_get_usage(true)/1048576)));
 
         $stmt = $db->prepare($sql);
         $stmt->bind_param('i', $houses[$hx]);
@@ -414,7 +414,7 @@ EOF;
     if (CatchKill())
         return;
 
-    DebugMessage(sprintf('Making lua strings %dmb', round(memory_get_usage()/1048576)));
+    DebugMessage(sprintf('Making lua strings %dmb', round(memory_get_usage(true)/1048576)));
 
     $priceLuaHandle = fopen('php://temp/maxmemory:0', 'r+');
     $luaLines = 0;
@@ -531,12 +531,12 @@ EOF;
         return;
     }
 
-    DebugMessage(sprintf('Getting lua strings from temp stream %dmb', round(memory_get_usage()/1048576)));
+    DebugMessage(sprintf('Getting lua strings from temp stream %dmb', round(memory_get_usage(true)/1048576)));
 
     $priceLua = stream_get_contents($priceLuaHandle, -1, 0);
     fclose($priceLuaHandle);
 
-    DebugMessage(sprintf('Setting realm indexes %dmb', round(memory_get_usage()/1048576)));
+    DebugMessage(sprintf('Setting realm indexes %dmb', round(memory_get_usage(true)/1048576)));
 
     $houseLookup = array_flip($houses);
 
@@ -558,7 +558,7 @@ EOF;
     if (CatchKill())
         return;
 
-    DebugMessage(sprintf('Building final lua %dmb', round(memory_get_usage()/1048576)));
+    DebugMessage(sprintf('Building final lua %dmb', round(memory_get_usage(true)/1048576)));
     $dataAge = time();
 
     $lua = <<<EOF
@@ -612,7 +612,7 @@ table.insert(addonTable.dataLoads, dataLoad)
 EOF;
     unset($guidLua);
 
-    DebugMessage(sprintf('Returning result %dmb', round(memory_get_usage()/1048576)));
+    DebugMessage(sprintf('Returning result %dmb', round(memory_get_usage(true)/1048576)));
 
     return pack('CCC', 239, 187, 191).$lua.$priceLua.$luaEnd;
 }
