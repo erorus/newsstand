@@ -107,7 +107,10 @@ var TUJ_Item = function ()
             levels.push(parseInt(lvl,10));
             foundLevel |= level == lvl;
         }
-        levels.sort();
+        levels.sort(function (a, b)
+        {
+            return a - b;
+        });
         if (!foundLevel) {
             if (level === false) {
                 // url didn't specify a level
