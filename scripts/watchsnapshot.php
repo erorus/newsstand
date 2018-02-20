@@ -217,7 +217,7 @@ function ParseAuctionData($house, $snapshot, &$json)
                 } else {
                     $aucList = &$itemBids;
                 }
-                $bonusItemLevel = $equipBaseItemLevel[$auction['item']] ?? 0;
+                $pricingItemLevel = $bonusItemLevel = $equipBaseItemLevel[$auction['item']] ?? 0;
                 if ($bonusItemLevel && isset($auction['bonusLists'])) {
                     $bonuses = [];
                     for ($y = 0; $y < count($auction['bonusLists']); $y++) {
@@ -239,47 +239,50 @@ function ParseAuctionData($house, $snapshot, &$json)
                         }
                         $bonusItemLevel = \Newsstand\BonusItemLevel::GetBonusItemLevel($bonuses,
                             $equipBaseItemLevel[$auction['item']], $auction['lootedLevel']);
+                        if ($bonusItemLevel >= MIN_ITEM_LEVEL_PRICING) {
+                            $pricingItemLevel = $bonusItemLevel;
+                        }
                     }
                 }
-                if (!isset($aucList[$auction['item']][$bonusItemLevel])) {
-                    $aucList[$auction['item']][$bonusItemLevel] = $emptyItemInfo;
+                if (!isset($aucList[$auction['item']][$pricingItemLevel])) {
+                    $aucList[$auction['item']][$pricingItemLevel] = $emptyItemInfo;
                 }
 
-                AuctionListInsert($aucList[$auction['item']][$bonusItemLevel][ARRAY_INDEX_AUCTIONS], $auction['quantity'], $hasBuyout ? $auction['buyout'] : $auction['bid']);
-                $aucList[$auction['item']][$bonusItemLevel][ARRAY_INDEX_QUANTITY] += $auction['quantity'];
+                AuctionListInsert($aucList[$auction['item']][$pricingItemLevel][ARRAY_INDEX_AUCTIONS], $auction['quantity'], $hasBuyout ? $auction['buyout'] : $auction['bid']);
+                $aucList[$auction['item']][$pricingItemLevel][ARRAY_INDEX_QUANTITY] += $auction['quantity'];
 
                 if ($isNewAuction) {
-                    if (!isset($oldAuctionItems[$auction['item']][$bonusItemLevel])) {
-                        $newAuctionItems[$auction['item']][$bonusItemLevel] = true;
+                    if (!isset($oldAuctionItems[$auction['item']][$pricingItemLevel])) {
+                        $newAuctionItems[$auction['item']][$pricingItemLevel] = true;
                     }
                 } else {
-                    $oldAuctionItems[$auction['item']][$bonusItemLevel] = true;
-                    unset($newAuctionItems[$auction['item']][$bonusItemLevel]);
+                    $oldAuctionItems[$auction['item']][$pricingItemLevel] = true;
+                    unset($newAuctionItems[$auction['item']][$pricingItemLevel]);
                 }
             }
         }
     }
     unset($json, $jsonAuctions, $oldAuctionItems);
 
-    foreach ($itemBuyouts as $itemId => &$bonusItemLevels) {
-        if (count($bonusItemLevels) <= 1) {
+    foreach ($itemBuyouts as $itemId => &$pricingItemLevels) {
+        if (count($pricingItemLevels) <= 1) {
             continue;
         }
 
-        ksort($bonusItemLevels);
+        ksort($pricingItemLevels);
         $prevLevels = [];
-        foreach ($bonusItemLevels as $itemLevel => &$info) {
+        foreach ($pricingItemLevels as $itemLevel => &$info) {
             $myPrice = GetMarketPrice($info);
             foreach ($prevLevels as $prevLevel) {
-                if ($bonusItemLevels[$prevLevel][ARRAY_INDEX_MARKETPRICE] > $myPrice) {
-                    $bonusItemLevels[$prevLevel][ARRAY_INDEX_MARKETPRICE] = $myPrice;
+                if ($pricingItemLevels[$prevLevel][ARRAY_INDEX_MARKETPRICE] > $myPrice) {
+                    $pricingItemLevels[$prevLevel][ARRAY_INDEX_MARKETPRICE] = $myPrice;
                 }
             }
             $prevLevels[] = $itemLevel;
         }
         unset($info);
     }
-    unset($bonusItemLevels, $prevLevels);
+    unset($pricingItemLevels, $prevLevels);
 
     DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " found ".count($itemBuyouts)." distinct items, ".count($petBuyouts)." species, ".count($newAuctionItems)." new items");
 
@@ -424,12 +427,12 @@ EOF;
     if ($ok) {
         $sqlStart = 'insert into ttblRareStage (item, level, price) values ';
         $sql = '';
-        foreach ($newAuctionItems as $itemId => $bonusItemLevels) {
-            foreach ($bonusItemLevels as $bonusItemLevel => $zz) {
-                $thisSql = sprintf('(%d,%d,%s)', $itemId, $bonusItemLevel,
-                    isset($itemBuyouts[$itemId][$bonusItemLevel]) ?
-                        GetMarketPrice($itemBuyouts[$itemId][$bonusItemLevel]) :
-                        GetMarketPrice($itemBids[$itemId][$bonusItemLevel], 1)
+        foreach ($newAuctionItems as $itemId => $pricingItemLevels) {
+            foreach ($pricingItemLevels as $pricingItemLevel => $zz) {
+                $thisSql = sprintf('(%d,%d,%s)', $itemId, $pricingItemLevel,
+                    isset($itemBuyouts[$itemId][$pricingItemLevel]) ?
+                        GetMarketPrice($itemBuyouts[$itemId][$pricingItemLevel]) :
+                        GetMarketPrice($itemBids[$itemId][$pricingItemLevel], 1)
                 );
 
                 if (strlen($sql) + 5 + strlen($thisSql) > $maxPacketSize) {

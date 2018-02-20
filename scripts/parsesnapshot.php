@@ -405,8 +405,8 @@ function ParseAuctionData($house, $snapshot, &$json)
 
             $totalAuctions++;
             $bonuses = [];
-            $bonusItemLevel = $equipBaseItemLevel[$auction['item']] ?? 0;
-            if (!isset($auction['petSpeciesId']) && isset($equipBaseItemLevel[$auction['item']])) {
+            $pricingItemLevel = $bonusItemLevel = $equipBaseItemLevel[$auction['item']] ?? 0;
+            if (!isset($auction['petSpeciesId']) && $bonusItemLevel) {
                 if (!isset($auction['bonusLists'])) {
                     $auction['bonusLists'] = [];
                 }
@@ -453,6 +453,9 @@ function ParseAuctionData($house, $snapshot, &$json)
                 }
 
                 $bonusItemLevel = \Newsstand\BonusItemLevel::GetBonusItemLevel($bonuses, $equipBaseItemLevel[$auction['item']], $auction['lootedLevel']);
+                if ($bonusItemLevel >= MIN_ITEM_LEVEL_PRICING) {
+                    $pricingItemLevel = $bonusItemLevel;
+                }
             }
             if ($auction['buyout'] != 0) {
                 if (isset($auction['petSpeciesId'])) {
@@ -466,15 +469,15 @@ function ParseAuctionData($house, $snapshot, &$json)
                     );
                     $petInfo[$auction['petSpeciesId']]['tq'] += $auction['quantity'];
                 } else {
-                    if (!isset($itemInfo[$auction['item']][$bonusItemLevel])) {
-                        $itemInfo[$auction['item']][$bonusItemLevel] = array('a' => array(), 'tq' => 0);
+                    if (!isset($itemInfo[$auction['item']][$pricingItemLevel])) {
+                        $itemInfo[$auction['item']][$pricingItemLevel] = array('a' => array(), 'tq' => 0);
                     }
 
-                    $itemInfo[$auction['item']][$bonusItemLevel]['a'][] = array(
+                    $itemInfo[$auction['item']][$pricingItemLevel]['a'][] = array(
                         'q'   => $auction['quantity'],
                         'p'   => $auction['buyout'],
                     );
-                    $itemInfo[$auction['item']][$bonusItemLevel]['tq'] += $auction['quantity'];
+                    $itemInfo[$auction['item']][$pricingItemLevel]['tq'] += $auction['quantity'];
                 }
             }
 
@@ -490,10 +493,10 @@ function ParseAuctionData($house, $snapshot, &$json)
                 // new auction
                 if ($auction['buyout'] != 0) {
                     if (!isset($auction['petSpeciesId'])) {
-                        if (!isset($expiredItemInfo['n'][$auction['item']][$bonusItemLevel])) {
-                            $expiredItemInfo['n'][$auction['item']][$bonusItemLevel] = 0;
+                        if (!isset($expiredItemInfo['n'][$auction['item']][$pricingItemLevel])) {
+                            $expiredItemInfo['n'][$auction['item']][$pricingItemLevel] = 0;
                         }
-                        $expiredItemInfo['n'][$auction['item']][$bonusItemLevel]++;
+                        $expiredItemInfo['n'][$auction['item']][$pricingItemLevel]++;
                     }
                 }
                 if (isset($equipBaseItemLevel[$auction['item']])) {
