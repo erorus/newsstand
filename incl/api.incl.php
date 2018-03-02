@@ -815,11 +815,21 @@ function UserThrottleCount($reset = false)
 
     $amount = 1;
     if (!isset($encodings['br'])) {
-        $amount *= 2;
+        $amount += 2;
     }
     if (!isset($encodings['gzip'])) {
-        $amount *= 5;
+        $amount += 4;
     }
+
+    if (!isset($_SERVER['HTTP_REFERER']) || !isset($_SERVER['HTTP_HOST'])) {
+        $amount += 2;
+    } else {
+        $refHost = parse_url($_SERVER['HTTP_REFERER'], PHP_URL_HOST);
+        if (!$refHost || (strtolower($refHost) != strtolower($_SERVER['HTTP_HOST']))) {
+            $amount += 4;
+        }
+    }
+
     MCIncrement($kCount, $amount);
 
     return $returned = $vals[$kCount] + $amount;
