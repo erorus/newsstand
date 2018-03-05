@@ -17,7 +17,11 @@ define('MAX_BONUSES', 6); // is a count, 1 through N
 define('OBSERVED_WITHOUT_BONUSES_LIMIT', 500); // if we see this many auctions of an item without any having bonuses, assume the item doesn't get bonuses
 
 define('EXISTING_SQL', '
-SELECT a.id, a.bid, a.buy, a.timeleft+0 timeleft, a.item, ifnull(ae.level, if(i.class in (2,4), i.level, 0)) level
+SELECT a.id, a.bid, a.buy, a.timeleft+0 timeleft, a.item,
+    if(ae.level is null,
+        if(i.class in (2,4), i.level, 0),
+        if(ae.level >= ' . MIN_ITEM_LEVEL_PRICING . ', ae.level, i.level)
+    ) level
 FROM tblAuction a
 LEFT JOIN tblAuctionExtra ae on a.house=ae.house and a.id=ae.id
 LEFT JOIN tblDBCItem i on a.item = i.id
