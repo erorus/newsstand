@@ -371,6 +371,52 @@ var TUJ_Subscription = function ()
             dest.appendChild(d);
             */
         }
+
+        d = libtuj.ce('div');
+        d.className = 'promo-code';
+        dest.appendChild(d);
+
+        $(d).text(tuj.lang.promoCode);
+        var codeBox = libtuj.ce('input');
+        codeBox.maxLength = '250';
+        d.appendChild(codeBox);
+
+        var btn = libtuj.ce('input');
+        btn.type = 'button';
+        btn.value = tuj.lang.submit;
+        $(btn).on('click', UsePromoCode.bind(this, btn, codeBox));
+        d.appendChild(btn);
+
+    }
+
+    function UsePromoCode(btn, codeBox) {
+        var code = codeBox.value.replace(/(^\s+)|(\s+$)/g, '');
+        if (!code) {
+            return;
+        }
+
+        btn.disabled = true;
+        tuj.SendCSRFProtectedRequest({
+            data: {'promocode': code},
+            success: function(dta) {
+                btn.disabled = false;
+
+                if (dta.valid) {
+                    alert(libtuj.sprintf(tuj.lang.promoCodeValid, libtuj.FormatDate(Math.floor((new Date()).getTime() / 1000) + dta.valid, true, 'day', true)));
+                    self.load(params);
+                } else if (dta.used) {
+                    alert(tuj.lang.promoCodeUsed);
+                } else if (dta.invalid) {
+                    alert(tuj.lang.promoCodeInvalid);
+                } else {
+                    alert(tuj.lang.EmailStatus.unknown);
+                }
+            },
+            error: function() {
+                alert(tuj.lang.EmailStatus.unknown);
+                btn.disabled = false;
+            }
+        });
     }
 
     function FetchBitPayInvoice(btn)

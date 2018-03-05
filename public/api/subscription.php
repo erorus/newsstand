@@ -143,6 +143,10 @@ if (isset($_POST['deleterare'])) {
     json_return(DeleteRareWatch($loginState, isset($_POST['house']) ? $_POST['house'] : 0, $_POST['deleterare']));
 }
 
+if (isset($_POST['promocode'])) {
+    json_return(ApplyPromoCode($loginState, $_POST['promocode']));
+}
+
 json_return([]);
 
 ///////////////////////////////
@@ -1296,4 +1300,67 @@ function CreateBitPayInvoice($loginState)
     }
 
     return ['url' => $json['url']];
+}
+
+function ApplyPromoCode($loginState, $promoCode)
+{
+    $code = preg_replace('/\s+/', ' ', trim($promoCode));
+    $sql = <<<'EOF'
+select id, maxuses, addseconds, 
+    (select count(*) from tblPromoCodeUsed pcu where pcu.code = pc.id) usedcount,
+    (select count(*) from tblPromoCodeUsed pcu where pcu.code = pc.id and pcu.user = ?) usercount
+from tblPromoCode pc
+where code = ?
+EOF;
+
+    $db = DBConnect();
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('is', $loginState['id'], $code);
+    $success = $stmt->execute();
+    if (!$success) {
+        $stmt->close();
+
+        return [];
+    }
+    $codeId = $maxUses = $addSeconds = $usedCount = $userCount = null;
+    $stmt->bind_result($codeId, $maxUses, $addSeconds, $usedCount, $userCount);
+    if (!$stmt->fetch()) {
+        $codeId = null;
+    }
+    $stmt->close();
+
+    if (is_null($codeId)) {
+        return ['invalid' => true];
+    }
+
+    if ($userCount > 0) {
+        return ['used' => true];
+    }
+
+    if ($usedCount >= $maxUses) {
+        return ['used' => true];
+    }
+
+    $stmt = $db->prepare('insert into tblPromoCodeUsed (code, user, used) values (?, ?, NOW())');
+    $stmt->bind_param('ii', $codeId, $loginState['id']);
+    $success = $stmt->execute();
+    if (!$success) {
+        $stmt->close();
+
+        return [];
+    }
+    $stmt->close();
+
+    $paidUntil = AddPaidTime($loginState['id'], $addSeconds);
+
+    $LANG = GetLang($loginState['locale']);
+
+    $message = $LANG['subscriptionTimeAddedMessage'];
+    if ($paidUntil > time()) {
+        $message .= "<br><br>" . sprintf(preg_replace('/\{(\d+)\}/', '%$1$s', $LANG['paidExpires']), date('Y-m-d H:i:s e', $paidUntil));
+    }
+
+    SendUserMessage($loginState['id'], 'Subscription', $LANG['paidSubscription'], $message);
+
+    return ['valid' => $addSeconds];
 }

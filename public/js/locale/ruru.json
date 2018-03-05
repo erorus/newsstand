@@ -629,6 +629,11 @@
     "clickToExtendSubscription": "Click below to extend your paid subscription by {1} days for {2}. Note: It may require an hour or more to process the payment.",
     "payWithBitcoin": "Оплата в Bitcoin",
 
+    "promoCode": "Promo Code: ",
+    "promoCodeInvalid": "That promo code is invalid. Please try again.",
+    "promoCodeValid": "Promo code verified, {1} added to your subscription.",
+    "promoCodeUsed": "That promo code was already used.",
+
     "notificationPeriod": "Интервал уведомлений",
     "notificationPeriodDesc": "Выберите, как часто вы хотите получать уведомления.",
     "notificationPeriodNext": "Your next message will be generated {1}.",

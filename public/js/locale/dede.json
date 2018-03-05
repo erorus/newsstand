@@ -629,6 +629,11 @@
     "clickToExtendSubscription": "Zahlmethode wählen, um das Abonnement um {1} Tage für {2} zu verlängern. Bemerke: Es kann eine Stunde oder mehr dauern, bis die Zahlung verarbeitet wurde.",
     "payWithBitcoin": "Mit Bitcoin bezahlen",
 
+    "promoCode": "Promo Code: ",
+    "promoCodeInvalid": "That promo code is invalid. Please try again.",
+    "promoCodeValid": "Promo code verified, {1} added to your subscription.",
+    "promoCodeUsed": "That promo code was already used.",
+
     "notificationPeriod": "Häufigkeit der Benachrichtungen",
     "notificationPeriodDesc": "Bevorzugte Zeitspanne zwischen den einzelnen Marktbenachrichtigungen.",
     "notificationPeriodNext": "Nächste Benachrichtigung in: {1}",

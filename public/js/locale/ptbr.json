@@ -629,6 +629,11 @@
     "clickToExtendSubscription": "Clique abaixo para extender sua assinatura paga por {1} dias por {2}. Nota: pagamentos via Paypal podem precisar de uma hora ou mais para serem processados.",
     "payWithBitcoin": "Pagar com Bitcoin",
 
+    "promoCode": "Promo Code: ",
+    "promoCodeInvalid": "That promo code is invalid. Please try again.",
+    "promoCodeValid": "Promo code verified, {1} added to your subscription.",
+    "promoCodeUsed": "That promo code was already used.",
+
     "notificationPeriod": "Período de Notificação",
     "notificationPeriodDesc": "Seleciona quanto tempo prefere entre cada mensagem de Notificação de Mercado.",
     "notificationPeriodNext": "Sua próxima mensagem será gerada em {1}.",

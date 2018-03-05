@@ -825,6 +825,37 @@ CREATE TABLE IF NOT EXISTS `tblPetSummary` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `tblPromoCode`
+--
+
+CREATE TABLE IF NOT EXISTS `tblPromoCode` (
+  `id` mediumint(8) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `code` varchar(250) COLLATE utf8_unicode_ci NOT NULL,
+  `maxuses` smallint(5) UNSIGNED NOT NULL DEFAULT '1',
+  `addseconds` int(10) UNSIGNED NOT NULL DEFAULT '2592000',
+  `created` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `code` (`code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tblPromoCodeUsed`
+--
+
+CREATE TABLE `tblPromoCodeUsed` (
+  `code` mediumint(8) UNSIGNED NOT NULL,
+  `user` mediumint(8) UNSIGNED NOT NULL,
+  `used` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  PRIMARY KEY (`code`,`user`),
+  CONSTRAINT `tblPromoCodeUsed_ibfk_1` FOREIGN KEY (`user`) REFERENCES `tblUser` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `tblPromoCodeUsed_ibfk_2` FOREIGN KEY (`code`) REFERENCES `tblPromoCode` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `tblRealm`
 --
 
