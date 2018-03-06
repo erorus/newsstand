@@ -110,6 +110,9 @@ class HTTP
             case 'POST':
                 curl_setopt($ch, CURLOPT_POST, true);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $toPost);
+                if (PHP_SAPI == 'cli') {
+                    curl_setopt($ch, CURLOPT_TIMEOUT, max(30, ceil((is_array($toPost) ? strlen(implode($toPost)) : strlen($toPost))/204800)));
+                }
                 break;
             case 'HEAD':
                 curl_setopt($ch, CURLOPT_NOBODY, true);
