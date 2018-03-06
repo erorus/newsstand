@@ -84,7 +84,7 @@ $f = new CURLFile($zipPath,'application/x-zip-compressed','TheUndermineJournal.z
 curl_setopt_array($curl, [
         CURLOPT_SHARE => $sh,
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => 30,
+        CURLOPT_TIMEOUT => max(30, ceil(filesize($zipPath)/204800)),
         CURLOPT_URL => 'http://www.wowinterface.com/downloads/editfile.php',
         CURLOPT_POSTFIELDS => [
             'replacementfile' => $f,
