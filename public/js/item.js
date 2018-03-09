@@ -251,8 +251,8 @@ var TUJ_Item = function ()
             }
         }
 
-        itemPage.append(libtuj.Ads.Add('3753400314'));
-        consecSections = 0;
+        //itemPage.append(libtuj.Ads.Add('3753400314'));
+        //consecSections = 0;
 
         if (dta.globalmonthly.hasOwnProperty(level) && dta.globalmonthly[level].length >= 28) {
             d = libtuj.ce();

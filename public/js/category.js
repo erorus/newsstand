@@ -905,7 +905,7 @@ var TUJ_Category = function ()
                     d.className = 'category category-' + f.name.toLowerCase();
                     resultsDiv.append(d);
                     if ((r = resultFunctions[f.name](f.data, d)) && (++resultCount == 5)) {
-                        resultsDiv.append(libtuj.Ads.Add('2276667118'));
+                        //resultsDiv.append(libtuj.Ads.Add('2276667118'));
                     }
                     if (f.name == 'BattlePetList') {
                         $.extend(everySpecies, r);
