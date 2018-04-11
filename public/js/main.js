@@ -95,9 +95,10 @@ var libtuj = {
     },
     FormatPrice: function (amt, justValue, shorter)
     {
-        var v = '', g, c;
+        var v = '', g, c, sign = 1;
         if (typeof amt == 'number') {
-            amt = Math.round(amt);
+            sign = amt < 0 ? -1 : 1;
+            amt = Math.abs(Math.round(amt));
             if (amt >= 100) {// 1s
                 if (shorter && amt >= 10000000) { // 1000g
                     g = Math.round(amt / 10000).toLocaleString();
@@ -109,30 +110,37 @@ var libtuj = {
                 c = amt;
                 v = '' + c + tuj.lang.suffixCopper;
             }
+            if (sign < 0) {
+                v = '-' + v;
+            }
         }
         if (justValue) {
             return v;
         }
 
         var s = libtuj.ce('span');
-        s.className = 'price';
-        $(s).data('sort', v ? amt : 0);
+        s.className = 'price' + (sign < 0 ? ' pct-veryhigh' : '');
+        $(s).data('sort', v ? amt * sign : 0);
         if (v) {
             if (g) {
-                s.appendChild(document.createTextNode(g));
-                s.className = 'money-gold';
+                s.appendChild(document.createTextNode((sign < 0 ? '-' : '') + g));
+                s.className += ' money-gold';
             } else {
-                s.appendChild(document.createTextNode(c));
-                s.className = 'money-copper';
+                s.appendChild(document.createTextNode((sign < 0 ? '-' : '') + c));
+                s.className += ' money-copper';
             }
         }
         return s;
     },
     FormatFullPrice: function (amt, justValue)
     {
-        var v = '';
+        var v = '', sign = 1;
         if (typeof amt == 'number') {
-            amt = Math.round(amt);
+            if (amt < 0) {
+                sign = -1;
+                v += '-';
+            }
+            amt = Math.abs(Math.round(amt));
             var g = Math.floor(amt / 10000);
             var s = Math.floor((amt % 10000) / 100);
             var c = Math.floor(amt % 100);
@@ -149,11 +157,14 @@ var libtuj = {
             return v;
         }
 
-        var sp = libtuj.ce('span');
+        var s2, sp = libtuj.ce('span');
         sp.className = 'price full';
-        $(sp).data('sort', v ? amt : 0);
+        $(sp).data('sort', v ? amt * sign : 0);
+        if (sign < 0) {
+            sp.appendChild(document.createTextNode('-'));
+            sp.className += ' pct-veryhigh';
+        }
         if (v) {
-            var s2 = libtuj.ce('span');
             if (g) {
                 s2 = libtuj.ce('span');
                 s2.className = 'money-gold';
