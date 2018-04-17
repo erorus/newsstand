@@ -12,6 +12,8 @@ $house = intval($_GET['house'], 10);
 
 HouseETag($house, true);
 
+header('Expires: '.date(DATE_RFC1123, time() + 10));
+
 $json = array(
     'timestamps'    => HouseTimestamps($house),
     'sellers'       => HouseTopSellers($house),
