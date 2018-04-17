@@ -723,6 +723,11 @@ var TUJ = function ()
 
             $('#progress-page').show();
 
+            var h = decodeURIComponent(location.hash.replace('+', ' ')).toLowerCase();
+            if (h.charAt(0) == '#') {
+                h = h.substr(1);
+            }
+
             $.ajax({
                 success: function (dta)
                 {
@@ -801,7 +806,9 @@ var TUJ = function ()
                     $('#progress-page').hide();
                 },
                 data: {
-                    'getuser': 1
+                    'getuser': 1,
+                    'hash': h,
+                    'defaultRealm': libtuj.Storage.Get('defaultRealm').realm || false
                 },
                 method: 'POST',
                 url: 'api/realms.php'

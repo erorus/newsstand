@@ -16,10 +16,69 @@ if (isset($_POST['getuser'])) {
     $loginState = RedactLoginState(GetLoginState());
 }
 
-json_return([
+$result = [
     'version' => API_VERSION,
     'language' => isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : 'en-US,en;q=0.5',
     'banned' => BotCheck(true),
     'user' => $loginState,
     'realms' => [GetRealms('US'),GetRealms('EU')]
-    ]);
+];
+
+$preloadHouse = FetchHouseFromHash();
+if ($preloadHouse === false) {
+    $preloadHouse = FetchHouseFromDefault();
+}
+
+if ($preloadHouse !== false) {
+    header(sprintf('Link: </api/house.php?house=%d>; as=script; rel=preload', $preloadHouse), false);
+}
+
+json_return($result);
+
+function FetchHouseFromHash() {
+    global $result;
+
+    if (!isset($_POST['hash']) || !$_POST['hash']) {
+        return false;
+    }
+
+    $hashParts = explode('/', substr($_POST['hash'], 0, 120), 3);
+
+    if (count($hashParts) < 2) {
+        return false;
+    }
+
+    $preloadHouse = false;
+
+    foreach (['us','eu'] as $regionId => $regionName) {
+        if ($hashParts[0] != $regionName) {
+            continue;
+        }
+        foreach ($result['realms'][$regionId] as $realm) {
+            if ($realm['slug'] == $hashParts[1]) {
+                return $realm['house'];
+            }
+        }
+        break;
+    }
+
+    return false;
+}
+
+function FetchHouseFromDefault() {
+    global $result;
+
+    if (!isset($_POST['defaultRealm'])) {
+        return false;
+    }
+
+    $defaultRealm = intval($_POST['defaultRealm'], 10);
+
+    foreach ($result['realms'] as $regionSet) {
+        if (isset($regionSet[$defaultRealm])) {
+            return $regionSet[$defaultRealm]['house'];
+        }
+    }
+
+    return false;
+}
