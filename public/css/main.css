@@ -108,6 +108,7 @@ abbr:hover.full-date { border-bottom: 1px dotted }
 #front-page .top-list { float: left; margin: 2em 2em 2em 0; line-height: 1.4em }
 #front-page .top-list h3 { margin: 0 0 1em }
 #front-page .top-list a{text-decoration: none}
+#front-page .top-list:empty { display: none }
 
 #progress-page { padding: 3em; text-align: center; }
 #progress-page div { background-image: url("../images/progress.gif"); background-repeat: no-repeat; background-position: center; height: 20px; }
