@@ -710,8 +710,10 @@ EOF;
     DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating " . count($petInfo) . " pet info (including " . (count($petInfo) - $preDeleted) . " no longer available)");
     UpdatePetInfo($house, $petInfo, $snapshot);
 
-    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating seller history");
-    UpdateSellerInfo($sellerInfo, $house, $snapshot);
+    if ($sellerInfo) {
+        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating seller history");
+        UpdateSellerInfo($sellerInfo, $house, $snapshot);
+    }
 
     if (count($expiredItemInfo) > 0) {
         $sqlStart = 'INSERT INTO tblItemExpired (item, level, house, `when`, created, expired) VALUES ';
