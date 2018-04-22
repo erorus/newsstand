@@ -1240,12 +1240,6 @@ ALTER TABLE `tblAuctionPet`
 ALTER TABLE `tblAuctionRare`
   ADD CONSTRAINT `tblAuctionRare_ibfk_1` FOREIGN KEY (`house`, `id`) REFERENCES `tblAuction` (`house`, `id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE `tblSellerHistoryHourly`
-  ADD CONSTRAINT `tblSellerHistoryHourly_ibfk_1` FOREIGN KEY (`seller`) REFERENCES `tblSeller` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
-ALTER TABLE `tblSellerItemHistory`
-  ADD CONSTRAINT `tblSellerItemHistory_ibfk_1` FOREIGN KEY (`seller`) REFERENCES `tblSeller` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
 --
 -- Constraints for table `tblUserAuth`
 --
