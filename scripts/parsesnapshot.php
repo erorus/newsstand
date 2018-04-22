@@ -355,38 +355,40 @@ function ParseAuctionData($house, $snapshot, &$json)
         $auctionCount = count($jsonAuctions);
         DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " prepping $auctionCount auctions");
 
-        $sellerCount = 0;
-        for ($x = 0; $x < $auctionCount; $x++) {
-            $auction =& $jsonAuctions[$x];
-            if ($auction['owner'] == '???') {
-                continue;
-            }
-            if (!isset($sellerInfo[$auction['ownerRealm']])) {
-                $sellerInfo[$auction['ownerRealm']] = array();
-            }
-            if (!isset($sellerInfo[$auction['ownerRealm']][$auction['owner']])) {
-                $sellerCount++;
-                $sellerInfo[$auction['ownerRealm']][$auction['owner']] = array(
-                    'new'   => 0,
-                    'total' => 0,
-                    'id'    => 0,
-                    'items' => [],
-                );
-            }
-            $sellerInfo[$auction['ownerRealm']][$auction['owner']]['total']++;
-            if ((!$hasRollOver || $auction['auc'] < 0x20000000) && ($auction['auc'] > $lastMax)) {
-                $sellerInfo[$auction['ownerRealm']][$auction['owner']]['new']++;
-                $itemId = intval($auction['item'], 10);
-                if (!isset($sellerInfo[$auction['ownerRealm']][$auction['owner']]['items'][$itemId])) {
-                    $sellerInfo[$auction['ownerRealm']][$auction['owner']]['items'][$itemId] = [0,0];
+        if ($region != 'EU') {
+            $sellerCount = 0;
+            for ($x = 0; $x < $auctionCount; $x++) {
+                $auction =& $jsonAuctions[$x];
+                if ($auction['owner'] == '???') {
+                    continue;
                 }
-                $sellerInfo[$auction['ownerRealm']][$auction['owner']]['items'][$itemId][0]++;
-                $sellerInfo[$auction['ownerRealm']][$auction['owner']]['items'][$itemId][1] += $auction['quantity'];
+                if ( ! isset($sellerInfo[$auction['ownerRealm']])) {
+                    $sellerInfo[$auction['ownerRealm']] = array();
+                }
+                if ( ! isset($sellerInfo[$auction['ownerRealm']][$auction['owner']])) {
+                    $sellerCount++;
+                    $sellerInfo[$auction['ownerRealm']][$auction['owner']] = array(
+                        'new'   => 0,
+                        'total' => 0,
+                        'id'    => 0,
+                        'items' => [],
+                    );
+                }
+                $sellerInfo[$auction['ownerRealm']][$auction['owner']]['total']++;
+                if (( ! $hasRollOver || $auction['auc'] < 0x20000000) && ($auction['auc'] > $lastMax)) {
+                    $sellerInfo[$auction['ownerRealm']][$auction['owner']]['new']++;
+                    $itemId = intval($auction['item'], 10);
+                    if ( ! isset($sellerInfo[$auction['ownerRealm']][$auction['owner']]['items'][$itemId])) {
+                        $sellerInfo[$auction['ownerRealm']][$auction['owner']]['items'][$itemId] = [0, 0];
+                    }
+                    $sellerInfo[$auction['ownerRealm']][$auction['owner']]['items'][$itemId][0]++;
+                    $sellerInfo[$auction['ownerRealm']][$auction['owner']]['items'][$itemId][1] += $auction['quantity'];
+                }
             }
-        }
 
-        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " getting $sellerCount seller IDs");
-        GetSellerIds($region, $sellerInfo, $snapshot);
+            DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " getting $sellerCount seller IDs");
+            GetSellerIds($region, $sellerInfo, $snapshot);
+        }
 
         $sql = $sqlPet = $sqlExtra = $sqlBadBonus = $sqlBonusesSeen = '';
         $delayedAuctionSql = [];
