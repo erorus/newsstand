@@ -28,11 +28,15 @@ $json = array(
     'daily'         => ItemHistoryDaily($house, $item),
     'monthly'       => ItemHistoryMonthly($house, $item),
     'expired'       => ItemExpired($house, $item),
-    'sellers'       => ItemSellers($house, $item),
     'auctions'      => ItemAuctions($house, $item),
     'globalnow'     => ItemGlobalNow(GetRegion($house), $item),
     'globalmonthly' => ItemGlobalMonthly(GetRegion($house), $item),
+    'region'        => GetRegion($house),
 );
+
+if ($json['region'] != 'EU') {
+    $json['sellers'] = ItemSellers($house, $item);
+}
 
 json_return($json);
 

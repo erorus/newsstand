@@ -2750,6 +2750,8 @@ var TUJ_Item = function ()
             hasRand |= !!auc.bonuses;
         }
 
+        var hasSellers = !data.hasOwnProperty('region') || (data.region != 'EU');
+
         var t, tr, td;
         t = libtuj.ce('table');
         t.className = 'auctionlist';
@@ -2757,10 +2759,12 @@ var TUJ_Item = function ()
         tr = libtuj.ce('tr');
         t.appendChild(tr);
 
-        td = libtuj.ce('th');
-        tr.appendChild(td);
-        td.className = 'seller';
-        $(td).text(tuj.lang.seller);
+        if (hasSellers) {
+            td = libtuj.ce('th');
+            tr.appendChild(td);
+            td.className = 'seller';
+            $(td).text(tuj.lang.seller);
+        }
 
         if (hasRand) {
             td = libtuj.ce('th');
@@ -2811,28 +2815,32 @@ var TUJ_Item = function ()
             tr = libtuj.ce('tr');
             t.appendChild(tr);
 
-            if (lastRowSection != curRowSection) {
-                lastSellerTd = td = libtuj.ce('td');
-                td.rowSpan = 1;
-                tr.appendChild(td);
-                td.className = 'seller';
-                if (auc.sellerrealm) {
-                    a = libtuj.ce('a');
-                    a.href = tuj.BuildHash({realm: auc.sellerrealm, page: 'seller', id: auc.sellername});
-                    if (tuj.SellerIsBot(auc.sellerrealm, auc.sellername)) {
-                        a.className = 'sellerbot';
+            if (hasSellers) {
+                if (lastRowSection != curRowSection) {
+                    lastSellerTd = td = libtuj.ce('td');
+                    td.rowSpan = 1;
+                    tr.appendChild(td);
+                    td.className = 'seller';
+                    if (auc.sellerrealm) {
+                        a = libtuj.ce('a');
+                        a.href = tuj.BuildHash({realm: auc.sellerrealm, page: 'seller', id: auc.sellername});
+                        if (tuj.SellerIsBot(auc.sellerrealm, auc.sellername)) {
+                            a.className = 'sellerbot';
+                        }
                     }
-                }
-                else {
-                    a = libtuj.ce('span');
-                }
-                td.appendChild(a);
-                $(a).text(auc.sellername + (auc.sellerrealm && auc.sellerrealm != params.realm ? (' - ' + tuj.realms[auc.sellerrealm].name) : ''));
+                    else {
+                        a = libtuj.ce('span');
+                    }
+                    td.appendChild(a);
+                    $(a).text(auc.sellername + (auc.sellerrealm && auc.sellerrealm != params.realm ? (' - ' + tuj.realms[auc.sellerrealm].name) : ''));
 
-                lastRowSection = curRowSection;
+                    lastRowSection = curRowSection;
+                } else {
+                    lastSellerTd.rowSpan++;
+                    libtuj.AlsoHover(tr, lastSellerTd);
+                }
             } else {
-                lastSellerTd.rowSpan++;
-                libtuj.AlsoHover(tr, lastSellerTd);
+                lastRowSection = curRowSection;
             }
 
             if (hasRand) {

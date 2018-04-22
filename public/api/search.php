@@ -32,9 +32,12 @@ DBConnect();
 
 $json = array(
     'items'      => SearchItems($house, $search, $locale),
-    'sellers'    => SearchSellers($house, $search),
     'battlepets' => SearchBattlePets($house, $search, $locale),
 );
+
+if (GetRegion($house) != 'EU') {
+    $json['sellers'] = SearchSellers($house, $search);
+}
 
 $ak = array_keys($json);
 foreach ($ak as $k) {

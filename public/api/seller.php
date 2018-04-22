@@ -14,7 +14,7 @@ if (!isset($_GET['realm']) || !isset($_GET['seller'])) {
 $realm = intval($_GET['realm'], 10);
 $seller = mb_convert_case(mb_substr($_GET['seller'], 0, 12), MB_CASE_LOWER);
 
-if (!$seller || !$realm || (!($house = GetHouse($realm)))) {
+if (!$seller || !$realm || (!($house = GetHouse($realm))) || (GetRegion($house) == 'EU')) {
     json_return(array());
 }
 
