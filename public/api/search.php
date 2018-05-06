@@ -127,6 +127,7 @@ from (
     where i.name_$locale like ?
     and (s.item is not null or ifnull(i.auctionable,1) = 1)
     group by i.id
+    order by quantity desc, lastseen desc, quality desc
     limit ?
 ) results
 EOF;
