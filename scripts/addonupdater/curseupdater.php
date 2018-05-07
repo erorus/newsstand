@@ -22,7 +22,7 @@ if (!file_exists($zipPath)) {
     exit(1);
 }
 
-function GetLatestGameVersionID() {
+function GetLatestGameVersionIDs() {
     $url = sprintf("https://wow.curseforge.com/api/game/versions?token=%s", CURSEFORGE_API_TOKEN);
     $json = HTTP::Get($url);
     if (!$json) {
@@ -39,10 +39,69 @@ function GetLatestGameVersionID() {
         return false;
     }
     usort($json, function($a,$b){
-        return version_compare($a['name'], $b['name']);
+        return version_compare($b['name'], $a['name']);
     });
-    $latest = array_pop($json);
-    return $latest['id'];
+
+    $ngdpVersion = GetNGDPVersion();
+    if ($ngdpVersion) {
+        $result = [];
+        foreach ($json as $versionObject) {
+            $partCount = min(substr_count($ngdpVersion, '.'), substr_count($versionObject['name'], '.')) + 1;
+            if (version_compare(
+                implode('.', array_slice(explode('.', $ngdpVersion), 0, $partCount)),
+                implode('.', array_slice(explode('.', $versionObject['name']), 0, $partCount)),
+                '<=')) {
+                $result[] = $versionObject['id'];
+            } else {
+                break;
+            }
+        }
+        if ($result) {
+            return $result;
+        }
+    }
+
+    $latest = array_shift($json);
+    return [$latest['id']];
+}
+
+function GetNGDPVersion()
+{
+    $data = HTTP::Get('http://us.patch.battle.net:1119/wow/versions');
+    if ( ! $data) {
+        fwrite(STDERR, "Could not fetch current WoW version from NGDP\n");
+
+        return false;
+    }
+
+    $lines = preg_split('/[\r\n]+/', $data);
+    if (strpos($lines[0], '|') === false) {
+        fwrite(STDERR, "Invalid NGDP data\n");
+
+        return false;
+    }
+    $cols  = explode('|', strtolower($lines[0]));
+    $names = [];
+    foreach ($cols as $col) {
+        $name = $col;
+        if (($pos = strpos($name, '!')) !== false) {
+            $name = substr($name, 0, $pos);
+        }
+        $names[] = $name;
+    }
+
+    for ($x = 1; $x < count($lines); $x++) {
+        $vals = explode('|', $lines[$x]);
+        if (count($vals) != count($names)) {
+            continue;
+        }
+        $row = array_combine($names, $vals);
+        if (isset($row['region']) && $row['region'] == 'eu' && isset($row['versionsname'])) {
+            return $row['versionsname'];
+        }
+    }
+
+    return false;
 }
 
 function mimeset(&$a) {
@@ -74,14 +133,14 @@ function mimeset(&$a) {
     return [$tr, $boundary];
 }
 
-$latestVersion = GetLatestGameVersionID();
-if (!$latestVersion) {
+$latestVersions = GetLatestGameVersionIDs();
+if (!$latestVersions) {
     exit(1);
 }
 
 $metaData = [
     'changelog' => sprintf('Automatic data update for %s', date('l, F j, Y')),
-    'gameVersions' => [$latestVersion],
+    'gameVersions' => $latestVersions,
     'releaseType' => 'release',
 ];
 
