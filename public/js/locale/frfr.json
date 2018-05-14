@@ -123,8 +123,6 @@
     "dailySummaryDesc": "Quantité maximum disponible et prix de l'objet chaque jour. La moyenne du prix par jour est incluse afin de comparer.",
     "dailyDetails": "Détails quotidien",
     "dailyDetailsDesc": "Ce tableau est similaire à l'aperçu quotidien mais inclus le prix du marché \"OHLC\" quotidien de l'objet, avec les quantités minimales, moyennes et maximales disponibles.",
-    "auctionCount": "Auction Count",
-    "auctionCountDesc": "This chart counts the number of new auctions posted on each day, along with an estimate of how many of them ended up expired.",
     "postingHeatMap": "Posting Heat Map",
     "pricingHeatMap": "Heat Map Prix",
     "pricingHeatMapDesc": "Cette heat map vous aide à identifier si le moment de journée a une influence sur le prix",

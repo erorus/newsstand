@@ -123,8 +123,6 @@
     "dailySummaryDesc": "Hier wird die maximal verfügbare Menge und der Marktpreis zu dieser Zeit für diesen Gegenstand für jeden Tag angezeigt. Der regionale Durchschnittspreis für jeden Tag wird zum Vergleich angezeigt.",
     "dailyDetails": "Tägliche Details",
     "dailyDetailsDesc": "Dieses Diagramm ist ähnlich der täglichen Zusammenfassung, zeigt aber zuätzlich die Preisspanne des Gegenstands für jeden Tag an, zusammen mit der minimalen, druchschnittlichen und maximal verfügbaren Menge.",
-    "auctionCount": "Auktionenzahlen",
-    "auctionCountDesc": "Dieses Diagramm zeigt die Anzahl von neuen Auktionen an jedem Tag, nebst einer Schätzung wie viele von ihnen ausgelaufen sind.",
     "postingHeatMap": "Einstell-Heatmap",
     "pricingHeatMap": "Preis-Heatmap",
     "pricingHeatMapDesc": "Diese Heatmap hilft zu erkennen ob es einen Zusammenhang gibt zwischen Preis und Tageszeit.",

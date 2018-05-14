@@ -104,31 +104,6 @@ function CleanOldData()
         return;
     }
 
-    // clean tblItemExpired
-
-    for ($hx = 0; $hx < count($houses); $hx++) {
-        heartbeat();
-        if (CatchKill()) {
-            return;
-        }
-
-        $house = $houses[$hx];
-        if (!MCHouseLock($house)) {
-            continue;
-        }
-        $cutoffDate = date('Y-m-d H:i:s', strtotime('' . ((HISTORY_DAYS * 2) + 3) . ' days ago'));
-
-        $sql = sprintf('delete from tblItemExpired where house = %d and `when` < \'%s\'', $house, $cutoffDate);
-        $rowCount = DeleteLimitLoop($db, $sql);
-
-        DebugMessage(sprintf('%d expired item rows removed from house %d since %s', $rowCount, $house, $cutoffDate));
-        MCHouseUnlock($house);
-    }
-
-    if (CatchKill()) {
-        return;
-    }
-
     $rowCount = 0;
     DebugMessage('Clearing out old seller history');
     $cutoffDateHourly = date('Y-m-d', strtotime('' . HISTORY_DAYS . ' days ago'));

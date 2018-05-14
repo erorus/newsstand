@@ -324,11 +324,6 @@ function ParseAuctionData($house, $snapshot, &$json)
     if (count($snapshotList)) {
         $prevSnapshot = intval($snapshotList[count($snapshotList)-1]['updated'],10);
     }
-    $snapshotWindow = $snapshot - $prevSnapshot;
-    $expiredLength = 1; // any missing shorts can be considered expired
-    if ($snapshotWindow > 1800) { // 30 mins
-        $expiredLength = 2; // any missing shorts or mediums can be expired
-    }
 
     $sqlStart = 'REPLACE INTO tblAuction (house, id, item, quantity, bid, buy, seller, timeleft) VALUES ';
     $sqlStartPet = 'REPLACE INTO tblAuctionPet (house, id, species, breed, `level`, quality) VALUES ';
@@ -349,7 +344,6 @@ function ParseAuctionData($house, $snapshot, &$json)
     $itemInfo = array();
     $petInfo = array();
     $sellerInfo = array();
-    $expiredItemInfo = array();
 
     if ($jsonAuctions) {
         $auctionCount = count($jsonAuctions);
@@ -497,14 +491,6 @@ function ParseAuctionData($house, $snapshot, &$json)
                 }
             } else {
                 // new auction
-                if ($auction['buyout'] != 0) {
-                    if (!isset($auction['petSpeciesId'])) {
-                        if (!isset($expiredItemInfo['n'][$auction['item']][$pricingItemLevel])) {
-                            $expiredItemInfo['n'][$auction['item']][$pricingItemLevel] = 0;
-                        }
-                        $expiredItemInfo['n'][$auction['item']][$pricingItemLevel]++;
-                    }
-                }
                 if (isset($equipBaseItemLevel[$auction['item']])) {
                     if (!isset($enoughBonusesSeenCache[$auction['item']])) {
                         $usefulBonuses = [];
@@ -662,22 +648,6 @@ EOF;
         DBQueryWithError($ourDb, $sql);
     }
 
-    foreach ($existingIds as $existingId => &$oldRow) {
-        // all missing auctions
-        if (!isset($existingPetIds[$existingId])) {
-            // missing item auction
-            if (($oldRow[EXISTING_COL_BUY] > 0) && ($oldRow[EXISTING_COL_TIMELEFT] > 0) && ($oldRow[EXISTING_COL_TIMELEFT] <= $expiredLength)) {
-                // probably expired item with buyout
-                $expiredPosted = date('Y-m-d', $snapshot - GetAuctionAge($existingId, $snapshot, $snapshotList));
-                if (!isset($expiredItemInfo[$expiredPosted][$oldRow[EXISTING_COL_ITEM]][$oldRow[EXISTING_COL_LEVEL]])) {
-                    $expiredItemInfo[$expiredPosted][$oldRow[EXISTING_COL_ITEM]][$oldRow[EXISTING_COL_LEVEL]] = 0;
-                }
-                $expiredItemInfo[$expiredPosted][$oldRow[EXISTING_COL_ITEM]][$oldRow[EXISTING_COL_LEVEL]]++;
-            }
-        }
-    }
-    unset($oldRow);
-
     $rareDeletes = [];
 
     $preDeleted = count($itemInfo);
@@ -713,61 +683,6 @@ EOF;
     if ($sellerInfo) {
         DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating seller history");
         UpdateSellerInfo($sellerInfo, $house, $snapshot);
-    }
-
-    if (count($expiredItemInfo) > 0) {
-        $sqlStart = 'INSERT INTO tblItemExpired (item, level, house, `when`, created, expired) VALUES ';
-        $sqlEnd = ' ON DUPLICATE KEY UPDATE created=created+values(created), expired=expired+values(expired)';
-        $sql = '';
-
-        if (isset($expiredItemInfo['n'])) {
-            DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " adding new auctions for ".count($expiredItemInfo['n'])." items");
-
-            $snapshotDay = date('Y-m-d', $snapshot);
-            $expiredCount = 0;
-            foreach ($expiredItemInfo['n'] as $itemId => $levels) {
-                foreach ($levels as $level => $createdCount) {
-                    $sqlPart  = sprintf('(%u, %u, %u, \'%s\', %u, %u)', $itemId, $level, $house,
-                        $snapshotDay, $createdCount, $expiredCount);
-
-                    if (strlen($sql) + 10 + strlen($sqlPart) + strlen($sqlEnd) > $maxPacketSize) {
-                        DBQueryWithError($ourDb, $sql . $sqlEnd);
-                        $sql = '';
-                    }
-
-                    $sql .= ($sql == '' ? $sqlStart : ',') . $sqlPart;
-                }
-            }
-            unset($expiredItemInfo['n']);
-        }
-
-        if ($sql != '') {
-            DBQueryWithError($ourDb, $sql . $sqlEnd);
-            $sql = '';
-        }
-
-        $createdCount = 0;
-        $snapshotDays = array_keys($expiredItemInfo);
-        foreach ($snapshotDays as $snapshotDay) {
-            //DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " adding expired auctions from $snapshotDay for ".count($expiredItemInfo[$snapshotDay])." items");
-            foreach ($expiredItemInfo[$snapshotDay] as $itemId => $levels) {
-                foreach ($levels as $level => $expiredCount) {
-                    $sqlPart  = sprintf('(%u, %u, %u, \'%s\', %u, %u)', $itemId, $level, $house,
-                        $snapshotDay, $createdCount, $expiredCount);
-
-                    if (strlen($sql) + 10 + strlen($sqlPart) + strlen($sqlEnd) > $maxPacketSize) {
-                        DBQueryWithError($ourDb, $sql . $sqlEnd);
-                        $sql = '';
-                    }
-
-                    $sql .= ($sql == '' ? $sqlStart : ',') . $sqlPart;
-                }
-            }
-        }
-
-        if ($sql != '') {
-            DBQueryWithError($ourDb, $sql . $sqlEnd);
-        }
     }
 
     if (count($existingIds) > 0) {

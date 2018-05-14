@@ -205,20 +205,6 @@ var TUJ_Item = function ()
             ItemDailyChart(dta, cht);
         }
 
-        if (dta.hasOwnProperty('expired') && dta.expired.hasOwnProperty(level) && dta.expired[level].length >= 7) {
-            d = libtuj.ce();
-            d.className = 'chart-section section' + (consecSections++);
-            h = libtuj.ce('h2');
-            d.appendChild(h);
-            $(h).text(tuj.lang.auctionCount);
-            d.appendChild(document.createTextNode(tuj.lang.auctionCountDesc));
-            cht = libtuj.ce();
-            cht.className = 'chart monthly';
-            d.appendChild(cht);
-            itemPage.append(d);
-            ItemExpiredChart(dta, cht);
-        }
-
         if (dta.history.hasOwnProperty(level) && dta.history[level].length >= 14) {
             d = libtuj.ce();
             d.className = 'chart-section section' + (consecSections++);
@@ -1895,117 +1881,6 @@ var TUJ_Item = function ()
                     name: tuj.lang.marketPrice,
                     color: tujConstants.siteColors[tuj.colorTheme].greenPriceDim,
                     data: hcdata.price
-                }
-            ]
-        });
-    }
-
-    function ItemExpiredChart(data, dest)
-    {
-        var hcdata = {created: [], expired: [], maxVal: 0};
-
-        var dt, dtParts;
-        var offset = (new Date()).getTimezoneOffset() * 60 * 1000;
-        var earliestDate = Date.now();
-        for (var x = 0; x < data.expired[level].length; x++) {
-            dtParts = data.expired[level][x].date.split('-');
-            dt = Date.UTC(dtParts[0], parseInt(dtParts[1], 10) - 1, dtParts[2]) + offset;
-            if (dt < earliestDate) {
-                earliestDate = dt;
-            }
-            hcdata.created.push([dt, data.expired[level][x].created]);
-            hcdata.expired.push([dt, data.expired[level][x].expired]);
-
-            if (data.expired[level][x].created > hcdata.maxVal) {
-                hcdata.maxVal = data.expired[level][x].created;
-            }
-        }
-        Highcharts.setOptions({
-            global: {
-                useUTC: false
-            }
-        });
-
-        $(dest).highcharts({
-            chart: {
-                type: 'column',
-                zoomType: 'x',
-                backgroundColor: tujConstants.siteColors[tuj.colorTheme].background
-            },
-            title: {
-                text: null
-            },
-            xAxis: {
-                type: 'datetime',
-                maxZoom: 4 * 24 * 3600000, // four days
-                title: {
-                    text: null
-                },
-                labels: {
-                    style: {
-                        color: tujConstants.siteColors[tuj.colorTheme].text
-                    }
-                }
-            },
-            yAxis: [
-                {
-                    title: {
-                        text: tuj.lang.numberOfAuctions,
-                        style: {
-                            color: tujConstants.siteColors[tuj.colorTheme].redQuantity
-                        }
-                    },
-                    labels: {
-                        enabled: true,
-                        formatter: function ()
-                        {
-                            return '' + libtuj.FormatQuantity(this.value, true);
-                        },
-                        style: {
-                            color: tujConstants.siteColors[tuj.colorTheme].text
-                        }
-                    },
-                    min: 0,
-                    max: hcdata.maxVal,
-                    opposite: false,
-                }
-            ],
-            legend: {
-                enabled: false
-            },
-            tooltip: {
-                shared: true,
-                formatter: function ()
-                {
-                    var tr = '<b>' + Highcharts.dateFormat('%a %b %e %Y', this.x) + '</b>';
-                    if (this.points[0]) {
-                        tr += '<br><span style="color: #900">' + tuj.lang.newAuctions + ': ' + libtuj.FormatQuantity(this.points[0].y, true) + '</span>';
-                        if (this.points[1]) {
-                            tr += '<br><span>' + tuj.lang.expired + ': ' + Math.round(this.points[1].y / this.points[0].y * 100) + '%</span>';
-                        }
-                    } else if (this.points[1]) {
-                        tr += '<br><span>' + tuj.lang.expired + ': ' + libtuj.FormatQuantity(this.points[1].y, true) + '</span>';
-                    }
-                    return tr;
-                }
-            },
-            plotOptions: {
-                column: {
-                    stacking: 'normal',
-                }
-            },
-            series: [
-                {
-                    type: 'column',
-                    name: 'created',
-                    color: tujConstants.siteColors[tuj.colorTheme].redQuantityFill,
-                    data: hcdata.created
-                },
-                {
-                    type: 'column',
-                    name: 'expired',
-                    color: tujConstants.siteColors[tuj.colorTheme].text,
-                    data: hcdata.expired
                 }
             ]
         });
