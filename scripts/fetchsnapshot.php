@@ -9,7 +9,7 @@ require_once('../incl/battlenet.incl.php');
 
 define('SNAPSHOT_PATH', '/var/newsstand/snapshots/');
 define('EARLY_CHECK_SECONDS', 120);
-define('MINIMUM_INTERVAL_SECONDS', 1200);
+define('MINIMUM_INTERVAL_SECONDS', 1220);
 
 $regions = ['US','EU','CN','TW','KR'];
 
