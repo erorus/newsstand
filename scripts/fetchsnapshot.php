@@ -9,6 +9,7 @@ require_once('../incl/battlenet.incl.php');
 
 define('SNAPSHOT_PATH', '/var/newsstand/snapshots/');
 define('EARLY_CHECK_SECONDS', 120);
+define('MINIMUM_INTERVAL_SECONDS', 1200);
 
 $regions = ['US','EU','CN','TW','KR'];
 
@@ -256,8 +257,14 @@ ENDSQL;
 
     $successJson = json_encode($dta); // will include any updates from using lastSuccessJson
 
-    $stmt = $db->prepare('INSERT INTO tblHouseCheck (house, nextcheck, lastcheck, lastcheckresult, lastchecksuccess, lastchecksuccessresult) VALUES (?, NULL, now(), ?, now(), ?) ON DUPLICATE KEY UPDATE nextcheck=values(nextcheck), lastcheck=values(lastcheck), lastcheckresult=values(lastcheckresult), lastchecksuccess=values(lastchecksuccess), lastchecksuccessresult=values(lastchecksuccessresult)');
-    $stmt->bind_param('iss', $house, $json, $successJson);
+    $nextCheck = null;
+    if ($modified - $lastDateUnix <= MINIMUM_INTERVAL_SECONDS) {
+        $nextCheck = date('Y-m-d H:i:s', $modified + MINIMUM_INTERVAL_SECONDS);
+        DebugMessage(sprintf('%s %s update interval was %d seconds (<= %d), forcing next check at %s', $region, $slug, $modified - $lastDateUnix, MINIMUM_INTERVAL_SECONDS, date('H:i:s', $modified + MINIMUM_INTERVAL_SECONDS)));
+    }
+
+    $stmt = $db->prepare('INSERT INTO tblHouseCheck (house, nextcheck, lastcheck, lastcheckresult, lastchecksuccess, lastchecksuccessresult) VALUES (?, ?, now(), ?, now(), ?) ON DUPLICATE KEY UPDATE nextcheck=values(nextcheck), lastcheck=values(lastcheck), lastcheckresult=values(lastcheckresult), lastchecksuccess=values(lastchecksuccess), lastchecksuccessresult=values(lastchecksuccessresult)');
+    $stmt->bind_param('isss', $house, $nextCheck, $json, $successJson);
     $stmt->execute();
     $stmt->close();
 
