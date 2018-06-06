@@ -390,6 +390,7 @@ order by iba.bidper / iba.avgprice asc
 limit 20) lowbids on i.id=lowbids.item
 EOF;
 
+    /*
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
@@ -426,6 +427,7 @@ EOF;
             'sort'        => 'lowbids'
         ]
     ];
+    */
 
     return $tr;
 }
