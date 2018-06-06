@@ -1074,6 +1074,7 @@ from tblItemSummary s
 join tblItemSummary s2 on s2.item = s.item
 left join tblItemHistoryHourly h on h.house = s.house and h.item = s.item and h.level = s.level and h.`when` = ?
 WHERE s.house = ? and s2.house = ? and s2.lastseen >= ? and h.house is null
+group by s.house, s.item, s.level
 EOF;
 
     $stmt = $db->prepare($sql);
