@@ -579,7 +579,8 @@ CREATE TABLE IF NOT EXISTS `tblItemHistoryHourly` (
   `silver23` int(10) unsigned DEFAULT NULL,
   `quantity23` mediumint(8) unsigned DEFAULT NULL,
   PRIMARY KEY (`house`,`item`,`level`,`when`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci
+PARTITION BY HASH (to_days(`when`)) PARTITIONS 16;
 
 -- --------------------------------------------------------
 
