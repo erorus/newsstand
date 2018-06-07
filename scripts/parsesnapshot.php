@@ -1062,41 +1062,22 @@ EOF;
 
     // update history tables from summary data
 
-    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating item history hourly");
-
     $prevSnapshotString = date('Y-m-d H:i:s', $prevSnapshot);
-
     $sql = <<<'EOF'
-insert into tblItemHistoryHourly (house, item, level, `when`)
-select s.house, s.item, s.level, ?
-from tblItemSummary s
-join tblItemSummary s2 on s2.item = s.item
-left join tblItemHistoryHourly h on h.house = s.house and h.item = s.item and h.level = s.level and h.`when` = ?
-WHERE s.house = ? and s2.house = ? and s2.lastseen >= ? and h.house is null
-group by s.house, s.item, s.level
-EOF;
-
-    $stmt = $db->prepare($sql);
-    $stmt->bind_param('ssiis', $dateString, $dateString, $house, $house, $prevSnapshotString);
-    $stmt->execute();
-    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . sprintf(" inserted %d hourly history rows", $stmt->affected_rows));
-    $stmt->close();
-
-    $sql = <<<'EOF'
-update tblItemHistoryHourly h
-join tblItemSummary s on h.item = s.item and h.level = s.level
-join tblItemSummary s2 on s2.item = s.item
-set h.silver%1$s = round(s.price/100), h.quantity%1$s = s.quantity
-where h.house = ? and s.house = ? and s2.house = ?
-and s2.lastseen >= ?
-and h.`when` = ?
-and ifnull(h.quantity%1$s, 0) <= s.quantity
+INSERT INTO tblItemHistoryHourly (house, item, level, `when`, `silver%1$s`, `quantity%1$s`)
+    (SELECT s.house, s.item, s.level, ?, round(s.price/100), s.quantity
+    FROM tblItemSummary s
+    JOIN tblItemSummary s2 on s2.item = s.item
+    WHERE s.house = ? and s2.house = ? and s2.lastseen>=?
+    GROUP BY s.house, s.item, s.level)
+ON DUPLICATE KEY UPDATE
+    `silver%1$s`=if(values(`quantity%1$s`) >= ifnull(`quantity%1$s`,0), values(`silver%1$s`), `silver%1$s`),
+    `quantity%1$s`=if(values(`quantity%1$s`) >= ifnull(`quantity%1$s`,0), values(`quantity%1$s`), `quantity%1$s`)
 EOF;
 
     $stmt = $db->prepare(sprintf($sql, $hour));
-    $stmt->bind_param('iiiss', $house, $house, $house, $prevSnapshotString, $dateString);
+    $stmt->bind_param('siis', $dateString, $house, $house, $prevSnapshotString);
     $stmt->execute();
-    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . sprintf(" updated %d hourly history rows", $stmt->affected_rows));
     $stmt->close();
 }
 
