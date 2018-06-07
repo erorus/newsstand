@@ -63,11 +63,11 @@ class HTTP
         return $oldHosts;
     }
 
-    public static function Get($url, $inHeaders = [], &$outHeaders = []) {
-        return static::SendRequest($url, 'GET', [], $inHeaders, $outHeaders);
+    public static function Get($url, $inHeaders = [], &$outHeaders = [], $curlOpt = []) {
+        return static::SendRequest($url, 'GET', [], $inHeaders, $outHeaders, $curlOpt);
     }
 
-    public static function Post($url, $toPost, $inHeaders = [], &$outHeaders = []) {
+    public static function Post($url, $toPost, $inHeaders = [], &$outHeaders = [], $curlOpt = []) {
         if (is_array($toPost)) {
             $postStr = '';
             foreach ($toPost as $k => $v) {
@@ -75,15 +75,15 @@ class HTTP
             }
             $toPost = $postStr;
         }
-        return static::SendRequest($url, 'POST', $toPost, $inHeaders, $outHeaders);
+        return static::SendRequest($url, 'POST', $toPost, $inHeaders, $outHeaders, $curlOpt);
     }
 
-    public static function Head($url, $inHeaders = []) {
-        static::SendRequest($url, 'HEAD', [], $inHeaders, $outHeaders);
+    public static function Head($url, $inHeaders = [], $curlOpt = []) {
+        static::SendRequest($url, 'HEAD', [], $inHeaders, $outHeaders, $curlOpt);
         return $outHeaders;
     }
 
-    private static function SendRequest($url, $method, $toPost, $inHeaders, &$outHeaders)
+    private static function SendRequest($url, $method, $toPost, $inHeaders, &$outHeaders, $curlOpt)
     {
         static $isRetry = false;
         $wasRetry = $isRetry;
@@ -117,6 +117,9 @@ class HTTP
             case 'HEAD':
                 curl_setopt($ch, CURLOPT_NOBODY, true);
                 break;
+        }
+        if ($curlOpt) {
+            curl_setopt_array($ch, $curlOpt);
         }
 
         $data = curl_exec($ch);

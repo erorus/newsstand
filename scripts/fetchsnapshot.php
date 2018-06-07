@@ -10,6 +10,11 @@ require_once('../incl/battlenet.incl.php');
 define('SNAPSHOT_PATH', '/var/newsstand/snapshots/');
 define('EARLY_CHECK_SECONDS', 120);
 define('MINIMUM_INTERVAL_SECONDS', 1220);
+define('DATA_FILE_CURLOPTS', [
+    CURLOPT_LOW_SPEED_LIMIT => 50*1024,
+    CURLOPT_LOW_SPEED_TIME => 5,
+    CURLOPT_TIMEOUT => 20,
+]);
 
 $regions = ['US','EU','CN','TW','KR'];
 
@@ -215,9 +220,10 @@ ENDSQL;
 
     DebugMessage("$region $slug updated $modified ".date('H:i:s', $modified)." (" . SecondsOrMinutes(time() - $modified) . " ago), fetching auction data file");
     $dlStart = microtime(true);
-    $data = \Newsstand\HTTP::Get(preg_replace('/^http:/', 'https:', $fileInfo['url']), [], $outHeaders);
+    $data = \Newsstand\HTTP::Get(preg_replace('/^http:/', 'https:', $fileInfo['url']), [], $outHeaders, DATA_FILE_CURLOPTS);
     $dlDuration = microtime(true) - $dlStart;
     if (!$data || (substr($data, -4) != "]\r\n}")) {
+        \Newsstand\HTTP::AbandonConnections();
         if (!$data) {
             DebugMessage("$region $slug data file empty. Waiting 5 seconds and trying again.");
             sleep(5);
@@ -226,7 +232,7 @@ ENDSQL;
             sleep(10);
         }
         $dlStart = microtime(true);
-        $data = \Newsstand\HTTP::Get($fileInfo['url'] . (parse_url($fileInfo['url'], PHP_URL_QUERY) ? '&' : '?') . 'please', [], $outHeaders);
+        $data = \Newsstand\HTTP::Get($fileInfo['url'] . (parse_url($fileInfo['url'], PHP_URL_QUERY) ? '&' : '?') . 'please', [], $outHeaders, DATA_FILE_CURLOPTS);
         $dlDuration = microtime(true) - $dlStart;
     }
     if (!$data) {
