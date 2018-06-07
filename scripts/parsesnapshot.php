@@ -170,7 +170,7 @@ function NextDataFile()
     $gotFile = false;
     foreach ($dir as $fileName) {
         if (preg_match('/^(\d+)-(\d+)\.json$/', $fileName, $res)) {
-            if (($handle = fopen(SNAPSHOT_PATH . $fileName, 'r+b')) === false) {
+            if (($handle = fopen(SNAPSHOT_PATH . $fileName, 'rb')) === false) {
                 continue;
             }
 
@@ -214,7 +214,6 @@ function NextDataFile()
     );
     $json = json_decode(stream_get_contents($handle), true);
 
-    ftruncate($handle, 0);
     fclose($handle);
     unlink(SNAPSHOT_PATH . $fileName);
 
