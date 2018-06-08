@@ -656,7 +656,8 @@ CREATE TABLE IF NOT EXISTS `tblItemHistoryMonthly` (
   `mktslvr31` int(10) unsigned DEFAULT NULL,
   `qty31` smallint(5) unsigned DEFAULT NULL,
   PRIMARY KEY (`item`,`house`,`level`,`month`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci
+PARTITION BY HASH (`month`) PARTITIONS 12;
 
 -- --------------------------------------------------------
 
