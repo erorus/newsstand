@@ -78,7 +78,7 @@
                     <div class="sidebar" id="category-sidebar">
                         <a rel="deals">Deals</a>
                         <a rel="unusuals">Unusuals</a>
-                        <a rel="blood">Blood of Sargeras</a>
+                        <a rel="lowbids">Potential Low Bids</a>
                         <br/>
 
                         <a rel="blacksmithing">Blacksmithing</a>
@@ -106,6 +106,7 @@
                         <a rel="archaeology">Archaeology</a>
                         <br/>
 
+                        <a rel="blood">Bloods &amp; Primals</a>
                         <a rel="minorstats">Minor Stats</a>
                         <a rel="custom">Custom</a>
                         <br/>
