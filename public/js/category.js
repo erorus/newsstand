@@ -857,7 +857,7 @@ var TUJ_Category = function ()
         var everySpecies = {};
 
         if (dta.hasOwnProperty('results')) {
-            if (['custom', 'battlepets', 'deals', 'unusualItems'].indexOf(dta.name) < 0) {
+            if (['custom', 'battlepets', 'deals', 'unusualItems', 'potentialLowBids'].indexOf(dta.name) < 0) {
                 var compareDiv = libtuj.ce('div');
                 compareDiv.className = 'custom-textarea';
                 resultsDiv.append(compareDiv);
