@@ -46,7 +46,8 @@ var TUJ_Category = function ()
 
         $('#progress-page').show();
 
-        $.ajax({
+        var ajaxTries = 0;
+        var ajaxSettings = {
             data: qs,
             success: function (d)
             {
@@ -56,21 +57,41 @@ var TUJ_Category = function ()
                 else {
                     CategoryResult(hash, d);
                 }
+
+                $('#progress-page').hide();
             },
             error: function (xhr, stat, er)
             {
-                if ((xhr.status == 503) && xhr.hasOwnProperty('responseJSON') && xhr.responseJSON && xhr.responseJSON.hasOwnProperty('maintenance')) {
+                if (xhr.status == 429 && xhr.responseJSON && xhr.responseJSON.concurrent_retry) {
+                    if (++ajaxTries >= 10) {
+                        $('#progress-page').hide();
+
+                        alert('Too many concurrent requests, please reload to try again.');
+                    } else {
+                        var delay = 2500 + Math.round(Math.random() * 1000) + 1000 * ajaxTries;
+                        console.log('Other concurrent requests currently being processed, will retry after ' + delay + 'ms');
+
+                        window.setTimeout(
+                            function () {
+                                $.ajax(ajaxSettings);
+                            }, delay);
+                    }
+
+                    return;
+                }
+
+                $('#progress-page').hide();
+
+                if ((xhr.status == 503) && xhr.responseJSON && xhr.responseJSON.maintenance) {
                     tuj.APIMaintenance(xhr.responseJSON.maintenance);
                 } else {
-                    alert('Error fetching page data: ' + stat + ' ' + er);
+                    alert('Error fetching page data: ' + xhr.status + ' ' + stat + ' ' + er);
                 }
             },
-            complete: function ()
-            {
-                $('#progress-page').hide();
-            },
             url: 'api/category.php'
-        });
+        };
+
+        $.ajax(ajaxSettings);
     };
 
     function MakeNotificationsSection(house)

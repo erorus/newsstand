@@ -18,8 +18,9 @@ if (!$seller || !$realm || (!($house = GetHouse($realm))) || (GetRegion($house) 
     json_return(array());
 }
 
-BotCheck();
 HouseETag($house);
+ConcurrentRequestThrottle();
+BotCheck();
 
 $sellerRow = SellerStats($house, $realm, $seller);
 if (!$sellerRow) {

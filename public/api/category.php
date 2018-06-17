@@ -40,12 +40,13 @@ i.id in (
     where z.itmcount = 0
 )');
 
-BotCheck();
 if ($canCache) {
     HouseETag($house);
 } else {
     header('Cache-Control: no-cache');
 }
+ConcurrentRequestThrottle();
+BotCheck();
 
 $expansionLevels = [60, 70, 80, 85, 90, 100, 110];
 $expansions = [

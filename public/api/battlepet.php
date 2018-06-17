@@ -15,8 +15,9 @@ if (!$species) {
     json_return(array());
 }
 
-BotCheck();
 HouseETag($house);
+ConcurrentRequestThrottle();
+BotCheck();
 
 $json = array(
     'stats'     => PetStats($house, $species),

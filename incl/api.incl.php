@@ -3,9 +3,10 @@
 require_once('memcache.incl.php');
 require_once('incl.php');
 
-define('API_VERSION', 101);
+define('API_VERSION', 102);
 define('THROTTLE_PERIOD', 3600); // seconds
 define('THROTTLE_MAXHITS', 200);
+define('CONCURRENT_REQUEST_MAX', 3);
 define('BANLIST_CACHEKEY', 'banlist_cidrs4');
 define('BANLIST_FILENAME', __DIR__ . '/banlist.txt');
 define('BANLIST_USE_DNSBL', false);
@@ -850,4 +851,34 @@ function HouseETag($house, $includeFetches = false)
     }
 
     header('ETag: ' . $curTag);
+}
+
+function ConcurrentRequestThrottle()
+{
+    $userKey = trim(strtolower($_SERVER['REMOTE_ADDR'] ?? ''));
+    if (!$userKey) {
+        return;
+    }
+
+    $slotKey = false;
+    $slotKeyFormat = 'concurreq_%d_%s';
+
+    for ($slot = 0; $slot < CONCURRENT_REQUEST_MAX; $slot++) {
+        $slotKey = sprintf($slotKeyFormat, $slot, $userKey);
+        if (MCAdd($slotKey, 1, 60)) {
+            break;
+        }
+        $slotKey = false;
+    }
+
+    if (!$slotKey) {
+        header_remove('ETag');
+        header('Expires: 0');
+
+        header('HTTP/1.1 429 Too Many Requests');
+
+        json_return(['concurrent_retry' => 1]);
+    }
+
+    register_shutdown_function('MCDelete', $slotKey);
 }

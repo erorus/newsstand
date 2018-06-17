@@ -15,8 +15,9 @@ if ($search == '') {
     json_return(array());
 }
 
-BotCheck();
 HouseETag($house);
+ConcurrentRequestThrottle();
+BotCheck();
 
 $locale = GetLocale();
 $searchCacheKey = 'search_ls_' . $locale . '_' . md5($search);

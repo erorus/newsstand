@@ -15,8 +15,9 @@ if (!$item) {
     json_return(array());
 }
 
-BotCheck();
 HouseETag($house);
+ConcurrentRequestThrottle();
+BotCheck();
 
 $stats = ItemStats($house, $item);
 if (count($stats) == 0) {
