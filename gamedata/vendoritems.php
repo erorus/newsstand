@@ -23,7 +23,12 @@ while ($row = $result->fetch_assoc()) {
 $result->close();
 $stmt->close();
 
+$ignoreNPCs = [111838]; // beta glyph vendor
+
 $sql = 'replace into tblDBCItemVendorCost (item, copper, npc, npccount) values (%d, %d, %d, %d)';
 foreach ($itms as $itemId => $itemInfo) {
+    if ($itemInfo['npccount'] == 1 && in_array($itemInfo['npc'], $ignoreNPCs)) {
+        continue;
+    }
     $db->real_query(sprintf($sql, $itemId, $itemInfo['price'], $itemInfo['npc'], $itemInfo['npccount']));
 }
