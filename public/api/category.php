@@ -217,6 +217,16 @@ function CategoryResult_custom($house) {
 
 function CategoryResult_deals($house)
 {
+    $deckCardsSql = <<<'EOF'
+(i.name_enus like '% of %' and
+i.id in (
+    select dis.item
+    from tblDBCItemSpell dis
+    join tblDBCSpell s on dis.spell = s.id
+    where s.name like '% Deck')
+)
+EOF;
+
     $tr = [
         'name'    => 'deals',
         'results' => [
@@ -334,7 +344,7 @@ function CategoryResult_deals($house)
                 'name' => 'ItemList',
                 'data' => [
                     'name'        => 'Miscellaneous Items',
-                    'items'       => CategoryDealsItemList($house, '(i.class in (12,13) or (i.class=15 and i.subclass not in (2,5)))'),
+                    'items'       => CategoryDealsItemList($house, '(i.class in (12,13) or (i.class=15 and i.subclass not in (2,5))) and not ' . $deckCardsSql),
                     'dynamicItems' => 1,
                     'hiddenCols'  => ['lastseen' => true],
                     'visibleCols' => ['globalmedian' => true, 'posted' => true],
