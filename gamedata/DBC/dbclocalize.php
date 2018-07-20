@@ -99,24 +99,6 @@ EOF;
     $stmt->close();
 
     LogLine("$locale tblDBCRandEnchants");
-    $reader = CreateDB2Reader('ItemRandomSuffix');
-    $stmt = $db->prepare("insert into tblDBCRandEnchants (id, name_$locale) values (?, ?) on duplicate key update name_$locale = ifnull(values(name_$locale), name_enus)");
-    $enchId = $name = null;
-    $stmt->bind_param('is', $enchId, $name);
-    $x = 0; $recordCount = count($reader->getIds());
-    foreach ($reader->generateRecords() as $id => $rec) {
-        EchoProgress(++$x/$recordCount);
-        $enchId = $id * -1;
-        $name = $rec['name'];
-        if (!$name) {
-            $name = null;
-        }
-        $stmt->execute();
-    }
-    $stmt->close();
-    EchoProgress(false);
-    unset($reader);
-
     $reader = CreateDB2Reader('ItemRandomProperties');
     $stmt = $db->prepare("insert into tblDBCRandEnchants (id, name_$locale) values (?, ?) on duplicate key update name_$locale = ifnull(values(name_$locale), name_enus)");
     $enchId = $name = null;

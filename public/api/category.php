@@ -48,7 +48,7 @@ if ($canCache) {
 ConcurrentRequestThrottle();
 BotCheck();
 
-$expansionLevels = [60, 70, 80, 85, 90, 100, 110];
+$expansionLevels = [60, 70, 80, 85, 90, 100, 110, 120];
 $expansions = [
     'Classic',
     'Burning Crusade',
@@ -57,6 +57,7 @@ $expansions = [
     'Mists of Pandaria',
     'Warlords of Draenor',
     'Legion',
+    'Battle for Azeroth',
 ];
 $qualities = array('Poor', 'Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Artifact', 'Heirloom');
 

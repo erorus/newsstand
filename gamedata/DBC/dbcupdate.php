@@ -415,22 +415,6 @@ $stmt->close();
 unset($reader);
 
 LogLine("tblDBCRandEnchants");
-$reader = CreateDB2Reader('ItemRandomSuffix');
-RunAndLogError('truncate table tblDBCRandEnchants');
-$stmt = $db->prepare("insert into tblDBCRandEnchants (id, name_$locale) values (?, ?) on duplicate key update name_$locale = values(name_$locale)");
-$enchId = $name = null;
-$stmt->bind_param('is', $enchId, $name);
-$x = 0; $recordCount = count($reader->getIds());
-foreach ($reader->generateRecords() as $id => $rec) {
-    EchoProgress(++$x/$recordCount);
-    $enchId = $id * -1;
-    $name = $rec['name'];
-    RunAndLogError($stmt->execute());
-}
-$stmt->close();
-EchoProgress(false);
-unset($reader);
-
 $reader = CreateDB2Reader('ItemRandomProperties');
 $stmt = $db->prepare("insert into tblDBCRandEnchants (id, name_$locale) values (?, ?) on duplicate key update name_$locale = values(name_$locale)");
 $enchId = $name = null;
@@ -462,6 +446,7 @@ DB2TempTable('SpellCategory');
 RunAndLogError('create temporary table ttblSpellCategory2 select * from ttblSpellCategory');
 
 DB2TempTable('SpellMisc');
+DB2TempTable('SpellName');
 DB2TempTable('SpellReagents');
 DB2TempTable('SkillLine');
 DB2TempTable('SkillLineAbility');
@@ -492,15 +477,16 @@ EOF;
 
 RunAndLogError('truncate tblDBCSpell');
 $sql = <<<EOF
-insert into tblDBCSpell (id,name,description,cooldown,qtymade,yellow,skillline,crafteditem)
-(select distinct s.id, s.spellname, s.longdescription,
+insert ignore into tblDBCSpell (id,name,description,cooldown,qtymade,yellow,skillline,crafteditem)
+(select distinct s.id, sn.spellname, s.longdescription,
     greatest(
         ifnull(cd.categorycooldown * if(c.flags & 8, 86400, 1),0),
         ifnull(cd.individualcooldown * if(c.flags & 8, 86400, 1),0),
         ifnull(cc.chargecooldown,0)) / 1000,
     if(se.itemcreated=0,0,if(se.diesides=0,if(se.qtymade=0,1,se.qtymade),(se.qtymade * 2 + se.diesides + 1)/2)),
-    sla.yellowat,sla.lineid,if(se.itemcreated=0,null,se.itemcreated)
+    sla.yellowat,min(sla.lineid),if(se.itemcreated=0,null,se.itemcreated)
 from ttblSpell s
+join ttblSpellName sn on s.id = sn.id
 left join ttblSpellMisc sm on s.id=sm.spellid
 left join ttblSpellCooldowns cd on cd.spell = s.id
 left join ttblSpellCategories cs on cs.spell = s.id
@@ -514,8 +500,8 @@ EOF;
 RunAndLogError($sql);
 
 $sql = 'insert ignore into tblDBCSpell (id,name,description) ';
-$sql .= ' (select distinct s.id, s.spellname, s.longdescription ';
-$sql .= ' from ttblSpell s left join ttblSpellMisc sm on s.id=sm.spellid ';
+$sql .= ' (select distinct s.id, sn.spellname, s.longdescription ';
+$sql .= ' from ttblSpell s join ttblSpellName sn on s.id = sn.id left join ttblSpellMisc sm on s.id=sm.spellid ';
 $sql .= ' join tblDBCItemSpell dis on dis.spell=s.id) ';
 RunAndLogError($sql);
 
@@ -633,6 +619,8 @@ while ($row = $result->fetch_assoc()) {
 
     if (is_null($row['mx']))
         $exp = 'null';
+    elseif ($row['mx'] > 110)
+        $exp = 7; // bfa
     elseif ($row['mx'] > 100)
         $exp = 6; // legion
     elseif ($row['mx'] > 90)

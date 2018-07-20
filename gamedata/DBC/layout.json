@@ -1,62 +1,62 @@
 {
     "ManifestInterfaceData": {
-        "hash": 2657045657,
+        "hash": 65323041,
         "names": {
             "0": "path",
             "1": "name"
         }
     },
     "GlobalStrings": {
-        "hash": 748939806,
+        "hash": 2218161661,
         "names": {
             "0": "key",
             "1": "value"
         }
     },
     "ItemSubClass": {
-        "hash": 3671665255,
+        "hash": 3340208913,
         "names": {
             "0": "name",
             "1": "plural",
-            "3": "class",
-            "4": "subclass"
+            "2": "class",
+            "3": "subclass"
         }
     },
     "BattlePetSpecies": {
-        "hash": 2319292324,
+        "hash": 2024192296,
         "names": {
-            "2": "npcid",
-            "3": "iconid",
-            "5": "flags",
+            "3": "npcid",
+            "5": "iconid",
             "6": "type",
-            "7": "category"
+            "7": "flags",
+            "8": "category"
         }
     },
     "Creature": {
-        "hash": 3484747945,
+        "hash": 222899187,
         "names": {
             "0": "name"
         }
     },
     "BattlePetSpeciesState": {
-        "hash": 2408942940,
+        "hash": 2582359210,
         "names": {
-            "0": "amount",
-            "1": "state",
+            "0": "state",
+            "1": "amount",
             "2": "species"
         },
         "signed": {
-            "0": true
+            "1": true
         }
     },
     "ItemNameDescription": {
-        "hash": 376835028,
+        "hash": 3153087692,
         "names": {
             "0": "name"
         }
     },
     "ScalingStatDistribution": {
-        "hash": 3738468998,
+        "hash": 884582778,
         "names": {
             "0": "curve",
             "1": "minlevel",
@@ -64,7 +64,7 @@
         }
     },
     "ItemBonus": {
-        "hash": 3777999264,
+        "hash": 3110868808,
         "names": {
             "0": "params",
             "1": "bonusid",
@@ -76,7 +76,7 @@
         }
     },
     "CurvePoint": {
-        "hash": 4083634923,
+        "hash": 4194316823,
         "names": {
             "0": "pair",
             "1": "curve",
@@ -84,28 +84,28 @@
         }
     },
     "Item": {
-        "hash": 234670141,
+        "hash": 4183818247,
         "names": {
-            "0": "iconfiledata",
-            "1": "class",
-            "2": "subclass"
+            "0": "class",
+            "1": "subclass",
+            "6": "iconfiledata"
         }
     },
     "ItemSparse": {
-        "hash": 1074257430,
+        "hash": 4177665793,
         "names": {
-            "1": "name",
-            "6": "flags",
-            "9": "buycount",
-            "10": "buyprice",
-            "11": "sellprice",
-            "14": "stacksize",
-            "23": "level",
-            "24": "requiredskill",
-            "45": "quality",
-            "46": "type",
-            "47": "requiredlevel",
-            "54": "binds"
+            "5": "name",
+            "13": "stacksize",
+            "16": "sellprice",
+            "17": "buyprice",
+            "18": "buycount",
+            "21": "flags",
+            "42": "requiredskill",
+            "43": "level",
+            "54": "binds",
+            "61": "requiredlevel",
+            "62": "type",
+            "63": "quality"
         },
         "strings": {
             "0": 1,
@@ -116,90 +116,89 @@
         }
     },
     "ItemAppearance": {
-        "hash": 114514521,
+        "hash": 1110406733,
         "names": {
-            "0": "display",
-            "1": "iconfiledata"
+            "1": "display",
+            "2": "iconfiledata"
         }
     },
     "ItemModifiedAppearance": {
-        "hash": 3863990667,
+        "hash": 2620569599,
         "names": {
-            "0": "item",
+            "1": "item",
             "2": "bonustype",
             "3": "appearance",
             "4": "index"
         }
     },
     "ItemEffect": {
-        "hash": 2744187456,
+        "hash": 1182894758,
         "names": {
-            "0": "spell",
+            "6": "spell",
             "8": "item"
         }
     },
-    "ItemRandomSuffix": {
-        "hash": 2513090597,
-        "names": {
-            "0": "name"
-        }
-    },
     "ItemRandomProperties": {
-        "hash": 3061020152,
+        "hash": 3181952973,
         "names": {
             "0": "name"
         }
     },
     "SpellEffect": {
-        "hash": 843319691,
+        "hash": 2150715575,
         "names": {
-            "1": "effecttypeid",
-            "2": "qtymade",
-            "3": "effectorder",
-            "11": "diesides",
-            "12": "itemcreated",
-            "29": "spellid"
+            "1": "effectorder",
+            "2": "effecttypeid",
+            "4": "qtymade",
+            "9": "diesides",
+            "10": "itemcreated",
+            "27": "spellid"
         }
     },
     "Spell": {
-        "hash": 578019327,
+        "hash": 4294040120,
         "names": {
-            "0": "spellname",
-            "2": "longdescription"
+            "1": "longdescription"
         }
     },
     "SpellCooldowns": {
-        "hash": 3398273852,
+        "hash": 612920072,
         "names": {
-            "0": "categorycooldown",
-            "1": "individualcooldown",
+            "1": "categorycooldown",
+            "2": "individualcooldown",
             "4": "spell"
         }
     },
     "SpellCategories": {
-        "hash": 350820044,
+        "hash": 4011664712,
         "names": {
-            "1": "categoryid",
-            "7": "chargecategoryid",
+            "5": "chargecategoryid",
+            "6": "categoryid",
             "8": "spell"
         }
     },
     "SpellCategory": {
-        "hash": 3932218244,
+        "hash": 1407917267,
         "names": {
-            "1": "chargecooldown",
-            "2": "flags"
+            "1": "flags",
+            "4": "chargecooldown"
         }
     },
     "SpellMisc": {
-        "hash": 3451983061,
+        "hash": 1995014843,
         "names": {
-            "0": "iconid",
-            "10": "spellid"
+            "1": "iconid",
+            "11": "spellid"
+        }
+    },
+    "SpellName": {
+        "hash": 2670494576,
+        "names": {
+            "0": "spellname"
         }
     },
     "SpellReagents": {
-        "hash": 73647752,
+        "hash": 1266533956,
         "names": {
             "0": "spell",
             "1": "reagent",
@@ -207,19 +206,19 @@
         }
     },
     "SkillLine": {
-        "hash": 1065257135,
+        "hash": 3968073354,
         "names": {
             "0": "linename",
-            "4": "linecatid"
+            "6": "linecatid"
         }
     },
     "SkillLineAbility": {
-        "hash": 2545264211,
+        "hash": 2743783538,
         "names": {
-            "2": "spellid",
-            "4": "lineid",
-            "5": "greyat",
-            "6": "yellowat"
+            "2": "lineid",
+            "3": "spellid",
+            "8": "greyat",
+            "9": "yellowat"
         }
     }
 }
