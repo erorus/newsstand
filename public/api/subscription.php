@@ -742,8 +742,8 @@ function SetWatch($loginState, $type, $item, $level, $region, $house, $direction
     $fail |= $cnt > SUBSCRIPTION_WATCH_LIMIT_PER;
 
     foreach ($curWatches as $curWatch) {
-        $fail |= !is_null($curWatch['region']) && ($curWatch['region'] == $region) && ($curWatch['direction'] == $direction) && ($curWatch['quantity'] == $quantity) && ($curWatch['price'] == $price) && ($subType && $level == $curWatch['subtype']);
-        $fail |= is_null($region) && is_null($curWatch['region']) && ($curWatch['house'] == $house) && ($curWatch['direction'] == $direction) && ($curWatch['quantity'] == $quantity) && ($curWatch['price'] == $price) && ($subType && $level == $curWatch['subtype']);
+        $fail |= !is_null($curWatch['region']) && ($curWatch['region'] == $region) && ($curWatch['direction'] == $direction) && ($curWatch['quantity'] == $quantity) && ($curWatch['price'] == $price) && (!$subType || $level == $curWatch['subtype']);
+        $fail |= is_null($region) && is_null($curWatch['region']) && ($curWatch['house'] == $house) && ($curWatch['direction'] == $direction) && ($curWatch['quantity'] == $quantity) && ($curWatch['price'] == $price) && (!$subType || $level == $curWatch['subtype']);
     }
 
     if ($fail) {
