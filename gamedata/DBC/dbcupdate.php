@@ -451,8 +451,8 @@ DB2TempTable('SpellReagents');
 DB2TempTable('SkillLine');
 DB2TempTable('SkillLineAbility');
 
-RunAndLogError('CREATE temporary TABLE `ttblDBCSkillLines` (`id` smallint unsigned NOT NULL, `name` char(50) NOT NULL, PRIMARY KEY (`id`)) ENGINE=memory');
-RunAndLogError('insert into ttblDBCSkillLines (select id, linename from ttblSkillLine where ((linecatid=11) or (linecatid=9 and (linename=\'Cooking\' or linename like \'Way of %\'))))');
+RunAndLogError('CREATE temporary TABLE `ttblDBCSkillLines` (`id` smallint unsigned NOT NULL, `name` char(50) NOT NULL, `origid` smallint unsigned NOT NULL, PRIMARY KEY (`id`)) ENGINE=memory');
+RunAndLogError('insert into ttblDBCSkillLines (select id, linename, origlineid from ttblSkillLine where ((linecatid=11) or (linecatid=9 and (linename=\'Cooking\' or linename like \'Way of %\'))))');
 
 LogLine('Getting trades..');
 RunAndLogError('truncate tblDBCItemReagents');
@@ -460,14 +460,13 @@ for ($x = 1; $x <= 8; $x++) {
     $sql = <<<'EOF'
 insert into tblDBCItemReagents (item, skillline, reagent, quantity, spell) (
     select itemcreated, 
-        sl.id, 
+        sl.origid, 
         sr.reagent%1$d, 
         sr.reagentcount%1$d/if(se.diesides=0,if(se.qtymade=0,1,se.qtymade),(se.qtymade * 2 + se.diesides + 1)/2), 
-        s.id 
-    from ttblSpell s
-    join ttblSpellReagents sr on sr.spell = s.id 
-    join ttblSpellEffect se on se.spellid = s.id 
-    join ttblSkillLineAbility sla on sla.spellid = s.id
+        se.spellid 
+    from ttblSpellEffect se 
+    join ttblSpellReagents sr on sr.spell = se.spellid 
+    join ttblSkillLineAbility sla on sla.spellid = se.spellid
     join ttblDBCSkillLines sl on sl.id = sla.lineid
     where se.itemcreated != 0 and sr.reagent%1$d != 0
 )
@@ -478,31 +477,38 @@ EOF;
 RunAndLogError('truncate tblDBCSpell');
 $sql = <<<EOF
 insert ignore into tblDBCSpell (id,name,description,cooldown,qtymade,yellow,skillline,crafteditem)
-(select distinct s.id, sn.spellname, s.longdescription,
+(select sn.id, sn.spellname, ifnull(s.longdescription, ''),
     greatest(
         ifnull(cd.categorycooldown * if(c.flags & 8, 86400, 1),0),
         ifnull(cd.individualcooldown * if(c.flags & 8, 86400, 1),0),
         ifnull(cc.chargecooldown,0)) / 1000,
     if(se.itemcreated=0,0,if(se.diesides=0,if(se.qtymade=0,1,se.qtymade),(se.qtymade * 2 + se.diesides + 1)/2)),
-    sla.yellowat,min(sla.lineid),if(se.itemcreated=0,null,se.itemcreated)
-from ttblSpell s
-join ttblSpellName sn on s.id = sn.id
-left join ttblSpellMisc sm on s.id=sm.spellid
-left join ttblSpellCooldowns cd on cd.spell = s.id
-left join ttblSpellCategories cs on cs.spell = s.id
+    sla.yellowat,min(sl.origid),if(se.itemcreated=0,null,se.itemcreated)
+from ttblSpellName sn
+left join ttblSpell s on s.id = sn.id
+left join ttblSpellMisc sm on sn.id=sm.spellid
+left join ttblSpellCooldowns cd on cd.spell = sn.id
+left join ttblSpellCategories cs on cs.spell = sn.id
 left join ttblSpellCategory c on c.id = cs.categoryid
 left join ttblSpellCategory2 cc on cc.id = cs.chargecategoryid
-join tblDBCItemReagents ir on s.id=ir.spell
-join ttblSpellEffect se on s.id=se.spellid
-join ttblSkillLineAbility sla on s.id=sla.spellid
-where se.effecttypeid in (24,53,157))
+join tblDBCItemReagents ir on sn.id=ir.spell
+join ttblSpellEffect se on sn.id=se.spellid
+join ttblSkillLineAbility sla on sn.id=sla.spellid
+join ttblDBCSkillLines sl on sl.id=sla.lineid
+where se.effecttypeid in (24,53,157)
+group by sn.id)
 EOF;
 RunAndLogError($sql);
 
-$sql = 'insert ignore into tblDBCSpell (id,name,description) ';
-$sql .= ' (select distinct s.id, sn.spellname, s.longdescription ';
-$sql .= ' from ttblSpell s join ttblSpellName sn on s.id = sn.id left join ttblSpellMisc sm on s.id=sm.spellid ';
-$sql .= ' join tblDBCItemSpell dis on dis.spell=s.id) ';
+$sql = <<<EOF
+insert ignore into tblDBCSpell (id,name,description) (
+    select distinct sn.id, sn.spellname, ifnull(s.longdescription,'')
+    from ttblSpellName sn 
+    left join ttblSpell s on s.id = sn.id 
+    left join ttblSpellMisc sm on sn.id=sm.spellid 
+    join tblDBCItemSpell dis on dis.spell=sn.id
+)
+EOF;
 RunAndLogError($sql);
 
 $sql = <<<EOF

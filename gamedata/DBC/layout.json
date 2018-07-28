@@ -209,7 +209,8 @@
         "hash": 3968073354,
         "names": {
             "0": "linename",
-            "6": "linecatid"
+            "6": "linecatid",
+            "9": "origlineid"
         }
     },
     "SkillLineAbility": {
