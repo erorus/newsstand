@@ -476,19 +476,19 @@ EOF;
 
 RunAndLogError('truncate tblDBCSpell');
 $sql = <<<EOF
-insert ignore into tblDBCSpell (id,name,description,cooldown,qtymade,yellow,skillline,crafteditem)
+insert ignore into tblDBCSpell (id,name,description,cooldown,qtymade,skillline,crafteditem)
 (select sn.id, sn.spellname, ifnull(s.longdescription, ''),
     greatest(
         ifnull(cd.categorycooldown * if(c.flags & 8, 86400, 1),0),
         ifnull(cd.individualcooldown * if(c.flags & 8, 86400, 1),0),
         ifnull(cc.chargecooldown,0)) / 1000,
     if(se.itemcreated=0,0,if(se.diesides=0,if(se.qtymade=0,1,se.qtymade),(se.qtymade * 2 + se.diesides + 1)/2)),
-    sla.yellowat,min(sl.origid),if(se.itemcreated=0,null,se.itemcreated)
+    min(if(sl.origid=0,sl.id,sl.origid)),if(se.itemcreated=0,null,se.itemcreated)
 from ttblSpellName sn
 left join ttblSpell s on s.id = sn.id
 left join ttblSpellMisc sm on sn.id=sm.spellid
-left join ttblSpellCooldowns cd on cd.spell = sn.id
-left join ttblSpellCategories cs on cs.spell = sn.id
+left join ttblSpellCooldowns cd on cd.spellid = sn.id
+left join ttblSpellCategories cs on cs.spellid = sn.id
 left join ttblSpellCategory c on c.id = cs.categoryid
 left join ttblSpellCategory2 cc on cc.id = cs.chargecategoryid
 join tblDBCItemReagents ir on sn.id=ir.spell

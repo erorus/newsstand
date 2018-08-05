@@ -210,7 +210,8 @@ CREATE TABLE IF NOT EXISTS `tblDBCItem` (
   `display` mediumint(8) unsigned DEFAULT NULL,
   `flags` set('pvp','notransmog','sniffed') COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `display` (`display`)
+  KEY `display` (`display`),
+  KEY `class` (`class`, `quality`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -383,7 +384,6 @@ CREATE TABLE IF NOT EXISTS `tblDBCSpell` (
   `cooldown` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `skillline` smallint(5) unsigned DEFAULT NULL,
   `qtymade` decimal(7,2) unsigned NOT NULL DEFAULT '0.00',
-  `yellow` smallint(5) unsigned DEFAULT NULL,
   `crafteditem` mediumint(8) unsigned DEFAULT NULL,
   `expansion` tinyint(3) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),

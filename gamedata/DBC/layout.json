@@ -166,7 +166,7 @@
         "names": {
             "1": "categorycooldown",
             "2": "individualcooldown",
-            "4": "spell"
+            "4": "spellid"
         }
     },
     "SpellCategories": {
@@ -174,7 +174,7 @@
         "names": {
             "5": "chargecategoryid",
             "6": "categoryid",
-            "8": "spell"
+            "8": "spellid"
         }
     },
     "SpellCategory": {
@@ -217,9 +217,7 @@
         "hash": 2743783538,
         "names": {
             "2": "lineid",
-            "3": "spellid",
-            "8": "greyat",
-            "9": "yellowat"
+            "3": "spellid"
         }
     }
 }

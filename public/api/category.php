@@ -389,7 +389,7 @@ from (
         else null end) * 100 sdprice
     from (
         select i.id as item, ifnull(ae.level, if(i.class in (2,4), i.level, 0)) level, min(a.bid/a.quantity) bidper
-        from tblAuction a
+        from tblAuction a use index (item)
         left join tblAuctionExtra ae on ae.house = a.house and ae.id = a.id
         join tblDBCItem i on i.id=a.item
         left join tblDBCItemVendorCost ivc on ivc.item=i.id
