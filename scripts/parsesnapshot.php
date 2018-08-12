@@ -33,8 +33,6 @@ define('EXISTING_COL_TIMELEFT', 2);
 define('EXISTING_COL_ITEM', 3);
 define('EXISTING_COL_LEVEL', 4);
 
-define('DB_LOCK_SEEN_BONUSES', 'update_seen_bonuses');
-
 ini_set('memory_limit', '768M');
 
 if (!DBConnect()) {
@@ -77,37 +75,6 @@ while ($stmt->fetch()) {
     $usefulBonusesCache[$id] = $id;
 }
 $stmt->close();
-
-$enoughBonusesSeenCache = [];
-$stmt = $db->prepare('SELECT item FROM `tblItemBonusesSeen` WHERE observed > 100000 group by item');
-$stmt->execute();
-$id = null;
-$stmt->bind_result($id);
-while ($stmt->fetch()) {
-    $enoughBonusesSeenCache[$id] = $id;
-}
-$stmt->close();
-
-$observedWithoutBonusesCache = [];
-/*
-$sql = <<<'EOF'
-select i.id, ibs.observed
-from tblDBCItem i
-join tblItemBonusesSeen ibs on ibs.item = i.id and ibs.bonus1 = 0
-left join tblItemBonusesSeen ibs2 on ibs2.item = i.id and ibs2.bonus1 != 0
-where i.class in (2,4)
-and i.auctionable = 1
-and ibs2.item is null
-EOF;
-$stmt = $db->prepare($sql);
-$stmt->execute();
-$id = $observed = null;
-$stmt->bind_result($id, $observed);
-while ($stmt->fetch()) {
-    $observedWithoutBonusesCache[$id] = $observed;
-}
-$stmt->close();
-*/
 
 \Newsstand\BonusItemLevel::init($db);
 
@@ -233,7 +200,7 @@ function ParseAuctionData($house, $snapshot, &$json)
     global $maxPacketSize;
     global $houseRegionCache;
     global $equipBaseItemLevel;
-    global $usefulBonusesCache, $enoughBonusesSeenCache, $observedWithoutBonusesCache;
+    global $usefulBonusesCache;
     global $TIMELEFT_ENUM;
 
     $snapshotString = date('Y-m-d H:i:s', $snapshot);
@@ -326,18 +293,11 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     $sqlStart = 'REPLACE INTO tblAuction (house, id, item, quantity, bid, buy, seller, timeleft) VALUES ';
     $sqlStartPet = 'REPLACE INTO tblAuctionPet (house, id, species, breed, `level`, quality) VALUES ';
-    $sqlStartBadBonus = 'INSERT INTO tblAuctionBadBonus (house, id, firstseen, lastseen';
-    $sqlEndBadBonus = ' ON DUPLICATE KEY UPDATE lastseen = values(lastseen)';
     $sqlStartExtra = 'REPLACE INTO tblAuctionExtra (house, id, `rand`, `seed`, `context`, `lootedlevel`, `level`';
     for ($x = 1; $x <= MAX_BONUSES; $x++) {
         $sqlStartExtra .= ", bonus$x";
-        $sqlStartBadBonus .= ", bonus$x";
-        $sqlEndBadBonus .= ", bonus$x = values(bonus$x)";
     }
     $sqlStartExtra .= ') VALUES ';
-    $sqlStartBadBonus .= ') VALUES ';
-    $sqlStartBonusesSeen = 'INSERT INTO tblItemBonusesSeen (item, bonus1, bonus2, bonus3, bonus4, observed) VALUES ';
-    $sqlEndBonusesSeen = ' ON DUPLICATE KEY UPDATE observed = observed + 1';
 
     $totalAuctions = 0;
     $itemInfo = array();
@@ -383,7 +343,7 @@ function ParseAuctionData($house, $snapshot, &$json)
             GetSellerIds($region, $sellerInfo, $snapshot);
         }
 
-        $sql = $sqlPet = $sqlExtra = $sqlBadBonus = $sqlBonusesSeen = '';
+        $sql = $sqlPet = $sqlExtra = '';
         $delayedAuctionSql = [];
 
         DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " parsing $auctionCount auctions");
@@ -428,29 +388,6 @@ function ParseAuctionData($house, $snapshot, &$json)
                     }
                 }
 
-                if ($usefulBonuses && isset($observedWithoutBonusesCache[$auction['item']])) {
-                    if ($observedWithoutBonusesCache[$auction['item']] >= OBSERVED_WITHOUT_BONUSES_LIMIT) {
-                        for ($y = count($bonuses); $y < MAX_BONUSES; $y++) {
-                            $bonuses[] = 'null';
-                        }
-                        $thisSql = sprintf('(%u,%u,\'%s\',\'%s\',%s)', $house, $auction['auc'], $snapshotString, $snapshotString, implode(',',$bonuses));
-
-                        if (strlen($sqlBadBonus) + 5 + strlen($thisSql) + strlen($sqlEndBadBonus) > $maxPacketSize) {
-                            $delayedAuctionSql[] = $sqlBadBonus . $sqlEndBadBonus; // delayed since tblAuction row must be inserted first for foreign key
-                            $sqlBadBonus = '';
-                        }
-                        $sqlBadBonus .= ($sqlBadBonus == '' ? $sqlStartBadBonus : ',') . $thisSql;
-
-                        $bonuses = []; // remove bonuses attached to auction, they probably don't belong
-                    }
-                    if (!isset($existingIds[$auction['auc']])) { // new auction
-                        DebugMessage(sprintf(
-                            'House %s new item %d has useful bonuses %s, first auction with them after %d observations, %s bonuses!',
-                            str_pad($house, 5, ' ', STR_PAD_LEFT), $auction['item'], implode(':', $usefulBonuses),
-                            $observedWithoutBonusesCache[$auction['item']], $bonuses ? 'using' : 'ignoring'));
-                    }
-                }
-
                 $bonusItemLevel = \Newsstand\BonusItemLevel::GetBonusItemLevel($bonuses, $equipBaseItemLevel[$auction['item']], $auction['lootedLevel']);
                 if ($bonusItemLevel >= MIN_ITEM_LEVEL_PRICING) {
                     $pricingItemLevel = $bonusItemLevel;
@@ -490,49 +427,6 @@ function ParseAuctionData($house, $snapshot, &$json)
                 }
             } else {
                 // new auction
-                if (isset($equipBaseItemLevel[$auction['item']])) {
-                    if (!isset($enoughBonusesSeenCache[$auction['item']])) {
-                        $usefulBonuses = [];
-                        foreach ($bonuses as $bonus) {
-                            if (isset($usefulBonusesCache[$bonus])) {
-                                $usefulBonuses[$bonus] = $bonus;
-                            }
-                        }
-
-                        sort($usefulBonuses, SORT_NUMERIC);
-                        switch (count($usefulBonuses)) {
-                            case 0:
-                                $usefulBonuses[] = 0;
-                            case 1:
-                                $usefulBonuses[] = 0;
-                            case 2:
-                                $usefulBonuses[] = 0;
-                            case 3:
-                                $usefulBonuses[] = 0;
-                        }
-
-                        $thisSql = sprintf(
-                            '(%u,%u,%u,%u,%u,1)',
-                            $auction['item'],
-                            $usefulBonuses[0],
-                            $usefulBonuses[1],
-                            $usefulBonuses[2],
-                            $usefulBonuses[3]
-                        );
-
-                        if (strlen($sqlBonusesSeen) + 5 + strlen($thisSql) + strlen($sqlEndBonusesSeen) > $maxPacketSize) {
-                            if (GetDBLock($ourDb, DB_LOCK_SEEN_BONUSES)) {
-                                DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating seen bonuses (" . round($totalAuctions / $auctionCount * 100) . '%)');
-                                DBQueryWithError($ourDb, $sqlBonusesSeen . $sqlEndBonusesSeen);
-                                ReleaseDBLock($ourDb, DB_LOCK_SEEN_BONUSES);
-                            } else {
-                                DebugMessage("Could not obtain ".DB_LOCK_SEEN_BONUSES." DB lock, skipping update of seen bonuses.", E_USER_WARNING);
-                            }
-                            $sqlBonusesSeen = '';
-                        }
-                        $sqlBonusesSeen .= ($sqlBonusesSeen ? ',' : $sqlStartBonusesSeen) . $thisSql;
-                    }
-                }
             }
 
             $thisSql = sprintf(
@@ -595,16 +489,6 @@ function ParseAuctionData($house, $snapshot, &$json)
             }
         }
 
-        if ($sqlBonusesSeen != '') {
-            if (GetDBLock($ourDb, DB_LOCK_SEEN_BONUSES)) {
-                DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating seen bonuses");
-                DBQueryWithError($ourDb, $sqlBonusesSeen . $sqlEndBonusesSeen);
-                ReleaseDBLock($ourDb, DB_LOCK_SEEN_BONUSES);
-            } else {
-                DebugMessage("Could not obtain ".DB_LOCK_SEEN_BONUSES." DB lock, skipping update of seen bonuses.", E_USER_WARNING);
-            }
-        }
-
         if ($sql != '') {
             DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating tblAuction");
             DBQueryWithError($ourDb, $sql);
@@ -618,17 +502,13 @@ function ParseAuctionData($house, $snapshot, &$json)
             $delayedAuctionSql[] = $sqlExtra;
         }
 
-        if ($sqlBadBonus != '') {
-            $delayedAuctionSql[] = $sqlBadBonus . $sqlEndBadBonus;
-        }
-
         if (count($delayedAuctionSql)) {
             DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating tblAuctionExtra, tblAuctionPet");
         }
         while (count($delayedAuctionSql)) {
             DBQueryWithError($ourDb, array_pop($delayedAuctionSql));
         }
-        unset($sqlBonusesSeen, $sqlPet, $sqlExtra, $sqlBadBonus, $delayedAuctionSql);
+        unset($sqlPet, $sqlExtra, $delayedAuctionSql);
 
         $sql = <<<EOF
 insert ignore into tblAuctionRare (house, id, prevseen) (
