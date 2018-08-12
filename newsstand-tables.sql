@@ -963,7 +963,8 @@ CREATE TABLE IF NOT EXISTS `tblSellerHistoryHourly` (
   `new23` smallint(5) unsigned DEFAULT NULL,
   `total23` smallint(5) unsigned DEFAULT NULL,
   PRIMARY KEY (`seller`,`when`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci
+PARTITION BY HASH (to_days(`when`)) PARTITIONS 16;
 
 -- --------------------------------------------------------
 
