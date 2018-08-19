@@ -1212,27 +1212,77 @@ function CategoryResult_blacksmithing($house)
     $tr = ['name' => 'blacksmithing', 'results' => []];
     $sortIndex = 0;
 
-    /*
-    $x = count($expansions) - 1;
-
     $tr['results'][] = [
         'name' => 'ItemList',
-        'sort' => ['main' => $sortIndex++],
         'data' => [
-            'name'  => $expansions[$x] . ' Weapons and Shields',
-            'items' => CategoryBonusItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $x . ' and (x.class=2 or (x.class = 4 and x.subclass = 6)) and xs.skillline=164) xyz on xyz.id = i.id'])
+            'name'  => 'Alliance Monel-Hardened Armor',
+            'items' => CategoryBonusItemList($house, 'i.id between 161880 and 161887')
         ]
     ];
 
     $tr['results'][] = [
         'name' => 'ItemList',
-        'sort' => ['main' => $sortIndex++],
         'data' => [
-            'name'  => $expansions[$x] . ' Armor',
-            'items' => CategoryBonusItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $x . ' and x.class = 4 and x.subclass != 6 and xs.skillline=164) xyz on xyz.id = i.id'])
+            'name'  => 'Alliance Honorable Combatant Armor',
+            'items' => CategoryBonusItemList($house, 'i.id between 161893 and 161897')
         ]
     ];
-    */
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Alliance Monel-Hardened Weapons',
+            'items' => CategoryBonusItemList($house, 'i.id in (161890, 161913, 161914, 161915, 161916, 161917)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Alliance Honorable Combatant Weapons',
+            'items' => CategoryBonusItemList($house, 'i.id in (161892,161920,161921,161922,161923)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Horde Monel-Hardened Armor',
+            'items' => CategoryBonusItemList($house, 'i.id between 152802 and 152809')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Horde Honorable Combatant Armor',
+            'items' => CategoryBonusItemList($house, 'i.id in (159860, 159891, 159863, 159865, 159866)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Horde Monel-Hardened Weapons',
+            'items' => CategoryBonusItemList($house, 'i.id in (152818,152827,152828,152831,152832,152833)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Horde Honorable Combatant Weapons',
+            'items' => CategoryBonusItemList($house, 'i.id in (159851,159853,159855,159857,159858,162653)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'BfA Other',
+            'items' => CategoryBonusItemList($house, 'i.id in (159826,152812,152813,162115,162109,162120)')
+        ]
+    ];
 
     $tr['results'][] = [
         'name' => 'ItemList',
@@ -1266,7 +1316,7 @@ function CategoryResult_blacksmithing($house)
         ]
     ];
 
-    for ($x = count($expansions) - 1; $x >= 5; $x--) {
+    for ($x = 5; $x >= 5; $x--) { // WoD only
         $tr['results'][] = [
             'name' => 'ItemList',
             'sort' => ['main' => $sortIndex++],
@@ -1277,18 +1327,14 @@ function CategoryResult_blacksmithing($house)
         ];
     }
 
-    for ($x = 1; $x <= 3; $x++) {
-        $idx = count($expansions) - $x;
-        $nm = ($x == 3) ? 'Other' : $expansions[$idx];
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'sort' => ['main' => $sortIndex++],
-            'data' => [
-                'name'  => $nm . ' Consumables',
-                'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion' . ($x == 3 ? '<=' : '=') . $idx . ' and x.level>40 and x.class=0 and xs.skillline=164) xyz on xyz.id = i.id'])
-            ]
-        ];
-    }
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'sort' => ['main' => $sortIndex++],
+        'data' => [
+            'name'  => 'Other Consumables',
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion < ' . $x . ' and x.level>40 and x.class=0 and xs.skillline=164) xyz on xyz.id = i.id'])
+        ]
+    ];
 
     $tr['results'][] = [
         'name' => 'ItemList',
