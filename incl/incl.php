@@ -80,7 +80,7 @@ function DBConnect($alternate = false)
 
     $isCLI = (PHP_SAPI == 'cli');
 
-    $host = 'localhost';
+    $host = DATABASE_HOST;
     $user = $isCLI ? DATABASE_USERNAME_CLI : DATABASE_USERNAME_WEB;
     $pass = $isCLI ? DATABASE_PASSWORD_CLI : DATABASE_PASSWORD_WEB;
     $database = DATABASE_SCHEMA;
