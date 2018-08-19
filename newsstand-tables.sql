@@ -273,6 +273,7 @@ CREATE TABLE IF NOT EXISTS `tblDBCItemRandomSuffix` (
 CREATE TABLE IF NOT EXISTS `tblDBCItemReagents` (
   `item` mediumint(8) unsigned NOT NULL,
   `skillline` smallint(5) unsigned NOT NULL,
+  `subline` smallint(5) unsigned NOT NULL,
   `reagent` mediumint(8) unsigned NOT NULL,
   `quantity` decimal(8,4) unsigned NOT NULL,
   `spell` mediumint(9) DEFAULT NULL,
@@ -385,10 +386,27 @@ CREATE TABLE IF NOT EXISTS `tblDBCSpell` (
   `skillline` smallint(5) unsigned DEFAULT NULL,
   `qtymade` decimal(7,2) unsigned NOT NULL DEFAULT '0.00',
   `crafteditem` mediumint(8) unsigned DEFAULT NULL,
+  `tradeskillcategory` smallint(5) unsigned DEFAULT NULL,
   `expansion` tinyint(3) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `crafteditem` (`crafteditem`),
   KEY `skilllineid` (`skillline`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tblDBCTradeSkillCategory`
+--
+
+CREATE TABLE IF NOT EXISTS `tblDBCTradeSkillCategory` (
+  `id` SMALLINT UNSIGNED NOT NULL,
+  `name` VARCHAR(120) NOT NULL,
+  `parent` SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  `skillline` SMALLINT UNSIGNED NOT NULL,
+  `order` SMALLINT UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `parent` (`parent`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------

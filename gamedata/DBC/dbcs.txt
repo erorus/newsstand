@@ -25,3 +25,4 @@ DBFilesClient\SpellEffect.db2
 DBFilesClient\SpellMisc.db2
 DBFilesClient\SpellName.db2
 DBFilesClient\SpellReagents.db2
+DBFilesClient\TradeSkillCategory.db2

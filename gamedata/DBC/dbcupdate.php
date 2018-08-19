@@ -77,7 +77,7 @@ foreach ($battlePetSpeciesReader->generateRecords() as $recId => $rec) {
     $npc = $rec['npcid'];
     $category = $rec['category'];
     $flags = $rec['flags'];
-    
+
     RunAndLogError($stmt->execute());
 }
 $stmt->close();
@@ -279,8 +279,8 @@ if (file_exists($dirnm . '/DBCache.bin')) {
 RunAndLogError('truncate table tblDBCItem');
 $sql = <<<'EOF'
 insert into tblDBCItem (
-    id, name_enus, quality, level, class, subclass, icon, 
-    stacksize, binds, buyfromvendor, selltovendor, auctionable, 
+    id, name_enus, quality, level, class, subclass, icon,
+    stacksize, binds, buyfromvendor, selltovendor, auctionable,
     type, requiredlevel, requiredskill, flags) VALUES
     (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 EOF;
@@ -450,22 +450,55 @@ DB2TempTable('SpellName');
 DB2TempTable('SpellReagents');
 DB2TempTable('SkillLine');
 DB2TempTable('SkillLineAbility');
+DB2TempTable('TradeSkillCategory');
 
-RunAndLogError('CREATE temporary TABLE `ttblDBCSkillLines` (`id` smallint unsigned NOT NULL, `name` char(50) NOT NULL, `origid` smallint unsigned NOT NULL, PRIMARY KEY (`id`)) ENGINE=memory');
-RunAndLogError('insert into ttblDBCSkillLines (select id, linename, origlineid from ttblSkillLine where ((linecatid=11) or (linecatid=9 and (linename=\'Cooking\' or linename like \'Way of %\'))))');
+RunAndLogError('truncate table tblDBCTradeSkillCategory');
+
+$sql = <<<'SQL'
+INSERT INTO tblDBCTradeSkillCategory
+    (id, name, parent, skillline, `order`)
+(SELECT id, name, parentid, skillline, `order` FROM ttblTradeSkillCategory)
+SQL;
+RunAndLogError($sql);
+
+$sql = <<<'SQL'
+CREATE temporary TABLE ttblDBCSkillLines (
+    id smallint unsigned NOT NULL,
+    name char(50) NOT NULL,
+    mainid smallint unsigned NOT NULL,
+    PRIMARY KEY (id)
+) ENGINE=memory
+SQL;
+RunAndLogError($sql);
+
+$sql = <<<'SQL'
+insert into ttblDBCSkillLines (
+    select id, linename, if(linecatid=9, 185, if(mainlineid=0, id, mainlineid))
+    from ttblSkillLine
+    where
+    (
+        (linecatid=11) or
+        (linecatid=9 and
+            (linename='Cooking' or linename like 'Way of %')
+        )
+    )
+)
+SQL;
+RunAndLogError($sql);
 
 LogLine('Getting trades..');
 RunAndLogError('truncate tblDBCItemReagents');
 for ($x = 1; $x <= 8; $x++) {
     $sql = <<<'EOF'
-insert into tblDBCItemReagents (item, skillline, reagent, quantity, spell) (
-    select itemcreated, 
-        sl.origid, 
-        sr.reagent%1$d, 
-        sr.reagentcount%1$d/if(se.diesides=0,if(se.qtymade=0,1,se.qtymade),(se.qtymade * 2 + se.diesides + 1)/2), 
-        se.spellid 
-    from ttblSpellEffect se 
-    join ttblSpellReagents sr on sr.spell = se.spellid 
+insert into tblDBCItemReagents (item, skillline, subline, reagent, quantity, spell) (
+    select itemcreated,
+        sl.mainid,
+        sl.id,
+        sr.reagent%1$d,
+        sr.reagentcount%1$d/if(se.diesides=0,if(se.qtymade=0,1,se.qtymade),(se.qtymade * 2 + se.diesides + 1)/2),
+        se.spellid
+    from ttblSpellEffect se
+    join ttblSpellReagents sr on sr.spell = se.spellid
     join ttblSkillLineAbility sla on sla.spellid = se.spellid
     join ttblDBCSkillLines sl on sl.id = sla.lineid
     where se.itemcreated != 0 and sr.reagent%1$d != 0
@@ -476,14 +509,16 @@ EOF;
 
 RunAndLogError('truncate tblDBCSpell');
 $sql = <<<EOF
-insert ignore into tblDBCSpell (id,name,description,cooldown,qtymade,skillline,crafteditem)
+insert ignore into tblDBCSpell (id,name,description,cooldown,qtymade,skillline,crafteditem,tradeskillcategory)
 (select sn.id, sn.spellname, ifnull(s.longdescription, ''),
     greatest(
         ifnull(cd.categorycooldown * if(c.flags & 8, 86400, 1),0),
         ifnull(cd.individualcooldown * if(c.flags & 8, 86400, 1),0),
         ifnull(cc.chargecooldown,0)) / 1000,
     if(se.itemcreated=0,0,if(se.diesides=0,if(se.qtymade=0,1,se.qtymade),(se.qtymade * 2 + se.diesides + 1)/2)),
-    min(if(sl.origid=0,sl.id,sl.origid)),if(se.itemcreated=0,null,se.itemcreated)
+    min(sl.mainid),
+    if(se.itemcreated=0,null,se.itemcreated),
+    sla.tradeskillcategory & 0xFFFF
 from ttblSpellName sn
 left join ttblSpell s on s.id = sn.id
 left join ttblSpellMisc sm on sn.id=sm.spellid
@@ -503,9 +538,9 @@ RunAndLogError($sql);
 $sql = <<<EOF
 insert ignore into tblDBCSpell (id,name,description) (
     select distinct sn.id, sn.spellname, ifnull(s.longdescription,'')
-    from ttblSpellName sn 
-    left join ttblSpell s on s.id = sn.id 
-    left join ttblSpellMisc sm on sn.id=sm.spellid 
+    from ttblSpellName sn
+    left join ttblSpell s on s.id = sn.id
+    left join ttblSpellMisc sm on sn.id=sm.spellid
     join tblDBCItemSpell dis on dis.spell=sn.id
 )
 EOF;
@@ -537,7 +572,7 @@ RunAndLogError('replace into tblDBCItemReagents (item, skillline, reagent, quant
 
 /* spirit of harmony */
 $sql = <<<EOF
-replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values 
+replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values
 (72092,0,76061,0.05,-66678),
 (72093,0,76061,0.05,-66678),
 (72094,0,76061,0.2,-66678),
@@ -606,6 +641,49 @@ RunAndLogError('delete from tblDBCItemReagents where spell=28021 and item=22445 
 RunAndLogError('delete FROM tblDBCItemReagents WHERE spell in (102366,140040,140041)');
 
 LogLine('Getting spell expansion IDs..');
+$sql = <<<'SQL'
+select tsc.id,
+if(tsc.parent=0, tsc.`order`,
+if(tsc2.parent=0, tsc2.`order`,
+if(tsc3.parent=0, tsc3.`order`,
+if(tsc4.parent=0, tsc4.`order`,
+if(tsc5.parent=0, tsc5.`order`, null))))) mainorder
+from tblDBCTradeSkillCategory tsc
+left join tblDBCTradeSkillCategory tsc2 on tsc.parent = tsc2.id
+left join tblDBCTradeSkillCategory tsc3 on tsc2.parent = tsc3.id
+left join tblDBCTradeSkillCategory tsc4 on tsc3.parent = tsc4.id
+left join tblDBCTradeSkillCategory tsc5 on tsc4.parent = tsc5.id
+SQL;
+
+$mainOrders = [];
+$stmt = $db->prepare($sql);
+RunAndLogError($stmt->execute());
+$result = $stmt->get_result();
+while ($row = $result->fetch_assoc()) {
+    $mainOrders[$row['mainorder']][] = $row['id'];
+}
+
+$orderToExpansion = [
+    930 => 7, // bfa
+    940 => 6, // legion
+    950 => 5, // wod
+    960 => 4, // mop
+    970 => 3, // cata
+    980 => 2, // wotlk
+    990 => 1, // bc
+    999 => 0, // classic
+    1000 => 0, // classic (old)
+];
+
+$sql = 'update tblDBCSpell set expansion = %d where tradeskillcategory in (%s)';
+foreach ($orderToExpansion as $order => $exp) {
+    if (!isset($mainOrders[$order])) {
+        continue;
+    }
+    RunAndLogError(sprintf($sql, $exp, implode(',', $mainOrders[$order])));
+}
+
+/*
 $sql = <<<EOF
 SELECT s.id, max(ic.level) mx, min(ic.level) mn
 FROM tblDBCItemReagents ir, tblDBCItem ic, tblDBCSpell s
@@ -646,6 +724,8 @@ while ($row = $result->fetch_assoc()) {
 }
 $result->close();
 $stmt->close();
+*/
+
 
 
 /* */
@@ -766,7 +846,7 @@ function DB2TempTable($baseFile) {
         }
     }
     call_user_func_array([$stmt, 'bind_param'], $params);
-    
+
     $x = 0; $recordCount = count($reader->getIds());
     foreach ($reader->generateRecords() as $id => $rec) {
         EchoProgress(++$x/$recordCount);

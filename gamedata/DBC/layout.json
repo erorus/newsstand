@@ -209,15 +209,33 @@
         "hash": 3968073354,
         "names": {
             "0": "linename",
+            "1": "actionname",
+            "2": "description",
+            "3": "hordename",
+            "4": "genericname",
+            "5": "lineid",
             "6": "linecatid",
-            "9": "origlineid"
+            "7": "iconid",
+            "9": "mainlineid",
+            "10": "order"
         }
     },
     "SkillLineAbility": {
         "hash": 2743783538,
         "names": {
             "2": "lineid",
-            "3": "spellid"
+            "3": "spellid",
+            "13": "tradeskillcategory"
+        }
+    },
+    "TradeSkillCategory": {
+        "hash": 2951355053,
+        "names": {
+            "0": "name",
+            "1": "hordename",
+            "3": "parentid",
+            "4": "skillline",
+            "5": "order"
         }
     }
 }
