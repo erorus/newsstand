@@ -1710,15 +1710,97 @@ EOF;
 
 function CategoryResult_tailoring($house)
 {
-    global $expansions, $expansionLevels, $db;
+    global $expansions;
+
+    $current = count($expansions) - 1;
 
     $tr = ['name' => 'tailoring', 'results' => []];
 
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
-            'name'  => 'Common Cloth',
-            'items' => CategoryRegularItemList($house, 'i.id in (2589,2592,4306,4338,14047,21877,33470,53010,72988,111557,124437,151567)')
+            'name'  => 'Cloth',
+            'items' => CategoryRegularItemList($house, 'i.id in (2589,2592,4306,4338,14047,21877,33470,53010,72988,111557,124437,151567,152576,152577)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Alliance Tidespray Linen Armor',
+            'items' => CategoryBonusItemList($house, 'i.id between 161977 and 161984'),
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Alliance Cloaks',
+            'items' => CategoryBonusItemList($house, 'i.id in (161987, 161988, 161991, 161990, 161998)'),
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Alliance Honorable Combatant',
+            'items' => CategoryBonusItemList($house, 'i.id between 161993 and 161997'),
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Horde Tidespray Linen Armor',
+            'items' => CategoryBonusItemList($house, 'i.id between 154685 and 154692'),
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Horde Cloaks',
+            'items' => CategoryBonusItemList($house, 'i.id in (154697, 154698, 154701, 154700, 159917)'),
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Horde Honorable Combatant',
+            'items' => CategoryBonusItemList($house, 'i.id between 159912 and 159916'),
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Bags',
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.level>40 and x.class=1 and x.subclass=0 and xs.skillline=197) xyz on xyz.id = i.id'])
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Profession Bags',
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.level>40 and x.class=1 and x.subclass!=0 and xs.skillline=197) xyz on xyz.id = i.id'])
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => $expansions[$current] . ' Trade Goods',
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $current . ' and x.class=7 and xs.skillline=197) xyz on xyz.id = i.id'])
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => $expansions[$current] . ' Consumables',
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $current . ' and x.class=0 and xs.skillline=197) xyz on xyz.id = i.id'])
         ]
     ];
 
@@ -1757,58 +1839,26 @@ function CategoryResult_tailoring($house)
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
-            'name'  => 'Bags',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.level>40 and x.class=1 and x.subclass=0 and xs.skillline=197) xyz on xyz.id = i.id'])
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Profession Bags',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.level>40 and x.class=1 and x.subclass!=0 and xs.skillline=197) xyz on xyz.id = i.id'])
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
             'name'  => 'Legion Other',
             'items' => CategoryBonusItemList($house, 'i.id in (137556,137557,137558,139503,151571)')
         ]
     ];
 
-    for ($x = count($expansions) - 1; $x >= 5; $x--) {
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'data' => [
-                'name'  => $expansions[$x] . ' Trade Goods',
-                'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $x . ' and x.class=7 and xs.skillline=197) xyz on xyz.id = i.id'])
-            ]
-        ];
-    }
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => $expansions[$current - 1] . ' Trade Goods',
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . ($current - 1) . ' and x.class=7 and xs.skillline=197) xyz on xyz.id = i.id'])
+        ]
+    ];
 
-    for ($x = count($expansions) - 1; $x >= 5; $x--) {
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'data' => [
-                'name'  => $expansions[$x] . ' Consumables',
-                'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $x . ' and x.class=0 and xs.skillline=197) xyz on xyz.id = i.id'])
-            ]
-        ];
-    }
-
-    for ($x = 1; $x <= 3; $x++) {
-        $idx = count($expansions) - $x;
-        $nm = ($x == 3 ? 'Other' : $expansions[$idx]);
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'data' => [
-                'name'  => $nm . ' Spellthread',
-                'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion=' . $idx . ' and x.class=0 and x.subclass=6 and xs.skillline=197) xyz on xyz.id = i.id'])
-            ]
-        ];
-    };
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => $expansions[$current - 1] . ' Consumables',
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . ($current - 1) . ' and x.class=0 and xs.skillline=197) xyz on xyz.id = i.id'])
+        ]
+    ];
 
     $tr['results'][] = [
         'name' => 'ItemList',
