@@ -2119,6 +2119,8 @@ function CategoryResult_inscription($house)
 
 function CategoryResult_cooking($house)
 {
+    global $expansions;
+
     $tr = ['name' => 'cooking', 'results' => []];
 
     /*
@@ -2152,10 +2154,17 @@ function CategoryResult_cooking($house)
     ];
     */
 
-    $foods = [
-        'Legion Fish' => '133607, 124107, 124109, 124108, 124110, 124111, 124112',
-        'Legion Food' => '142334, 133681, 133579, 133578, 133577, 133576, 133575, 133574, 133573, 133572, 133571, 133570, 133569, 133568, 133567, 133566, 133565, 133564, 133563, 133562, 133561, 133557, 152564',
-    ];
+    $current = count($expansions) - 1;
+
+    $foods = array_merge([
+        $expansions[$current] . ' Meat' => '154899, 154898, 154897, 152631',
+        $expansions[$current] . ' Fish' => '152549, 152548, 152547, 152546, 152545, 152544, 152543',
+        ],
+        CategoryGetTradeItemsInExpansion(185, $current),
+        [$expansions[$current - 1] . ' Fish' => '133607, 124107, 124109, 124108, 124110, 124111, 124112'],
+        CategoryGetTradeItemsInExpansion(185, $current - 1));
+
+    // 'Legion Food' => '142334, 133681, 133579, 133578, 133577, 133576, 133575, 133574, 133573, 133572, 133571, 133570, 133569, 133568, 133567, 133566, 133565, 133564, 133563, 133562, 133561, 133557, 152564',
 
     foreach ($foods as $name => $sql) {
         $tr['results'][] = [
@@ -2916,4 +2925,47 @@ EOF;
     MCSet($cacheKey, $map, 43200);
 
     return $map;
+}
+
+function CategoryGetTradeItemsInExpansion($skillLine, $expansionId) {
+    global $canCache, $expansions;
+
+    $expansionName = $expansions[$expansionId];
+
+    $itemsByCategory = false;
+    $categoryCacheKey = "categories-tsc-{$skillLine}-{$expansionId}";
+    if ($canCache) {
+        $itemsByCategory = MCGet($categoryCacheKey);
+    }
+    if ($itemsByCategory === false) {
+        $itemsByCategory = [];
+
+        $sql = <<<'SQL'
+select distinct s.crafteditem, tsc.name
+from tblDBCSpell s
+join tblDBCTradeSkillCategory tsc on s.tradeskillcategory = tsc.id
+where s.skillline = ?
+and s.expansion = ?
+order by tsc.`order`
+SQL;
+        $db = DBConnect();
+        $stmt = $db->prepare($sql);
+        $stmt->bind_param('ii', $skillLine, $expansionId);
+        $stmt->execute();
+        $id = $catName = null;
+        $stmt->bind_result($id, $catName);
+        while ($stmt->fetch()) {
+            $itemsByCategory["$expansionName $catName"][] = $id;
+        }
+        $stmt->close();
+
+        foreach ($itemsByCategory as &$ids) {
+            $ids = implode(',', $ids);
+        }
+        unset($ids);
+
+        MCSet($categoryCacheKey, $itemsByCategory);
+    }
+
+    return $itemsByCategory;
 }
