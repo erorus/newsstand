@@ -996,7 +996,7 @@ function CategoryResult_herbalism($house)
 
 function CategoryResult_alchemy($house)
 {
-    global $expansions, $expansionLevels;
+    global $expansions;
 
     $tr = ['name' => 'alchemy', 'results' => []];
 
@@ -1600,105 +1600,38 @@ function CategoryResult_jewelcrafting($house)
 
 function CategoryResult_engineering($house)
 {
-    global $expansions, $expansionLevels;
+    global $expansions;
 
     $tr = ['name' => 'engineering', 'results' => []];
 
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Goggles',
-            'items' => CategoryBonusItemList($house, 'i.id between 132504 and 132507'),
-        ]
-    ];
+    for ($x = 1; $x <= 2; $x++) {
+        $itemSets = CategoryGetTradeItemsInExpansion(202, count($expansions) - $x);
 
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => '715 Goggles',
-            'items' => CategoryBonusItemList($house, 'i.id between 132500 and 132503')
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Relics',
-            'items' => CategoryBonusItemList($house, 'i.id between 136687 and 136688')
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Reaves',
-            'items' => CategoryRegularItemList($house, 'i.id between 132524 and 132531')
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Legion Other',
-            'items' => CategoryRegularItemList($house, 'i.id in (132509,132510,132511,132513,132514,132515,132516,132517,132518,132519,132982,134125,136606,151651,151652)')
-        ]
-    ];
-
-    for ($x = count($expansions) - 1; $x >= 5; $x--) {
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'data' => [
-                'name'  => $expansions[$x] . ' Upgrades',
-                'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $x . ' and x.class=4 and x.subclass=0 and xs.skillline=202) xyz on xyz.id = i.id'])
-            ]
-        ];
-    }
-
-    for ($x = 1; $x <= 3; $x++) {
-        $idx = count($expansions) - $x;
-        $comp = $x == 3 ? "<= $idx" : "= $idx";
-        $nm = $x == 3 ? "Other" : $expansions[$idx];
-
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'data' => [
-                'name'  => $nm.' Ranged Enchants (Scopes)',
-                'items' => CategoryRegularItemList($house, ['joins' => 'join (SELECT xx.id from (select x.id, group_concat(se.description) dd from tblDBCItem x join tblDBCSpell xs on xs.crafteditem=x.id LEFT JOIN tblDBCItemSpell dis on dis.item=x.id LEFT JOIN tblDBCSpell se on se.id=dis.spell where x.level>40 and xs.skillline=202 and xs.expansion '.$comp.' group by x.id) xx where (xx.dd like \'%bow or gun%\' or xx.dd like \'%ranged weapon%\')) xyz on xyz.id = i.id'])
-            ]
-        ];
-
-        $sql = <<<EOF
-join (SELECT xx.id from (
-    select x.id, group_concat(se.description) dd
-    from tblDBCItem x
-    join tblDBCSpell xs on xs.crafteditem=x.id
-    LEFT JOIN tblDBCItemSpell dis on dis.item=x.id
-    LEFT JOIN tblDBCSpell se on se.id=dis.spell
-    where
-    ifnull(x.requiredskill,0) != 202
-    and (
-        (x.class=4 and (x.subclass not in (1,2,3,4) or x.level < 10) and (x.subclass != 0 or xs.expansion < 5))
-        or (x.class in (0,7) and x.id not in (
-            select reagent
-            from tblDBCItemReagents xir2
-            where xir2.reagent=x.id))
-        )
-    and xs.skillline=202
-    and xs.expansion $comp
-    group by x.id
-    ) xx
-    where xx.dd not like '%bow or gun%'
-    and xx.dd not like '%ranged weapon%'
-) xyz on xyz.id = i.id
-EOF;
-
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'data' => [
-                'name'  => $nm.' Gadgets',
-                'items' => CategoryRegularItemList($house, ['joins' => $sql])
-            ]
-        ];
+        foreach ($itemSets as $setName => $itemCsv) {
+            $tr['results'][] = [
+                'name' => 'ItemList',
+                'data' => [
+                    'name'  => $setName,
+                    'items' => CategoryBonusItemList($house, "i.id in ($itemCsv) and i.id not in (161930,161931,153506,159936)")
+                ]
+            ];
+            if ($setName == 'Battle for Azeroth Weapons') {
+                $tr['results'][] = [
+                    'name' => 'ItemList',
+                    'data' => [
+                        'name'  => 'Alliance Guns',
+                        'items' => CategoryBonusItemList($house, "i.id in (161930,161931)")
+                    ]
+                ];
+                $tr['results'][] = [
+                    'name' => 'ItemList',
+                    'data' => [
+                        'name'  => 'Horde Guns',
+                        'items' => CategoryBonusItemList($house, "i.id in (153506,159936)")
+                    ]
+                ];
+            }
+        }
     }
 
     $tr['results'][] = [
