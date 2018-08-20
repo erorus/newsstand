@@ -783,6 +783,12 @@ function CategoryResult_mining($house)
         'results' => [
             [
                 'name' => 'ItemList',
+                'data' => ['name'  => 'Battle for Azeroth Ore',
+                           'items' => CategoryRegularItemList($house, 'i.id in (152512,152579,152513)')
+                ]
+            ],
+            [
+                'name' => 'ItemList',
                 'data' => ['name'  => 'Broken Isles Ore',
                            'items' => CategoryRegularItemList($house, 'i.id in (123918,123919,124444,151564)')
                 ]
@@ -875,8 +881,16 @@ function CategoryResult_skinning($house)
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
+            'name'  => 'Battle for Azeroth Trade Goods',
+            'items' => CategoryRegularItemList($house, 'i.id in (152541,154722,153050,153051,154164,154165)'),
+        ],
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
             'name'  => 'Legion Trade Goods',
-            'items' => CategoryRegularItemList($house, 'i.id in (124439,124438)'),
+            'items' => CategoryRegularItemList($house, 'i.id in (124113,124115,124116,124439,124438)'),
         ],
     ];
 
@@ -921,6 +935,14 @@ function CategoryResult_herbalism($house)
     global $expansions, $expansionLevels;
 
     $tr = ['name' => 'herbalism', 'results' => []];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Battle for Azeroth Herbs',
+            'items' => CategoryRegularItemList($house, 'i.id between 152505 and 152511'),
+        ],
+    ];
 
     $tr['results'][] = [
         'name' => 'ItemList',
