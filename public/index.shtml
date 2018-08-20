@@ -236,9 +236,7 @@
                 </div>
                 <div class="page" id="contact-page">
                     <div class="form">
-                        Please <a href="http://stormspire.net/official-forum-undermine-journal/?referrerid=380">use our official forum</a> for your questions, comments, and suggestions.<p>
-
-                        However, if your comment is very specific or must be kept private, you can contact us directly by using the form below.
+                        You can contact us directly by using the form below.
 
                         <form method="POST" onsubmit="return tuj.page_contact.submit(this)"><input type="text" name="subject" class="namefield" value="Subject">
                             <table border="0" cellspacing="0" cellpadding="5">
@@ -249,7 +247,7 @@
                         </form>
 
                         <p>
-                            Note: we will not entertain any auction data requests.<br>
+                            Note: we will not respond to any advertising offers, or to any requests for auction data.<br>
                             Visit <a href="https://dev.battle.net/">the Battle.net API</a> for live auction data, or the <a href="https://newswire.theunderminejournal.com">Newswire API</a> for historical data.
                         </p>
                     </div>
@@ -330,8 +328,6 @@
                         <p><a href="https://addon.theunderminejournal.com/TheUndermineJournal.zip" class="highlight">Direct download</a> -
                             <a href="http://www.wowinterface.com/downloads/info19662-TheUndermineJournal.html" class="highlight">WoW Interface</a> -
                             <a href="http://www.curse.com/addons/wow/undermine-journal" class="highlight">Curse</a></p>
-
-                        You can also check out <a href="http://stormspire.net/official-forum-undermine-journal/15527-undermine-journal-addon.html?referrerid=380" class="highlight">the Addon forum thread</a> for more information.
                     </div>
                 </div>
                 <div class="page page-generic" id="localization-page">
@@ -355,7 +351,6 @@
                         </ol>
                         <p>That's it! We will find the updated lines from your file, and update the website with them soon after.</p>
                         <p><i>Subscribers who are helpful with localization may receive some paid subscription time free of charge.</i></p>
-                        For more information, you can also check out <a href="http://stormspire.net/official-forum-undermine-journal/18138-localization-tuj.html?referrerid=380" class="highlight">the Localization forum thread</a>.
                     </div>
                 </div>
             </div>
@@ -364,7 +359,6 @@
             <a class="dark-only">Light Theme</a><a class="light-only">Dark Theme</a> -
             <a class="subscription">Subscription</a> -
             <a class="contact">Contact</a> -
-            <a href="http://stormspire.net/official-forum-undermine-journal/?referrerid=380">Forum</a> -
             <a class="localization">Localization</a> -
             <a class="addon">Addon</a> -
             <a href="https://newswire.theunderminejournal.com/">Newswire API</a> -

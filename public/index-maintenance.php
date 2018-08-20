@@ -35,7 +35,6 @@ header('Cache-Control: no-cache');
             </div>
         </div>
         <div id="bottom-bar">
-            <a href="http://stormspire.net/official-forum-undermine-journal/">Forum</a>
             <div class="disclaimer">World of Warcraft, Warcraft and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc. in the U.S. and/or other countries.</div>
         </div>
     </body>
