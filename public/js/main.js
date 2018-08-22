@@ -973,6 +973,18 @@ var TUJ = function ()
                 });
             }
 
+            var s;
+            if (s = document.getElementById('locale-css')) {
+                s.parentNode.removeChild(s);
+            }
+            s = document.createElement('style');
+            s.id = 'locale-css';
+            document.head.appendChild(s);
+
+            s.sheet.insertRule('.money-gold::after { content: "' + tuj.lang.suffixGold + ' " }', s.sheet.cssRules.length);
+            s.sheet.insertRule('.money-silver::after { content: "' + tuj.lang.suffixSilver + ' " }', s.sheet.cssRules.length);
+            s.sheet.insertRule('.money-copper::after { content: "' + tuj.lang.suffixCopper + '" }', s.sheet.cssRules.length);
+
             Main();
             return;
         }
