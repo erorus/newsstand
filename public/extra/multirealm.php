@@ -49,6 +49,8 @@
 
         $sellers = [];
 
+        return $sellers;
+
         $sql = <<<'EOF'
         select z2.sscnt, z2.itemcnt, s.name sellername, r.name realmname, s.firstseen, s.lastseen, r.house, r.slug
         from (

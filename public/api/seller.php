@@ -270,7 +270,7 @@ function SellerByClass($house, $seller)
 
     $sql = <<<EOF
 select i.class, i.subclass, sum(sih.auctions) aucs
-from tblSellerItemHistory sih
+from tblSellerItemHistory sih use index (seller)
 join tblDBCItem i on i.id = sih.item
 where sih.seller = ?
 and sih.snapshot >= timestampadd(day,-$historyDays,now())

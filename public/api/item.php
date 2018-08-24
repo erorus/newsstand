@@ -305,7 +305,7 @@ function ItemSellers($house, $item)
     $sql = <<<'EOF'
 select sum(sih.quantity) quantity, sum(if(sih.snapshot > timestampadd(hour, -97, now()), sih.quantity, 0)) recentquantity,
 unix_timestamp(max(sih.snapshot)) lastseen, s.realm sellerrealm, ifnull(s.name, '???') sellername
-from tblSellerItemHistory sih
+from tblSellerItemHistory sih use index (primary)
 left join tblSeller s on sih.seller = s.id and s.lastseen is not null
 where sih.house = ?
 and sih.item = ?
