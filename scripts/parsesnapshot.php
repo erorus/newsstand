@@ -947,19 +947,18 @@ EOF;
     $prevSnapshotString = date('Y-m-d H:i:s', $prevSnapshot);
 
     $sql = <<<'EOF'
-insert into tblItemHistoryHourly (house, item, level, `when`)
+insert ignore into tblItemHistoryHourly (house, item, level, `when`)
 select s.house, s.item, s.level, ?
 from tblItemSummary s
 join tblItemSummary s2 on s2.item = s.item
-left join tblItemHistoryHourly h on h.house = s.house and h.item = s.item and h.level = s.level and h.`when` = ?
-WHERE s.house = ? and s2.house = ? and s2.lastseen >= ? and h.house is null
+WHERE s.house = ? and s2.house = ? and s2.lastseen >= ?
 group by s.house, s.item, s.level
 EOF;
 
     $stmt = $db->prepare($sql);
-    $stmt->bind_param('ssiis', $dateString, $dateString, $house, $house, $prevSnapshotString);
+    $stmt->bind_param('siis', $dateString, $house, $house, $prevSnapshotString);
     $stmt->execute();
-    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . sprintf(" inserted %d hourly history rows", $stmt->affected_rows));
+    DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . sprintf(" insert-ignored %d hourly history rows", $stmt->affected_rows));
     $stmt->close();
 
     $sql = <<<'EOF'
