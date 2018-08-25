@@ -16,9 +16,9 @@ header('Expires: '.date(DATE_RFC1123, time() + 10));
 
 $json = array(
     'timestamps'    => HouseTimestamps($house),
-    'sellers'       => [], //HouseTopSellers($house),
+    'sellers'       => HouseTopSellers($house),
     'mostAvailable' => HouseMostAvailable($house),
-    'deals'         => [], //HouseDeals($house),
+    'deals'         => HouseDeals($house),
     'sellerbots'    => [],
 );
 
