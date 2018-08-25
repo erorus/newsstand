@@ -303,7 +303,7 @@ function GetDB() {
         return $db;
     }
 
-    $host = 'localhost';
+    $host = DATABASE_HOST;
     $user = DATABASE_USERNAME_CLI;
     $pass = DATABASE_PASSWORD_CLI;
     $database = DATABASE_SCHEMA;

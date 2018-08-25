@@ -50,7 +50,7 @@ file_put_contents($sqlFile, '');
 
 APIMaintenance($backupSet == 'data' ? '+45 minutes' : '+5 minutes');
 
-$cmd = 'mysqldump --verbose --skip-opt --quick --allow-keywords --create-options --add-drop-table --add-locks --extended-insert --single-transaction --user='.escapeshellarg(DATABASE_USERNAME_CLI).' --password='.escapeshellarg(DATABASE_PASSWORD_CLI).' --where=%s '.escapeshellarg(DATABASE_SCHEMA)." %s | gzip -c >> %s\n";
+$cmd = 'mysqldump --verbose --skip-opt --quick --allow-keywords --create-options --add-drop-table --add-locks --extended-insert --single-transaction --user='.escapeshellarg(DATABASE_USERNAME_CLI).' --password='.escapeshellarg(DATABASE_PASSWORD_CLI).' --host='.escapeshellarg(DATABASE_HOST).' --where=%s '.escapeshellarg(DATABASE_SCHEMA)." %s | gzip -c >> %s\n";
 foreach ($tables[$backupSet] as $table => $where) {
     DebugMessage("Starting $table");
     if (($zp = gzopen($sqlFile, 'ab')) === false) {

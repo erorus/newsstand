@@ -38,7 +38,7 @@ function UpdateDataTables() {
         exit(1);
     }
 
-    $cmd = 'mysqldump --verbose --allow-keywords --result-file='.escapeshellarg($sqlFile).' --user='.escapeshellarg(DATABASE_USERNAME_CLI).' --password='.escapeshellarg(DATABASE_PASSWORD_CLI).' '.escapeshellarg(DATABASE_SCHEMA);
+    $cmd = 'mysqldump --verbose --allow-keywords --result-file='.escapeshellarg($sqlFile).' --user='.escapeshellarg(DATABASE_USERNAME_CLI).' --password='.escapeshellarg(DATABASE_PASSWORD_CLI).' --host='.escapeshellarg(DATABASE_HOST).' '.escapeshellarg(DATABASE_SCHEMA);
     foreach ($tables as $table)
         $cmd .= ' ' . escapeshellarg($table);
 
