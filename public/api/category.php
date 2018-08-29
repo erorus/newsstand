@@ -684,7 +684,7 @@ function CategoryResult_archaeology($house)
                 'name' => 'ItemList',
                 'data' => [
                     'name'  => 'Keystones',
-                    'items' => CategoryRegularItemList($house, 'i.id in (130903, 130904, 130905, 108439, 109584, 109585, 79868, 79869, 95373, 64397, 64395, 64396, 64392, 64394, 52843, 63127, 63128)')
+                    'items' => CategoryRegularItemList($house, 'i.id in (154990, 154989, 130903, 130904, 130905, 108439, 109584, 109585, 79868, 79869, 95373, 64397, 64395, 64396, 64392, 64394, 52843, 63127, 63128)')
                 ]
             ],
         ]
