@@ -1859,7 +1859,6 @@ function CategoryResult_tailoring($house)
 
 function CategoryResult_enchanting($house)
 {
-    global $expansions;
 
     $tr = ['name' => 'enchanting', 'results' => []];
 
@@ -1892,61 +1891,7 @@ function CategoryResult_enchanting($house)
         ]
     ];
 
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Enchant Cloak',
-            'items' => CategoryRegularItemList($house, 'i.id in (128549,128550,128548,128546,128547,128545)')
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Enchant Neck',
-            'items' => CategoryRegularItemList($house, 'i.id in (141910,128551,128552,141908,128553,141909)')
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Enchant Ring',
-            'items' => CategoryRegularItemList($house, 'i.id in (128541,128542,128543,128544,128537,128538,128539,128540)')
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Enchant Gloves/Shoulder',
-            'items' => CategoryRegularItemList($house, 'i.id in (128558,128559,128560,128561,128554)')
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Relics',
-            'items' => CategoryBonusItemList($house, 'i.id in (136691,136689)')
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Tomes of Illusions',
-            'items' => CategoryRegularItemList($house, 'i.id in (138787,138789,138790,138791,138792,138793,138794,138795)')
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Legion Toys and Companions',
-            'items' => CategoryRegularItemList($house, 'i.id in (128533,128534,128535,128536)')
-        ]
-    ];
+    $tr['results'] = array_merge($tr['results'], CategoryTradeskillResults($house, 333, 7));
 
     return $tr;
 }
@@ -2901,4 +2846,103 @@ SQL;
     }
 
     return $itemsByCategory;
+}
+
+function CategoryTradeskillResults($house, $skillLine, $expansionId) {
+    global $canCache, $qualities;
+
+    $cacheKey = 'category_tradeskill_ids_' . $skillLine;
+
+    $catData = false;
+    if ($canCache) {
+        $catData = MCGet($cacheKey);
+    }
+
+    if (!$catData) {
+        $db = DBConnect();
+
+        $sql = <<<'SQL'
+select i.id, i.quality, i.class, concat_ws(' ', 
+	if(instr(i.name_enus, 'Kul Tiran'), 'Kul Tiran', null),
+	if(instr(i.name_enus, 'Zandalari'), 'Zandalari', null),
+	tsc.name) catname
+from tblDBCSpell s
+join tblDBCTradeSkillCategory tsc on s.tradeskillcategory = tsc.id
+join tblDBCItem i on s.crafteditem = i.id
+where s.skillline=? and s.expansion=? and i.auctionable=1
+group by i.id
+order by tsc.`order`, i.quality, i.name_enus;
+SQL;
+
+        $stmt = $db->prepare($sql);
+        $stmt->bind_param('ii', $skillLine, $expansionId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $rows = $result->fetch_all(MYSQLI_ASSOC);
+        $result->close();
+        $stmt->close();
+
+        $catData = [];
+        $lastCatName = '';
+        $lastQuality = null;
+        $usedQuality = false;
+        $curCat = [];
+
+        foreach ($rows as $row) {
+            if ($row['catname'] != $lastCatName) {
+                if ($curCat) {
+                    $catData[] = $curCat;
+                }
+                $curCat = [
+                    'name' => $row['catname'],
+                    'useBonus' => false,
+                    'items' => [],
+                ];
+                $lastCatName = $row['catname'];
+                $lastQuality = $row['quality'];
+                $usedQuality = false;
+            } elseif ($row['quality'] != $lastQuality) {
+                if ($curCat) {
+                    if (!$usedQuality) {
+                        $curCat['name'] = $qualities[$lastQuality] . ' ' . $curCat['name'];
+                    }
+                    $catData[] = $curCat;
+                }
+                $curCat = [
+                    'name' => $qualities[$row['quality']] . ' ' . $row['catname'],
+                    'useBonus' => false,
+                    'items' => [],
+                ];
+
+                $usedQuality = true;
+                $lastQuality = $row['quality'];
+            }
+            $curCat['useBonus'] |= in_array($row['class'], [2,4]);
+            $curCat['items'][] = $row['id'];
+        }
+        if ($curCat) {
+            $catData[] = $curCat;
+        }
+
+        MCSet($cacheKey, $catData);
+    }
+
+    $tr = [];
+
+    foreach ($catData as $category) {
+        $a = [
+            'name' => 'ItemList',
+            'data' => [
+                'name' => $category['name'],
+            ]
+        ];
+        if ($category['useBonus']) {
+            $a['data']['items'] = CategoryBonusItemList($house, 'i.id in (' . implode(',', $category['items']) . ')');
+        } else {
+            $a['data']['items'] = CategoryRegularItemList($house, 'i.id in (' . implode(',', $category['items']) . ')');
+        }
+        $tr[] = $a;
+    }
+
+    return $tr;
 }
