@@ -1898,50 +1898,15 @@ function CategoryResult_enchanting($house)
 
 function CategoryResult_inscription($house)
 {
-    global $expansions;
-
     $tr = ['name' => 'inscription', 'results' => []];
 
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Relics',
-            'items' => CategoryBonusItemList($house, 'i.id in (136692,136693)')
-        ]
-    ];
+    $tr['results'] = CategoryTradeskillResults($house, 773, 7, [1026, 775, 1130]);
 
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Decks',
-            'items' => CategoryBonusItemList($house, 'i.id in (128705,128709,128710,128711)')
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Tranquil Mind',
-            'items' => CategoryRegularItemList($house, 'i.id in (141333,141641,141640,141446)')
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Vantus Runes',
-            'items' => CategoryRegularItemList($house, [
-                'joins' => 'join tblDBCSpell xs on xs.crafteditem = i.id',
-                'where' => 'xs.skillline = 773 and i.name_enus like \'Vantus Rune%\''
-            ])
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Songs',
-            'items' => CategoryRegularItemList($house, 'i.id in (136852,136856,136857,140567,140568)')
+            'items' => CategoryBonusItemList($house, 'i.id in (159128,159127,159126,159125)')
         ]
     ];
 
@@ -1949,7 +1914,7 @@ function CategoryResult_inscription($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Toys',
-            'items' => CategoryRegularItemList($house, 'i.id in (129211,128979,128980)')
+            'items' => CategoryRegularItemList($house, 'i.id in (129211,128980)')
         ]
     ];
 
@@ -1969,11 +1934,22 @@ function CategoryResult_inscription($house)
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
+            'name'  => 'Legion Vantus Runes',
+            'items' => CategoryRegularItemList($house, [
+                'joins' => 'join tblDBCSpell xs on xs.crafteditem = i.id',
+                'where' => 'xs.skillline = 773 and xs.expansion = 6 and i.name_enus like \'Vantus Rune%\''
+            ])
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
             'name'  => 'Common Ink',
             'items' => CategoryRegularItemList(
                 $house, [
                     'joins' => 'join tblDBCSpell xs on xs.crafteditem = i.id',
-                    'where' => 'xs.skillline = 773 and i.class=7 and i.subclass=16 and i.quality=1'
+                    'where' => 'xs.skillline = 773 and i.class=7 and i.subclass=16 and i.quality=1 and i.id not in (153661)'
                 ]
             )
         ]
@@ -1986,7 +1962,7 @@ function CategoryResult_inscription($house)
             'items' => CategoryRegularItemList(
                 $house, [
                     'joins' => 'join tblDBCSpell xs on xs.crafteditem = i.id',
-                    'where' => 'xs.skillline = 773 and i.class=7 and i.subclass=16 and i.quality>1'
+                    'where' => 'xs.skillline = 773 and i.class=7 and i.subclass=16 and i.quality>1 and i.id not in (113289)'
                 ]
             )
         ]
@@ -2848,10 +2824,11 @@ SQL;
     return $itemsByCategory;
 }
 
-function CategoryTradeskillResults($house, $skillLine, $expansionId) {
+function CategoryTradeskillResults($house, $skillLine, $expansionId, $excludeCategories = []) {
     global $canCache, $qualities;
 
-    $cacheKey = 'category_tradeskill_ids_' . $skillLine;
+    $cacheKey = sprintf('category_tradeskill_ids_%d_%d_%s',
+        $skillLine, $expansionId, md5(implode(',', $excludeCategories)));
 
     $catData = false;
     if ($canCache) {
@@ -2861,7 +2838,12 @@ function CategoryTradeskillResults($house, $skillLine, $expansionId) {
     if (!$catData) {
         $db = DBConnect();
 
-        $sql = <<<'SQL'
+        $excludeSql = '';
+        if ($excludeCategories) {
+            $excludeSql = ' and tsc.id not in (' . implode(',', $excludeCategories) . ')';
+        }
+
+        $sql = <<<SQL
 select i.id, i.quality, i.class, concat_ws(' ', 
 	if(instr(i.name_enus, 'Kul Tiran'), 'Kul Tiran', null),
 	if(instr(i.name_enus, 'Zandalari'), 'Zandalari', null),
@@ -2869,7 +2851,7 @@ select i.id, i.quality, i.class, concat_ws(' ',
 from tblDBCSpell s
 join tblDBCTradeSkillCategory tsc on s.tradeskillcategory = tsc.id
 join tblDBCItem i on s.crafteditem = i.id
-where s.skillline=? and s.expansion=? and i.auctionable=1
+where s.skillline=? and s.expansion=? and i.auctionable=1 {$excludeSql}
 group by i.id
 order by tsc.`order`, i.quality, i.name_enus;
 SQL;
@@ -2889,7 +2871,8 @@ SQL;
         $curCat = [];
 
         foreach ($rows as $row) {
-            if ($row['catname'] != $lastCatName) {
+            if ($row['catname'] != $lastCatName &&
+                preg_replace('/(?:Kul Tiran|Zandalari) /', '', $row['catname']) != $lastCatName) {
                 if ($curCat) {
                     $catData[] = $curCat;
                 }
