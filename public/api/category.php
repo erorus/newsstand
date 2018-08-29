@@ -1431,39 +1431,40 @@ function CategoryResult_jewelcrafting($house)
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
-            'name'  => 'Legion ' . $qualities[4] . ' Uncut Gems',
-            'items' => CategoryRegularItemList($house, '(i.id between 151718 and 151722 or i.id in (151579))')
+            'name'  => $qualities[2] . ' Uncut Gems',
+            'items' => CategoryRegularItemList($house, 'i.id between 153700 and 153705')
         ]
     ];
 
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
-            'name'  => 'Legion ' . $qualities[3] . ' Uncut Gems',
-            'items' => CategoryRegularItemList($house, '(i.id between 130178 and 130183 or i.id in (130245))')
+            'name'  => $qualities[3] . ' Uncut Gems',
+            'items' => CategoryRegularItemList($house, 'i.id between 154120 and 154125')
         ]
     ];
 
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
-            'name'  => 'Legion ' . $qualities[2] . ' Uncut Gems',
-            'items' => CategoryRegularItemList($house, 'i.id between 130172 and 130177')
+            'name'  => $qualities[4] . ' Uncut Gems',
+            'items' => CategoryRegularItemList($house, 'i.id = 153706')
         ]
     ];
+
+    $tr['results'] = array_merge($tr['results'], CategoryTradeskillResults($house, 755, 7));
 
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
-            'name'  => 'Legion ' . $qualities[4] . ' Cut Gems',
-            'items' => CategoryRegularItemList($house, '(i.id between 130246 and 130248 or i.id in (151584, 151583, 151585, 151580))')
+            'name'  => 'Legion ' . $qualities[2] . ' Gems',
+            'items' => CategoryRegularItemList($house, 'i.id between 130215 and 130218')
         ]
     ];
-
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
-            'name'  => 'Legion ' . $qualities[3] . ' Cut Gems',
+            'name'  => 'Legion ' . $qualities[3] . ' Gems',
             'items' => CategoryRegularItemList($house, 'i.id between 130219 and 130222')
         ]
     ];
@@ -1471,48 +1472,8 @@ function CategoryResult_jewelcrafting($house)
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
-            'name'  => 'Legion ' . $qualities[2] . ' Cut Gems',
-            'items' => CategoryRegularItemList($house, 'i.id between 130215 and 130218')
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Amulets',
-            'items' => CategoryBonusItemList($house, 'i.id between 130233 and 130244'),
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Rings',
-            'items' => CategoryBonusItemList($house, 'i.id in (130229,130230,130231,136713)'),
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => '885 Crowns',
-            'items' => CategoryBonusItemList($house, 'i.id between 151587 and 151590')
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => '765 Pendants',
-            'items' => CategoryBonusItemList($house, 'i.id in (130227,130226,130228,136712)')
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => '715 Rings',
-            'items' => CategoryBonusItemList($house, 'i.id in (130223,130224,130225,136711)')
+            'name'  => 'Legion ' . $qualities[4] . ' Gems',
+            'items' => CategoryRegularItemList($house, '(i.id between 130246 and 130248 or i.id in (151584, 151583, 151585, 151580))')
         ]
     ];
 
@@ -1532,34 +1493,7 @@ function CategoryResult_jewelcrafting($house)
         ]
     ];
 
-    for ($x = count($expansions) - 1; $x >= 5; $x--) {
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'data' => [
-                'name'  => $qualities[3] . ' ' . $expansions[$x] . ' Gems',
-                'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $x . ' and x.class=3 and xs.skillline=755 and x.quality >= 3) xyz on xyz.id = i.id'])
-            ]
-        ];
-    }
-
-    for ($x = count($expansions) - 1; $x >= 5; $x--) {
-        $tr['results'][] = [
-            'name' => 'ItemList',
-            'data' => [
-                'name'  => $qualities[2] . ' ' . $expansions[$x] . ' Gems',
-                'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $x . ' and x.class=3 and xs.skillline=755 and x.quality < 3) xyz on xyz.id = i.id'])
-            ]
-        ];
-    }
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => $expansions[4] . ' Gems',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = 4 and x.class=3 and xs.skillline=755) xyz on xyz.id = i.id'])
-        ]
-    ];
-
+    /*
     for ($x = 0; $x <= 10; $x++) {
         $tr['results'][] = [
             'name' => 'ItemList',
@@ -1594,6 +1528,7 @@ function CategoryResult_jewelcrafting($house)
             'crafted' => CategoryBonusItemList($house, ['locales' => false, 'key' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=755 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
         ]
     ];
+    */
 
     return $tr;
 }
