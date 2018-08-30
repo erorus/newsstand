@@ -230,7 +230,7 @@
                         <p>If you have any questions about this Privacy Policy, please contact us.</p>
                     </div>
                     <div class="policy-section" id="policy-blizzard">
-                        We are also bound by the <a href="https://dev.battle.net/policy" class="highlight">Battle.net API Terms of Use</a> for the information which we provide.
+                        We are also bound by the <a href="https://dev.battle.net/policy" class="highlight">Blizzard API Terms of Use</a> for the information which we provide.
                         You should also review those terms to better understand our limitations in providing services to you.
                     </div>
                 </div>
@@ -248,7 +248,7 @@
 
                         <p>
                             Note: we will not respond to any advertising offers, or to any requests for auction data.<br>
-                            Visit <a href="https://dev.battle.net/">the Battle.net API</a> for live auction data, or the <a href="https://newswire.theunderminejournal.com">Newswire API</a> for historical data.
+                            Visit <a href="https://dev.battle.net/">the Blizzard API</a> for live auction data, or the <a href="https://newswire.theunderminejournal.com">Newswire API</a> for historical data.
                         </p>
                     </div>
                     <div class="error">
@@ -275,8 +275,8 @@
                         <p>In the future, we may offer seller notifications, much like The Undermine Journal offered years ago, deals notifications, or others, depending on user feedback.</p>
 
                         <h3>How do I log in?</h3>
-                        We only accept Battle.net accounts, since everyone who visits the Auction House would have one. But don't worry, we never see your password, or even your Battle.net account address.
-                        <p>Battle.net has a login service that securely interfaces with third-party sites like The Undermine Journal. <a href="https://dev.battle.net/docs/read/log_in_with_bnet" class="highlight">You can read Blizzard's explanation of it here.</a> We don't get any account details, we can't see your billing information, and we don't even ask for your character names. All we get from Battle.net is a unique numeric identifier for your account, and your public <a href="http://us.battle.net/en/battletag/" class="highlight">BattleTag</a>.</p>
+                        We only accept Blizzard accounts, since everyone who visits the Auction House would have one. But don't worry, we never see your password, or even your Blizzard account address.
+                        <p>Blizzard has a login service that securely interfaces with third-party sites like The Undermine Journal. <a href="https://dev.battle.net/docs/read/log_in_with_blizzard" class="highlight">You can read Blizzard's explanation of it here.</a> We don't get any account details, we can't see your billing information, and we don't even ask for your character names. All we get from Blizzard is a unique numeric identifier for your account, and your public <a href="http://us.battle.net/en/battletag/" class="highlight">BattleTag</a>.</p>
 
                         <h3>What does a subscription cost?</h3>
                         You can log in and get a free subscription right now. You can set your notifications and tell us your email address, and we will email you periodically with the latest events that happened since your last message and are still valid. We check the auction house for you with every data snapshot, but we will email you up to once every 8 hours.
@@ -284,7 +284,7 @@
                         <h3>Only once every 8 hours? Can't you email me more often than that?</h3>
                         We also offer a paid subscription tier, which lets you choose a frequency up to every 2 minutes. Plus, paid subscribers do not see ads (or ad substitutes) while logged in. Paid subscriptions are sold for $5.00 USD for 60 days.
 
-                        <h3>How do you send notifications more often than hourly, if you use the Battle.net API?</h3>
+                        <h3>How do you send notifications more often than hourly, if you use the Blizzard API?</h3>
                         <p>It's true that <b>we get data for each realm only about once per hour</b>, but if you watch multiple realms, you could benefit from sub-hourly notification frequency, since those updates are staggered. For example:</p>
                         <table class="category">
                             <tr><th>Event</th><th>ASAP Frequency</th><th>Hourly Frequency</th></tr>
@@ -306,7 +306,7 @@
                         </table>
 
                         <h3>Anything else I should know?</h3>
-                        We offer no warranty for this service, and as always, we rely on the Battle.net API to obtain the data to send notifications. You should review our Terms and Privacy Policy, linked in the footer below, as you will need to confirm your acceptance of it when you log in for the first time. Finally, while the website and emails are localized in many languages, we can only offer customer support in English.
+                        We offer no warranty for this service, and as always, we rely on the Blizzard API to obtain the data to send notifications. You should review our Terms and Privacy Policy, linked in the footer below, as you will need to confirm your acceptance of it when you log in for the first time. Finally, while the website and emails are localized in many languages, we can only offer customer support in English.
                     </div>
                     <div id="subscription-settings"></div>
                 </div>
