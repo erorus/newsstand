@@ -2514,7 +2514,7 @@ from (
     from (
         select ab.item, ab.level, ab.baselevel, count(*) c_total, sum(if(tis2.price > ab.price,1,0)) c_over, ab.price
         from (
-            select tis.item, tis.level, i.level baselevel, tis.price
+            select tis.item+0 item, tis.level+0 level, i.level baselevel, tis.price
             from tblItemSummary tis
             join tblDBCItem i on tis.item=i.id
             where tis.house = ?
@@ -2536,7 +2536,7 @@ EOF;
         where r.region = ?
         group by ab.item, ab.level
     ) ac
-    join tblItemGlobal gs on gs.item = ac.item and gs.level = ac.level and gs.region = ?
+    join tblItemGlobal gs on gs.item = ac.item+0 and gs.level = ac.level+0 and gs.region = ?
     where ((c_over/c_total) > 2/3 or c_total < 15)
 ) aa
 where median > 1500000
