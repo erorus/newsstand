@@ -1,15 +1,14 @@
 <?php
 
 require_once '../incl/incl.php';
+require_once '../incl/NewsstandHTTP.incl.php';
+
+use Newsstand\HTTP;
 
 DBConnect();
 $db->real_query('delete from tblDBCItemVendorCost');
 
-$thejson = <<<'EOF'
-{"38":{"price":1,"npc":18672,"npccount":1}}
-EOF;
-// TODO: fetch from http://www.wowhead.com/data=vendor-items
-
+$thejson = HTTP::Get('https://www.wowhead.com/data=vendor-items');
 $itms = json_decode($thejson, true);
 
 // exclude all herbs and elemental (motes, etc) trade goods
