@@ -17,6 +17,7 @@ define('DATA_FILE_CURLOPTS', [
 ]);
 
 $regions = ['US','EU','CN','TW','KR'];
+$saveForRealmPop = is_dir(SNAPSHOT_PATH . '/realmpop');
 
 if (!isset($argv[1]) || !in_array($argv[1], $regions)) {
     DebugMessage('Need region '.implode(', ', $regions), E_USER_ERROR);
@@ -57,7 +58,7 @@ DebugMessage('Done! Started ' . TimeDiff($startTime));
 
 function FetchSnapshot()
 {
-    global $db, $region;
+    global $db, $region, $saveForRealmPop;
 
     $lockName = "fetchsnapshot_$region";
 
@@ -77,7 +78,9 @@ function FetchSnapshot()
     $earlyCheckSeconds = EARLY_CHECK_SECONDS;
 
     $nextRealmSql = <<<ENDSQL
-    select r.house, min(r.canonical), count(*) c, ifnull(hc.nextcheck, s.nextcheck) upd, s.lastupdate, s.mindelta, hc.lastchecksuccessresult
+    select r.house, min(r.canonical), count(*) c, ifnull(hc.nextcheck, s.nextcheck) upd, 
+    s.lastupdate, if(s.lastupdate < timestampadd(hour, -36, now()), 0, ifnull(s_id.maxid, 0)) maxid, s.mindelta, 
+    hc.lastchecksuccessresult
     from tblRealm r
     left join (
         select deltas.house, timestampadd(second, least(ifnull(min(delta)-$earlyCheckSeconds, 45*60), 150*60), max(deltas.updated)) nextcheck, max(deltas.updated) lastupdate, least(min(delta), 150*60) mindelta
@@ -91,6 +94,7 @@ function FetchSnapshot()
         group by deltas.house
         ) s on s.house = r.house
     left join tblHouseCheck hc on hc.house = r.house
+    left join tblSnapshot s_id on s_id.house = s.house and s_id.updated = s.lastupdate
     where r.region = ?
     and r.house is not null
     and r.canonical is not null
@@ -99,12 +103,12 @@ function FetchSnapshot()
     limit 1
 ENDSQL;
 
-    $house = $slug = $realmCount = $nextDate = $lastDate = $minDelta = $lastSuccessJson = null;
+    $house = $slug = $realmCount = $nextDate = $lastDate = $maxId = $minDelta = $lastSuccessJson = null;
 
     $stmt = $db->prepare($nextRealmSql);
     $stmt->bind_param('s', $region);
     $stmt->execute();
-    $stmt->bind_result($house, $slug, $realmCount, $nextDate, $lastDate, $minDelta, $lastSuccessJson);
+    $stmt->bind_result($house, $slug, $realmCount, $nextDate, $lastDate, $maxId, $minDelta, $lastSuccessJson);
     $gotRealm = $stmt->fetch() === true;
     $stmt->close();
 
@@ -286,6 +290,9 @@ ENDSQL;
     link(SNAPSHOT_PATH . $fileName, SNAPSHOT_PATH . 'parse/' . $fileName);
     if (in_array($region, ['US','EU'])) {
         link(SNAPSHOT_PATH . $fileName, SNAPSHOT_PATH . 'watch/' . $fileName);
+    }
+    if ($saveForRealmPop) {
+        link(SNAPSHOT_PATH . $fileName, SNAPSHOT_PATH . "realmpop/{$modified}-{$region}-{$maxId}.json");
     }
     unlink(SNAPSHOT_PATH . $fileName);
 
