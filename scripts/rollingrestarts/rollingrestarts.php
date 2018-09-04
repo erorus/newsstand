@@ -4,7 +4,6 @@ require_once(__DIR__.'/../../incl/incl.php');
 require_once(__DIR__.'/../../incl/wowtoken-twitter.credentials.php');
 
 define('ALERT_URL', 'http://launcher.worldofwarcraft.com/alert');
-define('VERSION_URL', 'http://us.patch.battle.net:1119/wow/versions');
 
 define('LAST_ALERT_PATH', __DIR__.'/rollingrestarts.txt');
 define('LAST_VERSION_PATH', __DIR__.'/liveversion.txt');
@@ -36,7 +35,7 @@ function CheckForNewVersion() {
 }
 
 function GetCurrentVersion() {
-    $stuff = \Newsstand\HTTP::Get(VERSION_URL);
+    $stuff = shell_exec('echo v1/products/wow/versions | nc -w 10 us.version.battle.net 1119');
     if (!$stuff) {
         return '';
     }
