@@ -1903,6 +1903,23 @@ function CategoryResult_inscription($house)
         ]
     ];
 
+    $sql = <<<'SQL'
+select distinct ir.reagent
+from tblDBCItemReagents ir
+join tblDBCSpell s on ir.spell = s.id
+join tblDBCTradeSkillCategory tsc on tsc.skillline = s.skillline and tsc.id = s.tradeskillcategory
+left join tblDBCItemVendorCost ivc on ivc.item = ir.reagent
+where ivc.item is null and s.skillline = 773 and tsc.name in ('Ink', 'Inks')
+SQL;
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Pigments',
+            'items' => CategoryRegularItemList($house, "i.id in ({$sql})")
+        ]
+    ];
+
     return $tr;
 }
 
@@ -1947,7 +1964,7 @@ function CategoryResult_cooking($house)
 
     $foods = array_merge([
         $expansions[$current] . ' Meat' => '154899, 154898, 154897, 152631',
-        $expansions[$current] . ' Fish' => '152549, 152548, 152547, 152546, 152545, 152544, 152543',
+        $expansions[$current] . ' Fish' => '152549, 152548, 152547, 152546, 152545, 152544, 152543, 162515, 160711',
         ],
         CategoryGetTradeItemsInExpansion(185, $current),
         [$expansions[$current - 1] . ' Fish' => '133607, 124107, 124109, 124108, 124110, 124111, 124112'],
