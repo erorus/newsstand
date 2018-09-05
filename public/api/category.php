@@ -1915,8 +1915,16 @@ SQL;
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
-            'name'  => 'Pigments',
-            'items' => CategoryRegularItemList($house, "i.id in ({$sql})")
+            'name'  => 'Common Pigments',
+            'items' => CategoryRegularItemList($house, "i.id in ({$sql}) and i.quality = 1")
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Uncommon Pigments',
+            'items' => CategoryRegularItemList($house, "i.id in ({$sql}) and i.quality > 1")
         ]
     ];
 
