@@ -236,6 +236,16 @@
                 </div>
                 <div class="page" id="contact-page">
                     <div class="form">
+                        <h3>Known Issues</h3>
+                        <div style="max-width: 60em; line-height: 1.5">
+                        <ul>
+                            <li><a href="https://www.wowhead.com/other-consumables?filter=107:86;0:11;mission:0" target="_blank">Champion equipment</a> is missing<br>
+                                <small>Since they changed from BoP to unbound, <a href="https://us.battle.net/forums/en/bnet/topic/20768926735">Blizzard needs to update their API</a> to include them in the auction house data.</small>
+                            </li>
+                        </ul>
+                        </div>
+
+                        <h3>Email Us</h3>
                         You can contact us directly by using the form below.
 
                         <form method="POST" onsubmit="return tuj.page_contact.submit(this)"><input type="text" name="subject" class="namefield" value="Subject">
