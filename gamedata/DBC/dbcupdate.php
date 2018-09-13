@@ -298,9 +298,10 @@ foreach ($itemReader->generateRecords() as $recId => $rec) {
     EchoProgress(++$x / $recordCount);
     $sniffed = false;
     $sparseRec = $itemSparseReader->getRecord($recId);
-    if (is_null($sparseRec) && $dbCacheReader) {
-        $sniffed = true;
-        $sparseRec = $dbCacheReader->getRecord($recId);
+    $cacheRec = $dbCacheReader ? $dbCacheReader->getRecord($recId) : null;
+    if (!is_null($cacheRec)) {
+        $sniffed = is_null($sparseRec);
+        $sparseRec = $cacheRec;
     }
     if (is_null($sparseRec)) {
         continue;
