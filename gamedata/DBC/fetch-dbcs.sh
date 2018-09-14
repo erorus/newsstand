@@ -2,7 +2,12 @@
 
 cd "${0%/*}"
 
-for locale in enUS deDE esES frFR itIT ptBR ruRU; do
+locales=$1
+if [ "$locales" == "" ]; then
+    locales="enUS deDE esES frFR itIT ptBR ruRU"
+fi
+
+for locale in $locales; do
     mkdir -p current/$locale
     php casc/casc.php --files dbcs.txt --out current/$locale --locale $locale
     mv current/$locale/DBFilesClient/* current/$locale/

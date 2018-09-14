@@ -276,9 +276,9 @@ if (file_exists($dirnm . '/DBCache.bin')) {
     }
 }
 
-RunAndLogError('truncate table tblDBCItem');
+//RunAndLogError('truncate table tblDBCItem');
 $sql = <<<'EOF'
-insert into tblDBCItem (
+replace into tblDBCItem (
     id, name_enus, quality, level, class, subclass, icon,
     stacksize, binds, buyfromvendor, selltovendor, auctionable,
     type, requiredlevel, requiredskill, flags) VALUES
