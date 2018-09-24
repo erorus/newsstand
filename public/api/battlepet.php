@@ -33,7 +33,7 @@ function PetStats($house, $species)
 {
     global $db;
 
-    $key = 'battlepet_stats_3s' . $species;
+    $key = 'battlepet_stats_4s' . $species;
     if (($tr = MCGetHouse($house, $key)) !== false) {
         return $tr;
     }

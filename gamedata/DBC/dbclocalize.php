@@ -3,7 +3,7 @@
 require_once __DIR__ . '/../../incl/incl.php';
 require_once __DIR__ . '/dbc.incl.php';
 
-$LOCALES = ['dede','eses','frfr','itit','ptbr','ruru'];
+$LOCALES = $VALID_LOCALES;
 
 $newLocales = [];
 for ($x = 1; $x < count($argv); $x++) {

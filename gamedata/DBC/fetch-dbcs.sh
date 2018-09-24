@@ -4,7 +4,7 @@ cd "${0%/*}"
 
 locales=$1
 if [ "$locales" == "" ]; then
-    locales="enUS deDE esES frFR itIT ptBR ruRU"
+    locales="enUS deDE esES frFR itIT ptBR ruRU koKR"
 fi
 
 for locale in $locales; do

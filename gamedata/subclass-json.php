@@ -1,7 +1,7 @@
 <?php
 require_once('../incl/incl.php');
 
-$langs = ['enus','dede','eses','frfr','itit','ptbr','ruru'];
+$langs = $VALID_LOCALES;
 $jsons = [];
 
 DBConnect();

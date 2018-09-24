@@ -31,7 +31,7 @@ $TIMELEFT_ENUM = [
     'VERY_LONG' => 4,
 ];
 
-$VALID_LOCALES = ['enus','dede','eses','frfr','itit','ptbr','ruru'];
+$VALID_LOCALES = ['enus','dede','eses','frfr','itit','ptbr','ruru','kokr'];
 
 function DebugMessage($message, $debugLevel = E_USER_NOTICE)
 {

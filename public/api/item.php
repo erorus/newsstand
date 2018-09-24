@@ -44,7 +44,7 @@ function ItemStats($house, $item)
 {
     global $db;
 
-    $cacheKey = 'item_stats_' . $item;
+    $cacheKey = 'item_stats2_' . $item;
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;

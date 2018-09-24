@@ -588,7 +588,8 @@ var tujConstants = {
         frfr: 'Français',
         itit: 'Italiano',
         ptbr: 'Português',
-        ruru: 'Русский'
+        ruru: 'Русский',
+        kokr: '한국인',
     },
     siteColors: {
         light: {
