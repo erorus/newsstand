@@ -32,7 +32,7 @@ $regions = [
     'EU' => 'en_GB',
 //    'CN' => 'zh_CN',
 //    'TW' => 'zh_TW',
-//    'KR' => 'ko_KR',
+    'KR' => 'ko_KR',
 ];
 
 foreach ($regions as $region => $realmListLocale) {

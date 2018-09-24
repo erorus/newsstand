@@ -637,7 +637,7 @@ if (!Date.now) {
 
 var TUJ = function ()
 {
-    var validRegions = ['US','EU'];
+    var validRegions = ['US','EU','KR'];
     var validPages = ['', 'search', 'item', 'seller', 'battlepet', 'contact', 'category', 'transmog', 'subscription', 'policy'];
     var pagesNeedRealm = [true, true, true, true, true, false, true, true, false, false];
     var houseInfo = {};
@@ -881,6 +881,7 @@ var TUJ = function ()
                 $('#realm-list').removeClass('show');
                 $('#region-page area.region-us').attr('href', tuj.BuildHash({region:0}));
                 $('#region-page area.region-eu').attr('href', tuj.BuildHash({region:1}));
+                //$('#region-page area.region-kr').attr('href', tuj.BuildHash({region:2}));
 
                 $('#region-page h2').html(libtuj.sprintf(self.lang.welcomeTo, 'The Undermine Journal') + ' <sub>' + self.lang.yourSource + '</sub>');
                 var pixelmap = document.getElementById('pixelmap');

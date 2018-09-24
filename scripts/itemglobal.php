@@ -28,7 +28,7 @@ if (isset($argv[1]) && ($argv[1] == 'jsononly')) {
     exit;
 }
 
-$regions = ['US','EU'];
+$regions = ['US','EU','KR'];
 
 DebugMessage('Starting..');
 UpdateGlobalItems();
