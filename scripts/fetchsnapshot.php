@@ -291,7 +291,7 @@ ENDSQL;
     if (in_array($region, ['US','EU'])) {
         link(SNAPSHOT_PATH . $fileName, SNAPSHOT_PATH . 'watch/' . $fileName);
     }
-    if ($saveForRealmPop && in_array($region, ['US','EU'])) {
+    if ($saveForRealmPop) {
         link(SNAPSHOT_PATH . $fileName, SNAPSHOT_PATH . "realmpop/{$modified}-{$region}-{$maxId}.json");
     }
     unlink(SNAPSHOT_PATH . $fileName);
