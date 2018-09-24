@@ -52,6 +52,10 @@
                             <span>EU Region</span>
                             <a href="#us">Looking for US realms?</a>
                         </div>
+                        <div id="region-pick-KR" class="region-pick">
+                            <span>KR Region</span>
+                            <a href="#us">Looking for US realms?</a>
+                        </div>
                     </div>
                     <datalist id="searched-previously"></datalist>
                 </div>

@@ -1293,6 +1293,7 @@ var TUJ = function ()
     {
         $('#region-pick-US').html('<span>' + self.lang.regionUS + '</span> <a href="#eu">' + self.lang.lookingEU + '</a>');
         $('#region-pick-EU').html('<span>' + self.lang.regionEU + '</span> <a href="#us">' + self.lang.lookingUS + '</a>');
+        $('#region-pick-KR').html('<span>' + self.lang.regionKR + '</span> <a href="#us">' + self.lang.lookingUS + '</a>');
 
         if (self.params.region != undefined) {
             $('#topcorner > div').show();
@@ -1300,7 +1301,7 @@ var TUJ = function ()
             if (!self.params.realm) {
                 var $regionPick = $('#topcorner #region-pick-' + validRegions[self.params.region]);
                 $regionPick.show();
-                $regionPick.find('a')[0].href = self.BuildHash({region: undefined, realm: undefined});
+                $regionPick.find('a')[0].href = self.BuildHash({region: self.params.region == 0 ? 1 : 0, realm: undefined});
             }
 
             var regionLink = $('#topcorner a.region');
