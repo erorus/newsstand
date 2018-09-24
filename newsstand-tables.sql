@@ -226,6 +226,7 @@ CREATE TABLE IF NOT EXISTS `tblDBCItemBonus` (
   `level` smallint(6) DEFAULT NULL,
   `previewlevel` smallint(5) unsigned DEFAULT NULL,
   `levelcurve` smallint(5) unsigned DEFAULT NULL,
+  `requiredlevel` tinyint(3) unsigned DEFAULT NULL,
   `tagid` mediumint(8) unsigned DEFAULT NULL,
   `tagpriority` tinyint(3) unsigned DEFAULT NULL,
   `nameid` mediumint(8) unsigned DEFAULT NULL,

@@ -213,19 +213,41 @@ foreach ($bonusRows as $row) {
             }
             $bonuses[$row['bonusid']]['previewlevel'] = max($bonuses[$row['bonusid']]['previewlevel'], $row['params'][0]);
             break;
+        case 18: // required player level
+            if (!isset($bonuses[$row['bonusid']]['requiredlevel'])) {
+                $bonuses[$row['bonusid']]['requiredlevel'] = 0;
+            }
+            $bonuses[$row['bonusid']]['requiredlevel'] = max($bonuses[$row['bonusid']]['requiredlevel'], $row['params'][0]);
+            break;
     }
 }
 
 RunAndLogError('truncate table tblDBCItemBonus');
-$stmt = $db->prepare("insert into tblDBCItemBonus (id, quality, level, previewlevel, levelcurve, tagid, tagpriority, nameid, namepriority, socketmask, statmask) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-$id = $quality = $level = $previewLevel = $levelCurve = $tagPriority = $tagId = $nameId = $namePriority = $socketMask = $statMask = null;
-$stmt->bind_param('iiiiiiiiiii', $id, $quality, $level, $previewLevel, $levelCurve, $tagId, $tagPriority, $nameId, $namePriority, $socketMask, $statMask);
+$sql = <<<'SQL'
+insert into tblDBCItemBonus (
+    id, quality, level, previewlevel, levelcurve, requiredlevel,
+    tagid, tagpriority, nameid, namepriority,
+    socketmask, statmask
+) values (
+    ?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?,
+    ?, ?
+)
+SQL;
+$stmt = $db->prepare($sql);
+$id = $quality = $level = $previewLevel = $levelCurve = $requiredLevel = $tagPriority = $tagId = $nameId = $namePriority = $socketMask = $statMask = null;
+$stmt->bind_param('iiiiiiiiiiii',
+    $id, $quality, $level, $previewLevel, $levelCurve, $requiredLevel,
+    $tagId, $tagPriority, $nameId, $namePriority,
+    $socketMask, $statMask
+);
 foreach ($bonuses as $bonusId => $bonusData) {
     $id = $bonusId;
     $quality = isset($bonusData['quality']) ? $bonusData['quality'] : null;
     $level = isset($bonusData['itemlevel']) ? $bonusData['itemlevel'] : null;
     $previewLevel = isset($bonusData['previewlevel']) ? $bonusData['previewlevel'] : null;
     $levelCurve = isset($bonusData['levelcurve']) ? $bonusData['levelcurve'] : null;
+    $requiredLevel = isset($bonusData['requiredlevel']) ? $bonusData['requiredlevel'] : null;
     $tagId = isset($bonusData['tag']) ? $bonusData['tag']['id'] : null;
     $tagPriority = isset($bonusData['tag']) ? $bonusData['tag']['prio'] : null;
     $nameId = isset($bonusData['name']) ? $bonusData['name']['id'] : null;
