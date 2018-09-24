@@ -50,7 +50,7 @@ function FetchHouseFromHash() {
 
     $preloadHouse = false;
 
-    foreach (['us','eu'] as $regionId => $regionName) {
+    foreach (['us','eu','kr'] as $regionId => $regionName) {
         if ($hashParts[0] != $regionName) {
             continue;
         }

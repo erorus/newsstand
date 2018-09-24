@@ -1300,7 +1300,7 @@ var TUJ = function ()
             if (!self.params.realm) {
                 var $regionPick = $('#topcorner #region-pick-' + validRegions[self.params.region]);
                 $regionPick.show();
-                $regionPick.find('a')[0].href = self.BuildHash({region: 1-self.params.region, realm: undefined});
+                $regionPick.find('a')[0].href = self.BuildHash({region: undefined, realm: undefined});
             }
 
             var regionLink = $('#topcorner a.region');
