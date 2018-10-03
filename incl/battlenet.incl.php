@@ -44,24 +44,34 @@ function GetBattleNetURL($region, $path)
 
         MCDelete($cacheKey . '_critical');
 
-        $qs = '';
-        $pos = strpos($path, '?');
-        if ($pos !== false) {
-            $qs = substr($path, $pos + 1);
-            $path = substr($path, 0, $pos);
-        }
+        $useOldApi = ($region == 'cn' && substr($path, 0, 5) != 'data/' && substr($path, 0, 8) != 'profile/');
+        if (!$useOldApi) {
+            // new data api, uses client creds
 
-        parse_str($qs, $qsa);
+            $qs = '';
+            $pos = strpos($path, '?');
+            if ($pos !== false) {
+                $qs = substr($path, $pos + 1);
+                $path = substr($path, 0, $pos);
+            }
 
-        if (!isset($qsa['namespace'])) {
-            $qsa['namespace'] = 'dynamic-' . $region;
-        }
-        if (!isset($qsa['locale'])) {
-            $qsa['locale'] = 'en_US';
-        }
-        $qsa['access_token'] = GetBattleNetClientCredentials($region);
+            parse_str($qs, $qsa);
 
-        $finalUrl = sprintf('https://%s.api.blizzard.com/%s?%s', $region, $path, http_build_query($qsa));
+            if (!isset($qsa['namespace'])) {
+                $qsa['namespace'] = 'dynamic-' . $region;
+            }
+            if (!isset($qsa['locale'])) {
+                $qsa['locale'] = 'en_US';
+            }
+            $qsa['access_token'] = GetBattleNetClientCredentials($region);
+
+            $pattern = ($region == 'cn') ? 'https://api.battlenet.com.%s/%s?%s' : 'https://%s.api.blizzard.com/%s?%s';
+            $finalUrl = sprintf($pattern, $region, $path, http_build_query($qsa));
+        } else {
+            // old api, uses api key
+            $pattern = ($region == 'cn') ? 'https://api.battlenet.com.%s/%s%sapikey=%s' : 'https://%s.api.battle.net/%s%sapikey=%s';
+            $finalUrl = sprintf($pattern, $region, $path, strpos($path, '?') !== false ? '&' : '?', MASHERY_KEY);
+        }
     }
 
     return $finalUrl ? $finalUrl : false;
