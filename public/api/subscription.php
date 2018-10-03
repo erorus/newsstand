@@ -168,7 +168,7 @@ function GetLoginParams($loginFrom, $region, $locale) {
     }
 
     $json = [
-        'clientId' => BATTLE_NET_KEY,
+        'clientId' => MASHERY_KEY,
         'authUri' => BATTLE_NET_AUTH_URI,
         'redirectUri' => 'https://' . strtolower($_SERVER["HTTP_HOST"]) . $_SERVER["SCRIPT_NAME"],
         'state' => MakeNewState([
@@ -345,8 +345,8 @@ function ProcessAuthCode($state, $code) {
         'scope' => '',
         'grant_type' => 'authorization_code',
         'code' => $code,
-        'client_id' => BATTLE_NET_KEY,
-        'client_secret' => BATTLE_NET_SECRET,
+        'client_id' => MASHERY_KEY,
+        'client_secret' => MASHERY_SECRET,
     ];
     $outHeaders = [];
     $tokenData = \Newsstand\HTTP::Post($url, $toPost, [], $outHeaders);
