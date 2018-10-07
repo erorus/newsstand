@@ -1795,39 +1795,40 @@ function CategoryResult_tailoring($house)
 
 function CategoryResult_enchanting($house)
 {
+    global $expansions;
+
+    $mats = [
+        [10938,10939,10940,14343,14344,16202,16203,16204,156930],
+        [22445,22446,22447,22448,22449,22450],
+        [34052,34054,34055,34056,34057,34053],
+        [52555,52718,52719,52721,52722,52720],
+        [74247,74248,74249,74250,74252,105718],
+        [109693,111245,113588,115504,115502],
+        [124440,124441,124442],
+        [152875,152876,152877],
+    ];
 
     $tr = ['name' => 'enchanting', 'results' => []];
 
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
-            'name'  => 'Dust',
-            'items' => CategoryRegularItemList($house, 'i.class=7 and i.subclass=12 and i.quality=1 and (i.name_enus like \'%Dust\' or i.id in (124440))')
-        ]
-    ];
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Essence',
-            'items' => CategoryRegularItemList($house, 'i.class=7 and i.subclass=12 and i.quality=2 and ((i.level>85 and i.name_enus like \'%Essence\') or (i.name_enus like \'Greater%Essence\'))')
-        ]
-    ];
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Shard',
-            'items' => CategoryRegularItemList($house, 'i.class=7 and i.subclass=12 and i.quality=3 and i.name_enus not like \'Small%\' and i.name_enus like \'%Shard\'')
-        ]
-    ];
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Crystal',
-            'items' => CategoryRegularItemList($house, 'i.class=7 and i.subclass=12 and i.quality=4 and i.name_enus like \'%Crystal\'')
+            'name'  => $expansions[count($mats) - 1] . ' Reagents',
+            'items' => CategoryRegularItemList($house, 'i.id in (' . implode(',', array_pop($mats)) . ')')
         ]
     ];
 
     $tr['results'] = array_merge($tr['results'], CategoryTradeskillResults($house, 333, 7));
+
+    for ($x = count($mats) - 1; $x >= 0; $x--) {
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => $expansions[$x] . ' Reagents',
+                'items' => CategoryRegularItemList($house, 'i.id in (' . implode(',', $mats[$x]) . ')')
+            ]
+        ];
+    }
 
     return $tr;
 }
