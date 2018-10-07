@@ -1570,6 +1570,21 @@ function CategoryResult_engineering($house)
         }
     }
 
+    for ($x = count($expansions) - 3; $x >= 0; $x--) {
+        $itemSets = CategoryGetTradeItemsInExpansion(202, $x);
+
+        foreach ($itemSets as $setName => $itemCsv) {
+            $tr['results'][] = [
+                'name' => 'ItemList',
+                'data' => [
+                    'name'  => $setName,
+                    'items' => CategoryBonusItemList($house, "i.id in ($itemCsv) and i.class not in (2,4)")
+                ]
+            ];
+        }
+    }
+
+
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
