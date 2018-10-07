@@ -27,7 +27,8 @@ i.id in (
     select z.id from (
         select x.id, ifnull(sum(xis.quantity), 0) itmcount
         from tblDBCItem as x
-        join tblDBCSpell xs on xs.crafteditem = x.id
+        join tblDBCSpellCrafts xsc on xsc.item = x.id
+        join tblDBCSpell xs on xs.id = xsc.spell
         join tblDBCItem xai on xai.display = x.display and xai.class = x.class
         left join tblItemSummary xis on xis.item = xai.id and xis.house = %d
         where xs.skillline = %d
@@ -1006,7 +1007,7 @@ function CategoryResult_alchemy($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => $expansions[$current] . ' Flasks',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (SELECT distinct xic.id FROM tblDBCSpell xs JOIN tblDBCItem xic on xs.crafteditem=xic.id WHERE xs.skillline=171 and xs.expansion=' . $current . ' and xic.class=0 and xic.subclass=3) xyz on xyz.id = i.id'])
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (SELECT distinct xic.id FROM tblDBCSpell xs JOIN tblDBCSpellCrafts xsc on xsc.spell = xs.id JOIN tblDBCItem xic on xsc.item = xic.id WHERE xs.skillline=171 and xs.expansion=' . $current . ' and xic.class=0 and xic.subclass=3) xyz on xyz.id = i.id'])
         ]
     ];
 
@@ -1014,7 +1015,7 @@ function CategoryResult_alchemy($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => $expansions[$current] . ' Flasks',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (SELECT distinct xic.id FROM tblDBCSpell xs JOIN tblDBCItem xic on xs.crafteditem=xic.id WHERE xs.skillline=171 and xs.expansion=' . $current . ' and xic.class=0 and xic.subclass=2) xyz on xyz.id = i.id'])
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (SELECT distinct xic.id FROM tblDBCSpell xs join tblDBCSpellCrafts xsc on xsc.spell = xs.id join tblDBCItem xic on xsc.item = xic.id WHERE xs.skillline=171 and xs.expansion=' . $current . ' and xic.class=0 and xic.subclass=2) xyz on xyz.id = i.id'])
         ]
     ];
 
@@ -1022,7 +1023,7 @@ function CategoryResult_alchemy($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => $expansions[$current] . ' Potions',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (SELECT distinct xic.id FROM tblDBCSpell xs JOIN tblDBCItem xic on xs.crafteditem=xic.id WHERE xs.skillline=171 and xs.expansion=' . $current . ' and xic.class=0 and xic.subclass=1) xyz on xyz.id = i.id'])
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (SELECT distinct xic.id FROM tblDBCSpell xs join tblDBCSpellCrafts xsc on xsc.spell = xs.id join tblDBCItem xic on xsc.item = xic.id WHERE xs.skillline=171 and xs.expansion=' . $current . ' and xic.class=0 and xic.subclass=1) xyz on xyz.id = i.id'])
         ]
     ];
 
@@ -1030,7 +1031,7 @@ function CategoryResult_alchemy($house)
 join (
 select distinct xic.id
 from tblDBCSpell xs
-join tblDBCItem xic on xs.crafteditem=xic.id
+join tblDBCSpellCrafts xsc on xsc.spell = xs.id join tblDBCItem xic on xsc.item = xic.id
 where xs.skillline=171
 and xs.expansion = $current
 and xic.class=0
@@ -1060,7 +1061,7 @@ EOF;
         'name' => 'ItemList',
         'data' => [
             'name'  => $expansions[$current] . ' Flasks',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (SELECT distinct xic.id FROM tblDBCSpell xs JOIN tblDBCItem xic on xs.crafteditem=xic.id WHERE xs.skillline=171 and xs.expansion=' . $current . ' and xic.class=0 and xic.subclass=3) xyz on xyz.id = i.id'])
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (SELECT distinct xic.id FROM tblDBCSpell xs join tblDBCSpellCrafts xsc on xsc.spell = xs.id join tblDBCItem xic on xsc.item = xic.id WHERE xs.skillline=171 and xs.expansion=' . $current . ' and xic.class=0 and xic.subclass=3) xyz on xyz.id = i.id'])
         ]
     ];
 
@@ -1068,7 +1069,7 @@ EOF;
         'name' => 'ItemList',
         'data' => [
             'name'  => $expansions[$current] . ' Elixirs',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (SELECT distinct xic.id FROM tblDBCSpell xs JOIN tblDBCItem xic on xs.crafteditem=xic.id WHERE xs.skillline=171 and xs.expansion=' . $current . ' and xic.class=0 and xic.subclass=2) xyz on xyz.id = i.id'])
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (SELECT distinct xic.id FROM tblDBCSpell xs join tblDBCSpellCrafts xsc on xsc.spell = xs.id join tblDBCItem xic on xsc.item = xic.id WHERE xs.skillline=171 and xs.expansion=' . $current . ' and xic.class=0 and xic.subclass=2) xyz on xyz.id = i.id'])
         ]
     ];
 
@@ -1076,7 +1077,7 @@ EOF;
         'name' => 'ItemList',
         'data' => [
             'name'  => $expansions[$current] . ' Potions',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (SELECT distinct xic.id FROM tblDBCSpell xs JOIN tblDBCItem xic on xs.crafteditem=xic.id WHERE xs.skillline=171 and xs.expansion=' . $current . ' and xic.class=0 and xic.subclass=1) xyz on xyz.id = i.id'])
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (SELECT distinct xic.id FROM tblDBCSpell xs join tblDBCSpellCrafts xsc on xsc.spell = xs.id join tblDBCItem xic on xsc.item = xic.id WHERE xs.skillline=171 and xs.expansion=' . $current . ' and xic.class=0 and xic.subclass=1) xyz on xyz.id = i.id'])
         ]
     ];
 
@@ -1085,8 +1086,8 @@ EOF;
         'data' => [
             'name'  => 'Recipes',
             'map'   => CategoryRecipeMap(171),
-            'recipes' => CategoryRegularItemList($house, ['key' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=171 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
-            'crafted' => CategoryRegularItemList($house, ['locales' => false, 'key' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=171 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'recipes' => CategoryRegularItemList($house, ['key' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCSpellCrafts xsc on xsc.spell = xs.id join tblDBCItem xii on xsc.item = xii.id where xs.skillline=171 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'crafted' => CategoryRegularItemList($house, ['locales' => false, 'key' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCSpellCrafts xsc on xsc.spell = xs.id join tblDBCItem xii on xsc.item = xii.id where xs.skillline=171 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
         ]
     ];
 
@@ -1184,7 +1185,7 @@ function CategoryResult_leatherworking($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => $expansions[$current] . ' Trade Goods',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $current . ' and x.class=7 and xs.skillline=165) xyz on xyz.id = i.id'])
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x join tblDBCSpellCrafts xsc on xsc.item = x.id join tblDBCSpell xs on xsc.spell = xs.id where xs.expansion = ' . $current . ' and x.class=7 and xs.skillline=165) xyz on xyz.id = i.id'])
         ]
     ];
 
@@ -1192,7 +1193,7 @@ function CategoryResult_leatherworking($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => $expansions[$current] . ' Consumables',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $current . ' and x.class=0 and xs.skillline=165) xyz on xyz.id = i.id'])
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x join tblDBCSpellCrafts xsc on xsc.item = x.id join tblDBCSpell xs on xsc.spell = xs.id where xs.expansion = ' . $current . ' and x.class=0 and xs.skillline=165) xyz on xyz.id = i.id'])
         ]
     ];
 
@@ -1248,7 +1249,7 @@ function CategoryResult_leatherworking($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Bags',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.class=1 and xs.skillline=165) xyz on xyz.id = i.id'])
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x join tblDBCSpellCrafts xsc on xsc.item = x.id join tblDBCSpell xs on xsc.spell = xs.id where x.class=1 and xs.skillline=165) xyz on xyz.id = i.id'])
         ]
     ];
 
@@ -1272,8 +1273,8 @@ function CategoryResult_leatherworking($house)
         'data' => [
             'name'  => 'Recipes',
             'map'   => CategoryRecipeMap(165),
-            'recipes' => CategoryRegularItemList($house, ['key' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=165 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
-            'crafted' => CategoryBonusItemList($house, ['locales' => false, 'key' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=165 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'recipes' => CategoryRegularItemList($house, ['key' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCSpellCrafts xsc on xsc.spell = xs.id join tblDBCItem xii on xsc.item = xii.id where xs.skillline=165 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'crafted' => CategoryBonusItemList($house, ['locales' => false, 'key' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCSpellCrafts xsc on xsc.spell = xs.id join tblDBCItem xii on xsc.item = xii.id where xs.skillline=165 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
         ]
     ];
 
@@ -1389,7 +1390,7 @@ function CategoryResult_blacksmithing($house)
         'sort' => ['main' => $sortIndex++],
         'data' => [
             'name'  => 'Other Consumables',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion < ' . ($current - 1) . ' and x.level>40 and x.class=0 and xs.skillline=164) xyz on xyz.id = i.id'])
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x join tblDBCSpellCrafts xsc on xsc.item = x.id join tblDBCSpell xs on xsc.spell = xs.id where xs.expansion < ' . ($current - 1) . ' and x.level>40 and x.class=0 and xs.skillline=164) xyz on xyz.id = i.id'])
         ]
     ];
 
@@ -1414,8 +1415,8 @@ function CategoryResult_blacksmithing($house)
         'data' => [
             'name'  => 'Recipes',
             'map'   => CategoryRecipeMap(164),
-            'recipes' => CategoryRegularItemList($house, ['key' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=164 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
-            'crafted' => CategoryBonusItemList($house, ['locales' => false, 'key' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=164 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'recipes' => CategoryRegularItemList($house, ['key' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCSpellCrafts xsc on xsc.spell = xs.id join tblDBCItem xii on xsc.item = xii.id where xs.skillline=164 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'crafted' => CategoryBonusItemList($house, ['locales' => false, 'key' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCSpellCrafts xsc on xsc.spell = xs.id join tblDBCItem xii on xsc.item = xii.id where xs.skillline=164 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
         ]
     ];
 
@@ -1499,7 +1500,7 @@ function CategoryResult_jewelcrafting($house)
             'name' => 'ItemList',
             'data' => [
                 'name'  => 'itemSubClasses.3-'.$x,
-                'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion < 4 and x.class=3 and x.subclass='.$x.' and xs.skillline=755) xyz on xyz.id = i.id'])
+                'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x join tblDBCSpellCrafts xsc on xsc.item = x.id join tblDBCSpell xs on xsc.spell = xs.id where xs.expansion < 4 and x.class=3 and x.subclass='.$x.' and xs.skillline=755) xyz on xyz.id = i.id'])
             ]
         ];
     }
@@ -1524,8 +1525,8 @@ function CategoryResult_jewelcrafting($house)
         'data' => [
             'name'  => 'Recipes',
             'map'   => CategoryRecipeMap(755),
-            'recipes' => CategoryRegularItemList($house, ['key' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=755 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
-            'crafted' => CategoryBonusItemList($house, ['locales' => false, 'key' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=755 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'recipes' => CategoryRegularItemList($house, ['key' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCSpellCrafts xsc on xsc.spell = xs.id join tblDBCItem xii on xsc.item = xii.id where xs.skillline=755 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'crafted' => CategoryBonusItemList($house, ['locales' => false, 'key' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCSpellCrafts xsc on xsc.spell = xs.id join tblDBCItem xii on xsc.item = xii.id where xs.skillline=755 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
         ]
     ];
     */
@@ -1573,14 +1574,14 @@ function CategoryResult_engineering($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Companions',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.class=15 and x.subclass=2 and xs.skillline=202) xyz on xyz.id = i.id'])
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x join tblDBCSpellCrafts xsc on xsc.item = x.id join tblDBCSpell xs on xsc.spell = xs.id where x.class=15 and x.subclass=2 and xs.skillline=202) xyz on xyz.id = i.id'])
         ]
     ];
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Mounts',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.class=15 and x.subclass=5 and xs.skillline=202) xyz on xyz.id = i.id'])
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x join tblDBCSpellCrafts xsc on xsc.item = x.id join tblDBCSpell xs on xsc.spell = xs.id where x.class=15 and x.subclass=5 and xs.skillline=202) xyz on xyz.id = i.id'])
         ]
     ];
 
@@ -1604,8 +1605,8 @@ function CategoryResult_engineering($house)
         'data' => [
             'name'  => 'Recipes',
             'map'   => CategoryRecipeMap(202),
-            'recipes' => CategoryRegularItemList($house, ['key' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=202 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
-            'crafted' => CategoryBonusItemList($house, ['locales' => false, 'key' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=202 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'recipes' => CategoryRegularItemList($house, ['key' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCSpellCrafts xsc on xsc.spell = xs.id join tblDBCItem xii on xsc.item = xii.id where xs.skillline=202 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'crafted' => CategoryBonusItemList($house, ['locales' => false, 'key' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCSpellCrafts xsc on xsc.spell = xs.id join tblDBCItem xii on xsc.item = xii.id where xs.skillline=202 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
         ]
     ];
 
@@ -1680,7 +1681,7 @@ function CategoryResult_tailoring($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Bags',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.level>40 and x.class=1 and x.subclass=0 and xs.skillline=197) xyz on xyz.id = i.id'])
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x join tblDBCSpellCrafts xsc on xsc.item = x.id join tblDBCSpell xs on xsc.spell = xs.id where x.level>40 and x.class=1 and x.subclass=0 and xs.skillline=197) xyz on xyz.id = i.id'])
         ]
     ];
 
@@ -1688,7 +1689,7 @@ function CategoryResult_tailoring($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Profession Bags',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and x.level>40 and x.class=1 and x.subclass!=0 and xs.skillline=197) xyz on xyz.id = i.id'])
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x join tblDBCSpellCrafts xsc on xsc.item = x.id join tblDBCSpell xs on xsc.spell = xs.id where x.level>40 and x.class=1 and x.subclass!=0 and xs.skillline=197) xyz on xyz.id = i.id'])
         ]
     ];
 
@@ -1696,7 +1697,7 @@ function CategoryResult_tailoring($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => $expansions[$current] . ' Trade Goods',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $current . ' and x.class=7 and xs.skillline=197) xyz on xyz.id = i.id'])
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x join tblDBCSpellCrafts xsc on xsc.item = x.id join tblDBCSpell xs on xsc.spell = xs.id where xs.expansion = ' . $current . ' and x.class=7 and xs.skillline=197) xyz on xyz.id = i.id'])
         ]
     ];
 
@@ -1704,7 +1705,7 @@ function CategoryResult_tailoring($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => $expansions[$current] . ' Consumables',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . $current . ' and x.class=0 and xs.skillline=197) xyz on xyz.id = i.id'])
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x join tblDBCSpellCrafts xsc on xsc.item = x.id join tblDBCSpell xs on xsc.spell = xs.id where xs.expansion = ' . $current . ' and x.class=0 and xs.skillline=197) xyz on xyz.id = i.id'])
         ]
     ];
 
@@ -1752,7 +1753,7 @@ function CategoryResult_tailoring($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => $expansions[$current - 1] . ' Trade Goods',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . ($current - 1) . ' and x.class=7 and xs.skillline=197) xyz on xyz.id = i.id'])
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x join tblDBCSpellCrafts xsc on xsc.item = x.id join tblDBCSpell xs on xsc.spell = xs.id where xs.expansion = ' . ($current - 1) . ' and x.class=7 and xs.skillline=197) xyz on xyz.id = i.id'])
         ]
     ];
 
@@ -1760,7 +1761,7 @@ function CategoryResult_tailoring($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => $expansions[$current - 1] . ' Consumables',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x, tblDBCSpell xs where xs.crafteditem=x.id and xs.expansion = ' . ($current - 1) . ' and x.class=0 and xs.skillline=197) xyz on xyz.id = i.id'])
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x join tblDBCSpellCrafts xsc on xsc.item = x.id join tblDBCSpell xs on xsc.spell = xs.id where xs.expansion = ' . ($current - 1) . ' and x.class=0 and xs.skillline=197) xyz on xyz.id = i.id'])
         ]
     ];
 
@@ -1784,8 +1785,8 @@ function CategoryResult_tailoring($house)
         'data' => [
             'name'  => 'Recipes',
             'map'   => CategoryRecipeMap(197),
-            'recipes' => CategoryRegularItemList($house, ['key' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=197 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
-            'crafted' => CategoryBonusItemList($house, ['locales' => false, 'key' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=197 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'recipes' => CategoryRegularItemList($house, ['key' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCSpellCrafts xsc on xsc.spell = xs.id join tblDBCItem xii on xsc.item = xii.id where xs.skillline=197 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'crafted' => CategoryBonusItemList($house, ['locales' => false, 'key' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCSpellCrafts xsc on xsc.spell = xs.id join tblDBCItem xii on xsc.item = xii.id where xs.skillline=197 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
         ]
     ];
 
@@ -1859,7 +1860,7 @@ function CategoryResult_inscription($house)
             'name'  => 'Glyphs',
             'items' => CategoryRegularItemList(
                 $house, [
-                    'joins' => 'join tblDBCSpell xs on xs.crafteditem = i.id',
+                    'joins' => 'join tblDBCSpellCrafts xsc on xsc.item = i.id join tblDBCSpell xs on xs.id = xsc.spell',
                     'where' => 'xs.skillline = 773 and i.class = 16'
                 ]
             )
@@ -1871,7 +1872,7 @@ function CategoryResult_inscription($house)
         'data' => [
             'name'  => 'Legion Vantus Runes',
             'items' => CategoryRegularItemList($house, [
-                'joins' => 'join tblDBCSpell xs on xs.crafteditem = i.id',
+                'joins' => 'join tblDBCSpellCrafts xsc on xsc.item = i.id join tblDBCSpell xs on xs.id = xsc.spell',
                 'where' => 'xs.skillline = 773 and xs.expansion = 6 and i.name_enus like \'Vantus Rune%\''
             ])
         ]
@@ -1883,7 +1884,7 @@ function CategoryResult_inscription($house)
             'name'  => 'Common Ink',
             'items' => CategoryRegularItemList(
                 $house, [
-                    'joins' => 'join tblDBCSpell xs on xs.crafteditem = i.id',
+                    'joins' => 'join tblDBCSpellCrafts xsc on xsc.item = i.id join tblDBCSpell xs on xs.id = xsc.spell',
                     'where' => 'xs.skillline = 773 and i.class=7 and i.subclass=16 and i.quality=1 and i.id not in (153661)'
                 ]
             )
@@ -1896,27 +1897,18 @@ function CategoryResult_inscription($house)
             'name'  => 'Uncommon Ink',
             'items' => CategoryRegularItemList(
                 $house, [
-                    'joins' => 'join tblDBCSpell xs on xs.crafteditem = i.id',
+                    'joins' => 'join tblDBCSpellCrafts xsc on xsc.item = i.id join tblDBCSpell xs on xs.id = xsc.spell',
                     'where' => 'xs.skillline = 773 and i.class=7 and i.subclass=16 and i.quality>1 and i.id not in (113289)'
                 ]
             )
         ]
     ];
 
-    $sql = <<<'SQL'
-select distinct ir.reagent
-from tblDBCItemReagents ir
-join tblDBCSpell s on ir.spell = s.id
-join tblDBCTradeSkillCategory tsc on tsc.skillline = s.skillline and tsc.id = s.tradeskillcategory
-left join tblDBCItemVendorCost ivc on ivc.item = ir.reagent
-where ivc.item is null and s.skillline = 773 and tsc.name in ('Ink', 'Inks')
-SQL;
-
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Common Pigments',
-            'items' => CategoryRegularItemList($house, "i.id in ({$sql}) and i.quality = 1")
+            'items' => CategoryRegularItemList($house, "i.id in (39151,39334,39338,39339,39340,39341,39342,39343,61979,79251,153635,153636)")
         ]
     ];
 
@@ -1924,7 +1916,7 @@ SQL;
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Uncommon Pigments',
-            'items' => CategoryRegularItemList($house, "i.id in ({$sql}) and i.quality > 1")
+            'items' => CategoryRegularItemList($house, "i.id in (43103,43104,43105,43106,43107,43108,43109,61980,79253,153669)")
         ]
     ];
 
@@ -1995,8 +1987,8 @@ function CategoryResult_cooking($house)
         'data' => [
             'name'  => 'Recipes',
             'map'   => CategoryRecipeMap(185),
-            'recipes' => CategoryRegularItemList($house, ['key' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=185 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
-            'crafted' => CategoryRegularItemList($house, ['locales' => false, 'key' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCItem xii on xii.id = xs.crafteditem where xs.skillline=185 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'recipes' => CategoryRegularItemList($house, ['key' => 'id',                     'joins' => 'join (select distinct xi.id  from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCSpellCrafts xsc on xsc.spell = xs.id join tblDBCItem xii on xsc.item = xii.id where xs.skillline=185 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
+            'crafted' => CategoryRegularItemList($house, ['locales' => false, 'key' => 'id', 'joins' => 'join (select distinct xii.id from tblDBCItemSpell xis join tblDBCSpell xs on xs.id = xis.spell join tblDBCItem xi on xi.id = xis.item join tblDBCSpellCrafts xsc on xsc.spell = xs.id join tblDBCItem xii on xsc.item = xii.id where xs.skillline=185 and xi.auctionable=1 and xii.auctionable=1) xyz on xyz.id = i.id']),
         ]
     ];
 
@@ -2029,7 +2021,7 @@ function CategoryGenericItemList($house, $params)
 {
     global $canCache;
 
-    $cacheKey = 'category_gil_2_' . md5(json_encode($params));
+    $cacheKey = 'category_gil_' . md5(json_encode($params));
 
     $skipLocales = is_array($params) && isset($params['locales']) && ($params['locales'] == false);
 
@@ -2196,7 +2188,7 @@ function CategoryRegularItemList($house, $params)
 {
     global $canCache;
 
-    $cacheKey = 'category_ril_2_' . md5(json_encode($params));
+    $cacheKey = 'category_ril_' . md5(json_encode($params));
 
     $skipLocales = is_array($params) && isset($params['locales']) && ($params['locales'] == false);
 
@@ -2302,7 +2294,7 @@ function CategoryBonusItemList($house, $params)
 {
     global $canCache;
 
-    $cacheKey = 'category_bil_2_' . md5(json_encode($params));
+    $cacheKey = 'category_bil_' . md5(json_encode($params));
 
     $skipLocales = is_array($params) && isset($params['locales']) && ($params['locales'] == false);
 
@@ -2418,7 +2410,7 @@ function CategoryBonusAuctionList($house, $params)
 {
     global $canCache;
 
-    $cacheKey = 'category_bal_2_' . md5(json_encode($params));
+    $cacheKey = 'category_bal_' . md5(json_encode($params));
 
     $skipLocales = is_array($params) && isset($params['locales']) && ($params['locales'] == false);
 
@@ -2549,10 +2541,10 @@ from (
             and $dealsSql
 EOF;
     if (($flags & CATEGORY_FLAGS_ALLOW_CRAFTED) == 0) {
-        $fullSql .= ' and not exists (select 1 from tblDBCSpell s where s.crafteditem=i.id) ';
+        $fullSql .= ' and not exists (select 1 from tblDBCSpellCrafts sc where sc.item = i.id) ';
     }
     if ($flags & CATEGORY_FLAGS_DENY_NONCRAFTED) {
-        $fullSql .= ' and exists (select 1 from tblDBCSpell s where s.crafteditem=i.id) ';
+        $fullSql .= ' and exists (select 1 from tblDBCSpellCrafts sc where sc.item = i.id) ';
     }
     $fullSql .= <<<EOF
         ) ab
@@ -2689,10 +2681,10 @@ function CategoryUnusualItemList($house, $unusualSql, $flags = 0)
     $craftedSql = '';
 
     if (($flags & CATEGORY_FLAGS_ALLOW_CRAFTED) == 0) {
-        $craftedSql .= ' and not exists (select 1 from tblDBCSpell s where s.crafteditem=i.id) ';
+        $craftedSql .= ' and not exists (select 1 from tblDBCSpellCrafts sc where sc.item = i.id) ';
     }
     if ($flags & CATEGORY_FLAGS_DENY_NONCRAFTED) {
-        $craftedSql .= ' and exists (select 1 from tblDBCSpell s where s.crafteditem=i.id) ';
+        $craftedSql .= ' and exists (select 1 from tblDBCSpellCrafts sc where sc.item = i.id) ';
     }
 
     $params = [
@@ -2709,18 +2701,19 @@ function CategoryUnusualItemList($house, $unusualSql, $flags = 0)
 
 function CategoryRecipeMap($skill)
 {
-    $cacheKey = 'category_recipe_map2_' . $skill;
+    $cacheKey = 'category_recipe_map_' . $skill;
     $map = MCGet($cacheKey);
     if ($map !== false) {
         return $map;
     }
 
     $sql = <<<'EOF'
-SELECT i.id recipe, s.crafteditem crafted
+SELECT i.id recipe, ii.id crafted
 FROM `tblDBCItemSpell` dis
 join tblDBCSpell s on dis.spell = s.id
 join tblDBCItem i on dis.item = i.id
-join tblDBCItem ii on ii.id = s.crafteditem
+join tblDBCSpellCrafts xsc on xsc.spell = s.id
+join tblDBCItem ii on xsc.item = ii.id
 where s.skillline = ?
 and i.auctionable = 1
 and ii.auctionable = 1
@@ -2747,7 +2740,7 @@ function CategoryGetTradeItemsInExpansion($skillLine, $expansionId) {
     $expansionName = $expansions[$expansionId];
 
     $itemsByCategory = false;
-    $categoryCacheKey = "categories-tsc-{$skillLine}-{$expansionId}";
+    $categoryCacheKey = "categories-tsc-2-{$skillLine}-{$expansionId}";
     if ($canCache) {
         $itemsByCategory = MCGet($categoryCacheKey);
     }
@@ -2755,8 +2748,9 @@ function CategoryGetTradeItemsInExpansion($skillLine, $expansionId) {
         $itemsByCategory = [];
 
         $sql = <<<'SQL'
-select distinct s.crafteditem, tsc.name
+select distinct sc.item, tsc.name
 from tblDBCSpell s
+join tblDBCSpellCrafts sc on s.id = sc.spell
 join tblDBCTradeSkillCategory tsc on s.tradeskillcategory = tsc.id
 where s.skillline = ?
 and s.expansion = ?
@@ -2787,7 +2781,7 @@ SQL;
 function CategoryTradeskillResults($house, $skillLine, $expansionId, $excludeCategories = []) {
     global $canCache, $qualities;
 
-    $cacheKey = sprintf('category_tradeskill_ids_%d_%d_%s',
+    $cacheKey = sprintf('category_tradeskill_ids-2_%d_%d_%s',
         $skillLine, $expansionId, md5(implode(',', $excludeCategories)));
 
     $catData = false;
@@ -2810,7 +2804,7 @@ select i.id, i.quality, i.class, concat_ws(' ',
 	tsc.name) catname
 from tblDBCSpell s
 join tblDBCTradeSkillCategory tsc on s.tradeskillcategory = tsc.id
-join tblDBCItem i on s.crafteditem = i.id
+join tblDBCSpellCrafts xsc on xsc.spell = s.id join tblDBCItem i on xsc.item = i.id
 where s.skillline=? and s.expansion=? and i.auctionable=1 {$excludeSql}
 group by i.id
 order by tsc.`order`, i.quality, i.name_enus;

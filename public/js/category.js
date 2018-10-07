@@ -1123,7 +1123,8 @@ var TUJ_Category = function ()
                         b.globalmedian, b.avgprice
                     ]))) ||
                         (a.bid - b.bid) ||
-                        a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]);
+                        a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]) ||
+                        a.requiredside.localeCompare(b.requiredside);
                 });
                 break;
 
@@ -1133,7 +1134,8 @@ var TUJ_Category = function ()
                     return ((b.globalmedian - b.price) - (a.globalmedian - a.price)) ||
                         ((a.price ? 0 : 1) - (b.price ? 0 : 1)) ||
                         (a.price - b.price) ||
-                        a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]);
+                        a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]) ||
+                        a.requiredside.localeCompare(b.requiredside);
                 });
                 break;
 
@@ -1142,7 +1144,8 @@ var TUJ_Category = function ()
                 {
                     return ((a.globalmedian ? 0 : 1) - (b.globalmedian ? 0 : 1)) ||
                         (b.globalmedian - a.globalmedian) ||
-                        a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]);
+                        a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]) ||
+                        a.requiredside.localeCompare(b.requiredside);
                 });
                 break;
 
@@ -1151,7 +1154,8 @@ var TUJ_Category = function ()
                 {
                     return ((a.price ? 0 : 1) - (b.price ? 0 : 1)) ||
                         (a.price - b.price) ||
-                        a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]);
+                        a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]) ||
+                        a.requiredside.localeCompare(b.requiredside);
                 });
                 break;
 
@@ -1160,7 +1164,8 @@ var TUJ_Category = function ()
                 {
                     return ((a.price ? 0 : 1) - (b.price ? 0 : 1)) ||
                         (b.price * getAmountByItem(data.amounts, b.id) - a.price * getAmountByItem(data.amounts, a.id)) ||
-                        a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]);
+                        a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]) ||
+                        a.requiredside.localeCompare(b.requiredside);
                 });
         }
 
@@ -1222,6 +1227,13 @@ var TUJ_Category = function ()
             td = libtuj.ce('td');
             td.className = 'icon';
             tr.appendChild(td);
+            if (item.requiredside) {
+                td.className += ' double';
+                i = libtuj.ce('img');
+                td.appendChild(i);
+                i.className = 'icon';
+                i.src = libtuj.IconURL('ui_' + item.requiredside.toLowerCase() + 'icon', 'medium');
+            }
             i = libtuj.ce('img');
             td.appendChild(i);
             i.className = 'icon';
@@ -1711,6 +1723,13 @@ var TUJ_Category = function ()
             td = libtuj.ce('td');
             td.className = 'icon';
             tr.appendChild(td);
+            if (item.requiredside) {
+                td.className += ' double';
+                i = libtuj.ce('img');
+                td.appendChild(i);
+                i.className = 'icon';
+                i.src = libtuj.IconURL('ui_' + item.requiredside.toLowerCase() + 'icon', 'medium');
+            }
             i = libtuj.ce('img');
             td.appendChild(i);
             i.className = 'icon';

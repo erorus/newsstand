@@ -117,7 +117,7 @@ abbr:hover.full-date { border-bottom: 1px dotted }
 
 #search-page table, table.auctionlist, table.category, .custom-textarea { width: 54em; margin: 0 auto 2em; border-spacing: 0 }
 #search-page table th, table.auctionlist th, table.category th {padding: 0.4em 0.2em 0; border-bottom: 1px solid #CCC; font-weight: normal}
-#search-page table td, table.auctionlist td, table.category td {padding: 0.2em 0.4em}
+#search-page table td, table.auctionlist td, table.category td {padding: 0.2em 0.4em; vertical-align: top}
 #search-page tr:hover td, table.auctionlist tr:hover td, table.category tr:hover td, td.hover {background-color: #EEE}
 
 #search-page th.title, table.category th.title { font-size: 125%; position: relative }
@@ -137,7 +137,9 @@ td.price abbr { text-decoration: none }
 td.breed, th.breed,
 td.quality, th.quality,
 td.name, th.name { text-align: left; cursor: default }
-td.icon, th.icon { width: 1.5em; height: 1.5em; padding-right: 0 ! important }
+td.icon, th.icon { width: 1.5em; height: 1.5em; padding-right: 0 ! important; text-align: right }
+td.icon.double, th.icon.double { width: 3.2em }
+td.icon.double img:first-child, th.icon.double img:first-child { padding-right: 0.2em }
 td.icon img, th.icon img { border-radius: 3px; }
 img.icon {width: 1.5em; height: 1.5em}
 td.price, th.price,

@@ -3,7 +3,7 @@
 require_once('memcache.incl.php');
 require_once('incl.php');
 
-define('API_VERSION', 102);
+define('API_VERSION', 103);
 define('THROTTLE_PERIOD', 3600); // seconds
 define('THROTTLE_MAXHITS', 200);
 define('CONCURRENT_REQUEST_MAX', 3);
@@ -75,7 +75,7 @@ function GetItemNames($itemIds, $renamedTo = false)
 {
     global $VALID_LOCALES;
 
-    $cacheKeyPrefix = 'itemnames2_';
+    $cacheKeyPrefix = 'itemnames_';
     $cacheKeyPrefixLen = strlen($cacheKeyPrefix);
 
     // assemble memcache keys, and fetch into $names
@@ -110,7 +110,7 @@ function GetItemNames($itemIds, $renamedTo = false)
 
         // fetch missing IDs, and store them into memcache
         $db = DBConnect();
-        $sql = 'select id, '.LocaleColumns('name').' from tblDBCItem where id in (%s)';
+        $sql = 'select id, requiredside, '.LocaleColumns('name').' from tblDBCItem where id in (%s)';
         foreach ($missingIds as $missingChunk) {
             $stmt = $db->prepare(sprintf($sql, implode(',', $missingChunk)));
             $stmt->execute();
@@ -125,6 +125,7 @@ function GetItemNames($itemIds, $renamedTo = false)
 
             foreach ($missingChunk as $id) {
                 if (!isset($names[$id])) { // if this id didn't come back from the db
+                    $names[$id] = ['id' => $id, 'requiredside' => ''];
                     foreach ($VALID_LOCALES as $locId) {
                         $names[$id]['name_'.$locId] = 'Item #'.$id;
                     }

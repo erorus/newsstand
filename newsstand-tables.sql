@@ -207,11 +207,14 @@ CREATE TABLE IF NOT EXISTS `tblDBCItem` (
   `type` tinyint(3) unsigned DEFAULT NULL,
   `requiredlevel` tinyint(3) unsigned DEFAULT NULL,
   `requiredskill` smallint(5) unsigned DEFAULT NULL,
+  `requiredside` enum('Alliance', 'Horde', '') NOT NULL DEFAULT '',
   `display` mediumint(8) unsigned DEFAULT NULL,
+  `othersideitem` mediumint(8) unsigned DEFAULT NULL,
   `flags` set('pvp','notransmog','sniffed') COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   KEY `display` (`display`),
-  KEY `class` (`class`, `quality`)
+  KEY `class` (`class`, `quality`),
+  KEY `otherside` (`othersideitem`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -263,25 +266,6 @@ CREATE TABLE IF NOT EXISTS `tblDBCItemRandomSuffix` (
   `locale` char(4) COLLATE utf8_unicode_ci NOT NULL,
   `suffix` varchar(120) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`locale`,`suffix`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `tblDBCItemReagents`
---
-
-CREATE TABLE IF NOT EXISTS `tblDBCItemReagents` (
-  `item` mediumint(8) unsigned NOT NULL,
-  `skillline` smallint(5) unsigned NOT NULL,
-  `subline` smallint(5) unsigned NOT NULL,
-  `reagent` mediumint(8) unsigned NOT NULL,
-  `quantity` decimal(8,4) unsigned NOT NULL,
-  `spell` mediumint(9) DEFAULT NULL,
-  KEY `itemid` (`item`),
-  KEY `reagentid` (`reagent`),
-  KEY `skillid` (`skillline`),
-  KEY `spell` (`spell`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -386,12 +370,23 @@ CREATE TABLE IF NOT EXISTS `tblDBCSpell` (
   `cooldown` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `skillline` smallint(5) unsigned DEFAULT NULL,
   `qtymade` decimal(7,2) unsigned NOT NULL DEFAULT '0.00',
-  `crafteditem` mediumint(8) unsigned DEFAULT NULL,
   `tradeskillcategory` smallint(5) unsigned DEFAULT NULL,
   `expansion` tinyint(3) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `crafteditem` (`crafteditem`),
   KEY `skilllineid` (`skillline`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tblDBCSpellCrafts`
+--
+
+CREATE TABLE IF NOT EXISTS `tblDBCSpellCrafts` (
+  `spell` MEDIUMINT(8) UNSIGNED NOT NULL,
+  `item` MEDIUMINT(8) UNSIGNED NOT NULL,
+  PRIMARY KEY (`spell`, `item`),
+  KEY `item` (`item`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------

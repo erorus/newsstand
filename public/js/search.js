@@ -113,7 +113,8 @@ var TUJ_Search = function ()
             dta.items.sort(function (a, b) {
                 return tujConstants.itemClassOrder[a.classid] - tujConstants.itemClassOrder[b.classid] ||
                     a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]) ||
-                    a.level - b.level;
+                    a.level - b.level ||
+                    a.requiredside.localeCompare(b.requiredside);
             });
 
             var lastClass = -1;
@@ -183,6 +184,13 @@ var TUJ_Search = function ()
                 td = libtuj.ce('td');
                 td.className = 'icon';
                 tr.appendChild(td);
+                if (item.requiredside) {
+                    td.className += ' double';
+                    i = libtuj.ce('img');
+                    td.appendChild(i);
+                    i.className = 'icon';
+                    i.src = libtuj.IconURL('ui_' + item.requiredside.toLowerCase() + 'icon', 'medium');
+                }
                 i = libtuj.ce('img');
                 td.appendChild(i);
                 i.className = 'icon';

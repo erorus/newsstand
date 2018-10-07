@@ -126,7 +126,7 @@ function NewItems($limit = 20)
 
     $sql = <<<EOF
     select `is`.item from
-    (select item from tblItemSummary union select item from tblDBCItemReagents union select reagent from tblDBCItemReagents) `is`
+    (select item from tblItemSummary) `is`
     left join tblDBCItem i on i.id = `is`.item
     where i.id is null
     limit ?

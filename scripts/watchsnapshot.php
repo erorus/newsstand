@@ -547,7 +547,12 @@ replace into tblUserRareReport (user, house, item, level, prevseen, price, snaps
     join tblDBCItem i on i.id = rs.item and i.class = ur.itemclass and i.quality >= ur.minquality and i.level between ifnull(ur.minlevel, i.level) and ifnull(ur.maxlevel, i.level)
     left join tblDBCItemVendorCost ivc on ivc.item = rs.item
     where (ur.flags & 2 > 0 or ivc.item is null)
-    and (ur.flags & 1 > 0 or (select count(*) from tblDBCSpell sc where sc.crafteditem = rs.item) = 0)
+    and (ur.flags & 1 > 0 or (
+        select count(*)
+        from tblDBCSpell sc
+        join tblDBCSpellCrafts scc on scc.spell = sc.id
+        where scc.item = rs.item
+        ) = 0)
     and (datediff(?, rs.lastseen) >= ur.days or rs.lastseen is null)
     and ur.house = ?
     group by rs.item, rs.level

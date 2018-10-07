@@ -298,22 +298,30 @@ if (file_exists($dirnm . '/DBCache.bin')) {
     }
 }
 
+// keyed by flags[1] & 0x3
+$requiredSideMap = [
+    0x0 => 3, // any
+    0x1 => 2, // horde
+    0x2 => 1, // alliance
+    0x3 => 3, // any (but shouldn't have any item with both flags set)
+];
+
 //RunAndLogError('truncate table tblDBCItem');
 $sql = <<<'EOF'
 replace into tblDBCItem (
     id, name_enus, quality, level, class, subclass, icon,
     stacksize, binds, buyfromvendor, selltovendor, auctionable,
-    type, requiredlevel, requiredskill, flags) VALUES
-    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    type, requiredlevel, requiredskill, flags, othersideitem, requiredside) VALUES
+    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 EOF;
 $stmt = $db->prepare($sql);
 $id = $name = $quality = $level = $classId = $subclass = $icon = null;
 $stackSize = $binds = $buyFromVendor = $sellToVendor = $auctionable = null;
-$type = $requiredLevel = $requiredSkill = $flags = null;
-$stmt->bind_param('isiiiisiiiiiiiii',
+$type = $requiredLevel = $requiredSkill = $flags = $otherSideItem = $requiredSide = null;
+$stmt->bind_param('isiiiisiiiiiiiiiii',
     $id, $name, $quality, $level, $classId, $subclass, $icon,
     $stackSize, $binds, $buyFromVendor, $sellToVendor, $auctionable,
-    $type, $requiredLevel, $requiredSkill, $flags
+    $type, $requiredLevel, $requiredSkill, $flags, $otherSideItem, $requiredSide
     );
 $x = 0; $recordCount = count($itemReader->getIds());
 foreach ($itemReader->generateRecords() as $recId => $rec) {
@@ -344,6 +352,8 @@ foreach ($itemReader->generateRecords() as $recId => $rec) {
     $type = $sparseRec['type'];
     $requiredLevel = $sparseRec['requiredlevel'];
     $requiredSkill = $sparseRec['requiredskill'];
+    $otherSideItem = $sparseRec['oppositesideitem'];
+    $requiredSide = $requiredSideMap[$sparseRec['flags'][1] & 0x3];
 
     $noTransmogFlag = ($sparseRec['flags'][1] & 0x400000) ? 2 : 0;
     $sniffedFlag = $sniffed ? 4 : 0;
@@ -510,29 +520,9 @@ SQL;
 RunAndLogError($sql);
 
 LogLine('Getting trades..');
-RunAndLogError('truncate tblDBCItemReagents');
-for ($x = 1; $x <= 8; $x++) {
-    $sql = <<<'EOF'
-insert into tblDBCItemReagents (item, skillline, subline, reagent, quantity, spell) (
-    select itemcreated,
-        sl.mainid,
-        sl.id,
-        sr.reagent%1$d,
-        sr.reagentcount%1$d/if(se.diesides=0,if(se.qtymade=0,1,se.qtymade),(se.qtymade * 2 + se.diesides + 1)/2),
-        se.spellid
-    from ttblSpellEffect se
-    join ttblSpellReagents sr on sr.spell = se.spellid
-    join ttblSkillLineAbility sla on sla.spellid = se.spellid
-    join ttblDBCSkillLines sl on sl.id = sla.lineid
-    where se.itemcreated != 0 and sr.reagent%1$d != 0
-)
-EOF;
-    RunAndLogError(sprintf($sql, $x));
-}
-
 RunAndLogError('truncate tblDBCSpell');
 $sql = <<<EOF
-insert ignore into tblDBCSpell (id,name,description,cooldown,qtymade,skillline,crafteditem,tradeskillcategory)
+insert ignore into tblDBCSpell (id,name,description,cooldown,qtymade,skillline,tradeskillcategory)
 (select sn.id, sn.spellname, ifnull(s.longdescription, ''),
     greatest(
         ifnull(cd.categorycooldown * if(c.flags & 8, 86400, 1),0),
@@ -540,7 +530,6 @@ insert ignore into tblDBCSpell (id,name,description,cooldown,qtymade,skillline,c
         ifnull(cc.chargecooldown,0)) / 1000,
     if(se.itemcreated=0,0,if(se.diesides=0,if(se.qtymade=0,1,se.qtymade),(se.qtymade * 2 + se.diesides + 1)/2)),
     min(sl.mainid),
-    if(se.itemcreated=0,null,se.itemcreated),
     sla.tradeskillcategory & 0xFFFF
 from ttblSpellName sn
 left join ttblSpell s on s.id = sn.id
@@ -549,12 +538,37 @@ left join ttblSpellCooldowns cd on cd.spellid = sn.id
 left join ttblSpellCategories cs on cs.spellid = sn.id
 left join ttblSpellCategory c on c.id = cs.categoryid
 left join ttblSpellCategory2 cc on cc.id = cs.chargecategoryid
-join tblDBCItemReagents ir on sn.id=ir.spell
 join ttblSpellEffect se on sn.id=se.spellid
 join ttblSkillLineAbility sla on sn.id=sla.spellid
 join ttblDBCSkillLines sl on sl.id=sla.lineid
 where se.effecttypeid in (24,53,157)
 group by sn.id)
+EOF;
+RunAndLogError($sql);
+
+RunAndLogError('truncate tblDBCSpellCrafts');
+$sql = <<<EOF
+insert ignore into tblDBCSpellCrafts (spell, item)
+(
+    select s.id, se.itemcreated
+    from tblDBCSpell s
+    join ttblSpellEffect se on s.id = se.spellid
+    where se.effecttypeid in (24,53,157)
+    and se.itemcreated > 0
+)
+EOF;
+RunAndLogError($sql);
+
+$sql = <<<EOF
+insert ignore into tblDBCSpellCrafts (spell, item)
+(
+    select s.id, i.othersideitem
+    from tblDBCSpell s
+    join ttblSpellEffect se on s.id = se.spellid
+    join tblDBCItem i on i.id = se.itemcreated
+    where se.effecttypeid in (24,53,157)
+    and i.othersideitem > 0
+)
 EOF;
 RunAndLogError($sql);
 
@@ -568,100 +582,6 @@ insert ignore into tblDBCSpell (id,name,description) (
 )
 EOF;
 RunAndLogError($sql);
-
-$sql = <<<EOF
-replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell)
-select ic.id, ir.skillline, ir.reagent, ir.quantity, ir.spell
-from tblDBCItem ic, tblDBCItem ic2, tblDBCItemReagents ir
-where ic.class=3 and ic.quality=2 and ic.name_enus like 'Perfect %'
-and ic2.class=3 and ic2.name_enus = substr(ic.name_enus,9)
-and ic2.id=ir.item
-EOF;
-RunAndLogError($sql);
-
-/* arctic fur */
-RunAndLogError('replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (44128,0,38425,10,-32515)');
-
-/* frozen orb swaps NPC 40160 */
-RunAndLogError('replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (47556,0,43102,6,-40160)');
-RunAndLogError('replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (45087,0,43102,4,-40160)');
-RunAndLogError('replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (35623,0,43102,1,-40160)');
-RunAndLogError('replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (35624,0,43102,1,-40160)');
-RunAndLogError('replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (36860,0,43102,1,-40160)');
-RunAndLogError('replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (35625,0,43102,1,-40160)');
-RunAndLogError('replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (35627,0,43102,1,-40160)');
-RunAndLogError('replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (35622,0,43102,1,-40160)');
-RunAndLogError('replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (36908,0,43102,1,-40160)');
-
-/* spirit of harmony */
-$sql = <<<EOF
-replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values
-(72092,0,76061,0.05,-66678),
-(72093,0,76061,0.05,-66678),
-(72094,0,76061,0.2,-66678),
-(72103,0,76061,0.2,-66678),
-(72120,0,76061,0.05,-66678),
-(72238,0,76061,0.5,-66678),
-(72988,0,76061,0.05,-66678),
-(74247,0,76061,1,-66678),
-(74249,0,76061,0.05,-66678),
-(74250,0,76061,0.2,-66678),
-(76734,0,76061,1,-66678),
-(79101,0,76061,0.05,-66678),
-(79255,0,76061,1,-66678)
-EOF;
-RunAndLogError($sql);
-
-/* ink trader - currency is ink of dreams */
-/* starlight ink uncommon */
-RunAndLogError('replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (79255,0,79254,10,-33027)');
-
-/* inferno ink uncommon */
-RunAndLogError('replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (61981,0,79254,10,-33027)');
-
-/* snowfall ink uncommon */
-RunAndLogError('replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (43127,0,79254,10,-33027)');
-
-/* blackfallow ink */
-RunAndLogError('replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (61978,0,79254,1,-33027)');
-
-/* celestial ink */
-RunAndLogError('replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (43120,0,79254,1,-33027)');
-
-/* ethereal ink */
-RunAndLogError('replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (43124,0,79254,1,-33027)');
-
-/* ink of the sea */
-RunAndLogError('replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (43126,0,79254,1,-33027)');
-
-/* ivory ink */
-RunAndLogError('replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (37101,0,79254,1,-33027)');
-
-/* jadefire ink */
-RunAndLogError('replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (43118,0,79254,1,-33027)');
-
-/* lions ink */
-RunAndLogError('replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (43116,0,79254,1,-33027)');
-
-/* midnight ink */
-RunAndLogError('replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (39774,0,79254,1,-33027)');
-
-/* moonglow ink */
-RunAndLogError('replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (39469,0,79254,1,-33027)');
-
-/* shimmering ink */
-RunAndLogError('replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (43122,0,79254,1,-33027)');
-
-/* pristine hide */
-RunAndLogError('replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) values (52980,0,56516,10,-50381)');
-
-/* imperial silk cooldown */
-RunAndLogError('replace into tblDBCItemReagents (item, skillline, reagent, quantity, spell) VALUES (82447, 197, 82441, 8, 125557)');
-
-/* spells deleted from game */
-RunAndLogError('delete from tblDBCItemReagents where spell=74493 and item=52976 and skillline=165 and reagent=52977 and quantity=4');
-RunAndLogError('delete from tblDBCItemReagents where spell=28021 and item=22445 and skillline=333 and reagent=12363');
-RunAndLogError('delete FROM tblDBCItemReagents WHERE spell in (102366,140040,140041)');
 
 LogLine('Getting spell expansion IDs..');
 $sql = <<<'SQL'
@@ -705,50 +625,6 @@ foreach ($orderToExpansion as $order => $exp) {
     }
     RunAndLogError(sprintf($sql, $exp, implode(',', $mainOrders[$order])));
 }
-
-/*
-$sql = <<<EOF
-SELECT s.id, max(ic.level) mx, min(ic.level) mn
-FROM tblDBCItemReagents ir, tblDBCItem ic, tblDBCSpell s
-WHERE ir.spell=s.id
-and ir.reagent=ic.id
-and ic.level <= 100
-and ic.id not in (select item from tblDBCItemVendorCost)
-and s.expansion is null
-group by s.id
-EOF;
-
-$stmt = $db->prepare($sql);
-RunAndLogError($stmt->execute());
-$result = $stmt->get_result();
-while ($row = $result->fetch_assoc()) {
-    $exp = 0;
-
-    if (is_null($row['mx']))
-        $exp = 'null';
-    elseif ($row['mx'] > 110)
-        $exp = 7; // bfa
-    elseif ($row['mx'] > 100)
-        $exp = 6; // legion
-    elseif ($row['mx'] > 90)
-        $exp = 5; // wod
-    elseif ($row['mx'] > 85)
-        $exp = 4; // mop
-    elseif ($row['mx'] > 80)
-        $exp = 3; // cata
-    elseif ($row['mx'] > 70)
-        $exp = 2; // wotlk
-    elseif ($row['mx'] > 60)
-        $exp = 1; // bc
-    elseif ($row['mn'] == 60)
-        $exp = 1;
-
-    RunAndLogError(sprintf('update tblDBCSpell set expansion=%s where id=%d', $exp, $row['id']));
-}
-$result->close();
-$stmt->close();
-*/
-
 
 
 /* */
