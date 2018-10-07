@@ -94,6 +94,8 @@ abbr:hover.full-date { border-bottom: 1px dotted }
 #realm-list.show {display: block}
 .realms-column {-moz-column-width: 15em; -webkit-column-width: 15em; column-width: 15em; text-align: left}
 .realms-column a {display: block; margin: 0.3em 0}
+.realms-column[data-region="KR"] {-moz-column-width: unset; -webkit-column-width: unset; column-width: unset}
+.realms-column[data-region="KR"] a {width: 10em; margin: 0.3em auto}
 
 #main > .page { display: none }
 

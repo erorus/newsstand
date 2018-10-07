@@ -1797,6 +1797,8 @@ var TUJ = function ()
             $(realmsColumn).empty();
         }
 
+        realmsColumn.dataset.region = self.validRegions[self.params.region];
+
         var a;
         var allRealms = [];
 
