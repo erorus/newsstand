@@ -563,6 +563,7 @@ function BotCheck($returnReason = false)
         BanIP();
     } else {
         if ($c > THROTTLE_MAXHITS) {
+            header_remove('ETag');
             header('Expires: 0');
             json_return(array('captcha' => CaptchaDetails()));
         }
