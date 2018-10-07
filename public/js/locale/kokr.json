@@ -113,6 +113,11 @@
     "realmsKR": "KR Realms",
     "regionKR": "KR Region",
 
+    "regionNameUS": "미주 및 오세아니아",
+    "regionNameEU": "유럽",
+    "regionNameTW": "대만",
+    "regionNameKR": "한국",
+
     "welcomeTo": "Welcome to {1}",
     "yourSource": "...your source for Auction House statistics and data in World of Warcraft.",
 

@@ -879,24 +879,14 @@ var TUJ = function ()
                 inMain = false;
                 $('#main .page').hide();
                 $('#realm-list').removeClass('show');
-                $('#region-page area.region-us').attr('href', tuj.BuildHash({region:0}));
-                $('#region-page area.region-eu').attr('href', tuj.BuildHash({region:1}));
-                //$('#region-page area.region-kr').attr('href', tuj.BuildHash({region:2}));
+                $('#region-page a.region-us').attr('href', tuj.BuildHash({region:0}));
+                $('#region-page a.region-eu').attr('href', tuj.BuildHash({region:1}));
+                $('#region-page a.region-kr').attr('href', tuj.BuildHash({region:2}));
+                $('#region-page a.region-us span').text(self.lang.regionNameUS);
+                $('#region-page a.region-eu span').text(self.lang.regionNameEU);
+                $('#region-page a.region-kr span').text(self.lang.regionNameKR);
 
                 $('#region-page h2').html(libtuj.sprintf(self.lang.welcomeTo, 'The Undermine Journal') + ' <sub>' + self.lang.yourSource + '</sub>');
-                var pixelmap = document.getElementById('pixelmap');
-                if (!pixelmap) {
-                    pixelmap = libtuj.ce('img');
-                    pixelmap.id = 'pixelmap';
-                    pixelmap.src = 'images/compressed/pixelmap.png';
-                    pixelmap.width = '1471';
-                    pixelmap.height = '908';
-                    pixelmap.useMap = '#mapmap';
-                    $(pixelmap).on('load', function() {
-                        $('map').imageMapResize();
-                    });
-                    document.getElementById('region-page').appendChild(pixelmap);
-                }
 
                 $('#region-page').show();
                 $(document.body).addClass('page-region');

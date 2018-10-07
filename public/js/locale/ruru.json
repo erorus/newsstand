@@ -113,6 +113,11 @@
     "realmsKR": "KR Realms",
     "regionKR": "KR Region",
 
+    "regionNameUS": "Америка и Океания",
+    "regionNameEU": "Европа",
+    "regionNameTW": "Тайвань",
+    "regionNameKR": "Корея",
+
     "welcomeTo": "Добро пожаловать в {1}",
     "yourSource": "...ваш источник данных и статистики аукционных домов World of Warcraft.",
 

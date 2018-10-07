@@ -113,6 +113,11 @@
     "realmsKR": "Serveur KR",
     "regionKR": "Régions KR",
 
+    "regionNameUS": "Amériques et Océanie",
+    "regionNameEU": "Europe",
+    "regionNameTW": "Taïwan",
+    "regionNameKR": "Corée",
+
     "welcomeTo": "Bienvenue sur {1}",
     "yourSource": "...votre source d'informations pour les données et statistiques de l'Hôtel des ventes de World of Warcraft.",
 

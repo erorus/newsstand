@@ -113,6 +113,11 @@
     "realmsKR": "Reinos KR",
     "regionKR": "Región KR",
 
+    "regionNameUS": "America y Oceania",
+    "regionNameEU": "Europa",
+    "regionNameTW": "Taiwán",
+    "regionNameKR": "Corea",
+
     "welcomeTo": "Bienvenido a {1}",
     "yourSource": "...tu fuente de estadísticas y datos de la Casa de Subastas de World of Warcraft.",
 
