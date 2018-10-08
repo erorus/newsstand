@@ -68,8 +68,10 @@
     "unusuals": "Selten gesehen",
     "unusualItems": "Selten gesehene Gegenstände",
     "category_auction": "Garnisions AH",
-    "category_blood": "Blut von Sargeras",
-    "category_sargerite": "Ursargerit",
+    "category_turnin": "Abgeben",
+    "warfronts": "Kriegsfronten",
+    "bloodofsargeras": "Blut von Sargeras",
+    "primalsargerite": "Ursargerit",
     "custom": "Benutzerdefiniert",
 
     "blacksmithing": "Schmiedekunst",

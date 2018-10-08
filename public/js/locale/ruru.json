@@ -68,8 +68,10 @@
     "unusuals": "Unusuals",
     "unusualItems": "Unusual Items",
     "category_auction": "Garrison AH",
-    "category_blood": "Кровь Саргераса",
-    "category_sargerite": "Изначальный саргерит",
+    "category_turnin": "Сдать",
+    "warfronts": "Фронты",
+    "bloodofsargeras": "Кровь Саргераса",
+    "primalsargerite": "Изначальный саргерит",
     "custom": "Custom",
 
     "blacksmithing": "Кузнечное дело",

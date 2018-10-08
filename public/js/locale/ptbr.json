@@ -68,8 +68,10 @@
     "unusuals": "Incomuns",
     "unusualItems": "Itens Incomuns",
     "category_auction": "Casa de Leilões da Guarnição",
-    "category_blood": "Sangue de Sargeras",
-    "category_sargerite": "Sarguerita Primeva",
+    "category_turnin": "Entregar",
+    "warfronts": "Warfronts",
+    "bloodofsargeras": "Sangue de Sargeras",
+    "primalsargerite": "Sarguerita Primeva",
     "custom": "Custom",
 
     "blacksmithing": "Ferraria",

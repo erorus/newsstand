@@ -68,8 +68,10 @@
     "unusuals": "Inhabituels",
     "unusualItems": "Objets inhabituels",
     "category_auction": "Fiefs HV",
-    "category_blood": "Sang de Sargeras",
-    "category_sargerite": "Sargerite primordiale",
+    "category_turnin": "Rendre",
+    "warfronts": "Fronts de guerre",
+    "bloodofsargeras": "Sang de Sargeras",
+    "primalsargerite": "Sargerite primordiale",
     "custom": "Personnalisé",
 
     "blacksmithing": "Forge",

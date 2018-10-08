@@ -692,7 +692,7 @@ function CategoryResult_archaeology($house)
     ];
 }
 
-function CategoryResult_blood($house)
+function CategoryResult_turnin($house)
 {
     $blood_amounts = [
         123918 => 10,
@@ -754,13 +754,13 @@ function CategoryResult_blood($house)
         $sargerite_items[$primal_index]['avgprice'] -= $obliterum_item['avgprice'];
     }
 
-    return [
-        'name'    => 'category_blood',
+    $tr = [
+        'name'    => 'category_turnin',
         'results' => [
             [
                 'name' => 'ItemList',
                 'data' => [
-                    'name'  => 'category_blood',
+                    'name'  => 'bloodofsargeras',
                     'items' => CategoryRegularItemList($house, 'i.id in (' . implode(',', array_keys($blood_amounts)) . ')'),
                     'amounts' => $blood_amounts,
                 ]
@@ -768,13 +768,55 @@ function CategoryResult_blood($house)
             [
                 'name' => 'ItemList',
                 'data' => [
-                    'name'  => 'category_sargerite',
+                    'name'  => 'primalsargerite',
                     'items' => $sargerite_items,
                     'amounts' => $sargerite_amounts,
                 ]
             ],
         ]
     ];
+
+    $contribution_amounts = [
+        152494 => 20,
+        152495 => 20,
+        152509 => 60,
+        152512 => 60,
+        152541 => 60,
+        152547 => 60,
+        152557 => 2,
+        152576 => 60,
+        152812 => 2,
+        152813 => 2,
+        153438 => 3,
+        153441 => 3,
+        153710 => 15,
+        153715 => 15,
+        154166 => 2,
+        154167 => 2,
+        154706 => 1,
+        154707 => 1,
+        154891 => 30,
+        154898 => 60,
+        158201 => 3,
+        158202 => 3,
+        158203 => 2,
+        158204 => 3,
+        158212 => 6,
+        158377 => 3,
+        159789 => 3,
+    ];
+
+    array_unshift($tr['results'], [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'warfronts',
+            'items' => CategoryRegularItemList($house, 'i.id in (' . implode(',', array_keys($contribution_amounts)) . ')'),
+            'amounts' => $contribution_amounts,
+            'sort' => 'lowprice',
+        ]
+    ]);
+
+    return $tr;
 }
 
 function CategoryResult_mining($house)

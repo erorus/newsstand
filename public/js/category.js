@@ -1153,7 +1153,7 @@ var TUJ_Category = function ()
                 data.items.sort(function (a, b)
                 {
                     return ((a.price ? 0 : 1) - (b.price ? 0 : 1)) ||
-                        (a.price - b.price) ||
+                        (a.price * getAmountByItem(data.amounts, a.id) - b.price * getAmountByItem(data.amounts, b.id)) ||
                         a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]) ||
                         a.requiredside.localeCompare(b.requiredside);
                 });

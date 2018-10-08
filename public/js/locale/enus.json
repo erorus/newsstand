@@ -68,8 +68,10 @@
     "unusuals": "Unusuals",
     "unusualItems": "Unusual Items",
     "category_auction": "Garrison AH",
-    "category_blood": "Blood of Sargeras",
-    "category_sargerite": "Primal Sargerite",
+    "category_turnin": "Turn in",
+    "warfronts": "Warfronts",
+    "bloodofsargeras": "Blood of Sargeras",
+    "primalsargerite": "Primal Sargerite",
     "custom": "Custom",
 
     "blacksmithing": "Blacksmithing",

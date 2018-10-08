@@ -68,8 +68,10 @@
     "unusuals": "Non comuni",
     "unusualItems": "Oggetti non comuni",
     "category_auction": "Guarnigione AH",
-    "category_blood": "Sangue di Sargeras",
-    "category_sargerite": "Sargerite Primordiale",
+    "category_turnin": "Consegna",
+    "warfronts": "Warfronts",
+    "bloodofsargeras": "Sangue di Sargeras",
+    "primalsargerite": "Sargerite Primordiale",
     "custom": "Custom",
 
     "blacksmithing": "Forgiatura",
