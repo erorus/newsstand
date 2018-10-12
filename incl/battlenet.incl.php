@@ -101,9 +101,8 @@ function GetBattleNetClientCredentials($region)
     $key = ($partition == 'cn') ? MASHERY_KEY : BATTLE_NET_KEY;
     $secret = ($partition == 'cn') ? MASHERY_SECRET : BATTLE_NET_SECRET;
 
-    $json = \Newsstand\HTTP::Get(
-        sprintf('%s?grant_type=client_credentials&client_id=%s&client_secret=%s',
-            $endpoint, $key, $secret), ['Accept' => 'application/json']);
+    $json = \Newsstand\HTTP::Get("{$endpoint}?grant_type=client_credentials",
+        ['Accept: application/json', 'Authorization: Basic '. base64_encode("{$key}:{$secret}")]);
 
     if (!$json) {
         trigger_error('Could not get client credentials from ' . $endpoint, E_USER_ERROR);
