@@ -98,9 +98,12 @@ function GetBattleNetClientCredentials($region)
 
     $endpoint = ($partition == 'cn') ? 'https://www.battlenet.com.cn/oauth/token' : sprintf(BATTLE_NET_TOKEN_URI, 'us');
 
+    $key = ($partition == 'cn') ? MASHERY_KEY : BATTLE_NET_KEY;
+    $secret = ($partition == 'cn') ? MASHERY_SECRET : BATTLE_NET_SECRET;
+
     $json = \Newsstand\HTTP::Get(
         sprintf('%s?grant_type=client_credentials&client_id=%s&client_secret=%s',
-            $endpoint, BATTLE_NET_KEY, BATTLE_NET_SECRET), ['Accept' => 'application/json']);
+            $endpoint, $key, $secret), ['Accept' => 'application/json']);
 
     if (!$json) {
         trigger_error('Could not get client credentials from ' . $endpoint, E_USER_ERROR);
