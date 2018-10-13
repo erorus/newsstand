@@ -149,8 +149,8 @@ function FetchItems($items)
     foreach ($items as $id) {
         heartbeat();
         DebugMessage('Fetching item ' . $id);
-        $url = GetBattleNetURL('us', 'wow/item/' . $id);
-        $json = \Newsstand\HTTP::Get($url);
+        $requestInfo = GetBattleNetURL('us', 'wow/item/' . $id);
+        $json = $requestInfo ? \Newsstand\HTTP::Get($requestInfo[0], $requestInfo[1]) : '';
         $dta = json_decode($json, true);
         $jsonError = json_last_error();
         if (($jsonError == JSON_ERROR_NONE) && !isset($dta['name']) && isset($dta['availableContexts'])) {
@@ -158,8 +158,8 @@ function FetchItems($items)
             if (count($dta['availableContexts']) == 0) {
                 unset($dta['id']);
             } else {
-                $url = GetBattleNetURL('us', 'wow/item/' . $id . '/' . array_pop($dta['availableContexts']));
-                $json = \Newsstand\HTTP::Get($url);
+                $requestInfo = GetBattleNetURL('us', 'wow/item/' . $id . '/' . array_pop($dta['availableContexts']));
+                $json = $requestInfo ? \Newsstand\HTTP::Get($requestInfo[0], $requestInfo[1]) : '';
                 $dta = json_decode($json, true);
                 $jsonError = json_last_error();
             }
@@ -393,8 +393,8 @@ function FetchPets($pets)
     foreach ($pets as &$id) {
         heartbeat();
         DebugMessage('Fetching pet ' . $id);
-        $url = GetBattleNetURL('us', 'wow/battlePet/species/' . $id);
-        $json = \Newsstand\HTTP::Get($url);
+        $requestInfo = GetBattleNetURL('us', 'wow/battlePet/species/' . $id);
+        $json = $requestInfo ? \Newsstand\HTTP::Get($requestInfo[0], $requestInfo[1]) : '';
         $dta = json_decode($json, true);
         if ((json_last_error() != JSON_ERROR_NONE) || (!isset($dta['speciesId']))) {
             DebugMessage('Error fetching pet ' . $id . ' from battle.net..');

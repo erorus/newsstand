@@ -36,8 +36,10 @@ function PlayerPets($realmId, $player) {
 
     $pets = [];
 
-    $url = GetBattleNetURL($realm['region'], sprintf('wow/character/%s/%s?fields=pets', $realm['slug'], $player));
-    $data = \Newsstand\HTTP::Get($url);
+    $data = GetBattleNetURL($realm['region'], sprintf('wow/character/%s/%s?fields=pets', $realm['slug'], $player));
+    if ($data) {
+        $data = \Newsstand\HTTP::Get($data[0], $data[1]);
+    }
 
     if (!$data) {
         MCSet($cacheKey, $pets, 300);

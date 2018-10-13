@@ -45,10 +45,11 @@ EOF;
     $stmt->close();
 
     DebugMessage("Fetching $region $slug");
-    $url = GetBattleNetURL($region, "wow/auction/data/$slug");
-
-    $json = \Newsstand\HTTP::Get($url);
-    $dta = json_decode($json, true);
+    $dta = GetBattleNetURL($region, "wow/auction/data/$slug");
+    if ($dta) {
+        $json = \Newsstand\HTTP::Get($dta[0], $dta[1]);
+        $dta = json_decode($json, true);
+    }
     if (!isset($dta['files'])) {
         DebugMessage("$region $slug returned no files.", E_USER_WARNING);
         continue;
@@ -116,8 +117,11 @@ for ($x = 0; $x < count($auctionJson['auctions']['auctions']); $x++) {
 
     $tries++;
     DebugMessage("Fetching $region $slug $toon");
-    $url = GetBattleNetURL($region, "wow/character/$slug/$toon?fields=guild");
-    $json = json_decode(\Newsstand\HTTP::Get($url), true);
+    $json = [];
+    $requestInfo = GetBattleNetURL($region, "wow/character/$slug/$toon?fields=guild");
+    if ($requestInfo) {
+        $json = json_decode(\Newsstand\HTTP::Get($requestInfo[0], $requestInfo[1]), true);
+    }
 
     if (!isset($json['guild'])) {
         continue;
@@ -127,8 +131,11 @@ for ($x = 0; $x < count($auctionJson['auctions']['auctions']); $x++) {
 
     $tries++;
     DebugMessage("Fetching $region $slug <$guild>");
-    $url = GetBattleNetURL($region, "wow/guild/$slug/$guild?fields=members");
-    $json = json_decode(\Newsstand\HTTP::Get($url), true);
+    $json = [];
+    $requestInfo = GetBattleNetURL($region, "wow/guild/$slug/$guild?fields=members");
+    if ($requestInfo) {
+        $json = json_decode(\Newsstand\HTTP::Get($requestInfo[0], $requestInfo[1]), true);
+    }
 
     if (!isset($json['members'])) {
         continue;
@@ -147,8 +154,11 @@ for ($x = 0; $x < count($auctionJson['auctions']['auctions']); $x++) {
         $toon = $c['name'];
 
         DebugMessage("Fetching $region $slug $toon of <$guild>");
-        $url = GetBattleNetURL($region, "wow/character/$slug/$toon?fields=appearance");
-        $cjson = json_decode(\Newsstand\HTTP::Get($url), true);
+        $cjson = [];
+        $requestInfo = GetBattleNetURL($region, "wow/character/$slug/$toon?fields=appearance");
+        if ($requestInfo) {
+            $cjson = json_decode(\Newsstand\HTTP::Get($requestInfo[0], $requestInfo[1]), true);
+        }
 
         if (!isset($cjson['appearance'])) {
             continue;

@@ -55,7 +55,7 @@ function BnetGet()
     }
 
     $urlPart = 'wow/auction/data/' . $parts[1];
-    header('Location: ' . GetBattleNetURL($parts[0], $urlPart));
+    header('Location: ' . GetBattleNetURL($parts[0], $urlPart, false));
 }
 
 function ShowMemcacheStats() {

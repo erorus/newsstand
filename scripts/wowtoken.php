@@ -258,7 +258,8 @@ function CheckTokenAPI($regions)
             continue;
         }
 
-        $json = \Newsstand\HTTP::Get(GetBattleNetUrl($region, '/data/wow/token/'));
+        $requestInfo = GetBattleNetUrl($region, '/data/wow/token/');
+        $json = $requestInfo ? \Newsstand\HTTP::Get($requestInfo[0], $requestInfo[1]) : '';
         if (!$json) {
             DebugMessage(sprintf('Empty response from token API in region %s', $region), E_USER_NOTICE);
             continue;

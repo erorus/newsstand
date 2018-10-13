@@ -576,7 +576,8 @@ function FetchTokenData($region) {
     ];
 
     $outHeaders = [];
-    $json = \Newsstand\HTTP::Get(GetBattleNetUrl($region, '/data/wow/token/'), [], $outHeaders);
+    $requestInfo = GetBattleNetUrl($region, '/data/wow/token/');
+    $json = $requestInfo ? \Newsstand\HTTP::Get($requestInfo[0], $requestInfo[1], $outHeaders) : '';
     if (!$json) {
         if (isset($outHeaders['curlError'])) {
             $result['status'] = $outHeaders['curlError'];
@@ -627,8 +628,8 @@ function FetchRegionData($region) {
 
     DebugMessage("Fetching realms for $region");
 
-    $url = GetBattleNetURL($region, 'wow/realm/status');
-    $jsonString = HTTP::Get($url);
+    $requestInfo = GetBattleNetURL($region, 'wow/realm/status');
+    $jsonString = $requestInfo ? HTTP::Get($requestInfo[0], $requestInfo[1]) : '';
     $json = json_decode($jsonString, true);
     if (json_last_error() != JSON_ERROR_NONE) {
         DebugMessage("Error decoding ".strlen($jsonString)." length JSON string for $region: ".json_last_error_msg());
@@ -700,7 +701,7 @@ function FetchRegionData($region) {
         DebugMessage("Fetching auction data for $region ".implode(', ', array_keys($chunk)));
         $urls = [];
         foreach (array_keys($chunk) as $slug) {
-            $urls[$slug] = GetBattleNetURL($region, 'wow/auction/data/' . $slug);
+            $urls[$slug] = GetBattleNetURL($region, 'wow/auction/data/' . $slug, false);
         }
 
         $started = JSNow();

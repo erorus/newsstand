@@ -130,11 +130,11 @@ ENDSQL;
 
     DebugMessage("$region $slug fetch for house $house to update $realmCount realms, due since " . (is_null($nextDate) ? 'unknown' : (SecondsOrMinutes(time() - strtotime($nextDate)).' ago')));
 
-    $url = GetBattleNetURL($region, "wow/auction/data/$slug");
+    $requestInfo = GetBattleNetURL($region, "wow/auction/data/$slug");
 
     $outHeaders = [];
     $dta = [];
-    $json = \Newsstand\HTTP::Get($url, [], $outHeaders);
+    $json = $requestInfo ? \Newsstand\HTTP::Get($requestInfo[0], $requestInfo[1], $outHeaders) : false;
     if (($json === false) && isset($outHeaders['body'])) {
         // happens if server returns non-200 code, but we'll want that json anyway
         $json = $outHeaders['body'];

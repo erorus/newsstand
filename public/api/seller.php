@@ -390,8 +390,11 @@ function SellerThumbnail($realmId, $seller) {
     $realmRec = GetRealmById($realmId);
     $region = strtolower($realmRec['region']);
 
-    $url = GetBattleNetURL($region, sprintf("wow/character/%s/%s", $realmRec['slug'], $seller));
-    $json = json_decode(\Newsstand\HTTP::Get($url), true);
+    $json = [];
+    $data = GetBattleNetURL($region, sprintf("wow/character/%s/%s", $realmRec['slug'], $seller));
+    if ($data) {
+        $json = json_decode(\Newsstand\HTTP::Get($data[0], $data[1]), true);
+    }
 
     $tr = isset($json['thumbnail']) ? $json['thumbnail'] : '';
 

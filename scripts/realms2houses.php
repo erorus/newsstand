@@ -43,9 +43,8 @@ foreach ($regions as $region => $realmListLocale) {
     if (isset($argv[1]) && $argv[1] != $region) {
         continue;
     }
-    $url = GetBattleNetURL($region, 'wow/realm/status?locale=' . $realmListLocale);
-
-    $json = \Newsstand\HTTP::Get($url);
+    $requestInfo = GetBattleNetURL($region, 'wow/realm/status?locale=' . $realmListLocale);
+    $json = $requestInfo ? \Newsstand\HTTP::Get($requestInfo[0], $requestInfo[1]) : '';
     $realms = json_decode($json, true, 512, JSON_BIGINT_AS_STRING);
     if (json_last_error() != JSON_ERROR_NONE) {
         PrintImportantMessage("$url did not return valid JSON");
@@ -143,9 +142,8 @@ foreach ($regions as $region => $realmListLocale) {
         $bySellerRealm[$row['ownerrealm']] = $row['slug'];
 
         PrintDebugNoise("Fetching $region $slug");
-        $url = GetBattleNetURL($region, "wow/auction/data/".urlencode($slug));
-
-        $json = \Newsstand\HTTP::Get($url);
+        $requestInfo = GetBattleNetURL($region, "wow/auction/data/".urlencode($slug));
+        $json = $requestInfo ? \Newsstand\HTTP::Get($requestInfo[0], $requestInfo[1]) : '';
         $dta = json_decode($json, true);
         if (!isset($dta['files'])) {
             PrintImportantMessage("$region $slug returned no files.");

@@ -7,8 +7,9 @@ require_once __DIR__ . '/NewsstandHTTP.incl.php';
 define('BATTLE_NET_REQUEST_LIMIT', 50); // per period
 define('BATTLE_NET_REQUEST_PERIOD', 1); // seconds
 
-function GetBattleNetURL($region, $path)
-{
+function GetBattleNetURL($region, $path, $withHeaders = true) {
+    $ret = ['', []];
+
     $region = trim(strtolower($region));
     if (substr($path, 0, 1) == '/') {
         $path = substr($path, 1);
@@ -63,7 +64,13 @@ function GetBattleNetURL($region, $path)
             if (!isset($qsa['locale'])) {
                 $qsa['locale'] = 'en_US';
             }
-            $qsa['access_token'] = GetBattleNetClientCredentials($region);
+
+            $token = GetBattleNetClientCredentials($region);
+            if (!$withHeaders) {
+                $qsa['access_token'] = $token;
+            } else {
+                $ret[1][] = "Authorization: Bearer {$token}";
+            }
 
             $pattern = ($region == 'cn') ? 'https://api.battlenet.com.%s/%s?%s' : 'https://%s.api.blizzard.com/%s?%s';
             $finalUrl = sprintf($pattern, $region, $path, http_build_query($qsa));
@@ -74,7 +81,16 @@ function GetBattleNetURL($region, $path)
         }
     }
 
-    return $finalUrl ? $finalUrl : false;
+    if (!$finalUrl) {
+        return false;
+    }
+
+    if (!$withHeaders) {
+        return $finalUrl;
+    }
+
+    $ret[0] = $finalUrl;
+    return $ret;
 }
 
 function GetBattleNetClientCredentials($region)
