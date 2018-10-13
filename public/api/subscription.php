@@ -168,7 +168,7 @@ function GetLoginParams($loginFrom, $region, $locale) {
     }
 
     $json = [
-        'clientId' => MASHERY_KEY,
+        'clientId' => BATTLE_NET_KEY,
         'authUri' => BATTLE_NET_AUTH_URI,
         'redirectUri' => 'https://' . strtolower($_SERVER["HTTP_HOST"]) . $_SERVER["SCRIPT_NAME"],
         'state' => MakeNewState([
@@ -345,8 +345,8 @@ function ProcessAuthCode($state, $code) {
         'scope' => '',
         'grant_type' => 'authorization_code',
         'code' => $code,
-        'client_id' => MASHERY_KEY,
-        'client_secret' => MASHERY_SECRET,
+        'client_id' => BATTLE_NET_KEY,
+        'client_secret' => BATTLE_NET_SECRET,
     ];
     $outHeaders = [];
     $tokenData = \Newsstand\HTTP::Post($url, $toPost, [], $outHeaders);
@@ -363,7 +363,7 @@ function ProcessAuthCode($state, $code) {
     $token = $tokenData['access_token'];
 
     // get user id and battle.net tag
-    $url = sprintf('https://%s.api.battle.net/account/user?access_token=%s', strtolower($stateInfo['region']), $token);
+    $url = sprintf('https://%s.battle.net/oauth/userinfo?access_token=%s', strtolower($stateInfo['region']), $token);
     $userData = \Newsstand\HTTP::Get($url);
     if ($userData === false) {
         return '#subscription/nouser';
