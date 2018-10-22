@@ -44,7 +44,7 @@ curl_setopt_array($curl, [
         CURLOPT_SHARE => $sh,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT => 10,
-        CURLOPT_URL => 'http://www.wowinterface.com/downloads/editfile.php?id=19662'
+        CURLOPT_URL => 'https://www.wowinterface.com/downloads/editfile.php?id=19662'
     ]);
 
 $html = curl_exec($curl);
@@ -85,7 +85,7 @@ curl_setopt_array($curl, [
         CURLOPT_SHARE => $sh,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT => max(30, ceil(filesize($zipPath)/204800)),
-        CURLOPT_URL => 'http://www.wowinterface.com/downloads/editfile.php',
+        CURLOPT_URL => 'https://www.wowinterface.com/downloads/editfile.php',
         CURLOPT_POSTFIELDS => [
             'replacementfile' => $f,
             'archiveold' => 1,
