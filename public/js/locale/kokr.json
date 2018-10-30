@@ -2,9 +2,9 @@
     "localeCode": "kokr",
     "wowheadDomain": "ko",
 
-    "suffixGold": "골드",
-    "suffixSilver": "실버",
-    "suffixCopper": "코퍼",
+    "suffixGold": "g",
+    "suffixSilver": "s",
+    "suffixCopper": "c",
     "decimalPoint": ".",
     "thousandsSep": ",",
 
@@ -40,12 +40,12 @@
     "item": "Item",
     "seller": "Seller",
     "sellers": "Sellers",
-    "battlepet": "Battle Pet",
-    "battlepets": "Battle Pets",
+    "battlepet": "전투 애완동물",
+    "battlepets": "전투 애완동물",
     "contact": "Contact",
     "donate": "Donate",
     "category": "Category",
-    "transmog": "Transmog",
+    "transmog": "형상변환",
     "maintenance": "Maintenance",
     "policy": "Policy",
 
@@ -320,7 +320,7 @@
         "1": "Container",
         "11": "Quiver",
 
-        "17": "Battle Pets",
+        "17": "전투 애완동물",
 
         "12": "Quest",
         "13": "Key",
