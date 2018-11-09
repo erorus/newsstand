@@ -33,6 +33,7 @@ heartbeat();
 file_put_contents('../addon/GetDetailedItemLevelInfo.lua', BuildGetDetailedItemLevelInfo());
 file_put_contents('../addon/MarketData-US.lua', BuildAddonData('US'));
 file_put_contents('../addon/MarketData-EU.lua', BuildAddonData('EU'));
+file_put_contents('../addon/MarketData-KR.lua', BuildAddonData('KR'));
 MakeZip($zipPath);
 
 DebugMessage('Done! Started '.TimeDiff($startTime));
@@ -215,7 +216,7 @@ function BuildAddonData($region)
     DebugMessage('Finding global prices');
 
     $itemExcludeSql = <<<EOF
-and (i.quality > 0 or i.class in (2,4))
+and i.quality > 0
 and not (i.class = 0 and i.subclass = 5 and 0 = (select count(*) from tblDBCSpellCrafts sc where sc.item = i.id) and i.quality < 2)
 EOF;
 
@@ -614,7 +615,7 @@ EOF;
 
     DebugMessage(sprintf('Returning result %dmb', round(memory_get_usage(true)/1048576)));
 
-    return pack('CCC', 239, 187, 191).$lua.$priceLua.$luaEnd;
+    return "\xEF\xBB\xBF{$lua}{$priceLua}{$luaEnd}";
 }
 
 function MakeZip($zipPath = false)
@@ -637,6 +638,7 @@ function MakeZip($zipPath = false)
     $zip->addFile('../addon/TheUndermineJournal.lua',"TheUndermineJournal/TheUndermineJournal.lua");
     $zip->addFile('../addon/MarketData-US.lua',"TheUndermineJournal/MarketData-US.lua");
     $zip->addFile('../addon/MarketData-EU.lua',"TheUndermineJournal/MarketData-EU.lua");
+    $zip->addFile('../addon/MarketData-KR.lua',"TheUndermineJournal/MarketData-KR.lua");
     //$zip->addFromString("TheUndermineJournal/SpellToItem.lua",getspelltoitemlua());
     $zip->close();
 

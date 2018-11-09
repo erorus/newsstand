@@ -12,5 +12,6 @@ libs\LibExtraTip\Load.xml
 GetDetailedItemLevelInfo.lua
 MarketData-US.lua
 MarketData-EU.lua
+MarketData-KR.lua
 TheUndermineJournal.lua
 
