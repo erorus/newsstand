@@ -589,6 +589,7 @@ var tujConstants = {
         itit: 'Italiano',
         ptbr: 'Português',
         ruru: 'Русский',
+        zhtw: '中文',
         kokr: '한국인',
     },
     siteColors: {
@@ -637,7 +638,7 @@ if (!Date.now) {
 
 var TUJ = function ()
 {
-    var validRegions = ['US','EU','KR'];
+    var validRegions = ['US','EU','KR','TW'];
     var validPages = ['', 'search', 'item', 'seller', 'battlepet', 'contact', 'category', 'transmog', 'subscription', 'policy'];
     var pagesNeedRealm = [true, true, true, true, true, false, true, true, false, false];
     var houseInfo = {};
@@ -882,9 +883,11 @@ var TUJ = function ()
                 $('#region-page a.region-us').attr('href', tuj.BuildHash({region:0}));
                 $('#region-page a.region-eu').attr('href', tuj.BuildHash({region:1}));
                 $('#region-page a.region-kr').attr('href', tuj.BuildHash({region:2}));
+                $('#region-page a.region-tw').attr('href', tuj.BuildHash({region:3}));
                 $('#region-page a.region-us span').text(self.lang.regionNameUS);
                 $('#region-page a.region-eu span').text(self.lang.regionNameEU);
                 $('#region-page a.region-kr span').text(self.lang.regionNameKR);
+                $('#region-page a.region-tw span').text(self.lang.regionNameTW);
 
                 $('#region-page h2').html(libtuj.sprintf(self.lang.welcomeTo, 'The Undermine Journal') + ' <sub>' + self.lang.yourSource + '</sub>');
 
@@ -1284,6 +1287,7 @@ var TUJ = function ()
         $('#region-pick-US').html('<span>' + self.lang.regionUS + '</span> <a href="#eu">' + self.lang.lookingEU + '</a>');
         $('#region-pick-EU').html('<span>' + self.lang.regionEU + '</span> <a href="#us">' + self.lang.lookingUS + '</a>');
         $('#region-pick-KR').html('<span>' + self.lang.regionKR + '</span> <a href="#us">' + self.lang.lookingUS + '</a>');
+        $('#region-pick-TW').html('<span>' + self.lang.regionTW + '</span> <a href="#us">' + self.lang.lookingUS + '</a>');
 
         if (self.params.region != undefined) {
             $('#topcorner > div').show();

@@ -75,7 +75,7 @@ function GetItemNames($itemIds, $renamedTo = false)
 {
     global $VALID_LOCALES;
 
-    $cacheKeyPrefix = 'itemnames_';
+    $cacheKeyPrefix = 'itemnames_tw_';
     $cacheKeyPrefixLen = strlen($cacheKeyPrefix);
 
     // assemble memcache keys, and fetch into $names
@@ -162,7 +162,7 @@ function GetItemBonusNames($bonusGroups, $renamedTo = false)
 
         $bonuses = implode(',', array_filter($bonuses, 'is_numeric'));
 
-        $cacheKey = 'itembonusnames3_' . $bonuses;
+        $cacheKey = 'itembonusnames_tw_' . $bonuses;
 
         $names = MCGet($cacheKey);
 
@@ -202,7 +202,7 @@ function GetItemBonusNames($bonusGroups, $renamedTo = false)
 
 function GetRandEnchantNames($randIds, $renamedTo = false)
 {
-    $cacheKeyPrefix = 'randenchantnames3_';
+    $cacheKeyPrefix = 'randenchantnames_tw_';
     $cacheKeyPrefixLen = strlen($cacheKeyPrefix);
 
     // assemble memcache keys, and fetch into $names
@@ -274,7 +274,7 @@ function GetPetNames($speciesIds, $renamedTo = false)
 {
     global $VALID_LOCALES;
 
-    $cacheKeyPrefix = 'petnames2_';
+    $cacheKeyPrefix = 'petnames_tw_';
     $cacheKeyPrefixLen = strlen($cacheKeyPrefix);
 
     // assemble memcache keys, and fetch into $names

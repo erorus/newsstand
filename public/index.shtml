@@ -56,6 +56,10 @@
                             <span>KR Region</span>
                             <a href="#us">Looking for US realms?</a>
                         </div>
+                        <div id="region-pick-TW" class="region-pick">
+                            <span>TW Region</span>
+                            <a href="#us">Looking for US realms?</a>
+                        </div>
                     </div>
                     <datalist id="searched-previously"></datalist>
                 </div>
@@ -75,6 +79,7 @@
                     <a href="#us" class="region-us"><span>Americas and Oceania</span> (US)</a>
                     <a href="#eu" class="region-eu"><span>Europe</span> (EU)</a>
                     <a href="#kr" class="region-kr"><span>Korea</span> (KR)</a>
+                    <a href="#tw" class="region-kr"><span>Taiwan</span> (TW)</a>
                 </div>
                 <div class="page" id="front-page">
                     <div class="sidebar" id="category-sidebar">
@@ -348,6 +353,7 @@
                                 <a href="js/locale/ptbr.json" class="highlight">Portuguese</a>
                                 <a href="js/locale/ruru.json" class="highlight">Russian</a>
                                 <a href="js/locale/kokr.json" class="highlight">Korean</a>
+                                <a href="js/locale/zhtw.json" class="highlight">Traditional Chinese</a>
                             </li>
                             <li>(Optional) Download the English locale file if you want a reference: <a href="js/locale/enus.json" class="highlight">English</a></li>
                             <li>Change values in the locale file that need translations. You don't have to change them all, just do whatever ones you want.</li>

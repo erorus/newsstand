@@ -194,6 +194,8 @@ CREATE TABLE IF NOT EXISTS `tblDBCItem` (
   `name_itit` varchar(250) COLLATE utf8_unicode_ci DEFAULT NULL,
   `name_ptbr` varchar(250) COLLATE utf8_unicode_ci DEFAULT NULL,
   `name_ruru` varchar(250) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `name_kokr` varchar(250) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `name_zhtw` varchar(250) COLLATE utf8_unicode_ci DEFAULT NULL,
   `quality` tinyint(3) unsigned NOT NULL,
   `level` smallint(5) unsigned DEFAULT NULL,
   `class` tinyint(3) unsigned NOT NULL,
@@ -253,6 +255,8 @@ CREATE TABLE IF NOT EXISTS `tblDBCItemNameDescription` (
   `desc_itit` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
   `desc_ptbr` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
   `desc_ruru` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `desc_kokr` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `desc_zhtw` varchar(120) COLLATE utf8_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
@@ -296,6 +300,8 @@ CREATE TABLE IF NOT EXISTS `tblDBCItemSubClass` (
   `name_itit` varchar(250) COLLATE utf8_unicode_ci DEFAULT NULL,
   `name_ptbr` varchar(250) COLLATE utf8_unicode_ci DEFAULT NULL,
   `name_ruru` varchar(250) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `name_kokr` varchar(250) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `name_zhtw` varchar(250) COLLATE utf8_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`class`,`subclass`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
@@ -328,6 +334,8 @@ CREATE TABLE IF NOT EXISTS `tblDBCPet` (
   `name_itit` varchar(250) COLLATE utf8_unicode_ci DEFAULT NULL,
   `name_ptbr` varchar(250) COLLATE utf8_unicode_ci DEFAULT NULL,
   `name_ruru` varchar(250) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `name_kokr` varchar(250) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `name_zhtw` varchar(250) COLLATE utf8_unicode_ci DEFAULT NULL,
   `type` tinyint(3) unsigned NOT NULL,
   `icon` varchar(120) COLLATE utf8_unicode_ci NOT NULL,
   `npc` int(10) unsigned DEFAULT NULL,
@@ -354,6 +362,8 @@ CREATE TABLE IF NOT EXISTS `tblDBCRandEnchants` (
   `name_itit` varchar(64) COLLATE utf8_unicode_ci DEFAULT NULL,
   `name_ptbr` varchar(64) COLLATE utf8_unicode_ci DEFAULT NULL,
   `name_ruru` varchar(64) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `name_kokr` varchar(64) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `name_zhtw` varchar(64) COLLATE utf8_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
