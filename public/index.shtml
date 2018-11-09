@@ -315,7 +315,7 @@
                 <div class="page page-generic" id="addon-page">
                     <div class="lazy-image float-right" data-src="images/compressed/addon.png"></div>
                     <div class="news no-margin">
-                        The Undermine Journal in-game addon shows realm-specific pricing in tooltips for all items and battle pets on all US and EU realms. Data includes:
+                        The Undermine Journal in-game addon shows realm-specific pricing in tooltips for all items and battle pets on all US, EU, and KR realms. Data includes:
                         <ul>
                             <li>Average market price for your realm over the past 3 days</li>
                             <li>Average market price for your realm over the past 14 days</li>
