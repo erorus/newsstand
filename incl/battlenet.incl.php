@@ -45,40 +45,31 @@ function GetBattleNetURL($region, $path, $withHeaders = true) {
 
         MCDelete($cacheKey . '_critical');
 
-        $useOldApi = ($region == 'cn' && substr($path, 0, 5) != 'data/' && substr($path, 0, 8) != 'profile/');
-        if (!$useOldApi) {
-            // new data api, uses client creds
-
-            $qs = '';
-            $pos = strpos($path, '?');
-            if ($pos !== false) {
-                $qs = substr($path, $pos + 1);
-                $path = substr($path, 0, $pos);
-            }
-
-            parse_str($qs, $qsa);
-
-            if (!isset($qsa['namespace'])) {
-                $qsa['namespace'] = 'dynamic-' . $region;
-            }
-            if (!isset($qsa['locale'])) {
-                $qsa['locale'] = 'en_US';
-            }
-
-            $token = GetBattleNetClientCredentials($region);
-            if (!$withHeaders) {
-                $qsa['access_token'] = $token;
-            } else {
-                $ret[1][] = "Authorization: Bearer {$token}";
-            }
-
-            $pattern = ($region == 'cn') ? 'https://api.battlenet.com.%s/%s?%s' : 'https://%s.api.blizzard.com/%s?%s';
-            $finalUrl = sprintf($pattern, $region, $path, http_build_query($qsa));
-        } else {
-            // old api, uses api key
-            $pattern = ($region == 'cn') ? 'https://api.battlenet.com.%s/%s%sapikey=%s' : 'https://%s.api.battle.net/%s%sapikey=%s';
-            $finalUrl = sprintf($pattern, $region, $path, strpos($path, '?') !== false ? '&' : '?', MASHERY_KEY);
+        $qs = '';
+        $pos = strpos($path, '?');
+        if ($pos !== false) {
+            $qs = substr($path, $pos + 1);
+            $path = substr($path, 0, $pos);
         }
+
+        parse_str($qs, $qsa);
+
+        if (!isset($qsa['namespace'])) {
+            $qsa['namespace'] = 'dynamic-' . $region;
+        }
+        if (!isset($qsa['locale'])) {
+            $qsa['locale'] = 'en_US';
+        }
+
+        $token = GetBattleNetClientCredentials($region);
+        if (!$withHeaders) {
+            $qsa['access_token'] = $token;
+        } else {
+            $ret[1][] = "Authorization: Bearer {$token}";
+        }
+
+        $pattern = ($region == 'cn') ? 'https://gateway.battlenet.com.%s/%s?%s' : 'https://%s.api.blizzard.com/%s?%s';
+        $finalUrl = sprintf($pattern, $region, $path, http_build_query($qsa));
     }
 
     if (!$finalUrl) {
@@ -112,10 +103,10 @@ function GetBattleNetClientCredentials($region)
         return $creds['token'];
     }
 
-    $endpoint = ($partition == 'cn') ? 'https://www.battlenet.com.cn/oauth/token' : sprintf(BATTLE_NET_TOKEN_URI, 'us');
+    $endpoint = ($partition == 'cn') ? BATTLE_NET_TOKEN_URI_CN : sprintf(BATTLE_NET_TOKEN_URI, 'us');
 
-    $key = ($partition == 'cn') ? MASHERY_KEY : BATTLE_NET_KEY;
-    $secret = ($partition == 'cn') ? MASHERY_SECRET : BATTLE_NET_SECRET;
+    $key = ($partition == 'cn') ? BATTLE_NET_KEY_CN : BATTLE_NET_KEY;
+    $secret = ($partition == 'cn') ? BATTLE_NET_SECRET_CN : BATTLE_NET_SECRET;
 
     $json = \Newsstand\HTTP::Get("{$endpoint}?grant_type=client_credentials",
         ['Accept: application/json', 'Authorization: Basic '. base64_encode("{$key}:{$secret}")]);
