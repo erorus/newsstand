@@ -19,8 +19,8 @@
     "timeHourAbbrev": "hr",
     "timeHoursAbbrev": "hrs",
 
-    "timePast": "{1} 전",
-    "timeFuture": "앞으로 {1}",
+    "timePast": "{1}전",
+    "timeFuture": "{1}후",
 
     "unknown": "Unknown",
     "submit": "Submit",
@@ -31,7 +31,7 @@
 
     "topSellers": "상위 판매자",
     "mostAvailable": "가장많은 상품",
-    "potentialDeals": "Potential Deals",
+    "potentialDeals": "잠재적 거래",
 
     "ipIsBanned": "The IP address of you or your proxy {1} has been banned from most queries at The Undermine Journal.",
     "bannedContact": "You can drop us a line at the <a href=\"{1}\">contact page</a> if you need us to investigate further.",

@@ -590,7 +590,7 @@ var tujConstants = {
         ptbr: 'Português',
         ruru: 'Русский',
         zhtw: '中文',
-        kokr: '한국인',
+        kokr: '한국어',
     },
     siteColors: {
         light: {
