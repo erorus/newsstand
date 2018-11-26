@@ -226,6 +226,7 @@
         "names": {
             "2": "lineid",
             "3": "spellid",
+            "6": "replacesspell",
             "13": "tradeskillcategory"
         }
     },

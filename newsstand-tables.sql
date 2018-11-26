@@ -381,9 +381,11 @@ CREATE TABLE IF NOT EXISTS `tblDBCSpell` (
   `skillline` smallint(5) unsigned DEFAULT NULL,
   `qtymade` decimal(7,2) unsigned NOT NULL DEFAULT '0.00',
   `tradeskillcategory` smallint(5) unsigned DEFAULT NULL,
+  `replacesspell` mediumint(8) unsigned DEFAULT NULL,
   `expansion` tinyint(3) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `skilllineid` (`skillline`)
+  KEY `skilllineid` (`skillline`),
+  KEY `replaces` (`replacesspell`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -397,6 +399,19 @@ CREATE TABLE IF NOT EXISTS `tblDBCSpellCrafts` (
   `item` MEDIUMINT(8) UNSIGNED NOT NULL,
   PRIMARY KEY (`spell`, `item`),
   KEY `item` (`item`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tblDBCSpellReagents`
+--
+
+CREATE TABLE IF NOT EXISTS `tblDBCSpellReagents` (
+  `spell` MEDIUMINT(8) UNSIGNED NOT NULL,
+  `item` MEDIUMINT(8) UNSIGNED NOT NULL,
+  `qty` SMALLINT UNSIGNED NOT NULL,
+  PRIMARY KEY (`spell`, `item`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------

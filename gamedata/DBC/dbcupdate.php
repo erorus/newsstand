@@ -522,7 +522,7 @@ RunAndLogError($sql);
 LogLine('Getting trades..');
 RunAndLogError('truncate tblDBCSpell');
 $sql = <<<EOF
-insert ignore into tblDBCSpell (id,name,description,cooldown,qtymade,skillline,tradeskillcategory)
+insert ignore into tblDBCSpell (id,name,description,cooldown,qtymade,skillline,tradeskillcategory,replacesspell)
 (select sn.id, sn.spellname, ifnull(s.longdescription, ''),
     greatest(
         ifnull(cd.categorycooldown * if(c.flags & 8, 86400, 1),0),
@@ -530,7 +530,8 @@ insert ignore into tblDBCSpell (id,name,description,cooldown,qtymade,skillline,t
         ifnull(cc.chargecooldown,0)) / 1000,
     if(se.itemcreated=0,0,if(se.diesides=0,if(se.qtymade=0,1,se.qtymade),(se.qtymade * 2 + se.diesides + 1)/2)),
     min(sl.mainid),
-    sla.tradeskillcategory & 0xFFFF
+    sla.tradeskillcategory & 0xFFFF,
+    nullif(sla.replacesspell, 0)
 from ttblSpellName sn
 left join ttblSpell s on s.id = sn.id
 left join ttblSpellMisc sm on sn.id=sm.spellid
@@ -582,6 +583,17 @@ insert ignore into tblDBCSpell (id,name,description) (
 )
 EOF;
 RunAndLogError($sql);
+
+RunAndLogError('truncate tblDBCSpellReagents');
+$sql = <<<'EOF'
+insert into tblDBCSpellReagents (spell, item, qty)
+(select spell, reagent%1$d, reagentcount%1$d from ttblSpellReagents
+where reagent%1$d != 0 and reagentcount%1$d != 0)
+on duplicate key update qty = qty + values(qty)
+EOF;
+for ($x = 1; $x <= 8; $x++) {
+    RunAndLogError(sprintf($sql, $x));
+}
 
 LogLine('Getting spell expansion IDs..');
 $sql = <<<'SQL'

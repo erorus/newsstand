@@ -3,6 +3,7 @@
 require_once __DIR__ . '/db2/src/autoload.php';
 
 use \Erorus\DB2\Reader;
+use \Erorus\DB2\HotfixedReader;
 
 $dbLayout = json_decode(file_get_contents(__DIR__ . '/layout.json'), true);
 
@@ -47,6 +48,8 @@ function CreateDB2Reader($name) {
 
     if (isset($layout['strings'])) {
         $reader = new Reader($filePath, $layout['strings']);
+    } elseif (file_exists("$dirnm/DBCache.bin")) {
+        $reader = new HotfixedReader($filePath, "$dirnm/DBCache.bin");
     } else {
         $reader = new Reader($filePath);
     }
