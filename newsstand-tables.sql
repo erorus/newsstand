@@ -383,6 +383,7 @@ CREATE TABLE IF NOT EXISTS `tblDBCSpell` (
   `tradeskillcategory` smallint(5) unsigned DEFAULT NULL,
   `replacesspell` mediumint(8) unsigned DEFAULT NULL,
   `expansion` tinyint(3) unsigned DEFAULT NULL,
+  `requiredside` enum('Alliance', 'Horde', '') NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   KEY `skilllineid` (`skillline`),
   KEY `replaces` (`replacesspell`)

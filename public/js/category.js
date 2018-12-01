@@ -984,6 +984,18 @@ var TUJ_Category = function ()
         var titleColSpan = 2;
         var titleTd;
 
+        var hasCraftingPrice = false;
+        var nonUniques = {};
+        for (x = 0; item = data.items[x]; x++) {
+            if (nonUniques.hasOwnProperty(item.id)) {
+                nonUniques[item.id] = true;
+            } else {
+                nonUniques[item.id] = false;
+            }
+            hasCraftingPrice |= !!item.craftingprice;
+        }
+        hasCraftingPrice &= !data.hiddenCols.craftingprice;
+
         t = libtuj.ce('table');
         t.className = 'category category-items';
         dest.appendChild(t);
@@ -1058,6 +1070,14 @@ var TUJ_Category = function ()
             td.className = 'price';
             tr.appendChild(td);
             $(td).text(tuj.lang.currentPriceAbbrev);
+            titleColSpan++;
+        }
+
+        if (hasCraftingPrice) {
+            td = libtuj.ce('th');
+            td.className = 'price';
+            tr.appendChild(td);
+            $(td).text(tuj.lang.materials);
             titleColSpan++;
         }
 
@@ -1202,15 +1222,6 @@ var TUJ_Category = function ()
             $(x).on('click', MakeImportStringDisplayFunction(tr, i, x));
         }
 
-        var nonUniques = {};
-        for (x = 0; item = data.items[x]; x++) {
-            if (nonUniques.hasOwnProperty(item.id)) {
-                nonUniques[item.id] = true;
-            } else {
-                nonUniques[item.id] = false;
-            }
-        }
-
         for (x = 0; item = data.items[x]; x++) {
             tr = libtuj.ce('tr');
             t.appendChild(tr);
@@ -1279,6 +1290,13 @@ var TUJ_Category = function ()
                 td.className = 'price';
                 tr.appendChild(td);
                 td.appendChild(abbrPriceAmount(item.price, amount));
+            }
+
+            if (hasCraftingPrice) {
+                td = libtuj.ce('td');
+                td.className = 'price';
+                tr.appendChild(td);
+                td.appendChild(abbrPriceAmount(item.craftingprice, amount));
             }
 
             if (!data.hiddenCols.avgprice) {

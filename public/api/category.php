@@ -2079,7 +2079,7 @@ function CategoryGenericItemList($house, $params)
 {
     global $canCache;
 
-    $cacheKey = 'category_gil_' . md5(json_encode($params));
+    $cacheKey = 'category_gil_c_' . md5(json_encode($params));
 
     $skipLocales = is_array($params) && isset($params['locales']) && ($params['locales'] == false);
 
@@ -2129,7 +2129,8 @@ select results.*, $outside
          select 12 h union select 13 h union select 14 h union select 15 h union
          select 16 h union select 17 h union select 18 h union select 19 h union
          select 20 h union select 21 h union select 22 h union select 23 h) hours
-        where ihh.house = ? and ihh.item = results.id and ihh.level = results.level) avgprice
+        where ihh.house = ? and ihh.item = results.id and ihh.level = results.level) avgprice,
+GetCurrentCraftingPrice(?, results.id) craftingprice
 from (
     select i.id, i.icon, i.class as classid, i.level baselevel,
     s.quantity, unix_timestamp(s.lastseen) lastseen,
@@ -2164,7 +2165,8 @@ select results.*, $outside
          select 12 h union select 13 h union select 14 h union select 15 h union
          select 16 h union select 17 h union select 18 h union select 19 h union
          select 20 h union select 21 h union select 22 h union select 23 h) hours
-        where ihh.house = ? and ihh.item = results.id and ihh.level = results.level) avgprice
+        where ihh.house = ? and ihh.item = results.id and ihh.level = results.level) avgprice,
+GetCurrentCraftingPrice(?, results.id) craftingprice
 from (
     select r2.id, r2.icon, r2.classid, r2.baselevel, r2.quantity, r2.lastseen, r2.cheapestaucid,
     a.buy price,
@@ -2205,7 +2207,7 @@ EOF;
     if (!$stmt->prepare($sql)) {
         DebugMessage("Bad SQL: \n" . $sql, E_USER_ERROR);
     }
-    $stmt->bind_param('iisiiisii', $house, $house, $region, $house, $house, $house, $region, $house, $house);
+    $stmt->bind_param('iiisiiiisii', $house, $house, $house, $region, $house, $house, $house, $house, $region, $house, $house);
     $stmt->execute();
 
     $tr = [];
@@ -2246,7 +2248,7 @@ function CategoryRegularItemList($house, $params)
 {
     global $canCache;
 
-    $cacheKey = 'category_ril_' . md5(json_encode($params));
+    $cacheKey = 'category_ril_c_' . md5(json_encode($params));
 
     $skipLocales = is_array($params) && isset($params['locales']) && ($params['locales'] == false);
 
@@ -2290,7 +2292,8 @@ select results.*, $outside
          select 12 h union select 13 h union select 14 h union select 15 h union
          select 16 h union select 17 h union select 18 h union select 19 h union
          select 20 h union select 21 h union select 22 h union select 23 h) hours
-        where ihh.house = ? and ihh.item = results.id and ihh.level = results.level) avgprice
+        where ihh.house = ? and ihh.item = results.id and ihh.level = results.level) avgprice,
+GetCurrentCraftingPrice(?, results.id) craftingprice
 from (
     select i.id, i.icon, i.class as classid, g.level,
     s.quantity, unix_timestamp(s.lastseen) lastseen, s.price $cols
@@ -2311,7 +2314,7 @@ EOF;
     if (!$stmt->prepare($sql)) {
         DebugMessage("Bad SQL: \n" . $sql, E_USER_ERROR);
     }
-    $stmt->bind_param('isi', $house, $region, $house);
+    $stmt->bind_param('iisi', $house, $house, $region, $house);
     $stmt->execute();
 
     $tr = [];
@@ -2352,7 +2355,7 @@ function CategoryBonusItemList($house, $params)
 {
     global $canCache;
 
-    $cacheKey = 'category_bil_' . md5(json_encode($params));
+    $cacheKey = 'category_bil_c_' . md5(json_encode($params));
 
     $skipLocales = is_array($params) && isset($params['locales']) && ($params['locales'] == false);
 
@@ -2398,6 +2401,7 @@ ifnull(a.buy, r2.price) price,
   select 16 h union select 17 h union select 18 h union select 19 h union
   select 20 h union select 21 h union select 22 h union select 23 h) hours
  where ihh.house = ? and ihh.item = r2.id and ihh.level = r2.level) avgprice,
+ GetCurrentCraftingPrice(?, r2.id) craftingprice, 
 $outside ae.lootedlevel, ae.`rand`, ae.seed
 from (
 select i.id, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, s.level, i.level as baselevel,
@@ -2427,7 +2431,7 @@ EOF;
     if (!$stmt->prepare($sql)) {
         DebugMessage("Bad SQL: \n" . $sql, E_USER_ERROR);
     }
-    $stmt->bind_param('iiisii', $house, $house, $house, $region, $house, $house);
+    $stmt->bind_param('iiiisii', $house, $house, $house, $house, $region, $house, $house);
     $stmt->execute();
 
     $tr = [];

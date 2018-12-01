@@ -522,16 +522,22 @@ RunAndLogError($sql);
 LogLine('Getting trades..');
 RunAndLogError('truncate tblDBCSpell');
 $sql = <<<EOF
-insert ignore into tblDBCSpell (id,name,description,cooldown,qtymade,skillline,tradeskillcategory,replacesspell)
+insert ignore into tblDBCSpell (id,name,description,cooldown,qtymade,skillline,tradeskillcategory,replacesspell,requiredside)
 (select sn.id, sn.spellname, ifnull(s.longdescription, ''),
     greatest(
         ifnull(cd.categorycooldown * if(c.flags & 8, 86400, 1),0),
         ifnull(cd.individualcooldown * if(c.flags & 8, 86400, 1),0),
         ifnull(cc.chargecooldown,0)) / 1000,
-    if(se.itemcreated=0,0,if(se.diesides=0,if(se.qtymade=0,1,se.qtymade),(se.qtymade * 2 + se.diesides + 1)/2)),
+    if(se.itemcreated=0,0,if(se.diesides=0,if(se.qtymadeFloat=0,1,se.qtymadeFloat),(se.qtymadeFloat * 2 + se.diesides + 1)/2)),
     min(sl.mainid),
     sla.tradeskillcategory & 0xFFFF,
-    nullif(sla.replacesspell, 0)
+    nullif(sla.replacesspell, 0),
+    case
+        when sla.racemask64 is null then 3
+        when (sla.racemask64 & 0x7FF) ^ 0x44D = 0 then 1
+        when (sla.racemask64 & 0x7FF) ^ 0x3B2 = 0 then 2
+        else 3
+    end
 from ttblSpellName sn
 left join ttblSpell s on s.id = sn.id
 left join ttblSpellMisc sm on sn.id=sm.spellid
@@ -560,15 +566,15 @@ insert ignore into tblDBCSpellCrafts (spell, item)
 EOF;
 RunAndLogError($sql);
 
+// Insert for non-side-specific spells that create side-specific items
 $sql = <<<EOF
-insert ignore into tblDBCSpellCrafts (spell, item)
-(
-    select s.id, i.othersideitem
-    from tblDBCSpell s
-    join ttblSpellEffect se on s.id = se.spellid
-    join tblDBCItem i on i.id = se.itemcreated
-    where se.effecttypeid in (24,53,157)
-    and i.othersideitem > 0
+insert into tblDBCSpellCrafts (
+    select sc.spell, i.othersideitem
+    from tblDBCSpellCrafts sc
+    join tblDBCItem i on sc.item = i.id
+    left join tblDBCSpellCrafts sc2 on i.othersideitem = sc2.item
+    where sc2.item is null
+    and nullif(i.othersideitem, 0) is not null
 )
 EOF;
 RunAndLogError($sql);
@@ -719,8 +725,13 @@ function DB2TempTable($baseFile) {
             }
             switch ($fieldTypes[$colName]) {
                 case Reader::FIELD_TYPE_INT:
-                    $sql .= 'int';
-                    $paramTypes .= 'i';
+                    if (substr($colName, -5) == 'Float') {
+                        $sql .= 'float';
+                        $paramTypes .= 'd';
+                    } else {
+                        $sql .= (substr($colName, -2) == '64') ? 'bigint' : 'int';
+                        $paramTypes .= 'i';
+                    }
                     break;
                 case Reader::FIELD_TYPE_FLOAT:
                     $sql .= 'float';
@@ -763,12 +774,21 @@ function DB2TempTable($baseFile) {
         EchoProgress(++$x/$recordCount);
         $idCol = $id;
         foreach ($columns as $colName) {
+            $forceFloat = substr($colName, -5) == 'Float';
             if ($fieldCounts[$colName] > 1) {
                 for ($z = 1; $z <= $fieldCounts[$colName]; $z++) {
-                    $row[$colName.$z] = $rec[$colName][$z-1];
+                    if ($forceFloat) {
+                        $row[$colName . $z] = current(unpack('f', pack('V', $rec[$colName][$z - 1])));
+                    } else {
+                        $row[$colName . $z] = $rec[$colName][$z - 1];
+                    }
                 }
             } else {
-                $row[$colName] = $rec[$colName];
+                if ($forceFloat) {
+                    $row[$colName] = current(unpack('f', pack('V', $rec[$colName])));
+                } else {
+                    $row[$colName] = $rec[$colName];
+                }
             }
         }
         RunAndLogError($stmt->execute());

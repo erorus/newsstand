@@ -150,9 +150,9 @@
         "names": {
             "1": "effectorder",
             "2": "effecttypeid",
-            "4": "qtymade",
             "9": "diesides",
             "10": "itemcreated",
+            "22": "qtymadeFloat",
             "27": "spellid"
         }
     },
@@ -224,6 +224,7 @@
     "SkillLineAbility": {
         "hash": 2743783538,
         "names": {
+            "0": "racemask64",
             "2": "lineid",
             "3": "spellid",
             "6": "replacesspell",
