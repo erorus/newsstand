@@ -307,7 +307,7 @@ var TUJ_Item = function ()
             ItemGlobalNowScatter(dta, cht);
         }
 
-        if (dta.hasOwnProperty('sellers') && dta.sellers.length > 2) {
+        if (dta.hasOwnProperty('sellers') && dta.sellers.length > 0) {
             d = libtuj.ce();
             d.className = 'chart-section section' + (consecSections++);
             h = libtuj.ce('h2');
