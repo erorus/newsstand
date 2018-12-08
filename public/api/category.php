@@ -2079,7 +2079,7 @@ function CategoryGenericItemList($house, $params)
 {
     global $canCache;
 
-    $cacheKey = 'category_gil_c_' . md5(json_encode($params));
+    $cacheKey = 'category_gil_' . md5(json_encode($params));
 
     $skipLocales = is_array($params) && isset($params['locales']) && ($params['locales'] == false);
 
@@ -2357,7 +2357,7 @@ function CategoryBonusItemList($house, $params)
 {
     global $canCache;
 
-    $cacheKey = 'category_bil_c_' . md5(json_encode($params));
+    $cacheKey = 'category_bil_' . md5(json_encode($params));
 
     $skipLocales = is_array($params) && isset($params['locales']) && ($params['locales'] == false);
 
@@ -2476,7 +2476,7 @@ function CategoryBonusAuctionList($house, $params)
 {
     global $canCache;
 
-    $cacheKey = 'category_bal_' . md5(json_encode($params));
+    $cacheKey = 'category_bal_2_' . md5(json_encode($params));
 
     $skipLocales = is_array($params) && isset($params['locales']) && ($params['locales'] == false);
 
@@ -2578,7 +2578,7 @@ function CategoryDealsItemList($house, $dealsSql, $flags = 0)
 {
     global $canCache;
 
-    $cacheKey = 'category_di_2_' . md5($dealsSql) . '_' . $flags;
+    $cacheKey = 'category_di_' . md5($dealsSql) . '_' . $flags;
 
     if ($canCache && (($iidList = MCGetHouse($house, $cacheKey)) !== false)) {
         return CategoryDealsItemListCached($house, $iidList, $flags);
