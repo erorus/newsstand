@@ -2112,6 +2112,8 @@ function CategoryGenericItemList($house, $params)
         $rowKey = false;
     }
 
+    $minPricingLevel = MIN_ITEM_LEVEL_PRICING;
+
     $sql = <<<EOF
 select results.*, $outside
 (select round(avg(case hours.h
@@ -2179,7 +2181,7 @@ from (
             left join tblAuctionExtra ae on a.house = ae.house and a.id = ae.id
             where a.house = ?
              and a.item = i.id
-             and ifnull(ae.level,0) = s.level
+             and ifnull(if(ae.level < $minPricingLevel, i.level, ae.level), 0) = s.level
              and a.buy > 0
              order by a.buy
              limit 1) cheapestaucid $colsLowerInside
@@ -2382,6 +2384,8 @@ function CategoryBonusItemList($house, $params)
         $rowKey = false;
     }
 
+    $minPricingLevel = MIN_ITEM_LEVEL_PRICING;
+
     $sql = <<<EOF
 select r2.id, r2.icon, r2.classid, r2.quantity, r2.lastseen, r2.level, r2.baselevel, r2.quantity, r2.lastseen,
 ifnull(a.buy, r2.price) price,
@@ -2410,7 +2414,7 @@ select i.id, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.l
     left join tblAuctionExtra ae on a.house = ae.house and a.id = ae.id
     where a.house = ?
      and a.item = i.id
-     and ifnull(ae.level,if(i.class in (2,4), i.level, 0)) = s.level
+     and ifnull(if(ae.level < $minPricingLevel, null, ae.level), if(i.class in (2,4), i.level, 0)) = s.level
      and a.buy > 0
      order by a.buy
      limit 1) cheapestaucid $cols
@@ -2496,6 +2500,8 @@ function CategoryBonusAuctionList($house, $params)
         $where = ($params == '') ? '' : (' and ' . $params);
     }
 
+    $minPricingLevel = MIN_ITEM_LEVEL_PRICING;
+
     $sql = <<<EOF
 select i.id, i.icon, i.class as classid, a.quantity, null lastseen, s.level, i.level baselevel,
 ifnull(a.buy, s.price) price,
@@ -2521,7 +2527,8 @@ $cols
 from tblDBCItem i
 join tblAuction a on a.house = ? and a.item = i.id
 left join tblAuctionExtra ae on a.house = ae.house and a.id = ae.id
-join tblItemSummary s on s.item = i.id and s.house = a.house and s.level = ifnull(ae.level, i.level)
+join tblItemSummary s on s.item = i.id and s.house = a.house and
+    s.level = ifnull(if(ae.level < $minPricingLevel, null, ae.level), i.level)
 join tblItemGlobal g on g.item = i.id + 0 and g.level = s.level and g.region = ?
 $joins
 where ifnull(i.auctionable,1) = 1
@@ -2581,13 +2588,16 @@ function CategoryDealsItemList($house, $dealsSql, $flags = 0)
 
     $region = GetRegion($house);
 
+    $minPricingLevel = MIN_ITEM_LEVEL_PRICING;
+
     $fullSql = <<<EOF
 select aa.item, aa.level, aa.baselevel,
     (select a.id
     from tblAuction a
     left join tblAuctionExtra ae on ae.house=a.house and ae.id = a.id
     join tblDBCItem i on a.item = i.id
-    where a.buy > 0 and a.house=? and a.item=aa.item and ifnull(ae.level, if(i.class in (2,4), i.level, 0)) = aa.level
+    where a.buy > 0 and a.house=? and a.item=aa.item and
+        ifnull(if(ae.level < $minPricingLevel, null, ae.level), if(i.class in (2,4), i.level, 0)) = aa.level
     order by a.buy/a.quantity limit 1) cheapestid
 from (
     select ac.item, ac.level, ac.baselevel, ac.c_total, ac.c_over, ac.price, gs.median
