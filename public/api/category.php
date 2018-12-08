@@ -479,6 +479,7 @@ function CategoryResult_minorstats($house) {
                 'data' => [
                     'name'       => sprintf('%s %s', $statName, $className),
                     'items'      => CategoryBonusAuctionList($house, [
+                        'cols'  => 'concat_ws(\':\', ae.bonus1, ae.bonus2, ae.bonus3, ae.bonus4, ae.bonus5, ae.bonus6) as bonusurl',
                         'joins' => 'join tblDBCItemBonus ib on ib.id in (ae.bonus1, ae.bonus2, ae.bonus3, ae.bonus4, ae.bonus5, ae.bonus6)',
                         'where' => sprintf('ib.statmask & %d and i.class = 4 and i.subclass = %d and i.type != 16 ', $statMask, $subclassId),
                     ]),
@@ -493,6 +494,7 @@ function CategoryResult_minorstats($house) {
             'data' => [
                 'name'       => sprintf('%s Other', $statName),
                 'items'      => CategoryBonusAuctionList($house, [
+                    'cols'  => 'concat_ws(\':\', ae.bonus1, ae.bonus2, ae.bonus3, ae.bonus4, ae.bonus5, ae.bonus6) as bonusurl',
                     'joins' => 'join tblDBCItemBonus ib on ib.id in (ae.bonus1, ae.bonus2, ae.bonus3, ae.bonus4, ae.bonus5, ae.bonus6)',
                     'where' => sprintf('ib.statmask & %d and not (i.class = 4 and i.subclass in (%s) and i.type != 16)', $statMask, implode(',', array_keys($armorClasses))),
                 ]),
