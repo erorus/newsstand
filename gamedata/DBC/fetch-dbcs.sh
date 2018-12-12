@@ -9,7 +9,7 @@ fi
 
 for locale in $locales; do
     mkdir -p current/$locale
-    php casc/casc.php --files dbcs.txt --out current/$locale --locale $locale
+    php casc/casc.php --files dbcs.txt --out current/$locale --locale $locale -i
     mv current/$locale/DBFilesClient/* current/$locale/
     rmdir current/$locale/DBFilesClient
 done

@@ -3,7 +3,7 @@
 require_once __DIR__ . '/../../incl/incl.php';
 require_once __DIR__ . '/dbc.incl.php';
 
-$LOCALES = $VALID_LOCALES;
+$LOCALES = array_values(array_filter($VALID_LOCALES, function($loc) { return strtolower($loc) != 'enus'; }));
 
 $newLocales = [];
 for ($x = 1; $x < count($argv); $x++) {
