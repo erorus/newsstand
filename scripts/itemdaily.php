@@ -152,13 +152,15 @@ EOF;
             DebugMessage("SQL error: " . $db->errno . ' ' . $db->error . " - " . substr(preg_replace('/[\r\n]/', ' ', $sqlPattern), 0, 500), E_USER_WARNING);
             $rowCount = -1;
         } else {
-            DebugMessage("$rowCount item daily rows updated for house {$houseRow['house']} for date {$houseRow['dt']}");
+            DailyDebugMessage($houseRow['house'], $houseRow['dt'], "$rowCount item daily rows updated");
         }
 
         if ($rowCount >= 0) {
             $rowCount = UpdateMonthlyTable($houseRow['house'], $houseRow['dt']);
-            DebugMessage("$rowCount monthly item rows updated for house {$houseRow['house']} for date {$houseRow['dt']}");
+            DailyDebugMessage($houseRow['house'], $houseRow['dt'], "$rowCount monthly item rows updated");
         }
+
+        UpdateItemLastSeller($houseRow['house'], $houseRow['dt']);
 
         if ($rowCount >= 0) {
             $stmt = $db->prepare('INSERT INTO tblHouseCheck (house, lastdaily) VALUES (?, ?) ON DUPLICATE KEY UPDATE lastdaily = values(lastdaily)');
@@ -240,4 +242,89 @@ EOF;
     $stmt->close();
 
     return $updated;
+}
+
+function UpdateItemLastSeller($house, $dt) {
+    global $db;
+
+    $sql = <<<'SQL'
+insert into tblItemLastSeller (item, house, seller, snapshot)
+    (select item, house, seller, max(snapshot)
+    from tblSellerItemHistory
+    where snapshot between ? and timestampadd(second, -1, timestampadd(day, 1, ?))
+    and house = ?
+    group by item, seller)
+on duplicate key update snapshot = values(snapshot)
+SQL;
+
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('ssi', $dt, $dt, $house);
+    $stmt->execute();
+    $inserted = $stmt->affected_rows;
+    $stmt->close();
+
+    DailyDebugMessage($house, $dt, "$inserted item last seller rows upserted");
+
+    if ($inserted <= 0) {
+        return;
+    }
+
+    $sql = <<<'SQL'
+create temporary table ttblPurge (
+    item mediumint(8) unsigned not null,
+    seller int(10) unsigned not null,
+    primary key (item, seller)
+);
+SQL;
+    $stmt = $db->prepare($sql);
+    $stmt->execute();
+    $stmt->close();
+
+    $sql = <<<'SQL'
+insert into ttblPurge (
+    select item, seller from (
+        select if(@item = item, @c := @c + 1, @c := 1) cntr, @item := s.item item, seller
+        from tblItemLastSeller s, (select @c := 1, @item := 0) c
+        where house = ?
+        order by item, snapshot desc
+    ) zz
+    where cntr > ?
+)
+SQL;
+
+    $maxCount = ITEM_LAST_SELLER_MAX_COUNT;
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('ii', $house, $maxCount);
+    $stmt->execute();
+    $toPurge = $stmt->affected_rows;
+    $stmt->close();
+
+    DailyDebugMessage($house, $dt, "$toPurge item last seller rows to be purged");
+
+    if ($toPurge > 0) {
+        $sql = <<<'SQL'
+delete from tblItemLastSeller
+using tblItemLastSeller join ttblPurge
+on tblItemLastSeller.item = ttblPurge.item
+and tblItemLastSeller.seller = ttblPurge.seller
+and tblItemLastSeller.house = ?
+SQL;
+
+        $stmt = $db->prepare($sql);
+        $stmt->bind_param('i', $house);
+        $stmt->execute();
+        $purged = $stmt->affected_rows;
+        $stmt->close();
+
+        DailyDebugMessage($house, $dt, "$purged item last seller rows purged");
+    }
+
+    $stmt = $db->prepare('drop temporary table ttblPurge');
+    $stmt->execute();
+    $stmt->close();
+}
+
+
+function DailyDebugMessage($house, $dt, $msg) {
+    DebugMessage('House ' . str_pad($house, 5, ' ', STR_PAD_LEFT) . " $dt $msg");
 }

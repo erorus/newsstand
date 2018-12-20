@@ -702,6 +702,21 @@ PARTITION BY HASH (`month`) PARTITIONS 12;
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `tblItemLastSeller`
+--
+
+CREATE TABLE IF NOT EXISTS `tblItemLastSeller` (
+  `item` mediumint(8) unsigned NOT NULL,
+  `house` smallint(5) unsigned NOT NULL,
+  `seller` int(10) unsigned NOT NULL,
+  `snapshot` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  PRIMARY KEY (`item`,`house`,`seller`),
+  KEY `house` (`house`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `tblItemSummary`
 --
 
