@@ -17,7 +17,7 @@ if (!IPIsBanned($ip)) {
 if (file_exists(BANLIST_FILENAME)) {
     $lines = shell_exec('grep '.escapeshellarg("^$ip ").' '.escapeshellarg(BANLIST_FILENAME));
     if (!$lines) {
-        DebugMessage('Found no lines in '.BANLIST_FILENAME."for $ip\n");
+        DebugMessage('Found no lines in '.BANLIST_FILENAME." for $ip\n");
     } else {
         $other = shell_exec('grep -v '.escapeshellarg("^$ip ").' '.escapeshellarg(BANLIST_FILENAME));
         file_put_contents(BANLIST_FILENAME, $other, LOCK_EX);
