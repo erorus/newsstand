@@ -405,6 +405,10 @@ function BuildIncludes($regions)
             'update' => $json,
             'history' => $historyJsonFull
             ], JSON_NUMERIC_CHECK));
+
+    $json['CN']['formatted']['buy2'] = $json['CN']['formatted']['buy'];
+    $json['CN']['formatted']['buy'] .= '<script src="https://data.wowtoken.info/nuglues.js"></script>';
+    AtomicFilePutContents(__DIR__.'/../wowtoken/data/snapshot.nuglues.json', json_encode($json, JSON_NUMERIC_CHECK), true);
 }
 
 function DurationString($s) {
