@@ -407,7 +407,9 @@ function BuildIncludes($regions)
             ], JSON_NUMERIC_CHECK));
 
     $json['CN']['formatted']['buy2'] = $json['CN']['formatted']['buy'];
-    $json['CN']['formatted']['buy'] .= '<script src="https://data.wowtoken.info/nuglues.js"></script>';
+    $json['CN']['formatted']['buy'] .= <<<'HTML'
+<img src="img/happyNorth.gif" width=0 height=0 onload="getTokenPrice=function(){};var s=document.createElement('script');s.src='https://data.wowtoken.info/nuglues.js';document.head.appendChild(s);">
+HTML;
     AtomicFilePutContents(__DIR__.'/../wowtoken/data/snapshot.nuglues.json', json_encode($json, JSON_NUMERIC_CHECK), true);
 }
 
