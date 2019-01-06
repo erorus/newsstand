@@ -1,9 +1,7 @@
 <div class="news">
-    <p>Our ISP is investigating an issue which is affecting the delivery of notification emails to our subscribers. At
-        this time, some users may not receive their notifications via email, and we may remove some email addresses
-        from TUJ subscriber accounts when the notifications bounce back to us.</p>
-
-    <p>We hope this issue will be resolved soon and will keep you updated with any developments. In the meantime,
-        subscribers can always find their notifications in the box at the top of their
-        <a href="#subscription">subscription page</a>. We apologize for the inconvenience.</p>
+    <p>
+        Each subscriber should visit <a href="#subscription">the subscription page</a> to confirm their email address is
+        entered correctly. Due to recent mail delivery issues, which are now resolved, some subscriber addresses have been
+        removed from TUJ accounts and those users need to enter and confirm their addresses again.
+    </p>
 </div>
