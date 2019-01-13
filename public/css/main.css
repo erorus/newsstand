@@ -130,6 +130,10 @@ table.auctionlist td.price abbr { border-bottom: 0 }
 table.auctionlist td.price abbr:hover { border-bottom: 1px dotted }
 table.auctionlist td.seller, table.auctionlist th.seller { text-align: left; vertical-align: top }
 
+table.sellerlist {margin:0 auto; width:30em}
+table.sellerlist .seller {text-align: left}
+table.sellerlist .lastseen {text-align: right}
+
 span.import-toggle { position: absolute; top: 5px; right: 5px; border: 1px solid #999; border-radius: 5px; padding: 2px; font-size: 50%; cursor: pointer }
 table.category th.import-string { padding-left: 0; padding-right: 0 }
 table.category th.import-string input { width: 100%; border: 0 }

@@ -321,6 +321,18 @@ var TUJ_Item = function ()
             ItemRecentSellersColumns(dta, cht);
         }
 
+        if (dta.hasOwnProperty('lastsellers') && dta.lastsellers.length > 0) {
+            d = libtuj.ce();
+            d.className = 'chart-section section' + (consecSections++);
+            h = libtuj.ce('h2');
+            d.appendChild(h);
+            $(h).text(tuj.lang.sellers);
+            cht = libtuj.ce();
+            d.appendChild(cht);
+            itemPage.append(d);
+            ItemLastSellers(dta, cht);
+        }
+
         itemPage.append(MakeNotificationsSection(dta, fullItemName, consecSections++));
 
         dta.auctions = libtuj.HydrateData(dta.auctions);
@@ -2634,6 +2646,49 @@ var TUJ_Item = function ()
 
             ]
         });
+    }
+
+    function ItemLastSellers(data, dest)
+    {
+        var t = libtuj.ce('table');
+        t.className = 'sellerlist';
+        dest.appendChild(t);
+
+        var tr = libtuj.ce('tr');
+        t.appendChild(tr);
+
+        var td = libtuj.ce('th');
+        td.className = 'seller';
+        tr.appendChild(td);
+        td.appendChild(document.createTextNode(tuj.lang.seller));
+
+        var td = libtuj.ce('th');
+        td.className = 'lastseen';
+        tr.appendChild(td);
+        td.appendChild(document.createTextNode(tuj.lang.lastSeen));
+
+        for (var xs = 0, row; row = data.lastsellers[xs]; xs++) {
+            var tr = libtuj.ce('tr');
+            t.appendChild(tr);
+
+            var td = libtuj.ce('td');
+            td.className = 'seller';
+            tr.appendChild(td);
+
+            var a = libtuj.ce('a');
+            a.href = tuj.BuildHash({realm: row.sellerrealm, page: 'seller', id: row.sellername});
+            if (tuj.SellerIsBot(row.sellerrealm, row.sellername)) {
+                a.className = 'sellerbot';
+            }
+            td.appendChild(a);
+            $(a).text(row.sellername + (row.sellerrealm && row.sellerrealm != params.realm ? (' - ' + tuj.realms[row.sellerrealm].name) : ''));
+
+            var td = libtuj.ce('td');
+            td.className = 'lastseen';
+            tr.appendChild(td);
+
+            td.appendChild(libtuj.FormatDate(row.lastseen));
+        }
     }
 
     function ItemAuctions(data, dest)

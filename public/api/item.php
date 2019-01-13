@@ -36,6 +36,10 @@ $json = array(
 
 if ($json['region'] != 'EU') {
     $json['sellers'] = ItemSellers($house, $item);
+
+    if (!$json['sellers']) {
+        $json['lastsellers'] = ItemLastSellers($house, $item);
+    }
 }
 
 json_return($json);
@@ -316,6 +320,44 @@ EOF;
 
     $stmt = $db->prepare($sql);
     $stmt->bind_param('ii', $house, $item);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $tr = $result->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+
+    MCSetHouse($house, $cacheKey, $tr);
+
+    return $tr;
+}
+
+function ItemLastSellers($house, $item) {
+    global $db;
+
+    $cacheKey = 'item_lastsellers_' . $item;
+
+    if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
+        return $tr;
+    }
+
+    DBConnect();
+
+    $sql = <<<'EOF'
+select unix_timestamp(ils.snapshot) lastseen, s.realm sellerrealm, ifnull(s.name, '???') sellername
+from tblItemLastSeller ils
+join tblSeller s on ils.seller = s.id and s.lastseen is not null
+where ils.house = ?
+and ils.item = ?
+and s.lastseen > timestampadd(day, -1 * ?, now())
+and ils.snapshot > timestampadd(day, -1 * ?, now())
+order by 1 desc
+limit 10;
+EOF;
+
+    $sellerSeenDaysAgo = HISTORY_DAYS;
+    $auctionSeenDaysAgo = HISTORY_DAYS_DEEP;
+
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('iiii', $house, $item, $sellerSeenDaysAgo, $auctionSeenDaysAgo);
     $stmt->execute();
     $result = $stmt->get_result();
     $tr = $result->fetch_all(MYSQLI_ASSOC);
