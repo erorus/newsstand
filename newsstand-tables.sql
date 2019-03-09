@@ -937,18 +937,6 @@ CREATE TABLE IF NOT EXISTS `tblRealm` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tblRealmGuidHouse`
---
-
-CREATE TABLE IF NOT EXISTS `tblRealmGuidHouse` (
-  `realmguid` smallint(5) unsigned NOT NULL,
-  `house` smallint(5) unsigned NOT NULL,
-  PRIMARY KEY (`realmguid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `tblSeller`
 --
 

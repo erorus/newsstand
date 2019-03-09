@@ -33,6 +33,7 @@ heartbeat();
 file_put_contents('../addon/GetDetailedItemLevelInfo.lua', BuildGetDetailedItemLevelInfo());
 file_put_contents('../addon/MarketData-US.lua', BuildAddonData('US'));
 file_put_contents('../addon/MarketData-EU.lua', BuildAddonData('EU'));
+file_put_contents('../addon/MarketData-TW.lua', BuildAddonData('TW'));
 file_put_contents('../addon/MarketData-KR.lua', BuildAddonData('KR'));
 MakeZip($zipPath);
 
@@ -541,8 +542,14 @@ EOF;
 
     $houseLookup = array_flip($houses);
 
-    $stmt = $db->prepare('select rgh.realmguid, rgh.house from tblRealmGuidHouse rgh join tblRealm r on rgh.house = r.house and r.canonical is not null where r.region = ?');
-    $stmt->bind_param('s', $region);
+    $sql = <<<'SQL'
+select blizzId AS realm, house from tblRealm where region = ? and blizzId is not null
+union
+select blizzConnection AS realm, house from tblRealm where region = ? and blizzConnection is not null
+SQL;
+
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('ss', $region, $region);
     $stmt->execute();
     $result = $stmt->get_result();
     $guids = DBMapArray($result);
@@ -551,7 +558,7 @@ EOF;
     $guidLua = '';
     foreach ($guids as $guidRow) {
         if (isset($houseLookup[$guidRow['house']])) {
-            $guidLua .= ($guidLua == '' ? '' : ',') . '[' . $guidRow['realmguid'] . ']=' . $houseLookup[$guidRow['house']];
+            $guidLua .= ($guidLua == '' ? '' : ',') . '[' . $guidRow['realm'] . ']=' . $houseLookup[$guidRow['house']];
         }
     }
 
@@ -638,6 +645,7 @@ function MakeZip($zipPath = false)
     $zip->addFile('../addon/TheUndermineJournal.lua',"TheUndermineJournal/TheUndermineJournal.lua");
     $zip->addFile('../addon/MarketData-US.lua',"TheUndermineJournal/MarketData-US.lua");
     $zip->addFile('../addon/MarketData-EU.lua',"TheUndermineJournal/MarketData-EU.lua");
+    $zip->addFile('../addon/MarketData-TW.lua',"TheUndermineJournal/MarketData-TW.lua");
     $zip->addFile('../addon/MarketData-KR.lua',"TheUndermineJournal/MarketData-KR.lua");
     //$zip->addFromString("TheUndermineJournal/SpellToItem.lua",getspelltoitemlua());
     $zip->close();
