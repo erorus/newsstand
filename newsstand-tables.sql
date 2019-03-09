@@ -926,6 +926,8 @@ CREATE TABLE IF NOT EXISTS `tblRealm` (
   `canonical` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `ownerrealm` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
   `population` mediumint(8) unsigned DEFAULT NULL,
+  `blizzId` int(10) unsigned DEFAULT NULL,
+  `blizzConnection` int(10) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `realmset` (`region`,`slug`),
   UNIQUE KEY `region` (`region`,`name`),
