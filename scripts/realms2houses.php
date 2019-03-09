@@ -43,6 +43,7 @@ foreach ($regions as $region => $realmListLocale) {
     if (isset($argv[1]) && $argv[1] != $region) {
         continue;
     }
+    // Get the list of all realms
     $requestInfo = GetBattleNetURL($region, 'wow/realm/status?locale=' . $realmListLocale);
     $json = $requestInfo ? \Newsstand\HTTP::Get($requestInfo[0], $requestInfo[1]) : '';
     $realms = json_decode($json, true, 512, JSON_BIGINT_AS_STRING);
@@ -56,6 +57,7 @@ foreach ($regions as $region => $realmListLocale) {
         continue;
     }
 
+    // Get the next available realm ID
     $stmt = $db->prepare('SELECT ifnull(max(id), 0) FROM tblRealm');
     $stmt->execute();
     $stmt->bind_result($nextId);
@@ -65,6 +67,7 @@ foreach ($regions as $region => $realmListLocale) {
 
     $seenLocales = [];
 
+    // Upsert the name and locale for each realm.
     $stmt = $db->prepare('INSERT INTO tblRealm (id, region, slug, name, locale) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=values(name), locale=values(locale), ownerrealm=null');
     foreach ($realms['realms'] as $realm) {
         $seenLocales[$realm['locale']] = true;
@@ -77,27 +80,7 @@ foreach ($regions as $region => $realmListLocale) {
     }
     $stmt->close();
 
-    $challengeRealmsHtml = \Newsstand\HTTP::Get(sprintf('http://%s.battle.net/wow/en/challenge/', $region));
-    if (preg_match('/<select [^>]*\bid="realm-select"[^>]*>([\w\W]+?)<\/select>/', $challengeRealmsHtml, $res2)) {
-        if (($c = preg_match_all('/<option [^>]*\bvalue="([^"]+)"[^>]*>([^<]+)<\/option>/', $res2[1], $res)) > 0) {
-            $stmt = $db->prepare('INSERT IGNORE INTO tblRealm (id, region, slug, name) VALUES (?, ?, ?, ?)');
-            for ($x = 0; $x < $c; $x++) {
-                if ($res[1][$x] == 'all') {
-                    continue;
-                }
-                $stmt->bind_param('isss', $nextId, $region, $res[1][$x], $res[2][$x]);
-                $stmt->execute();
-                if ($db->affected_rows > 0) {
-                    PrintImportantMessage("New $region realm from challenge mode page: " . $res[2][$x] . " (" . $res[1][$x] . ')');
-                    $nextId++;
-                }
-                $stmt->reset();
-            }
-            $stmt->close();
-        }
-    }
-    unset($challengeRealmsHtml, $res, $res2, $c, $x);
-
+    // Set the "ownerrealm" column for all realms with locales other than the default locale for that region.
     $seenLocales = array_keys($seenLocales);
     foreach ($seenLocales as $locale) {
         if ($locale == $realmListLocale) {
@@ -112,6 +95,7 @@ foreach ($regions as $region => $realmListLocale) {
         break;
     }
 
+    // Update our copy of the population of each realm from Realm Pop.
     if (in_array($region, ['US','EU'])) {
         GetRealmPopulation($region);
         if (CatchKill()) {
@@ -119,7 +103,9 @@ foreach ($regions as $region => $realmListLocale) {
         }
     }
 
-    $stmt = $db->prepare('SELECT slug, house, name, ifnull(ownerrealm, name) AS ownerrealm FROM tblRealm WHERE region = ? AND locale is not null');
+    // Get list of all saved realms and houses in this region.
+    $sql = 'SELECT slug, house, name, ifnull(ownerrealm, name) AS ownerrealm FROM tblRealm WHERE region = ? AND locale is not null';
+    $stmt = $db->prepare($sql);
     $stmt->bind_param('s', $region);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -132,6 +118,7 @@ foreach ($regions as $region => $realmListLocale) {
     $candidates = array();
     $winners = array();
 
+    // Fetch the auction house data URL for every realm.
     foreach ($bySlug as $row) {
         heartbeat();
         if (CatchKill()) {
@@ -156,6 +143,7 @@ foreach ($regions as $region => $realmListLocale) {
             continue;
         }
 
+        // Given the hash, fetch the auction data file and find all the realms mentioned in it.
         $a = GetDataRealms($region, $hash);
         if ($a['slug']) {
             $canonicals[$a['slug']][md5(json_encode($a))] = $a;
@@ -349,8 +337,15 @@ function GetDataRealms($region, $hash)
     return $result;
 }
 
-function GetLocalizedOwnerRealms($region, $locale)
-{
+/**
+ * Given a region and locale, fetch the realm list for that region in that locale, and update the "ownerrealm" column
+ * with the localized name of realms that use that locale. For example, put the Russian realm name into "ownerrealm"
+ * for all Russian realms.
+ *
+ * @param string $region
+ * @param string $locale
+ */
+function GetLocalizedOwnerRealms($region, $locale) {
     global $db;
 
     $realmId = 0;

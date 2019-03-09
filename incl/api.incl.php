@@ -445,8 +445,14 @@ function GetRealmById($realm) {
     return $tr;
 }
 
-function GetRealms($region)
-{
+/**
+ * Return a list of all realms for the given region where (the locale is defined) OR (we have auction data and no other
+ * realm with locales in that house).
+ *
+ * @param string $region
+ * @return array
+ */
+function GetRealms($region) {
     global $db;
 
     $cacheKey = 'realms2_' . $region;
@@ -457,7 +463,18 @@ function GetRealms($region)
 
     DBConnect();
 
-    $stmt = $db->prepare('SELECT r.* FROM tblRealm r WHERE region = ? AND (locale IS NOT NULL OR (locale IS NULL AND exists (SELECT 1 FROM tblSnapshot s WHERE s.house=r.house) AND (SELECT count(*) FROM tblRealm r2 WHERE r2.house=r.house AND r2.id != r.id AND r2.locale IS NOT NULL) = 0))');
+    $sql = <<<'SQL'
+SELECT r.id, r.region, r.slug, r.name, r.locale, r.house, r.canonical, r.ownerrealm, r.population
+FROM tblRealm r
+WHERE region = ?
+AND (locale IS NOT NULL OR
+    (locale IS NULL
+    AND exists (SELECT 1 FROM tblSnapshot s WHERE s.house=r.house)
+    AND (SELECT count(*) FROM tblRealm r2 WHERE r2.house=r.house AND r2.id != r.id AND r2.locale IS NOT NULL) = 0)
+)
+SQL;
+
+    $stmt = $db->prepare($sql);
     $stmt->bind_param('s', $region);
     $stmt->execute();
     $result = $stmt->get_result();
