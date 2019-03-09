@@ -15,8 +15,15 @@ if (!DBConnect()) {
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
 }
 
-foreach (['US', 'EU', 'TW', 'KR'] as $region) {
-    GetBlizzIds($region);
+$regions = [
+    'US' => 'en_US',
+    'EU' => 'en_GB',
+//    'CN' => 'zh_CN',
+    'TW' => 'zh_TW',
+    'KR' => 'ko_KR',
+];
+foreach ($regions as $region => $locale) {
+    GetBlizzIds($region, $locale);
     GetRealmPopulation($region);
 }
 
@@ -24,8 +31,9 @@ foreach (['US', 'EU', 'TW', 'KR'] as $region) {
  * Updates the blizzId and blizzConnection columns in tblRealm.
  *
  * @param string $region
+ * @param string $locale The default locale for that region
  */
-function GetBlizzIds($region) {
+function GetBlizzIds($region, $locale) {
     $requestInfo = GetBattleNetURL($region, 'data/wow/connected-realm/index');
     $json = $requestInfo ? HTTP::Get($requestInfo[0], $requestInfo[1]) : '';
     $data = json_decode($json, true, 512, JSON_BIGINT_AS_STRING);
@@ -41,7 +49,7 @@ function GetBlizzIds($region) {
             return;
         }
 
-        SetConnectedRealm($region, $res[1]);
+        SetConnectedRealm($region, $locale, $res[1]);
     }
 }
 
@@ -89,12 +97,13 @@ function GetRealmPopulation($region) {
  * blizzConnection columns for those realms in tblRealm.
  *
  * @param string $region
+ * @param string $locale The default locale for that region
  * @param int $connectionId
  */
-function SetConnectedRealm($region, $connectionId) {
+function SetConnectedRealm($region, $locale, $connectionId) {
     DebugMessage("Getting $region connection $connectionId");
 
-    $requestInfo = GetBattleNetURL($region, 'data/wow/connected-realm/' . $connectionId);
+    $requestInfo = GetBattleNetURL($region, "data/wow/connected-realm/{$connectionId}?locale={$locale}");
     $json = $requestInfo ? HTTP::Get($requestInfo[0], $requestInfo[1]) : '';
     $data = json_decode($json, true, 512, JSON_BIGINT_AS_STRING);
 
@@ -109,9 +118,9 @@ function SetConnectedRealm($region, $connectionId) {
     $stmt->execute();
     $stmt->close();
 
-    $stmt = $db->prepare('update tblRealm set blizzConnection=?, blizzId=? where region=? and slug=?');
+    $stmt = $db->prepare('update tblRealm set blizzConnection=?, blizzId=?, slug=? where region=? and (slug=? or name=?)');
     foreach ($data['realms'] as $realmRow) {
-        $stmt->bind_param('iiss', $connectionId, $realmRow['id'], $region, $realmRow['slug']);
+        $stmt->bind_param('iissss', $connectionId, $realmRow['id'], $realmRow['slug'], $region, $realmRow['slug'], $realmRow['name']);
         $stmt->execute();
     }
     $stmt->close();
