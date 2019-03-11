@@ -524,6 +524,53 @@ define('REALM_LIST_JSON', <<<'EOF'
     "zirkel-des-cenarius":"Zirkel des Cenarius",
     "zuljin":"Zul'jin",
     "zuluhed":"Zuluhed"
+},
+"tw": {
+    "arthas":"Arthas",
+    "arygos":"Arygos",
+    "bleeding-hollow":"Bleeding Hollow",
+    "chillwind-point":"Chillwind Point",
+    "crystalpine-stinger":"Crystalpine Stinger",
+    "demon-fall-canyon":"Demon Fall Canyon",
+    "dragonmaw":"Dragonmaw",
+    "frostmane":"Frostmane",
+    "hellscream":"Hellscream",
+    "icecrown":"Icecrown",
+    "lights-hope":"Light's Hope",
+    "menethil":"Menethil",
+    "nightsong":"Nightsong",
+    "order-of-the-cloud-serpent":"Order of the Cloud Serpent",
+    "queldorei":"Quel'dorei",
+    "shadowmoon":"Shadowmoon",
+    "silverwing-hold":"Silverwing Hold",
+    "skywall":"Skywall",
+    "spirestone":"Spirestone",
+    "stormscale":"Stormscale",
+    "sundown-marsh":"Sundown Marsh",
+    "whisperwind":"Whisperwind",
+    "world-tree":"World Tree",
+    "wrathbringer":"Wrathbringer",
+    "zealot-blade":"Zealot Blade"
+},
+"kr": {
+    "alexstrasza":"Alexstrasza",
+    "azshara":"Azshara",
+    "burning-legion":"Burning Legion",
+    "cenarius":"Cenarius",
+    "dalaran":"Dalaran",
+    "deathwing":"Deathwing",
+    "durotan":"Durotan",
+    "garona":"Garona",
+    "guldan":"Gul'dan",
+    "hellscream":"Hellscream",
+    "hyjal":"Hyjal",
+    "malfurion":"Malfurion",
+    "norgannon":"Norgannon",
+    "rexxar":"Rexxar",
+    "stormrage":"Stormrage",
+    "wildhammer":"Wildhammer",
+    "windrunner":"Windrunner",
+    "zuljin":"Zul'jin"
 }}
 EOF
 );
@@ -543,7 +590,7 @@ $connectionTracking = [
 $file = [];
 $file['note'] = 'Brought to you by https://does.theapi.work/';
 $file['started'] = JSNow();
-foreach (['us','eu'] as $region) {
+foreach (['us','eu','tw','kr'] as $region) {
     $file['regions'][$region] = FetchRegionData($region);
     if (CatchKill()) {
         break;
