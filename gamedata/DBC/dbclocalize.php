@@ -98,6 +98,7 @@ EOF;
     $stmt->execute();
     $stmt->close();
 
+    /*
     LogLine("$locale tblDBCRandEnchants");
     $reader = CreateDB2Reader('ItemRandomProperties');
     $stmt = $db->prepare("insert into tblDBCRandEnchants (id, name_$locale) values (?, ?) on duplicate key update name_$locale = ifnull(values(name_$locale), name_enus)");
@@ -120,6 +121,7 @@ EOF;
     $stmt = $db->prepare("insert ignore into tblDBCItemRandomSuffix (locale, suffix) (select distinct '$locale', name_$locale from tblDBCRandEnchants where trim(name_$locale) != '' and id < 0)");
     $stmt->execute();
     $stmt->close();
+    */
 
     LogLine("$locale tblDBCPet");
 

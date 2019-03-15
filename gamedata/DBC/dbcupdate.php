@@ -447,6 +447,7 @@ EchoProgress(false);
 $stmt->close();
 unset($reader);
 
+/*
 LogLine("tblDBCRandEnchants");
 $reader = CreateDB2Reader('ItemRandomProperties');
 $stmt = $db->prepare("insert into tblDBCRandEnchants (id, name_$locale) values (?, ?) on duplicate key update name_$locale = values(name_$locale)");
@@ -467,6 +468,7 @@ RunAndLogError('truncate table tblDBCItemRandomSuffix');
 $stmt = $db->prepare("insert ignore into tblDBCItemRandomSuffix (locale, suffix) (select distinct '$locale', name_$locale from tblDBCRandEnchants where trim(name_$locale) != '' and id < 0)");
 RunAndLogError($stmt->execute());
 $stmt->close();
+*/
 
 LogLine("Making spell temp tables..");
 

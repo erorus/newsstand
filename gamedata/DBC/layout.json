@@ -92,7 +92,7 @@
         }
     },
     "ItemSparse": {
-        "hash": 4177665793,
+        "hash": 4170387555,
         "names": {
             "5": "name",
             "13": "stacksize",
@@ -101,12 +101,12 @@
             "18": "buycount",
             "21": "flags",
             "22": "oppositesideitem",
-            "42": "requiredskill",
-            "43": "level",
-            "54": "binds",
-            "61": "requiredlevel",
-            "62": "type",
-            "63": "quality"
+            "40": "requiredskill",
+            "41": "level",
+            "52": "binds",
+            "59": "requiredlevel",
+            "60": "type",
+            "61": "quality"
         },
         "strings": {
             "0": 1,
@@ -137,12 +137,6 @@
         "names": {
             "6": "spell",
             "8": "item"
-        }
-    },
-    "ItemRandomProperties": {
-        "hash": 3181952973,
-        "names": {
-            "0": "name"
         }
     },
     "SpellEffect": {
