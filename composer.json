@@ -1,0 +1,5 @@
+{
+    "require": {
+        "maxmind-db/reader": "~1.0"
+    }
+}
