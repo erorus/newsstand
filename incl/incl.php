@@ -1,7 +1,8 @@
 <?php
 
-require_once(__DIR__ . '/NewsstandHTTP.incl.php');
-require_once(__DIR__ . '/database.credentials.php');
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/NewsstandHTTP.incl.php';
+require_once __DIR__ . '/database.credentials.php';
 
 $db = false;
 

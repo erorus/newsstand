@@ -1640,6 +1640,7 @@ var TUJ = function ()
                     case 'sorbs':
                         banHTML += '<br><br>The IP address is listed on a third-party block list. We restrict IPs on that list because they include botnets and open proxies which may be used to send repeated requests to TUJ.';
                         break;
+                    case 'asn':
                     case 'mask':
                         banHTML += '<br><br>The IP address is on a network that has sent repeated automated queries to TUJ. Your computer may not be affected, but many others at your network/ISP are.';
                         break;

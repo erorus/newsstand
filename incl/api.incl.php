@@ -7,9 +7,25 @@ define('API_VERSION', 107);
 define('THROTTLE_PERIOD', 3600); // seconds
 define('THROTTLE_MAXHITS', 200);
 define('CONCURRENT_REQUEST_MAX', 3);
-define('BANLIST_CACHEKEY', 'banlist_cidrs4');
+define('BANLIST_CACHEKEY', 'banlist_cidrs5');
 define('BANLIST_FILENAME', __DIR__ . '/banlist.txt');
 define('BANLIST_USE_DNSBL', false);
+define('BANNED_ASNS', [
+    15003,  // Nobis Tech
+    46664,  // VolumeDrive
+    14618,  // Amazon
+    393406, // DigitalOcean
+    15169,  // Google
+    14061,  // DigitalOcean
+    16276,  // OVH
+    4250,   // Alentus
+    62567,  // DigitalOcean
+    7489,   // HostUS
+    36352,  // ColoCrossing
+    56041,  // China Mobile
+    204915, // Hostinger International
+]);
+define('BANNED_STATES', ['AL', 'GA', 'OH']);
 
 if ((PHP_SAPI != 'cli') && (($inMaintenance = APIMaintenance()) !== false)) {
     header('HTTP/1.1 503 Service Unavailable');
@@ -648,6 +664,37 @@ function IPInDNSBL($ip)
     return false;
 }
 
+function GetGeoIpDetails($ip) {
+    try {
+        $reader  = new MaxMind\Db\Reader(__DIR__ . '/../geolite/data/GeoLite2-City.mmdb');
+        $cityData = $reader->get($ip);
+    } catch (\Exception $e) {
+        $cityData = null;
+    }
+
+    try {
+        $reader = new MaxMind\Db\Reader(__DIR__ . '/../geolite/data/GeoLite2-ASN.mmdb');
+        $asnData = $reader->get($ip);
+    } catch (\Exception $e) {
+        $asnData = null;
+    }
+
+    $data = [
+        'asn' => null,
+        'state' => null,
+    ];
+    if (!is_null($cityData)) {
+        if (($cityData['country']['iso_code'] ?? '') === 'US') {
+            $data['state'] = $cityData['subdivisions'][0]['iso_code'] ?? null;
+        }
+    }
+    if (!is_null($asnData)) {
+        $data['asn'] = $asnData['autonomous_system_number'] ?? null;
+    }
+
+    return $data;
+}
+
 function IPIsBanned($ip = false, &$result = '')
 {
     if ($ip === false) {
@@ -715,6 +762,20 @@ function IPIsBanned($ip = false, &$result = '')
                     $result = 'ip';
                     break;
                 }
+            }
+        }
+    }
+
+    if (!$result) {
+        $geoIpDetails = GetGeoIpDetails($ip);
+        if (in_array($geoIpDetails['asn'], BANNED_ASNS)) {
+            $result = 'asn';
+        } elseif (in_array($geoIpDetails['state'], BANNED_STATES)) {
+            // Just log
+            $handle = fopen(__DIR__ . '/../log/states.csv', 'a');
+            if ($handle !== false) {
+                fputcsv($handle, [date('Y-m-d H:i:s'), $ip, $geoIpDetails['state']]);
+                fclose($handle);
             }
         }
     }
