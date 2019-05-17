@@ -25,7 +25,6 @@ define('BANNED_ASNS', [
     56041,  // China Mobile
     204915, // Hostinger International
 ]);
-define('BANNED_STATES', ['AL', 'GA', 'OH']);
 
 if ((PHP_SAPI != 'cli') && (($inMaintenance = APIMaintenance()) !== false)) {
     header('HTTP/1.1 503 Service Unavailable');
@@ -666,13 +665,6 @@ function IPInDNSBL($ip)
 
 function GetGeoIpDetails($ip) {
     try {
-        $reader  = new MaxMind\Db\Reader(__DIR__ . '/../geolite/data/GeoLite2-City.mmdb');
-        $cityData = $reader->get($ip);
-    } catch (\Exception $e) {
-        $cityData = null;
-    }
-
-    try {
         $reader = new MaxMind\Db\Reader(__DIR__ . '/../geolite/data/GeoLite2-ASN.mmdb');
         $asnData = $reader->get($ip);
     } catch (\Exception $e) {
@@ -681,13 +673,7 @@ function GetGeoIpDetails($ip) {
 
     $data = [
         'asn' => null,
-        'state' => null,
     ];
-    if (!is_null($cityData)) {
-        if (($cityData['country']['iso_code'] ?? '') === 'US') {
-            $data['state'] = $cityData['subdivisions'][0]['iso_code'] ?? null;
-        }
-    }
     if (!is_null($asnData)) {
         $data['asn'] = $asnData['autonomous_system_number'] ?? null;
     }
@@ -770,13 +756,6 @@ function IPIsBanned($ip = false, &$result = '')
         $geoIpDetails = GetGeoIpDetails($ip);
         if (in_array($geoIpDetails['asn'], BANNED_ASNS)) {
             $result = 'asn';
-        } elseif (in_array($geoIpDetails['state'], BANNED_STATES)) {
-            // Just log
-            $handle = fopen(__DIR__ . '/../log/states.csv', 'a');
-            if ($handle !== false) {
-                fputcsv($handle, [date('Y-m-d H:i:s'), $ip, $geoIpDetails['state']]);
-                fclose($handle);
-            }
         }
     }
 

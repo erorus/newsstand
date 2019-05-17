@@ -2,7 +2,7 @@
 
 set -e
 
-urls="https://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz https://geolite.maxmind.com/download/geoip/database/GeoLite2-ASN.tar.gz"
+urls="https://geolite.maxmind.com/download/geoip/database/GeoLite2-ASN.tar.gz"
 
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 
