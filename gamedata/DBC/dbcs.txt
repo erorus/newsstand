@@ -1,28 +1,26 @@
-DBFilesClient\BattlePetSpecies.db2
-DBFilesClient\BattlePetSpeciesState.db2
-DBFilesClient\Creature.db2
-DBFilesClient\CurvePoint.db2
-DBFilesClient\GlobalStrings.db2
-DBFilesClient\ItemAppearance.db2
-DBFilesClient\ItemBonus.db2
-DBFilesClient\Item.db2
-DBFilesClient\ItemEffect.db2
-DBFilesClient\ItemModifiedAppearance.db2
-DBFilesClient\ItemNameDescription.db2
-DBFilesClient\ItemRandomProperties.db2
-DBFilesClient\ItemRandomSuffix.db2
-DBFilesClient\ItemSparse.db2
-DBFilesClient\ItemSubClass.db2
-DBFilesClient\ManifestInterfaceData.db2
-DBFilesClient\ScalingStatDistribution.db2
-DBFilesClient\SkillLineAbility.db2
-DBFilesClient\SkillLine.db2
-DBFilesClient\SpellCategories.db2
-DBFilesClient\SpellCategory.db2
-DBFilesClient\SpellCooldowns.db2
-DBFilesClient\Spell.db2
-DBFilesClient\SpellEffect.db2
-DBFilesClient\SpellMisc.db2
-DBFilesClient\SpellName.db2
-DBFilesClient\SpellReagents.db2
-DBFilesClient\TradeSkillCategory.db2
+841622 DBFilesClient\BattlePetSpecies.db2
+801581 DBFilesClient\BattlePetSpeciesState.db2
+841631 DBFilesClient\Creature.db2
+892586 DBFilesClient\CurvePoint.db2
+1394440 DBFilesClient\GlobalStrings.db2
+982462 DBFilesClient\ItemAppearance.db2
+959070 DBFilesClient\ItemBonus.db2
+841626 DBFilesClient\Item.db2
+969941 DBFilesClient\ItemEffect.db2
+982457 DBFilesClient\ItemModifiedAppearance.db2
+1332559 DBFilesClient\ItemNameDescription.db2
+1572924 DBFilesClient\ItemSparse.db2
+1261604 DBFilesClient\ItemSubClass.db2
+1375801 DBFilesClient\ManifestInterfaceData.db2
+1141728 DBFilesClient\ScalingStatDistribution.db2
+1266278 DBFilesClient\SkillLineAbility.db2
+1240935 DBFilesClient\SkillLine.db2
+1139939 DBFilesClient\SpellCategories.db2
+1280619 DBFilesClient\SpellCategory.db2
+1139924 DBFilesClient\SpellCooldowns.db2
+1140089 DBFilesClient\Spell.db2
+1140088 DBFilesClient\SpellEffect.db2
+1003144 DBFilesClient\SpellMisc.db2
+1990283 DBFilesClient\SpellName.db2
+841946 DBFilesClient\SpellReagents.db2
+1301101 DBFilesClient\TradeSkillCategory.db2
