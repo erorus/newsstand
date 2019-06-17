@@ -427,7 +427,7 @@ var wowtoken = {
                 return fail();
             }
 
-            var divs = $('ins.adsbygoogle');
+            var divs = $('ins.adsbygoogle:not([class~="adsbygoogle-noablate"])');
             if (divs.length != 1) {
                 return fail();
             }
