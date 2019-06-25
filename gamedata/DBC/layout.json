@@ -180,10 +180,10 @@
         }
     },
     "SpellMisc": {
-        "hash": 1995014843,
+        "hash": 2579233675,
         "names": {
             "1": "iconid",
-            "11": "spellid"
+            "12": "spellid"
         }
     },
     "SpellName": {
