@@ -1,4 +1,4 @@
-## Interface: 80200
+## Interface: %s
 ## Title: The Undermine Journal
 ## Notes: %s
 ## OptionalDeps: Auctionator, AuctionLite, LibExtraTip

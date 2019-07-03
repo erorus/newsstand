@@ -637,7 +637,7 @@ function MakeZip($zipPath = false)
     }
 
     $tocFile = file_get_contents('../addon/TheUndermineJournal.toc');
-    $tocFile = sprintf($tocFile, date('D, F j, Y'), date('Ymd'));
+    $tocFile = sprintf($tocFile, GetInterfaceVersion(), date('D, F j, Y'), date('Ymd'));
 
     $zip->addFromString("TheUndermineJournal/TheUndermineJournal.toc",$tocFile);
     RecursiveAddToZip($zip, '../addon/libs/', 'TheUndermineJournal/libs/');
@@ -735,4 +735,18 @@ function luaBracket($s) {
         return $pre.$s.$suf;
     }
     return "''";
+}
+
+function GetInterfaceVersion() {
+    $cmd = <<<'END'
+echo 'v1/products/wow/versions' | nc us.version.battle.net 1119 | grep '^us|' | awk -F '|' '{print $6}' | awk -F '.' '{printf "%d%02d00", $1, $2}'
+END;
+
+    $result = trim(shell_exec($cmd));
+    if (!$result) {
+        sleep(5);
+        $result = trim(shell_exec($cmd));
+    }
+
+    return $result ?: '80200';
 }
