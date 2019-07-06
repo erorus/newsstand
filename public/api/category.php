@@ -983,7 +983,7 @@ function CategoryResult_herbalism($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Battle for Azeroth Herbs',
-            'items' => CategoryRegularItemList($house, 'i.id between 152505 and 152511'),
+            'items' => CategoryRegularItemList($house, '(i.id between 152505 and 152511 or i.id in (168487))'),
         ],
     ];
 
