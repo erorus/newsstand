@@ -1547,7 +1547,7 @@ function CategoryResult_jewelcrafting($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => $qualities[4] . ' Uncut Gems',
-            'items' => CategoryRegularItemList($house, 'i.id = 153706')
+            'items' => CategoryRegularItemList($house, 'i.id in (153706, 168635, 168193, 168189, 168188, 168192, 168191, 168190)')
         ]
     ];
 
