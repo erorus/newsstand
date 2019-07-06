@@ -2081,8 +2081,8 @@ function CategoryResult_cooking($house)
     $current = count($expansions) - 1;
 
     $foods = array_merge([
-        $expansions[$current] . ' Meat' => '154899, 154898, 154897, 152631',
-        $expansions[$current] . ' Fish' => '152549, 152548, 152547, 152546, 152545, 152544, 152543, 162515, 160711',
+        $expansions[$current] . ' Meat' => '154899, 154898, 154897, 152631, 168303, 168645',
+        $expansions[$current] . ' Fish' => '152549, 152548, 152547, 152546, 152545, 152544, 152543, 162515, 160711, 168302, 168646',
         ],
         CategoryGetTradeItemsInExpansion(185, $current),
         [$expansions[$current - 1] . ' Fish' => '133607, 124107, 124109, 124108, 124110, 124111, 124112'],
