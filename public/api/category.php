@@ -1646,7 +1646,7 @@ function CategoryResult_engineering($house)
                 'name' => 'ItemList',
                 'data' => [
                     'name'  => $setName,
-                    'items' => CategoryBonusItemList($house, "i.id in ($itemCsv) and i.id not in (161930,161931,153506,159936)")
+                    'items' => CategoryBonusItemList($house, "i.id in ($itemCsv) and i.id not in (161930,161931,153506,159936, 167997, 164696, 164679, 167996)")
                 ]
             ];
             if ($setName == 'Battle for Azeroth Weapons') {
@@ -1654,14 +1654,14 @@ function CategoryResult_engineering($house)
                     'name' => 'ItemList',
                     'data' => [
                         'name'  => 'Alliance Guns',
-                        'items' => CategoryBonusItemList($house, "i.id in (161930,161931)")
+                        'items' => CategoryBonusItemList($house, "i.id in (161930,161931, 167997, 164696)")
                     ]
                 ];
                 $tr['results'][] = [
                     'name' => 'ItemList',
                     'data' => [
                         'name'  => 'Horde Guns',
-                        'items' => CategoryBonusItemList($house, "i.id in (153506,159936)")
+                        'items' => CategoryBonusItemList($house, "i.id in (153506,159936, 164679, 167996)")
                     ]
                 ];
             }
