@@ -1738,7 +1738,7 @@ function CategoryResult_tailoring($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Cloth',
-            'items' => CategoryRegularItemList($house, 'i.id in (2589,2592,4306,4338,14047,21877,33470,53010,72988,111557,124437,151567,152576,152577)')
+            'items' => CategoryRegularItemList($house, 'i.id in (2589,2592,4306,4338,14047,21877,33470,53010,72988,111557,124437,151567,152576,152577,167738)')
         ]
     ];
 
@@ -1754,17 +1754,19 @@ function CategoryResult_tailoring($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Alliance Cloaks',
-            'items' => CategoryBonusItemList($house, 'i.id in (161987, 161988, 161991, 161990, 161998)'),
+            'items' => CategoryBonusItemList($house, 'i.id in (161987, 161988, 161991, 161990, 161998, 164717, 167983)'),
         ]
     ];
 
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Alliance Honorable Combatant',
-            'items' => CategoryBonusItemList($house, 'i.id between 161993 and 161997'),
-        ]
-    ];
+    foreach (['Notorious', 'Sinister', 'Honorable'] as $version) {
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => "Alliance $version Combatant",
+                'items' => CategoryBonusItemList($house, "i.name_enus like '$version Combatant''s Satin%' and i.name_enus not like '%Cloak' and i.requiredside='Alliance'")
+            ]
+        ];
+    }
 
     $tr['results'][] = [
         'name' => 'ItemList',
@@ -1778,17 +1780,19 @@ function CategoryResult_tailoring($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Horde Cloaks',
-            'items' => CategoryBonusItemList($house, 'i.id in (154697, 154698, 154701, 154700, 159917)'),
+            'items' => CategoryBonusItemList($house, 'i.id in (154697, 154698, 154701, 154700, 159917, 164676, 167982)'),
         ]
     ];
 
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Horde Honorable Combatant',
-            'items' => CategoryBonusItemList($house, 'i.id between 159912 and 159916'),
-        ]
-    ];
+    foreach (['Notorious', 'Sinister', 'Honorable'] as $version) {
+        $tr['results'][] = [
+            'name' => 'ItemList',
+            'data' => [
+                'name'  => "Alliance $version Combatant",
+                'items' => CategoryBonusItemList($house, "i.name_enus like '$version Combatant''s Satin%' and i.name_enus not like '%Cloak' and i.requiredside='Alliance'")
+            ]
+        ];
+    }
 
     $tr['results'][] = [
         'name' => 'ItemList',
@@ -1818,7 +1822,7 @@ function CategoryResult_tailoring($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => $expansions[$current] . ' Consumables',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x join tblDBCSpellCrafts xsc on xsc.item = x.id join tblDBCSpell xs on xsc.spell = xs.id where xs.expansion = ' . $current . ' and x.class=0 and xs.skillline=197) xyz on xyz.id = i.id'])
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x join tblDBCSpellCrafts xsc on xsc.item = x.id join tblDBCSpell xs on xsc.spell = xs.id where xs.expansion = ' . $current . ' and (x.class=0 or (x.class=15 and x.subclass=6)) and xs.skillline=197) xyz on xyz.id = i.id'])
         ]
     ];
 
