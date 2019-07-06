@@ -1,5 +1,5 @@
 <?php
-require_once('../incl/incl.php');
+require_once __DIR__ . '/../incl/incl.php';
 
 $langs = $VALID_LOCALES;
 $jsons = [];
