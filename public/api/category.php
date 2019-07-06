@@ -827,7 +827,7 @@ function CategoryResult_mining($house)
             [
                 'name' => 'ItemList',
                 'data' => ['name'  => 'Battle for Azeroth Ore',
-                           'items' => CategoryRegularItemList($house, 'i.id in (152512,152579,152513)')
+                           'items' => CategoryRegularItemList($house, 'i.id in (152512,152579,152513,168185)')
                 ]
             ],
             [
@@ -1341,6 +1341,22 @@ function CategoryResult_blacksmithing($house)
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
+            'name'  => 'Alliance Notorious Combatant Armor',
+            'items' => CategoryBonusItemList($house, 'i.id in (167965, 167967, 167969, 167971, 167973)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Alliance Sinister Combatant Armor',
+            'items' => CategoryBonusItemList($house, 'i.id in (164685, 164686, 164687, 164688, 164689)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
             'name'  => 'Alliance Honorable Combatant Armor',
             'items' => CategoryBonusItemList($house, 'i.id between 161893 and 161897')
         ]
@@ -1350,7 +1366,23 @@ function CategoryResult_blacksmithing($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Alliance Monel-Hardened Weapons',
-            'items' => CategoryBonusItemList($house, 'i.id in (161890, 161913, 161914, 161915, 161916, 161917)')
+            'items' => CategoryBonusItemList($house, 'i.id in (152818, 161913, 161914, 161915, 161916, 161917)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Alliance Notorious Combatant Weapons',
+            'items' => CategoryBonusItemList($house, 'i.id in (167937, 167939, 167975, 167989, 167991, 167995)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Alliance Sinister Combatant Weapons',
+            'items' => CategoryBonusItemList($house, 'i.id in (164690, 164691, 164692, 164693, 164718, 164684)')
         ]
     ];
 
@@ -1373,6 +1405,22 @@ function CategoryResult_blacksmithing($house)
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
+            'name'  => 'Horde Notorious Combatant Armor',
+            'items' => CategoryBonusItemList($house, 'i.id in (167964, 167966, 167968, 167970, 167972)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Horde Sinister Combatant Armor',
+            'items' => CategoryBonusItemList($house, 'i.id in (164653, 164654, 164655, 164656, 164657)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
             'name'  => 'Horde Honorable Combatant Armor',
             'items' => CategoryBonusItemList($house, 'i.id in (159860, 159891, 159863, 159865, 159866)')
         ]
@@ -1382,7 +1430,23 @@ function CategoryResult_blacksmithing($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Horde Monel-Hardened Weapons',
-            'items' => CategoryBonusItemList($house, 'i.id in (152818,152827,152828,152831,152832,152833)')
+            'items' => CategoryBonusItemList($house, 'i.id in (161890,152827,152828,152831,152832,152833)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Horde Notorious Combatant Weapons',
+            'items' => CategoryBonusItemList($house, 'i.id in (167936, 167938, 167974, 167988, 167990, 167994)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Horde Sinister Combatant Weapons',
+            'items' => CategoryBonusItemList($house, 'i.id in (164649, 164650, 164651, 164652, 164719, 164648)')
         ]
     ];
 
@@ -1399,7 +1463,7 @@ function CategoryResult_blacksmithing($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => $expansions[$current] . ' Other',
-            'items' => CategoryRegularItemList($house, 'i.id in (159826,152812,152813,162115,162109,162120)')
+            'items' => CategoryRegularItemList($house, 'i.id in (159826,152812,152813,162115,162109,162120,168417,158887)')
         ]
     ];
 
