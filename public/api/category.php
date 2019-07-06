@@ -925,7 +925,7 @@ function CategoryResult_skinning($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Battle for Azeroth Trade Goods',
-            'items' => CategoryRegularItemList($house, 'i.id in (152541,154722,153050,153051,154164,154165)'),
+            'items' => CategoryRegularItemList($house, 'i.id in (152541,154722,153050,153051,154164,154165,168649,168650)'),
         ],
     ];
 
@@ -1158,27 +1158,23 @@ function CategoryResult_leatherworking($house)
         ]
     ];
 
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Alliance Honorable Combatant Leather Armor',
-            'items' => CategoryBonusItemList($house, 'i.id between 161948 and 161952')
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Alliance Honorable Combatant Mail Armor',
-            'items' => CategoryBonusItemList($house, 'i.id between 161963 and 161967')
-        ]
-    ];
+    foreach (['Leather', 'Mail'] as $armorType) {
+        foreach (['Notorious', 'Sinister', 'Honorable'] as $version) {
+            $tr['results'][] = [
+                'name' => 'ItemList',
+                'data' => [
+                    'name'  => "Alliance $version Combatant $armorType Armor",
+                    'items' => CategoryBonusItemList($house, "i.name_enus like '$version Combatant''s $armorType%' and i.requiredside='Alliance'")
+                ]
+            ];
+        }
+    }
 
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Alliance Weapons',
-            'items' => CategoryBonusItemList($house, 'i.id in (161970, 161969, 161972, 161971, 161975, 161968)')
+            'items' => CategoryBonusItemList($house, 'i.id in (161970, 161969, 161972, 161971, 161975, 161968, 164711, 167935)')
         ]
     ];
 
@@ -1198,27 +1194,23 @@ function CategoryResult_leatherworking($house)
         ]
     ];
 
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Horde Honorable Combatant Leather Armor',
-            'items' => CategoryBonusItemList($house, 'i.id between 159884 and 159888')
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Horde Honorable Combatant Mail Armor',
-            'items' => CategoryBonusItemList($house, 'i.id between 159889 and 159893')
-        ]
-    ];
+    foreach (['Leather', 'Mail'] as $armorType) {
+        foreach (['Notorious', 'Sinister', 'Honorable'] as $version) {
+            $tr['results'][] = [
+                'name' => 'ItemList',
+                'data' => [
+                    'name'  => "Horde $version Combatant $armorType Armor",
+                    'items' => CategoryBonusItemList($house, "i.name_enus like '$version Combatant''s $armorType%' and i.requiredside='Horde'")
+                ]
+            ];
+        }
+    }
 
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
             'name'  => 'Horde Weapons',
-            'items' => CategoryBonusItemList($house, 'i.id in (154161, 154160, 154163, 154162, 159896, 154159)')
+            'items' => CategoryBonusItemList($house, 'i.id in (154161, 154160, 154163, 154162, 159896, 154159, 164670, 167934)')
         ]
     ];
 
@@ -1235,7 +1227,7 @@ function CategoryResult_leatherworking($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => $expansions[$current] . ' Consumables',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x join tblDBCSpellCrafts xsc on xsc.item = x.id join tblDBCSpell xs on xsc.spell = xs.id where xs.expansion = ' . $current . ' and x.class=0 and xs.skillline=165) xyz on xyz.id = i.id'])
+            'items' => CategoryRegularItemList($house, ['joins' => 'join (select distinct x.id from tblDBCItem x join tblDBCSpellCrafts xsc on xsc.item = x.id join tblDBCSpell xs on xsc.spell = xs.id where xs.expansion = ' . $current . ' and (x.class=0 or (x.class=15 and x.subclass=6)) and xs.skillline=165) xyz on xyz.id = i.id'])
         ]
     ];
 
