@@ -33,7 +33,7 @@ local LIBSTRING = LIBNAME.."_"..VERSION_MAJOR.."_"..VERSION_MINOR
 local lib = LibStub:NewLibrary(LIBNAME.."-"..VERSION_MAJOR, VERSION_MINOR)
 if not lib then return end
 
-LibStub("LibRevision"):Set("$URL: http://svn.norganna.org/libs/trunk/LibExtraTip/LibMoneyFrame.lua $","$Rev: 318 $","5.12.DEV.", 'auctioneer', 'libs')
+LibStub("LibRevision"):Set("$URL: Auc-Advanced/Libs/LibExtraTip/LibMoneyFrame.lua $","$Rev: 6278 $","5.12.DEV.", 'auctioneer', 'libs')
 
 -- Call function to deactivate any outdated version of the library.
 -- (calls the OLD version of this function, NOT the one defined in this

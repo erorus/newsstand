@@ -32,7 +32,7 @@ function lib:Set(url, revision, dev, ...)
 	local n = select("#", ...)
 	for i=1, n do
 		local sub = select(i, ...)
-		repo, file = url:match("%$URL: .*/("..sub..")/([^%$]+) %$")
+		repo, file = url:match("%$URL: Auc-Advanced/Libs/LibExtraTip/LibRevision.lua $]+) %$")
 		if repo then break end
 	end
 	local rev = tonumber(revision:match("(%d+)")) or 0
