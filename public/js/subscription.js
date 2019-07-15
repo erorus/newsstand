@@ -532,7 +532,8 @@ var TUJ_Subscription = function ()
             dest.appendChild(h);
             $(h).text(tuj.lang.marketNotifications + ' - ' + (isNaN(houseKey) ? tuj.lang['realms' + houseKey] : libtuj.GetRealmsForHouse(houseKey, false, true)));
 
-            for (var x = 0, classId; classId = tujConstants.itemClassOrder[x]; x++) {
+            for (var x = 0; x < tujConstants.itemClassOrder.length; x++) {
+                var classId = tujConstants.itemClassOrder[x];
                 classKey = 'i' + classId;
                 if (!byHouse[houseKey].hasOwnProperty(classKey)) {
                     continue;

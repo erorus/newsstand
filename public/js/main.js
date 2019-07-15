@@ -580,7 +580,7 @@ var libtuj = {
 };
 
 var tujConstants = {
-    itemClassOrder: [2, 9, 6, 4, 7, 3, 14, 1, 15, 8, 16, 10, 12, 13, 17, 18, 5, 11],
+    itemClassOrder: [2, 9, 6, 4, 0, 7, 3, 14, 11, 1, 15, 8, 16, 10, 12, 13, 17, 18, 5, 11],
     locales: {
         enus: 'English',
         dede: 'Deutsch',
