@@ -105,14 +105,6 @@ div.hc {
     }
 }
 
-.notifications-allowed select {
-    float: right;
-}
-
-.notifications-allowed div {
-    margin-top: 10px;
-}
-
 .adsbygoogle {
     width: 320px;
     height: 100px;

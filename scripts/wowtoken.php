@@ -14,7 +14,6 @@ require_once __DIR__ . '/../incl/incl.php';
 require_once __DIR__ . '/../incl/memcache.incl.php';
 require_once __DIR__ . '/../incl/battlenet.incl.php';
 require_once __DIR__ . '/../incl/wowtoken-twitter.credentials.php';
-require_once __DIR__ . '/../incl/android.gcm.credentials.php';
 
 RunMeNTimes(1);
 CatchKill();
@@ -77,7 +76,6 @@ $forceBuild = (isset($argv[1]) && $argv[1] == 'build');
 if ($gotData || $forceBuild) {
     BuildIncludes(array_keys($timeZones));
     SendTweets($forceBuild ? array_keys($timeZones) : array_keys($gotData));
-    SendAndroidNotifications(array_keys($gotData));
 }
 DebugMessage('Done! Started ' . TimeDiff($startTime, ['precision' => 'second']));
 
@@ -767,157 +765,6 @@ function UploadTweetMedia($mediaUrl) {
         DebugMessage('No/bad response from post to twitter', E_USER_WARNING);
         DebugMessage(print_r($outHeaders, true), E_USER_WARNING);
         return false;
-    }
-}
-
-function SendAndroidNotifications($regions)
-{
-    global $db;
-    global $timeZones, $timeLeftCodes, $regionNames;
-
-    $sent = [];
-
-    $AndroidEndpoint = 'https://android.googleapis.com/gcm/send';
-
-    foreach ($regions as $region) {
-        $properRegion = strtoupper($region);
-        if ($properRegion == 'US') {
-            $properRegion = 'NA';
-        }
-
-        $sql = 'select region, `when`, marketgold, timeleft, timeleftraw, ifnull(result, 1) result from tblWowToken w where region = ? order by `when` desc limit 2';
-        $stmt = $db->prepare($sql);
-        $stmt->bind_param('s', $region);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $bothTokenData = DBMapArray($result, null);
-        $tokenData = array_shift($bothTokenData);
-        $prevTokenData = count($bothTokenData) ? array_shift($bothTokenData) : [];
-        $stmt->close();
-
-        if (!$prevTokenData) {
-            continue;
-        }
-
-        if ($tokenData['marketgold'] == $prevTokenData['marketgold']) {
-            continue;
-        }
-
-        if (($tokenData['result'] != 1) || ($tokenData['result'] != $prevTokenData['result'])) {
-            continue;
-        }
-
-        $d = new DateTime('now', timezone_open($timeZones[$region]));
-        $d->setTimestamp(strtotime($tokenData['when']));
-
-        $formatted = [
-            'BUY' => number_format($tokenData['marketgold']),
-            'TIMETOSELL' => isset($timeLeftCodes[$tokenData['timeleft']]) ? $timeLeftCodes[$tokenData['timeleft']] : $tokenData['timeleft'],
-            'UPDATED' => $d->format('M j g:ia T'),
-        ];
-
-        $direction = $tokenData['marketgold'] > $prevTokenData['marketgold'] ? 'over' : 'under';
-
-        $sql = <<<EOF
-select s.endpoint, s.id, e.region, e.value
-from tblWowTokenSubs s
-join tblWowTokenEvents e on e.subid = s.id
-where s.lastfail is null
-and e.direction = '$direction'
-and e.region = '$properRegion'
-and s.endpoint like '$AndroidEndpoint%'
-EOF;
-
-        if ($direction == 'over') {
-            $sql .= ' and e.value >= ' . $prevTokenData['marketgold'] . ' and e.value < ' . $tokenData['marketgold'];
-        } else {
-            $sql .= ' and e.value <= ' . $prevTokenData['marketgold'] . ' and e.value > ' . $tokenData['marketgold'];
-        }
-
-        $stmt = $db->prepare($sql);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $rows = DBMapArray($result, ['id']);
-        $stmt->close();
-
-        if (count($rows) == 0) {
-            continue;
-        }
-
-        //sells in " . $formatted['TIMETOSELL'] . '
-        $message = $regionNames[$properRegion] . ' price %s: now '.$formatted['BUY']."g, as of ".$formatted['UPDATED'].'.';
-
-        $chunks = array_chunk($rows, 50, true);
-        foreach ($chunks as $chunk) {
-            $lookup = [];
-            $toSend = [];
-            $failed = [];
-            $successful = [];
-            foreach ($chunk as $id => $row) {
-                $registrationId = substr($row['endpoint'], strlen($AndroidEndpoint)+1);
-                $msg = sprintf($message, $direction.' '.number_format($row['value'], 0).'g');
-                $key = md5($row['endpoint']);
-                if (!isset($sent[$key])) {
-                    $lookup[] = $id;
-                    $toSend[] = $registrationId;
-                    $sent[$key] = $msg;
-                } else {
-                    $sent[$key] .= " \n".$msg;
-                }
-                MCSet('tokennotify-'.$key, $sent[$key], 8 * 60 * 60);
-            }
-            if (!count($toSend)) {
-                continue;
-            }
-            $toSend = json_encode([
-                'registration_ids' => $toSend,
-                'time_to_live' => 4 * 60 * 60
-            ]);
-            $headers = [
-                'Authorization: key='.ANDROID_GCM_KEY,
-                'Content-Type: application/json',
-            ];
-            $outHeaders = [];
-            $ret = \Newsstand\HTTP::Post($AndroidEndpoint, $toSend, $headers, $outHeaders);
-            $ret = json_decode($ret, true);
-            if ((json_last_error() != JSON_ERROR_NONE) || (!isset($ret['results']))) {
-                if ((count($lookup) == 1) && isset($outHeaders['responseCode']) && ($outHeaders['responseCode'] == '404')) {
-                    // only sent one, which failed, so mark it as failed
-                    $successful = [];
-                    $failed = $lookup;
-                } else {
-                    // can only assume all went through
-                    DebugMessage("Bad response from $AndroidEndpoint\n".print_r($headers, true).$toSend."\n".print_r($outHeaders, true)."\n$ret");
-                    $successful = $lookup;
-                    $failed = [];
-                }
-            } else {
-                for ($x = 0; $x < count($ret['results']); $x++) {
-                    if (isset($ret['results'][$x]['error'])) {
-                        $failed[] = $lookup[$x];
-                    } else {
-                        $successful[] = $lookup[$x];
-                    }
-                }
-            }
-
-            $stmt = $db->prepare('update tblWowTokenEvents set lasttrigger=now() where subid in ('.implode(',', $lookup).') and region=\''.$properRegion.'\' and direction=\''.$direction.'\'');
-            $stmt->execute();
-            $stmt->close();
-
-            if (count($successful)) {
-                $stmt = $db->prepare('update tblWowTokenSubs set lastpush=now() where id in ('.implode(',', $successful).')');
-                $stmt->execute();
-                $stmt->close();
-            }
-            if (count($failed)) {
-                $stmt = $db->prepare('update tblWowTokenSubs set lastpush=now(), lastfail=now() where id in ('.implode(',', $failed).')');
-                $stmt->execute();
-                $stmt->close();
-            }
-
-            DebugMessage('Sent '.count($lookup).' messages to '.$AndroidEndpoint.' - '.count($successful).' successful, '.count($failed).' failed.');
-        }
     }
 }
 
