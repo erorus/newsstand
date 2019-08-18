@@ -12,7 +12,6 @@ $startTime = time();
 
 require_once __DIR__ . '/../incl/incl.php';
 require_once __DIR__ . '/../incl/memcache.incl.php';
-require_once __DIR__ . '/../incl/heartbeat.incl.php';
 require_once __DIR__ . '/../incl/battlenet.incl.php';
 require_once __DIR__ . '/../incl/wowtoken-twitter.credentials.php';
 require_once __DIR__ . '/../incl/android.gcm.credentials.php';
@@ -76,7 +75,6 @@ $loopStart = time();
 $loops = 0;
 $gotData = [];
 while ((!CatchKill()) && (time() < ($loopStart + 60))) {
-    heartbeat();
     if (!($region = NextDataFile())) {
         break;
     }
@@ -134,7 +132,6 @@ function NextDataFile()
     unset($dir);
 
     if ($wait && !$gotFile) {
-        heartbeat();
         sleep(5);
         return true;
     }
