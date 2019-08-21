@@ -1,5 +1,5 @@
 #!/bin/bash
-find /var/newsstand/backup -name '*.sql.gz' -ctime +29 -delete
+find /var/newsstand/backup -name '*.sql.gz' -ctime +15 -delete
 php /var/newsstand/scripts/backupdata.php
 
 latest=`find /var/newsstand/backup -name 'backupdata.*.sql.gz' -ctime -2 | sort | tail -n 1`
