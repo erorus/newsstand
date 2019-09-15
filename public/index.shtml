@@ -140,7 +140,7 @@
                     <br clear="all"/>
                 </div>
                 <div class="page" id="policy-page">
-                    <div id="policy-accept"></div>
+                    <div id="accept-form"></div>
                     <div class="policy-section policy-scroller" id="policy-terms">
                         <h2>Terms of Service ("Terms")</h2>
                         <p>Last updated: April 17, 2016</p>

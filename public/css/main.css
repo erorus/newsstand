@@ -323,9 +323,9 @@ input.input-price::-webkit-outer-spin-button, input.input-price::-webkit-inner-s
 
 #policy-page .policy-section { margin: 2em 0; max-width: 55em }
 .policy-scroller { padding: 0.5em; height: 25em; overflow-y: auto; resize: both; border: 1px solid #808080 }
-#policy-accept label { display: block; margin: 0.5em }
-#policy-accept label.highlight::after { content: " <-- Required"; color: red }
-#policy-accept input.button { margin: 0 0.5em }
+#accept-form label { display: block; margin: 0.5em }
+#accept-form label.highlight::after { content: " <-- Required"; color: red }
+#accept-form input.button { margin: 0 0.5em }
 
 body.logged-out .logged-in-only { display: none }
 body.logged-in .logged-out-only { display: none }

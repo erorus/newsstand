@@ -16,7 +16,7 @@ var TUJ_Policy = function ()
         tuj.SetTitle(tuj.lang.termsAndPolicies);
 
         var policyPage = $('#policy-page');
-        policyPage.children('#policy-accept').hide();
+        policyPage.children('#accept-form').hide();
 
         switch (params.id) {
             case 'terms':
@@ -40,7 +40,7 @@ var TUJ_Policy = function ()
             return;
         }
 
-        var policyAccept = policyPage.children('#policy-accept');
+        var policyAccept = policyPage.children('#accept-form');
         policyAccept.empty();
 
         var s = libtuj.ce('span');
