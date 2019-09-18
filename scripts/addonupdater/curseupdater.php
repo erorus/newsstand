@@ -68,43 +68,18 @@ function GetLatestGameVersionIDs() {
     return [$latest['id']];
 }
 
-function GetNGDPVersion()
-{
-    $data = HTTP::Get('http://us.patch.battle.net:1119/wow/versions');
-    if ( ! $data) {
-        fwrite(STDERR, "Could not fetch current WoW version from NGDP\n");
+function GetNGDPVersion() {
+    $cmd = <<<'END'
+echo 'v1/products/wow/versions' | nc us.version.battle.net 1119 | grep '^eu|' | awk -F '|' '{print $6}'
+END;
 
-        return false;
+    $result = trim(shell_exec($cmd));
+    if (!$result) {
+        sleep(5);
+        $result = trim(shell_exec($cmd));
     }
 
-    $lines = preg_split('/[\r\n]+/', $data);
-    if (strpos($lines[0], '|') === false) {
-        fwrite(STDERR, "Invalid NGDP data\n");
-
-        return false;
-    }
-    $cols  = explode('|', strtolower($lines[0]));
-    $names = [];
-    foreach ($cols as $col) {
-        $name = $col;
-        if (($pos = strpos($name, '!')) !== false) {
-            $name = substr($name, 0, $pos);
-        }
-        $names[] = $name;
-    }
-
-    for ($x = 1; $x < count($lines); $x++) {
-        $vals = explode('|', $lines[$x]);
-        if (count($vals) != count($names)) {
-            continue;
-        }
-        $row = array_combine($names, $vals);
-        if (isset($row['region']) && $row['region'] == 'eu' && isset($row['versionsname'])) {
-            return $row['versionsname'];
-        }
-    }
-
-    return false;
+    return $result ?: false;
 }
 
 function mimeset(&$a) {
