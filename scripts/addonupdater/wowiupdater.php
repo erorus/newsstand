@@ -57,18 +57,21 @@ if (preg_match('/name="securitytoken" value="([^"]+)"/', $html, $res) == 0) {
 }
 $securityToken = $res[1];
 fwrite(STDERR, "Security token: $securityToken\n");
-if (($c = preg_match_all('/"compatible\[(\d+)\]"/', $html, $res)) == 0) {
+
+if (($c = preg_match_all('/"compatible\[(\d+)\]">(\d+\.\d+\.\d+)/', $html, $res)) == 0) {
     fwrite(STDERR, "Could not get compatible versions\n");
     curl_share_close($sh);
     exit(1);
 }
 $compatible = 0;
+$lastVersion = '0';
 for ($x = 0; $x < $c; $x++) {
-    if (intval($res[1][$x]) > $compatible) {
+    if (!$compatible || version_compare($lastVersion, $res[2][$x], '<')) {
         $compatible = $res[1][$x];
+        $lastVersion = $res[2][$x];
     }
 }
-fwrite(STDERR, "Compatible: $compatible\n");
+fwrite(STDERR, "Compatible: $compatible ({$lastVersion})\n");
 
 if (preg_match('/<textarea name="message"[^>]+>([\w\W]+?)<\/textarea>/', $html, $res) == 0) {
     fwrite(STDERR, "Could not get description\n");
