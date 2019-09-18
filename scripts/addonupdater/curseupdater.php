@@ -46,6 +46,9 @@ function GetLatestGameVersionIDs() {
     if ($ngdpVersion) {
         $result = [];
         foreach ($json as $versionObject) {
+            if ($versionObject['gameVersionTypeID'] !== 517) {
+                continue;
+            }
             $partCount = min(substr_count($ngdpVersion, '.'), substr_count($versionObject['name'], '.')) + 1;
             if (version_compare(
                 implode('.', array_slice(explode('.', $ngdpVersion), 0, $partCount)),
