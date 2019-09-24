@@ -117,10 +117,10 @@
         }
     },
     "ItemAppearance": {
-        "hash": 1110406733,
+        "hash": 652844385,
         "names": {
-            "1": "display",
-            "2": "iconfiledata"
+            "2": "display",
+            "3": "iconfiledata"
         }
     },
     "ItemModifiedAppearance": {
@@ -140,10 +140,10 @@
         }
     },
     "SpellEffect": {
-        "hash": 2150715575,
+        "hash": 4043116731,
         "names": {
-            "1": "effectorder",
-            "2": "effecttypeid",
+            "2": "effectorder",
+            "3": "effecttypeid",
             "9": "diesides",
             "10": "itemcreated",
             "22": "qtymadeFloat",
@@ -180,9 +180,9 @@
         }
     },
     "SpellMisc": {
-        "hash": 2579233675,
+        "hash": 235988635,
         "names": {
-            "1": "iconid",
+            "2": "iconid",
             "12": "spellid"
         }
     },
