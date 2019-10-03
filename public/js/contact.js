@@ -23,8 +23,15 @@ var TUJ_Contact = function ()
         tuj.SetTitle(tuj.lang.contactTheEditor);
     }
 
-    this.submit = function (f)
-    {
+    this.submit = function (f) {
+        if (/\b(?:wow)?classic\b/i.test(f.message.value)) {
+            if (confirm('Visit BootyBayGazette.com for auction house data on Classic realms.')) {
+                location.href='https://www.bootybaygazette.com/';
+            }
+
+            return false;
+        }
+
         $('#contact-page .form').hide();
         $('#contact-error-message').text(f.message.value);
 
