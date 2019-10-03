@@ -21,6 +21,7 @@ $result = [
     'language' => isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : 'en-US,en;q=0.5',
     'banned' => BotCheck(true),
     'user' => $loginState,
+    'bbgRealms' => GetBBGRealms(),
     'realms' => [GetRealms('US'),GetRealms('EU'),GetRealms('KR'),GetRealms('TW')]
 ];
 
@@ -81,4 +82,28 @@ function FetchHouseFromDefault() {
     }
 
     return false;
+}
+
+function GetBBGRealms() {
+    $cacheKey = 'bootybayrealms';
+
+    $result = MCGet($cacheKey);
+    if ($result !== false) {
+        return $result;
+    }
+
+    $result = [];
+
+    $json = \Newsstand\HTTP::Get('https://www.bootybaygazette.com/api/tujrealms.php');
+
+    if ($json !== false) {
+        $data = json_decode($json);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            $result = $data;
+        }
+    }
+
+    MCSet($cacheKey, $result);
+
+    return $result;
 }

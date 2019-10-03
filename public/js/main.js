@@ -648,6 +648,7 @@ var TUJ = function ()
     this.validRegions = validRegions;
     this.realms = undefined;
     this.allRealms = undefined;
+    this.bbgRealms = {};
     this.apiVersion = 0;
     this.banned = {isbanned: false};
     this.params = {
@@ -734,6 +735,9 @@ var TUJ = function ()
                 success: function (dta)
                 {
                     self.allRealms = dta.realms;
+                    if (dta.bbgRealms) {
+                        self.bbgRealms = dta.bbgRealms;
+                    }
                     if (dta.version) {
                         self.apiVersion = dta.version;
                     }
@@ -910,7 +914,7 @@ var TUJ = function ()
                 if (drawnRegion != self.params.region) {
                     DrawRealms();
                 }
-                $('#realm-list .realms-column a').each(function () {
+                $('#realm-list .realms-column a[rel]').each(function () {
                     this.href = self.BuildHash({realm: this.rel});
                 });
                 $('#realm-list .directions').text(libtuj.sprintf(self.lang.chooseRealm, validRegions[drawnRegion]));
@@ -1797,6 +1801,7 @@ var TUJ = function ()
         var a;
         var allRealms = [];
 
+        // Add TUJ realms
         for (var x in self.realms) {
             if (!self.realms.hasOwnProperty(x)) {
                 continue;
@@ -1804,18 +1809,37 @@ var TUJ = function ()
 
             allRealms.push(x);
         }
-
-        allRealms.sort(function (a, b)
-        {
-            return self.realms[a].name.localeCompare(self.realms[b].name);
-        });
-
         for (x = 0; x < allRealms.length; x++) {
             a = libtuj.ce('a');
             a.rel = allRealms[x];
             $(a).text(self.realms[allRealms[x]].name);
 
             $(realmsColumn).append(a);
+        }
+
+        // Add BBG realms
+        var regionName = self.validRegions[self.params.region];
+        var bbgRealms = (self.bbgRealms && self.bbgRealms[regionName]) || [];
+        for (x = 0; x < bbgRealms.length; x++) {
+            a = libtuj.ce('a');
+            a.href = 'https://www.bootybaygazette.com/#' + regionName.toLowerCase() + '/' + bbgRealms[x].slug;
+            $(a).text(bbgRealms[x].name);
+
+            $(realmsColumn).append(a);
+        }
+
+        // Sort all realm links
+        var realmLinks = realmsColumn.querySelectorAll('a');
+        var linkArray = [];
+        for (x = 0; x < realmLinks.length; x++) {
+            linkArray.push(realmLinks[x]);
+        }
+        linkArray.sort(function (a, b) {
+            return a.textContent.localeCompare(b.textContent);
+        });
+        while (linkArray.length) {
+            var link = linkArray.shift();
+            link.parentNode.appendChild(link);
         }
 
         Main();
