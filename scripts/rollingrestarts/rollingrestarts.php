@@ -6,7 +6,10 @@ require_once(__DIR__.'/../../incl/wowtoken-twitter.credentials.php');
 define('ALERT_URL', 'http://launcher.worldofwarcraft.com/alert');
 
 define('LAST_ALERT_PATH', __DIR__.'/rollingrestarts.txt');
-define('LAST_VERSION_PATH', __DIR__.'/liveversion.txt');
+define('LAST_VERSION_PATH', [
+    'wow' => __DIR__.'/liveversion.txt',
+    'wow_classic' => __DIR__.'/classicversion.txt',
+]);
 define('FONT_PATH', __DIR__.'/FRIZQT__.TTF');
 
 define('TWITTER_ACCOUNT', 'RollingRestarts');
@@ -14,28 +17,29 @@ define('TWEET_MAX_LENGTH', 140);
 
 function Main() {
     CheckForNewAlert();
-    CheckForNewVersion();
+    CheckForNewVersion('wow');
+    CheckForNewVersion('wow_classic');
 }
 
-function CheckForNewVersion() {
-    $version = GetCurrentVersion();
+function CheckForNewVersion($product) {
+    $version = GetCurrentVersion($product);
     if (!$version) {
         return;
     }
 
-    if ($version == GetLastVersion()) {
+    if ($version == GetLastVersion($product)) {
         return;
     }
 
-    file_put_contents(LAST_VERSION_PATH, $version);
+    file_put_contents(LAST_VERSION_PATH[$product], $version);
 
-    DebugMessage("New version: $version");
+    DebugMessage("New $product version: $version");
 
     SendTweet("#WorldofWarcraft #Patch " . $version);
 }
 
-function GetCurrentVersion() {
-    $stuff = shell_exec('echo v1/products/wow/versions | nc -w 10 us.version.battle.net 1119');
+function GetCurrentVersion($product) {
+    $stuff = shell_exec("echo v1/products/{$product}/versions | nc -w 10 us.version.battle.net 1119");
     if (!$stuff) {
         return '';
     }
@@ -53,9 +57,9 @@ function GetCurrentVersion() {
     return '';
 }
 
-function GetLastVersion() {
-    if (file_exists(LAST_VERSION_PATH)) {
-        return file_get_contents(LAST_VERSION_PATH);
+function GetLastVersion($product) {
+    if (file_exists(LAST_VERSION_PATH[$product])) {
+        return file_get_contents(LAST_VERSION_PATH[$product]);
     }
     return '';
 }
