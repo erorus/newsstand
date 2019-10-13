@@ -1,6 +1,6 @@
 #!/bin/bash
 me=`whoami`
-pth=/var/newsstand/heartbeat/
+pth=/tmp/heartbeat/
 
 for pid in `find $pth -mindepth 1 -user $me -cmin +7 -printf "%f "`; do
 	kill -9 $pid
