@@ -179,10 +179,14 @@ function NextDataFile()
             )
         )
     );
-    $json = json_decode(stream_get_contents($handle), true);
-
+    $json = stream_get_contents($handle);
     fclose($handle);
     unlink(SNAPSHOT_PATH . $fileName);
+
+    if (substr($json, 0, 2) === "\037\213") {
+        $json = gzdecode($json);
+    }
+    $json = json_decode($json, true);
 
     if (json_last_error() != JSON_ERROR_NONE) {
         DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " $snapshot data file corrupted! " . json_last_error_msg(), E_USER_WARNING);

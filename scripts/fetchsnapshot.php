@@ -286,6 +286,7 @@ ENDSQL;
     MCSet('housecheck_'.$house, time(), 0);
 
     $fileName = "$modified-" . str_pad($house, 5, '0', STR_PAD_LEFT) . ".json";
+    $data = gzencode($data);
     file_put_contents(SNAPSHOT_PATH . $fileName, $data, LOCK_EX);
     link(SNAPSHOT_PATH . $fileName, SNAPSHOT_PATH . 'parse/' . $fileName);
     if (in_array($region, ['US','EU'])) {
