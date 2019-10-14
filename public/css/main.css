@@ -84,6 +84,7 @@ h2 sub { display: block; font-weight: normal; font-size: 66%; margin-left: 2em }
 
 .wowhead-tooltip-powered { visibility: hidden }
 .wowhead-tooltip > table { background-color: black; border-radius: 5px }
+.wowhead-tooltip.wowhead-tooltip-width-restriction {width:auto !important; max-width:320px}
 
 span.price.full, span.age, span.nowrap { white-space: nowrap }
 abbr.full-date { border-bottom: 0 }
