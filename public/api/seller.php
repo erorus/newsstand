@@ -44,7 +44,7 @@ function SellerStats($house, $realm, $seller)
     $seller = mb_ereg_replace(' ', '', $seller);
     $seller = mb_strtoupper(mb_substr($seller, 0, 1)) . mb_strtolower(mb_substr($seller, 1));
 
-    $key = 'seller_stats_r2_' . $realm . '_' . $seller;
+    $key = 'seller_stats_r_' . $realm . '_' . $seller;
 
     if (($tr = MCGetHouse($house, $key)) !== false) {
         return $tr;
@@ -53,11 +53,11 @@ function SellerStats($house, $realm, $seller)
     $db = DBConnect();
 
     $sql = <<<'EOF'
-    SELECT id, realm, name, unix_timestamp(firstseen) firstseen, unix_timestamp(lastseen) lastseen
+    SELECT id, realm, name, unix_timestamp(lastseen) lastseen
     FROM tblSeller
     WHERE realm = ?
     AND name = ?
-    AND lastseen is not null
+    AND lastseen > timestampadd(day, -30, now())
 EOF;
     $stmt = $db->prepare($sql);
     $stmt->bind_param('is', $realm, $seller);

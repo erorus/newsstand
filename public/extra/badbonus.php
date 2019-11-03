@@ -25,7 +25,7 @@ SELECT a.id auctionid, a.timeleft, concat_ws(' ', i.name_enus, re.name_enus,
                 ) itemname,
 i.id itemid, ae.rand, ae.seed, 
 concat_ws(':', abb.bonus1, abb.bonus2, abb.bonus3, abb.bonus4, abb.bonus5, abb.bonus6) bonuses,
-a.bid, a.buy, r.region, r.name realmname, if(s.lastseen is null, '???', s.name) sellername, ibs.observed,
+a.bid, a.buy, r.region, r.name realmname, if(s.lastseen > timestampadd(day, -30, now()), s.name, '???') sellername, ibs.observed,
 abb.firstseen, abb.lastseen
 FROM tblAuction a
 join tblAuctionBadBonus abb on abb.house = a.house and abb.id = a.id

@@ -126,7 +126,7 @@ left join tblItemGlobal g on a.item = g.item and g.level = ifnull(ae.level, 0) a
 left join tblAuctionPet ap on ap.id = a.id and ap.house = a.house
 left join tblPetGlobal pg on ap.species = pg.species and pg.region = r.region and a.item = %1$d
 where a.house = ?
-and s.lastseen is not null
+and s.lastseen > timestampadd(day, -30, now())
 group by a.seller
 order by sum(least(if(a.buy = 0, a.bid, a.buy), ifnull(g.median, pg.median) * a.quantity)) desc
 limit 10

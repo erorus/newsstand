@@ -299,24 +299,14 @@ var TUJ_Seller = function ()
             td.appendChild(document.createTextNode(data.stats.regionmedianrank));
         }
 
-        tr = libtuj.ce('tr');
-        t.appendChild(tr);
-        tr.className = 'spacer';
-        td = libtuj.ce('td');
-        td.colSpan = 3;
-        tr.appendChild(td);
-
-        tr = libtuj.ce('tr');
-        t.appendChild(tr);
-        tr.className = 'last-seen';
-        td = libtuj.ce('th');
-        tr.appendChild(td);
-        td.appendChild(document.createTextNode(tuj.lang.firstSeen));
-        td = libtuj.ce('td');
-        tr.appendChild(td);
-        td.appendChild(libtuj.FormatDate(data.stats.firstseen));
-
         if (data.stats.auctions == 0) {
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+            tr.className = 'spacer';
+            td = libtuj.ce('td');
+            td.colSpan = 3;
+            tr.appendChild(td);
+
             tr = libtuj.ce('tr');
             t.appendChild(tr);
             tr.className = 'last-seen';

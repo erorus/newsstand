@@ -310,7 +310,7 @@ function ItemSellers($house, $item)
 select sum(sih.quantity) quantity, sum(if(sih.snapshot > timestampadd(hour, -97, now()), sih.quantity, 0)) recentquantity,
 unix_timestamp(max(sih.snapshot)) lastseen, s.realm sellerrealm, ifnull(s.name, '???') sellername
 from tblSellerItemHistory sih use index (primary)
-left join tblSeller s on sih.seller = s.id and s.lastseen is not null
+left join tblSeller s on sih.seller = s.id and s.lastseen > timestampadd(day, -30, now())
 where sih.house = ?
 and sih.item = ?
 group by sih.seller
@@ -344,7 +344,7 @@ function ItemLastSellers($house, $item) {
     $sql = <<<'EOF'
 select unix_timestamp(ils.snapshot) lastseen, s.realm sellerrealm, ifnull(s.name, '???') sellername
 from tblItemLastSeller ils
-join tblSeller s on ils.seller = s.id and s.lastseen is not null
+join tblSeller s on ils.seller = s.id and s.lastseen > timestampadd(day, -30, now())
 where ils.house = ?
 and ils.item = ?
 and s.lastseen > timestampadd(day, -1 * ?, now())
@@ -392,7 +392,7 @@ s.realm sellerrealm, ifnull(s.name, '???') sellername,
 concat_ws(':',ae.bonus1,ae.bonus2,ae.bonus3,ae.bonus4,ae.bonus5,ae.bonus6) bonuses
 FROM `tblAuction` a
 join tblDBCItem i on a.item=i.id
-left join tblSeller s on a.seller=s.id and s.lastseen is not null
+left join tblSeller s on a.seller=s.id and s.lastseen > timestampadd(day, -30, now())
 left join tblAuctionExtra ae on ae.house=a.house and ae.id=a.id
 left join tblDBCRandEnchants re on re.id = ae.rand
 WHERE a.house=? and a.item=?
