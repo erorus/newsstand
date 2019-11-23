@@ -774,19 +774,15 @@ var TUJ_Subscription = function ()
         for (var hx = 0; houseKey = houseKeys[hx]; hx++) {
             var realmId = 0;
             var regionId = 0;
-            for (var rlm in tuj.realms) {
-                if (!tuj.realms.hasOwnProperty(rlm)) {
-                    continue;
-                }
-                if (tuj.realms[rlm].house == houseKey) {
-                    realmId = rlm;
-                    break;
-                }
-            }
-            for (var rx = 0; rx < tuj.validRegions.length; rx++) {
-                if (tuj.validRegions[rx] == tuj.realms[realmId].region) {
-                    regionId = rx;
-                    break;
+            for (var rgIndex in tuj.allRealms) {
+                if (tuj.allRealms.hasOwnProperty(rgIndex)) {
+                    for (var rlm in tuj.allRealms[rgIndex]) {
+                        if (tuj.allRealms[rgIndex].hasOwnProperty(rlm) &&
+                            tuj.allRealms[rgIndex][rlm].house == houseKey) {
+                            realmId = rlm;
+                            regionId = rgIndex;
+                        }
+                    }
                 }
             }
 
