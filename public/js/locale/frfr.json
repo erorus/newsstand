@@ -640,7 +640,7 @@
 
     "paidExpires": "Votre abonnement payant expire {1}.",
     "freeSubscriptionAccount": "Votre compte utilise un abonnement gratuit.",
-    "clickToExtendSubscription": "Cliquez ci-dessous pour prolonger votre abonnement payant de {1} jours pour {2}. Note: Cela peut demander une heure ou plus pour traiter la demande.",
+    "clickToExtendSubscription": "Cliquez ci-dessous pour prolonger votre abonnement payant. Note: Cela peut demander une heure ou plus pour traiter la demande.",
     "payWithBitcoin": "Payer en Bitcoin",
 
     "promoCode": "Code promotion : ",

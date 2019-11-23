@@ -323,12 +323,13 @@ var TUJ_Subscription = function ()
             var d = libtuj.ce('div');
             d.className = 'instruction';
             dest.appendChild(d);
-            $(d).text(libtuj.sprintf(tuj.lang.clickToExtendSubscription, subData.paid.accept.days, subData.paid.accept.price));
+            $(d).text(tuj.lang.clickToExtendSubscription);
 
             var f = libtuj.ce('form');
             f.method = 'post';
             f.action = 'https://www.paypal.com/cgi-bin/webscr';
             f.target = '_top';
+            f.style.textAlign = 'center';
 
             var i = libtuj.ce('input');
             i.type = 'hidden';
@@ -355,6 +356,18 @@ var TUJ_Subscription = function ()
             i.name = 'submit';
             i.alt = 'PayPal - The safer, easier way to pay online!';
             f.appendChild(i);
+
+            var s = libtuj.ce('div');
+            f.appendChild(s);
+            s.style.fontWeight = 'bold';
+            s.style.margin = '0.5em 0';
+            s.appendChild(document.createTextNode(tuj.LoggedInUserName()));
+
+            var now = new Date();
+            s.appendChild(document.createElement('br'));
+            s.appendChild(document.createTextNode(
+                libtuj.FormatDate(Math.floor(now.getTime() / 1000) + subData.paid.accept.days * 24 * 60 * 60, true, 'day', true)
+                + ' - ' + subData.paid.accept.price));
 
             dest.appendChild(f);
 

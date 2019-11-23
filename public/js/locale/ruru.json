@@ -640,7 +640,7 @@
 
     "paidExpires": "Your account's paid subscription expires {1}.",
     "freeSubscriptionAccount": "Your account is on the free subscription tier.",
-    "clickToExtendSubscription": "Click below to extend your paid subscription by {1} days for {2}. Note: It may require an hour or more to process the payment.",
+    "clickToExtendSubscription": "Click below to extend your paid subscription. Note: It may require an hour or more to process the payment.",
     "payWithBitcoin": "Оплата в Bitcoin",
 
     "promoCode": "Promo Code: ",

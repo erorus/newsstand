@@ -640,7 +640,7 @@
 
     "paidExpires": "A assinatura paga de sua conta expira em {1}.",
     "freeSubscriptionAccount": "Sua conta está no nível e assinatura gratuita.",
-    "clickToExtendSubscription": "Clique abaixo para extender sua assinatura paga por {1} dias por {2}. Nota: pagamentos via Paypal podem precisar de uma hora ou mais para serem processados.",
+    "clickToExtendSubscription": "Clique abaixo para extender sua assinatura paga. Nota: pagamentos via Paypal podem precisar de uma hora ou mais para serem processados.",
     "payWithBitcoin": "Pagar com Bitcoin",
 
     "promoCode": "Promo Code: ",
