@@ -371,6 +371,11 @@ var TUJ_Subscription = function ()
 
             dest.appendChild(f);
 
+            var d = libtuj.ce('div');
+            d.className = 'instruction';
+            dest.appendChild(d);
+            $(d).html(tuj.lang.excludesBootyBayGazette);
+
             /*
             d = libtuj.ce('div');
             d.className = 'bitcoin';
@@ -385,6 +390,7 @@ var TUJ_Subscription = function ()
             */
         }
 
+        /*
         d = libtuj.ce('div');
         d.className = 'promo-code';
         dest.appendChild(d);
@@ -399,6 +405,7 @@ var TUJ_Subscription = function ()
         btn.value = tuj.lang.submit;
         $(btn).on('click', UsePromoCode.bind(this, btn, codeBox));
         d.appendChild(btn);
+        */
 
     }
 

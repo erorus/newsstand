@@ -641,6 +641,7 @@
     "paidExpires": "Dein bezahltes Abonnement endet: {1}.",
     "freeSubscriptionAccount": "Du nutzt das kostenlose Abonnement.",
     "clickToExtendSubscription": "Zahlmethode wählen, um das Abonnement zu verlängern. Bemerke: Es kann eine Stunde oder mehr dauern, bis die Zahlung verarbeitet wurde.",
+    "excludesBootyBayGazette": "Note: This does <b>not</b> include Booty Bay Gazette.",
     "payWithBitcoin": "Mit Bitcoin bezahlen",
 
     "promoCode": "Promo Code: ",
