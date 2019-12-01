@@ -1788,8 +1788,8 @@ function CategoryResult_tailoring($house)
         $tr['results'][] = [
             'name' => 'ItemList',
             'data' => [
-                'name'  => "Alliance $version Combatant",
-                'items' => CategoryBonusItemList($house, "i.name_enus like '$version Combatant''s Satin%' and i.name_enus not like '%Cloak' and i.requiredside='Alliance'")
+                'name'  => "Horde $version Combatant",
+                'items' => CategoryBonusItemList($house, "i.name_enus like '$version Combatant''s Satin%' and i.name_enus not like '%Cloak' and i.requiredside='Horde'")
             ]
         ];
     }
