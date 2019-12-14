@@ -15,7 +15,6 @@ mb_internal_encoding("UTF-8");
 
 define('HISTORY_DAYS', 14);
 define('HISTORY_DAYS_DEEP', 93);
-define('ITEM_LAST_SELLER_MAX_COUNT', 10);
 define('SOCKET_FAKE_ITEM_NAME_DESC_ID', 10);
 define('MIN_ITEM_LEVEL_PRICING', 175); // items with an item level below this amount, after bonuses are applied, will be considered as the base item level for pricing
 

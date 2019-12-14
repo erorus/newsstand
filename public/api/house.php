@@ -16,10 +16,8 @@ header('Expires: '.date(DATE_RFC1123, time() + 10));
 
 $json = array(
     'timestamps'    => HouseTimestamps($house),
-    'sellers'       => HouseTopSellers($house),
     'mostAvailable' => HouseMostAvailable($house),
     'deals'         => HouseDeals($house),
-    'sellerbots'    => [],
 );
 
 $json = json_encode($json, JSON_NUMERIC_CHECK);
@@ -99,45 +97,6 @@ EOF;
             }
         }
     }
-
-    MCSetHouse($house, $cacheKey, $tr);
-
-    return $tr;
-}
-
-function HouseTopSellers($house)
-{
-    global $db;
-
-    $cacheKey = 'house_topsellers';
-    if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
-        return $tr;
-    }
-
-    DBConnect();
-
-    $sql = <<<'EOF'
-SELECT r.id realm, s.name
-FROM tblAuction a
-join tblSeller s on a.seller = s.id
-join tblRealm r on s.realm = r.id
-left join tblAuctionExtra ae on ae.id = a.id and ae.house = a.house
-left join tblItemGlobal g on a.item = g.item and g.level = ifnull(ae.level, 0) and g.region = r.region and a.item != %1$d
-left join tblAuctionPet ap on ap.id = a.id and ap.house = a.house
-left join tblPetGlobal pg on ap.species = pg.species and pg.region = r.region and a.item = %1$d
-where a.house = ?
-and s.lastseen > timestampadd(day, -30, now())
-group by a.seller
-order by sum(least(if(a.buy = 0, a.bid, a.buy), ifnull(g.median, pg.median) * a.quantity)) desc
-limit 10
-EOF;
-
-    $stmt = $db->prepare(sprintf($sql, BATTLE_PET_CAGE_ITEM));
-    $stmt->bind_param('i', $house);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $tr = $result->fetch_all(MYSQLI_ASSOC);
-    $stmt->close();
 
     MCSetHouse($house, $cacheKey, $tr);
 

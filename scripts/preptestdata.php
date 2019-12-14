@@ -27,13 +27,6 @@ function GetDataTables() {
     $realms = DBMapArray($result, null);
     $stmt->close();
 
-    $sql = sprintf('SELECT id from tblSeller where realm in (%s) order by lastseen desc limit 20', implode(',', $realms));
-    $stmt = $db->prepare($sql);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $sellers = DBMapArray($result, null);
-    $stmt->close();
-
     $tables = [
         'tblAuction' => 'house='.$house,
         'tblAuctionExtra' => 'house='.$house,
@@ -46,16 +39,12 @@ function GetDataTables() {
         'tblItemHistoryDaily' => 'house='.$house,
         'tblItemHistoryHourly' => 'house='.$house,
         //'tblItemHistoryMonthly' => 'item in (select id from tblDBCItem where auctionable=1) and house='.$house,
-        'tblItemLastSeller' => 'house='.$house,
         'tblItemSummary' => 'house='.$house,
         'tblPet' => '1=1',
         'tblPetGlobal' => '1=1',
         'tblPetHistoryHourly' => 'house='.$house,
         'tblPetSummary' => 'house='.$house,
         'tblRealm' => '1=1',
-        'tblSeller' => 'realm in ('.implode(',',$realms).')',
-        'tblSellerHistoryHourly' => 'seller in ('.implode(',',$sellers).')',
-        'tblSellerItemHistory' => 'seller in ('.implode(',',$sellers).')',
         'tblSnapshot' => 'house='.$house,
         'tblWowToken' => '1=1',
     ];

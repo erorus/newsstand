@@ -36,10 +36,6 @@ $json = array(
     'battlepets' => SearchBattlePets($house, $search, $locale),
 );
 
-if (GetRegion($house) != 'EU') {
-    $json['sellers'] = SearchSellers($house, $search);
-}
-
 $ak = array_keys($json);
 foreach ($ak as $k) {
     if (count($json[$k]) == 0) {
@@ -153,37 +149,6 @@ EOF;
         $tr = SearchItems($house, $search, $locale, true);
     }
 
-    return $tr;
-}
-
-function SearchSellers($house, $search)
-{
-    global $db;
-
-    $search = mb_ereg_replace('%', '', $search);
-    $terms = mb_ereg_replace('\s+', '%', " $search ");
-    $exact = mb_ereg_replace('\s+', '', $search);
-    $first = $exact . '%';
-
-    $sql = <<<EOF
-select s.id, r.id realm, s.name, unix_timestamp(s.firstseen) firstseen, unix_timestamp(s.lastseen) lastseen
-from tblSeller s
-join tblRealm r on s.realm=r.id and r.house=?
-where convert(s.name using utf8) collate utf8_unicode_ci like ?
-and s.lastseen > timestampadd(day, -30, now())
-order by
-    if(convert(s.name using utf8) collate utf8_unicode_ci = ?, 0, 1) asc,
-    if(convert(s.name using utf8) collate utf8_unicode_ci like ?, 0, 1) asc,
-    s.lastseen desc
-limit 50
-EOF;
-
-    $stmt = $db->prepare($sql);
-    $stmt->bind_param('isss', $house, $terms, $exact, $first);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $tr = $result->fetch_all(MYSQLI_ASSOC);
-    $stmt->close();
     return $tr;
 }
 

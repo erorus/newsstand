@@ -228,63 +228,6 @@ var TUJ_Search = function ()
             }
         }
 
-        if (dta.sellers) {
-            dta.sellers.sort(function (a, b)
-            {
-                return a.name.localeCompare(b.name) || tuj.realms[a.realm].name.localeCompare(tuj.realms[b.realm].name);
-            });
-
-            var seller;
-
-            t = libtuj.ce('table');
-            t.className = 'search-sellers';
-            searchPage.append(t);
-
-            tr = libtuj.ce('tr');
-            t.appendChild(tr);
-
-            td = libtuj.ce('th');
-            td.className = 'title';
-            tr.appendChild(td);
-            td.colSpan = 5;
-            $(td).text(tuj.lang.sellers);
-
-            tr = libtuj.ce('tr');
-            t.appendChild(tr);
-
-            td = libtuj.ce('th');
-            td.className = 'name';
-            tr.appendChild(td);
-            $(td).text(tuj.lang.name);
-
-            td = libtuj.ce('th');
-            td.className = 'date';
-            tr.appendChild(td);
-            $(td).text(tuj.lang.lastSeen);
-
-            for (x = 0; seller = dta.sellers[x]; x++) {
-                results++;
-                lastResult = {page: 'seller', id: seller.name, realm: seller.realm};
-
-                tr = libtuj.ce('tr');
-                t.appendChild(tr);
-
-                td = libtuj.ce('td');
-                td.className = 'name';
-                tr.appendChild(td);
-                a = libtuj.ce('a');
-                td.appendChild(a);
-                a.href = tuj.BuildHash({page: 'seller', id: seller.name, realm: seller.realm});
-                $(a).text(seller.name + ' - ' + tuj.realms[seller.realm].name);
-                lastResultName = AddToSearched(a, seller.name);
-
-                td = libtuj.ce('td');
-                td.className = 'date';
-                tr.appendChild(td);
-                td.appendChild(libtuj.FormatDate(seller.lastseen));
-            }
-        }
-
         if (dta.battlepets) {
             dta.battlepets.sort(function (a, b)
             {

@@ -639,8 +639,8 @@ if (!Date.now) {
 var TUJ = function ()
 {
     var validRegions = ['US','EU','KR','TW'];
-    var validPages = ['', 'search', 'item', 'seller', 'battlepet', 'contact', 'category', 'transmog', 'subscription', 'policy'];
-    var pagesNeedRealm = [true, true, true, true, true, false, true, true, false, false];
+    var validPages = ['', 'search', 'item', 'battlepet', 'contact', 'category', 'transmog', 'subscription', 'policy'];
+    var pagesNeedRealm = [true, true, true, true, false, true, true, false, false];
     var houseInfo = {};
     var drawnRegion = -1;
     var loggedInUser = false;
@@ -1568,26 +1568,11 @@ var TUJ = function ()
         }
 
         if (!self.params.page) {
-            $('#front-page-sellers').empty();
             $('#front-page-most-available').empty();
             $('#front-page-deals').empty();
-            $('#front-page-sellerbots').empty();
 
             if (houseInfo.hasOwnProperty(tuj.realms[self.params.realm].house)) {
                 var info = houseInfo[tuj.realms[self.params.realm].house];
-                if (info.hasOwnProperty('sellers') && info.sellers.length) {
-                    var d = document.getElementById('front-page-sellers');
-                    var h = libtuj.ce('h3');
-                    d.appendChild(h);
-                    $(h).text(self.lang.topSellers);
-                    for (var x = 0; x < info.sellers.length; x++) {
-                        var a = libtuj.ce('a');
-                        a.href = tuj.BuildHash({page: 'seller', realm: info.sellers[x].realm, id: info.sellers[x].name});
-                        a.appendChild(document.createTextNode(info.sellers[x].name + (info.sellers[x].realm == self.params.realm ? '' : (' - ' + tuj.realms[info.sellers[x].realm].name))));
-                        d.appendChild(a);
-                        d.appendChild(libtuj.ce('br'));
-                    }
-                }
                 if (info.hasOwnProperty('mostAvailable') && info.mostAvailable.length) {
                     var d = document.getElementById('front-page-most-available');
                     var h = libtuj.ce('h3');
@@ -1612,22 +1597,6 @@ var TUJ = function ()
                         a.href = tuj.BuildHash({page: 'item', id: info.deals[x].id});
                         a.rel = 'item=' + info.deals[x].id + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
                         a.appendChild(document.createTextNode('[' + info.deals[x]['name_' + tuj.locale] + ']'));
-                        d.appendChild(a);
-                        d.appendChild(libtuj.ce('br'));
-                    }
-                }
-                if (info.hasOwnProperty('sellerbots') && info.sellerbots.length) {
-                    var d = document.getElementById('front-page-sellerbots');
-                    var h = libtuj.ce('h3');
-                    d.appendChild(h);
-                    var a = libtuj.ce('a');
-                    h.appendChild(a);
-                    a.href = '/extra/multirealm.php';
-                    $(a).addClass('highlight').text('Probable Bots');
-                    for (var x = 0; x < info.sellerbots.length; x++) {
-                        var a = libtuj.ce('a');
-                        a.href = tuj.BuildHash({page: 'seller', realm: info.sellerbots[x].realm, id: info.sellerbots[x].name});
-                        a.appendChild(document.createTextNode(info.sellerbots[x].name + (info.sellerbots[x].realm == self.params.realm ? '' : (' - ' + tuj.realms[info.sellerbots[x].realm].name))));
                         d.appendChild(a);
                         d.appendChild(libtuj.ce('br'));
                     }
@@ -1670,23 +1639,6 @@ var TUJ = function ()
             }
         }
     }
-
-    this.SellerIsBot = function (realm, name)
-    {
-        var house = tuj.realms[realm].house;
-        if (!houseInfo.hasOwnProperty(house)) {
-            return false;
-        }
-        if (!houseInfo[house].hasOwnProperty('sellerbots')) {
-            return false;
-        }
-        for (var x = 0, bot; bot = houseInfo[house].sellerbots[x]; x++) {
-            if (bot.realm == realm && bot.name == name) {
-                return true;
-            }
-        }
-        return false;
-    };
 
     this.SetTitle = function (titlePart)
     {

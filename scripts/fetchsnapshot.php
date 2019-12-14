@@ -17,7 +17,6 @@ define('DATA_FILE_CURLOPTS', [
 ]);
 
 $regions = ['US','EU','CN','TW','KR'];
-$saveForRealmPop = is_dir(SNAPSHOT_PATH . '/realmpop');
 
 if (!isset($argv[1]) || !in_array($argv[1], $regions)) {
     DebugMessage('Need region '.implode(', ', $regions), E_USER_ERROR);
@@ -58,7 +57,7 @@ DebugMessage('Done! Started ' . TimeDiff($startTime));
 
 function FetchSnapshot()
 {
-    global $db, $region, $saveForRealmPop;
+    global $db, $region;
 
     $lockName = "fetchsnapshot_$region";
 
@@ -291,9 +290,6 @@ ENDSQL;
     link(SNAPSHOT_PATH . $fileName, SNAPSHOT_PATH . 'parse/' . $fileName);
     if (in_array($region, ['US','EU'])) {
         link(SNAPSHOT_PATH . $fileName, SNAPSHOT_PATH . 'watch/' . $fileName);
-    }
-    if ($saveForRealmPop) {
-        link(SNAPSHOT_PATH . $fileName, SNAPSHOT_PATH . "realmpop/{$modified}-{$region}-{$maxId}.json");
     }
     unlink(SNAPSHOT_PATH . $fileName);
 

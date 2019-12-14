@@ -129,11 +129,6 @@ abbr:hover.full-date { border-bottom: 1px dotted }
 table.auctionlist { margin: 0 auto }
 table.auctionlist td.price abbr { border-bottom: 0 }
 table.auctionlist td.price abbr:hover { border-bottom: 1px dotted }
-table.auctionlist td.seller, table.auctionlist th.seller { text-align: left; vertical-align: top }
-
-table.sellerlist {margin:0 auto; width:30em}
-table.sellerlist .seller {text-align: left}
-table.sellerlist .lastseen {text-align: right}
 
 span.import-toggle { position: absolute; top: 5px; right: 5px; border: 1px solid #999; border-radius: 5px; padding: 2px; font-size: 50%; cursor: pointer }
 table.category th.import-string { padding-left: 0; padding-right: 0 }
@@ -196,22 +191,6 @@ table.highcharts-tuj-tooltip td + td {padding-left: 0.4em}
 .battlepet-breeds a, .item-bonussets a, .transmog-slots a { display: inline-block; padding: 1em; margin-right: 1em; margin-bottom: 1em; background-color: #DDD; opacity: 0.5; text-decoration: none; box-shadow: 0.2em 0.2em #CCC; white-space: nowrap; cursor: pointer }
 .battlepet-breeds a.selected, .item-bonussets a.selected, .transmog-slots a.selected { opacity: 1; font-weight: bold }
 .battlepet-breeds a:hover, .item-bonussets a:hover, .transmog-slots a:hover { opacity: 1 }
-
-a.sellerbot::after { content: 'BOT'; font-size: 80%; padding: 0 2px; background-color: #900; color: white; border-radius: 2px; margin: 0 4px; position: relative; top: -1px }
-
-#seller-page .seller-stats .ad { margin-top: 0 }
-#seller-page .seller-stats { position: relative; text-align: right; font-size: 110%; display: inline-block; width: 100% }
-#seller-page .seller-stats table { max-width: 25em; float: left; margin: 0 0 1em; font-size: 100% }
-#seller-page .seller-stats tr.spacer td { height: 0.5em }
-#seller-page .seller-stats td { text-align: right }
-#seller-page .seller-stats th { text-align: left; padding-right: 3em }
-#seller-page .seller-stats td.rank { font-size: 75%; font-style: italic; vertical-align: top; padding-left: 0.5em }
-#seller-page .seller-stats td.rank::before { content: '#'; }
-
-#seller-page .ad { margin-top: 0 }
-#seller-page .chart-section { margin: 2em 0 }
-#seller-page .chart { width: 100%; height: 22em; margin-top: 1em }
-#seller-page .chart.treemap { height: 30em }
 
 #contact-page .namefield { display: none }
 #contact-page a { text-decoration: underline }

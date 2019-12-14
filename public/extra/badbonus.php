@@ -25,13 +25,12 @@ SELECT a.id auctionid, a.timeleft, concat_ws(' ', i.name_enus, re.name_enus,
                 ) itemname,
 i.id itemid, ae.rand, ae.seed, 
 concat_ws(':', abb.bonus1, abb.bonus2, abb.bonus3, abb.bonus4, abb.bonus5, abb.bonus6) bonuses,
-a.bid, a.buy, r.region, r.name realmname, if(s.lastseen > timestampadd(day, -30, now()), s.name, '???') sellername, ibs.observed,
+a.bid, a.buy, r.region, r.name realmname, ibs.observed,
 abb.firstseen, abb.lastseen
 FROM tblAuction a
 join tblAuctionBadBonus abb on abb.house = a.house and abb.id = a.id
 left join tblAuctionExtra ae on ae.house = a.house and ae.id = a.id
 join tblDBCItem i on a.item = i.id
-join tblSeller s on s.id = a.seller
 join tblRealm r on s.realm = r.id
 join tblItemBonusesSeen ibs on ibs.item = a.item and ibs.bonus1=0
 left join tblDBCRandEnchants re on ae.rand = re.id
@@ -68,7 +67,6 @@ EOF;
     <th class="r">Auc ID</th>
     <th>Item</th>
     <th>Bonuses</th>
-    <th>Seller</th>
     <th class="r">Bid</th>
     <th class="r">Buy</th>
     <th>First Seen</th>
@@ -82,7 +80,6 @@ EOF;
     <td class="r"><span class="mobile">Auc ID: </span>%s</td>
     <td><span class="mobile">Item: </span>%s</td>
     <td><span class="mobile">Bonuses: </span>%s</td>
-    <td><span class="mobile">Seller: </span>%s</td>
     <td class="r"><span class="mobile">Bid: </span>%s</td>
     <td class="r"><span class="mobile">Buy: </span>%s</td>
     <td><span class="mobile">First: </span>%s</td>
@@ -100,7 +97,6 @@ EOF;
                     htmlspecialchars($row['itemname'])
                     ),
                 $row['bonuses'],
-                htmlspecialchars($row['sellername']),
                 gsc($row['bid']),
                 gsc($row['buy']),
                 is_null($row['firstseen']) ? '' : FormatDate($row['firstseen']),

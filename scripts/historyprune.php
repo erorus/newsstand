@@ -105,19 +105,6 @@ function CleanOldData()
     }
 
     $rowCount = 0;
-    DebugMessage('Clearing out old seller history');
-    $cutoffDateHourly = date('Y-m-d', strtotime('' . HISTORY_DAYS . ' days ago'));
-    $sql = sprintf('delete from tblSellerHistoryHourly where `when` < \'%s\'', $cutoffDateHourly);
-    $rowCount += DeleteLimitLoop($db, $sql);
-    DebugMessage("$rowCount seller history rows deleted in total");
-
-    $rowCount = 0;
-    DebugMessage('Clearing out old seller item history');
-    $sql = 'delete from tblSellerItemHistory where snapshot < timestampadd(day, -' . HISTORY_DAYS . ', now())';
-    $rowCount += DeleteLimitLoop($db, $sql);
-    DebugMessage("$rowCount seller item history rows deleted in total");
-
-    $rowCount = 0;
     $old = date('Y-m-d H:i:s', time() - SUBSCRIPTION_SESSION_LENGTH - 172800); // 2 days older than oldest cookie age
     DebugMessage('Clearing out user sessions older than ' . $old);
     $sql = "delete from tblUserSession where lastseen < '$old'";

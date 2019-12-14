@@ -16,6 +16,9 @@ if (!DBConnect()) {
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
 }
 
+DebugMessage("Needs to be updated not to rely on ownerrealm!", E_USER_ERROR);
+exit(1);
+
 function PrintDebugNoise($message) {
     echo date('Y-m-d H:i:s') . " $message\n";
 }
