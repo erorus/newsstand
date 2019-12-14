@@ -24,7 +24,6 @@ $regions = [
 ];
 foreach ($regions as $region => $locale) {
     GetBlizzIds($region, $locale);
-    GetRealmPopulation($region);
 }
 
 /**
@@ -50,45 +49,6 @@ function GetBlizzIds($region, $locale) {
         }
 
         SetConnectedRealm($region, $locale, $res[1]);
-    }
-}
-
-/**
- * Updates the population column in tblRealm.
- *
- * @param string $region
- */
-function GetRealmPopulation($region) {
-    $json = \Newsstand\HTTP::Get('https://realmpop.com/' . strtolower($region) . '.json');
-    if (!$json) {
-        DebugMessage('Could not get realmpop json for ' . $region, E_USER_WARNING);
-        return;
-    }
-
-    $stats = json_decode($json, true);
-    if (json_last_error() != JSON_ERROR_NONE) {
-        DebugMessage('json decode error for realmpop json for ' . $region, E_USER_WARNING);
-        return;
-    }
-
-    $stats = $stats['realms'];
-
-    $db = DBConnect();
-    $stmt = $db->prepare('SELECT slug, id FROM tblRealm WHERE region=?');
-    $stmt->bind_param('s', $region);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $bySlug = DBMapArray($result);
-    $stmt->close();
-
-    $sqlPattern = 'UPDATE tblRealm SET population = %d WHERE id = %d';
-    foreach ($stats as $slug => $o) {
-        if (isset($bySlug[$slug])) {
-            $sql = sprintf($sqlPattern, ($o['counts']['Alliance'] + $o['counts']['Horde']), $bySlug[$slug]['id']);
-            if (!$db->real_query($sql)) {
-                DebugMessage(sprintf("%s: %s", $sql, $db->error), E_USER_WARNING);
-            }
-        }
     }
 }
 

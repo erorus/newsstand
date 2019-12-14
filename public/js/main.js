@@ -322,22 +322,6 @@ var libtuj = {
 
         return realmNames;
     },
-    GetHousePopulation: function (house)
-    {
-        var pop = 0;
-
-        for (var r in tuj.realms) {
-            if (!tuj.realms.hasOwnProperty(r)) {
-                continue;
-            }
-
-            if ((tuj.realms[r].house == house) && tuj.realms[r].hasOwnProperty('population') && tuj.realms[r].population) {
-                pop += tuj.realms[r].population;
-            }
-        }
-
-        return pop;
-    },
     AlsoHover: function(eventTarget, applyTarget)
     {
         $(eventTarget)

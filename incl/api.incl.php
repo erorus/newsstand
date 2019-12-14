@@ -479,7 +479,7 @@ function GetRealms($region) {
     DBConnect();
 
     $sql = <<<'SQL'
-SELECT r.id, r.region, r.slug, r.name, r.locale, r.house, r.canonical, r.ownerrealm, r.population
+SELECT r.id, r.region, r.slug, r.name, r.locale, r.house, r.canonical, r.ownerrealm
 FROM tblRealm r
 WHERE region = ?
 AND (locale IS NOT NULL OR
