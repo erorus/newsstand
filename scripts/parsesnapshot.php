@@ -289,7 +289,7 @@ function ParseAuctionData($house, $snapshot, &$json)
         $prevSnapshot = intval($snapshotList[count($snapshotList)-1]['updated'],10);
     }
 
-    $sqlStart = 'REPLACE INTO tblAuction (house, id, item, quantity, bid, buy, seller, timeleft) VALUES ';
+    $sqlStart = 'REPLACE INTO tblAuction (house, id, item, quantity, bid, buy, timeleft) VALUES ';
     $sqlStartPet = 'REPLACE INTO tblAuctionPet (house, id, species, breed, `level`, quality) VALUES ';
     $sqlStartExtra = 'REPLACE INTO tblAuctionExtra (house, id, `rand`, `seed`, `context`, `lootedlevel`, `level`';
     for ($x = 1; $x <= MAX_BONUSES; $x++) {
@@ -392,14 +392,13 @@ function ParseAuctionData($house, $snapshot, &$json)
             }
 
             $thisSql = sprintf(
-                '(%u, %u, %u, %u, %u, %u, %u, %u)',
+                '(%u, %u, %u, %u, %u, %u, %u)',
                 $house,
                 $auction['auc'],
                 $auction['item'],
                 $auction['quantity'],
                 $auction['bid'],
                 $auction['buyout'],
-                0,
                 $auction['timeLeft']
             );
             if (strlen($sql) + 5 + strlen($thisSql) > $maxPacketSize) {

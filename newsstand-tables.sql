@@ -25,10 +25,8 @@ CREATE TABLE IF NOT EXISTS `tblAuction` (
   `quantity` smallint(5) unsigned NOT NULL,
   `bid` decimal(11,0) NOT NULL,
   `buy` decimal(11,0) NOT NULL,
-  `seller` int(10) unsigned NOT NULL,
   `timeleft` enum('SHORT','MEDIUM','LONG','VERY_LONG') COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`house`,`id`),
-  KEY `seller` (`seller`),
   KEY `item` (`item`,`house`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
@@ -702,21 +700,6 @@ PARTITION BY HASH (`month`) PARTITIONS 12;
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tblItemLastSeller`
---
-
-CREATE TABLE IF NOT EXISTS `tblItemLastSeller` (
-  `item` mediumint(8) unsigned NOT NULL,
-  `house` smallint(5) unsigned NOT NULL,
-  `seller` int(10) unsigned NOT NULL,
-  `snapshot` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  PRIMARY KEY (`item`,`house`,`seller`),
-  KEY `house` (`house`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `tblItemSummary`
 --
 
@@ -932,101 +915,6 @@ CREATE TABLE IF NOT EXISTS `tblRealm` (
   UNIQUE KEY `realmset` (`region`,`slug`),
   UNIQUE KEY `region` (`region`,`name`),
   KEY `house` (`house`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `tblSeller`
---
-
-CREATE TABLE IF NOT EXISTS `tblSeller` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `realm` smallint(5) unsigned NOT NULL,
-  `name` char(12) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
-  `firstseen` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `lastseen` timestamp NULL DEFAULT '0000-00-00 00:00:00',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `realmname` (`realm`,`name`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=33485149 ;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `tblSellerHistoryHourly`
---
-
-CREATE TABLE IF NOT EXISTS `tblSellerHistoryHourly` (
-  `seller` int(10) unsigned NOT NULL,
-  `when` date NOT NULL,
-  `new00` smallint(5) unsigned DEFAULT NULL,
-  `total00` smallint(5) unsigned DEFAULT NULL,
-  `new01` smallint(5) unsigned DEFAULT NULL,
-  `total01` smallint(5) unsigned DEFAULT NULL,
-  `new02` smallint(5) unsigned DEFAULT NULL,
-  `total02` smallint(5) unsigned DEFAULT NULL,
-  `new03` smallint(5) unsigned DEFAULT NULL,
-  `total03` smallint(5) unsigned DEFAULT NULL,
-  `new04` smallint(5) unsigned DEFAULT NULL,
-  `total04` smallint(5) unsigned DEFAULT NULL,
-  `new05` smallint(5) unsigned DEFAULT NULL,
-  `total05` smallint(5) unsigned DEFAULT NULL,
-  `new06` smallint(5) unsigned DEFAULT NULL,
-  `total06` smallint(5) unsigned DEFAULT NULL,
-  `new07` smallint(5) unsigned DEFAULT NULL,
-  `total07` smallint(5) unsigned DEFAULT NULL,
-  `new08` smallint(5) unsigned DEFAULT NULL,
-  `total08` smallint(5) unsigned DEFAULT NULL,
-  `new09` smallint(5) unsigned DEFAULT NULL,
-  `total09` smallint(5) unsigned DEFAULT NULL,
-  `new10` smallint(5) unsigned DEFAULT NULL,
-  `total10` smallint(5) unsigned DEFAULT NULL,
-  `new11` smallint(5) unsigned DEFAULT NULL,
-  `total11` smallint(5) unsigned DEFAULT NULL,
-  `new12` smallint(5) unsigned DEFAULT NULL,
-  `total12` smallint(5) unsigned DEFAULT NULL,
-  `new13` smallint(5) unsigned DEFAULT NULL,
-  `total13` smallint(5) unsigned DEFAULT NULL,
-  `new14` smallint(5) unsigned DEFAULT NULL,
-  `total14` smallint(5) unsigned DEFAULT NULL,
-  `new15` smallint(5) unsigned DEFAULT NULL,
-  `total15` smallint(5) unsigned DEFAULT NULL,
-  `new16` smallint(5) unsigned DEFAULT NULL,
-  `total16` smallint(5) unsigned DEFAULT NULL,
-  `new17` smallint(5) unsigned DEFAULT NULL,
-  `total17` smallint(5) unsigned DEFAULT NULL,
-  `new18` smallint(5) unsigned DEFAULT NULL,
-  `total18` smallint(5) unsigned DEFAULT NULL,
-  `new19` smallint(5) unsigned DEFAULT NULL,
-  `total19` smallint(5) unsigned DEFAULT NULL,
-  `new20` smallint(5) unsigned DEFAULT NULL,
-  `total20` smallint(5) unsigned DEFAULT NULL,
-  `new21` smallint(5) unsigned DEFAULT NULL,
-  `total21` smallint(5) unsigned DEFAULT NULL,
-  `new22` smallint(5) unsigned DEFAULT NULL,
-  `total22` smallint(5) unsigned DEFAULT NULL,
-  `new23` smallint(5) unsigned DEFAULT NULL,
-  `total23` smallint(5) unsigned DEFAULT NULL,
-  PRIMARY KEY (`seller`,`when`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci
-PARTITION BY HASH (to_days(`when`)) PARTITIONS 16;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `tblSellerItemHistory`
---
-
-CREATE TABLE IF NOT EXISTS `tblSellerItemHistory` (
-  `item` mediumint(8) unsigned NOT NULL,
-  `seller` int(10) unsigned NOT NULL,
-  `snapshot` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `house` smallint(5) unsigned NOT NULL DEFAULT '0',
-  `auctions` smallint(5) unsigned NOT NULL,
-  `quantity` mediumint(8) unsigned NOT NULL,
-  PRIMARY KEY (`item`,`seller`,`snapshot`),
-  KEY `snapshot` (`snapshot`),
-  KEY `seller` (`seller`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
