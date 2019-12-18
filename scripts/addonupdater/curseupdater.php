@@ -8,7 +8,7 @@ use \Newsstand\HTTP;
 date_default_timezone_set('UTC');
 ini_set('memory_limit','384M');
 
-if (count($argv) < 2) {
+if (count($argv) < 3) {
     echo "Run curseupdater.sh\n";
     exit(1);
 }
@@ -16,6 +16,7 @@ if (count($argv) < 2) {
 fwrite(STDERR, "Starting Curse Updater..\n");
 
 $zipPath = $argv[1];
+$version = $argv[2];
 
 if (!file_exists($zipPath)) {
     fwrite(STDERR, 'File does not exist: '.$zipPath."\n");
@@ -126,7 +127,7 @@ $postFields = [];
 $postFields[] = [
     'data' => file_get_contents($zipPath),
     'headers' => [
-        'Content-Disposition' => 'form-data; name="file"; filename="TheUndermineJournal.zip"',
+        'Content-Disposition' => 'form-data; name="file"; filename="TheUndermineJournal.' . $version . '.zip"',
         'Content-Type' => 'application/zip',
         'Content-Transfer-Encoding' => 'binary',
         ]
