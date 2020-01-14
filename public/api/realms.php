@@ -21,7 +21,7 @@ $result = [
     'language' => isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : 'en-US,en;q=0.5',
     'banned' => BotCheck(true),
     'user' => $loginState,
-    'bbgRealms' => GetBBGRealms(),
+    'bbgRealms' => [], //GetBBGRealms(),
     'realms' => [GetRealms('US'),GetRealms('EU'),GetRealms('KR'),GetRealms('TW')]
 ];
 
