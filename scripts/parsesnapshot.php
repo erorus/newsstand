@@ -21,7 +21,7 @@ SELECT a.id, a.bid, a.buy, a.timeleft+0 timeleft, a.item,
     if(ae.level is null,
         if(i.class in (2,4), i.level, 0),
         if(ae.level >= ' . MIN_ITEM_LEVEL_PRICING . ', ae.level, i.level)
-    ) level
+    ) level, a.quantity
 FROM tblAuction a
 LEFT JOIN tblAuctionExtra ae on a.house=ae.house and a.id=ae.id
 LEFT JOIN tblDBCItem i on a.item = i.id
@@ -32,6 +32,7 @@ define('EXISTING_COL_BUY', 1);
 define('EXISTING_COL_TIMELEFT', 2);
 define('EXISTING_COL_ITEM', 3);
 define('EXISTING_COL_LEVEL', 4);
+define('EXISTING_COL_QUANTITY', 5);
 
 ini_set('memory_limit', '768M');
 
@@ -212,10 +213,10 @@ function ParseAuctionData($house, $snapshot, &$json)
     $stmt = $ourDb->prepare(EXISTING_SQL);
     $stmt->bind_param('i', $house);
     $stmt->execute();
-    $id = $bid = $buy = $timeLeft = $item = $level = null;
-    $stmt->bind_result($id, $bid, $buy, $timeLeft, $item, $level);
+    $id = $bid = $buy = $timeLeft = $item = $level = $quantity = null;
+    $stmt->bind_result($id, $bid, $buy, $timeLeft, $item, $level, $quantity);
     while ($stmt->fetch()) {
-        $existingIds[$id] = [$bid, $buy, $timeLeft, $item, $level];
+        $existingIds[$id] = [$bid, $buy, $timeLeft, $item, $level, $quantity];
     }
     $stmt->close();
 
@@ -381,6 +382,7 @@ function ParseAuctionData($house, $snapshot, &$json)
 
             if (isset($existingIds[$auction['auc']])) {
                 $needUpdate = ($auction['bid'] != $existingIds[$auction['auc']][EXISTING_COL_BID]);
+                $needUpdate |= ($auction['quantity'] != $existingIds[$auction['auc']][EXISTING_COL_QUANTITY]);
                 $needUpdate |= ($auction['timeLeft'] != $existingIds[$auction['auc']][EXISTING_COL_TIMELEFT]);
                 unset($existingIds[$auction['auc']]);
                 unset($existingPetIds[$auction['auc']]);
