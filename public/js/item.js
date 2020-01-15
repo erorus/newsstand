@@ -2336,6 +2336,7 @@ var TUJ_Item = function ()
             hasRand |= !!auc.rand;
             hasRand |= !!auc.bonuses;
         }
+        var stackable = data.stats[level].stacksize > 1;
 
         var t, tr, td;
         t = libtuj.ce('table');
@@ -2351,17 +2352,17 @@ var TUJ_Item = function ()
             $(td).text(tuj.lang.Name);
         }
 
-        if (data.stats[level].stacksize > 1) {
+        if (stackable) {
             td = libtuj.ce('th');
             tr.appendChild(td);
             td.className = 'quantity';
             $(td).text(tuj.lang.quantity);
+        } else {
+            td = libtuj.ce('th');
+            tr.appendChild(td);
+            td.className = 'price';
+            $(td).text(tuj.lang.bidEach);
         }
-
-        td = libtuj.ce('th');
-        tr.appendChild(td);
-        td.className = 'price';
-        $(td).text(tuj.lang.bidEach);
 
         td = libtuj.ce('th');
         tr.appendChild(td);
@@ -2370,13 +2371,13 @@ var TUJ_Item = function ()
 
         data.auctions.sort(function (a, b) {
             return Math.floor(a.buy / a.quantity) - Math.floor(b.buy / b.quantity) ||
-                Math.floor(a.bid / a.quantity) - Math.floor(b.bid / b.quantity) ||
+                (stackable ? b.id - a.id : (Math.floor(a.bid / a.quantity) - Math.floor(b.bid / b.quantity))) ||
                 a.quantity - b.quantity ||
                 (a['bonusname_' + tuj.locale] || "").localeCompare(b['bonusname_' + tuj.locale] || "") ||
                 (a['randname_' + tuj.locale] || "").localeCompare(b['randname_' + tuj.locale] || "");
         });
 
-        var s, a, stackable = data.stats[level].stacksize > 1;
+        var s, a;
         var curRowSection, lastRowSection = false;
 
         for (x = 0; auc = data.auctions[x]; x++) {
@@ -2408,26 +2409,26 @@ var TUJ_Item = function ()
                 $(a).text('[' + data.stats[level]['name_' + tuj.locale] + (auc['bonusname_' + tuj.locale] ? ' ' + auc['bonusname_' + tuj.locale].substr(0, auc['bonusname_' + tuj.locale].indexOf('|') >= 0 ? auc['bonusname_' + tuj.locale].indexOf('|') : auc['bonusname_' + tuj.locale].length) : '') + (auc['randname_' + tuj.locale] ? ' ' + auc['randname_' + tuj.locale] : '') + ']');
             }
 
-            if (data.stats[level].stacksize > 1) {
+            if (stackable) {
                 td = libtuj.ce('td');
                 tr.appendChild(td);
                 td.className = 'quantity';
                 td.appendChild(libtuj.FormatQuantity(auc.quantity));
+            } else {
+                td = libtuj.ce('td');
+                tr.appendChild(td);
+                td.className = 'price';
+                s = libtuj.FormatPrice(auc.bid / auc.quantity);
+                if (stackable && auc.quantity > 1) {
+                    a = libtuj.ce('abbr');
+                    a.title = libtuj.FormatPrice(auc.bid, true) + ' ' + tuj.lang.total;
+                    a.appendChild(s);
+                }
+                else {
+                    a = s;
+                }
+                td.appendChild(a);
             }
-
-            td = libtuj.ce('td');
-            tr.appendChild(td);
-            td.className = 'price';
-            s = libtuj.FormatPrice(auc.bid / auc.quantity);
-            if (stackable && auc.quantity > 1) {
-                a = libtuj.ce('abbr');
-                a.title = libtuj.FormatPrice(auc.bid, true) + ' ' + tuj.lang.total;
-                a.appendChild(s);
-            }
-            else {
-                a = s;
-            }
-            td.appendChild(a);
 
             td = libtuj.ce('td');
             tr.appendChild(td);

@@ -290,7 +290,7 @@ function ItemAuctions($house, $item)
 {
     global $db;
 
-    $cacheKey = 'item_auctions_l_' . $item;
+    $cacheKey = 'item_auctions_' . $item;
 
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         PopulateLocaleCols($tr, [
@@ -304,7 +304,7 @@ function ItemAuctions($house, $item)
     DBConnect();
 
     $sql = <<<EOF
-SELECT a.quantity, a.bid, a.buy, ifnull(ae.`rand`,0) `rand`, ifnull(ae.seed,0) `seed`, 
+SELECT a.id, a.quantity, a.bid, a.buy, ifnull(ae.`rand`,0) `rand`, ifnull(ae.seed,0) `seed`,
 ifnull(@lootedLevel := ae.lootedlevel,0) `lootedlevel`, ifnull(ae.level, i.level) level,
 concat_ws(':',ae.bonus1,ae.bonus2,ae.bonus3,ae.bonus4,ae.bonus5,ae.bonus6) bonuses
 FROM `tblAuction` a
