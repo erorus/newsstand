@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Does the API work?</title>
+    <style type="text/css">
+        body{font-family: sans-serif; margin:40px auto;max-width:650px;line-height:1.6;font-size:18px;color:#444;padding:0 10px}
+        h1,h2,h3{line-height:1.2}
+
+        #divResult {font-size: 75%; padding-top: 2em}
+        a {color: #449}
+        .error, .success {padding-right: 1.25em}
+        .error {color: #944}
+        .success {color: #494}
+    </style>
+</head>
+<body>
+    <h1>Does the API work?</h1>
+    <h2>Character Edition</h2>
+
+    <noscript>You'll need Javascript for this one, sorry.</noscript>
+
+    <table>
+        <tr><td>Realm</td><td>
+            <select id="selRealm">
+            <option value="us-aegwynn">US Aegwynn</option>
+            <option value="us-aerie-peak">US Aerie Peak</option>
+            <option value="us-agamaggan">US Agamaggan</option>
+            <option value="us-aggramar">US Aggramar</option>
+            <option value="us-akama">US Akama</option>
+            <option value="us-alexstrasza">US Alexstrasza</option>
+            <option value="us-alleria">US Alleria</option>
+            <option value="us-altar-of-storms">US Altar of Storms</option>
+            <option value="us-alterac-mountains">US Alterac Mountains</option>
+            <option value="us-amanthul">US Aman'Thul</option>
+            <option value="us-andorhal">US Andorhal</option>
+            <option value="us-anetheron">US Anetheron</option>
+            <option value="us-antonidas">US Antonidas</option>
+            <option value="us-anubarak">US Anub'arak</option>
+            <option value="us-anvilmar">US Anvilmar</option>
+            <option value="us-arathor">US Arathor</option>
+            <option value="us-archimonde">US Archimonde</option>
+            <option value="us-area-52">US Area 52</option>
+            <option value="us-argent-dawn">US Argent Dawn</option>
+            <option value="us-arthas">US Arthas</option>
+            <option value="us-arygos">US Arygos</option>
+            <option value="us-auchindoun">US Auchindoun</option>
+            <option value="us-azgalor">US Azgalor</option>
+            <option value="us-azjolnerub">US Azjol-Nerub</option>
+            <option value="us-azralon">US Azralon</option>
+            <option value="us-azshara">US Azshara</option>
+            <option value="us-azuremyst">US Azuremyst</option>
+            <option value="us-baelgun">US Baelgun</option>
+            <option value="us-balnazzar">US Balnazzar</option>
+            <option value="us-barthilas">US Barthilas</option>
+            <option value="us-black-dragonflight">US Black Dragonflight</option>
+            <option value="us-blackhand">US Blackhand</option>
+            <option value="us-blackrock">US Blackrock</option>
+            <option value="us-blackwater-raiders">US Blackwater Raiders</option>
+            <option value="us-blackwing-lair">US Blackwing Lair</option>
+            <option value="us-blades-edge">US Blade's Edge</option>
+            <option value="us-bladefist">US Bladefist</option>
+            <option value="us-bleeding-hollow">US Bleeding Hollow</option>
+            <option value="us-blood-furnace">US Blood Furnace</option>
+            <option value="us-bloodhoof">US Bloodhoof</option>
+            <option value="us-bloodscalp">US Bloodscalp</option>
+            <option value="us-bonechewer">US Bonechewer</option>
+            <option value="us-borean-tundra">US Borean Tundra</option>
+            <option value="us-boulderfist">US Boulderfist</option>
+            <option value="us-bronzebeard">US Bronzebeard</option>
+            <option value="us-burning-blade">US Burning Blade</option>
+            <option value="us-burning-legion">US Burning Legion</option>
+            <option value="us-caelestrasz">US Caelestrasz</option>
+            <option value="us-cairne">US Cairne</option>
+            <option value="us-cenarion-circle">US Cenarion Circle</option>
+            <option value="us-cenarius">US Cenarius</option>
+            <option value="us-chogall">US Cho'gall</option>
+            <option value="us-chromaggus">US Chromaggus</option>
+            <option value="us-coilfang">US Coilfang</option>
+            <option value="us-crushridge">US Crushridge</option>
+            <option value="us-daggerspine">US Daggerspine</option>
+            <option value="us-dalaran">US Dalaran</option>
+            <option value="us-dalvengyr">US Dalvengyr</option>
+            <option value="us-dark-iron">US Dark Iron</option>
+            <option value="us-darkspear">US Darkspear</option>
+            <option value="us-darrowmere">US Darrowmere</option>
+            <option value="us-dathremar">US Dath'Remar</option>
+            <option value="us-dawnbringer">US Dawnbringer</option>
+            <option value="us-deathwing">US Deathwing</option>
+            <option value="us-demon-soul">US Demon Soul</option>
+            <option value="us-dentarg">US Dentarg</option>
+            <option value="us-destromath">US Destromath</option>
+            <option value="us-dethecus">US Dethecus</option>
+            <option value="us-detheroc">US Detheroc</option>
+            <option value="us-doomhammer">US Doomhammer</option>
+            <option value="us-draenor">US Draenor</option>
+            <option value="us-dragonblight">US Dragonblight</option>
+            <option value="us-dragonmaw">US Dragonmaw</option>
+            <option value="us-draktharon">US Drak'Tharon</option>
+            <option value="us-drakthul">US Drak'thul</option>
+            <option value="us-draka">US Draka</option>
+            <option value="us-drakkari">US Drakkari</option>
+            <option value="us-dreadmaul">US Dreadmaul</option>
+            <option value="us-drenden">US Drenden</option>
+            <option value="us-dunemaul">US Dunemaul</option>
+            <option value="us-durotan">US Durotan</option>
+            <option value="us-duskwood">US Duskwood</option>
+            <option value="us-earthen-ring">US Earthen Ring</option>
+            <option value="us-echo-isles">US Echo Isles</option>
+            <option value="us-eitrigg">US Eitrigg</option>
+            <option value="us-eldrethalas">US Eldre'Thalas</option>
+            <option value="us-elune">US Elune</option>
+            <option value="us-emerald-dream">US Emerald Dream</option>
+            <option value="us-eonar">US Eonar</option>
+            <option value="us-eredar">US Eredar</option>
+            <option value="us-executus">US Executus</option>
+            <option value="us-exodar">US Exodar</option>
+            <option value="us-farstriders">US Farstriders</option>
+            <option value="us-feathermoon">US Feathermoon</option>
+            <option value="us-fenris">US Fenris</option>
+            <option value="us-firetree">US Firetree</option>
+            <option value="us-fizzcrank">US Fizzcrank</option>
+            <option value="us-frostmane">US Frostmane</option>
+            <option value="us-frostmourne">US Frostmourne</option>
+            <option value="us-frostwolf">US Frostwolf</option>
+            <option value="us-galakrond">US Galakrond</option>
+            <option value="us-gallywix">US Gallywix</option>
+            <option value="us-garithos">US Garithos</option>
+            <option value="us-garona">US Garona</option>
+            <option value="us-garrosh">US Garrosh</option>
+            <option value="us-ghostlands">US Ghostlands</option>
+            <option value="us-gilneas">US Gilneas</option>
+            <option value="us-gnomeregan">US Gnomeregan</option>
+            <option value="us-goldrinn">US Goldrinn</option>
+            <option value="us-gorefiend">US Gorefiend</option>
+            <option value="us-gorgonnash">US Gorgonnash</option>
+            <option value="us-greymane">US Greymane</option>
+            <option value="us-grizzly-hills">US Grizzly Hills</option>
+            <option value="us-guldan">US Gul'dan</option>
+            <option value="us-gundrak">US Gundrak</option>
+            <option value="us-gurubashi">US Gurubashi</option>
+            <option value="us-hakkar">US Hakkar</option>
+            <option value="us-haomarush">US Haomarush</option>
+            <option value="us-hellscream">US Hellscream</option>
+            <option value="us-hydraxis">US Hydraxis</option>
+            <option value="us-hyjal">US Hyjal</option>
+            <option value="us-icecrown">US Icecrown</option>
+            <option value="us-illidan">US Illidan</option>
+            <option value="us-jaedenar">US Jaedenar</option>
+            <option value="us-jubeithos">US Jubei'Thos</option>
+            <option value="us-kaelthas">US Kael'thas</option>
+            <option value="us-kalecgos">US Kalecgos</option>
+            <option value="us-kargath">US Kargath</option>
+            <option value="us-kelthuzad">US Kel'Thuzad</option>
+            <option value="us-khadgar">US Khadgar</option>
+            <option value="us-khaz-modan">US Khaz Modan</option>
+            <option value="us-khazgoroth">US Khaz'goroth</option>
+            <option value="us-kiljaeden">US Kil'jaeden</option>
+            <option value="us-kilrogg">US Kilrogg</option>
+            <option value="us-kirin-tor">US Kirin Tor</option>
+            <option value="us-korgath">US Korgath</option>
+            <option value="us-korialstrasz">US Korialstrasz</option>
+            <option value="us-kul-tiras">US Kul Tiras</option>
+            <option value="us-laughing-skull">US Laughing Skull</option>
+            <option value="us-lethon">US Lethon</option>
+            <option value="us-lightbringer">US Lightbringer</option>
+            <option value="us-lightnings-blade">US Lightning's Blade</option>
+            <option value="us-lightninghoof">US Lightninghoof</option>
+            <option value="us-llane">US Llane</option>
+            <option value="us-lothar">US Lothar</option>
+            <option value="us-madoran">US Madoran</option>
+            <option value="us-maelstrom">US Maelstrom</option>
+            <option value="us-magtheridon">US Magtheridon</option>
+            <option value="us-maiev">US Maiev</option>
+            <option value="us-malganis">US Mal'Ganis</option>
+            <option value="us-malfurion">US Malfurion</option>
+            <option value="us-malorne">US Malorne</option>
+            <option value="us-malygos">US Malygos</option>
+            <option value="us-mannoroth">US Mannoroth</option>
+            <option value="us-medivh">US Medivh</option>
+            <option value="us-misha">US Misha</option>
+            <option value="us-moknathal">US Mok'Nathal</option>
+            <option value="us-moon-guard">US Moon Guard</option>
+            <option value="us-moonrunner">US Moonrunner</option>
+            <option value="us-mugthol">US Mug'thol</option>
+            <option value="us-muradin">US Muradin</option>
+            <option value="us-nagrand">US Nagrand</option>
+            <option value="us-nathrezim">US Nathrezim</option>
+            <option value="us-nazgrel">US Nazgrel</option>
+            <option value="us-nazjatar">US Nazjatar</option>
+            <option value="us-nemesis">US Nemesis</option>
+            <option value="us-nerzhul">US Ner'zhul</option>
+            <option value="us-nesingwary">US Nesingwary</option>
+            <option value="us-nordrassil">US Nordrassil</option>
+            <option value="us-norgannon">US Norgannon</option>
+            <option value="us-onyxia">US Onyxia</option>
+            <option value="us-perenolde">US Perenolde</option>
+            <option value="us-proudmoore">US Proudmoore</option>
+            <option value="us-queldorei">US Quel'dorei</option>
+            <option value="us-quelthalas">US Quel'Thalas</option>
+            <option value="us-ragnaros">US Ragnaros</option>
+            <option value="us-ravencrest">US Ravencrest</option>
+            <option value="us-ravenholdt">US Ravenholdt</option>
+            <option value="us-rexxar">US Rexxar</option>
+            <option value="us-rivendare">US Rivendare</option>
+            <option value="us-runetotem">US Runetotem</option>
+            <option value="us-sargeras">US Sargeras</option>
+            <option value="us-saurfang">US Saurfang</option>
+            <option value="us-scarlet-crusade">US Scarlet Crusade</option>
+            <option value="us-scilla">US Scilla</option>
+            <option value="us-senjin">US Sen'jin</option>
+            <option value="us-sentinels">US Sentinels</option>
+            <option value="us-shadow-council">US Shadow Council</option>
+            <option value="us-shadowmoon">US Shadowmoon</option>
+            <option value="us-shadowsong">US Shadowsong</option>
+            <option value="us-shandris">US Shandris</option>
+            <option value="us-shattered-halls">US Shattered Halls</option>
+            <option value="us-shattered-hand">US Shattered Hand</option>
+            <option value="us-shuhalo">US Shu'halo</option>
+            <option value="us-silver-hand">US Silver Hand</option>
+            <option value="us-silvermoon">US Silvermoon</option>
+            <option value="us-sisters-of-elune">US Sisters of Elune</option>
+            <option value="us-skullcrusher">US Skullcrusher</option>
+            <option value="us-skywall">US Skywall</option>
+            <option value="us-smolderthorn">US Smolderthorn</option>
+            <option value="us-spinebreaker">US Spinebreaker</option>
+            <option value="us-spirestone">US Spirestone</option>
+            <option value="us-staghelm">US Staghelm</option>
+            <option value="us-steamwheedle-cartel">US Steamwheedle Cartel</option>
+            <option value="us-stonemaul">US Stonemaul</option>
+            <option value="us-stormrage">US Stormrage</option>
+            <option value="us-stormreaver">US Stormreaver</option>
+            <option value="us-stormscale">US Stormscale</option>
+            <option value="us-suramar">US Suramar</option>
+            <option value="us-tanaris">US Tanaris</option>
+            <option value="us-terenas">US Terenas</option>
+            <option value="us-terokkar">US Terokkar</option>
+            <option value="us-thaurissan">US Thaurissan</option>
+            <option value="us-the-forgotten-coast">US The Forgotten Coast</option>
+            <option value="us-the-scryers">US The Scryers</option>
+            <option value="us-the-underbog">US The Underbog</option>
+            <option value="us-the-venture-co">US The Venture Co</option>
+            <option value="us-thorium-brotherhood">US Thorium Brotherhood</option>
+            <option value="us-thrall">US Thrall</option>
+            <option value="us-thunderhorn">US Thunderhorn</option>
+            <option value="us-thunderlord">US Thunderlord</option>
+            <option value="us-tichondrius">US Tichondrius</option>
+            <option value="us-tol-barad">US Tol Barad</option>
+            <option value="us-tortheldrin">US Tortheldrin</option>
+            <option value="us-trollbane">US Trollbane</option>
+            <option value="us-turalyon">US Turalyon</option>
+            <option value="us-twisting-nether">US Twisting Nether</option>
+            <option value="us-uldaman">US Uldaman</option>
+            <option value="us-uldum">US Uldum</option>
+            <option value="us-undermine">US Undermine</option>
+            <option value="us-ursin">US Ursin</option>
+            <option value="us-uther">US Uther</option>
+            <option value="us-vashj">US Vashj</option>
+            <option value="us-veknilash">US Vek'nilash</option>
+            <option value="us-velen">US Velen</option>
+            <option value="us-warsong">US Warsong</option>
+            <option value="us-whisperwind">US Whisperwind</option>
+            <option value="us-wildhammer">US Wildhammer</option>
+            <option value="us-windrunner">US Windrunner</option>
+            <option value="us-winterhoof">US Winterhoof</option>
+            <option value="us-wyrmrest-accord">US Wyrmrest Accord</option>
+            <option value="us-ysera">US Ysera</option>
+            <option value="us-ysondre">US Ysondre</option>
+            <option value="us-zangarmarsh">US Zangarmarsh</option>
+            <option value="us-zuljin">US Zul'jin</option>
+            <option value="us-zuluhed">US Zuluhed</option>
+            <option value="eu-aegwynn">EU Aegwynn</option>
+            <option value="eu-aerie-peak">EU Aerie Peak</option>
+            <option value="eu-agamaggan">EU Agamaggan</option>
+            <option value="eu-aggra-português">EU Aggra (Português)</option>
+            <option value="eu-aggramar">EU Aggramar</option>
+            <option value="eu-ahnqiraj">EU Ahn'Qiraj</option>
+            <option value="eu-alakir">EU Al'Akir</option>
+            <option value="eu-alexstrasza">EU Alexstrasza</option>
+            <option value="eu-alleria">EU Alleria</option>
+            <option value="eu-alonsus">EU Alonsus</option>
+            <option value="eu-amanthul">EU Aman'Thul</option>
+            <option value="eu-ambossar">EU Ambossar</option>
+            <option value="eu-anachronos">EU Anachronos</option>
+            <option value="eu-anetheron">EU Anetheron</option>
+            <option value="eu-antonidas">EU Antonidas</option>
+            <option value="eu-anubarak">EU Anub'arak</option>
+            <option value="eu-arakarahm">EU Arak-arahm</option>
+            <option value="eu-arathi">EU Arathi</option>
+            <option value="eu-arathor">EU Arathor</option>
+            <option value="eu-archimonde">EU Archimonde</option>
+            <option value="eu-area-52">EU Area 52</option>
+            <option value="eu-argent-dawn">EU Argent Dawn</option>
+            <option value="eu-arthas">EU Arthas</option>
+            <option value="eu-arygos">EU Arygos</option>
+            <option value="eu-ashenvale">EU Ashenvale</option>
+            <option value="eu-aszune">EU Aszune</option>
+            <option value="eu-auchindoun">EU Auchindoun</option>
+            <option value="eu-azjolnerub">EU Azjol-Nerub</option>
+            <option value="eu-azshara">EU Azshara</option>
+            <option value="eu-azuregos">EU Azuregos</option>
+            <option value="eu-azuremyst">EU Azuremyst</option>
+            <option value="eu-baelgun">EU Baelgun</option>
+            <option value="eu-balnazzar">EU Balnazzar</option>
+            <option value="eu-blackhand">EU Blackhand</option>
+            <option value="eu-blackmoore">EU Blackmoore</option>
+            <option value="eu-blackrock">EU Blackrock</option>
+            <option value="eu-blackscar">EU Blackscar</option>
+            <option value="eu-blades-edge">EU Blade's Edge</option>
+            <option value="eu-bladefist">EU Bladefist</option>
+            <option value="eu-bloodfeather">EU Bloodfeather</option>
+            <option value="eu-bloodhoof">EU Bloodhoof</option>
+            <option value="eu-bloodscalp">EU Bloodscalp</option>
+            <option value="eu-blutkessel">EU Blutkessel</option>
+            <option value="eu-booty-bay">EU Booty Bay</option>
+            <option value="eu-borean-tundra">EU Borean Tundra</option>
+            <option value="eu-boulderfist">EU Boulderfist</option>
+            <option value="eu-bronze-dragonflight">EU Bronze Dragonflight</option>
+            <option value="eu-bronzebeard">EU Bronzebeard</option>
+            <option value="eu-burning-blade">EU Burning Blade</option>
+            <option value="eu-burning-legion">EU Burning Legion</option>
+            <option value="eu-burning-steppes">EU Burning Steppes</option>
+            <option value="eu-cthun">EU C'Thun</option>
+            <option value="eu-chamber-of-aspects">EU Chamber of Aspects</option>
+            <option value="eu-chants-éternels">EU Chants éternels</option>
+            <option value="eu-chogall">EU Cho'gall</option>
+            <option value="eu-chromaggus">EU Chromaggus</option>
+            <option value="eu-colinas-pardas">EU Colinas Pardas</option>
+            <option value="eu-confrérie-du-thorium">EU Confrérie du Thorium</option>
+            <option value="eu-conseil-des-ombres">EU Conseil des Ombres</option>
+            <option value="eu-crushridge">EU Crushridge</option>
+            <option value="eu-culte-de-la-rive-noire">EU Culte de la Rive noire</option>
+            <option value="eu-daggerspine">EU Daggerspine</option>
+            <option value="eu-dalaran">EU Dalaran</option>
+            <option value="eu-dalvengyr">EU Dalvengyr</option>
+            <option value="eu-darkmoon-faire">EU Darkmoon Faire</option>
+            <option value="eu-darksorrow">EU Darksorrow</option>
+            <option value="eu-darkspear">EU Darkspear</option>
+            <option value="eu-das-konsortium">EU Das Konsortium</option>
+            <option value="eu-das-syndikat">EU Das Syndikat</option>
+            <option value="eu-deathguard">EU Deathguard</option>
+            <option value="eu-deathweaver">EU Deathweaver</option>
+            <option value="eu-deathwing">EU Deathwing</option>
+            <option value="eu-deepholm">EU Deepholm</option>
+            <option value="eu-defias-brotherhood">EU Defias Brotherhood</option>
+            <option value="eu-dentarg">EU Dentarg</option>
+            <option value="eu-der-abyssische-rat">EU Der abyssische Rat</option>
+            <option value="eu-der-mithrilorden">EU Der Mithrilorden</option>
+            <option value="eu-der-rat-von-dalaran">EU Der Rat von Dalaran</option>
+            <option value="eu-destromath">EU Destromath</option>
+            <option value="eu-dethecus">EU Dethecus</option>
+            <option value="eu-die-aldor">EU Die Aldor</option>
+            <option value="eu-die-arguswacht">EU Die Arguswacht</option>
+            <option value="eu-die-ewige-wacht">EU Die ewige Wacht</option>
+            <option value="eu-die-nachtwache">EU Die Nachtwache</option>
+            <option value="eu-die-silberne-hand">EU Die Silberne Hand</option>
+            <option value="eu-die-todeskrallen">EU Die Todeskrallen</option>
+            <option value="eu-doomhammer">EU Doomhammer</option>
+            <option value="eu-draenor">EU Draenor</option>
+            <option value="eu-dragonblight">EU Dragonblight</option>
+            <option value="eu-dragonmaw">EU Dragonmaw</option>
+            <option value="eu-drakthul">EU Drak'thul</option>
+            <option value="eu-drekthar">EU Drek'Thar</option>
+            <option value="eu-dun-modr">EU Dun Modr</option>
+            <option value="eu-dun-morogh">EU Dun Morogh</option>
+            <option value="eu-dunemaul">EU Dunemaul</option>
+            <option value="eu-durotan">EU Durotan</option>
+            <option value="eu-earthen-ring">EU Earthen Ring</option>
+            <option value="eu-echsenkessel">EU Echsenkessel</option>
+            <option value="eu-eitrigg">EU Eitrigg</option>
+            <option value="eu-eldrethalas">EU Eldre'Thalas</option>
+            <option value="eu-elune">EU Elune</option>
+            <option value="eu-emerald-dream">EU Emerald Dream</option>
+            <option value="eu-emeriss">EU Emeriss</option>
+            <option value="eu-eonar">EU Eonar</option>
+            <option value="eu-eredar">EU Eredar</option>
+            <option value="eu-eversong">EU Eversong</option>
+            <option value="eu-executus">EU Executus</option>
+            <option value="eu-exodar">EU Exodar</option>
+            <option value="eu-festung-der-stürme">EU Festung der Stürme</option>
+            <option value="eu-fordragon">EU Fordragon</option>
+            <option value="eu-forscherliga">EU Forscherliga</option>
+            <option value="eu-frostmane">EU Frostmane</option>
+            <option value="eu-frostmourne">EU Frostmourne</option>
+            <option value="eu-frostwhisper">EU Frostwhisper</option>
+            <option value="eu-frostwolf">EU Frostwolf</option>
+            <option value="eu-galakrond">EU Galakrond</option>
+            <option value="eu-garona">EU Garona</option>
+            <option value="eu-garrosh">EU Garrosh</option>
+            <option value="eu-genjuros">EU Genjuros</option>
+            <option value="eu-ghostlands">EU Ghostlands</option>
+            <option value="eu-gilneas">EU Gilneas</option>
+            <option value="eu-goldrinn">EU Goldrinn</option>
+            <option value="eu-gordunni">EU Gordunni</option>
+            <option value="eu-gorgonnash">EU Gorgonnash</option>
+            <option value="eu-greymane">EU Greymane</option>
+            <option value="eu-grim-batol">EU Grim Batol</option>
+            <option value="eu-grom">EU Grom</option>
+            <option value="eu-guldan">EU Gul'dan</option>
+            <option value="eu-hakkar">EU Hakkar</option>
+            <option value="eu-haomarush">EU Haomarush</option>
+            <option value="eu-hellfire">EU Hellfire</option>
+            <option value="eu-hellscream">EU Hellscream</option>
+            <option value="eu-howling-fjord">EU Howling Fjord</option>
+            <option value="eu-hyjal">EU Hyjal</option>
+            <option value="eu-illidan">EU Illidan</option>
+            <option value="eu-jaedenar">EU Jaedenar</option>
+            <option value="eu-kaelthas">EU Kael'thas</option>
+            <option value="eu-karazhan">EU Karazhan</option>
+            <option value="eu-kargath">EU Kargath</option>
+            <option value="eu-kazzak">EU Kazzak</option>
+            <option value="eu-kelthuzad">EU Kel'Thuzad</option>
+            <option value="eu-khadgar">EU Khadgar</option>
+            <option value="eu-khaz-modan">EU Khaz Modan</option>
+            <option value="eu-khazgoroth">EU Khaz'goroth</option>
+            <option value="eu-kiljaeden">EU Kil'jaeden</option>
+            <option value="eu-kilrogg">EU Kilrogg</option>
+            <option value="eu-kirin-tor">EU Kirin Tor</option>
+            <option value="eu-korgall">EU Kor'gall</option>
+            <option value="eu-kragjin">EU Krag'jin</option>
+            <option value="eu-krasus">EU Krasus</option>
+            <option value="eu-kul-tiras">EU Kul Tiras</option>
+            <option value="eu-kult-der-verdammten">EU Kult der Verdammten</option>
+            <option value="eu-la-croisade-écarlate">EU La Croisade écarlate</option>
+            <option value="eu-laughing-skull">EU Laughing Skull</option>
+            <option value="eu-les-clairvoyants">EU Les Clairvoyants</option>
+            <option value="eu-les-sentinelles">EU Les Sentinelles</option>
+            <option value="eu-lich-king">EU Lich King</option>
+            <option value="eu-lightbringer">EU Lightbringer</option>
+            <option value="eu-lightnings-blade">EU Lightning's Blade</option>
+            <option value="eu-lordaeron">EU Lordaeron</option>
+            <option value="eu-los-errantes">EU Los Errantes</option>
+            <option value="eu-lothar">EU Lothar</option>
+            <option value="eu-madmortem">EU Madmortem</option>
+            <option value="eu-magtheridon">EU Magtheridon</option>
+            <option value="eu-malganis">EU Mal'Ganis</option>
+            <option value="eu-malfurion">EU Malfurion</option>
+            <option value="eu-malorne">EU Malorne</option>
+            <option value="eu-malygos">EU Malygos</option>
+            <option value="eu-mannoroth">EU Mannoroth</option>
+            <option value="eu-marécage-de-zangar">EU Marécage de Zangar</option>
+            <option value="eu-mazrigos">EU Mazrigos</option>
+            <option value="eu-medivh">EU Medivh</option>
+            <option value="eu-minahonda">EU Minahonda</option>
+            <option value="eu-moonglade">EU Moonglade</option>
+            <option value="eu-mugthol">EU Mug'thol</option>
+            <option value="eu-nagrand">EU Nagrand</option>
+            <option value="eu-nathrezim">EU Nathrezim</option>
+            <option value="eu-naxxramas">EU Naxxramas</option>
+            <option value="eu-nazjatar">EU Nazjatar</option>
+            <option value="eu-nefarian">EU Nefarian</option>
+            <option value="eu-nemesis">EU Nemesis</option>
+            <option value="eu-neptulon">EU Neptulon</option>
+            <option value="eu-nerzhul">EU Ner'zhul</option>
+            <option value="eu-nerathor">EU Nera'thor</option>
+            <option value="eu-nethersturm">EU Nethersturm</option>
+            <option value="eu-nordrassil">EU Nordrassil</option>
+            <option value="eu-norgannon">EU Norgannon</option>
+            <option value="eu-nozdormu">EU Nozdormu</option>
+            <option value="eu-onyxia">EU Onyxia</option>
+            <option value="eu-outland">EU Outland</option>
+            <option value="eu-perenolde">EU Perenolde</option>
+            <option value="eu-pozzo-delleternità">EU Pozzo dell'Eternità</option>
+            <option value="eu-proudmoore">EU Proudmoore</option>
+            <option value="eu-quelthalas">EU Quel'Thalas</option>
+            <option value="eu-ragnaros">EU Ragnaros</option>
+            <option value="eu-rajaxx">EU Rajaxx</option>
+            <option value="eu-rashgarroth">EU Rashgarroth</option>
+            <option value="eu-ravencrest">EU Ravencrest</option>
+            <option value="eu-ravenholdt">EU Ravenholdt</option>
+            <option value="eu-razuvious">EU Razuvious</option>
+            <option value="eu-rexxar">EU Rexxar</option>
+            <option value="eu-runetotem">EU Runetotem</option>
+            <option value="eu-sanguino">EU Sanguino</option>
+            <option value="eu-sargeras">EU Sargeras</option>
+            <option value="eu-saurfang">EU Saurfang</option>
+            <option value="eu-scarshield-legion">EU Scarshield Legion</option>
+            <option value="eu-senjin">EU Sen'jin</option>
+            <option value="eu-shadowsong">EU Shadowsong</option>
+            <option value="eu-shattered-halls">EU Shattered Halls</option>
+            <option value="eu-shattered-hand">EU Shattered Hand</option>
+            <option value="eu-shattrath">EU Shattrath</option>
+            <option value="eu-shendralar">EU Shen'dralar</option>
+            <option value="eu-silvermoon">EU Silvermoon</option>
+            <option value="eu-sinstralis">EU Sinstralis</option>
+            <option value="eu-skullcrusher">EU Skullcrusher</option>
+            <option value="eu-soulflayer">EU Soulflayer</option>
+            <option value="eu-spinebreaker">EU Spinebreaker</option>
+            <option value="eu-sporeggar">EU Sporeggar</option>
+            <option value="eu-steamwheedle-cartel">EU Steamwheedle Cartel</option>
+            <option value="eu-stormrage">EU Stormrage</option>
+            <option value="eu-stormreaver">EU Stormreaver</option>
+            <option value="eu-stormscale">EU Stormscale</option>
+            <option value="eu-sunstrider">EU Sunstrider</option>
+            <option value="eu-suramar">EU Suramar</option>
+            <option value="eu-sylvanas">EU Sylvanas</option>
+            <option value="eu-taerar">EU Taerar</option>
+            <option value="eu-talnivarr">EU Talnivarr</option>
+            <option value="eu-tarren-mill">EU Tarren Mill</option>
+            <option value="eu-teldrassil">EU Teldrassil</option>
+            <option value="eu-temple-noir">EU Temple noir</option>
+            <option value="eu-terenas">EU Terenas</option>
+            <option value="eu-terokkar">EU Terokkar</option>
+            <option value="eu-terrordar">EU Terrordar</option>
+            <option value="eu-the-maelstrom">EU The Maelstrom</option>
+            <option value="eu-the-shatar">EU The Sha'tar</option>
+            <option value="eu-the-venture-co">EU The Venture Co</option>
+            <option value="eu-theradras">EU Theradras</option>
+            <option value="eu-thermaplugg">EU Thermaplugg</option>
+            <option value="eu-thrall">EU Thrall</option>
+            <option value="eu-throkferoth">EU Throk'Feroth</option>
+            <option value="eu-thunderhorn">EU Thunderhorn</option>
+            <option value="eu-tichondrius">EU Tichondrius</option>
+            <option value="eu-tirion">EU Tirion</option>
+            <option value="eu-todeswache">EU Todeswache</option>
+            <option value="eu-trollbane">EU Trollbane</option>
+            <option value="eu-turalyon">EU Turalyon</option>
+            <option value="eu-twilights-hammer">EU Twilight's Hammer</option>
+            <option value="eu-twisting-nether">EU Twisting Nether</option>
+            <option value="eu-tyrande">EU Tyrande</option>
+            <option value="eu-uldaman">EU Uldaman</option>
+            <option value="eu-ulduar">EU Ulduar</option>
+            <option value="eu-uldum">EU Uldum</option>
+            <option value="eu-ungoro">EU Un'Goro</option>
+            <option value="eu-varimathras">EU Varimathras</option>
+            <option value="eu-vashj">EU Vashj</option>
+            <option value="eu-veklor">EU Vek'lor</option>
+            <option value="eu-veknilash">EU Vek'nilash</option>
+            <option value="eu-voljin">EU Vol'jin</option>
+            <option value="eu-wildhammer">EU Wildhammer</option>
+            <option value="eu-wrathbringer">EU Wrathbringer</option>
+            <option value="eu-xavius">EU Xavius</option>
+            <option value="eu-ysera">EU Ysera</option>
+            <option value="eu-ysondre">EU Ysondre</option>
+            <option value="eu-zenedar">EU Zenedar</option>
+            <option value="eu-zirkel-des-cenarius">EU Zirkel des Cenarius</option>
+            <option value="eu-zuljin">EU Zul'jin</option>
+            <option value="eu-zuluhed">EU Zuluhed</option>
+        </select>
+        </td></tr>
+        <tr><td>Character</td><td><input type="text" id="inpChar" size="12" maxlength="12"></td></tr>
+        <tr><td colspan="2" align="right"><input type="button" onclick="loadCharacter()" value="Lookup"></td></tr>
+    </table>
+
+    <div id="divResult"></div>
+
+<script type="text/javascript">
+    function appendResult(df) {
+        var d = document.createElement('div');
+        d.appendChild(df);
+        divResult.appendChild(d);
+    }
+
+    function emptyResult() {
+        while (divResult.hasChildNodes()) {
+            divResult.removeChild(divResult.firstChild);
+        }
+    }
+
+    var token;
+
+    function loadCharacter() {
+        emptyResult();
+
+        if (token === undefined) {
+            getToken(loadCharacter);
+            return;
+        }
+
+        var char = inpChar.value.trim().toLowerCase();
+        if (!char.length) {
+            appendResult(document.createTextNode('Enter a character name.'));
+            inpChar.focus();
+            return;
+        }
+
+        var optValue = selRealm.options[selRealm.selectedIndex].value;
+        var region = optValue.substr(0, 2);
+        var slug = optValue.substr(3);
+
+        var a = document.createElement('a');
+        a.href = 'https://worldofwarcraft.com/en-us/character/' + region + '/' + slug + '/' + char;
+        a.appendChild(document.createTextNode('Armory Link'));
+        appendResult(a);
+
+        var host = 'https://' + region + '.api.blizzard.com';
+
+        var qs = '?namespace=profile-' + region + '&locale=en_US&access_token=' + token;
+        var urlPrefix = host + '/profile/wow/character/' + slug + '/' + char;
+
+        var genericReport = function (url, name, successCallback) {
+            reportLoad(
+                url,
+                generateGenericSuccess(name, url, successCallback),
+                generateGenericFail(name, url)
+            );
+        };
+
+        genericReport(urlPrefix + qs, "Profile", function (o) {
+            return [o.name + ':', o.level, o.race.name, o.character_class.name].join(' ');
+        });
+        genericReport(urlPrefix + '/status' + qs, "Profile Status", function (o) {
+            return 'ID = ' + o.id;
+        });
+        genericReport(urlPrefix + '/achievements' + qs, "Profile Achievements", function (o) {
+            return '' + o.achievements.length + " total";
+        });
+        genericReport(urlPrefix + '/titles' + qs, "Profile Titles", function (o) {
+            return '' + o.titles.length + " found";
+        });
+        genericReport(urlPrefix + '/character-media' + qs, "Profile Media", function (o) {
+            var img = document.createElement('img');
+            img.src = o.bust_url;
+            return img;
+        });
+        genericReport(urlPrefix + '/specializations' + qs, "Profile Specializations", function (o) {
+            return '' + o.specializations.length + " found";
+        });
+        genericReport(urlPrefix + '/appearance' + qs, "Profile Appearance", function (o) {
+            return 'Hair color ' + o.appearance.hair_color;
+        });
+        genericReport(urlPrefix + '/collections' + qs, "Profile Collections", function (o) {
+            var response = (o.hasOwnProperty('pets') ? '' : 'Pets missing! ') +
+                (o.hasOwnProperty('mounts') ? '' : 'Mounts missing! ');
+            return response || 'OK';
+        });
+        genericReport(urlPrefix + '/collections/pets' + qs, "Profile Pets", function (o) {
+            return '' + o.pets.length + ' found';
+        });
+        genericReport(urlPrefix + '/collections/mounts' + qs, "Profile Mounts", function (o) {
+            return '' + o.mounts.length + ' found';
+        });
+        genericReport(urlPrefix + '/reputations' + qs, "Profile Reputations", function (o) {
+            return '' + o.reputations.length + ' found';
+        });
+
+        var qs = '?locale=en_US&access_token=' + token;
+        var urlPrefix = host + '/wow/character/' + slug.normalize('NFD').replace(/[\u0300-\u036f]/g, "") + '/' + char;
+
+        genericReport(urlPrefix + qs, "Community", function (o) {
+            return o.name + ': level ' + o.level;
+        });
+        genericReport(urlPrefix + qs + '&fields=quests', "Community Quests", function (o) {
+            return '' + o.quests.length + ' found';
+        });
+        genericReport(urlPrefix + qs + '&fields=professions', "Community Professions", function (o) {
+            var priFound = (o.professions.primary && o.professions.primary.length) || 0;
+            var secFound = (o.professions.secondary && o.professions.secondary.length) || 0;
+            return [priFound, ' primary found, ', secFound, ' secondary found'].join(' ');
+        });
+        genericReport(urlPrefix + qs + '&fields=statistics', "Community Statistics", function (o) {
+            return '' + o.statistics.subCategories.length + ' found';
+        });
+    }
+
+    function generateGenericFail(prefix, url) {
+        return function (reason) {
+            var df = new DocumentFragment();
+            var s = document.createElement('span');
+            s.className = 'error';
+            s.appendChild(document.createTextNode('Failed'));
+            df.appendChild(s);
+
+            var prefixLink = document.createElement('a');
+            prefixLink.href = url;
+            prefixLink.appendChild(document.createTextNode(prefix));
+            df.appendChild(prefixLink);
+            df.appendChild(document.createTextNode(': '));
+
+            df.appendChild(document.createTextNode(reason));
+
+            appendResult(df);
+        }
+    }
+
+    function generateGenericSuccess(prefix, url, valueCallback) {
+        return function (o) {
+            var df = new DocumentFragment();
+            var s = document.createElement('span');
+            s.className = 'success';
+            s.appendChild(document.createTextNode('Success'));
+            df.appendChild(s);
+
+            var prefixLink = document.createElement('a');
+            prefixLink.href = url;
+            prefixLink.appendChild(document.createTextNode(prefix));
+            df.appendChild(prefixLink);
+            df.appendChild(document.createTextNode(': '));
+
+            if (valueCallback) {
+                var value = valueCallback(o);
+                if (typeof value === 'string') {
+                    value = document.createTextNode(value);
+                }
+                df.appendChild(value);
+            }
+
+            appendResult(df);
+        }
+    }
+
+    function getToken(callback) {
+        var err = function (error) {
+            emptyResult();
+
+            var df = new DocumentFragment();
+            var span = document.createElement('span');
+            span.className = 'error';
+            span.appendChild(document.createTextNode('Could not get API token to start lookup.'));
+            df.appendChild(span);
+
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(error));
+            df.appendChild(div);
+
+            appendResult(df);
+        };
+
+        fetch('token.txt', {
+            method: 'GET'
+        }).then(function (response) {
+            if (!response.ok) {
+                err('Response: ' + response.status + ' ' + response.statusText);
+            } else {
+                response.text().then(function (text) {
+                    token = text.trim();
+                    callback();
+                });
+            }
+        }).catch(err);
+    }
+
+    function reportLoad(url, success, failure) {
+        fetch(url, {method: 'GET'}).then(
+            function (response) {
+                if (!response.ok) {
+                    failure('Response: ' + response.status + ' ' + response.statusText);
+                } else {
+                    response.json().then(success).catch(failure);
+                }
+            }
+        ).catch(failure);
+    }
+</script>
+</body>
+</html>
