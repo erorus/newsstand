@@ -1159,7 +1159,7 @@ function CategoryResult_leatherworking($house)
     ];
 
     foreach (['Leather', 'Mail'] as $armorType) {
-        foreach (['Notorious', 'Sinister', 'Honorable'] as $version) {
+        foreach (['Uncanny', 'Notorious', 'Sinister', 'Honorable'] as $version) {
             $tr['results'][] = [
                 'name' => 'ItemList',
                 'data' => [
@@ -1195,7 +1195,7 @@ function CategoryResult_leatherworking($house)
     ];
 
     foreach (['Leather', 'Mail'] as $armorType) {
-        foreach (['Notorious', 'Sinister', 'Honorable'] as $version) {
+        foreach (['Uncanny', 'Notorious', 'Sinister', 'Honorable'] as $version) {
             $tr['results'][] = [
                 'name' => 'ItemList',
                 'data' => [
@@ -1333,6 +1333,14 @@ function CategoryResult_blacksmithing($house)
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
+            'name'  => 'Alliance Uncanny Combatant Armor',
+            'items' => CategoryBonusItemList($house, 'i.id in (170285, 170289, 170288, 170286, 170287)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
             'name'  => 'Alliance Notorious Combatant Armor',
             'items' => CategoryBonusItemList($house, 'i.id in (167965, 167967, 167969, 167971, 167973)')
         ]
@@ -1359,6 +1367,14 @@ function CategoryResult_blacksmithing($house)
         'data' => [
             'name'  => 'Alliance Monel-Hardened Weapons',
             'items' => CategoryBonusItemList($house, 'i.id in (152818, 161913, 161914, 161915, 161916, 161917)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Alliance Uncanny Combatant Weapons',
+            'items' => CategoryBonusItemList($house, 'i.id in (170294, 170293, 170291, 170364, 170290, 170292)')
         ]
     ];
 
@@ -1397,6 +1413,14 @@ function CategoryResult_blacksmithing($house)
     $tr['results'][] = [
         'name' => 'ItemList',
         'data' => [
+            'name'  => 'Horde Uncanny Combatant Armor',
+            'items' => CategoryBonusItemList($house, 'i.id in (170295, 170299, 170297, 170301, 170300)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
             'name'  => 'Horde Notorious Combatant Armor',
             'items' => CategoryBonusItemList($house, 'i.id in (167964, 167966, 167968, 167970, 167972)')
         ]
@@ -1423,6 +1447,14 @@ function CategoryResult_blacksmithing($house)
         'data' => [
             'name'  => 'Horde Monel-Hardened Weapons',
             'items' => CategoryBonusItemList($house, 'i.id in (161890,152827,152828,152831,152832,152833)')
+        ]
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Horde Uncanny Combatant Weapons',
+            'items' => CategoryBonusItemList($house, 'i.id in (170366, 170302, 170209, 170311, 170310, 170365)')
         ]
     ];
 
@@ -1758,7 +1790,7 @@ function CategoryResult_tailoring($house)
         ]
     ];
 
-    foreach (['Notorious', 'Sinister', 'Honorable'] as $version) {
+    foreach (['Uncanny', 'Notorious', 'Sinister', 'Honorable'] as $version) {
         $tr['results'][] = [
             'name' => 'ItemList',
             'data' => [
@@ -1784,7 +1816,7 @@ function CategoryResult_tailoring($house)
         ]
     ];
 
-    foreach (['Notorious', 'Sinister', 'Honorable'] as $version) {
+    foreach (['Uncanny', 'Notorious', 'Sinister', 'Honorable'] as $version) {
         $tr['results'][] = [
             'name' => 'ItemList',
             'data' => [
@@ -2081,8 +2113,8 @@ function CategoryResult_cooking($house)
     $current = count($expansions) - 1;
 
     $foods = array_merge([
-        $expansions[$current] . ' Meat' => '154899, 154898, 154897, 152631, 168303, 168645',
-        $expansions[$current] . ' Fish' => '152549, 152548, 152547, 152546, 152545, 152544, 152543, 162515, 160711, 168302, 168646',
+        $expansions[$current] . ' Meat' => '154899, 154898, 154897, 152631, 168303, 168645, 174353',
+        $expansions[$current] . ' Fish' => '152549, 152548, 152547, 152546, 152545, 152544, 152543, 162515, 160711, 168302, 168646, 174328, 174327',
         ],
         CategoryGetTradeItemsInExpansion(185, $current),
         [$expansions[$current - 1] . ' Fish' => '133607, 124107, 124109, 124108, 124110, 124111, 124112'],

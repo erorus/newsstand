@@ -555,6 +555,8 @@ group by sn.id)
 EOF;
 RunAndLogError($sql);
 
+RunAndLogError('update tblDBCSpell set tradeskillcategory=1449 where id=314960 and tradeskillcategory=0');
+
 RunAndLogError('truncate tblDBCSpellCrafts');
 $sql = <<<EOF
 insert ignore into tblDBCSpellCrafts (spell, item)
