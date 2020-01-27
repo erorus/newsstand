@@ -7,6 +7,8 @@ require_once('../incl/incl.php');
 require_once('../incl/heartbeat.incl.php');
 require_once('../incl/battlenet.incl.php');
 
+ini_set('memory_limit', '256M');
+
 define('SNAPSHOT_PATH', '/var/newsstand/snapshots/');
 define('EARLY_CHECK_SECONDS', 120);
 define('MINIMUM_INTERVAL_SECONDS', 1220);
