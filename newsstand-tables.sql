@@ -33,26 +33,6 @@ CREATE TABLE IF NOT EXISTS `tblAuction` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tblAuctionBadBonus`
---
-
-CREATE TABLE IF NOT EXISTS `tblAuctionBadBonus` (
-  `house` smallint(5) unsigned NOT NULL,
-  `id` int(10) unsigned NOT NULL,
-  `bonus1` smallint(5) unsigned DEFAULT NULL,
-  `bonus2` smallint(5) unsigned DEFAULT NULL,
-  `bonus3` smallint(5) unsigned DEFAULT NULL,
-  `bonus4` smallint(5) unsigned DEFAULT NULL,
-  `bonus5` smallint(5) unsigned DEFAULT NULL,
-  `bonus6` smallint(5) unsigned DEFAULT NULL,
-  `firstseen` timestamp NULL DEFAULT NULL,
-  `lastseen` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`house`,`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `tblAuctionExtra`
 --
 
@@ -1151,12 +1131,6 @@ CREATE TABLE IF NOT EXISTS `ttblItemSummaryTemplate` (
 --
 -- Constraints for dumped tables
 --
-
---
--- Constraints for table `tblAuctionBadBonus`
---
-ALTER TABLE `tblAuctionBadBonus`
-  ADD CONSTRAINT `tblAuctionBadBonus_ibfk_1` FOREIGN KEY (`house`, `id`) REFERENCES `tblAuction` (`house`, `id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `tblAuctionExtra`
