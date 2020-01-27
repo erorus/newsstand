@@ -479,7 +479,7 @@ function CategoryResult_minorstats($house) {
                 'data' => [
                     'name'       => sprintf('%s %s', $statName, $className),
                     'items'      => CategoryBonusAuctionList($house, [
-                        'joins' => 'join tblDBCItemBonus ib on ib.id in (ae.bonus1, ae.bonus2, ae.bonus3, ae.bonus4, ae.bonus5, ae.bonus6)',
+                        'joins' => 'join tblAuctionBonus ab on ab.house = a.house and ab.id = a.id join tblDBCItemBonus ib on ib.id = ab.bonus',
                         'where' => sprintf('ib.statmask & %d and i.class = 4 and i.subclass = %d and i.type != 16 ', $statMask, $subclassId),
                     ]),
                     'dynamicItems' => 1,
@@ -493,7 +493,7 @@ function CategoryResult_minorstats($house) {
             'data' => [
                 'name'       => sprintf('%s Other', $statName),
                 'items'      => CategoryBonusAuctionList($house, [
-                    'joins' => 'join tblDBCItemBonus ib on ib.id in (ae.bonus1, ae.bonus2, ae.bonus3, ae.bonus4, ae.bonus5, ae.bonus6)',
+                    'joins' => 'join tblAuctionBonus ab on ab.house = a.house and ab.id = a.id join tblDBCItemBonus ib on ib.id = ab.bonus',
                     'where' => sprintf('ib.statmask & %d and not (i.class = 4 and i.subclass in (%s) and i.type != 16)', $statMask, implode(',', array_keys($armorClasses))),
                 ]),
                 'dynamicItems' => 1,
@@ -2614,7 +2614,10 @@ ifnull(a.buy, s.price) price,
   select 20 h union select 21 h union select 22 h union select 23 h) hours
  where ihh.house = ? and ihh.item = i.id and ihh.level = s.level) avgprice,
 ae.lootedlevel, ae.`rand`, ae.seed,
-concat_ws(':', ae.bonus1, ae.bonus2, ae.bonus3, ae.bonus4, ae.bonus5, ae.bonus6) as bonusurl
+(select group_concat(ab.bonus order by 1 separator ':')
+ from tblAuctionBonus ab
+ where ab.house = a.house
+ and ab.id = a.id) as bonusurl
 $cols
 from tblDBCItem i
 join tblAuction a on a.house = ? and a.item = i.id

@@ -29,6 +29,7 @@ function GetDataTables() {
 
     $tables = [
         'tblAuction' => 'house='.$house,
+        'tblAuctionBonus' => 'house='.$house,
         'tblAuctionExtra' => 'house='.$house,
         'tblAuctionPet' => 'house='.$house,
         'tblAuctionRare' => 'house='.$house,

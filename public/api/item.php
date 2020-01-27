@@ -306,10 +306,11 @@ function ItemAuctions($house, $item)
     $sql = <<<EOF
 SELECT a.id, a.quantity, a.bid, a.buy, ifnull(ae.`rand`,0) `rand`, ifnull(ae.seed,0) `seed`,
 ifnull(@lootedLevel := ae.lootedlevel,0) `lootedlevel`, ifnull(ae.level, i.level) level,
-concat_ws(':',ae.bonus1,ae.bonus2,ae.bonus3,ae.bonus4,ae.bonus5,ae.bonus6) bonuses
+group_concat(ab.bonus order by 1 separator ':') bonuses
 FROM `tblAuction` a
 join tblDBCItem i on a.item=i.id
 left join tblAuctionExtra ae on ae.house=a.house and ae.id=a.id
+left join tblAuctionBonus ab on ab.house=a.house and ab.id=a.id
 left join tblDBCRandEnchants re on re.id = ae.rand
 WHERE a.house=? and a.item=?
 group by a.id
