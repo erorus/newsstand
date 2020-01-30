@@ -464,6 +464,7 @@ function CategoryResult_minorstats($house) {
         'Leech' => BONUS_STAT_SET_LEECH,
         'Avoidance' => BONUS_STAT_SET_AVOIDANCE,
         'Indestructible' => BONUS_STAT_SET_INDESTRUCTIBLE,
+        'Corruption' => BONUS_STAT_SET_CORRUPTION,
     ];
     $armorClasses = [
         1 => 'Cloth',

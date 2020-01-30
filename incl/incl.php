@@ -18,10 +18,11 @@ define('HISTORY_DAYS_DEEP', 93);
 define('SOCKET_FAKE_ITEM_NAME_DESC_ID', 10);
 define('MIN_ITEM_LEVEL_PRICING', 175); // items with an item level below this amount, after bonuses are applied, will be considered as the base item level for pricing
 
-define('BONUS_STAT_SET_SPEED', 1);
-define('BONUS_STAT_SET_LEECH', 2);
-define('BONUS_STAT_SET_AVOIDANCE', 4);
-define('BONUS_STAT_SET_INDESTRUCTIBLE', 8);
+define('BONUS_STAT_SET_SPEED',          0x1);
+define('BONUS_STAT_SET_LEECH',          0x2);
+define('BONUS_STAT_SET_AVOIDANCE',      0x4);
+define('BONUS_STAT_SET_INDESTRUCTIBLE', 0x8);
+define('BONUS_STAT_SET_CORRUPTION',    0x10);
 
 define('BATTLE_PET_CAGE_ITEM', 82800);
 

@@ -163,6 +163,9 @@ foreach ($bonusRows as $row) {
                 $bonuses[$row['bonusid']]['statmask'] = 0;
             }
             switch ($row['params'][0]) {
+                case 22:
+                    $bonuses[$row['bonusid']]['statmask'] |= BONUS_STAT_SET_CORRUPTION;
+                    break;
                 case 61:
                     $bonuses[$row['bonusid']]['statmask'] |= BONUS_STAT_SET_SPEED;
                     break;

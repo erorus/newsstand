@@ -222,6 +222,7 @@ CREATE TABLE IF NOT EXISTS `tblDBCItemBonus` (
   `nameid` mediumint(8) unsigned DEFAULT NULL,
   `namepriority` tinyint(3) unsigned DEFAULT NULL,
   `socketmask` bit(32) DEFAULT NULL,
+  `statmask` set('speed','leech','avoidance','indestructible','corruption') COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
