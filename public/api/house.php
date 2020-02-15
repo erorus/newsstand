@@ -32,7 +32,7 @@ function HouseTimestamps($house)
     if ($cacheKey === false) {
         $cacheKey = 0;
     }
-    $cacheKey = 'house_timestamps_'.$cacheKey;
+    $cacheKey = 'house_timestamps2_'.$cacheKey;
     if (($tr = MCGetHouse($house, $cacheKey)) !== false) {
         return $tr;
     }
@@ -46,8 +46,8 @@ function HouseTimestamps($house)
         'mindelta'    => 0,
         'avgdelta'    => 0,
         'maxdelta'    => 0,
-        'lastcheck'   => ['ts' => 0, 'json' => 0],
-        'lastsuccess' => ['ts' => 0, 'json' => 0],
+        'lastcheck'   => 0,
+        'lastsuccess' => 0,
     ];
 
     $sql = <<<EOF
@@ -58,9 +58,7 @@ least(min(delta), 150*60) mindelta,
 round(avg(delta)) avgdelta,
 max(delta) maxdelta,
 unix_timestamp(hc.lastcheck),
-hc.lastcheckresult,
-unix_timestamp(hc.lastchecksuccess),
-hc.lastchecksuccessresult
+unix_timestamp(hc.lastchecksuccess)
 from (
     select sn.updated,
     if(sn.updated > timestampadd(hour, -72, now()), unix_timestamp(sn.updated) - @prevdate, null) delta,
@@ -81,22 +79,11 @@ EOF;
         $tr['mindelta'],
         $tr['avgdelta'],
         $tr['maxdelta'],
-        $tr['lastcheck']['ts'],
-        $tr['lastcheck']['json'],
-        $tr['lastsuccess']['ts'],
-        $tr['lastsuccess']['json']
+        $tr['lastcheck'],
+        $tr['lastsuccess']
     );
     $stmt->fetch();
     $stmt->close();
-
-    foreach (['lastcheck','lastsuccess'] as $k) {
-        if (!is_null($tr[$k]['json'])) {
-            $decoded = json_decode($tr[$k]['json'], true);
-            if (json_last_error() == JSON_ERROR_NONE) {
-                $tr[$k]['json'] = $decoded;
-            }
-        }
-    }
 
     MCSetHouse($house, $cacheKey, $tr);
 

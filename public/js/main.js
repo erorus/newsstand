@@ -1521,33 +1521,16 @@ var TUJ = function ()
             d.appendChild(libtuj.FormatDate(houseInfo[house].timestamps.scheduled, false, 'minute'));
             ru.appendChild(d);
         } else if (houseInfo[house].timestamps.hasOwnProperty('lastcheck')) {
-            if (houseInfo[house].timestamps.lastcheck.ts) {
+            if (houseInfo[house].timestamps.lastcheck) {
                 var d = libtuj.ce();
                 d.appendChild(document.createTextNode(self.lang.lastChecked + ' '));
-                d.appendChild(libtuj.FormatDate(houseInfo[house].timestamps.lastcheck.ts, false, 'minute'));
+                d.appendChild(libtuj.FormatDate(houseInfo[house].timestamps.lastcheck, false, 'minute'));
                 ru.appendChild(d);
 
                 showAPIDownAlert =
                     houseInfo[house].timestamps.lastupdate &&
                     (houseInfo[house].timestamps.lastupdate < (Date.now() / 1000 - 172800)) && // last update over 48 hours ago
-                    (houseInfo[house].timestamps.lastcheck.ts > (Date.now() / 1000 - 2100));   // checked at least 35 mins ago
-            }
-            if (houseInfo[house].timestamps.lastcheck.json) {
-                if (houseInfo[house].timestamps.lastcheck.json.hasOwnProperty('reason')) {
-                    if (houseInfo[house].timestamps.lastcheck.json.reason.length > 50) {
-                        d = libtuj.ce('abbr');
-                        d.style.overflow = 'hidden';
-                        d.style.textOverflow = 'ellipsis';
-                        d.style.whiteSpace = 'nowrap';
-                        d.style.width = '100%';
-                        d.style.display = 'block';
-                        d.setAttribute('title', houseInfo[house].timestamps.lastcheck.json.reason);
-                    } else {
-                        d = libtuj.ce();
-                    }
-                    d.appendChild(document.createTextNode('Blizzard API: ' + houseInfo[house].timestamps.lastcheck.json.reason));
-                    ru.appendChild(d);
-                }
+                    (houseInfo[house].timestamps.lastcheck > (Date.now() / 1000 - 2100));   // checked at least 35 mins ago
             }
         }
 

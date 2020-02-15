@@ -453,9 +453,7 @@ CREATE TABLE IF NOT EXISTS `tblHouseCheck` (
   `nextcheck` timestamp NULL DEFAULT NULL,
   `lastdaily` date DEFAULT NULL,
   `lastcheck` timestamp NULL DEFAULT NULL,
-  `lastcheckresult` text COLLATE utf8_unicode_ci,
   `lastchecksuccess` timestamp NULL DEFAULT NULL,
-  `lastchecksuccessresult` text COLLATE utf8_unicode_ci,
   PRIMARY KEY (`house`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
