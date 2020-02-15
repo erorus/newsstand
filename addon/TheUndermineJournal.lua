@@ -1,6 +1,6 @@
 --[[
 
-TheUndermineJournal addon, v 5.4
+TheUndermineJournal addon, v 5.5
 https://theunderminejournal.com/
 
 You should be able to query this DB from other addons:
@@ -162,16 +162,13 @@ function TUJMarketInfo(item,...)
         species, _, quality = getSpeciesFromPetLink(item)
         dataKey = 's'..species
     else
-        _, link = GetItemInfo(item)
-        if not link then return tr end
+        local itemId, _, _, _, _, itemClass = GetItemInfoInstant(item)
+        if not itemId then return tr end
 
-        local itemString = string.match(link, "item[%-?%d:]+")
-        local itemStringParts = { strsplit(":", itemString) }
-        iid = itemStringParts[2]
-        dataKey = iid
+        iid = itemId
+        dataKey = tostring(iid)
 
         pricingLevel = 0
-        local _, _, _, _, _, itemClass = GetItemInfoInstant(item)
         if (itemClass == 2) or (itemClass == 4) then
             local effectiveLevel, previewLevel, origLevel = GetDetailedItemLevelInfo(item)
             pricingLevel = effectiveLevel
@@ -197,7 +194,7 @@ function TUJMarketInfo(item,...)
 
     tr['input'] = item
     if (iid) then
-        tr['itemid'] = tonumber(iid,10)
+        tr['itemid'] = iid
     end
     if (species) then
         tr['species'] = species
