@@ -131,37 +131,25 @@
                 if (row.canonical) {
                     total++;
                 }
-                failPrefix = '<b>' + region.toUpperCase() + ' ' + (row.name ? row.name : slug) + '</b>: ';
-                if (row.realmmissing) {
+                failPrefix = '<b>' + region.toUpperCase() + ' ' + (row.name || row.slug || slug) + '</b>: ';
+                if (row.missing) {
                     failPrefix += 'missing from realm list. ';
                     chainedFail = true;
                 }
-                if (row.statuserror) {
-                    failures.push(failPrefix + row.statuserror);
+                if (row.noResponse) {
+                    failures.push(failPrefix + 'did not respond.');
+                    continue;
+                }
+                if (row.errorCode && row.errorCode >= 400) {
+                    failures.push(failPrefix + 'returned HTTP error ' + row.errorCode);
                     continue;
                 }
                 if (!row.modified) {
-                    failures.push(failPrefix + 'data status did not respond.');
+                    failures.push(failPrefix + 'had no last-modified date.');
                     continue;
                 }
-                if (!row.file) {
-                    failures.push(failPrefix + 'data file unavailable.');
-                    continue;
-                }
-                if (row.datamissing) {
-                    failures.push(failPrefix + 'absent from ' + (response.regions[region].hasOwnProperty(row.datamissing) ? response.regions[region][row.datamissing].name : row.datamissing) + ' data file.');
-                    continue;
-                }
-                if ((row.checked - row.modified > 125 * 60 * 1000) || (row.modified - 5 * 60 * 1000 > row.file)) {
-                    if (row.modified != row.file) {
-                        failures.push(
-                                failPrefix +
-                                'data status is ' + PrettySeconds(Math.floor((row.checked - row.modified) / 1000)) + ' old,<br>' +
-                                'data file is ' + PrettySeconds(Math.floor((row.checked - row.file) / 1000)) + ' old.'
-                        );
-                    } else {
-                        failures.push(failPrefix + PrettySeconds(Math.floor((row.checked - row.modified) / 1000)) + ' old');
-                    }
+                if (row.checked - row.modified > 125 * 60 * 1000) {
+                    failures.push(failPrefix + PrettySeconds(Math.floor((row.checked - row.modified) / 1000)) + ' old');
                     continue;
                 }
                 if (chainedFail) {
