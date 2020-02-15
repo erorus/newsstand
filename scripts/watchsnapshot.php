@@ -14,7 +14,6 @@ RunMeNTimes(1);
 CatchKill();
 
 define('SNAPSHOT_PATH', '/var/newsstand/snapshots/watch/');
-define('MAX_BONUSES', 6); // is a count, 1 through N
 define('ARRAY_INDEX_BUYOUT', 1);
 define('ARRAY_INDEX_QUANTITY', 0);
 define('ARRAY_INDEX_AUCTIONS', 1);
@@ -159,12 +158,7 @@ function ParseAuctionData($house, $snapshot, &$json)
     $lastMax = 0;
     $lastMaxUpdated = 0;
 
-    $jsonAuctions = [];
-    if (isset($json['auctions']['auctions'])) {
-        $jsonAuctions =& $json['auctions']['auctions'];
-    } elseif (isset($json['auctions']) && (count($json['auctions']) > 5)) {
-        $jsonAuctions =& $json['auctions'];
-    }
+    $jsonAuctions =& $json['auctions'];
 
     $ourDb = DBConnect(true);
     $ourDb->query('set transaction isolation level read uncommitted, read only');
@@ -193,74 +187,80 @@ function ParseAuctionData($house, $snapshot, &$json)
         DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " parsing $auctionCount auctions");
 
         while ($auction = array_pop($jsonAuctions)) {
-            $isNewAuction = ($auction['auc'] - $lastMax);
+            $isNewAuction = ($auction['id'] - $lastMax);
             $isNewAuction = ($isNewAuction > 0) || ($isNewAuction < -0x20000000);
 
-            if (isset($auction['petBreedId'])) {
-                $auction['petBreedId'] = (($auction['petBreedId'] - 3) % 10) + 3; // squash gender
+            if (isset($auction['item']['pet_breed_id'])) {
+                $auction['item']['pet_breed_id'] = (($auction['item']['pet_breed_id'] - 3) % 10) + 3; // squash gender
             }
+            if (!isset($auction['buyout'])) {
+                if (isset($auction['unit_price'])) {
+                    $auction['buyout'] = $auction['unit_price'] * $auction['quantity'];
+                } else {
+                    $auction['buyout'] = 0;
+                }
+            }
+            if (!isset($auction['bid'])) {
+                $auction['bid'] = 0;
+            }
+
             $hasBuyout = ($auction['buyout'] != 0);
 
-            if (isset($auction['petSpeciesId'])) {
+            if (isset($auction['item']['pet_species_id'])) {
                 if ($hasBuyout) {
                     $aucList = &$petBuyouts;
                 } else {
                     $aucList = &$petBids;
                 }
-                if (!isset($aucList[$auction['petSpeciesId']])) {
-                    $aucList[$auction['petSpeciesId']] = $emptyItemInfo;
+                if (!isset($aucList[$auction['item']['pet_species_id']])) {
+                    $aucList[$auction['item']['pet_species_id']] = $emptyItemInfo;
                 }
                 if ($hasBuyout) {
-                    AuctionListInsert($aucList[$auction['petSpeciesId']][ARRAY_INDEX_AUCTIONS], $auction['quantity'], $auction['buyout']);
+                    AuctionListInsert($aucList[$auction['item']['pet_species_id']][ARRAY_INDEX_AUCTIONS], $auction['quantity'], $auction['buyout']);
                 }
-                $aucList[$auction['petSpeciesId']][ARRAY_INDEX_QUANTITY] += $auction['quantity'];
+                $aucList[$auction['item']['pet_species_id']][ARRAY_INDEX_QUANTITY] += $auction['quantity'];
             } else {
                 if ($hasBuyout) {
                     $aucList = &$itemBuyouts;
                 } else {
                     $aucList = &$itemBids;
                 }
-                $pricingItemLevel = $bonusItemLevel = $equipBaseItemLevel[$auction['item']] ?? 0;
-                if ($bonusItemLevel && isset($auction['bonusLists'])) {
-                    $bonuses = [];
-                    for ($y = 0; $y < count($auction['bonusLists']); $y++) {
-                        if (isset($auction['bonusLists'][$y]['bonusListId']) && $auction['bonusLists'][$y]['bonusListId']) {
-                            $bonuses[] = intval($auction['bonusLists'][$y]['bonusListId'],10);
-                        }
-                    }
+                $pricingItemLevel = $bonusItemLevel = $equipBaseItemLevel[$auction['item']['id']] ?? 0;
+                if ($bonusItemLevel && isset($auction['item']['bonus_lists'])) {
+                    $bonuses = $auction['item']['bonus_lists'];
                     $bonuses = array_unique($bonuses, SORT_NUMERIC);
                     sort($bonuses, SORT_NUMERIC);
 
                     if (count($bonuses)) {
-                        $auction['lootedLevel'] = null;
-                        if (isset($auction['modifiers'])) {
-                            foreach ($auction['modifiers'] as $modObj) {
+                        $auction['item']['lootedLevel'] = null;
+                        if (isset($auction['item']['modifiers'])) {
+                            foreach ($auction['item']['modifiers'] as $modObj) {
                                 if (isset($modObj['type']) && ($modObj['type'] == 9)) {
-                                    $auction['lootedLevel'] = intval($modObj['value']);
+                                    $auction['item']['lootedLevel'] = intval($modObj['value']);
                                 }
                             }
                         }
                         $bonusItemLevel = \Newsstand\BonusItemLevel::GetBonusItemLevel($bonuses,
-                            $equipBaseItemLevel[$auction['item']], $auction['lootedLevel']);
+                            $equipBaseItemLevel[$auction['item']['id']], $auction['item']['lootedLevel']);
                         if ($bonusItemLevel >= MIN_ITEM_LEVEL_PRICING) {
                             $pricingItemLevel = $bonusItemLevel;
                         }
                     }
                 }
-                if (!isset($aucList[$auction['item']][$pricingItemLevel])) {
-                    $aucList[$auction['item']][$pricingItemLevel] = $emptyItemInfo;
+                if (!isset($aucList[$auction['item']['id']][$pricingItemLevel])) {
+                    $aucList[$auction['item']['id']][$pricingItemLevel] = $emptyItemInfo;
                 }
 
-                AuctionListInsert($aucList[$auction['item']][$pricingItemLevel][ARRAY_INDEX_AUCTIONS], $auction['quantity'], $hasBuyout ? $auction['buyout'] : $auction['bid']);
-                $aucList[$auction['item']][$pricingItemLevel][ARRAY_INDEX_QUANTITY] += $auction['quantity'];
+                AuctionListInsert($aucList[$auction['item']['id']][$pricingItemLevel][ARRAY_INDEX_AUCTIONS], $auction['quantity'], $hasBuyout ? $auction['buyout'] : $auction['bid']);
+                $aucList[$auction['item']['id']][$pricingItemLevel][ARRAY_INDEX_QUANTITY] += $auction['quantity'];
 
                 if ($isNewAuction) {
-                    if (!isset($oldAuctionItems[$auction['item']][$pricingItemLevel])) {
-                        $newAuctionItems[$auction['item']][$pricingItemLevel] = true;
+                    if (!isset($oldAuctionItems[$auction['item']['id']][$pricingItemLevel])) {
+                        $newAuctionItems[$auction['item']['id']][$pricingItemLevel] = true;
                     }
                 } else {
-                    $oldAuctionItems[$auction['item']][$pricingItemLevel] = true;
-                    unset($newAuctionItems[$auction['item']][$pricingItemLevel]);
+                    $oldAuctionItems[$auction['item']['id']][$pricingItemLevel] = true;
+                    unset($newAuctionItems[$auction['item']['id']][$pricingItemLevel]);
                 }
             }
         }
