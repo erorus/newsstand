@@ -231,18 +231,13 @@ function ParseAuctionData($house, $snapshot, &$json)
     $highMax = -1;
     $hasRollOver = false;
 
-    $jsonAuctions = [];
-    if (isset($json['auctions']['auctions'])) {
-        $jsonAuctions =& $json['auctions']['auctions'];
-    } elseif (isset($json['auctions']) && (count($json['auctions']) > 5)) {
-        $jsonAuctions =& $json['auctions'];
-    }
+    $jsonAuctions =& $json['auctions'];
 
     if ($jsonAuctions) {
         $auctionCount = count($jsonAuctions);
 
         for ($x = 0; $x < $auctionCount; $x++) {
-            $auctionId = $jsonAuctions[$x]['auc'];
+            $auctionId = $jsonAuctions[$x]['id'];
 
             $naiveMax = max($naiveMax, $auctionId);
             if ($auctionId < 0x20000000) {
@@ -300,39 +295,43 @@ function ParseAuctionData($house, $snapshot, &$json)
 
     if ($jsonAuctions) {
         $auctionCount = count($jsonAuctions);
-        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " prepping $auctionCount auctions");
-
         $sql = $sqlPet = $sqlExtra = $sqlBonus = '';
         $delayedAuctionSql = [];
 
-        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " parsing $auctionCount auctions");
+        DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " processing $auctionCount auctions");
         while ($auction = array_pop($jsonAuctions)) {
-            if (isset($auction['petBreedId'])) {
-                $auction['petBreedId'] = (($auction['petBreedId'] - 3) % 10) + 3; // squash gender
+            if (isset($auction['item']['pet_breed_id'])) {
+                $auction['item']['pet_breed_id'] = (($auction['item']['pet_breed_id'] - 3) % 10) + 3; // squash gender
             }
-            $auction['timeLeft'] = isset($TIMELEFT_ENUM[$auction['timeLeft']]) ? $TIMELEFT_ENUM[$auction['timeLeft']] : 0;
+            $auction['time_left'] = isset($TIMELEFT_ENUM[$auction['time_left']]) ? $TIMELEFT_ENUM[$auction['time_left']] : 0;
+            if (!isset($auction['buyout'])) {
+                if (isset($auction['unit_price'])) {
+                    $auction['buyout'] = $auction['unit_price'] * $auction['quantity'];
+                } else {
+                    $auction['buyout'] = 0;
+                }
+            }
+            if (!isset($auction['bid'])) {
+                $auction['bid'] = 0;
+            }
 
-            $auction['lootedLevel'] = null;
-            if (isset($auction['modifiers'])) {
-                foreach ($auction['modifiers'] as $modObj) {
+            $auction['item']['lootedLevel'] = null;
+            if (isset($auction['item']['modifiers'])) {
+                foreach ($auction['item']['modifiers'] as $modObj) {
                     if (isset($modObj['type']) && ($modObj['type'] == 9)) {
-                        $auction['lootedLevel'] = intval($modObj['value']);
+                        $auction['item']['lootedLevel'] = intval($modObj['value']);
                     }
                 }
             }
 
             $totalAuctions++;
             $bonuses = [];
-            $pricingItemLevel = $bonusItemLevel = $equipBaseItemLevel[$auction['item']] ?? 0;
-            if (!isset($auction['petSpeciesId']) && $bonusItemLevel) {
-                if (!isset($auction['bonusLists'])) {
-                    $auction['bonusLists'] = [];
+            $pricingItemLevel = $bonusItemLevel = $equipBaseItemLevel[$auction['item']['id']] ?? 0;
+            if (!isset($auction['item']['pet_species_id']) && $bonusItemLevel) {
+                if (!isset($auction['item']['bonus_lists'])) {
+                    $auction['item']['bonus_lists'] = [];
                 }
-                for ($y = 0; $y < count($auction['bonusLists']); $y++) {
-                    if (isset($auction['bonusLists'][$y]['bonusListId']) && $auction['bonusLists'][$y]['bonusListId']) {
-                        $bonuses[] = intval($auction['bonusLists'][$y]['bonusListId'],10);
-                    }
-                }
+                $bonuses = $auction['item']['bonus_lists'];
                 $bonuses = array_unique($bonuses, SORT_NUMERIC);
                 sort($bonuses, SORT_NUMERIC);
 
@@ -343,42 +342,42 @@ function ParseAuctionData($house, $snapshot, &$json)
                     }
                 }
 
-                $bonusItemLevel = \Newsstand\BonusItemLevel::GetBonusItemLevel($bonuses, $equipBaseItemLevel[$auction['item']], $auction['lootedLevel']);
+                $bonusItemLevel = \Newsstand\BonusItemLevel::GetBonusItemLevel($bonuses, $equipBaseItemLevel[$auction['item']['id']], $auction['item']['lootedLevel']);
                 if ($bonusItemLevel >= MIN_ITEM_LEVEL_PRICING) {
                     $pricingItemLevel = $bonusItemLevel;
                 }
             }
             if ($auction['buyout'] != 0) {
-                if (isset($auction['petSpeciesId'])) {
-                    if (!isset($petInfo[$auction['petSpeciesId']])) {
-                        $petInfo[$auction['petSpeciesId']] = array('a' => array(), 'tq' => 0);
+                if (isset($auction['item']['pet_species_id'])) {
+                    if (!isset($petInfo[$auction['item']['pet_species_id']])) {
+                        $petInfo[$auction['item']['pet_species_id']] = array('a' => array(), 'tq' => 0);
                     }
 
-                    $petInfo[$auction['petSpeciesId']]['a'][] = array(
+                    $petInfo[$auction['item']['pet_species_id']]['a'][] = array(
                         'q' => $auction['quantity'],
                         'p' => $auction['buyout']
                     );
-                    $petInfo[$auction['petSpeciesId']]['tq'] += $auction['quantity'];
+                    $petInfo[$auction['item']['pet_species_id']]['tq'] += $auction['quantity'];
                 } else {
-                    if (!isset($itemInfo[$auction['item']][$pricingItemLevel])) {
-                        $itemInfo[$auction['item']][$pricingItemLevel] = array('a' => array(), 'tq' => 0);
+                    if (!isset($itemInfo[$auction['item']['id']][$pricingItemLevel])) {
+                        $itemInfo[$auction['item']['id']][$pricingItemLevel] = array('a' => array(), 'tq' => 0);
                     }
 
-                    $itemInfo[$auction['item']][$pricingItemLevel]['a'][] = array(
+                    $itemInfo[$auction['item']['id']][$pricingItemLevel]['a'][] = array(
                         'q'   => $auction['quantity'],
                         'p'   => $auction['buyout'],
                     );
-                    $itemInfo[$auction['item']][$pricingItemLevel]['tq'] += $auction['quantity'];
+                    $itemInfo[$auction['item']['id']][$pricingItemLevel]['tq'] += $auction['quantity'];
                 }
             }
 
-            if (isset($existingIds[$auction['auc']])) {
-                $needUpdate = ($auction['bid'] != $existingIds[$auction['auc']][EXISTING_COL_BID]);
-                $needUpdate |= ($auction['buyout'] != $existingIds[$auction['auc']][EXISTING_COL_BUY]);
-                $needUpdate |= ($auction['quantity'] != $existingIds[$auction['auc']][EXISTING_COL_QUANTITY]);
-                $needUpdate |= ($auction['timeLeft'] != $existingIds[$auction['auc']][EXISTING_COL_TIMELEFT]);
-                unset($existingIds[$auction['auc']]);
-                unset($existingPetIds[$auction['auc']]);
+            if (isset($existingIds[$auction['id']])) {
+                $needUpdate = ($auction['bid'] != $existingIds[$auction['id']][EXISTING_COL_BID]);
+                $needUpdate |= ($auction['buyout'] != $existingIds[$auction['id']][EXISTING_COL_BUY]);
+                $needUpdate |= ($auction['quantity'] != $existingIds[$auction['id']][EXISTING_COL_QUANTITY]);
+                $needUpdate |= ($auction['time_left'] != $existingIds[$auction['id']][EXISTING_COL_TIMELEFT]);
+                unset($existingIds[$auction['id']]);
+                unset($existingPetIds[$auction['id']]);
                 if (!$needUpdate) {
                     continue;
                 }
@@ -389,12 +388,12 @@ function ParseAuctionData($house, $snapshot, &$json)
             $thisSql = sprintf(
                 '(%u, %u, %u, %u, %u, %u, %u)',
                 $house,
-                $auction['auc'],
-                $auction['item'],
+                $auction['id'],
+                $auction['item']['id'],
                 $auction['quantity'],
                 $auction['bid'],
                 $auction['buyout'],
-                $auction['timeLeft']
+                $auction['time_left']
             );
             if (strlen($sql) + 5 + strlen($thisSql) > $maxPacketSize) {
                 DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " updating tblAuction (" . round($totalAuctions / $auctionCount * 100) . '%)');
@@ -403,15 +402,15 @@ function ParseAuctionData($house, $snapshot, &$json)
             }
             $sql .= ($sql == '' ? $sqlStart : ',') . $thisSql;
 
-            if (isset($auction['petSpeciesId'])) {
+            if (isset($auction['item']['pet_species_id'])) {
                 $thisSql = sprintf(
                     '(%u, %u, %u, %u, %u, %u)',
                     $house,
-                    $auction['auc'],
-                    $auction['petSpeciesId'],
-                    $auction['petBreedId'],
-                    $auction['petLevel'],
-                    $auction['petQualityId']
+                    $auction['id'],
+                    $auction['item']['pet_species_id'],
+                    $auction['item']['pet_breed_id'],
+                    $auction['item']['pet_level'],
+                    $auction['item']['pet_quality_id']
                 );
 
                 if (strlen($sqlPet) + 5 + strlen($thisSql) > $maxPacketSize) {
@@ -419,14 +418,14 @@ function ParseAuctionData($house, $snapshot, &$json)
                     $sqlPet = '';
                 }
                 $sqlPet .= ($sqlPet == '' ? $sqlStartPet : ',') . $thisSql;
-            } else if (isset($equipBaseItemLevel[$auction['item']])) {
+            } else if (isset($equipBaseItemLevel[$auction['item']['id']])) {
                 $thisSql = sprintf('(%u,%u,%d,%d,%u,%s,%u)',
                     $house,
-                    $auction['auc'],
-                    $auction['rand'],
-                    $auction['seed'],
-                    $auction['context'],
-                    isset($auction['lootedLevel']) ? $auction['lootedLevel'] : 'null',
+                    $auction['id'],
+                    $auction['item']['rand'] ?? 0,
+                    $auction['item']['seed'] ?? 0,
+                    $auction['item']['context'] ?? 0,
+                    $auction['item']['lootedLevel'] ?? 'null',
                     $bonusItemLevel
                 );
 
@@ -437,7 +436,7 @@ function ParseAuctionData($house, $snapshot, &$json)
                 $sqlExtra .= ($sqlExtra == '' ? $sqlStartExtra : ',') . $thisSql;
 
                 foreach ($bonuses as $bonus) {
-                    $thisSql = sprintf('(%u,%u,%u)', $house, $auction['auc'], $bonus);
+                    $thisSql = sprintf('(%u,%u,%u)', $house, $auction['id'], $bonus);
 
                     if (strlen($sqlBonus) + 5 + strlen($thisSql) > $maxPacketSize) {
                         $delayedAuctionSql[] = $sqlBonus; // delayed since tblAuction row must be inserted first for foreign key
