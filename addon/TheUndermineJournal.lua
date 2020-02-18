@@ -245,6 +245,16 @@ local tooltipsEnabled = true
 function TUJTooltip(...)
     if select('#', ...) >= 1 then
         tooltipsEnabled = not not select(1,...) --coerce into boolean
+
+        local line = strmatch(debugstack(2, 1, 0), "[Aa][Dd][Dd][Oo][Nn][Ss]\\([^\\]+)")
+        if line and line ~= addonName then
+            local callingName, callingTitle = GetAddOnInfo(line)
+            if callingName then
+                callingName = callingTitle or callingName
+                if tooltipsEnabled then line = 'enabled' else line = 'disabled' end
+                print("The Undermine Journal - Tooltip prices " .. line .. " by " .. callingName)
+            end
+        end
     end
     return tooltipsEnabled
 end
