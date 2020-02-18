@@ -22,7 +22,7 @@ while ($row = $result->fetch_assoc()) {
 $result->close();
 $stmt->close();
 
-$ignoreNPCs = [111838]; // beta glyph vendor
+$ignoreNPCs = [111838, 123124]; // beta glyph vendor
 
 $sql = 'replace into tblDBCItemVendorCost (item, copper, npc, npccount) values (%d, %d, %d, %d)';
 foreach ($itms as $itemId => $itemInfo) {
