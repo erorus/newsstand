@@ -119,7 +119,9 @@ abbr:hover.full-date { border-bottom: 1px dotted }
 #progress-page { padding: 3em; text-align: center; }
 #progress-page div { background-image: url("../images/progress.gif"); background-repeat: no-repeat; background-position: center; height: 20px; }
 
-#search-page table, table.auctionlist, table.category, .custom-textarea { width: 54em; margin: 0 auto 2em; border-spacing: 0 }
+#search-page table, table.auctionlist, table.category, .custom-textarea { min-width: 60em; max-width: 70em; margin: 0 auto 2em; border-spacing: 0 }
+.custom-textarea {width:60em}
+table.auctionlist {min-width:40em}
 #search-page table th, table.auctionlist th, table.category th {padding: 0.4em 0.2em 0; border-bottom: 1px solid #CCC; font-weight: normal}
 #search-page table td, table.auctionlist td, table.category td {padding: 0.2em 0.4em; vertical-align: top}
 #search-page tr:hover td, table.auctionlist tr:hover td, table.category tr:hover td, td.hover {background-color: #EEE}
