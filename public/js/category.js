@@ -1319,7 +1319,9 @@ var TUJ_Category = function ()
                     } else {
                         td.className += ' pct-veryhigh';
                     }
-                    td.querySelector('span').classList.remove('pct-veryhigh');
+                    td.querySelectorAll('span').forEach(function (span) {
+                        span.classList.remove('pct-veryhigh');
+                    });
                 }
             }
 
