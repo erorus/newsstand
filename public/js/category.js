@@ -1310,9 +1310,7 @@ var TUJ_Category = function ()
                 if (item.price && item.craftingprice) {
                     td.appendChild(abbrPriceAmount(item.price - item.craftingprice, amount));
                     pct = item.craftingprice / item.price * 100;
-                    if (pct < 50) {
-                        td.className += ' pct-low';
-                    } else if (pct < 80) {
+                    if (pct < 66) {
                         td.className += ' pct-mid';
                     } else if (pct < 110) {
                         td.className += ' pct-normal';
