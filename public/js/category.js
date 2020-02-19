@@ -1312,13 +1312,14 @@ var TUJ_Category = function ()
                     pct = item.craftingprice / item.price * 100;
                     if (pct < 66) {
                         td.className += ' pct-mid';
-                    } else if (pct < 110) {
+                    } else if (pct < 95) {
                         td.className += ' pct-normal';
                     } else if (pct < 135) {
                         td.className += ' pct-high';
                     } else {
                         td.className += ' pct-veryhigh';
                     }
+                    td.querySelector('span').classList.remove('pct-veryhigh');
                 }
             }
 
