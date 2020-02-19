@@ -1079,6 +1079,12 @@ var TUJ_Category = function ()
             tr.appendChild(td);
             $(td).text(tuj.lang.materials);
             titleColSpan++;
+
+            td = libtuj.ce('th');
+            td.className = 'price';
+            tr.appendChild(td);
+            $(td).text(tuj.lang.profit);
+            titleColSpan++;
         }
 
         if (!data.hiddenCols.avgprice) {
@@ -1297,6 +1303,25 @@ var TUJ_Category = function ()
                 td.className = 'price';
                 tr.appendChild(td);
                 td.appendChild(abbrPriceAmount(item.craftingprice, amount));
+
+                td = libtuj.ce('td');
+                td.className = 'price';
+                tr.appendChild(td);
+                if (item.price && item.craftingprice) {
+                    td.appendChild(abbrPriceAmount(item.price - item.craftingprice, amount));
+                    pct = item.craftingprice / item.price * 100;
+                    if (pct < 50) {
+                        td.className += ' pct-low';
+                    } else if (pct < 80) {
+                        td.className += ' pct-mid';
+                    } else if (pct < 110) {
+                        td.className += ' pct-normal';
+                    } else if (pct < 135) {
+                        td.className += ' pct-high';
+                    } else {
+                        td.className += ' pct-veryhigh';
+                    }
+                }
             }
 
             if (!data.hiddenCols.avgprice) {
