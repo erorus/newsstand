@@ -5,6 +5,7 @@ var TUJ_Item = function ()
     var itemId;
     var levels;
     var level;
+    var urlLevel;
 
     this.load = function (inParams)
     {
@@ -16,11 +17,11 @@ var TUJ_Item = function ()
         }
 
         itemId = '' + params.id;
-        level = false;
+        urlLevel = false;
 
         if (itemId.indexOf('.') > 0) {
             itemId = ('' + params.id).substr(0, ('' + params.id).indexOf('.'));
-            level = ('' + params.id).substr(('' + params.id).indexOf('.') + 1);
+            urlLevel = ('' + params.id).substr(('' + params.id).indexOf('.') + 1);
         }
 
         var qs = {
@@ -126,14 +127,14 @@ var TUJ_Item = function ()
                 continue;
             }
             levels.push(parseInt(lvl,10));
-            foundLevel |= level == lvl;
+            foundLevel |= urlLevel == lvl;
         }
         levels.sort(function (a, b)
         {
             return a - b;
         });
         if (!foundLevel) {
-            if (level === false) {
+            if (urlLevel === false) {
                 // url didn't specify a level
                 if (dta.stats.hasOwnProperty(dta.stats[levels[0]].baselevel)) {
                     // use the base level
@@ -148,10 +149,10 @@ var TUJ_Item = function ()
                 tuj.SetParams({page: 'item', id: '' + itemId});
                 return;
             }
-        } else if (!level) {
+        } else if (!urlLevel) {
             // level === false
             level = 0; // so array indexes work
-        } else if (dta.stats[level].baselevel == level) {
+        } else if (dta.stats[level].baselevel == urlLevel) {
             // the level specified in the URL is the base level, which makes it redundant. remove it.
             tuj.SetParams({page: 'item', id: '' + itemId});
             return;
