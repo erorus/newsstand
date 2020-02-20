@@ -23,8 +23,8 @@ CREATE TABLE IF NOT EXISTS `tblAuction` (
   `id` int(10) unsigned NOT NULL,
   `item` mediumint(8) unsigned NOT NULL,
   `quantity` smallint(5) unsigned NOT NULL,
-  `bid` decimal(11,0) NOT NULL,
-  `buy` decimal(11,0) NOT NULL,
+  `bid` bigint(20) NOT NULL,
+  `buy` bigint(20) NOT NULL,
   `timeleft` enum('SHORT','MEDIUM','LONG','VERY_LONG') COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`house`,`id`),
   KEY `item` (`item`,`house`)
