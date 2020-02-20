@@ -152,7 +152,7 @@ var TUJ_Item = function ()
         } else if (!urlLevel) {
             // level === false
             level = 0; // so array indexes work
-        } else if (dta.stats[level].baselevel == urlLevel) {
+        } else if (dta.stats[urlLevel].baselevel == urlLevel) {
             // the level specified in the URL is the base level, which makes it redundant. remove it.
             tuj.SetParams({page: 'item', id: '' + itemId});
             return;
