@@ -171,12 +171,15 @@ function TUJMarketInfo(item,...)
         pricingLevel = 0
         if (itemClass == 2) or (itemClass == 4) then
             local effectiveLevel, previewLevel, origLevel = GetDetailedItemLevelInfo(item)
-            pricingLevel = effectiveLevel
-            if not addonTable.marketData[dataKey .. 'x' .. pricingLevel] then
-                local low, high = math.min(effectiveLevel, previewLevel or effectiveLevel, origLevel), math.max(effectiveLevel, previewLevel or effectiveLevel, origLevel)
-                for i=low,high,1 do
-                    if addonTable.marketData[dataKey .. 'x' .. i] then
-                        pricingLevel = i
+            -- effectiveLevel may be nil when GetItemInfo didn't have the item readily available.
+            if effectiveLevel then
+                pricingLevel = effectiveLevel
+                if not addonTable.marketData[dataKey .. 'x' .. pricingLevel] then
+                    local low, high = math.min(effectiveLevel, previewLevel or effectiveLevel, origLevel), math.max(effectiveLevel, previewLevel or effectiveLevel, origLevel)
+                    for i=low,high,1 do
+                        if addonTable.marketData[dataKey .. 'x' .. i] then
+                            pricingLevel = i
+                        end
                     end
                 end
             end
