@@ -156,6 +156,8 @@ var TUJ_Item = function ()
             // the level specified in the URL is the base level, which makes it redundant. remove it.
             tuj.SetParams({page: 'item', id: '' + itemId});
             return;
+        } else {
+            level = urlLevel;
         }
 
         var fullItemName = '[' + dta.stats[level]['name_' + tuj.locale] + ']';
