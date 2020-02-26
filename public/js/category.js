@@ -452,6 +452,10 @@ var TUJ_Category = function ()
 
         var ta = libtuj.ce('textarea');
         d.appendChild(ta);
+        var saved = libtuj.Storage.Get('custom-items-text');
+        if (saved) {
+            ta.value = saved;
+        }
 
         d.appendChild(libtuj.ce('br'));
 
@@ -504,6 +508,8 @@ var TUJ_Category = function ()
         if (!items.length) {
             return;
         }
+
+        libtuj.Storage.Set('custom-items-text', ta.value);
 
         var compareRealm = realmSel.selectedIndex == 0 ? false : realmSel.options[realmSel.selectedIndex].value;
         var compareHouse = compareRealm ? tuj.realms[compareRealm].house : false;
