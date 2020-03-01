@@ -76,7 +76,7 @@ function main() {
     header('Content-type: text/plain;charset=UTF-8');
     header('Cache-Control: no-cache');
 
-    echo "Fetched {$realmCount} realms.";
+    echo "Fetched {$realmCount} realms. Everything seems to be working.";
 }
 
 main();
