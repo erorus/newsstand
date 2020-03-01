@@ -315,6 +315,15 @@ var TUJ_Subscription = function ()
         dest.appendChild(d);
         if (subData.paid.until) {
             $(d).text(libtuj.sprintf(tuj.lang.paidExpires, libtuj.FormatDate(subData.paid.until, true)));
+
+            var btn = libtuj.ce('input');
+            btn.type = 'button';
+            btn.style.marginLeft = '2em';
+            btn.value = tuj.lang.cancelSubscription;
+            $(btn).on('click', function () {
+                alert(tuj.lang.noAutoRenew);
+            });
+            d.appendChild(btn);
         } else {
             $(d).text(tuj.lang.freeSubscriptionAccount);
         }

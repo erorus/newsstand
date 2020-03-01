@@ -644,6 +644,8 @@
     "clickToExtendSubscription": "Clique abaixo para extender sua assinatura paga. Nota: pagamentos via Paypal podem precisar de uma hora ou mais para serem processados.",
     "excludesBootyBayGazette": "Note: This does <b>not</b> include Booty Bay Gazette.",
     "payWithBitcoin": "Pagar com Bitcoin",
+    "cancelSubscription": "Cancel Subscription",
+    "noAutoRenew": "Your paid subscription will not auto-renew.",
 
     "promoCode": "Promo Code: ",
     "promoCodeInvalid": "That promo code is invalid. Please try again.",

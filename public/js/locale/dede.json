@@ -644,6 +644,8 @@
     "clickToExtendSubscription": "Zahlmethode wählen, um das Abonnement zu verlängern. Bemerke: Es kann eine Stunde oder mehr dauern, bis die Zahlung verarbeitet wurde.",
     "excludesBootyBayGazette": "Note: This does <b>not</b> include Booty Bay Gazette.",
     "payWithBitcoin": "Mit Bitcoin bezahlen",
+    "cancelSubscription": "Cancel Subscription",
+    "noAutoRenew": "Your paid subscription will not auto-renew.",
 
     "promoCode": "Promo Code: ",
     "promoCodeInvalid": "That promo code is invalid. Please try again.",
