@@ -29,7 +29,7 @@ function heartbeatMemcache() {
         header('Content-type: text/plain;charset=UTF-8');
         header('Cache-Control: no-cache');
 
-        echo "In maintenance mode.";
+        echo "In maintenance mode. Everything seems to be working.";
         exit;
     }
 }
