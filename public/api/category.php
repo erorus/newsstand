@@ -3082,7 +3082,7 @@ EOF;
 
     $stmt->close();
 
-    MCSet($cacheKey, $tr);
+    MCSet($cacheKey, $tr, 60*60);
 
     PopulateLocaleCols($tr, [
         ['func' => 'GetItemNames',     'key' => 'id',       'name' => 'name'],
