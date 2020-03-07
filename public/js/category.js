@@ -1963,7 +1963,7 @@ var TUJ_Category = function ()
             return a.requiredside.localeCompare(b.requiredside) ||
                 a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]) ||
                 (a.level - b.level) ||
-                ((a.price ? 0 : 1) - (b.price ? 0 : 1)) ||
+                (a.price - b.price) ||
                 libtuj.GetRealmsForHouse(a.house).localeCompare(libtuj.GetRealmsForHouse(b.house));
         });
 

@@ -115,6 +115,7 @@
 
                         <a rel="turnin">Turn in</a>
                         <a rel="minorstats">Minor Stats</a>
+                        <a rel="corruption">Corruption</a>
                         <a rel="custom">Custom</a>
                         <br/>
 
