@@ -2070,6 +2070,7 @@ var TUJ_Category = function ()
                 td = libtuj.ce('td');
                 td.className = 'name';
                 td.style.fontSize = '75%';
+                td.style.maxWidth = '40%';
                 tr.appendChild(td);
                 td.innerHTML = libtuj.GetRealmsForHouse(item.house);
 
