@@ -884,7 +884,7 @@ var TUJ_Category = function ()
         var everySpecies = {};
 
         if (dta.hasOwnProperty('results')) {
-            if (['custom', 'battlepets', 'deals', 'unusualItems', 'potentialLowBids'].indexOf(dta.name) < 0) {
+            if (['custom', 'battlepets', 'deals', 'unusualItems', 'potentialLowBids', 'corruption'].indexOf(dta.name) < 0) {
                 var compareDiv = libtuj.ce('div');
                 compareDiv.className = 'custom-textarea';
                 resultsDiv.append(compareDiv);
@@ -1837,6 +1837,246 @@ var TUJ_Category = function ()
                 a.rel = 'item=' + crafted.id + (crafted.bonusurl ? '&bonus=' + crafted.bonusurl : (crafted.basebonus ? '&bonus=' + crafted.basebonus : '')) + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
                 a.href = tuj.BuildHash({page: 'item', id: crafted.id});
                 a.appendChild(libtuj.FormatPrice(crafted.price));
+            }
+        }
+
+        return true;
+    };
+
+    resultFunctions.BonusRegionSearch = function (data, dest) {
+        if (!data.items.length) {
+            return false;
+        }
+
+        {
+            var subclassKeys = {};
+            var typeKeys = {};
+            var bonusKeys = {};
+            for (var item, index = 0; item = data.items[index]; index++) {
+                subclassKeys[item.classid + '-' + item.subclass] = true;
+                typeKeys[item.type] = true;
+                var bonuses = item.bonusurl.split(':');
+                for (var bonus, bonusIndex = 0; bonus = bonuses[bonusIndex]; bonusIndex++) {
+                    bonusKeys[bonus] = true;
+                }
+            }
+        }
+
+        var selBoxContainer = libtuj.ce('div');
+        dest.appendChild(selBoxContainer);
+        selBoxContainer.style.textAlign = 'center';
+
+        var onSelChange = function () {
+            var subclassBox = selBoxContainer.querySelectorAll('select')[0];
+            var typeBox = selBoxContainer.querySelectorAll('select')[1];
+
+            var requiredSubclass = subclassBox.options[subclassBox.selectedIndex].value;
+            var requiredType = typeBox.options[typeBox.selectedIndex].value;
+
+            var tables = dest.querySelectorAll('table.category-items');
+            for (var table, tableIndex = 0; table = tables[tableIndex]; tableIndex++) {
+                var foundRow = false;
+                var rows = table.querySelectorAll('[data-subclass-filter]');
+                for (var row, rowIndex = 0; row = rows[rowIndex]; rowIndex++) {
+                    var meetsSubclass = !requiredSubclass || row.dataset.subclassFilter === requiredSubclass;
+                    var meetsType = !requiredType || row.dataset.typeFilter === requiredType;
+                    if (meetsSubclass && meetsType) {
+                        foundRow = true;
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+                table.style.display = foundRow ? '' : 'none';
+            }
+        };
+
+        {
+            var subclasses = [];
+            for (var subclass in subclassKeys) {
+                if (!subclassKeys.hasOwnProperty(subclass)) {
+                    continue;
+                }
+                subclasses.push(subclass);
+            }
+            subclasses.sort(function (a, b) {
+                return (parseInt(a) - parseInt(b)) ||
+                    (tuj.lang.itemSubClasses[a] || '').localeCompare(tuj.lang.itemSubClasses[b] || '');
+            });
+
+            var sel = libtuj.ce('select');
+            sel.style.margin = '1em';
+            sel.addEventListener('change', onSelChange);
+            var o = libtuj.ce('option');
+            sel.appendChild(o);
+            for (var subclass, index = 0; subclass = subclasses[index]; index++) {
+                o = libtuj.ce('option');
+                o.value = subclass;
+                o.label = tuj.lang.itemSubClasses[subclass];
+                o.appendChild(document.createTextNode(tuj.lang.itemSubClasses[subclass]));
+                sel.appendChild(o);
+            }
+            selBoxContainer.appendChild(sel);
+        }
+
+        {
+            var types = [];
+            for (var type in typeKeys) {
+                if (!typeKeys.hasOwnProperty(type)) {
+                    continue;
+                }
+                types.push(type);
+            }
+            types.sort(function (a, b) {
+                return (tuj.lang.itemTypes[a] || '').localeCompare(tuj.lang.itemTypes[b] || '');
+            });
+
+            var sel = libtuj.ce('select');
+            sel.style.margin = '1em';
+            sel.addEventListener('change', onSelChange);
+            var o = libtuj.ce('option');
+            sel.appendChild(o);
+            for (var type, index = 0; type = types[index]; index++) {
+                o = libtuj.ce('option');
+                o.value = type;
+                o.label = tuj.lang.itemTypes[type];
+                o.appendChild(document.createTextNode(tuj.lang.itemTypes[type]));
+                sel.appendChild(o);
+            }
+            selBoxContainer.appendChild(sel);
+        }
+
+        {
+            var sortedBonuses = [];
+            for (var bonus in data.bonuses) {
+                if (!data.bonuses.hasOwnProperty(bonus) || !bonusKeys[bonus]) {
+                    continue;
+                }
+                sortedBonuses.push(bonus);
+            }
+            sortedBonuses.sort(function (a, b) {
+                return data.bonuses[a]['name_' + tuj.locale].localeCompare(data.bonuses[b]['name_' + tuj.locale]);
+            });
+        }
+
+        data.items.sort(function (a, b) {
+            return a.requiredside.localeCompare(b.requiredside) ||
+                a['name_' + tuj.locale].localeCompare(b['name_' + tuj.locale]) ||
+                (a.level - b.level) ||
+                ((a.price ? 0 : 1) - (b.price ? 0 : 1)) ||
+                libtuj.GetRealmsForHouse(a.house).localeCompare(libtuj.GetRealmsForHouse(b.house));
+        });
+
+        for (bonusIndex = 0; bonus = sortedBonuses[bonusIndex]; bonusIndex++) {
+            var t = libtuj.ce('table');
+            t.className = 'category category-items';
+            dest.appendChild(t);
+
+            // overall title
+
+            var tr = libtuj.ce('tr');
+            t.appendChild(tr);
+
+            var td = libtuj.ce('th');
+            td.className = 'title';
+            tr.appendChild(td);
+            td.colSpan = 4;
+            td.appendChild(document.createTextNode(data.bonuses[bonus]['name_' + tuj.locale]));
+
+            // column headers
+
+            tr = libtuj.ce('tr');
+            t.appendChild(tr);
+
+            td = libtuj.ce('th');
+            td.className = 'name';
+            tr.appendChild(td);
+            td.colSpan = 2;
+            $(td).text(tuj.lang.name);
+
+            // Realm
+            td = libtuj.ce('th');
+            td.className = 'name';
+            tr.appendChild(td);
+
+            td = libtuj.ce('th');
+            td.className = 'price';
+            tr.appendChild(td);
+            $(td).text(tuj.lang.currentPriceAbbrev);
+
+            for (var item, index = 0; item = data.items[index]; index++) {
+                if ((':' + item.bonusurl + ':').indexOf(':' + bonus + ':') < 0) {
+                    continue;
+                }
+
+                var realmId = 0;
+                for (var rlm in tuj.realms) {
+                    if (!tuj.realms.hasOwnProperty(rlm)) {
+                        continue;
+                    }
+                    if (tuj.realms[rlm].house == item.house) {
+                        realmId = rlm;
+                        break;
+                    }
+                }
+
+                tr = libtuj.ce('tr');
+                t.appendChild(tr);
+
+                tr.dataset.subclassFilter = item.classid + '-' + item.subclass;
+                tr.dataset.typeFilter = item.type;
+
+                td = libtuj.ce('td');
+                td.className = 'icon';
+                tr.appendChild(td);
+                if (item.requiredside) {
+                    td.className += ' double';
+                    var i = libtuj.ce('img');
+                    td.appendChild(i);
+                    i.className = 'icon';
+                    i.src = libtuj.IconURL('ui_' + item.requiredside.toLowerCase() + 'icon', 'medium');
+                }
+                var i = libtuj.ce('img');
+                td.appendChild(i);
+                i.className = 'icon';
+                i.src = libtuj.IconURL(item.icon, 'medium');
+
+                td = libtuj.ce('td');
+                td.className = 'name';
+                tr.appendChild(td);
+                var a = libtuj.ce('a');
+                td.appendChild(a);
+                a.rel = 'item=' + item.id + (item.rand ? '&rand=' + item.rand : '') + (item.bonusurl ? '&bonus=' + item.bonusurl : '') + (item.lootedlevel ? '&lvl=' + item.lootedlevel : '') + (tuj.locale != 'enus' ? '&domain=' + tuj.lang.wowheadDomain : '');
+                a.href = tuj.BuildHash({
+                    region: params.region,
+                    realm: realmId,
+                    page: 'item',
+                    id: item.id + ((item.level && item.level != item.baselevel) ? '.' + item.level : '')
+                });
+                $(a).text('[' + item['name_' + tuj.locale] + (item['bonusname_' + tuj.locale] ? ' ' + item['bonusname_' + tuj.locale].substr(0, item['bonusname_' + tuj.locale].indexOf('|') >= 0 ? item['bonusname_' + tuj.locale].indexOf('|') : item['bonusname_' + tuj.locale].length) : '') + ']');
+                if (item.level && item.baselevel) {
+                    if (item.level != item.baselevel) {
+                        var s = libtuj.ce('span');
+                        s.className = 'level';
+                        s.appendChild(document.createTextNode(item.level));
+                        a.appendChild(s);
+                    }
+                    if (!item.bonusurl && item.level != item.baselevel) {
+                        a.rel += '&bonus=' + libtuj.LevelOffsetBonus(item.level - item.baselevel);
+                    }
+                }
+                $(a).data('sort', a.textContent);
+
+                td = libtuj.ce('td');
+                td.className = 'name';
+                td.style.fontSize = '75%';
+                tr.appendChild(td);
+                td.innerHTML = libtuj.GetRealmsForHouse(item.house);
+
+                td = libtuj.ce('td');
+                td.className = 'price';
+                tr.appendChild(td);
+                td.appendChild(libtuj.FormatPrice(item.price));
             }
         }
 

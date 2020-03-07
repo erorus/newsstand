@@ -507,6 +507,327 @@ function CategoryResult_minorstats($house) {
     return $result;
 }
 
+function CategoryResult_corruption($house) {
+    $json = <<<'JSON'
+{
+    "6485": {
+        "id": 6485,
+        "name_enus": "Avoidant",
+        "name_dede": "Schlüpfrig",
+        "name_eses": "Evasivo",
+        "name_frfr": "Évitant",
+        "name_itit": "Elusivo",
+        "name_ptbr": "Evasivo",
+        "name_ruru": "Избежание",
+        "name_kokr": "회피술",
+        "name_zhtw": "Avoidant"
+    },
+    "6562": {
+        "id": 6562,
+        "name_enus": "Deadly Momentum",
+        "name_dede": "Tödlicher Schwung",
+        "name_eses": "Inercia mortal",
+        "name_frfr": "Élan mortel",
+        "name_itit": "Impeto Letale",
+        "name_ptbr": "Inércia Mortífera",
+        "name_ruru": "Смертоносный импульс",
+        "name_kokr": "죽음의 기운",
+        "name_zhtw": "Deadly Momentum"
+    },
+    "6567": {
+        "id": 6567,
+        "name_enus": "Devour Vitality",
+        "name_dede": "Vitalität verschlingen",
+        "name_eses": "Devorar vitalidad",
+        "name_frfr": "Dévorer la vitalité",
+        "name_itit": "Divoramento Vitalità",
+        "name_ptbr": "Devorar Vitalidade",
+        "name_ruru": "Поглощение жизненной силы",
+        "name_kokr": "활력 섭취",
+        "name_zhtw": "Devour Vitality"
+    },
+    "6551": {
+        "id": 6551,
+        "name_enus": "Echoing Void",
+        "name_dede": "Widerhallende Leere",
+        "name_eses": "Vacío resonante",
+        "name_frfr": "Vide résonnant",
+        "name_itit": "Vuoto Riecheggiante",
+        "name_ptbr": "Caos Ecoante",
+        "name_ruru": "Эхо Бездны",
+        "name_kokr": "메아리치는 공허",
+        "name_zhtw": "Echoing Void"
+    },
+    "6476": {
+        "id": 6476,
+        "name_enus": "Expedient",
+        "name_dede": "Entschlossen",
+        "name_eses": "Expeditivo",
+        "name_frfr": "Efficace",
+        "name_itit": "Espediente",
+        "name_ptbr": "Expedito",
+        "name_ruru": "Скорость",
+        "name_kokr": "쾌속",
+        "name_zhtw": "Expedient"
+    },
+    "6570": {
+        "id": 6570,
+        "name_enus": "Flash of Insight",
+        "name_dede": "Moment der Eingebung",
+        "name_eses": "Destello de perspicacia",
+        "name_frfr": "Éclair de clairvoyance",
+        "name_itit": "Lampo di Consapevolezza",
+        "name_ptbr": "Lampejo de Perspicácia",
+        "name_ruru": "Внезапное озарение",
+        "name_kokr": "번뜩이는 통찰",
+        "name_zhtw": "Flash of Insight"
+    },
+    "6546": {
+        "id": 6546,
+        "name_enus": "Glimpse of Clarity",
+        "name_dede": "Augenblick der Klarheit",
+        "name_eses": "Atisbo de claridad",
+        "name_frfr": "Éclair de lucidité",
+        "name_itit": "Barlume di Lucidità",
+        "name_ptbr": "Vislumbre de Clareza",
+        "name_ruru": "Вспышка ясности",
+        "name_kokr": "번뜩이는 명료함",
+        "name_zhtw": "Glimpse of Clarity"
+    },
+    "6573": {
+        "id": 6573,
+        "name_enus": "Gushing Wound",
+        "name_dede": "Klaffende Wunde",
+        "name_eses": "Herida sangrante",
+        "name_frfr": "Blessure hémorragique",
+        "name_itit": "Ferita Zampillante",
+        "name_ptbr": "Ferida Torrente",
+        "name_ruru": "Кровоточащая рана",
+        "name_kokr": "상처 출혈",
+        "name_zhtw": "Gushing Wound"
+    },
+    "6564": {
+        "id": 6564,
+        "name_enus": "Honed Mind",
+        "name_dede": "Geschärfter Verstand",
+        "name_eses": "Mente aguda",
+        "name_frfr": "Esprit affûté",
+        "name_itit": "Mente Concentrata",
+        "name_ptbr": "Mente Afiada",
+        "name_ruru": "Сфокусированное сознание",
+        "name_kokr": "단련된 정신",
+        "name_zhtw": "Honed Mind"
+    },
+    "6548": {
+        "id": 6548,
+        "name_enus": "Ineffable Truth",
+        "name_dede": "Unbeschreibliche Wahrheit",
+        "name_eses": "Verdad indescriptible",
+        "name_frfr": "Vérité ineffable",
+        "name_itit": "Verità Ineffabile",
+        "name_ptbr": "Verdade Inefável",
+        "name_ruru": "Невыразимая истина",
+        "name_kokr": "형언할 수 없는 진실",
+        "name_zhtw": "Ineffable Truth"
+    },
+    "6554": {
+        "id": 6554,
+        "name_enus": "Infinite Stars",
+        "name_dede": "Unendliche Sterne",
+        "name_eses": "Estrellas del infinito",
+        "name_frfr": "Étoiles infinies",
+        "name_itit": "Stelle Infinite",
+        "name_ptbr": "Estrelas Infinitas",
+        "name_ruru": "Бесконечные звезды",
+        "name_kokr": "무한의 별",
+        "name_zhtw": "Infinite Stars"
+    },
+    "6569": {
+        "id": 6569,
+        "name_enus": "Lash of the Void",
+        "name_dede": "Peitsche der Leere",
+        "name_eses": "Latigazo del Vacío",
+        "name_frfr": "Fouet du Vide",
+        "name_itit": "Sferzata del Vuoto",
+        "name_ptbr": "Açoite do Caos",
+        "name_ruru": "Плеть Бездны",
+        "name_kokr": "공허의 채찍",
+        "name_zhtw": "Lash of the Void"
+    },
+    "6473": {
+        "id": 6473,
+        "name_enus": "Masterful",
+        "name_dede": "Meisterhaft",
+        "name_eses": "Magistral",
+        "name_frfr": "Magistral",
+        "name_itit": "Magistrale",
+        "name_ptbr": "Primoroso",
+        "name_ruru": "Искусность",
+        "name_kokr": "능수능란",
+        "name_zhtw": "Masterful"
+    },
+    "6572": {
+        "id": 6572,
+        "name_enus": "Obsidian Skin",
+        "name_dede": "Obsidianhaut",
+        "name_eses": "Piel de obsidiana",
+        "name_frfr": "Peau d’obsidienne",
+        "name_itit": "Pelle d'Ossidiana",
+        "name_ptbr": "Pele de Obsidiana",
+        "name_ruru": "Обсидиановая кожа",
+        "name_kokr": "흑요석 피부",
+        "name_zhtw": "Obsidian Skin"
+    },
+    "6560": {
+        "id": 6560,
+        "name_enus": "Racing Pulse",
+        "name_dede": "Rasender Puls",
+        "name_eses": "Pulso acelerado",
+        "name_frfr": "Emballement du pouls",
+        "name_itit": "Impulso di Corsa",
+        "name_ptbr": "Pulso Acelerado",
+        "name_ruru": "Учащенное сердцебиение",
+        "name_kokr": "질주하는 맥박",
+        "name_zhtw": "Racing Pulse"
+    },
+    "6571": {
+        "id": 6571,
+        "name_enus": "Searing Flames",
+        "name_dede": "Sengende Flammen",
+        "name_eses": "Llamas abrasadoras",
+        "name_frfr": "Flammes incendiaires",
+        "name_itit": "Fiamme Ustionanti",
+        "name_ptbr": "Chamas Calcinantes",
+        "name_ruru": "Жгучее пламя",
+        "name_kokr": "이글거리는 불길",
+        "name_zhtw": "Searing Flames"
+    },
+    "6482": {
+        "id": 6482,
+        "name_enus": "Severe",
+        "name_dede": "Schwerwiegend",
+        "name_eses": "Severo",
+        "name_frfr": "Drastique",
+        "name_itit": "Grave",
+        "name_ptbr": "Grave",
+        "name_ruru": "Суровость",
+        "name_kokr": "가혹",
+        "name_zhtw": "Severe"
+    },
+    "6495": {
+        "id": 6495,
+        "name_enus": "Siphoner",
+        "name_dede": "Schröpfer",
+        "name_eses": "Succionador",
+        "name_frfr": "Siphonneur",
+        "name_itit": "Aspirante",
+        "name_ptbr": "Canalizador",
+        "name_ruru": "Вытягивание",
+        "name_kokr": "착취자",
+        "name_zhtw": "Siphoner"
+    },
+    "6439": {
+        "id": 6439,
+        "name_enus": "Strikethrough",
+        "name_dede": "Durchstoß",
+        "name_eses": "Golpe penetrante",
+        "name_frfr": "Invalidation",
+        "name_itit": "Cancellante",
+        "name_ptbr": "Riscado",
+        "name_ruru": "Преодоление защиты",
+        "name_kokr": "강행 돌파",
+        "name_zhtw": "Strikethrough"
+    },
+    "6566": {
+        "id": 6566,
+        "name_enus": "Surging Vitality",
+        "name_dede": "Strömende Lebenskraft",
+        "name_eses": "Vitalidad emergente",
+        "name_frfr": "Déferlement de vitalité",
+        "name_itit": "Vitalità Crescente",
+        "name_ptbr": "Vitalidade Fervilhante",
+        "name_ruru": "Прилив жизненной силы",
+        "name_kokr": "솟구치는 활력",
+        "name_zhtw": "Surging Vitality"
+    },
+    "6539": {
+        "id": 6539,
+        "name_enus": "Twilight Devastation",
+        "name_dede": "Zwielichtverwüstung",
+        "name_eses": "Devastación crepuscular",
+        "name_frfr": "Dévastation du Crépuscule",
+        "name_itit": "Devastazione del Crepuscolo",
+        "name_ptbr": "Devastação do Crepúsculo",
+        "name_ruru": "Сумеречное разрушение",
+        "name_kokr": "황혼의 파멸",
+        "name_zhtw": "Twilight Devastation"
+    },
+    "6545": {
+        "id": 6545,
+        "name_enus": "Twisted Appendage",
+        "name_dede": "Entstellte Gliedmaße",
+        "name_eses": "Apéndice retorcido",
+        "name_frfr": "Appendice dénaturé",
+        "name_itit": "Appendice Distorta",
+        "name_ptbr": "Apêndice Retorcido",
+        "name_ruru": "Искаженный отросток",
+        "name_kokr": "뒤틀린 신체 부위",
+        "name_zhtw": "Twisted Appendage"
+    },
+    "6479": {
+        "id": 6479,
+        "name_enus": "Versatile",
+        "name_dede": "Vielseitig",
+        "name_eses": "Versátil",
+        "name_frfr": "Polyvalent",
+        "name_itit": "Versatile",
+        "name_ptbr": "Versátil",
+        "name_ruru": "Универсальность",
+        "name_kokr": "다재다능",
+        "name_zhtw": "Versatile"
+    },
+    "6542": {
+        "id": 6542,
+        "name_enus": "Void Ritual",
+        "name_dede": "Leerenritual",
+        "name_eses": "Ritual del Vacío",
+        "name_frfr": "Rituel du Vide",
+        "name_itit": "Rituale del Vuoto",
+        "name_ptbr": "Ritual do Caos",
+        "name_ruru": "Ритуал Бездны",
+        "name_kokr": "공허의 의식",
+        "name_zhtw": "Void Ritual"
+    },
+    "6568": {
+        "id": 6568,
+        "name_enus": "Whispered Truths",
+        "name_dede": "Geflüsterte Wahrheiten",
+        "name_eses": "Verdades susurradas",
+        "name_frfr": "Vérités murmurées",
+        "name_itit": "Verità Sussurrate",
+        "name_ptbr": "Verdades Sussurradas",
+        "name_ruru": "Шепот истины",
+        "name_kokr": "진실의 속삭임",
+        "name_zhtw": "Whispered Truths"
+    }
+}
+JSON;
+    $bonuses = json_decode($json, true);
+    $result = [
+        'name'    => 'corruption',
+        'results' => [],
+    ];
+    $result['results'][] = [
+        'name' => 'BonusRegionSearch',
+        'data' => [
+            'items' => CategoryBonusRegionAuctionList($house, 'ab.bonus in (' . implode(',', array_keys($bonuses)) . ')'),
+            'bonuses' => $bonuses,
+        ],
+    ];
+
+    return $result;
+}
+
 function CategoryResult_unusuals($house)
 {
     return [
@@ -2666,6 +2987,106 @@ EOF;
             ['func' => 'GetItemNames',     'key' => 'id',       'name' => 'name'],
         ]);
     }
+
+    return $tr;
+}
+
+function CategoryBonusRegionAuctionList($house, $params) {
+    global $canCache;
+
+    $region = GetRegion($house);
+    $cacheKey = 'category_bonusRegionAuction_' . md5(json_encode([$region, $params]));
+
+    if ($canCache && (($tr = MCGet($cacheKey)) !== false)) {
+        PopulateLocaleCols($tr, [
+            ['func' => 'GetItemNames',     'key' => 'id',       'name' => 'name'],
+        ]);
+        return $tr;
+    }
+
+    $db = DBConnect();
+
+    if (is_array($params)) {
+        $cols = isset($params['cols']) ? (', ' . $params['cols']) : '';
+        $joins = isset($params['joins']) ? $params['joins'] : '';
+        $where = isset($params['where']) ? (' and ' . $params['where']) : '';
+    } else {
+        $cols = $joins = '';
+        $where = ($params == '') ? '' : (' and ' . $params);
+    }
+
+    $minPricingLevel = MIN_ITEM_LEVEL_PRICING;
+
+    $sql = <<<EOF
+select a.house, i.id, i.icon, i.class as classid, i.subclass, i.type, a.quantity, null lastseen, s.level,
+i.level baselevel, ifnull(a.buy, s.price) price,
+(select round(avg(case hours.h
+ when  0 then ihh.silver00 when  1 then ihh.silver01 when  2 then ihh.silver02 when  3 then ihh.silver03
+ when  4 then ihh.silver04 when  5 then ihh.silver05 when  6 then ihh.silver06 when  7 then ihh.silver07
+ when  8 then ihh.silver08 when  9 then ihh.silver09 when 10 then ihh.silver10 when 11 then ihh.silver11
+ when 12 then ihh.silver12 when 13 then ihh.silver13 when 14 then ihh.silver14 when 15 then ihh.silver15
+ when 16 then ihh.silver16 when 17 then ihh.silver17 when 18 then ihh.silver18 when 19 then ihh.silver19
+ when 20 then ihh.silver20 when 21 then ihh.silver21 when 22 then ihh.silver22 when 23 then ihh.silver23
+ else null end) * 100)
+ from tblItemHistoryHourly ihh, tblRealm ihhr,
+ (select  0 h union select  1 h union select  2 h union select  3 h union
+  select  4 h union select  5 h union select  6 h union select  7 h union
+  select  8 h union select  9 h union select 10 h union select 11 h union
+  select 12 h union select 13 h union select 14 h union select 15 h union
+  select 16 h union select 17 h union select 18 h union select 19 h union
+  select 20 h union select 21 h union select 22 h union select 23 h) hours
+ where ihh.house = ihhr.house and ihhr.canonical is not null and ihhr.region = ?
+   and ihh.item = i.id and ihh.level = s.level) avgprice,
+ae.lootedlevel, ae.`rand`, ae.seed,
+(select group_concat(ab.bonus order by 1 separator ':')
+ from tblAuctionBonus ab
+ where ab.house = a.house
+ and ab.id = a.id) as bonusurl
+$cols
+from tblDBCItem i
+join tblAuction a on a.item = i.id
+join tblRealm r on a.house = r.house and r.canonical is not null and r.region = ?
+left join tblAuctionExtra ae on a.house = ae.house and a.id = ae.id
+join tblItemSummary s on s.item = i.id and s.house = a.house and
+    s.level = ifnull(if(ae.level < $minPricingLevel, null, ae.level), i.level)
+join tblItemGlobal g on g.item = i.id + 0 and g.level = s.level and g.region = ?
+join tblAuctionBonus ab on ab.house = a.house and ab.id = a.id
+$joins
+where ifnull(i.auctionable,1) = 1
+$where
+EOF;
+
+    $stmt = $db->stmt_init();
+    if (!$stmt->prepare($sql)) {
+        DebugMessage("Bad SQL: \n" . $sql, E_USER_ERROR);
+    }
+    $stmt->bind_param('sss', $region, $region, $region);
+    $stmt->execute();
+
+    $tr = [];
+    $row = [];
+    $params = [];
+    $fields = $stmt->result_metadata()->fetch_fields();
+    foreach ($fields as $field) {
+        $params[] = &$row[$field->name];
+    }
+    call_user_func_array([$stmt, 'bind_result'], $params);
+
+    while ($stmt->fetch()) {
+        $unreferenced = [];
+        foreach ($row as $k => $v) {
+            $unreferenced[$k] = $v;
+        }
+        $tr[] = $unreferenced;
+    }
+
+    $stmt->close();
+
+    MCSet($cacheKey, $tr);
+
+    PopulateLocaleCols($tr, [
+        ['func' => 'GetItemNames',     'key' => 'id',       'name' => 'name'],
+    ]);
 
     return $tr;
 }
