@@ -510,29 +510,77 @@ function CategoryResult_minorstats($house) {
 function CategoryResult_corruption($house) {
     $json = <<<'JSON'
 {
+    "6483": {
+        "id": 6483,
+        "name_enus": "Avoidant 1",
+        "name_dede": "Schlüpfrig 1",
+        "name_eses": "Evasivo 1",
+        "name_frfr": "Évitant 1",
+        "name_itit": "Elusivo 1",
+        "name_ptbr": "Evasivo 1",
+        "name_ruru": "Избежание 1",
+        "name_kokr": "회피술 1",
+        "name_zhtw": "Avoidant 1"
+    },
+    "6484": {
+        "id": 6484,
+        "name_enus": "Avoidant 2",
+        "name_dede": "Schlüpfrig 2",
+        "name_eses": "Evasivo 2",
+        "name_frfr": "Évitant 2",
+        "name_itit": "Elusivo 2",
+        "name_ptbr": "Evasivo 2",
+        "name_ruru": "Избежание 2",
+        "name_kokr": "회피술 2",
+        "name_zhtw": "Avoidant 2"
+    },
     "6485": {
         "id": 6485,
-        "name_enus": "Avoidant",
-        "name_dede": "Schlüpfrig",
-        "name_eses": "Evasivo",
-        "name_frfr": "Évitant",
-        "name_itit": "Elusivo",
-        "name_ptbr": "Evasivo",
-        "name_ruru": "Избежание",
-        "name_kokr": "회피술",
-        "name_zhtw": "Avoidant"
+        "name_enus": "Avoidant 3",
+        "name_dede": "Schlüpfrig 3",
+        "name_eses": "Evasivo 3",
+        "name_frfr": "Évitant 3",
+        "name_itit": "Elusivo 3",
+        "name_ptbr": "Evasivo 3",
+        "name_ruru": "Избежание 3",
+        "name_kokr": "회피술 3",
+        "name_zhtw": "Avoidant 3"
+    },
+    "6556": {
+        "id": 6556,
+        "name_enus": "Deadly Momentum 1",
+        "name_dede": "Tödlicher Schwung 1",
+        "name_eses": "Inercia mortal 1",
+        "name_frfr": "Élan mortel 1",
+        "name_itit": "Impeto Letale 1",
+        "name_ptbr": "Inércia Mortífera 1",
+        "name_ruru": "Смертоносный импульс 1",
+        "name_kokr": "죽음의 기운 1",
+        "name_zhtw": "Deadly Momentum 1"
+    },
+    "6561": {
+        "id": 6561,
+        "name_enus": "Deadly Momentum 2",
+        "name_dede": "Tödlicher Schwung 2",
+        "name_eses": "Inercia mortal 2",
+        "name_frfr": "Élan mortel 2",
+        "name_itit": "Impeto Letale 2",
+        "name_ptbr": "Inércia Mortífera 2",
+        "name_ruru": "Смертоносный импульс 2",
+        "name_kokr": "죽음의 기운 2",
+        "name_zhtw": "Deadly Momentum 2"
     },
     "6562": {
         "id": 6562,
-        "name_enus": "Deadly Momentum",
-        "name_dede": "Tödlicher Schwung",
-        "name_eses": "Inercia mortal",
-        "name_frfr": "Élan mortel",
-        "name_itit": "Impeto Letale",
-        "name_ptbr": "Inércia Mortífera",
-        "name_ruru": "Смертоносный импульс",
-        "name_kokr": "죽음의 기운",
-        "name_zhtw": "Deadly Momentum"
+        "name_enus": "Deadly Momentum 3",
+        "name_dede": "Tödlicher Schwung 3",
+        "name_eses": "Inercia mortal 3",
+        "name_frfr": "Élan mortel 3",
+        "name_itit": "Impeto Letale 3",
+        "name_ptbr": "Inércia Mortífera 3",
+        "name_ruru": "Смертоносный импульс 3",
+        "name_kokr": "죽음의 기운 3",
+        "name_zhtw": "Deadly Momentum 3"
     },
     "6567": {
         "id": 6567,
@@ -546,29 +594,77 @@ function CategoryResult_corruption($house) {
         "name_kokr": "활력 섭취",
         "name_zhtw": "Devour Vitality"
     },
+    "6549": {
+        "id": 6549,
+        "name_enus": "Echoing Void 1",
+        "name_dede": "Widerhallende Leere 1",
+        "name_eses": "Vacío resonante 1",
+        "name_frfr": "Vide résonnant 1",
+        "name_itit": "Vuoto Riecheggiante 1",
+        "name_ptbr": "Caos Ecoante 1",
+        "name_ruru": "Эхо Бездны 1",
+        "name_kokr": "메아리치는 공허 1",
+        "name_zhtw": "Echoing Void 1"
+    },
+    "6550": {
+        "id": 6550,
+        "name_enus": "Echoing Void 2",
+        "name_dede": "Widerhallende Leere 2",
+        "name_eses": "Vacío resonante 2",
+        "name_frfr": "Vide résonnant 2",
+        "name_itit": "Vuoto Riecheggiante 2",
+        "name_ptbr": "Caos Ecoante 2",
+        "name_ruru": "Эхо Бездны 2",
+        "name_kokr": "메아리치는 공허 2",
+        "name_zhtw": "Echoing Void 2"
+    },
     "6551": {
         "id": 6551,
-        "name_enus": "Echoing Void",
-        "name_dede": "Widerhallende Leere",
-        "name_eses": "Vacío resonante",
-        "name_frfr": "Vide résonnant",
-        "name_itit": "Vuoto Riecheggiante",
-        "name_ptbr": "Caos Ecoante",
-        "name_ruru": "Эхо Бездны",
-        "name_kokr": "메아리치는 공허",
-        "name_zhtw": "Echoing Void"
+        "name_enus": "Echoing Void 3",
+        "name_dede": "Widerhallende Leere 3",
+        "name_eses": "Vacío resonante 3",
+        "name_frfr": "Vide résonnant 3",
+        "name_itit": "Vuoto Riecheggiante 3",
+        "name_ptbr": "Caos Ecoante 3",
+        "name_ruru": "Эхо Бездны 3",
+        "name_kokr": "메아리치는 공허 3",
+        "name_zhtw": "Echoing Void 3"
+    },
+    "6474": {
+        "id": 6474,
+        "name_enus": "Expedient 1",
+        "name_dede": "Entschlossen 1",
+        "name_eses": "Expeditivo 1",
+        "name_frfr": "Efficace 1",
+        "name_itit": "Espediente 1",
+        "name_ptbr": "Expedito 1",
+        "name_ruru": "Скорость 1",
+        "name_kokr": "쾌속 1",
+        "name_zhtw": "Expedient 1"
+    },
+    "6475": {
+        "id": 6475,
+        "name_enus": "Expedient 2",
+        "name_dede": "Entschlossen 2",
+        "name_eses": "Expeditivo 2",
+        "name_frfr": "Efficace 2",
+        "name_itit": "Espediente 2",
+        "name_ptbr": "Expedito 2",
+        "name_ruru": "Скорость 2",
+        "name_kokr": "쾌속 2",
+        "name_zhtw": "Expedient 2"
     },
     "6476": {
         "id": 6476,
-        "name_enus": "Expedient",
-        "name_dede": "Entschlossen",
-        "name_eses": "Expeditivo",
-        "name_frfr": "Efficace",
-        "name_itit": "Espediente",
-        "name_ptbr": "Expedito",
-        "name_ruru": "Скорость",
-        "name_kokr": "쾌속",
-        "name_zhtw": "Expedient"
+        "name_enus": "Expedient 3",
+        "name_dede": "Entschlossen 3",
+        "name_eses": "Expeditivo 3",
+        "name_frfr": "Efficace 3",
+        "name_itit": "Espediente 3",
+        "name_ptbr": "Expedito 3",
+        "name_ruru": "Скорость 3",
+        "name_kokr": "쾌속 3",
+        "name_zhtw": "Expedient 3"
     },
     "6570": {
         "id": 6570,
@@ -594,6 +690,18 @@ function CategoryResult_corruption($house) {
         "name_kokr": "번뜩이는 명료함",
         "name_zhtw": "Glimpse of Clarity"
     },
+    "6486": {
+        "id": 6486,
+        "name_enus": "Glimpse of Clarity",
+        "name_dede": "Augenblick der Klarheit",
+        "name_eses": "Atisbo de claridad",
+        "name_frfr": "Éclair de lucidité",
+        "name_itit": "Barlume di Lucidità",
+        "name_ptbr": "Vislumbre de Clareza",
+        "name_ruru": "Вспышка ясности",
+        "name_kokr": "찰나의 명료함",
+        "name_zhtw": "Glimpse of Clarity"
+    },
     "6573": {
         "id": 6573,
         "name_enus": "Gushing Wound",
@@ -606,41 +714,101 @@ function CategoryResult_corruption($house) {
         "name_kokr": "상처 출혈",
         "name_zhtw": "Gushing Wound"
     },
+    "6557": {
+        "id": 6557,
+        "name_enus": "Honed Mind 1",
+        "name_dede": "Geschärfter Verstand 1",
+        "name_eses": "Mente aguda 1",
+        "name_frfr": "Esprit affûté 1",
+        "name_itit": "Mente Concentrata 1",
+        "name_ptbr": "Mente Afiada 1",
+        "name_ruru": "Сфокусированное сознание 1",
+        "name_kokr": "단련된 정신 1",
+        "name_zhtw": "Honed Mind 1"
+    },
+    "6563": {
+        "id": 6563,
+        "name_enus": "Honed Mind 2",
+        "name_dede": "Geschärfter Verstand 2",
+        "name_eses": "Mente aguda 2",
+        "name_frfr": "Esprit affûté 2",
+        "name_itit": "Mente Concentrata 2",
+        "name_ptbr": "Mente Afiada 2",
+        "name_ruru": "Сфокусированное сознание 2",
+        "name_kokr": "단련된 정신 2",
+        "name_zhtw": "Honed Mind 2"
+    },
     "6564": {
         "id": 6564,
-        "name_enus": "Honed Mind",
-        "name_dede": "Geschärfter Verstand",
-        "name_eses": "Mente aguda",
-        "name_frfr": "Esprit affûté",
-        "name_itit": "Mente Concentrata",
-        "name_ptbr": "Mente Afiada",
-        "name_ruru": "Сфокусированное сознание",
-        "name_kokr": "단련된 정신",
-        "name_zhtw": "Honed Mind"
+        "name_enus": "Honed Mind 3",
+        "name_dede": "Geschärfter Verstand 3",
+        "name_eses": "Mente aguda 3",
+        "name_frfr": "Esprit affûté 3",
+        "name_itit": "Mente Concentrata 3",
+        "name_ptbr": "Mente Afiada 3",
+        "name_ruru": "Сфокусированное сознание 3",
+        "name_kokr": "단련된 정신 3",
+        "name_zhtw": "Honed Mind 3"
+    },
+    "6547": {
+        "id": 6547,
+        "name_enus": "Ineffable Truth 1",
+        "name_dede": "Unbeschreibliche Wahrheit 1",
+        "name_eses": "Verdad indescriptible 1",
+        "name_frfr": "Vérité ineffable 1",
+        "name_itit": "Verità Ineffabile 1",
+        "name_ptbr": "Verdade Inefável 1",
+        "name_ruru": "Невыразимая истина 1",
+        "name_kokr": "형언할 수 없는 진실 1",
+        "name_zhtw": "Ineffable Truth 1"
     },
     "6548": {
         "id": 6548,
-        "name_enus": "Ineffable Truth",
-        "name_dede": "Unbeschreibliche Wahrheit",
-        "name_eses": "Verdad indescriptible",
-        "name_frfr": "Vérité ineffable",
-        "name_itit": "Verità Ineffabile",
-        "name_ptbr": "Verdade Inefável",
-        "name_ruru": "Невыразимая истина",
-        "name_kokr": "형언할 수 없는 진실",
-        "name_zhtw": "Ineffable Truth"
+        "name_enus": "Ineffable Truth 2",
+        "name_dede": "Unbeschreibliche Wahrheit 2",
+        "name_eses": "Verdad indescriptible 2",
+        "name_frfr": "Vérité ineffable 2",
+        "name_itit": "Verità Ineffabile 2",
+        "name_ptbr": "Verdade Inefável 2",
+        "name_ruru": "Невыразимая истина 2",
+        "name_kokr": "형언할 수 없는 진실 2",
+        "name_zhtw": "Ineffable Truth 2"
+    },
+    "6552": {
+        "id": 6552,
+        "name_enus": "Infinite Stars 1",
+        "name_dede": "Unendliche Sterne 1",
+        "name_eses": "Estrellas del infinito 1",
+        "name_frfr": "Étoiles infinies 1",
+        "name_itit": "Stelle Infinite 1",
+        "name_ptbr": "Estrelas Infinitas 1",
+        "name_ruru": "Бесконечные звезды 1",
+        "name_kokr": "무한의 별 1",
+        "name_zhtw": "Infinite Stars 1"
+    },
+    "6553": {
+        "id": 6553,
+        "name_enus": "Infinite Stars 2",
+        "name_dede": "Unendliche Sterne 2",
+        "name_eses": "Estrellas del infinito 2",
+        "name_frfr": "Étoiles infinies 2",
+        "name_itit": "Stelle Infinite 2",
+        "name_ptbr": "Estrelas Infinitas 2",
+        "name_ruru": "Бесконечные звезды 2",
+        "name_kokr": "무한의 별 2",
+        "name_zhtw": "Infinite Stars 2"
     },
     "6554": {
         "id": 6554,
-        "name_enus": "Infinite Stars",
-        "name_dede": "Unendliche Sterne",
-        "name_eses": "Estrellas del infinito",
-        "name_frfr": "Étoiles infinies",
-        "name_itit": "Stelle Infinite",
-        "name_ptbr": "Estrelas Infinitas",
-        "name_ruru": "Бесконечные звезды",
-        "name_kokr": "무한의 별",
-        "name_zhtw": "Infinite Stars"
+        "name_enus": "Infinite Stars 3",
+        "name_dede": "Unendliche Sterne 3",
+        "name_eses": "Estrellas del infinito 3",
+        "name_frfr": "Étoiles infinies 3",
+        "name_itit": "Stelle Infinite 3",
+        "name_ptbr": "Estrelas Infinitas 3",
+        "name_ruru": "Бесконечные звезды 3",
+        "name_kokr": "무한의 별 3",
+        "name_zhtw": "Infinite Stars 3"
     },
     "6569": {
         "id": 6569,
@@ -654,17 +822,41 @@ function CategoryResult_corruption($house) {
         "name_kokr": "공허의 채찍",
         "name_zhtw": "Lash of the Void"
     },
+    "6471": {
+        "id": 6471,
+        "name_enus": "Masterful 1",
+        "name_dede": "Meisterhaft 1",
+        "name_eses": "Magistral 1",
+        "name_frfr": "Magistral 1",
+        "name_itit": "Magistrale 1",
+        "name_ptbr": "Primoroso 1",
+        "name_ruru": "Искусность 1",
+        "name_kokr": "능수능란 1",
+        "name_zhtw": "Masterful 1"
+    },
+    "6472": {
+        "id": 6472,
+        "name_enus": "Masterful 2",
+        "name_dede": "Meisterhaft 2",
+        "name_eses": "Magistral 2",
+        "name_frfr": "Magistral 2",
+        "name_itit": "Magistrale 2",
+        "name_ptbr": "Primoroso 2",
+        "name_ruru": "Искусность 2",
+        "name_kokr": "능수능란 2",
+        "name_zhtw": "Masterful 2"
+    },
     "6473": {
         "id": 6473,
-        "name_enus": "Masterful",
-        "name_dede": "Meisterhaft",
-        "name_eses": "Magistral",
-        "name_frfr": "Magistral",
-        "name_itit": "Magistrale",
-        "name_ptbr": "Primoroso",
-        "name_ruru": "Искусность",
-        "name_kokr": "능수능란",
-        "name_zhtw": "Masterful"
+        "name_enus": "Masterful 3",
+        "name_dede": "Meisterhaft 3",
+        "name_eses": "Magistral 3",
+        "name_frfr": "Magistral 3",
+        "name_itit": "Magistrale 3",
+        "name_ptbr": "Primoroso 3",
+        "name_ruru": "Искусность 3",
+        "name_kokr": "능수능란 3",
+        "name_zhtw": "Masterful 3"
     },
     "6572": {
         "id": 6572,
@@ -678,17 +870,41 @@ function CategoryResult_corruption($house) {
         "name_kokr": "흑요석 피부",
         "name_zhtw": "Obsidian Skin"
     },
+    "6555": {
+        "id": 6555,
+        "name_enus": "Racing Pulse 1",
+        "name_dede": "Rasender Puls 1",
+        "name_eses": "Pulso acelerado 1",
+        "name_frfr": "Emballement du pouls 1",
+        "name_itit": "Impulso di Corsa 1",
+        "name_ptbr": "Pulso Acelerado 1",
+        "name_ruru": "Учащенное сердцебиение 1",
+        "name_kokr": "질주하는 맥박 1",
+        "name_zhtw": "Racing Pulse 1"
+    },
+    "6559": {
+        "id": 6559,
+        "name_enus": "Racing Pulse 2",
+        "name_dede": "Rasender Puls 2",
+        "name_eses": "Pulso acelerado 2",
+        "name_frfr": "Emballement du pouls 2",
+        "name_itit": "Impulso di Corsa 2",
+        "name_ptbr": "Pulso Acelerado 2",
+        "name_ruru": "Учащенное сердцебиение 2",
+        "name_kokr": "질주하는 맥박 2",
+        "name_zhtw": "Racing Pulse 2"
+    },
     "6560": {
         "id": 6560,
-        "name_enus": "Racing Pulse",
-        "name_dede": "Rasender Puls",
-        "name_eses": "Pulso acelerado",
-        "name_frfr": "Emballement du pouls",
-        "name_itit": "Impulso di Corsa",
-        "name_ptbr": "Pulso Acelerado",
-        "name_ruru": "Учащенное сердцебиение",
-        "name_kokr": "질주하는 맥박",
-        "name_zhtw": "Racing Pulse"
+        "name_enus": "Racing Pulse 3",
+        "name_dede": "Rasender Puls 3",
+        "name_eses": "Pulso acelerado 3",
+        "name_frfr": "Emballement du pouls 3",
+        "name_itit": "Impulso di Corsa 3",
+        "name_ptbr": "Pulso Acelerado 3",
+        "name_ruru": "Учащенное сердцебиение 3",
+        "name_kokr": "질주하는 맥박 3",
+        "name_zhtw": "Racing Pulse 3"
     },
     "6571": {
         "id": 6571,
@@ -702,101 +918,293 @@ function CategoryResult_corruption($house) {
         "name_kokr": "이글거리는 불길",
         "name_zhtw": "Searing Flames"
     },
+    "6480": {
+        "id": 6480,
+        "name_enus": "Severe 1",
+        "name_dede": "Schwerwiegend 1",
+        "name_eses": "Severo 1",
+        "name_frfr": "Drastique 1",
+        "name_itit": "Grave 1",
+        "name_ptbr": "Grave 1",
+        "name_ruru": "Суровость 1",
+        "name_kokr": "가혹 1",
+        "name_zhtw": "Severe 1"
+    },
+    "6481": {
+        "id": 6481,
+        "name_enus": "Severe 2",
+        "name_dede": "Schwerwiegend 2",
+        "name_eses": "Severo 2",
+        "name_frfr": "Drastique 2",
+        "name_itit": "Grave 2",
+        "name_ptbr": "Grave 2",
+        "name_ruru": "Суровость 2",
+        "name_kokr": "가혹 2",
+        "name_zhtw": "Severe 2"
+    },
     "6482": {
         "id": 6482,
-        "name_enus": "Severe",
-        "name_dede": "Schwerwiegend",
-        "name_eses": "Severo",
-        "name_frfr": "Drastique",
-        "name_itit": "Grave",
-        "name_ptbr": "Grave",
-        "name_ruru": "Суровость",
-        "name_kokr": "가혹",
-        "name_zhtw": "Severe"
+        "name_enus": "Severe 3",
+        "name_dede": "Schwerwiegend 3",
+        "name_eses": "Severo 3",
+        "name_frfr": "Drastique 3",
+        "name_itit": "Grave 3",
+        "name_ptbr": "Grave 3",
+        "name_ruru": "Суровость 3",
+        "name_kokr": "가혹 3",
+        "name_zhtw": "Severe 3"
+    },
+    "6493": {
+        "id": 6493,
+        "name_enus": "Siphoner 1",
+        "name_dede": "Schröpfer 1",
+        "name_eses": "Succionador 1",
+        "name_frfr": "Siphonneur 1",
+        "name_itit": "Aspirante 1",
+        "name_ptbr": "Canalizador 1",
+        "name_ruru": "Вытягивание 1",
+        "name_kokr": "착취자 1",
+        "name_zhtw": "Siphoner 1"
+    },
+    "6494": {
+        "id": 6494,
+        "name_enus": "Siphoner 2",
+        "name_dede": "Schröpfer 2",
+        "name_eses": "Succionador 2",
+        "name_frfr": "Siphonneur 2",
+        "name_itit": "Aspirante 2",
+        "name_ptbr": "Canalizador 2",
+        "name_ruru": "Вытягивание 2",
+        "name_kokr": "착취자 2",
+        "name_zhtw": "Siphoner 2"
     },
     "6495": {
         "id": 6495,
-        "name_enus": "Siphoner",
-        "name_dede": "Schröpfer",
-        "name_eses": "Succionador",
-        "name_frfr": "Siphonneur",
-        "name_itit": "Aspirante",
-        "name_ptbr": "Canalizador",
-        "name_ruru": "Вытягивание",
-        "name_kokr": "착취자",
-        "name_zhtw": "Siphoner"
+        "name_enus": "Siphoner 3",
+        "name_dede": "Schröpfer 3",
+        "name_eses": "Succionador 3",
+        "name_frfr": "Siphonneur 3",
+        "name_itit": "Aspirante 3",
+        "name_ptbr": "Canalizador 3",
+        "name_ruru": "Вытягивание 3",
+        "name_kokr": "착취자 3",
+        "name_zhtw": "Siphoner 3"
+    },
+    "6437": {
+        "id": 6437,
+        "name_enus": "Strikethrough 1",
+        "name_dede": "Durchstoß 1",
+        "name_eses": "Golpe penetrante 1",
+        "name_frfr": "Invalidation 1",
+        "name_itit": "Cancellante 1",
+        "name_ptbr": "Riscado 1",
+        "name_ruru": "Преодоление защиты 1",
+        "name_kokr": "강행 돌파 1",
+        "name_zhtw": "Strikethrough 1"
+    },
+    "6438": {
+        "id": 6438,
+        "name_enus": "Strikethrough 2",
+        "name_dede": "Durchstoß 2",
+        "name_eses": "Golpe penetrante 2",
+        "name_frfr": "Invalidation 2",
+        "name_itit": "Cancellante 2",
+        "name_ptbr": "Riscado 2",
+        "name_ruru": "Преодоление защиты 2",
+        "name_kokr": "강행 돌파 2",
+        "name_zhtw": "Strikethrough 2"
     },
     "6439": {
         "id": 6439,
-        "name_enus": "Strikethrough",
-        "name_dede": "Durchstoß",
-        "name_eses": "Golpe penetrante",
-        "name_frfr": "Invalidation",
-        "name_itit": "Cancellante",
-        "name_ptbr": "Riscado",
-        "name_ruru": "Преодоление защиты",
-        "name_kokr": "강행 돌파",
-        "name_zhtw": "Strikethrough"
+        "name_enus": "Strikethrough 3",
+        "name_dede": "Durchstoß 3",
+        "name_eses": "Golpe penetrante 3",
+        "name_frfr": "Invalidation 3",
+        "name_itit": "Cancellante 3",
+        "name_ptbr": "Riscado 3",
+        "name_ruru": "Преодоление защиты 3",
+        "name_kokr": "강행 돌파 3",
+        "name_zhtw": "Strikethrough 3"
+    },
+    "6558": {
+        "id": 6558,
+        "name_enus": "Surging Vitality 1",
+        "name_dede": "Strömende Lebenskraft 1",
+        "name_eses": "Vitalidad emergente 1",
+        "name_frfr": "Déferlement de vitalité 1",
+        "name_itit": "Vitalità Crescente 1",
+        "name_ptbr": "Vitalidade Fervilhante 1",
+        "name_ruru": "Прилив жизненной силы 1",
+        "name_kokr": "솟구치는 활력 1",
+        "name_zhtw": "Surging Vitality 1"
+    },
+    "6565": {
+        "id": 6565,
+        "name_enus": "Surging Vitality 2",
+        "name_dede": "Strömende Lebenskraft 2",
+        "name_eses": "Vitalidad emergente 2",
+        "name_frfr": "Déferlement de vitalité 2",
+        "name_itit": "Vitalità Crescente 2",
+        "name_ptbr": "Vitalidade Fervilhante 2",
+        "name_ruru": "Прилив жизненной силы 2",
+        "name_kokr": "솟구치는 활력 2",
+        "name_zhtw": "Surging Vitality 2"
     },
     "6566": {
         "id": 6566,
-        "name_enus": "Surging Vitality",
-        "name_dede": "Strömende Lebenskraft",
-        "name_eses": "Vitalidad emergente",
-        "name_frfr": "Déferlement de vitalité",
-        "name_itit": "Vitalità Crescente",
-        "name_ptbr": "Vitalidade Fervilhante",
-        "name_ruru": "Прилив жизненной силы",
-        "name_kokr": "솟구치는 활력",
-        "name_zhtw": "Surging Vitality"
+        "name_enus": "Surging Vitality 3",
+        "name_dede": "Strömende Lebenskraft 3",
+        "name_eses": "Vitalidad emergente 3",
+        "name_frfr": "Déferlement de vitalité 3",
+        "name_itit": "Vitalità Crescente 3",
+        "name_ptbr": "Vitalidade Fervilhante 3",
+        "name_ruru": "Прилив жизненной силы 3",
+        "name_kokr": "솟구치는 활력 3",
+        "name_zhtw": "Surging Vitality 3"
+    },
+    "6537": {
+        "id": 6537,
+        "name_enus": "Twilight Devastation 1",
+        "name_dede": "Zwielichtverwüstung 1",
+        "name_eses": "Devastación crepuscular 1",
+        "name_frfr": "Dévastation du Crépuscule 1",
+        "name_itit": "Devastazione del Crepuscolo 1",
+        "name_ptbr": "Devastação do Crepúsculo 1",
+        "name_ruru": "Сумеречное разрушение 1",
+        "name_kokr": "황혼의 파멸 1",
+        "name_zhtw": "Twilight Devastation 1"
+    },
+    "6538": {
+        "id": 6538,
+        "name_enus": "Twilight Devastation 2",
+        "name_dede": "Zwielichtverwüstung 2",
+        "name_eses": "Devastación crepuscular 2",
+        "name_frfr": "Dévastation du Crépuscule 2",
+        "name_itit": "Devastazione del Crepuscolo 2",
+        "name_ptbr": "Devastação do Crepúsculo 2",
+        "name_ruru": "Сумеречное разрушение 2",
+        "name_kokr": "황혼의 파멸 2",
+        "name_zhtw": "Twilight Devastation 2"
     },
     "6539": {
         "id": 6539,
-        "name_enus": "Twilight Devastation",
-        "name_dede": "Zwielichtverwüstung",
-        "name_eses": "Devastación crepuscular",
-        "name_frfr": "Dévastation du Crépuscule",
-        "name_itit": "Devastazione del Crepuscolo",
-        "name_ptbr": "Devastação do Crepúsculo",
-        "name_ruru": "Сумеречное разрушение",
-        "name_kokr": "황혼의 파멸",
-        "name_zhtw": "Twilight Devastation"
+        "name_enus": "Twilight Devastation 3",
+        "name_dede": "Zwielichtverwüstung 3",
+        "name_eses": "Devastación crepuscular 3",
+        "name_frfr": "Dévastation du Crépuscule 3",
+        "name_itit": "Devastazione del Crepuscolo 3",
+        "name_ptbr": "Devastação do Crepúsculo 3",
+        "name_ruru": "Сумеречное разрушение 3",
+        "name_kokr": "황혼의 파멸 3",
+        "name_zhtw": "Twilight Devastation 3"
+    },
+    "6543": {
+        "id": 6543,
+        "name_enus": "Twisted Appendage 1",
+        "name_dede": "Entstellte Gliedmaße 1",
+        "name_eses": "Apéndice retorcido 1",
+        "name_frfr": "Appendice dénaturé 1",
+        "name_itit": "Appendice Distorta 1",
+        "name_ptbr": "Apêndice Retorcido 1",
+        "name_ruru": "Искаженный отросток 1",
+        "name_kokr": "뒤틀린 신체 부위 1",
+        "name_zhtw": "Twisted Appendage 1"
+    },
+    "6544": {
+        "id": 6544,
+        "name_enus": "Twisted Appendage 2",
+        "name_dede": "Entstellte Gliedmaße 2",
+        "name_eses": "Apéndice retorcido 2",
+        "name_frfr": "Appendice dénaturé 2",
+        "name_itit": "Appendice Distorta 2",
+        "name_ptbr": "Apêndice Retorcido 2",
+        "name_ruru": "Искаженный отросток 2",
+        "name_kokr": "뒤틀린 신체 부위 2",
+        "name_zhtw": "Twisted Appendage 2"
     },
     "6545": {
         "id": 6545,
-        "name_enus": "Twisted Appendage",
-        "name_dede": "Entstellte Gliedmaße",
-        "name_eses": "Apéndice retorcido",
-        "name_frfr": "Appendice dénaturé",
-        "name_itit": "Appendice Distorta",
-        "name_ptbr": "Apêndice Retorcido",
-        "name_ruru": "Искаженный отросток",
-        "name_kokr": "뒤틀린 신체 부위",
-        "name_zhtw": "Twisted Appendage"
+        "name_enus": "Twisted Appendage 3",
+        "name_dede": "Entstellte Gliedmaße 3",
+        "name_eses": "Apéndice retorcido 3",
+        "name_frfr": "Appendice dénaturé 3",
+        "name_itit": "Appendice Distorta 3",
+        "name_ptbr": "Apêndice Retorcido 3",
+        "name_ruru": "Искаженный отросток 3",
+        "name_kokr": "뒤틀린 신체 부위 3",
+        "name_zhtw": "Twisted Appendage 3"
+    },
+    "6477": {
+        "id": 6477,
+        "name_enus": "Versatile 1",
+        "name_dede": "Vielseitig 1",
+        "name_eses": "Versátil 1",
+        "name_frfr": "Polyvalent 1",
+        "name_itit": "Versatile 1",
+        "name_ptbr": "Versátil 1",
+        "name_ruru": "Универсальность 1",
+        "name_kokr": "다재다능 1",
+        "name_zhtw": "Versatile 1"
+    },
+    "6478": {
+        "id": 6478,
+        "name_enus": "Versatile 2",
+        "name_dede": "Vielseitig 2",
+        "name_eses": "Versátil 2",
+        "name_frfr": "Polyvalent 2",
+        "name_itit": "Versatile 2",
+        "name_ptbr": "Versátil 2",
+        "name_ruru": "Универсальность 2",
+        "name_kokr": "다재다능 2",
+        "name_zhtw": "Versatile 2"
     },
     "6479": {
         "id": 6479,
-        "name_enus": "Versatile",
-        "name_dede": "Vielseitig",
-        "name_eses": "Versátil",
-        "name_frfr": "Polyvalent",
-        "name_itit": "Versatile",
-        "name_ptbr": "Versátil",
-        "name_ruru": "Универсальность",
-        "name_kokr": "다재다능",
-        "name_zhtw": "Versatile"
+        "name_enus": "Versatile 3",
+        "name_dede": "Vielseitig 3",
+        "name_eses": "Versátil 3",
+        "name_frfr": "Polyvalent 3",
+        "name_itit": "Versatile 3",
+        "name_ptbr": "Versátil 3",
+        "name_ruru": "Универсальность 3",
+        "name_kokr": "다재다능 3",
+        "name_zhtw": "Versatile 3"
+    },
+    "6540": {
+        "id": 6540,
+        "name_enus": "Void Ritual 1",
+        "name_dede": "Leerenritual 1",
+        "name_eses": "Ritual del Vacío 1",
+        "name_frfr": "Rituel du Vide 1",
+        "name_itit": "Rituale del Vuoto 1",
+        "name_ptbr": "Ritual do Caos 1",
+        "name_ruru": "Ритуал Бездны 1",
+        "name_kokr": "공허의 의식 1",
+        "name_zhtw": "Void Ritual 1"
+    },
+    "6541": {
+        "id": 6541,
+        "name_enus": "Void Ritual 2",
+        "name_dede": "Leerenritual 2",
+        "name_eses": "Ritual del Vacío 2",
+        "name_frfr": "Rituel du Vide 2",
+        "name_itit": "Rituale del Vuoto 2",
+        "name_ptbr": "Ritual do Caos 2",
+        "name_ruru": "Ритуал Бездны 2",
+        "name_kokr": "공허의 의식 2",
+        "name_zhtw": "Void Ritual 2"
     },
     "6542": {
         "id": 6542,
-        "name_enus": "Void Ritual",
-        "name_dede": "Leerenritual",
-        "name_eses": "Ritual del Vacío",
-        "name_frfr": "Rituel du Vide",
-        "name_itit": "Rituale del Vuoto",
-        "name_ptbr": "Ritual do Caos",
-        "name_ruru": "Ритуал Бездны",
-        "name_kokr": "공허의 의식",
-        "name_zhtw": "Void Ritual"
+        "name_enus": "Void Ritual 3",
+        "name_dede": "Leerenritual 3",
+        "name_eses": "Ritual del Vacío 3",
+        "name_frfr": "Rituel du Vide 3",
+        "name_itit": "Rituale del Vuoto 3",
+        "name_ptbr": "Ritual do Caos 3",
+        "name_ruru": "Ритуал Бездны 3",
+        "name_kokr": "공허의 의식 3",
+        "name_zhtw": "Void Ritual 3"
     },
     "6568": {
         "id": 6568,
@@ -812,6 +1220,7 @@ function CategoryResult_corruption($house) {
     }
 }
 JSON;
+
     $bonuses = json_decode($json, true);
     $result = [
         'name'    => 'corruption',
@@ -2995,7 +3404,7 @@ function CategoryBonusRegionAuctionList($house, $params) {
     global $canCache;
 
     $region = GetRegion($house);
-    $cacheKey = 'category_bonusRegionAuction_' . md5(json_encode([$region, $params]));
+    $cacheKey = 'category_bonusRegionAuction2_' . md5(json_encode([$region, $params]));
 
     if ($canCache && (($tr = MCGet($cacheKey)) !== false)) {
         PopulateLocaleCols($tr, [
@@ -3018,25 +3427,9 @@ function CategoryBonusRegionAuctionList($house, $params) {
     $minPricingLevel = MIN_ITEM_LEVEL_PRICING;
 
     $sql = <<<EOF
-select a.house, i.id, i.icon, i.class as classid, i.subclass, i.type, a.quantity, null lastseen, s.level,
-i.level baselevel, ifnull(a.buy, s.price) price,
-(select round(avg(case hours.h
- when  0 then ihh.silver00 when  1 then ihh.silver01 when  2 then ihh.silver02 when  3 then ihh.silver03
- when  4 then ihh.silver04 when  5 then ihh.silver05 when  6 then ihh.silver06 when  7 then ihh.silver07
- when  8 then ihh.silver08 when  9 then ihh.silver09 when 10 then ihh.silver10 when 11 then ihh.silver11
- when 12 then ihh.silver12 when 13 then ihh.silver13 when 14 then ihh.silver14 when 15 then ihh.silver15
- when 16 then ihh.silver16 when 17 then ihh.silver17 when 18 then ihh.silver18 when 19 then ihh.silver19
- when 20 then ihh.silver20 when 21 then ihh.silver21 when 22 then ihh.silver22 when 23 then ihh.silver23
- else null end) * 100)
- from tblItemHistoryHourly ihh, tblRealm ihhr,
- (select  0 h union select  1 h union select  2 h union select  3 h union
-  select  4 h union select  5 h union select  6 h union select  7 h union
-  select  8 h union select  9 h union select 10 h union select 11 h union
-  select 12 h union select 13 h union select 14 h union select 15 h union
-  select 16 h union select 17 h union select 18 h union select 19 h union
-  select 20 h union select 21 h union select 22 h union select 23 h) hours
- where ihh.house = ihhr.house and ihhr.canonical is not null and ihhr.region = ?
-   and ihh.item = i.id and ihh.level = s.level) avgprice,
+select a.house, i.id, i.icon, i.class as classid, i.subclass, i.type, a.quantity,
+ifnull(if(ae.level < $minPricingLevel, null, ae.level), i.level) level,
+i.level baselevel, a.buy price,
 ae.lootedlevel, ae.`rand`, ae.seed,
 (select group_concat(ab.bonus order by 1 separator ':')
  from tblAuctionBonus ab
@@ -3047,9 +3440,6 @@ from tblDBCItem i
 join tblAuction a on a.item = i.id
 join tblRealm r on a.house = r.house and r.canonical is not null and r.region = ?
 left join tblAuctionExtra ae on a.house = ae.house and a.id = ae.id
-join tblItemSummary s on s.item = i.id and s.house = a.house and
-    s.level = ifnull(if(ae.level < $minPricingLevel, null, ae.level), i.level)
-join tblItemGlobal g on g.item = i.id + 0 and g.level = s.level and g.region = ?
 join tblAuctionBonus ab on ab.house = a.house and ab.id = a.id
 $joins
 where ifnull(i.auctionable,1) = 1
@@ -3060,7 +3450,7 @@ EOF;
     if (!$stmt->prepare($sql)) {
         DebugMessage("Bad SQL: \n" . $sql, E_USER_ERROR);
     }
-    $stmt->bind_param('sss', $region, $region, $region);
+    $stmt->bind_param('s', $region);
     $stmt->execute();
 
     $tr = [];
