@@ -39,7 +39,7 @@ function CheckForNewVersion($product) {
 }
 
 function GetCurrentVersion($product) {
-    $stuff = shell_exec("echo v1/products/{$product}/versions | nc -w 10 us.version.battle.net 1119");
+    $stuff = shell_exec("echo v1/products/{$product}/versions | nc -w 10 ribbit.everynothing.net 1119");
     if (!$stuff) {
         return '';
     }

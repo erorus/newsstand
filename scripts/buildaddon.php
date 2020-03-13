@@ -739,7 +739,7 @@ function luaBracket($s) {
 
 function GetInterfaceVersion() {
     $cmd = <<<'END'
-echo 'v1/products/wow/versions' | nc us.version.battle.net 1119 | grep '^us|' | awk -F '|' '{print $6}' | awk -F '.' '{printf "%d%02d00", $1, $2}'
+echo 'v1/products/wow/versions' | nc ribbit.everynothing.net 1119 | grep '^us|' | awk -F '|' '{print $6}' | awk -F '.' '{printf "%d%02d00", $1, $2}'
 END;
 
     $result = trim(shell_exec($cmd));
