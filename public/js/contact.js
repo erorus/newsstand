@@ -1,10 +1,8 @@
-var TUJ_Contact = function ()
-{
+var TUJ_Contact = function () {
     var params;
     var lastResults = [];
 
-    this.load = function (inParams)
-    {
+    this.load = function (inParams) {
         params = {};
         for (var p in inParams) {
             if (inParams.hasOwnProperty(p)) {
@@ -21,13 +19,21 @@ var TUJ_Contact = function ()
 
         $('#page-title').text(tuj.lang.contactTheEditor);
         tuj.SetTitle(tuj.lang.contactTheEditor);
-    }
+    };
 
     this.submit = function (f) {
         if (/\b(?:wow)?classic\b/i.test(f.message.value)) {
             if (confirm('Visit BootyBayGazette.com for auction house data on Classic realms.')) {
-                location.href='https://www.bootybaygazette.com/';
+                location.href = 'https://www.bootybaygazette.com/';
             }
+
+            return false;
+        }
+
+        if (/\brevenue\b/i.test(f.message.value) ||
+            /\bpublisher\b/i.test(f.message.value) ||
+            /\bplatform\b/i.test(f.message.value)) {
+            alert('We are not interested in any ad agency offers.');
 
             return false;
         }
@@ -52,21 +58,19 @@ var TUJ_Contact = function ()
         $.ajax({
             data: d,
             type: 'POST',
-            success: function ()
-            {
+            success: function () {
                 $('#contact-page .done').show();
             },
-            error: function ()
-            {
+            error: function () {
                 $('#contact-page .error').show();
             },
             url: 'api/contact.php'
         });
 
         return false;
-    }
+    };
 
     this.load(tuj.params);
-}
+};
 
 tuj.page_contact = new TUJ_Contact();
