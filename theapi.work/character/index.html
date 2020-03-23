@@ -606,6 +606,9 @@
         genericReport(urlPrefix + '/achievements' + qs, "Profile Achievements", function (o) {
             return '' + o.achievements.length + " total";
         });
+        genericReport(urlPrefix + '/achievements/statistics' + qs, "Profile Achievements Statistics", function (o) {
+            return '' + o.statistics.length + " categories found";
+        });
         genericReport(urlPrefix + '/titles' + qs, "Profile Titles", function (o) {
             return '' + o.titles.length + " found";
         });
@@ -634,23 +637,17 @@
         genericReport(urlPrefix + '/reputations' + qs, "Profile Reputations", function (o) {
             return '' + o.reputations.length + ' found';
         });
+        genericReport(urlPrefix + '/quests/completed' + qs, "Profile Quests Completed", function (o) {
+            return '' + o.quests.length + ' found';
+        });
 
         var qs = '?locale=en_US&access_token=' + token;
         var urlPrefix = host + '/wow/character/' + slug.normalize('NFD').replace(/[\u0300-\u036f]/g, "") + '/' + char;
 
-        genericReport(urlPrefix + qs, "Community", function (o) {
-            return o.name + ': level ' + o.level;
-        });
-        genericReport(urlPrefix + qs + '&fields=quests', "Community Quests", function (o) {
-            return '' + o.quests.length + ' found';
-        });
         genericReport(urlPrefix + qs + '&fields=professions', "Community Professions", function (o) {
             var priFound = (o.professions.primary && o.professions.primary.length) || 0;
             var secFound = (o.professions.secondary && o.professions.secondary.length) || 0;
             return [priFound, ' primary found, ', secFound, ' secondary found'].join(' ');
-        });
-        genericReport(urlPrefix + qs + '&fields=statistics', "Community Statistics", function (o) {
-            return '' + o.statistics.subCategories.length + ' found';
         });
     }
 
