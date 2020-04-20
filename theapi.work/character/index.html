@@ -607,10 +607,15 @@
             return '' + o.achievements.length + " total";
         });
         genericReport(urlPrefix + '/achievements/statistics' + qs, "Profile Achievements Statistics", function (o) {
-            return '' + o.statistics.length + " categories found";
+            return '' + (o.categories || o.statistics).length + " categories found";
         });
         genericReport(urlPrefix + '/titles' + qs, "Profile Titles", function (o) {
             return '' + o.titles.length + " found";
+        });
+        genericReport(urlPrefix + '/professions' + qs, "Profile Professions", function (o) {
+            var priFound = (o.primaries && o.primaries.length) || 0;
+            var secFound = (o.secondaries && o.secondaries.length) || 0;
+            return [priFound, ' primary found, ', secFound, ' secondary found'].join(' ');
         });
         genericReport(urlPrefix + '/character-media' + qs, "Profile Media", function (o) {
             var img = document.createElement('img');
@@ -639,15 +644,6 @@
         });
         genericReport(urlPrefix + '/quests/completed' + qs, "Profile Quests Completed", function (o) {
             return '' + o.quests.length + ' found';
-        });
-
-        var qs = '?locale=en_US&access_token=' + token;
-        var urlPrefix = host + '/wow/character/' + slug.normalize('NFD').replace(/[\u0300-\u036f]/g, "") + '/' + char;
-
-        genericReport(urlPrefix + qs + '&fields=professions', "Community Professions", function (o) {
-            var priFound = (o.professions.primary && o.professions.primary.length) || 0;
-            var secFound = (o.professions.secondary && o.professions.secondary.length) || 0;
-            return [priFound, ' primary found, ', secFound, ' secondary found'].join(' ');
         });
     }
 
