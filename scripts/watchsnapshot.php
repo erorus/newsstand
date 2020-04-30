@@ -656,37 +656,65 @@ function AuctionListInsert(&$list, $qty, $buyout) {
     array_splice($list, $iMid, 0, [$auction]);
 }
 
-function GetMarketPrice(&$info, $inBuyCount = 0)
-{
+/**
+ * Return the price per item to buy 15% of the total available quantity. Returns null if no quantity is available.
+ *
+ * @param array $info Already sorted.
+ * @param int $inBuyCount How many to purchase, instead of 15% of total quantity. Return the full price for that amount.
+ * @return int|null
+ */
+function GetMarketPrice(&$info, $inBuyCount = 0) {
     if (!$inBuyCount) {
+        // We want the standard market price.
         if (isset($info[ARRAY_INDEX_MARKETPRICE])) {
+            // We already know it.
             return $info[ARRAY_INDEX_MARKETPRICE];
         }
         if ($info[ARRAY_INDEX_QUANTITY] == 0) {
+            // There are none available to buy.
             return null;
         }
     } elseif ($info[ARRAY_INDEX_QUANTITY] < $inBuyCount) {
+        // We want to buy more than how many are available.
         return null;
     }
 
-    $gq = 0;
-    $gp = 0;
-    $x = 0;
-    $buyCount = $inBuyCount ?: ceil($info[ARRAY_INDEX_QUANTITY] * 0.15);
-    while ($gq < $buyCount) {
-        $auc = $info[ARRAY_INDEX_AUCTIONS][$x++];
-        if (is_array($auc)) {
-            $gq += $auc[ARRAY_INDEX_QUANTITY];
-            $gp += $auc[ARRAY_INDEX_BUYOUT];
+    // How many we want to buy.
+    $targetQuantity = $inBuyCount ?: ceil($info[ARRAY_INDEX_QUANTITY] * 0.15);
+
+    // How many we bought so far.
+    $purchasedQuantity = 0;
+
+    // How much we spent to buy what we bought so far.
+    $spent = 0;
+
+    // Which auction we're examining in the list.
+    $index = 0;
+
+    while ($purchasedQuantity < $targetQuantity) {
+        $auction = $info[ARRAY_INDEX_AUCTIONS][$index++];
+        $aucQuantity = is_array($auction) ? $auction[ARRAY_INDEX_QUANTITY] : 1;
+        $aucPrice = is_array($auction) ? $auction[ARRAY_INDEX_BUYOUT] : $auction;
+
+        $remainingQuantity = $targetQuantity - $purchasedQuantity;
+
+        if ($remainingQuantity >= $aucQuantity) {
+            $purchasedQuantity += $aucQuantity;
+            $spent += $aucPrice;
         } else {
-            $gq++;
-            $gp += $auc;
+            // Auctions of stackable items can now be split.
+            $purchasedQuantity += $remainingQuantity;
+            $spent += $aucPrice * $remainingQuantity / $aucQuantity;
         }
     }
+
     if (!$inBuyCount) {
-        return $info[ARRAY_INDEX_MARKETPRICE] = ceil($gp / $gq);
+        // Cache and return the market price.
+        return $info[ARRAY_INDEX_MARKETPRICE] = (int)ceil($spent / $purchasedQuantity);
     }
-    return $gp; // returns full price to buy $gq
+
+    // Return the full price to buy the requested amount.
+    return (int)ceil($spent);
 }
 
 function AuctionListComparitor($a, $b) {

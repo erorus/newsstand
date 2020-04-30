@@ -797,32 +797,51 @@ function UpdatePetInfo($house, &$petInfo, $snapshot)
     }
 }
 
-function GetMarketPrice(&$info)
-{
+/**
+ * Return the price per item to buy 15% of the total available quantity. Returns 0 if no quantity is available.
+ *
+ * @param array $info
+ * @return int
+ */
+function GetMarketPrice(&$info) {
     if ($info['tq'] == 0) {
         return 0;
     }
 
-    usort($info['a'], 'MarketPriceSort');
-    $gq = 0;
-    $gp = 0;
-    $x = 0;
-    while ($gq < ceil($info['tq'] * 0.15)) {
-        $gq += $info['a'][$x]['q'];
-        $gp += $info['a'][$x]['p'];
-        $x++;
-    }
-    return ceil($gp / $gq);
-}
+    // Sort cheapest and smallest auctions first.
+    usort($info['a'], function ($a, $b) {
+        $aPrice = ceil($a['p'] / $a['q']);
+        $bPrice = ceil($b['p'] / $b['q']);
 
-function MarketPriceSort($a, $b)
-{
-    $ap = ceil($a['p'] / $a['q']);
-    $bp = ceil($b['p'] / $b['q']);
-    if ($ap - $bp != 0) {
-        return ($ap - $bp);
+        return ($aPrice - $bPrice) ?: ($a['q'] - $b['q']);
+    });
+
+    // How many we want to buy.
+    $targetQuantity = ceil($info['tq'] * 0.15);
+
+    // How many we bought so far.
+    $purchasedQuantity = 0;
+
+    // How much we spent to buy what we bought so far.
+    $spent = 0;
+
+    // Which auction we're examining in the list.
+    $index = 0;
+
+    while ($purchasedQuantity < $targetQuantity) {
+        $auction = $info['a'][$index++];
+        $remainingQuantity = $targetQuantity - $purchasedQuantity;
+        if ($remainingQuantity >= $auction['q']) {
+            $purchasedQuantity += $auction['q'];
+            $spent += $auction['p'];
+        } else {
+            // Auctions of stackable items can now be split.
+            $purchasedQuantity += $remainingQuantity;
+            $spent += $auction['p'] * $remainingQuantity / $auction['q'];
+        }
     }
-    return ($a['q'] - $b['q']);
+
+    return (int)ceil($spent / $purchasedQuantity);
 }
 
 function DBQueryWithError(&$db, $sql)
