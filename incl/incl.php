@@ -339,6 +339,7 @@ function NewsstandMail($address, $name, $subject, $message, $locale='enus')
     $headers .= "Reply-To: Remove My Address <notifications@from.theunderminejournal.com>\n";
     $headers .= "Date: " . date(DATE_RFC2822) . "\n";
     $headers .= "X-Undermine-MailID: $mailId\n";
+    $headers .= "References: <{$mailId}@no-thread.from.theunderminejournal.com>\n";
 
     $headers .= "MIME-Version: 1.0\n";
     $headers .= "Content-Type: multipart/alternative; boundary=\"next-MIME-part------\"\n";
