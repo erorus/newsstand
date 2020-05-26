@@ -172,7 +172,7 @@ var TUJ_Transmog = function ()
             img.className = 'transmog-img';
             box.appendChild(img);
             img.href = tuj.BuildHash({page: 'item', id: items[y].id});
-            img.style.backgroundImage = 'url(' + tujCDNPrefix + 'models/' + items[y].display + '.png)';
+            img.style.backgroundImage = 'url(' + libtuj.getDisplayThumbnailUrl(items[y].display) + ')';
 
             var prc = libtuj.ce('a');
             box.appendChild(prc);

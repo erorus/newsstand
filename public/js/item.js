@@ -735,7 +735,7 @@ var TUJ_Item = function ()
         if (showThumb && data.stats[level].hasOwnProperty('display') && data.stats[level].display) {
             var i = libtuj.ce();
             i.className = 'transmog-img';
-            i.style.backgroundImage = 'url(' + tujCDNPrefix + 'models/' + data.stats[level].display + '.png)';
+            i.style.backgroundImage = 'url(' + libtuj.getDisplayThumbnailUrl(data.stats[level].display) + ')';
             dest.appendChild(i);
         }
 

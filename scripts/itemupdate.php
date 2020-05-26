@@ -74,7 +74,7 @@ if ($reparse) {
 
     heartbeat();
     CatchKill();
-    GetNewModels(50);
+    //GetNewModels(50);
 }
 
 DebugMessage('Done! Started ' . TimeDiff($startTime));

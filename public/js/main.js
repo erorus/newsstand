@@ -322,6 +322,15 @@ var libtuj = {
 
         return realmNames;
     },
+    getDisplayThumbnailUrl: function (display) {
+        display = parseInt(display);
+
+        var imageUrl = 'https://wow.zamimg.com/modelviewer/live/webthumbs/item/';
+        imageUrl += (display % 256) + '/' + display + '.';
+        imageUrl += libtuj.WebP ? 'webp' : 'png';
+
+        return imageUrl;
+    },
     AlsoHover: function(eventTarget, applyTarget)
     {
         $(eventTarget)
@@ -562,6 +571,13 @@ var libtuj = {
         }
     }
 };
+(function () {
+    var img = new Image();
+    img.onload = function () {
+        libtuj.WebP = img.width > 0 && img.height > 0;
+    };
+    img.src = "data:image/webp;base64,UklGRkoAAABXRUJQVlA4WAoAAAAQAAAAAAAAAAAAQUxQSAwAAAARBxAR/Q9ERP8DAABWUDggGAAAABQBAJ0BKgEAAQAAAP4AAA3AAP7mtQAAAA==";
+})();
 
 var tujConstants = {
     itemClassOrder: [2, 9, 6, 4, 0, 7, 3, 14, 11, 1, 15, 8, 16, 10, 12, 13, 17, 18, 5, 11],
