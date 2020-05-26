@@ -277,7 +277,7 @@
         "9pm - 12am"
     ],
 
-    "heatMapDays": ["Sábado", "Viernes", "Jueves", "Jueves", "Martes", "Lunes", "Domingo"],
+    "heatMapDays": ["Sábado", "Viernes", "Jueves", "Miércoles", "Martes", "Lunes", "Domingo"],
 
     "rangeButtons": {
         "2week": "2w",
