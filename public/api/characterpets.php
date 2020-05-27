@@ -27,7 +27,7 @@ function PlayerPets($realmId, $player) {
         return [];
     }
 
-    $cacheKey = sprintf('characterpets_%d_%s', $realmId, md5($player));
+    $cacheKey = sprintf('characterpets2_%d_%s', $realmId, md5($player));
 
     $pets = MCGet($cacheKey);
     if ($pets !== false) {
@@ -36,7 +36,7 @@ function PlayerPets($realmId, $player) {
 
     $pets = [];
 
-    $data = GetBattleNetURL($realm['region'], sprintf('wow/character/%s/%s?fields=pets', $realm['slug'], $player));
+    $data = GetBattleNetURL($realm['region'], sprintf('profile/wow/character/%s/%s/collections/pets?namespace=profile-us', $realm['slug'], $player));
     if ($data) {
         $data = \Newsstand\HTTP::Get($data[0], $data[1]);
     }
@@ -52,20 +52,15 @@ function PlayerPets($realmId, $player) {
         return $pets;
     }
 
-    if (isset($json['pets']['collected'])) {
-        foreach ($json['pets']['collected'] as $pet) {
-            if (!isset($pet['stats']['speciesId'])) {
-                continue;
-            }
-            $species = $pet['stats']['speciesId'];
-            if (!$species) {
-                continue;
-            }
-            if (!isset($pets[$species])) {
-                $pets[$species] = 0;
-            }
-            $pets[$species]++;
+    foreach ($json['pets'] ?? [] as $pet) {
+        $species = $pet['species']['id'] ?? null;
+        if (!$species) {
+            continue;
         }
+        if (!isset($pets[$species])) {
+            $pets[$species] = 0;
+        }
+        $pets[$species]++;
     }
 
     MCSet($cacheKey, $pets, 3 * 60 * 60);
