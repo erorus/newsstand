@@ -2218,7 +2218,7 @@ function CategoryResult_blacksmithing($house)
         'name' => 'ItemList',
         'data' => [
             'name'  => $expansions[$current] . ' Other',
-            'items' => CategoryRegularItemList($house, 'i.id in (159826,152812,152813,162115,162109,162120,168417,158887)')
+            'items' => CategoryRegularItemList($house, 'i.id in (159826,152812,152813,162115,162109,165748,168417,158887)')
         ]
     ];
 
