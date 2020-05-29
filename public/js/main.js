@@ -1554,6 +1554,21 @@ var TUJ = function ()
             $('#front-page-most-available').empty();
             $('#front-page-deals').empty();
 
+            var tokenDiv = document.getElementById('front-page-token');
+            if (tokenDiv.dataset.region !== tuj.realms[self.params.realm].region) {
+                $(tokenDiv).empty();
+                tokenDiv.dataset.region = tuj.realms[self.params.realm].region;
+                var h = libtuj.ce('h3');
+                tokenDiv.appendChild(h);
+                $(h).text(self.lang.itemSubClasses['18-0']);
+
+                var iframe = document.createElement('iframe');
+                iframe.src = 'https://wowtoken.info/#' + tokenDiv.dataset.region.toLowerCase();
+                iframe.width = 200;
+                iframe.height = 50;
+                tokenDiv.appendChild(iframe);
+            }
+
             if (houseInfo.hasOwnProperty(tuj.realms[self.params.realm].house)) {
                 var info = houseInfo[tuj.realms[self.params.realm].house];
                 if (info.hasOwnProperty('mostAvailable') && info.mostAvailable.length) {

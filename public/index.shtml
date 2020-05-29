@@ -136,6 +136,7 @@
 
                     <div id="front-page-most-available" class="top-list"></div>
                     <div id="front-page-deals" class="top-list"></div>
+                    <div id="front-page-token" class="top-list"></div>
                     <br clear="all"/>
                 </div>
                 <div class="page" id="policy-page">
