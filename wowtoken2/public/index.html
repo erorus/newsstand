@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>WoW Token Info</title>
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <link rel="apple-touch-icon" sizes="57x57" href="images/favicons/apple-touch-icon-57x57.png">
+        <link rel="apple-touch-icon" sizes="60x60" href="images/favicons/apple-touch-icon-60x60.png">
+        <link rel="apple-touch-icon" sizes="72x72" href="images/favicons/apple-touch-icon-72x72.png">
+        <link rel="apple-touch-icon" sizes="76x76" href="images/favicons/apple-touch-icon-76x76.png">
+        <link rel="apple-touch-icon" sizes="114x114" href="images/favicons/apple-touch-icon-114x114.png">
+        <link rel="apple-touch-icon" sizes="120x120" href="images/favicons/apple-touch-icon-120x120.png">
+        <link rel="apple-touch-icon" sizes="144x144" href="images/favicons/apple-touch-icon-144x144.png">
+        <link rel="apple-touch-icon" sizes="152x152" href="images/favicons/apple-touch-icon-152x152.png">
+        <link rel="apple-touch-icon" sizes="180x180" href="images/favicons/apple-touch-icon-180x180.png">
+        <link rel="icon" type="image/png" href="images/favicons/favicon-32x32.png" sizes="32x32">
+        <link rel="icon" type="image/png" href="images/favicons/android-chrome-192x192.png" sizes="192x192">
+        <link rel="icon" type="image/png" href="images/favicons/favicon-96x96.png" sizes="96x96">
+        <link rel="icon" type="image/png" href="images/favicons/favicon-16x16.png" sizes="16x16">
+        <link rel="mask-icon" href="images/favicons/safari-pinned-tab.svg" color="#5bbad5">
+        <style type="text/css">
+            body {background-color:#333; margin:0; overflow:hidden}
+            svg {display:block; height:20vh; width:100%; margin:0}
+            svg text {font-family:"Friz Quadrata TT", sans-serif; fill:#CCC}
+            svg.us tspan.region {fill:#99F}
+            svg.eu tspan.region {fill:#F99}
+            svg.cn tspan.region {fill:#9F9}
+            svg.tw tspan.region {fill:#FF9}
+            svg.kr tspan.region {fill:#9FF}
+        </style>
+    </head>
+    <body>
+    <script>
+        (function() {
+            function fetchData(region) {
+                function getHost(region) {
+                    return region === 'cn' ? 'gateway.battlenet.com.cn' : (region + '.api.blizzard.com');
+                }
+
+                function getToken(region) {
+                    return region === 'cn' ? 'CN' : 'US';
+                }
+
+                function queueNextFetch(region, lastTimestamp) {
+                    if (!lastTimestamp) {
+                        return;
+                    }
+
+                    const second = 1000;
+                    const minute = 60 * second;
+
+                    let now = Math.max(lastTimestamp, Date.now());
+                    let nextUpdate = lastTimestamp + 20 * minute;
+                    let delay;
+                    if (nextUpdate > now) {
+                        delay = Math.max(5 * second, nextUpdate - now);
+                    } else {
+                        delay = Math.max(5 * second, Math.min(now - nextUpdate, 20 * minute));
+                    }
+
+                    setTimeout(fetchData.bind(null, region), delay);
+                }
+
+                function setRegionAmount(region, amount) {
+                    let amountSpan = document.querySelector('svg.' + region + ' tspan.amount');
+                    while (amountSpan.hasChildNodes()) {
+                        amountSpan.removeChild(amountSpan.firstChild);
+                    }
+                    amountSpan.appendChild(document.createTextNode(amount || '?'));
+                }
+
+                let url = 'https://' + getHost(region) + '/data/wow/token/?namespace=dynamic-' + region;
+                url += '&access_token=' + getToken(region);
+
+                fetch(url, {cache: 'no-cache'})
+                    .then(response => {
+                        if (response.ok) {
+                            return response.json();
+                        }
+                        throw new Error();
+                    })
+                    .then(data => {
+                        setRegionAmount(
+                            region,
+                            data.price ? Math.floor(data.price / 10000).toLocaleString() : undefined
+                        );
+
+                        queueNextFetch(region, data.last_updated_timestamp);
+                    })
+                    .catch(function () {
+                        setRegionAmount(region, undefined);
+                    });
+            }
+
+            ['us','eu','cn','tw','kr'].forEach(function (region) {
+                const xmlns = "http://www.w3.org/2000/svg";
+                let svg = document.createElementNS(xmlns, 'svg');
+                svg.setAttributeNS(null, 'viewBox', '0 0 100 40');
+                svg.classList.add(region);
+
+                let text = document.createElementNS(xmlns, 'text');
+                svg.appendChild(text);
+                text.setAttributeNS(null, 'x', '50%');
+                text.setAttributeNS(null, 'y', '66%');
+                text.setAttributeNS(null, 'text-anchor', 'middle');
+
+                let tspan = document.createElementNS(xmlns, 'tspan');
+                text.appendChild(tspan);
+                tspan.classList.add('region');
+                tspan.appendChild(document.createTextNode(region.toUpperCase() + ' '));
+
+                tspan = document.createElementNS(xmlns, 'tspan');
+                text.appendChild(tspan);
+                tspan.classList.add('amount');
+
+                tspan = document.createElementNS(xmlns, 'tspan');
+                text.appendChild(tspan);
+                tspan.classList.add('suffix');
+                tspan.appendChild(document.createTextNode('g'));
+
+                document.body.appendChild(svg);
+                fetchData(region);
+            });
+        })();
+    </script>
+    </body>
+</html>
