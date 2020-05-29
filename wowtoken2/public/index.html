@@ -37,7 +37,7 @@
                 }
 
                 function getToken(region) {
-                    return region === 'cn' ? 'CN' : 'US';
+                    return region === 'cn' ? '<!--# include file="../token-cn.txt" -->' : '<!--# include file="../token-us.txt" -->';
                 }
 
                 function queueNextFetch(region, lastTimestamp) {
