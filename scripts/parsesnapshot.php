@@ -300,6 +300,11 @@ function ParseAuctionData($house, $snapshot, &$json)
 
         DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " processing $auctionCount auctions");
         while ($auction = array_pop($jsonAuctions)) {
+            if (($auction['quantity'] ?? 0) == 0) {
+                // Thanks, Blizz, for including random quantity=0 auctions. We'll assume they're sold/cancelled.
+                DebugMessage("House " . str_pad($house, 5, ' ', STR_PAD_LEFT) . " Skipping quantity=0: " . json_encode($auction));
+                continue;
+            }
             if (isset($auction['item']['pet_breed_id'])) {
                 $auction['item']['pet_breed_id'] = (($auction['item']['pet_breed_id'] - 3) % 10) + 3; // squash gender
             }
