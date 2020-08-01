@@ -203,9 +203,6 @@
                         <p>Cookies are files with a small amount of data, which may include an anonymous unique identifier. Cookies are sent to your browser from a web site and transferred to your device. We use cookies to collect information in order to improve our services for you.</p>
                         <p>You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent. The Help feature on most browsers provide information on how to accept cookies, disable cookies or to notify you when receiving a new cookie.</p>
                         <p>If you do not accept cookies, you may not be able to use some features of our Service and we recommend that you leave them turned on.</p>
-                        <p><strong>DoubleClick Cookie</strong></p>
-                        <p>Google, as a third party vendor, uses cookies to serve ads on our Service. Google's use of the DoubleClick cookie enables it and its partners to serve ads to our users based on their visit to our Service or other web sites on the Internet.</p>
-                        <p>You may opt out of the use of the DoubleClick Cookie for interest-based advertising by visiting the Google Ads Settings web page: http://www.google.com/ads/preferences/</p>
                         <p><strong>Do Not Track Disclosure</strong></p>
                         <p>We do not support Do Not Track ("DNT"). Do Not Track is a preference you can set in your web browser to inform websites that you do not want to be tracked.</p>
                         <p>You can enable or disable Do Not Track by visiting the Preferences or Settings page of your web browser.</p>
@@ -288,7 +285,7 @@
                         You can log in and get a free subscription right now. You can set your notifications and tell us your email address, and we will email you periodically with the latest events that happened since your last message and are still valid. We check the auction house for you with every data snapshot, but we will email you up to once every 8 hours.
 
                         <h3>Only once every 8 hours? Can't you email me more often than that?</h3>
-                        We also offer a paid subscription tier, which lets you choose a frequency up to every 2 minutes. Plus, paid subscribers do not see ads (or ad substitutes) while logged in. Paid subscriptions are sold for $5.00 USD for 60 days.
+                        We also offer a paid subscription tier, which lets you choose a frequency up to every 2 minutes. Paid subscriptions are sold for $5.00 USD for 60 days.
 
                         <h3>How do you send notifications more often than hourly, if you use the Blizzard API?</h3>
                         <p>It's true that <b>we get data for each realm only about once per hour</b>, but if you watch multiple realms, you could benefit from sub-hourly notification frequency, since those updates are staggered. For example:</p>
@@ -307,7 +304,6 @@
                             <tr><td>Region-Wide Notifications</td><td>Yes</td><td>Yes</td></tr>
                             <tr><td>Unusual Item Notifications</td><td>Yes, 20/realm, 50 total</td><td>Yes, 20/realm, 50 total</td></tr>
                             <tr><td>Notification Periods</td><td>24, 20, 18, 16, 12 or 8 hours</td><td>Same, or 6, 4, 3, 2, 1, &frac12; hours, or ASAP</td></tr>
-                            <tr><td>Site Ads</td><td>Yes, AdSense</td><td>No Ads</td></tr>
                             <tr><td>Cost</td><td>Free</td><td>$5.00 per 60 days</td></tr>
                         </table>
 

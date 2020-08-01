@@ -11,7 +11,7 @@ if (isset($_COOKIE['__cfduid'])) { // cloudflare
     setcookie('__cfduid', '', strtotime('1 year ago'), '/', '.theunderminejournal.com', false, true);
 }
 
-$loginState = ['ads' => true];
+$loginState = [];
 if (isset($_POST['getuser'])) {
     $loginState = RedactLoginState(GetLoginState());
 }

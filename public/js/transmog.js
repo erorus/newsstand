@@ -98,8 +98,6 @@ var TUJ_Transmog = function ()
         $('#page-title').empty().append(document.createTextNode(tuj.lang.transmog + ': ' + validPages[params.id]));
         tuj.SetTitle(tuj.lang.transmog + ': ' + validPages[params.id]);
 
-        //transmogPage.append(libtuj.Ads.Add('8323200718'));
-
         typeNames = [];
         var tn;
         for (var k in dta) {
@@ -148,8 +146,6 @@ var TUJ_Transmog = function ()
         $(a).text('Wowhead');
         $(s).append(libtuj.sprintf(tuj.lang.imagesBy, a.outerHTML));
         transmogPage.append(s);
-
-        //libtuj.Ads.Show();
     }
 
     this.showType = function(idx, dta, tabKey) {

@@ -923,17 +923,12 @@ var TUJ_Category = function ()
                 resultsDiv.append(charPetsResults);
             }
 
-            resultsDiv.append(libtuj.Ads.Add('8323200718'));
-
             var r, f, resultCount = 0;
             for (var x = 0; f = dta.results[x]; x++) {
                 if (resultFunctions.hasOwnProperty(f.name)) {
                     var d = libtuj.ce();
                     d.className = 'category category-' + f.name.toLowerCase();
                     resultsDiv.append(d);
-                    if ((r = resultFunctions[f.name](f.data, d)) && (++resultCount == 5)) {
-                        //resultsDiv.append(libtuj.Ads.Add('2276667118'));
-                    }
                     if (f.name == 'BattlePetList') {
                         $.extend(everySpecies, r);
                     }
@@ -948,8 +943,6 @@ var TUJ_Category = function ()
         if (dta.name == 'unusualItems') {
             resultsDiv.append(MakeNotificationsSection(tuj.realms[params.realm].house));
         }
-
-        libtuj.Ads.Show();
     }
 
     resultFunctions.ItemList = function (data, dest)

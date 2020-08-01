@@ -476,55 +476,6 @@ var libtuj = {
             }
         }
     },
-    Ads: {
-        addCount: 0,
-        adsWillShow: true,
-        Add: function (slot, cssClass)
-        {
-            var ad = libtuj.ce();
-            ad.className = 'ad';
-            if (cssClass) {
-                ad.className += ' ' + cssClass;
-            }
-
-            var ins = libtuj.ce('ins');
-            ad.appendChild(ins);
-            ins.className = 'adsbygoogle';
-            ins.setAttribute('data-ad-client', 'ca-pub-1018837251546750');
-            ins.setAttribute('data-ad-slot', slot);
-
-            libtuj.Ads.addCount++;
-
-            return ad;
-        },
-        Show: function ()
-        {
-            if (!tuj.UserSeesAds()) {
-                libtuj.Ads.addCount = 0;
-                $('div.ad, div.adsubstitute').remove();
-                return;
-            }
-            if (!libtuj.Ads.adsWillShow) {
-                libtuj.Ads.ShowSubstitutes();
-                return;
-            }
-            while (libtuj.Ads.addCount > 0) {
-                (window.adsbygoogle = window.adsbygoogle || []).push({});
-                libtuj.Ads.addCount--;
-            }
-        },
-        ShowSubstitutes: function ()
-        {
-            var html = "<div>The Undermine Journal's servers cost over $100 every month.</div><div>We rely on simple Google AdSense ads and paid subscriptions to pay our bills.</div><div><br>Please whitelist ads here or <a href=\"" + tuj.BuildHash({'page':'subscription', 'id': ''}) + "\">purchase a paid subscription</a> to keep the site online. Thank you.</div>";
-            $('div.ad').removeClass('ad').addClass('adsubstitute').html(html);
-        },
-        onWindowLoad: function () {
-            libtuj.Ads.adsWillShow = window.adsbygoogle && !$.isArray(window.adsbygoogle);
-            if (!libtuj.Ads.adsWillShow) {
-                libtuj.Ads.ShowSubstitutes();
-            }
-        }
-    },
     Storage: {
         Get: function (key)
         {
@@ -1034,10 +985,6 @@ var TUJ = function ()
 
     this.LoggedInUserName = function() {
         return !!(loggedInUser) ? loggedInUser.name : false;
-    };
-
-    this.UserSeesAds = function() {
-        return !(loggedInUser && loggedInUser.hasOwnProperty('ads') && !loggedInUser.ads);
     };
 
     this.UserAcceptsTerms = function() {
@@ -2024,6 +1971,5 @@ var TUJ = function ()
 
 var tuj;
 window.addEventListener('DOMContentLoaded', function() {tuj = new TUJ();});
-window.addEventListener('load', libtuj.Ads.onWindowLoad);
 
 var wowhead_tooltips = { "hide": { "extra": true, "sellprice": true } };

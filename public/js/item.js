@@ -261,9 +261,6 @@ var TUJ_Item = function ()
             }
         }
 
-        //itemPage.append(libtuj.Ads.Add('3753400314'));
-        //consecSections = 0;
-
         if (dta.globalmonthly.hasOwnProperty(level) && dta.globalmonthly[level].length >= 28) {
             d = libtuj.ce();
             d.className = 'chart-section section' + (consecSections++);
@@ -317,8 +314,6 @@ var TUJ_Item = function ()
             itemPage.append(d);
             ItemAuctions(dta, cht);
         }
-
-        libtuj.Ads.Show();
     }
 
     function MakeNotificationsSection(data, fullItemName, consecSection)
@@ -738,8 +733,6 @@ var TUJ_Item = function ()
             i.style.backgroundImage = 'url(' + libtuj.getDisplayThumbnailUrl(data.stats[level].display) + ')';
             dest.appendChild(i);
         }
-
-        dest.appendChild(libtuj.Ads.Add('9943194718', 'box'));
     }
 
     function GetItemNotificationsList(itemId, mainDiv)

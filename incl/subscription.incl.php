@@ -118,7 +118,6 @@ function GetLoginState($logOut = false) {
 }
 
 function RedactLoginState($loginState) {
-    $loginState['ads'] = (!isset($loginState['paiduntil'])) || ($loginState['paiduntil'] < time());
     unset($loginState['id'], $loginState['publicid'], $loginState['paiduntil']);
     $loginState['acceptedterms'] = isset($loginState['acceptedterms']) && ($loginState['acceptedterms'] > SUBSCRIPTION_TERMS_UPDATED);
     $loginState['csrfCookie'] = SUBSCRIPTION_CSRF_COOKIE;

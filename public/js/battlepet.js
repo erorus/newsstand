@@ -251,8 +251,6 @@ var TUJ_BattlePet = function ()
             battlePetPage.append(d);
             BattlePetAuctions(dta, cht);
         }
-
-        libtuj.Ads.Show();
     }
 
     function MakeNotificationsSection(data, fullPetName, consecSection)
@@ -461,8 +459,6 @@ var TUJ_BattlePet = function ()
             tr.appendChild(td);
             td.appendChild(libtuj.FormatPrice(mn));
         }
-
-        dest.appendChild(libtuj.Ads.Add('2419927914', 'box'));
     }
 
     function GetBattlePetNotificationsList(speciesId, mainDiv)
