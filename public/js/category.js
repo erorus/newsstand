@@ -929,6 +929,7 @@ var TUJ_Category = function ()
                     var d = libtuj.ce();
                     d.className = 'category category-' + f.name.toLowerCase();
                     resultsDiv.append(d);
+                    r = resultFunctions[f.name](f.data, d);
                     if (f.name == 'BattlePetList') {
                         $.extend(everySpecies, r);
                     }
