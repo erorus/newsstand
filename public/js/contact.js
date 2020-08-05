@@ -33,6 +33,7 @@ var TUJ_Contact = function () {
         if (/\brevenue\b/i.test(f.message.value) ||
             /\bpublisher\b/i.test(f.message.value) ||
             /\btraffic\b/i.test(f.message.value) ||
+            /\badvertising\b/i.test(f.message.value) ||
             /\bplatform\b/i.test(f.message.value)) {
             alert('We are not interested in any advertising agency offers.');
 
