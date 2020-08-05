@@ -1693,7 +1693,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Dun Morogh"
     },
     "601": {
-        "connectedId": 3680,
+        "connectedId": 1105,
         "slug": "amanthul",
         "name": "Aman'Thul"
     },
