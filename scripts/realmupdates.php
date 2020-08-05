@@ -72,6 +72,11 @@ function SetConnectedRealm($region, $locale, $connectionId) {
         return;
     }
 
+    if ($data['status']['type'] !== 'UP') {
+        DebugMessage("Status for connection $connectionId is {$data['status']['type']}, skipping.\n");
+        return;
+    }
+
     $db = DBConnect();
     $stmt = $db->prepare('update tblRealm set blizzConnection=null where blizzConnection = ?');
     $stmt->bind_param('i', $connectionId);
