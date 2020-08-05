@@ -68,12 +68,12 @@ function SetConnectedRealm($region, $locale, $connectionId) {
     $data = json_decode($json, true, 512, JSON_BIGINT_AS_STRING);
 
     if (!isset($data['realms'][0])) {
-        DebugMessage("Invalid data format for connection $connectionId\n");
+        DebugMessage("Invalid data format for connection {$connectionId}.");
         return;
     }
 
     if ($data['status']['type'] !== 'UP') {
-        DebugMessage("Status for connection $connectionId is {$data['status']['type']}, skipping.\n");
+        DebugMessage("Status for connection $connectionId is {$data['status']['type']}, skipping.");
         return;
     }
 

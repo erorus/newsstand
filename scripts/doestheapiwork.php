@@ -181,7 +181,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Elune"
     },
     "68": {
-        "connectedId": 68,
+        "connectedId": 1175,
         "slug": "lothar",
         "name": "Lothar"
     },
@@ -451,7 +451,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Azjol-Nerub"
     },
     "122": {
-        "connectedId": 122,
+        "connectedId": 1168,
         "slug": "perenolde",
         "name": "Perenolde"
     },
@@ -496,7 +496,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Smolderthorn"
     },
     "131": {
-        "connectedId": 131,
+        "connectedId": 86,
         "slug": "skywall",
         "name": "Skywall"
     },
@@ -556,7 +556,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Maelstrom"
     },
     "164": {
-        "connectedId": 164,
+        "connectedId": 163,
         "slug": "twisting-nether",
         "name": "Twisting Nether"
     },
@@ -641,7 +641,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Draka"
     },
     "1140": {
-        "connectedId": 131,
+        "connectedId": 86,
         "slug": "drakthul",
         "name": "Drak'thul"
     },
@@ -931,7 +931,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Darrowmere"
     },
     "1352": {
-        "connectedId": 164,
+        "connectedId": 163,
         "slug": "ravenholdt",
         "name": "Ravenholdt"
     },
@@ -976,7 +976,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Tortheldrin"
     },
     "1361": {
-        "connectedId": 122,
+        "connectedId": 1168,
         "slug": "cairne",
         "name": "Cairne"
     },
@@ -1141,7 +1141,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Ghostlands"
     },
     "1579": {
-        "connectedId": 68,
+        "connectedId": 1175,
         "slug": "grizzly-hills",
         "name": "Grizzly Hills"
     },
@@ -1548,7 +1548,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Blackhand"
     },
     "567": {
-        "connectedId": 567,
+        "connectedId": 612,
         "slug": "gilneas",
         "name": "Gilneas"
     },
@@ -2168,7 +2168,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Rajaxx"
     },
     "1323": {
-        "connectedId": 567,
+        "connectedId": 612,
         "slug": "ulduar",
         "name": "Ulduar"
     },
