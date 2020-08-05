@@ -42,6 +42,12 @@ function GetBlizzIds($region, $locale) {
         return;
     }
 
+    $db = DBConnect();
+    $stmt = $db->prepare('update tblRealm set blizzConnection = null where region = ?');
+    $stmt->bind_param('s', $region);
+    $stmt->execute();
+    $stmt->close();
+
     foreach ($data['connected_realms'] as $realmRow) {
         if (!isset($realmRow['href']) || !preg_match('/\/data\/wow\/connected-realm\/(\d+)/', $realmRow['href'], $res)) {
             DebugMessage("Invalid {$region} realm row format: " . json_encode($realmRow));
@@ -73,12 +79,7 @@ function SetConnectedRealm($region, $locale, $connectionId) {
     }
 
     $db = DBConnect();
-    $stmt = $db->prepare('update tblRealm set blizzConnection=null where blizzConnection = ?');
-    $stmt->bind_param('i', $connectionId);
-    $stmt->execute();
-    $stmt->close();
-
-    $stmt = $db->prepare('update tblRealm set blizzConnection=?, blizzId=?, slug=? where region=? and (slug=? or name=?)');
+    $stmt = $db->prepare('update tblRealm set blizzConnection=?, blizzId=?, slug=? where region=? and (slug=? or name=?) and blizzConnection is null');
     foreach ($data['realms'] as $realmRow) {
         $stmt->bind_param('iissss', $connectionId, $realmRow['id'], $realmRow['slug'], $region, $realmRow['slug'], $realmRow['name']);
         $stmt->execute();
