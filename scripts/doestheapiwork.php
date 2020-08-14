@@ -41,7 +41,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Hyjal"
     },
     "7": {
-        "connectedId": 7,
+        "connectedId": 127,
         "slug": "frostwolf",
         "name": "Frostwolf"
     },
@@ -56,7 +56,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Kil'jaeden"
     },
     "10": {
-        "connectedId": 10,
+        "connectedId": 121,
         "slug": "blackrock",
         "name": "Blackrock"
     },
@@ -381,7 +381,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Crushridge"
     },
     "108": {
-        "connectedId": 119,
+        "connectedId": 1185,
         "slug": "stonemaul",
         "name": "Stonemaul"
     },
@@ -396,12 +396,12 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Stormscale"
     },
     "111": {
-        "connectedId": 119,
+        "connectedId": 1185,
         "slug": "dunemaul",
         "name": "Dunemaul"
     },
     "112": {
-        "connectedId": 119,
+        "connectedId": 1185,
         "slug": "boulderfist",
         "name": "Boulderfist"
     },
@@ -436,7 +436,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Feathermoon"
     },
     "119": {
-        "connectedId": 119,
+        "connectedId": 1185,
         "slug": "bloodscalp",
         "name": "Bloodscalp"
     },
@@ -911,7 +911,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Blackwater Raiders"
     },
     "1348": {
-        "connectedId": 7,
+        "connectedId": 127,
         "slug": "vashj",
         "name": "Vashj"
     },
@@ -956,7 +956,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Sisters of Elune"
     },
     "1357": {
-        "connectedId": 119,
+        "connectedId": 1185,
         "slug": "maiev",
         "name": "Maiev"
     },
@@ -1031,7 +1031,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Quel'dorei"
     },
     "1373": {
-        "connectedId": 3677,
+        "connectedId": 1136,
         "slug": "garrosh",
         "name": "Garrosh"
     },
@@ -1333,7 +1333,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Agamaggan"
     },
     "519": {
-        "connectedId": 639,
+        "connectedId": 3713,
         "slug": "alakir",
         "name": "Al'Akir"
     },
@@ -1498,7 +1498,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Shattered Hand"
     },
     "557": {
-        "connectedId": 639,
+        "connectedId": 3713,
         "slug": "skullcrusher",
         "name": "Skullcrusher"
     },
@@ -1523,7 +1523,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Earthen Ring"
     },
     "562": {
-        "connectedId": 1607,
+        "connectedId": 3696,
         "slug": "alexstrasza",
         "name": "Alexstrasza"
     },
@@ -1608,7 +1608,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Arthas"
     },
     "579": {
-        "connectedId": 579,
+        "connectedId": 570,
         "slug": "azshara",
         "name": "Azshara"
     },
@@ -1763,7 +1763,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Terrordar"
     },
     "616": {
-        "connectedId": 579,
+        "connectedId": 570,
         "slug": "kragjin",
         "name": "Krag'jin"
     },
@@ -1868,7 +1868,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Haomarush"
     },
     "639": {
-        "connectedId": 639,
+        "connectedId": 3713,
         "slug": "xavius",
         "name": "Xavius"
     },
@@ -2013,7 +2013,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Nazjatar"
     },
     "1106": {
-        "connectedId": 1106,
+        "connectedId": 580,
         "slug": "tichondrius",
         "name": "Tichondrius"
     },
@@ -2063,7 +2063,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Boulderfist"
     },
     "1300": {
-        "connectedId": 1300,
+        "connectedId": 1303,
         "slug": "frostmane",
         "name": "Frostmane"
     },
@@ -2353,7 +2353,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Norgannon"
     },
     "1409": {
-        "connectedId": 1106,
+        "connectedId": 580,
         "slug": "lordaeron",
         "name": "Lordaeron"
     },
@@ -2438,7 +2438,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Sporeggar"
     },
     "1607": {
-        "connectedId": 1607,
+        "connectedId": 3696,
         "slug": "nethersturm",
         "name": "Nethersturm"
     },
