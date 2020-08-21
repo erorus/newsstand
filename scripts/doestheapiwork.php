@@ -191,7 +191,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Arthas"
     },
     "70": {
-        "connectedId": 70,
+        "connectedId": 77,
         "slug": "mannoroth",
         "name": "Mannoroth"
     },
@@ -456,7 +456,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Perenolde"
     },
     "123": {
-        "connectedId": 123,
+        "connectedId": 84,
         "slug": "eldrethalas",
         "name": "Eldre'Thalas"
     },
@@ -611,7 +611,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Lightninghoof"
     },
     "1131": {
-        "connectedId": 70,
+        "connectedId": 77,
         "slug": "nazjatar",
         "name": "Nazjatar"
     },
@@ -666,7 +666,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Mug'thol"
     },
     "1146": {
-        "connectedId": 1146,
+        "connectedId": 1168,
         "slug": "korgath",
         "name": "Korgath"
     },
@@ -696,7 +696,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Arathor"
     },
     "1173": {
-        "connectedId": 1173,
+        "connectedId": 160,
         "slug": "madoran",
         "name": "Madoran"
     },
@@ -916,7 +916,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Vashj"
     },
     "1349": {
-        "connectedId": 123,
+        "connectedId": 84,
         "slug": "korialstrasz",
         "name": "Korialstrasz"
     },
@@ -1086,7 +1086,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Shattered Halls"
     },
     "1558": {
-        "connectedId": 70,
+        "connectedId": 77,
         "slug": "blood-furnace",
         "name": "Blood Furnace"
     },
@@ -1151,7 +1151,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Galakrond"
     },
     "1582": {
-        "connectedId": 1173,
+        "connectedId": 160,
         "slug": "dawnbringer",
         "name": "Dawnbringer"
     },
@@ -1318,7 +1318,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Zenedar"
     },
     "516": {
-        "connectedId": 516,
+        "connectedId": 1405,
         "slug": "forscherliga",
         "name": "Forscherliga"
     },
@@ -1393,7 +1393,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Sinstralis"
     },
     "535": {
-        "connectedId": 535,
+        "connectedId": 578,
         "slug": "durotan",
         "name": "Durotan"
     },
@@ -1453,7 +1453,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Sargeras"
     },
     "547": {
-        "connectedId": 1311,
+        "connectedId": 1587,
         "slug": "runetotem",
         "name": "Runetotem"
     },
@@ -2113,7 +2113,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Eonar"
     },
     "1311": {
-        "connectedId": 1311,
+        "connectedId": 1587,
         "slug": "kilrogg",
         "name": "Kilrogg"
     },
@@ -2188,7 +2188,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Der Mithrilorden"
     },
     "1328": {
-        "connectedId": 535,
+        "connectedId": 578,
         "slug": "tirion",
         "name": "Tirion"
     },
@@ -2208,7 +2208,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Krasus"
     },
     "1333": {
-        "connectedId": 516,
+        "connectedId": 1405,
         "slug": "die-nachtwache",
         "name": "Die Nachtwache"
     },
@@ -2388,7 +2388,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Ghostlands"
     },
     "1589": {
-        "connectedId": 1311,
+        "connectedId": 1587,
         "slug": "nagrand",
         "name": "Nagrand"
     },
@@ -2448,7 +2448,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Shattrath"
     },
     "1609": {
-        "connectedId": 1609,
+        "connectedId": 1614,
         "slug": "deepholm",
         "name": "Deepholm"
     },
@@ -2483,7 +2483,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Howling Fjord"
     },
     "1616": {
-        "connectedId": 1609,
+        "connectedId": 1614,
         "slug": "razuvious",
         "name": "Razuvious"
     },
@@ -2585,7 +2585,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Shadowmoon"
     },
     "964": {
-        "connectedId": 964,
+        "connectedId": 963,
         "slug": "spirestone",
         "name": "Spirestone"
     },
@@ -2635,7 +2635,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Zealot Blade"
     },
     "1001": {
-        "connectedId": 964,
+        "connectedId": 963,
         "slug": "chillwind-point",
         "name": "Chillwind Point"
     },
@@ -2695,7 +2695,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Quel'dorei"
     },
     "1057": {
-        "connectedId": 964,
+        "connectedId": 963,
         "slug": "icecrown",
         "name": "Icecrown"
     },
