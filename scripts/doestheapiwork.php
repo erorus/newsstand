@@ -281,7 +281,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Windrunner"
     },
     "88": {
-        "connectedId": 1169,
+        "connectedId": 125,
         "slug": "cenarion-circle",
         "name": "Cenarion Circle"
     },
@@ -366,7 +366,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Malygos"
     },
     "105": {
-        "connectedId": 105,
+        "connectedId": 1129,
         "slug": "thunderhorn",
         "name": "Thunderhorn"
     },
@@ -506,7 +506,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Runetotem"
     },
     "153": {
-        "connectedId": 153,
+        "connectedId": 1175,
         "slug": "moonrunner",
         "name": "Moonrunner"
     },
@@ -521,7 +521,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Kalecgos"
     },
     "156": {
-        "connectedId": 156,
+        "connectedId": 96,
         "slug": "ursin",
         "name": "Ursin"
     },
@@ -581,7 +581,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Alexstrasza"
     },
     "1071": {
-        "connectedId": 1071,
+        "connectedId": 1127,
         "slug": "kirin-tor",
         "name": "Kirin Tor"
     },
@@ -706,7 +706,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Trollbane"
     },
     "1182": {
-        "connectedId": 1182,
+        "connectedId": 121,
         "slug": "muradin",
         "name": "Muradin"
     },
@@ -731,7 +731,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Duskwood"
     },
     "1259": {
-        "connectedId": 156,
+        "connectedId": 96,
         "slug": "zuluhed",
         "name": "Zuluhed"
     },
@@ -766,7 +766,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Haomarush"
     },
     "1267": {
-        "connectedId": 156,
+        "connectedId": 96,
         "slug": "scilla",
         "name": "Scilla"
     },
@@ -786,7 +786,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Dentarg"
     },
     "1276": {
-        "connectedId": 156,
+        "connectedId": 96,
         "slug": "andorhal",
         "name": "Andorhal"
     },
@@ -831,7 +831,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Demon Soul"
     },
     "1287": {
-        "connectedId": 153,
+        "connectedId": 1175,
         "slug": "gnomeregan",
         "name": "Gnomeregan"
     },
@@ -951,7 +951,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Winterhoof"
     },
     "1356": {
-        "connectedId": 1169,
+        "connectedId": 125,
         "slug": "sisters-of-elune",
         "name": "Sisters of Elune"
     },
@@ -966,7 +966,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Rivendare"
     },
     "1359": {
-        "connectedId": 1182,
+        "connectedId": 121,
         "slug": "nordrassil",
         "name": "Nordrassil"
     },
@@ -1101,7 +1101,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Terokkar"
     },
     "1564": {
-        "connectedId": 105,
+        "connectedId": 1129,
         "slug": "blades-edge",
         "name": "Blade's Edge"
     },
@@ -1196,7 +1196,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Barthilas"
     },
     "3724": {
-        "connectedId": 3724,
+        "connectedId": 3725,
         "slug": "thaurissan",
         "name": "Thaurissan"
     },
@@ -1211,7 +1211,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Khaz'goroth"
     },
     "3733": {
-        "connectedId": 3724,
+        "connectedId": 3725,
         "slug": "dreadmaul",
         "name": "Dreadmaul"
     },
@@ -1663,7 +1663,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Kil'jaeden"
     },
     "590": {
-        "connectedId": 1612,
+        "connectedId": 3691,
         "slug": "malganis",
         "name": "Mal'Ganis"
     },
@@ -1818,7 +1818,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "The Maelstrom"
     },
     "628": {
-        "connectedId": 3687,
+        "connectedId": 1597,
         "slug": "sylvanas",
         "name": "Sylvanas"
     },
@@ -2043,7 +2043,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Uldaman"
     },
     "1123": {
-        "connectedId": 1123,
+        "connectedId": 1122,
         "slug": "eitrigg",
         "name": "Eitrigg"
     },
@@ -2153,7 +2153,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Mug'thol"
     },
     "1320": {
-        "connectedId": 1612,
+        "connectedId": 3691,
         "slug": "taerar",
         "name": "Taerar"
     },
@@ -2203,7 +2203,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Suramar"
     },
     "1332": {
-        "connectedId": 1123,
+        "connectedId": 1122,
         "slug": "krasus",
         "name": "Krasus"
     },
@@ -2463,7 +2463,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Festung der St\u00fcrme"
     },
     "1612": {
-        "connectedId": 1612,
+        "connectedId": 3691,
         "slug": "echsenkessel",
         "name": "Echsenkessel"
     },
@@ -2625,7 +2625,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "World Tree"
     },
     "985": {
-        "connectedId": 985,
+        "connectedId": 980,
         "slug": "crystalpine-stinger",
         "name": "Crystalpine Stinger"
     },
@@ -2680,7 +2680,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Silverwing Hold"
     },
     "1049": {
-        "connectedId": 985,
+        "connectedId": 980,
         "slug": "wrathbringer",
         "name": "Wrathbringer"
     },
@@ -2707,7 +2707,7 @@ define('REALM_LIST_JSON', <<<'EOF'
 },
 "kr": {
     "201": {
-        "connectedId": 201,
+        "connectedId": 210,
         "slug": "burning-legion",
         "name": "Burning Legion"
     },
@@ -2747,7 +2747,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Gul'dan"
     },
     "258": {
-        "connectedId": 2108,
+        "connectedId": 214,
         "slug": "alexstrasza",
         "name": "Alexstrasza"
     },
@@ -2777,7 +2777,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Hyjal"
     },
     "2108": {
-        "connectedId": 2108,
+        "connectedId": 214,
         "slug": "deathwing",
         "name": "Deathwing"
     },
@@ -2787,7 +2787,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Cenarius"
     },
     "2111": {
-        "connectedId": 201,
+        "connectedId": 210,
         "slug": "stormrage",
         "name": "Stormrage"
     },
