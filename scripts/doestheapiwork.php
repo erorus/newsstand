@@ -581,7 +581,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Alexstrasza"
     },
     "1071": {
-        "connectedId": 1127,
+        "connectedId": 1071,
         "slug": "kirin-tor",
         "name": "Kirin Tor"
     },
@@ -1403,7 +1403,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Argent Dawn"
     },
     "537": {
-        "connectedId": 3714,
+        "connectedId": 1127,
         "slug": "kirin-tor",
         "name": "Kirin Tor"
     },
