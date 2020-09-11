@@ -46,7 +46,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Frostwolf"
     },
     "8": {
-        "connectedId": 128,
+        "connectedId": 1168,
         "slug": "nerzhul",
         "name": "Ner'zhul"
     },
@@ -251,7 +251,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Dethecus"
     },
     "82": {
-        "connectedId": 159,
+        "connectedId": 53,
         "slug": "spinebreaker",
         "name": "Spinebreaker"
     },
@@ -266,7 +266,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Dragonmaw"
     },
     "85": {
-        "connectedId": 85,
+        "connectedId": 86,
         "slug": "shadowsong",
         "name": "Shadowsong"
     },
@@ -296,17 +296,17 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Terenas"
     },
     "91": {
-        "connectedId": 91,
+        "connectedId": 104,
         "slug": "burning-blade",
         "name": "Burning Blade"
     },
     "92": {
-        "connectedId": 159,
+        "connectedId": 53,
         "slug": "gorefiend",
         "name": "Gorefiend"
     },
     "93": {
-        "connectedId": 159,
+        "connectedId": 53,
         "slug": "eredar",
         "name": "Eredar"
     },
@@ -316,7 +316,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Shadowmoon"
     },
     "95": {
-        "connectedId": 91,
+        "connectedId": 104,
         "slug": "lightnings-blade",
         "name": "Lightning's Blade"
     },
@@ -346,7 +346,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Earthen Ring"
     },
     "101": {
-        "connectedId": 101,
+        "connectedId": 67,
         "slug": "laughing-skull",
         "name": "Laughing Skull"
     },
@@ -481,7 +481,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Firetree"
     },
     "128": {
-        "connectedId": 128,
+        "connectedId": 1168,
         "slug": "frostmane",
         "name": "Frostmane"
     },
@@ -536,7 +536,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Greymane"
     },
     "159": {
-        "connectedId": 159,
+        "connectedId": 53,
         "slug": "wildhammer",
         "name": "Wildhammer"
     },
@@ -561,7 +561,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Twisting Nether"
     },
     "1067": {
-        "connectedId": 101,
+        "connectedId": 67,
         "slug": "chogall",
         "name": "Cho'gall"
     },
@@ -821,7 +821,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Aerie Peak"
     },
     "1285": {
-        "connectedId": 91,
+        "connectedId": 104,
         "slug": "onyxia",
         "name": "Onyxia"
     },
@@ -971,7 +971,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Nordrassil"
     },
     "1360": {
-        "connectedId": 128,
+        "connectedId": 1168,
         "slug": "tortheldrin",
         "name": "Tortheldrin"
     },
@@ -1021,7 +1021,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Farstriders"
     },
     "1371": {
-        "connectedId": 85,
+        "connectedId": 86,
         "slug": "borean-tundra",
         "name": "Borean Tundra"
     },
@@ -1071,7 +1071,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Azuremyst"
     },
     "1555": {
-        "connectedId": 101,
+        "connectedId": 67,
         "slug": "auchindoun",
         "name": "Auchindoun"
     },
@@ -1226,12 +1226,12 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Dath'Remar"
     },
     "3736": {
-        "connectedId": 3728,
+        "connectedId": 3725,
         "slug": "jubeithos",
         "name": "Jubei'Thos"
     },
     "3737": {
-        "connectedId": 3728,
+        "connectedId": 3725,
         "slug": "gundrak",
         "name": "Gundrak"
     },
@@ -1278,7 +1278,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Draenor"
     },
     "507": {
-        "connectedId": 1588,
+        "connectedId": 1596,
         "slug": "dragonblight",
         "name": "Dragonblight"
     },
@@ -1518,7 +1518,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Stormscale"
     },
     "561": {
-        "connectedId": 1317,
+        "connectedId": 1096,
         "slug": "earthen-ring",
         "name": "Earthen Ring"
     },
@@ -1588,7 +1588,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Nozdormu"
     },
     "575": {
-        "connectedId": 1407,
+        "connectedId": 1401,
         "slug": "perenolde",
         "name": "Perenolde"
     },
@@ -2128,7 +2128,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Wildhammer"
     },
     "1314": {
-        "connectedId": 1389,
+        "connectedId": 633,
         "slug": "saurfang",
         "name": "Saurfang"
     },
@@ -2138,7 +2138,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Nemesis"
     },
     "1317": {
-        "connectedId": 1317,
+        "connectedId": 1096,
         "slug": "darkmoon-faire",
         "name": "Darkmoon Faire"
     },
@@ -2248,7 +2248,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Uldum"
     },
     "1381": {
-        "connectedId": 1381,
+        "connectedId": 1378,
         "slug": "cthun",
         "name": "C'Thun"
     },
@@ -2288,7 +2288,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Lightbringer"
     },
     "1389": {
-        "connectedId": 1389,
+        "connectedId": 633,
         "slug": "darkspear",
         "name": "Darkspear"
     },
@@ -2343,7 +2343,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Arygos"
     },
     "1407": {
-        "connectedId": 1407,
+        "connectedId": 1401,
         "slug": "teldrassil",
         "name": "Teldrassil"
     },
@@ -2363,7 +2363,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Aggra (Portugu\u00eas)"
     },
     "1415": {
-        "connectedId": 1389,
+        "connectedId": 633,
         "slug": "terokkar",
         "name": "Terokkar"
     },
@@ -2383,7 +2383,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Hellfire"
     },
     "1588": {
-        "connectedId": 1588,
+        "connectedId": 1596,
         "slug": "ghostlands",
         "name": "Ghostlands"
     },
@@ -2528,7 +2528,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Naxxramas"
     },
     "1625": {
-        "connectedId": 1625,
+        "connectedId": 1929,
         "slug": "borean-tundra",
         "name": "Borean Tundra"
     },
@@ -2610,7 +2610,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Sundown Marsh"
     },
     "979": {
-        "connectedId": 999,
+        "connectedId": 963,
         "slug": "hellscream",
         "name": "Hellscream"
     },
@@ -2630,7 +2630,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Crystalpine Stinger"
     },
     "999": {
-        "connectedId": 999,
+        "connectedId": 963,
         "slug": "zealot-blade",
         "name": "Zealot Blade"
     },
@@ -2685,7 +2685,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Wrathbringer"
     },
     "1054": {
-        "connectedId": 999,
+        "connectedId": 963,
         "slug": "arthas",
         "name": "Arthas"
     },
@@ -2717,7 +2717,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Azshara"
     },
     "207": {
-        "connectedId": 2110,
+        "connectedId": 2116,
         "slug": "dalaran",
         "name": "Dalaran"
     },
@@ -2727,7 +2727,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Durotan"
     },
     "211": {
-        "connectedId": 2110,
+        "connectedId": 2116,
         "slug": "norgannon",
         "name": "Norgannon"
     },
@@ -2752,12 +2752,12 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Alexstrasza"
     },
     "264": {
-        "connectedId": 2110,
+        "connectedId": 2116,
         "slug": "malfurion",
         "name": "Malfurion"
     },
     "293": {
-        "connectedId": 293,
+        "connectedId": 2116,
         "slug": "hellscream",
         "name": "Hellscream"
     },
@@ -2782,7 +2782,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Deathwing"
     },
     "2110": {
-        "connectedId": 2110,
+        "connectedId": 2116,
         "slug": "cenarius",
         "name": "Cenarius"
     },
