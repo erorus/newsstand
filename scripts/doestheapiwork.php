@@ -211,7 +211,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Bleeding Hollow"
     },
     "74": {
-        "connectedId": 74,
+        "connectedId": 96,
         "slug": "skullcrusher",
         "name": "Skullcrusher"
     },
@@ -276,7 +276,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Silvermoon"
     },
     "87": {
-        "connectedId": 87,
+        "connectedId": 113,
         "slug": "windrunner",
         "name": "Windrunner"
     },
@@ -291,7 +291,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Nathrezim"
     },
     "90": {
-        "connectedId": 90,
+        "connectedId": 86,
         "slug": "terenas",
         "name": "Terenas"
     },
@@ -566,12 +566,12 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Cho'gall"
     },
     "1068": {
-        "connectedId": 74,
+        "connectedId": 96,
         "slug": "guldan",
         "name": "Gul'dan"
     },
     "1069": {
-        "connectedId": 1069,
+        "connectedId": 1175,
         "slug": "kaelthas",
         "name": "Kael'thas"
     },
@@ -801,7 +801,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Dalvengyr"
     },
     "1280": {
-        "connectedId": 74,
+        "connectedId": 96,
         "slug": "black-dragonflight",
         "name": "Black Dragonflight"
     },
@@ -926,7 +926,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Misha"
     },
     "1351": {
-        "connectedId": 87,
+        "connectedId": 113,
         "slug": "darrowmere",
         "name": "Darrowmere"
     },
@@ -1006,7 +1006,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Nazgrel"
     },
     "1368": {
-        "connectedId": 90,
+        "connectedId": 86,
         "slug": "hydraxis",
         "name": "Hydraxis"
     },
@@ -1136,7 +1136,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Fizzcrank"
     },
     "1578": {
-        "connectedId": 1069,
+        "connectedId": 1175,
         "slug": "ghostlands",
         "name": "Ghostlands"
     },
@@ -1186,7 +1186,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Caelestrasz"
     },
     "3722": {
-        "connectedId": 3722,
+        "connectedId": 3726,
         "slug": "amanthul",
         "name": "Aman'Thul"
     },
@@ -1553,7 +1553,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Gilneas"
     },
     "568": {
-        "connectedId": 568,
+        "connectedId": 604,
         "slug": "kargath",
         "name": "Kargath"
     },
@@ -1893,7 +1893,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Throk'Feroth"
     },
     "644": {
-        "connectedId": 1086,
+        "connectedId": 1127,
         "slug": "conseil-des-ombres",
         "name": "Conseil des Ombres"
     },
@@ -1918,7 +1918,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Khadgar"
     },
     "1081": {
-        "connectedId": 1081,
+        "connectedId": 1416,
         "slug": "bronzebeard",
         "name": "Bronzebeard"
     },
@@ -1943,7 +1943,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Moonglade"
     },
     "1086": {
-        "connectedId": 1086,
+        "connectedId": 1127,
         "slug": "la-croisade-\u00e9carlate",
         "name": "La Croisade \u00e9carlate"
     },
@@ -2118,7 +2118,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Kilrogg"
     },
     "1312": {
-        "connectedId": 1081,
+        "connectedId": 1416,
         "slug": "aerie-peak",
         "name": "Aerie Peak"
     },
@@ -2193,7 +2193,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Tirion"
     },
     "1330": {
-        "connectedId": 568,
+        "connectedId": 604,
         "slug": "ambossar",
         "name": "Ambossar"
     },
@@ -2228,7 +2228,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Eldre'Thalas"
     },
     "1337": {
-        "connectedId": 1086,
+        "connectedId": 1127,
         "slug": "culte-de-la-rive-noire",
         "name": "Culte de la Rive noire"
     },
@@ -2418,7 +2418,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Gordunni"
     },
     "1603": {
-        "connectedId": 1603,
+        "connectedId": 1928,
         "slug": "lich-king",
         "name": "Lich King"
     },
@@ -2453,7 +2453,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Deepholm"
     },
     "1610": {
-        "connectedId": 1603,
+        "connectedId": 1928,
         "slug": "greymane",
         "name": "Greymane"
     },
@@ -2488,7 +2488,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Razuvious"
     },
     "1617": {
-        "connectedId": 1924,
+        "connectedId": 1929,
         "slug": "deathweaver",
         "name": "Deathweaver"
     },
@@ -2548,7 +2548,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Ashenvale"
     },
     "1924": {
-        "connectedId": 1924,
+        "connectedId": 1929,
         "slug": "booty-bay",
         "name": "Booty Bay"
     },
@@ -2620,7 +2620,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Skywall"
     },
     "982": {
-        "connectedId": 3663,
+        "connectedId": 966,
         "slug": "world-tree",
         "name": "World Tree"
     },
@@ -2660,7 +2660,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Bleeding Hollow"
     },
     "1038": {
-        "connectedId": 3663,
+        "connectedId": 966,
         "slug": "arygos",
         "name": "Arygos"
     },
@@ -2700,7 +2700,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Icecrown"
     },
     "2075": {
-        "connectedId": 3663,
+        "connectedId": 966,
         "slug": "order-of-the-cloud-serpent",
         "name": "Order of the Cloud Serpent"
     }
@@ -2772,7 +2772,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Rexxar"
     },
     "2107": {
-        "connectedId": 2107,
+        "connectedId": 2116,
         "slug": "hyjal",
         "name": "Hyjal"
     },
