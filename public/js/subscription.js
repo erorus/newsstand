@@ -328,6 +328,53 @@ var TUJ_Subscription = function ()
             $(d).text(tuj.lang.freeSubscriptionAccount);
         }
 
+        if (subData.patreon) {
+            var d = libtuj.ce('div');
+            d.className = 'instruction';
+            dest.appendChild(d);
+            d.appendChild(document.createTextNode(tuj.lang.patreonBenefits));
+
+            if (subData.patreon.key && subData.patreon.authUri) {
+                d.appendChild(libtuj.ce('br'));
+                var url = subData.patreon.authUri + '?response_type=code&client_id=';
+                url += encodeURIComponent(subData.patreon.key) + '&redirect_uri=';
+                url += encodeURIComponent('https://' + location.hostname + '/api/patreon.php');
+                url += '&scope=identity';
+
+                var link = libtuj.ce('a');
+                link.href = url;
+                link.appendChild(document.createTextNode('Connect your Patreon account now!'));
+                link.style.display = 'inline-block';
+                link.style.margin = '1em';
+                link.style.padding = '1em';
+                link.style.border = '1px dashed';
+                d.appendChild(link);
+            }
+
+            if (subData.patreon.id) {
+                var patreonSpan = libtuj.ce('span');
+                $(patreonSpan).html(' ' + libtuj.sprintf(tuj.lang.loggedInAs, '#' + subData.patreon.id) + ' ');
+                d.appendChild(patreonSpan);
+
+                var patreonLogout = libtuj.ce('input');
+                patreonLogout.type = 'button';
+                patreonLogout.value = tuj.lang.logOut;
+                $(patreonLogout).on('click', function () {
+                    tuj.SendCSRFProtectedRequest({
+                        data: {'disconnectPatreon': 1},
+                        success: function(dta) {
+                            patreonSpan.parentNode.removeChild(patreonSpan);
+                            patreonLogout.parentNode.removeChild(patreonLogout);
+                        },
+                        error: function() {
+                            alert(tuj.lang.EmailStatus.unknown);
+                        }
+                    });
+                });
+                d.appendChild(patreonLogout);
+            }
+        }
+
         if (subData.paid.accept) {
             var d = libtuj.ce('div');
             d.className = 'instruction';

@@ -1,10 +1,11 @@
 <?php
 
-require_once('../../incl/incl.php');
-require_once('../../incl/memcache.incl.php');
-require_once('../../incl/api.incl.php');
-require_once('../../incl/battlenet.credentials.php');
-require_once('../../incl/subscription.incl.php');
+require_once '../../incl/incl.php';
+require_once '../../incl/memcache.incl.php';
+require_once '../../incl/api.incl.php';
+require_once '../../incl/battlenet.credentials.php';
+require_once '../../incl/patreon.credentials.php';
+require_once '../../incl/subscription.incl.php';
 
 if (isset($_POST['loginfrom']) && isset($_POST['region'])) {
     json_return(GetLoginParams($_POST['loginfrom'], $_POST['region'], isset($_POST['locale']) ? $_POST['locale'] : null));
@@ -33,6 +34,10 @@ if (isset($_POST['bitpayinvoice'])) {
 }
 */
 
+if (isset($_POST['disconnectPatreon'])) {
+    json_return(DisconnectPatreon($loginState));
+}
+
 if (isset($_POST['newlocale'])) {
     json_return(SetSubLocale($loginState, strtolower($_POST['newlocale'])));
 }
@@ -51,7 +56,8 @@ if (isset($_POST['settings'])) {
         'reports' => GetReports($loginState),
         'paid' => GetIsPaid($loginState),
         'rss' => GetRss($loginState),
-        ]);
+        'patreon' => GetPatreonDetails($loginState),
+    ]);
 }
 
 if (isset($_POST['getmessage'])) {
@@ -181,6 +187,20 @@ function GetLoginParams($loginFrom, $region, $locale) {
     return $json;
 }
 
+function GetPatreonDetails($loginState) {
+    // To disable:
+    //return null;
+
+    if (!$loginState['patreon']) {
+        return [
+            'authUri' => PATREON_AUTH_URI,
+            'key' => PATREON_KEY,
+        ];
+    }
+
+    return ['id' => $loginState['patreon']];
+}
+
 function MakeNewState($stateInfo) {
     $tries = 0;
     while ($tries++ < 10) {
@@ -199,6 +219,7 @@ function MakeNewSession($provider, $providerId, $userName, $locale) {
         'name' => $userName,
         'locale' => $locale,
         'acceptedterms' => null,
+        'patreon' => null,
     ];
 
     $db = DBConnect();
@@ -222,7 +243,7 @@ function MakeNewSession($provider, $providerId, $userName, $locale) {
             continue;
         }
 
-        if (!MCAdd('usersession_'.$state, [])) {
+        if (!MCAdd(SUBSCRIPTION_SESSION_CACHEKEY . $state, [])) {
             continue;
         }
 
@@ -239,10 +260,19 @@ function MakeNewSession($provider, $providerId, $userName, $locale) {
         $userInfo['id'] = $userId;
         $savedLocale = null;
 
-        $stmt = $db->prepare('SELECT u.locale, concat_ws(\'|\', cast(ua.provider as unsigned), ua.providerid), unix_timestamp(u.acceptedterms) FROM tblUser u join tblUserAuth ua on ua.user = u.id WHERE u.id = ? group by u.id');
+        $sql = <<<'SQL'
+SELECT u.locale, concat_ws('|', cast(ua.provider as unsigned), ua.providerid), unix_timestamp(u.acceptedterms),
+    (select uap.providerid from tblUserAuth uap where uap.user = u.id and uap.provider='Patreon' limit 1) patreon
+FROM tblUser u
+join tblUserAuth ua on ua.user = u.id
+WHERE u.id = ? AND ua.provider = 1
+group by u.id
+SQL;
+
+        $stmt = $db->prepare($sql);
         $stmt->bind_param('i', $userId);
         $stmt->execute();
-        $stmt->bind_result($savedLocale, $userInfo['publicid'], $userInfo['acceptedterms']);
+        $stmt->bind_result($savedLocale, $userInfo['publicid'], $userInfo['acceptedterms'], $userInfo['patreon']);
         $stmt->fetch();
         $stmt->close();
 
@@ -255,7 +285,7 @@ function MakeNewSession($provider, $providerId, $userName, $locale) {
             $userInfo['locale'] = $locale = $savedLocale;
         }
 
-        MCSet('usersession_'.$state, $userInfo);
+        MCSet(SUBSCRIPTION_SESSION_CACHEKEY . $state, $userInfo);
 
         break;
     }
@@ -389,6 +419,24 @@ function ProcessAuthCode($state, $code) {
 function LoginFinish($hash = '#subscription') {
     header('Location: https://' . $_SERVER["HTTP_HOST"] . '/' . $hash);
     exit;
+}
+
+function DisconnectPatreon($loginState) {
+    $userId = $loginState['id'];
+    $provider = 'Patreon';
+
+    $db = DBConnect();
+
+    $sql = 'DELETE FROM tblUserAuth WHERE user=? AND provider=?';
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('is', $userId, $provider);
+    $stmt->execute();
+    $stmt->close();
+
+    MCDelete(SUBSCRIPTION_PAID_CACHEKEY . $userId);
+    ClearLoginStateCache();
+
+    return [];
 }
 
 function SetSubEmail($loginState, $address)

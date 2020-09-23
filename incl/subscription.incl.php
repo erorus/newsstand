@@ -30,7 +30,7 @@ define('SUBSCRIPTION_WATCH_COUNT_CACHEKEY', 'subwatch_count_');
 define('SUBSCRIPTION_RARE_CACHEKEY', 'subrare_');
 define('SUBSCRIPTION_REPORTS_CACHEKEY', 'subreports_');
 define('SUBSCRIPTION_PAID_CACHEKEY', 'subpaid_');
-define('SUBSCRIPTION_SESSION_CACHEKEY', 'usersession_');
+define('SUBSCRIPTION_SESSION_CACHEKEY', 'usersession2_');
 
 define('SUBSCRIPTION_WATCH_LIMIT_PER', 8); // per species/item
 define('SUBSCRIPTION_WATCH_LIMIT_TOTAL', 1000);
@@ -71,7 +71,18 @@ function GetLoginState($logOut = false) {
             $db = DBConnect();
 
             // see also MakeNewSession in api/subscription.php
-            $stmt = $db->prepare('SELECT u.id, concat_ws(\'|\', cast(ua.provider as unsigned), ua.providerid) as publicid, u.name, u.locale, unix_timestamp(u.acceptedterms) acceptedterms FROM tblUserSession us join tblUser u on us.user=u.id join tblUserAuth ua on ua.user=u.id WHERE us.session=? group by u.id');
+            $sql = <<<'SQL'
+SELECT u.id, concat_ws('|', cast(ua.provider as unsigned), ua.providerid) as publicid,
+    u.name, u.locale, unix_timestamp(u.acceptedterms) acceptedterms,
+    (select uap.providerid from tblUserAuth uap where uap.user = u.id and uap.provider='Patreon' limit 1) patreon 
+FROM tblUserSession us
+join tblUser u on us.user=u.id
+join tblUserAuth ua on ua.user=u.id
+WHERE us.session=? AND ua.provider=1
+group by u.id
+SQL;
+
+            $stmt = $db->prepare($sql);
             $stmt->bind_param('s', $stateBytes);
             $stmt->execute();
             $result = $stmt->get_result();

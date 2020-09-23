@@ -647,6 +647,7 @@
     "payWithBitcoin": "Payer en Bitcoin",
     "cancelSubscription": "Cancel Subscription",
     "noAutoRenew": "Your paid subscription will not auto-renew.",
+    "patreonBenefits": "Supporters on Patreon for $3+/month get paid subscription benefits.",
 
     "promoCode": "Code promotion : ",
     "promoCodeInvalid": "Ce code n'est pas valide. Veuillez recommencer.",

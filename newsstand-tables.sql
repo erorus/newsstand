@@ -949,7 +949,7 @@ CREATE TABLE IF NOT EXISTS `tblUser` (
 --
 
 CREATE TABLE IF NOT EXISTS `tblUserAuth` (
-  `provider` enum('Battle.net') COLLATE utf8_unicode_ci NOT NULL,
+  `provider` enum('Battle.net', 'Patreon') COLLATE utf8_unicode_ci NOT NULL,
   `providerid` bigint(20) unsigned NOT NULL,
   `user` mediumint(8) unsigned NOT NULL,
   `firstseen` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
