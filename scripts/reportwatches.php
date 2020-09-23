@@ -57,10 +57,18 @@ function CheckNextUser()
     $db = DBConnect();
 
     $sql = <<<'EOF'
-select *
+select u.*, patrons.isPatron
 from tblUser u
+left join (
+    select user, if(lastPaid is null, 0, if(lastLeft > lastPaid and lastLeft < timestampadd(second, ?, now()), 0, 1)) isPatron
+    from (
+        select ua.user, max(if(cents >= ?, logged, null)) as lastPaid, max(if(cents < ?, logged, null)) as lastLeft
+        from tblPatreonLog pl
+        join tblUserAuth ua on ua.provider = 'Patreon' and ua.providerid = pl.patreonUser
+        group by ua.user) AS patronList
+    ) AS patrons ON patrons.user = u.id
 where watchesobserved > ifnull(watchesreported, '2000-01-01')
-and timestampadd(minute, greatest(if(paiduntil is null or paiduntil < now(), ?, ?), watchperiod), ifnull(watchesreported, '2000-01-01')) < now()
+and timestampadd(minute, greatest(if(ifnull(paiduntil, '2000-01-01') < now() and ifnull(patrons.isPatron, 0) = 0, ?, ?), watchperiod), ifnull(watchesreported, '2000-01-01')) < now()
 order by ifnull(watchesreported, '2000-01-01'), watchesobserved
 limit 1
 for update
@@ -71,7 +79,9 @@ EOF;
     $stmt = $db->prepare($sql);
     $freeFreq = SUBSCRIPTION_WATCH_MIN_PERIOD_FREE;
     $paidFreq = SUBSCRIPTION_WATCH_MIN_PERIOD;
-    $stmt->bind_param('ii', $freeFreq, $paidFreq);
+    $cents = SUBSCRIPTION_PATREON_MIN_CENTS;
+    $patronLeftSeconds = -1 * SUBSCRIPTION_PATREON_DURATION;
+    $stmt->bind_param('iiiii', $patronLeftSeconds, $cents, $cents, $freeFreq, $paidFreq);
     $stmt->execute();
     $result = $stmt->get_result();
     $row = $result->fetch_assoc();
@@ -94,7 +104,7 @@ EOF;
 
     $expectedReport = strtotime($row['watchesobserved']);
     if (!is_null($row['watchesreported'])) {
-        $expectedReport = max($expectedReport, max((is_null($row['paiduntil']) || strtotime($row['paiduntil']) < time()) ? SUBSCRIPTION_WATCH_MIN_PERIOD_FREE : SUBSCRIPTION_WATCH_MIN_PERIOD, $row['watchperiod']) * 60 + strtotime($row['watchesreported']));
+        $expectedReport = max($expectedReport, max((!$row['isPatron'] && (is_null($row['paiduntil']) || strtotime($row['paiduntil']) < time())) ? SUBSCRIPTION_WATCH_MIN_PERIOD_FREE : SUBSCRIPTION_WATCH_MIN_PERIOD, $row['watchperiod']) * 60 + strtotime($row['watchesreported']));
     }
     DebugMessage("User " . str_pad($row['id'], 7, ' ', STR_PAD_LEFT) . " (" . $row['name'] . ') checking for new watches/rares, overdue by ' . TimeDiff(
             $expectedReport, array(
@@ -140,11 +150,13 @@ EOF;
         }
     }
 
-    if (is_null($row['paiduntil']) || (strtotime($row['paiduntil']) < time())) {
+    if (!$row['isPatron'] && (is_null($row['paiduntil']) || (strtotime($row['paiduntil']) < time()))) {
         $message .= $LANG['freeSubscriptionAccount'];
         $hoursNext = round((max(intval($row['watchperiod'],10), SUBSCRIPTION_WATCH_MIN_PERIOD_FREE)+5)/60, 1);
     } else {
-        $message .= sprintf(preg_replace('/\{(\d+)\}/', '%$1$s', $LANG['paidExpires']), date('Y-m-d H:i:s e', strtotime($row['paiduntil'])));
+        if (!$row['isPatron']) {
+            $message .= sprintf(preg_replace('/\{(\d+)\}/', '%$1$s', $LANG['paidExpires']), date('Y-m-d H:i:s e', strtotime($row['paiduntil'])));
+        }
         $hoursNext = round((max(intval($row['watchperiod'],10), SUBSCRIPTION_WATCH_MIN_PERIOD)+5)/60, 1);
     }
 

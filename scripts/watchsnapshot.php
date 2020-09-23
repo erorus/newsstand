@@ -304,16 +304,26 @@ select uw.`user`, uw.seq, uw.item, uw.level, uw.species, uw.direction, uw.quanti
     if(uw.observed is null, 0, 1) isset, if(uw.reported > uw.observed, 1, 0) wasreported
 from tblUserWatch uw
 join tblUser u on uw.user = u.id
+left join (
+    select user, if(lastPaid is null, 0, if(lastLeft > lastPaid and lastLeft < timestampadd(second, ?, now()), 0, 1)) isPatron
+    from (
+        select ua.user, max(if(cents >= ?, logged, null)) as lastPaid, max(if(cents < ?, logged, null)) as lastLeft
+        from tblPatreonLog pl
+        join tblUserAuth ua on ua.provider = 'Patreon' and ua.providerid = pl.patreonUser
+        group by ua.user) AS patronList
+    ) AS patrons ON patrons.user = u.id
 where uw.deleted is null
 and ((uw.region = ? and uw.observed is null) or uw.house = ?)
 and (uw.observed is null or uw.observed < ?)
-and (u.paiduntil > now() or u.lastseen > timestampadd(day, ?, now()))
+and (u.paiduntil > now() or patrons.isPatron or u.lastseen > timestampadd(day, ?, now()))
 order by uw.item, uw.species
 EOF;
 
     $stmt = $ourDb->prepare($sql);
     $freeDays = -1 * SUBSCRIPTION_WATCH_FREE_LAST_LOGIN_DAYS;
-    $stmt->bind_param('sisi', $region, $house, $snapshotString, $freeDays);
+    $cents = SUBSCRIPTION_PATREON_MIN_CENTS;
+    $patronLeftSeconds = -1 * SUBSCRIPTION_PATREON_DURATION;
+    $stmt->bind_param('iiisisi', $patronLeftSeconds, $cents, $cents, $region, $house, $snapshotString, $freeDays);
     $stmt->execute();
     $result = $stmt->get_result();
     while ($row = $result->fetch_assoc()) {
