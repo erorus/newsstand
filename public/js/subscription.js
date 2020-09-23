@@ -316,16 +316,16 @@ var TUJ_Subscription = function ()
         if (subData.paid.until) {
             $(d).text(libtuj.sprintf(tuj.lang.paidExpires, libtuj.FormatDate(subData.paid.until, true)));
 
-            /*
-            var btn = libtuj.ce('input');
-            btn.type = 'button';
-            btn.style.marginLeft = '2em';
-            btn.value = tuj.lang.cancelSubscription;
-            $(btn).on('click', function () {
-                alert(tuj.lang.noAutoRenew);
-            });
-            d.appendChild(btn);
-            */
+            if (!subData.paid.patreon) {
+                var btn = libtuj.ce('input');
+                btn.type = 'button';
+                btn.style.marginLeft = '2em';
+                btn.value = tuj.lang.cancelSubscription;
+                $(btn).on('click', function () {
+                    alert(tuj.lang.noAutoRenew);
+                });
+                d.appendChild(btn);
+            }
         } else {
             $(d).text(tuj.lang.freeSubscriptionAccount);
         }
@@ -334,7 +334,11 @@ var TUJ_Subscription = function ()
             var d = libtuj.ce('div');
             d.className = 'instruction';
             dest.appendChild(d);
-            d.appendChild(document.createTextNode(tuj.lang.patreonBenefits));
+
+            var link = libtuj.ce('a');
+            link.href = "https://www.patreon.com/erorus";
+            link.appendChild(document.createTextNode(tuj.lang.patreonBenefits));
+            d.appendChild(link);
 
             if (subData.patreon.key && subData.patreon.authUri) {
                 d.appendChild(libtuj.ce('br'));
@@ -374,6 +378,20 @@ var TUJ_Subscription = function ()
                     });
                 });
                 d.appendChild(patreonLogout);
+
+                if (!subData.paid.patreon) {
+                    var link = libtuj.ce('a');
+                    link.href = "https://www.patreon.com/erorus";
+                    var img = libtuj.ce('img');
+                    img.src = "https://everynothing.net/patronButton.png";
+                    img.alt = 'Become a patron!';
+                    img.style.verticalAlign = 'middle';
+                    img.width = 154;
+                    img.height = 31;
+                    img.border = 0;
+                    link.appendChild(img);
+                    d.appendChild(link);
+                }
             }
         }
 

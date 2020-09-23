@@ -32,7 +32,7 @@ define('SUBSCRIPTION_WATCH_LOCK_CACHEKEY', 'subwatch_lock_');
 define('SUBSCRIPTION_WATCH_COUNT_CACHEKEY', 'subwatch_count_');
 define('SUBSCRIPTION_RARE_CACHEKEY', 'subrare_');
 define('SUBSCRIPTION_REPORTS_CACHEKEY', 'subreports_');
-define('SUBSCRIPTION_PAID_CACHEKEY', 'subpaid_');
+define('SUBSCRIPTION_PAID_CACHEKEY', 'subpaid2_');
 define('SUBSCRIPTION_SESSION_CACHEKEY', 'usersession2_');
 
 define('SUBSCRIPTION_WATCH_LIMIT_PER', 8); // per species/item
@@ -467,16 +467,17 @@ function AddPaidTime($userId, $seconds) {
 function GetUserPaidUntil($userId) {
     $cacheKey = SUBSCRIPTION_PAID_CACHEKEY . $userId;
 
-    $ts = MCGet($cacheKey);
-    if ($ts === false) {
+    $info = MCGet($cacheKey);
+    if ($info === false) {
         $db = DBConnect();
 
         $stmt = $db->prepare('SELECT ifnull(unix_timestamp(u.paiduntil),0) FROM tblUser u WHERE u.id=?');
         $stmt->bind_param('i', $userId);
         $stmt->execute();
-        $stmt->bind_result($ts);
+        $paypal = null;
+        $stmt->bind_result($paypal);
         if (!$stmt->fetch()) {
-            $ts = 0;
+            $paypal = 0;
         }
         $stmt->close();
 
@@ -508,16 +509,24 @@ SQL;
             }
         }
 
-        $ts = max($ts, $patreonExpires);
+        $info = [
+            'paypal' => $paypal,
+            'patreon' => $patreonExpires,
+            'any' => max($paypal, $patreonExpires),
+        ];
 
-        MCSet($cacheKey, $ts);
+        MCSet($cacheKey, $info);
     }
 
-    if (!$ts) {
-        $ts = null;
+    if (!$info) {
+        $info = [
+            'paypal' => 0,
+            'patreon' => 0,
+            'any' => 0,
+        ];
     }
 
-    return $ts;
+    return $info;
 }
 
 function GeneratePublicUserHMAC($publicId) {

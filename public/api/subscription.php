@@ -995,10 +995,9 @@ EOF;
     return $json;
 }
 
-function GetReports($loginState)
-{
+function GetReports($loginState) {
     $userId = $loginState['id'];
-    $isPaid = !is_null($loginState['paiduntil']) && $loginState['paiduntil'] > time();
+    $isPaid = $loginState['paiduntil']['any'] ?? 0 > time();
 
     $cacheKey = SUBSCRIPTION_REPORTS_CACHEKEY . $userId;
     $reports = MCGet($cacheKey);
@@ -1025,10 +1024,9 @@ function GetReports($loginState)
     return $reports;
 }
 
-function SetWatchPeriod($loginState, $period)
-{
+function SetWatchPeriod($loginState, $period) {
     $userId = $loginState['id'];
-    $isPaid = !is_null($loginState['paiduntil']) && $loginState['paiduntil'] > time();
+    $isPaid = $loginState['paiduntil']['any'] ?? 0 > time();
 
     $period = intval($period, 10);
     $period = max(min($period, SUBSCRIPTION_WATCH_MAX_PERIOD), SUBSCRIPTION_WATCH_MIN_PERIOD);
@@ -1087,14 +1085,15 @@ function SetAcceptedTerms($loginState)
 function GetIsPaid($loginState)
 {
     $json = [
-        'until' => $loginState['paiduntil']
+        'until' => $loginState['paiduntil']['any'] ?? 0,
     ];
 
     if (isset($json['until']) && ($json['until'] < time())) {
-        $json['until'] = null;
+        $json['until'] = 0;
     }
 
     $json['accept'] = false;
+    $json['patreon'] = ($loginState['paiduntil']['patreon'] ?? 0) > (time() + SUBSCRIPTION_PAID_RENEW_WINDOW_DAYS * 86400);
 
     if (SUBSCRIPTION_PAID_ACCEPT_PAYMENTS && ($json['until'] < (time() + SUBSCRIPTION_PAID_RENEW_WINDOW_DAYS * 86400))) {
         $json['accept'] = [

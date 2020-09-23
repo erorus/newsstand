@@ -49,7 +49,7 @@ $body .= "Banned: " . ($banned['isbanned'] ? 'yes: ' . $banned['reason'] . ' ' .
 $loginState = GetLoginState();
 $body .= "User: ".(isset($loginState['id']) ? ($loginState['id'] . ' ' . $loginState['name']) : 'none') . "\n";
 if (isset($loginState['id'])) {
-    $body .= "Paid until: " . date('Y-m-d H:i:s', GetUserPaidUntil($loginState['id'])) . "\n";
+    $body .= "Paid until: " . date('Y-m-d H:i:s', GetUserPaidUntil($loginState['id'])['any']) . "\n";
 }
 
 if (isset($_POST['region'])) {
