@@ -703,6 +703,20 @@ CREATE TABLE IF NOT EXISTS `tblItemSummary` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `tblPatreonLog`
+--
+
+CREATE TABLE `tblPatreonLog` (
+  `logged` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `patreonUser` bigint(20) unsigned NOT NULL,
+  `cents` int(10) unsigned DEFAULT NULL,
+  PRIMARY KEY (`logged`,`patreonUser`),
+  KEY `user` (`patreonUser`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `tblPaypalTransactions`
 --
 
