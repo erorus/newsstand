@@ -316,6 +316,7 @@ var TUJ_Subscription = function ()
         if (subData.paid.until) {
             $(d).text(libtuj.sprintf(tuj.lang.paidExpires, libtuj.FormatDate(subData.paid.until, true)));
 
+            /*
             var btn = libtuj.ce('input');
             btn.type = 'button';
             btn.style.marginLeft = '2em';
@@ -324,6 +325,7 @@ var TUJ_Subscription = function ()
                 alert(tuj.lang.noAutoRenew);
             });
             d.appendChild(btn);
+            */
         } else {
             $(d).text(tuj.lang.freeSubscriptionAccount);
         }

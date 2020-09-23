@@ -17,6 +17,9 @@ define('SUBSCRIPTION_PAID_ACCEPT_PAYMENTS', true); // set to false to disable pa
 define('SUBSCRIPTION_PAID_ACCEPT_BUTTON', 'BBL426DYP3BTC');
 define('SUBSCRIPTION_PAID_PRICE', '$5.00 USD'); // must be formatted: "$##.## XXX"
 
+define('SUBSCRIPTION_PATREON_MIN_CENTS', 300); // Min patreon monthly contribution to be considered a paid user.
+define('SUBSCRIPTION_PATREON_DURATION', 30 * 24 * 60 * 60); // How long a patreon sub lasts after removal.
+
 define('SUBSCRIPTION_BITPAY_INVOICE_URL', 'https://bitpay.com/api/invoice');
 
 define('SUBSCRIPTION_MESSAGES_CACHEKEY', 'submessage_');
@@ -476,6 +479,37 @@ function GetUserPaidUntil($userId) {
             $ts = 0;
         }
         $stmt->close();
+
+        $sql = <<<'SQL'
+SELECT
+    MAX(IF(cents >= ?, UNIX_TIMESTAMP(logged), NULL)) AS lastPaid,
+    MAX(IF(cents < ?, UNIX_TIMESTAMP(logged), NULL)) AS lastLeft
+FROM tblPatreonLog AS pl
+JOIN tblUserAuth AS ua ON ua.provider = 'Patreon' and ua.providerid = pl.patreonUser
+WHERE ua.user = ?
+SQL;
+        $cents = SUBSCRIPTION_PATREON_MIN_CENTS;
+        $stmt = $db->prepare($sql);
+        $stmt->bind_param('iii', $cents, $cents, $userId);
+        $stmt->execute();
+        $patreonPaid = $patreonLeft = null;
+        $stmt->bind_result($patreonPaid, $patreonLeft);
+        if (!$stmt->fetch()) {
+            $patreonPaid = $patreonLeft = null;
+        }
+        $stmt->close();
+
+        $patreonExpires = 0;
+        if ($patreonPaid) {
+            if ($patreonLeft > $patreonPaid) {
+                $patreonExpires = $patreonLeft + SUBSCRIPTION_PATREON_DURATION;
+            } else {
+                $patreonExpires = time() + SUBSCRIPTION_PATREON_DURATION;
+            }
+        }
+
+        $ts = max($ts, $patreonExpires);
+
         MCSet($cacheKey, $ts);
     }
 
