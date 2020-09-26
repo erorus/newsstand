@@ -1236,7 +1236,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Gundrak"
     },
     "3738": {
-        "connectedId": 3729,
+        "connectedId": 3721,
         "slug": "saurfang",
         "name": "Saurfang"
     }
@@ -2605,7 +2605,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Frostmane"
     },
     "978": {
-        "connectedId": 978,
+        "connectedId": 980,
         "slug": "sundown-marsh",
         "name": "Sundown Marsh"
     },
@@ -2645,7 +2645,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Menethil"
     },
     "1023": {
-        "connectedId": 978,
+        "connectedId": 980,
         "slug": "demon-fall-canyon",
         "name": "Demon Fall Canyon"
     },
@@ -2675,7 +2675,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Light's Hope"
     },
     "1048": {
-        "connectedId": 978,
+        "connectedId": 980,
         "slug": "silverwing-hold",
         "name": "Silverwing Hold"
     },
