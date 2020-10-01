@@ -151,7 +151,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Zul'jin"
     },
     "62": {
-        "connectedId": 62,
+        "connectedId": 52,
         "slug": "medivh",
         "name": "Medivh"
     },
@@ -1106,7 +1106,7 @@ define('REALM_LIST_JSON', <<<'EOF'
         "name": "Blade's Edge"
     },
     "1565": {
-        "connectedId": 62,
+        "connectedId": 52,
         "slug": "exodar",
         "name": "Exodar"
     },
