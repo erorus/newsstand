@@ -46,6 +46,7 @@ This is useful for other addons (Auctioneer, TSM, etc) that have their own fancy
 
 ]]
 
+local ADDON_NAME = ...
 local floor = math.floor
 local tinsert, tonumber = tinsert, tonumber
 
@@ -244,7 +245,28 @@ end
 --[[
     enable/disable/query whether the TUJ tooltip additions are enabled
 ]]
-local tooltipsEnabled = true
+local tooltipsSettings = {
+	tooltipsEnabled = true,
+	tooltipsAgeEnabled = true,
+	tooltipsRecentEnabled = true,
+	tooltipsMarketEnabled = true,
+	tooltipsStdDevEnabled = true,
+	tooltipsGlobalMedianEnabled = true,
+	tooltipsGlobalMeanEnabled = true,
+	tooltipsGlobalStdDevEnabled = true,
+	tooltipsDaysEnabled = true
+}
+local tooltipsEnabled = tooltipsSettings.tooltipsEnabled
+local tooltipsAgeEnabled = tooltipsSettings.tooltipsAgeEnabled
+local tooltipsRecentEnabled = tooltipsSettings.tooltipsRecentEnabled
+local tooltipsMarketEnabled = tooltipsSettings.tooltipsMarketEnabled
+local tooltipsStdDevEnabled = tooltipsSettings.tooltipsStdDevEnabled
+local tooltipsGlobalMedianEnabled = tooltipsSettings.tooltipsGlobalMedianEnabled
+local tooltipsGlobalMeanEnabled = tooltipsSettings.tooltipsGlobalMeanEnabled
+local tooltipsGlobalStdDevEnabled = tooltipsSettings.tooltipsGlobalStdDevEnabled
+local tooltipsDaysEnabled = tooltipsSettings.tooltipsDaysEnabled
+print ("default  table settings market  boolean is "..(tooltipsSettings.tooltipsMarketEnabled and 'true' or 'false')..".")
+print ("default variable settings market  boolean is "..(tooltipsMarketEnabled and 'true' or 'false')..".")
 function TUJTooltip(...)
     if select('#', ...) >= 1 then
         tooltipsEnabled = not not select(1,...) --coerce into boolean
@@ -282,41 +304,41 @@ local function buildExtraTip(tooltip, pricingData)
 
     LibExtraTip:AddLine(tooltip," ",r,g,b,true)
 
-    if (pricingData['age'] > 3*24*60*60) then
+    if (pricingData['age'] > 3*24*60*60 and tooltipsAgeEnabled) then
         LibExtraTip:AddLine(tooltip,"As of "..SecondsToTime(pricingData['age'],pricingData['age']>60).." ago:",r,g,b,true)
     end
 
-    if pricingData['recent'] then
+    if (pricingData['recent'] and tooltipsRecentEnabled) then
         LibExtraTip:AddDoubleLine(tooltip,"3-Day Price",coins(pricingData['recent']),r,g,b,nil,nil,nil,true)
     end
-    if pricingData['market'] then
+    if (pricingData['market'] and tooltipsMarketEnabled) then
         LibExtraTip:AddDoubleLine(tooltip,"14-Day Price",coins(pricingData['market']),r,g,b,nil,nil,nil,true)
     end
-    if pricingData['stddev'] then
+    if (pricingData['stddev'] and tooltipsStdDevEnabled) then
         LibExtraTip:AddDoubleLine(tooltip,"14-Day Std Dev",coins(pricingData['stddev']),r,g,b,nil,nil,nil,true)
     end
 
     local regionName = addonTable.region or "Regional"
 
-    if pricingData['globalMedian'] then
+    if (pricingData['globalMedian'] and tooltipsGlobalMedianEnabled) then
         LibExtraTip:AddDoubleLine(tooltip,regionName.." Median",coins(pricingData['globalMedian']),r,g,b,nil,nil,nil,true)
     end
-    if pricingData['globalMean'] then
+    if (pricingData['globalMean'] and tooltipsGlobalMeanEnabled) then
         LibExtraTip:AddDoubleLine(tooltip,regionName.." Mean",coins(pricingData['globalMean']),r,g,b,nil,nil,nil,true)
     end
-    if pricingData['globalStdDev'] then
+    if (pricingData['globalStdDev'] and tooltipsGlobalStdDevEnabled) then
         LibExtraTip:AddDoubleLine(tooltip,regionName.." Std Dev",coins(pricingData['globalStdDev']),r,g,b,nil,nil,nil,true)
     end
 
-    if pricingData['days'] == 255 then
-        LibExtraTip:AddLine(tooltip,"Never seen since WoD",r,g,b,true)
-    elseif pricingData['days'] == 252 then
-        LibExtraTip:AddLine(tooltip,"Sold by Vendors",r,g,b,true)
-    elseif pricingData['days'] > 250 then
-        LibExtraTip:AddLine(tooltip,"Last seen over 250 days ago",r,g,b,true)
-    elseif pricingData['days'] > 1 then
-        LibExtraTip:AddLine(tooltip,"Last seen "..SecondsToTime(pricingData['days']*24*60*60).." ago",r,g,b,true)
-    end
+	if (pricingData['days'] == 255 and tooltipsDaysEnabled) then
+		LibExtraTip:AddLine(tooltip,"Never seen since WoD",r,g,b,true)
+	elseif (pricingData['days'] == 252 and tooltipsDaysEnabled) then
+		LibExtraTip:AddLine(tooltip,"Sold by Vendors",r,g,b,true)
+	elseif (pricingData['days'] > 250 and tooltipsDaysEnabled) then
+		LibExtraTip:AddLine(tooltip,"Last seen over 250 days ago",r,g,b,true)
+	elseif (pricingData['days'] > 1 and tooltipsDaysEnabled) then
+		LibExtraTip:AddLine(tooltip,"Last seen "..SecondsToTime(pricingData['days']*24*60*60).." ago",r,g,b,true)
+	end
 end
 
 local dataResults = {}
@@ -360,12 +382,12 @@ local function onEvent(self,event,arg)
         collectgarbage("collect") -- lots of strings made and trunc'ed in MarketData
 
         if not addonTable.realmIndex then
-            print("The Undermine Journal - Warning: could not find data for realm ID "..realmId..", no data loaded!")
+            print("|cFF33FF99The Undermine Journal|r - Warning: could not find data for realm ID "..realmId..", no data loaded!")
         elseif not addonTable.marketData then
-            print("The Undermine Journal - Warning: no data loaded!")
+            print("|cFF33FF99The Undermine Journal|r - Warning: no data loaded!")
         else
             if not tooltipsEnabled then
-                print("The Undermine Journal - Tooltip prices disabled. Run /tujtooltip to toggle.")
+                print("|cFF33FF99The Undermine Journal|r - Tooltip prices disabled. Run /tujtooltip to toggle.")
             end
             LibExtraTip:AddCallback({type = "item", callback = onTooltipSetItem})
             LibExtraTip:AddCallback({type = "battlepet", callback = onTooltipSetItem})
@@ -374,10 +396,43 @@ local function onEvent(self,event,arg)
             LibExtraTip:RegisterTooltip(BattlePetTooltip)
             LibExtraTip:RegisterTooltip(FloatingBattlePetTooltip)
         end
-    elseif event == "ADDON_LOADED" then
-        tooltipsEnabled = not _G["TUJTooltipsHidden"]
+    elseif (event == "ADDON_LOADED" and arg == ADDON_NAME) then
+		if not _G["TUJTooltipsSettings"] then
+			_G["TUJTooltipsSettings"] = {}
+		else
+			tooltipsSettings = _G["TUJTooltipsSettings"]
+			tooltipsEnabled = tooltipsSettings.tooltipsEnabled
+			tooltipsAgeEnabled = tooltipsSettings.tooltipsAgeEnabled
+			tooltipsRecentEnabled = tooltipsSettings.tooltipsRecentEnabled
+			tooltipsMarketEnabled = tooltipsSettings.tooltipsMarketEnabled
+			tooltipsStdDevEnabled = tooltipsSettings.tooltipsStdDevEnabled
+			tooltipsGlobalMedianEnabled = tooltipsSettings.tooltipsGlobalMedianEnabled
+			tooltipsGlobalMeanEnabled = tooltipsSettings.tooltipsGlobalMeanEnabled
+			tooltipsGlobalStdDevEnabled = tooltipsSettings.tooltipsGlobalStdDevEnabled
+			tooltipsDaysEnabled = tooltipsSettings.tooltipsDaysEnabled
+		end	
     elseif event == "PLAYER_LOGOUT" then
-        _G["TUJTooltipsHidden"] = not tooltipsEnabled
+		if (tooltipsAgeEnabled == false) and (tooltipsRecentEnabled == false) and (tooltipsMarketEnabled == false) and (tooltipsStdDevEnabled == false) and (tooltipsGlobalMedianEnabled == false) and (tooltipsGlobalMeanEnabled == false) and (tooltipsGlobalStdDevEnabled == false) and (tooltipsDaysEnabled == false) then
+			tooltipsEnabled = false
+			tooltipsAgeEnabled = true
+			tooltipsRecentEnabled = true
+			tooltipsMarketEnabled = true
+			tooltipsStdDevEnabled = true
+			tooltipsGlobalMedianEnabled = true
+			tooltipsGlobalMeanEnabled = true
+			tooltipsGlobalStdDevEnabled = true
+			tooltipsDaysEnabled = true
+		end
+		tooltipsSettings.tooltipsEnabled = tooltipsEnabled
+		tooltipsSettings.tooltipsAgeEnabled = tooltipsAgeEnabled
+		tooltipsSettings.tooltipsRecentEnabled = tooltipsRecentEnabled
+		tooltipsSettings.tooltipsMarketEnabled = tooltipsMarketEnabled
+		tooltipsSettings.tooltipsStdDevEnabled = tooltipsStdDevEnabled
+		tooltipsSettings.tooltipsGlobalMedianEnabled = tooltipsGlobalMedianEnabled
+		tooltipsSettings.tooltipsGlobalMeanEnabled = tooltipsGlobalMeanEnabled
+		tooltipsSettings.tooltipsGlobalStdDevEnabled = tooltipsGlobalStdDevEnabled
+		tooltipsSettings.tooltipsDaysEnabled = tooltipsDaysEnabled
+		_G["TUJTooltipsSettings"] = tooltipsSettings
     end
 end
 
@@ -388,17 +443,80 @@ eventframe:SetScript("OnEvent", onEvent)
 
 SLASH_THEUNDERMINEJOURNAL1 = '/tujtooltip'
 function SlashCmdList.THEUNDERMINEJOURNAL(msg)
-    local newEnabled = not TUJTooltip()
-    if msg == 'on' then
-        newEnabled = true
-    elseif msg == 'off' then
-        newEnabled = false
-    end
-    if TUJTooltip(newEnabled) then
-        print("The Undermine Journal - Tooltip prices enabled.")
-    else
-        print("The Undermine Journal - Tooltip prices disabled.")
-    end
+    local newEnabled = TUJTooltip()
+	msg = string.lower(msg)
+    if (msg == 'on') or (msg == 'off') or (msg == "") then
+		if msg == 'on' then
+			newEnabled = true
+		elseif msg == 'off' then
+			newEnabled = false
+		elseif msg == '' then
+			newEnabled = not TUJTooltip()
+		end
+		if TUJTooltip(newEnabled) then
+			print("|cFF33FF99The Undermine Journal|r - Tooltip prices |cFF00FF00Enabled|r.")
+		else
+			print("|cFF33FF99The Undermine Journal|r - Tooltip prices |cFFFF0000Disabled|r.")
+		end
+	elseif (msg == 'age') then --Toggle the age of the compiled data
+		tooltipsAgeEnabled = not tooltipsAgeEnabled
+		print("|cFF33FF99The Undermine Journal|r - |cFFFFFF78Age|r display has been "..(function() if  tooltipsAgeEnabled == true then return '|cFF00FF00Enabled|r' else return '|cFFFF0000Disabled|r' end end)())
+    elseif (msg =='3day') then --Toggle the average market price from the last 3 days
+		tooltipsRecentEnabled = not tooltipsRecentEnabled
+		print("|cFF33FF99The Undermine Journal|r - |cFFFFFF783Day|r display has been "..(function() if  tooltipsRecentEnabled == true then return '|cFF00FF00Enabled|r' else return '|cFFFF0000Disabled|r' end end)())
+	elseif (msg == '14day') then --Toggle the average market price from the last 14 days
+		tooltipsMarketEnabled = not tooltipsMarketEnabled
+		print("|cFF33FF99The Undermine Journal|r - |cFFFFFF7814Day|r display has been "..(function() if  tooltipsMarketEnabled == true then return '|cFF00FF00Enabled|r' else return '|cFFFF0000Disabled|r' end end)())
+	elseif (msg == '14daysd') or (msg == 'standarddeviation') then --Toggle the 14 day standard deviation
+		tooltipsStdDevEnabled = not tooltipsStdDevEnabled
+		print("|cFF33FF99The Undermine Journal|r - |cFFFFFF7814DaySD|r display has been "..(function() if  tooltipsStdDevEnabled == true then return '|cFF00FF00Enabled|r' else return '|cFFFF0000Disabled|r' end end)())
+	elseif (msg == 'regionmedian') then --Toggle the global median for your region
+		tooltipsGlobalMedianEnabled = not tooltipsGlobalMedianEnabled
+		print("|cFF33FF99The Undermine Journal|r - |cFFFFFF78RegionMedian|r display has been "..(function() if  tooltipsGlobalMedianEnabled == true then return '|cFF00FF00Enabled|r' else return '|cFFFF0000Disabled|r' end end)())
+	elseif (msg == 'regionmean') then --Toggle the global mean for your region
+		tooltipsGlobalMeanEnabled = not tooltipsGlobalMeanEnabled
+		print("|cFF33FF99The Undermine Journal|r - |cFFFFFF78RegionMean|r display has been "..(function() if  tooltipsGlobalMeanEnabled == true then return '|cFF00FF00Enabled|r' else return '|cFFFF0000Disabled|r' end end)())
+	elseif (msg == 'regionsd') then --Toggle the global standard deviation for your region
+		tooltipsGlobalStdDevEnabled = not tooltipsGlobalStdDevEnabled
+		print("|cFF33FF99The Undermine Journal|r - |cFFFFFF78RegionSD|r display has been "..(function() if  tooltipsGlobalStdDevEnabled == true then return '|cFF00FF00Enabled|r' else return '|cFFFF0000Disabled|r' end end)())
+	elseif (msg == 'lastseen') then --Toggle the last seen since messages
+		tooltipsDaysEnabled = not tooltipsDaysEnabled
+		print("|cFF33FF99The Undermine Journal|r - |cFFFFFF78LastSeen|r display has been "..(function() if  tooltipsDaysEnabled == true then return '|cFF00FF00Enabled|r' else return '|cFFFF0000Disabled|r' end end)())
+	elseif(msg == 'toggleallon') then --Toggle all of the individual ones on to start from a blank slate.
+		tooltipsAgeEnabled = true
+		tooltipsRecentEnabled = true
+		tooltipsMarketEnabled = true
+		tooltipsStdDevEnabled = true
+		tooltipsGlobalMedianEnabled = true
+		tooltipsGlobalMeanEnabled = true
+		tooltipsGlobalStdDevEnabled = true
+		tooltipsDaysEnabled = true
+		print("|cFF33FF99The Undermine Journal|r - All settings have been |cFF00FF00Enabled|r (excluding container)")
+	elseif(msg == 'togglealloff') then --Toggle all of the individual ones off. Easier for those who want to start with them all off and individually turn the ones they want on
+		tooltipsAgeEnabled = false
+		tooltipsRecentEnabled = false
+		tooltipsMarketEnabled = false
+		tooltipsStdDevEnabled = false
+		tooltipsGlobalMedianEnabled = false
+		tooltipsGlobalMeanEnabled = false
+		tooltipsGlobalStdDevEnabled = false
+		tooltipsDaysEnabled = false
+		print("|cFF33FF99The Undermine Journal|r - All settings have been |cFFFF0000Disabled|r (excluding container)")
+	elseif (msg == 'help') then
+		print("|cFF33FF99The Undermine Journal|r : Arguments for |cFFFFFF78/tujtooltip|r :")
+		print("|cFFFFFF78On|r or |cFFFFFF78Off|r - "..(function() if  tooltipsEnabled == true then return '|cFF00FF00ON|r' else return '|cFFFF0000OFF|r' end end)().." - Toggle on or off the overall TUJ tooltip container.")
+		print("|cFFFFFF78Age|r - "..(function() if  tooltipsAgeEnabled == true then return '|cFF00FF00ON|r' else return '|cFFFF0000OFF|r' end end)().." - Toggle the age of the data.")
+		print("|cFFFFFF783Day|r - "..(function() if  tooltipsRecentEnabled == true then return '|cFF00FF00ON|r' else return '|cFFFF0000OFF|r' end end)().." - Toggle the average of the last 3 days.")
+		print("|cFFFFFF7814Day|r - "..(function() if  tooltipsMarketEnabled == true then return '|cFF00FF00ON|r' else return '|cFFFF0000OFF|r' end end)().." - Toggle the  average of the last 14 days.")
+		print("|cFFFFFF7814DaySD|r - "..(function() if  tooltipsStdDevEnabled == true then return '|cFF00FF00ON|r' else return '|cFFFF0000OFF|r' end end)().." - Toggle the standard deviation of the last 14 days.")
+		print("|cFFFFFF78RegionMedian|r - "..(function() if  tooltipsGlobalMedianEnabled == true then return '|cFF00FF00ON|r' else return '|cFFFF0000OFF|r' end end)().." - Toggle the median price for the region.")
+		print("|cFFFFFF78RegionMean|r - "..(function() if  tooltipsGlobalMeanEnabled == true then return '|cFF00FF00ON|r' else return '|cFFFF0000OFF|r' end end)().." - Toggle the mean price for the region.")
+		print("|cFFFFFF78RegionSD|r - "..(function() if  tooltipsGlobalStdDevEnabled == true then return '|cFF00FF00ON|r' else return '|cFFFF0000OFF|r' end end)().." - Toggle the standard deviation of the price for the region.")
+		print("|cFFFFFF78LastSeen|r - "..(function() if  tooltipsDaysEnabled == true then return '|cFF00FF00ON|r' else return '|cFFFF0000OFF|r' end end)().." - Toggle the number of days since item was last seen on the AH when data was compiled.")
+		print("|cFFFFFF78ToggleAllOn|r or |cFFFFFF78ToggleAllOff|r - Toggle all the options excluding the container.")
+	else
+		print("Argument not recognized for |cFF33FF99The Undermine Journal|r. Please use the command \"/tujtooltip help\" for the list of arguments.")
+	end
 end
 
 local origGetAuctionBuyout = GetAuctionBuyout
