@@ -82,6 +82,7 @@ local function round(num)
 end
 
 local addonName, addonTable = ...
+local prettyName = '|cFF33FF99The Undermine Journal|r'
 
 local function getSpeciesFromPetLink(link)
     local petString = string.match(link, "battlepet[%-?%d:]+")
@@ -255,12 +256,14 @@ function TUJTooltip(...)
             if callingName then
                 callingName = callingTitle or callingName
                 if tooltipsEnabled then line = 'enabled' else line = 'disabled' end
-                print("The Undermine Journal - Tooltip prices " .. line .. " by " .. callingName)
+                print(prettyName .. " - Tooltip prices " .. line .. " by " .. callingName)
             end
         end
     end
     return tooltipsEnabled
 end
+
+local tooltipsSettings = {}
 
 local qualityRGB = {
     [0] = {0.616,0.616,0.616},
@@ -282,41 +285,68 @@ local function buildExtraTip(tooltip, pricingData)
 
     LibExtraTip:AddLine(tooltip," ",r,g,b,true)
 
-    if (pricingData['age'] > 3*24*60*60) then
+    if (pricingData['age'] > 3*24*60*60) and not tooltipsSettings['disable-age'] then
         LibExtraTip:AddLine(tooltip,"As of "..SecondsToTime(pricingData['age'],pricingData['age']>60).." ago:",r,g,b,true)
     end
 
-    if pricingData['recent'] then
+    if pricingData['recent'] and not tooltipsSettings['disable-recent'] then
         LibExtraTip:AddDoubleLine(tooltip,"3-Day Price",coins(pricingData['recent']),r,g,b,nil,nil,nil,true)
     end
-    if pricingData['market'] then
+    if pricingData['market'] and not tooltipsSettings['disable-market'] then
         LibExtraTip:AddDoubleLine(tooltip,"14-Day Price",coins(pricingData['market']),r,g,b,nil,nil,nil,true)
     end
-    if pricingData['stddev'] then
+    if pricingData['stddev'] and not tooltipsSettings['disable-stddev'] then
         LibExtraTip:AddDoubleLine(tooltip,"14-Day Std Dev",coins(pricingData['stddev']),r,g,b,nil,nil,nil,true)
     end
 
     local regionName = addonTable.region or "Regional"
 
-    if pricingData['globalMedian'] then
+    if pricingData['globalMedian'] and not tooltipsSettings['disable-globalMedian'] then
         LibExtraTip:AddDoubleLine(tooltip,regionName.." Median",coins(pricingData['globalMedian']),r,g,b,nil,nil,nil,true)
     end
-    if pricingData['globalMean'] then
+    if pricingData['globalMean'] and not tooltipsSettings['disable-globalMean'] then
         LibExtraTip:AddDoubleLine(tooltip,regionName.." Mean",coins(pricingData['globalMean']),r,g,b,nil,nil,nil,true)
     end
-    if pricingData['globalStdDev'] then
+    if pricingData['globalStdDev'] and not tooltipsSettings['disable-globalStdDev'] then
         LibExtraTip:AddDoubleLine(tooltip,regionName.." Std Dev",coins(pricingData['globalStdDev']),r,g,b,nil,nil,nil,true)
     end
 
-    if pricingData['days'] == 255 then
-        LibExtraTip:AddLine(tooltip,"Never seen since WoD",r,g,b,true)
-    elseif pricingData['days'] == 252 then
-        LibExtraTip:AddLine(tooltip,"Sold by Vendors",r,g,b,true)
-    elseif pricingData['days'] > 250 then
-        LibExtraTip:AddLine(tooltip,"Last seen over 250 days ago",r,g,b,true)
-    elseif pricingData['days'] > 1 then
-        LibExtraTip:AddLine(tooltip,"Last seen "..SecondsToTime(pricingData['days']*24*60*60).." ago",r,g,b,true)
+    if not tooltipsSettings['disable-lastSeen'] then
+        if pricingData['days'] == 255 then
+            LibExtraTip:AddLine(tooltip,"Never seen since WoD",r,g,b,true)
+        elseif pricingData['days'] == 252 then
+            LibExtraTip:AddLine(tooltip,"Sold by Vendors",r,g,b,true)
+        elseif pricingData['days'] > 250 then
+            LibExtraTip:AddLine(tooltip,"Last seen over 250 days ago",r,g,b,true)
+        elseif pricingData['days'] > 1 then
+            LibExtraTip:AddLine(tooltip,"Last seen "..SecondsToTime(pricingData['days']*24*60*60).." ago",r,g,b,true)
+        end
     end
+end
+
+local function printHelp()
+    local function getLineStatus(lineName)
+        if tooltipsSettings['disable-' .. lineName] then
+            return '(|cFFFF0000OFF|r)'
+        else
+            return '(|cFF00FF00ON|r)'
+        end
+    end
+
+    local regionName = addonTable.region or "Regional"
+
+    print(prettyName .. " - Arguments for |cFFFFFF78/tujtooltip|r are:")
+    print("|cFFFFFF78on|r|||cFFFFFF78off|r - Enable/disable tooltip modifications.")
+    print("|cFFFFFF78reset|r - Reset all preferences and enable all lines.")
+    print("|cFFFFFF78quiet|r - Disable all lines.")
+    print("|cFFFFFF78age|r - Toggle data age line. " .. getLineStatus('age'))
+    print("|cFFFFFF78recent|r - Toggle 3-day price line. " .. getLineStatus('recent'))
+    print("|cFFFFFF78market|r - Toggle 14-day price line. " .. getLineStatus('market'))
+    print("|cFFFFFF78stddev|r - Toggle 14-day std dev line. " .. getLineStatus('stddev'))
+    print("|cFFFFFF78region-median|r - Toggle " .. regionName .. " median line. " .. getLineStatus('globalMedian'))
+    print("|cFFFFFF78region-mean|r - Toggle " .. regionName .. " mean line. " .. getLineStatus('globalMean'))
+    print("|cFFFFFF78region-stddev|r - Toggle " .. regionName .. " std dev line. " .. getLineStatus('globalStdDev'))
+    print("|cFFFFFF78lastseen|r - Toggle 'Last seen' line. " .. getLineStatus('lastSeen'))
 end
 
 local dataResults = {}
@@ -360,12 +390,12 @@ local function onEvent(self,event,arg)
         collectgarbage("collect") -- lots of strings made and trunc'ed in MarketData
 
         if not addonTable.realmIndex then
-            print("The Undermine Journal - Warning: could not find data for realm ID "..realmId..", no data loaded!")
+            print(prettyName .. " - Warning: could not find data for realm ID "..realmId..", no data loaded!")
         elseif not addonTable.marketData then
-            print("The Undermine Journal - Warning: no data loaded!")
+            print(prettyName .. " - Warning: no data loaded!")
         else
             if not tooltipsEnabled then
-                print("The Undermine Journal - Tooltip prices disabled. Run /tujtooltip to toggle.")
+                print(prettyName .. " - Tooltip prices disabled. Run |cFFFFFF78/tujtooltip on|r to enable.")
             end
             LibExtraTip:AddCallback({type = "item", callback = onTooltipSetItem})
             LibExtraTip:AddCallback({type = "battlepet", callback = onTooltipSetItem})
@@ -374,10 +404,12 @@ local function onEvent(self,event,arg)
             LibExtraTip:RegisterTooltip(BattlePetTooltip)
             LibExtraTip:RegisterTooltip(FloatingBattlePetTooltip)
         end
-    elseif event == "ADDON_LOADED" then
+    elseif event == "ADDON_LOADED" and arg == addonName then
         tooltipsEnabled = not _G["TUJTooltipsHidden"]
+        tooltipsSettings = _G["TUJTooltipsSettings"] or {}
     elseif event == "PLAYER_LOGOUT" then
         _G["TUJTooltipsHidden"] = not tooltipsEnabled
+        _G["TUJTooltipsSettings"] = tooltipsSettings
     end
 end
 
@@ -388,16 +420,76 @@ eventframe:SetScript("OnEvent", onEvent)
 
 SLASH_THEUNDERMINEJOURNAL1 = '/tujtooltip'
 function SlashCmdList.THEUNDERMINEJOURNAL(msg)
-    local newEnabled = not TUJTooltip()
-    if msg == 'on' then
-        newEnabled = true
+    local lineNames = {
+        ['age'] = 'age',
+
+        ['recent'] = 'recent',
+        ['3day'] = 'recent',
+        ['3-day'] = 'recent',
+
+        ['market'] = 'market',
+        ['14day'] = 'market',
+        ['14-day'] = 'market',
+
+        ['stddev'] = 'stddev',
+        ['14daysd'] = 'stddev',
+        ['14-daysd'] = 'stddev',
+        ['14-day-sd'] = 'stddev',
+        ['standarddeviation'] = 'stddev',
+
+        ['globalmedian'] = 'globalMedian',
+        ['global-median'] = 'globalMedian',
+        ['regionmedian'] = 'globalMedian',
+        ['region-median'] = 'globalMedian',
+
+        ['globalmean'] = 'globalMean',
+        ['global-mean'] = 'globalMean',
+        ['regionmean'] = 'globalMean',
+        ['region-mean'] = 'globalMean',
+
+        ['globalstddev'] = 'globalStdDev',
+        ['global-stddev'] = 'globalStdDev',
+        ['regionstddev'] = 'globalStdDev',
+        ['region-stddev'] = 'globalStdDev',
+
+        ['lastseen'] = 'lastSeen',
+        ['last-seen'] = 'lastSeen',
+    }
+
+    local loweredMsg = string.lower(msg)
+
+    if msg == 'reset' then
+        wipe(tooltipsSettings)
+        TUJTooltip(true)
+        print(prettyName .. " - Preferences reset to defaults.")
+    elseif msg == 'quiet' then
+        for input, lineName in pairs(lineNames) do
+            local settingName = 'disable-' .. lineName
+            tooltipsSettings[settingName] = true
+        end
+        print(prettyName .. " - All lines disabled.")
+
+        return
+    elseif lineNames[loweredMsg] then
+        local lineName = lineNames[loweredMsg]
+        local settingName = 'disable-' .. lineName
+        if tooltipsSettings[settingName] then
+            tooltipsSettings[settingName] = nil;
+            print(prettyName .. " - |cFFFFFF78" .. lineName .. "|r line enabled.")
+        else
+            tooltipsSettings[settingName] = true;
+            print(prettyName .. " - |cFFFFFF78" .. lineName .. "|r line disabled.")
+        end
+
+        return
+    elseif msg == 'on' then
+        TUJTooltip(true)
+        print(prettyName .. " - Tooltip additions enabled.")
     elseif msg == 'off' then
-        newEnabled = false
-    end
-    if TUJTooltip(newEnabled) then
-        print("The Undermine Journal - Tooltip prices enabled.")
+        TUJTooltip(false)
+        print(prettyName .. " - Tooltip additions disabled.")
     else
-        print("The Undermine Journal - Tooltip prices disabled.")
+        printHelp()
     end
 end
 
