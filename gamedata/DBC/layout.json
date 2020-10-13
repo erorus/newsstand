@@ -23,7 +23,7 @@
         }
     },
     "BattlePetSpecies": {
-        "hash": 3565917323,
+        "hash": 871601472,
         "names": {
             "3": "npcid",
             "5": "iconid",
@@ -55,16 +55,8 @@
             "0": "name"
         }
     },
-    "ScalingStatDistribution": {
-        "hash": 3919904611,
-        "names": {
-            "0": "curve",
-            "1": "minlevel",
-            "2": "maxlevel"
-        }
-    },
     "ItemBonus": {
-        "hash": 3776525836,
+        "hash": 2215710117,
         "names": {
             "0": "params",
             "1": "bonusid",
@@ -76,15 +68,15 @@
         }
     },
     "CurvePoint": {
-        "hash": 742637625,
+        "hash": 775013638,
         "names": {
             "0": "pair",
-            "1": "curve",
-            "2": "step"
+            "2": "curve",
+            "3": "step"
         }
     },
     "Item": {
-        "hash": 1159165853,
+        "hash": 1412627386,
         "names": {
             "0": "class",
             "1": "subclass",
@@ -92,7 +84,7 @@
         }
     },
     "ItemSparse": {
-        "hash": 2890009427,
+        "hash": 315371346,
         "names": {
             "5": "name",
             "13": "stacksize",
@@ -101,12 +93,12 @@
             "18": "buycount",
             "21": "flags",
             "22": "oppositesideitem",
-            "40": "requiredskill",
-            "41": "level",
-            "52": "binds",
-            "59": "requiredlevel",
-            "60": "type",
-            "61": "quality"
+            "42": "requiredskill",
+            "43": "level",
+            "54": "binds",
+            "61": "requiredlevel",
+            "62": "type",
+            "63": "quality"
         },
         "strings": {
             "0": 1,
@@ -117,7 +109,7 @@
         }
     },
     "ItemAppearance": {
-        "hash": 2211627465,
+        "hash": 34774039,
         "names": {
             "1": "display",
             "2": "iconfiledata"
@@ -140,7 +132,7 @@
         }
     },
     "SpellEffect": {
-        "hash": 1674948597,
+        "hash": 2385424049,
         "names": {
             "2": "effectorder",
             "3": "effecttypeid",
@@ -180,10 +172,10 @@
         }
     },
     "SpellMisc": {
-        "hash": 2197814111,
+        "hash": 2991783383,
         "names": {
-            "2": "iconid",
-            "12": "spellid"
+            "9": "iconid",
+            "15": "spellid"
         }
     },
     "SpellName": {
@@ -216,7 +208,7 @@
         }
     },
     "SkillLineAbility": {
-        "hash": 4041084605,
+        "hash": 1985094373,
         "names": {
             "0": "racemask64",
             "2": "lineid",

@@ -124,9 +124,10 @@ foreach ($reader->generateRecords() as $id => $rec) {
 EchoProgress(false);
 unset($reader);
 
+$distCurves = [];
+/*
 LogLine("ScalingStatDistribution");
 $reader = CreateDB2Reader('ScalingStatDistribution');
-$distCurves = [];
 $x = 0; $recordCount = count($reader->getIds());
 foreach ($reader->generateRecords() as $id => $rec) {
     EchoProgress(++$x/$recordCount);
@@ -134,6 +135,7 @@ foreach ($reader->generateRecords() as $id => $rec) {
 }
 EchoProgress(false);
 unset($reader);
+*/
 
 LogLine("tblDBCItemBonus");
 $reader = CreateDB2Reader('ItemBonus');
