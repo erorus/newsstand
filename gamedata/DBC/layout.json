@@ -14,12 +14,12 @@
         }
     },
     "ItemSubClass": {
-        "hash": 721521283,
+        "hash": 786422438,
         "names": {
             "0": "name",
             "1": "plural",
-            "2": "class",
-            "3": "subclass"
+            "3": "class",
+            "4": "subclass"
         }
     },
     "BattlePetSpecies": {
