@@ -1722,91 +1722,12 @@ function CategoryResult_herbalism($house)
     return $tr;
 }
 
-function CategoryResult_alchemy($house)
-{
-    global $expansions;
+function CategoryResult_alchemy($house) {
 
     $tr = ['name' => 'alchemy', 'results' => []];
 
-    $current = count($expansions) - 1;
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => $expansions[$current] . ' Flasks',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (SELECT distinct xic.id FROM tblDBCSpell xs JOIN tblDBCSpellCrafts xsc on xsc.spell = xs.id JOIN tblDBCItem xic on xsc.item = xic.id WHERE xs.skillline=171 and xs.expansion=' . $current . ' and xic.class=0 and xic.subclass=3) xyz on xyz.id = i.id'])
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => $expansions[$current] . ' Flasks',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (SELECT distinct xic.id FROM tblDBCSpell xs join tblDBCSpellCrafts xsc on xsc.spell = xs.id join tblDBCItem xic on xsc.item = xic.id WHERE xs.skillline=171 and xs.expansion=' . $current . ' and xic.class=0 and xic.subclass=2) xyz on xyz.id = i.id'])
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => $expansions[$current] . ' Potions',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (SELECT distinct xic.id FROM tblDBCSpell xs join tblDBCSpellCrafts xsc on xsc.spell = xs.id join tblDBCItem xic on xsc.item = xic.id WHERE xs.skillline=171 and xs.expansion=' . $current . ' and xic.class=0 and xic.subclass=1) xyz on xyz.id = i.id'])
-        ]
-    ];
-
-    $sql = <<<EOF
-join (
-select distinct xic.id
-from tblDBCSpell xs
-join tblDBCSpellCrafts xsc on xsc.spell = xs.id join tblDBCItem xic on xsc.item = xic.id
-where xs.skillline=171
-and xs.expansion = $current
-and xic.class=0
-and xic.subclass in (8)
-) xyz on xyz.id = i.id
-EOF;
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => $expansions[$current] . ' General Purpose',
-            'items' => CategoryRegularItemList($house, ['joins' => $sql])
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => $expansions[$current] . ' Trinkets',
-            'items' => CategoryBonusItemList($house, 'i.id in (152634, 152636)')
-        ]
-    ];
-
-
-    $current--;
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => $expansions[$current] . ' Flasks',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (SELECT distinct xic.id FROM tblDBCSpell xs join tblDBCSpellCrafts xsc on xsc.spell = xs.id join tblDBCItem xic on xsc.item = xic.id WHERE xs.skillline=171 and xs.expansion=' . $current . ' and xic.class=0 and xic.subclass=3) xyz on xyz.id = i.id'])
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => $expansions[$current] . ' Elixirs',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (SELECT distinct xic.id FROM tblDBCSpell xs join tblDBCSpellCrafts xsc on xsc.spell = xs.id join tblDBCItem xic on xsc.item = xic.id WHERE xs.skillline=171 and xs.expansion=' . $current . ' and xic.class=0 and xic.subclass=2) xyz on xyz.id = i.id'])
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => $expansions[$current] . ' Potions',
-            'items' => CategoryRegularItemList($house, ['joins' => 'join (SELECT distinct xic.id FROM tblDBCSpell xs join tblDBCSpellCrafts xsc on xsc.spell = xs.id join tblDBCItem xic on xsc.item = xic.id WHERE xs.skillline=171 and xs.expansion=' . $current . ' and xic.class=0 and xic.subclass=1) xyz on xyz.id = i.id'])
-        ]
-    ];
+    $tr['results'] = array_merge($tr['results'], CategoryTradeskillResults($house, 171, null, [], [1294]));
+    $tr['results'] = array_merge($tr['results'], CategoryTradeskillResults($house, 171, null, [], [592]));
 
     $tr['results'][] = [
         'name' => 'RecipeList',
@@ -1896,6 +1817,16 @@ function CategoryResult_jewelcrafting($house)
     global $expansions, $qualities;
 
     $tr = ['name' => 'jewelcrafting', 'results' => []];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Shadowlands Uncut Gems',
+            'items' => CategoryRegularItemList($house, 'i.id in (173109, 173108, 173110)')
+        ]
+    ];
+
+    $tr['results'] = array_merge($tr['results'], CategoryTradeskillResults($house, 755, 8));
 
     $tr['results'][] = [
         'name' => 'ItemList',
@@ -2183,36 +2114,8 @@ function CategoryResult_inscription($house)
 {
     $tr = ['name' => 'inscription', 'results' => []];
 
-    $tr['results'] = CategoryTradeskillResults($house, 773, 7, [1026, 775, 1130]);
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Decks',
-            'items' => CategoryBonusItemList($house, 'i.id in (159128,159127,159126,159125)')
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Toys',
-            'items' => CategoryRegularItemList($house, 'i.id in (129211,128980)')
-        ]
-    ];
-
-    $tr['results'][] = [
-        'name' => 'ItemList',
-        'data' => [
-            'name'  => 'Glyphs',
-            'items' => CategoryRegularItemList(
-                $house, [
-                    'joins' => 'join tblDBCSpellCrafts xsc on xsc.item = i.id join tblDBCSpell xs on xs.id = xsc.spell',
-                    'where' => 'xs.skillline = 773 and i.class = 16'
-                ]
-            )
-        ]
-    ];
+    $tr['results'] = array_merge($tr['results'], CategoryTradeskillResults($house, 773, 8));
+    $tr['results'] = array_merge($tr['results'], CategoryTradeskillResults($house, 773, 7));
 
     $tr['results'][] = [
         'name' => 'ItemList',
@@ -2276,48 +2179,14 @@ function CategoryResult_cooking($house)
 
     $tr = ['name' => 'cooking', 'results' => []];
 
-    /*
-    // flesh, small, regular, enormous
-    $fish = [
-        [109143, 111659, 111664, 111671], // abyssal gulper eel
-        [109144, 111662, 111663, 111670], // blackwater whiptail
-        [109140, 111652, 111667, 111674], // blind lake sturgeon
-        [109137, 111589, 111595, 111601], // crescent saberfish
-        [109139, 111651, 111668, 111675], // fat sleeper
-        [109141, 111656, 111666, 111673], // fire ammonite
-        [109138, 111650, 111669, 111676], // jawless skulker
-        [109142, 111658, 111665, 111672], // sea scorpion
-        //[118512, 118564, 118565, 118566], // savage piranha
-    ];
-
-    $fishIds = [];
-    foreach ($fish as $f) {
-        $fishIds = array_merge($fishIds, $f);
-    }
-    sort($fishIds);
-    $fishPricesList = CategoryRegularItemList($house, 'i.id in (' . implode(',', $fishIds) . ')');
-    $fishPrices = [];
-    foreach ($fishPricesList as $p) {
-        $fishPrices[$p['id']] = $p;
-    }
-
-    $tr['results'][] = [
-        'name' => 'FishTable',
-        'data' => ['name' => 'Draenor Fish', 'fish' => $fish, 'prices' => $fishPrices]
-    ];
-    */
-
     $current = count($expansions) - 1;
 
     $foods = array_merge([
-        $expansions[$current] . ' Meat' => '154899, 154898, 154897, 152631, 168303, 168645, 174353',
-        $expansions[$current] . ' Fish' => '152549, 152548, 152547, 152546, 152545, 152544, 152543, 162515, 160711, 168302, 168646, 174328, 174327',
+        $expansions[$current] . ' Meat' => '172052, 172053, 172054, 172055, 179314, 179315',
+        $expansions[$current] . ' Fish' => '173032, 173033, 173034, 173035, 173036, 173037',
         ],
-        CategoryGetTradeItemsInExpansion(185, $current),
-        [$expansions[$current - 1] . ' Fish' => '133607, 124107, 124109, 124108, 124110, 124111, 124112'],
-        CategoryGetTradeItemsInExpansion(185, $current - 1));
-
-    // 'Legion Food' => '142334, 133681, 133579, 133578, 133577, 133576, 133575, 133574, 133573, 133572, 133571, 133570, 133569, 133568, 133567, 133566, 133565, 133564, 133563, 133562, 133561, 133557, 152564',
+        CategoryGetTradeItemsInExpansion(185, $current)
+    );
 
     foreach ($foods as $name => $sql) {
         $tr['results'][] = [
