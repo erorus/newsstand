@@ -617,6 +617,7 @@ while ($row = $result->fetch_assoc()) {
 }
 
 $orderToExpansion = [
+    920 => 8, // sl
     930 => 7, // bfa
     940 => 6, // legion
     950 => 5, // wod
