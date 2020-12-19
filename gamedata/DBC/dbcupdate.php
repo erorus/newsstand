@@ -124,19 +124,6 @@ foreach ($reader->generateRecords() as $id => $rec) {
 EchoProgress(false);
 unset($reader);
 
-$distCurves = [];
-/*
-LogLine("ScalingStatDistribution");
-$reader = CreateDB2Reader('ScalingStatDistribution');
-$x = 0; $recordCount = count($reader->getIds());
-foreach ($reader->generateRecords() as $id => $rec) {
-    EchoProgress(++$x/$recordCount);
-    $distCurves[$id] = $rec;
-}
-EchoProgress(false);
-unset($reader);
-*/
-
 LogLine("tblDBCItemBonus");
 $reader = CreateDB2Reader('ItemBonus');
 $bonusRows = [];
@@ -202,15 +189,11 @@ foreach ($bonusRows as $row) {
             $bonuses[$row['bonusid']]['socket'] = $bonuses[$row['bonusid']]['socket'] | pow(2, $row['params'][1] - 1);
             break;
         case 13: // itemlevel scaling distribution
-            if (!isset($distCurves[$row['params'][0]])) {
-                LogLine("Warning: Could not find distribution " . $row['params'][0] . " for bonus " . $row['bonusid']);
-                break;
-            }
-            $newCurve = $distCurves[$row['params'][0]]['curve'];
+            list($oldDist, $priority, $contentTuningId, $curveId) = $row['params'];
             if (isset($bonuses[$row['bonusid']]['levelcurve'])) {
-                LogLine("Warning: already have curve " . $bonuses[$row['bonusid']]['levelcurve'] . ' for ' . $row['bonusid'] . ', overriding with ' . $newCurve);
+                LogLine("Warning: already have curve " . $bonuses[$row['bonusid']]['levelcurve'] . ' for ' . $row['bonusid'] . ', overriding with ' . $curveId);
             }
-            $bonuses[$row['bonusid']]['levelcurve'] = $newCurve;
+            $bonuses[$row['bonusid']]['levelcurve'] = $curveId;
             break;
         case 14: // preview itemlevel
             if (!isset($bonuses[$row['bonusid']]['previewlevel'])) {
