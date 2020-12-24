@@ -10,8 +10,9 @@ chdir(__DIR__);
 
 $startTime = time();
 
-require_once('../incl/incl.php');
-require_once('../incl/heartbeat.incl.php');
+require_once '../incl/incl.php';
+require_once '../incl/heartbeat.incl.php';
+require_once '../incl/NewsstandHTTP.incl.php';
 
 RunMeNTimes(1);
 CatchKill();
@@ -738,6 +739,11 @@ function luaBracket($s) {
 }
 
 function GetInterfaceVersion() {
+    $dbmToc = Newsstand\HTTP::Get('https://raw.githubusercontent.com/DeadlyBossMods/DeadlyBossMods/master/DBM-Core/DBM-Core.toc');
+    if (preg_match('/## Interface: (\d+)/', $dbmToc, $match)) {
+        return $match[1];
+    }
+
     $cmd = <<<'END'
 echo 'v1/products/wow/versions' | nc ribbit.everynothing.net 1119 | grep '^us|' | awk -F '|' '{print $6}' | awk -F '.' '{printf "%d%02d00", $1, $2}'
 END;
@@ -748,5 +754,5 @@ END;
         $result = trim(shell_exec($cmd));
     }
 
-    return $result ?: '80200';
+    return $result ?: '90002';
 }
