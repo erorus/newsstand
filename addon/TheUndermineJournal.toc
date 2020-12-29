@@ -1,9 +1,9 @@
-## Interface: 90001
+## Interface: %s
 ## Title: The Undermine Journal
-## Notes: %2$s
+## Notes: %s
 ## OptionalDeps: Auctionator, AuctionLite, LibExtraTip
 ## SavedVariablesPerCharacter: TUJTooltipsHidden, TUJTooltipsSettings
-## Version: 5.6.%3$s
+## Version: 5.6.%s
 
 libs\LibStub.lua
 libs\LibRealmInfo.lua
