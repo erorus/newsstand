@@ -1510,7 +1510,7 @@ var TUJ = function ()
                 $(h).text(self.lang.itemSubClasses['18-0']);
 
                 var iframe = document.createElement('iframe');
-                iframe.src = 'https://wowtoken.info/#' + tokenDiv.dataset.region.toLowerCase();
+                iframe.src = 'https://wowtoken.theunderminejournal.com/#' + tokenDiv.dataset.region.toLowerCase();
                 iframe.width = 200;
                 iframe.height = 50;
                 tokenDiv.appendChild(iframe);
