@@ -140,7 +140,7 @@ function GetBattleNetClientCredentials($region)
 
     $creds = [
         'token' => $data['access_token'],
-        'expire' => time() + (isset($data['expires_in']) ? $data['expires_in'] : 86400),
+        'expire' => time() + min(60 * 60, isset($data['expires_in']) ? $data['expires_in'] : 86400),
     ];
 
     $knownCreds[$partition] = $creds;
