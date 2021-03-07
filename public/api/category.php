@@ -1680,6 +1680,46 @@ function CategoryResult_skinning($house) {
         ],
     ];
 
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Pandarian Trade Goods',
+            'items' => CategoryRegularItemList($house, 'i.id in (72120,72163,79101,72162,98617)'),
+        ],
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Cataclysm Trade Goods',
+            'items' => CategoryRegularItemList($house, 'i.id in (52979,52980,52982,56516,52976)'),
+        ],
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Northrend Trade Goods',
+            'items' => CategoryRegularItemList($house, 'i.id in (44128,38558,38425,33568,38557,38561,33567)'),
+        ],
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Outland Trade Goods',
+            'items' => CategoryRegularItemList($house, 'i.id in (25707,23793,21887,25649,25699,25700,25708,29539,29547,29548)'),
+        ],
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Classic Trade Goods',
+            'items' => CategoryRegularItemList($house, 'i.id in (15407,15409,12810,8171,4234,8170,8150,15417,4304,8167,2319,15416,4235,15408,2318,4461,17012,8165,5784,7392,8154,15414,783,20381,15419,4289,15410,19767,15412,5082,8172,4232,4233,4236,5785,2934,19768,15415,7286,4231,8169)'),
+        ],
+    ];
+
     return $tr;
 }
 
@@ -1716,6 +1756,46 @@ function CategoryResult_herbalism($house)
         'data' => [
             'name'  => 'Legion Herbs',
             'items' => CategoryRegularItemList($house, 'i.id in (128304,124106,124105,124104,124103,124102,124101,151565)'),
+        ],
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Pandarian Herbs',
+            'items' => CategoryRegularItemList($house, 'i.id in (72234,72237,72238,79011,79010,72235)'),
+        ],
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Cataclysm Herbs',
+            'items' => CategoryRegularItemList($house, 'i.id in (52985,52983,52988,52986,52984,52987)'),
+        ],
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Northrend Herbs',
+            'items' => CategoryRegularItemList($house, 'i.id in (36908,36905,36906,36903,39970,36901,36904,36907,37921)'),
+        ],
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Outland Herbs',
+            'items' => CategoryRegularItemList($house, 'i.id in (22794,22788,22790,22792,22793,22791,22786,22789,22785,22787,22797,22710)'),
+        ],
+    ];
+
+    $tr['results'][] = [
+        'name' => 'ItemList',
+        'data' => [
+            'name'  => 'Classic Herbs',
+            'items' => CategoryRegularItemList($house, 'i.id in (3820,8153,8831,4625,3821,2447,13466,8838,2450,3818,3357,2452,3355,8845,2449,13468,13465,8839,765,8846,3356,13464,13467,3819,8836,3369,13463,2453,3358,785)'),
         ],
     ];
 
