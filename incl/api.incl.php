@@ -24,6 +24,7 @@ define('BANNED_ASNS', [
     36352,  // ColoCrossing
     56041,  // China Mobile
     204915, // Hostinger International
+    13886,  // Cloud South
 ]);
 
 if ((PHP_SAPI != 'cli') && (($inMaintenance = APIMaintenance()) !== false)) {
