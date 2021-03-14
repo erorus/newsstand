@@ -2,15 +2,17 @@
 
 set -e
 
-urls="https://geolite.maxmind.com/download/geoip/database/GeoLite2-ASN.tar.gz"
-
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 
+source ./credentials.sh
+
+urls="https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-ASN&license_key=$MAXMIND_KEY&suffix=tar.gz"
+
 for url in $urls; do
-    mkdir working
+    mkdir -p working
     cd working
 
-    wget "$url"
+    wget "$url" -O db.tar.gz
     tar xzvf *.tar.gz --strip-components 1
     mv -v *.mmdb ../data/
 

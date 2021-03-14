@@ -18,6 +18,7 @@ scripts/realms2houses_cache/*
 scripts/zopfli
 scripts/*.credentials.sh
 scripts/addonupdater/credentials.incl.php
+geolite/credentials.sh
 
 public/globalprices.json
 addon/MarketData*.lua
