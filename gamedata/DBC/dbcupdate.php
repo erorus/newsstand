@@ -194,6 +194,7 @@ foreach ($bonusRows as $row) {
                 LogLine("Warning: already have curve " . $bonuses[$row['bonusid']]['levelcurve'] . ' for ' . $row['bonusid'] . ', overriding with ' . $curveId);
             }
             $bonuses[$row['bonusid']]['levelcurve'] = $curveId;
+            $bonuses[$row['bonusid']]['levelcurvepriority'] = $priority;
             break;
         case 14: // preview itemlevel
             if (!isset($bonuses[$row['bonusid']]['previewlevel'])) {
@@ -213,19 +214,19 @@ foreach ($bonusRows as $row) {
 RunAndLogError('truncate table tblDBCItemBonus');
 $sql = <<<'SQL'
 insert into tblDBCItemBonus (
-    id, quality, level, previewlevel, levelcurve, requiredlevel,
+    id, quality, level, previewlevel, levelcurve, levelcurvepriority, requiredlevel,
     tagid, tagpriority, nameid, namepriority,
     socketmask, statmask
 ) values (
-    ?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?, ?, ?,
     ?, ?, ?, ?,
     ?, ?
 )
 SQL;
 $stmt = $db->prepare($sql);
-$id = $quality = $level = $previewLevel = $levelCurve = $requiredLevel = $tagPriority = $tagId = $nameId = $namePriority = $socketMask = $statMask = null;
-$stmt->bind_param('iiiiiiiiiiii',
-    $id, $quality, $level, $previewLevel, $levelCurve, $requiredLevel,
+$id = $quality = $level = $previewLevel = $levelCurve = $levelCurvePriority = $requiredLevel = $tagPriority = $tagId = $nameId = $namePriority = $socketMask = $statMask = null;
+$stmt->bind_param('iiiiiiiiiiiii',
+    $id, $quality, $level, $previewLevel, $levelCurve, $levelCurvePriority, $requiredLevel,
     $tagId, $tagPriority, $nameId, $namePriority,
     $socketMask, $statMask
 );
@@ -235,6 +236,7 @@ foreach ($bonuses as $bonusId => $bonusData) {
     $level = isset($bonusData['itemlevel']) ? $bonusData['itemlevel'] : null;
     $previewLevel = isset($bonusData['previewlevel']) ? $bonusData['previewlevel'] : null;
     $levelCurve = isset($bonusData['levelcurve']) ? $bonusData['levelcurve'] : null;
+    $levelCurvePriority = isset($bonusData['levelcurvepriority']) ? $bonusData['levelcurvepriority'] : null;
     $requiredLevel = isset($bonusData['requiredlevel']) ? $bonusData['requiredlevel'] : null;
     $tagId = isset($bonusData['tag']) ? $bonusData['tag']['id'] : null;
     $tagPriority = isset($bonusData['tag']) ? $bonusData['tag']['prio'] : null;
