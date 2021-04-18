@@ -55,10 +55,19 @@ var TUJ_Transmog = function ()
 
         $('#progress-page').show();
 
-        $.ajax({
+        if (tuj.hasApiKey()) {
+            qs.e = 1;
+        }
+        var ajaxSettings = {
             data: qs,
+            dataFilter: qs.e ? tuj.ajaxDataFilter : undefined,
             success: function (d)
             {
+                if (qs.e && (d instanceof Promise)) {
+                    d.then(ajaxSettings.success);
+
+                    return;
+                }
                 if (d.captcha) {
                     tuj.AskCaptcha(d.captcha);
                 }
@@ -79,7 +88,8 @@ var TUJ_Transmog = function ()
                 $('#progress-page').hide();
             },
             url: 'api/transmog.php'
-        });
+        };
+        $.ajax(ajaxSettings);
     }
 
     function TransmogResult(hash, dta, tabKey)

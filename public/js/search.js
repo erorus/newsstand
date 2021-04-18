@@ -36,11 +36,20 @@ var TUJ_Search = function ()
 
         $('#progress-page').show();
 
+        if (tuj.hasApiKey()) {
+            qs.e = 1;
+        }
         var ajaxTries = 0;
         var ajaxSettings = {
             data: qs,
+            dataFilter: qs.e ? tuj.ajaxDataFilter : undefined,
             success: function (d)
             {
+                if (qs.e && (d instanceof Promise)) {
+                    d.then(ajaxSettings.success);
+
+                    return;
+                }
                 if (d.captcha) {
                     tuj.AskCaptcha(d.captcha);
                 }

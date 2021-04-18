@@ -46,11 +46,20 @@ var TUJ_Category = function ()
 
         $('#progress-page').show();
 
+        if (tuj.hasApiKey()) {
+            qs.e = 1;
+        }
         var ajaxTries = 0;
         var ajaxSettings = {
             data: qs,
+            dataFilter: qs.e ? tuj.ajaxDataFilter : undefined,
             success: function (d)
             {
+                if (qs.e && (d instanceof Promise)) {
+                    d.then(ajaxSettings.success);
+
+                    return;
+                }
                 if (d.captcha) {
                     tuj.AskCaptcha(d.captcha);
                 }
@@ -518,11 +527,18 @@ var TUJ_Category = function ()
         $('#progress-page').show();
         $(resultsDiv).empty();
 
-        $.ajax({
+        let useEncryption = tuj.hasApiKey();
+        var ajaxSettings = {
             data: {'items': items.join(',')},
+            dataFilter: useEncryption ? tuj.ajaxDataFilter : undefined,
             method: 'POST',
             success: function (d)
             {
+                if (useEncryption && (d instanceof Promise)) {
+                    d.then(ajaxSettings.success);
+
+                    return;
+                }
                 if (d.captcha) {
                     tuj.AskCaptcha(d.captcha);
                 } else {
@@ -530,11 +546,17 @@ var TUJ_Category = function ()
                         d.results.sort(CustomItemSectionsComparitor);
                     }
                     if (compareHouse) {
-                        $.ajax({
+                        var ajaxSettings2 = {
                             data: {'items': items.join(',')},
+                            dataFilter: useEncryption ? tuj.ajaxDataFilter : undefined,
                             method: 'POST',
                             success: function (d2)
                             {
+                                if (useEncryption && (d2 instanceof Promise)) {
+                                    d2.then(ajaxSettings2.success);
+
+                                    return;
+                                }
                                 if (d2.captcha) {
                                     tuj.AskCaptcha(d2.captcha);
                                 } else {
@@ -553,8 +575,9 @@ var TUJ_Category = function ()
                             {
                                 $('#progress-page').hide();
                             },
-                            url: 'api/category.php?house=' + compareHouse + '&id=custom'
-                        })
+                            url: 'api/category.php?house=' + compareHouse + '&id=custom' + (useEncryption ? '&e=1' : ''),
+                        };
+                        $.ajax(ajaxSettings2);
                     } else {
                         CategoryResult(false, d, resultsDiv);
                         $('#progress-page').hide();
@@ -570,8 +593,9 @@ var TUJ_Category = function ()
                 }
                 $('#progress-page').hide();
             },
-            url: 'api/category.php?house=' + tuj.realms[params.realm].house + '&id=custom'
-        });
+            url: 'api/category.php?house=' + tuj.realms[params.realm].house + '&id=custom' + (useEncryption ? '&e=1' : ''),
+        };
+        $.ajax(ajaxSettings);
     }
 
     function LoadComparedRealm(dta, realmSel, resultsDiv) {
@@ -588,10 +612,20 @@ var TUJ_Category = function ()
             return;
         }
 
-        $.ajax({
-            data: $.extend({}, params, {'house': compareHouse}),
+        var qs = $.extend({}, params, {'house': compareHouse});
+        if (tuj.hasApiKey()) {
+            qs.e = 1;
+        }
+        var ajaxSettings = {
+            data: qs,
+            dataFilter: qs.e ? tuj.ajaxDataFilter : undefined,
             success: function (d)
             {
+                if (qs.e && (d instanceof Promise)) {
+                    d.then(ajaxSettings.success);
+
+                    return;
+                }
                 if (d.captcha) {
                     tuj.AskCaptcha(d.captcha);
                 } else {
@@ -611,7 +645,8 @@ var TUJ_Category = function ()
                 $('#progress-page').hide();
             },
             url: 'api/category.php'
-        });
+        };
+        $.ajax(ajaxSettings);
     }
 
     function MergeComparedData(fromData, theirData, theirRealmId) {
@@ -702,10 +737,20 @@ var TUJ_Category = function ()
 
         $('#progress-page').show();
 
-        $.ajax({
+        let useEncryption = tuj.hasApiKey();
+        if (useEncryption) {
+            post.e = 1;
+        }
+        var ajaxSettings = {
             data: post,
+            dataFilter: useEncryption ? tuj.ajaxDataFilter : undefined,
             success: function (d)
             {
+                if (useEncryption && (d instanceof Promise)) {
+                    d.then(ajaxSettings.success);
+
+                    return;
+                }
                 if (d.captcha) {
                     tuj.AskCaptcha(d.captcha);
                 } else {
@@ -727,7 +772,8 @@ var TUJ_Category = function ()
                 $('#progress-page').hide();
             },
             url: 'api/characterpets.php'
-        });
+        };
+        $.ajax(ajaxSettings);
     }
 
     function ShowCharacterPets(priceLookup, pets, charName, dest) {
