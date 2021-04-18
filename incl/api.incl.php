@@ -3,7 +3,7 @@
 require_once('memcache.incl.php');
 require_once('incl.php');
 
-define('API_VERSION', 131);
+define('API_VERSION', 132);
 define('THROTTLE_PERIOD', 3600); // seconds
 define('THROTTLE_MAXHITS', 200);
 define('CONCURRENT_REQUEST_MAX', 3);
@@ -26,6 +26,7 @@ define('BANNED_ASNS', [
     204915, // Hostinger International
     13886,  // Cloud South
 ]);
+define('API_ENCRYPTION_KEY', 'For TUJ Use Only');
 
 if ((PHP_SAPI != 'cli') && (($inMaintenance = APIMaintenance()) !== false)) {
     header('HTTP/1.1 503 Service Unavailable');
@@ -49,8 +50,17 @@ function json_return($json)
         $json = json_encode($json, JSON_NUMERIC_CHECK);
     }
 
-    header('Content-type: application/json');
-    echo $json;
+    if (!isset($_GET['e'])) {
+        header('Content-type: application/json');
+        echo $json;
+    } else {
+        header('Content-type: text/plain');
+        $algo = 'aes-128-ctr';
+        $ivlen = openssl_cipher_iv_length($algo);
+        $iv = openssl_random_pseudo_bytes($ivlen);
+
+        echo base64_encode($iv . openssl_encrypt($json, $algo, API_ENCRYPTION_KEY, OPENSSL_RAW_DATA, $iv));
+    }
     exit;
 }
 

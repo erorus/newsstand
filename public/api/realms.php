@@ -18,6 +18,7 @@ if (isset($_POST['getuser'])) {
 
 $result = [
     'version' => API_VERSION,
+    'apiKey' => API_ENCRYPTION_KEY,
     'language' => isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : 'en-US,en;q=0.5',
     'banned' => BotCheck(true),
     'user' => $loginState,

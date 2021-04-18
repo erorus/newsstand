@@ -596,6 +596,7 @@ var TUJ = function ()
     var drawnRegion = -1;
     var loggedInUser = false;
     var pendingCSRFProtectedRequests = [];
+    var apiEncryptionKey = null;
     this.validRegions = validRegions;
     this.realms = undefined;
     this.allRealms = undefined;
@@ -691,6 +692,9 @@ var TUJ = function ()
                     }
                     if (dta.version) {
                         self.apiVersion = dta.version;
+                    }
+                    if (dta.apiKey && window.crypto && window.crypto.subtle) {
+                        apiEncryptionKey = dta.apiKey;
                     }
                     if (dta.hasOwnProperty('banned')) {
                         self.banned = dta.banned;
@@ -1024,6 +1028,69 @@ var TUJ = function ()
                 alert('Error logging out. Try again?');
             },
             url: 'api/subscription.php'
+        });
+    };
+
+    this.hasApiKey = function () {
+        return !!apiEncryptionKey;
+    };
+
+    this.ajaxDataFilter = function (data) {
+        if (!tuj.hasApiKey() || data.substr(0, 1) === '{') {
+            return data;
+        }
+
+        let decoded = atob(data);
+        let bytes = new Uint8Array(decoded.length);
+        for (let i = 0; i < decoded.length; i++) {
+            bytes[i] = decoded.charCodeAt(i);
+        }
+
+        let keyBytes = new Uint8Array(apiEncryptionKey.length);
+        for (let i = 0; i < apiEncryptionKey.length; i++) {
+            keyBytes[i] = apiEncryptionKey.charCodeAt(i);
+        }
+
+        return crypto.subtle.importKey(
+            'raw',
+            keyBytes,
+            'AES-CTR',
+            false,
+            ['decrypt']
+        ).then(function (key) {
+            let prefixLength = 16;
+
+            return crypto.subtle.decrypt({
+                name: 'AES-CTR',
+                counter: bytes.slice(0, prefixLength),
+                length: 64,
+            }, key, bytes.slice(prefixLength)).then(function (buffer) {
+                let builtString = '';
+                let dv = new DataView(buffer);
+                let offset = 0;
+                while (offset < dv.byteLength) {
+                    let byte = dv.getUint8(offset);
+                    if (byte < 0x80) {
+                        builtString += String.fromCodePoint(byte);
+                        offset++;
+                        continue;
+                    }
+                    if (byte < 0xE0) {
+                        builtString += String.fromCodePoint(dv.getUint16(offset, true));
+                        offset += 2;
+                        continue;
+                    }
+                    if (byte < 0xF0) {
+                        builtString += String.fromCodePoint(dv.getUint32(offset, true) >> 8);
+                        offset += 3;
+                        continue;
+                    }
+                    builtString += String.fromCodePoint(dv.getUint32(offset, true));
+                    offset += 4;
+                }
+
+                return JSON.parse(builtString);
+            });
         });
     };
 
