@@ -37,6 +37,10 @@ if ((PHP_SAPI != 'cli') && (($inMaintenance = APIMaintenance()) !== false)) {
     exit;
 }
 
+function requestingEncryptedResponse() {
+    return isset($_GET['e']);
+}
+
 function json_return($json)
 {
     if ($json === false) {
@@ -50,7 +54,7 @@ function json_return($json)
         $json = json_encode($json, JSON_NUMERIC_CHECK);
     }
 
-    if (!isset($_GET['e'])) {
+    if (!requestingEncryptedResponse()) {
         header('Content-type: application/json');
         echo $json;
     } else {
