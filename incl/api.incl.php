@@ -7,10 +7,11 @@ define('API_VERSION', 132);
 define('THROTTLE_PERIOD', 3600); // seconds
 define('THROTTLE_MAXHITS', 200);
 define('CONCURRENT_REQUEST_MAX', 3);
-define('BANLIST_CACHEKEY', 'banlist_cidrs5');
-define('BANLIST_FILENAME', __DIR__ . '/banlist.txt');
+define('BANLIST_CACHEKEY', 'banlist_cidrs6');
+define('BANLIST_FILENAME', __DIR__ . '/banlist2.txt');
 define('BANLIST_USE_DNSBL', false);
 define('BANNED_ASNS', [
+/*
     15003,  // Nobis Tech
     46664,  // VolumeDrive
     14618,  // Amazon
@@ -25,6 +26,7 @@ define('BANNED_ASNS', [
     56041,  // China Mobile
     204915, // Hostinger International
     13886,  // Cloud South
+*/
 ]);
 define('API_ENCRYPTION_KEY', 'For TUJ Use Only');
 
