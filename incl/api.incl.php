@@ -934,6 +934,13 @@ function ConcurrentRequestThrottle()
         return;
     }
 
+    if (!requestingEncryptedResponse()) {
+        header_remove('ETag');
+        header_remove('Expires');
+
+        json_return(false);
+    }
+
     $slotKey = false;
     $slotKeyFormat = 'concurreq_%d_%s';
 
