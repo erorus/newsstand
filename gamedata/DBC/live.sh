@@ -1,3 +1,3 @@
 #!/bin/bash
-curl -s 'https://everynothing.net/ribbit/products/wow/versions' | grep '^us' | awk -F '|' '{print $6}'
+curl -s 'https://ribbit.everynothing.net/products/wow/versions' | grep '^us' | awk -F '|' '{print $6}'
 

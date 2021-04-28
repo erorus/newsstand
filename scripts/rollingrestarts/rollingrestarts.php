@@ -39,7 +39,7 @@ function CheckForNewVersion($product) {
 }
 
 function GetCurrentVersion($product) {
-    $stuff = shell_exec('curl -s ' . escapeshellarg("https://everynothing.net/ribbit/products/{$product}/versions"));
+    $stuff = shell_exec('curl -s ' . escapeshellarg("https://ribbit.everynothing.net/products/{$product}/versions"));
     if (!$stuff) {
         return '';
     }

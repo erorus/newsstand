@@ -745,7 +745,7 @@ function GetInterfaceVersion() {
     }
 
     $cmd = <<<'END'
-curl -s https://everynothing.net/ribbit/products/wow/versions | grep '^us|' | awk -F '|' '{print $6}' | awk -F '.' '{printf "%d%02d00", $1, $2}'
+curl -s https://ribbit.everynothing.net/products/wow/versions | grep '^us|' | awk -F '|' '{print $6}' | awk -F '.' '{printf "%d%02d00", $1, $2}'
 END;
 
     $result = trim(shell_exec($cmd));
