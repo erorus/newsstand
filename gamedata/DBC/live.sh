@@ -1,3 +1,3 @@
 #!/bin/bash
-curl -s 'http://us.patch.battle.net:1119/wow/versions' | grep '^us' | awk -F '|' '{print $6}'
+curl -s 'https://everynothing.net/ribbit/products/wow/versions' | grep '^us' | awk -F '|' '{print $6}'
 

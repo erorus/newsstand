@@ -71,7 +71,7 @@ function GetLatestGameVersionIDs() {
 
 function GetNGDPVersion() {
     $cmd = <<<'END'
-echo 'v1/products/wow/versions' | nc ribbit.everynothing.net 1119 | grep '^eu|' | awk -F '|' '{print $6}'
+curl -s https://everynothing.net/ribbit/products/wow/versions | grep '^eu|' | awk -F '|' '{print $6}'
 END;
 
     $result = trim(shell_exec($cmd));
