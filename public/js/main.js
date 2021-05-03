@@ -241,7 +241,7 @@ var libtuj = {
                                 v = libtuj.sprintf(timeFormat, '' + (n = Math.round(diff / (24 * 60 * 60))) + ' ' + (n != 1 ? tuj.lang.timeDays : tuj.lang.timeDay));
                             }
                             else {
-                                v = dt.toLocaleDateString();
+                                v = dt.toLocaleDateString([], {dateStyle: 'full'});
                             }
                         }
                     }
@@ -259,7 +259,7 @@ var libtuj = {
         if (v) {
             a = libtuj.ce('abbr');
             a.className = 'full-date';
-            a.title = dt.toLocaleString();
+            a.title = dt.toLocaleString([], {dateStyle: 'full', timeStyle: 'long'});
             a.appendChild(document.createTextNode(v));
             s.appendChild(a);
         }
