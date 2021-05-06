@@ -8,6 +8,8 @@ require_once('../incl/incl.php');
 require_once('../incl/heartbeat.incl.php');
 require_once('../incl/memcache.incl.php');
 
+ini_set('memory_limit', '256M');
+
 RunMeNTimes(1);
 CatchKill();
 
