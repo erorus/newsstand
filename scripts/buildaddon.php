@@ -17,7 +17,7 @@ require_once '../incl/NewsstandHTTP.incl.php';
 RunMeNTimes(1);
 CatchKill();
 
-ini_set('memory_limit','768M');
+ini_set('memory_limit','1280M');
 
 if (!DBConnect())
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
