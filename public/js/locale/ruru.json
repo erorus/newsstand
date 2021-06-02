@@ -645,7 +645,6 @@
     "paidExpires": "Your account's paid subscription expires {1}.",
     "freeSubscriptionAccount": "Your account is on the free subscription tier.",
     "clickToExtendSubscription": "Click below to extend your paid subscription. Note: It may require an hour or more to process the payment.",
-    "excludesBootyBayGazette": "Note: This does <b>not</b> include Booty Bay Gazette.",
     "payWithBitcoin": "Оплата в Bitcoin",
     "cancelSubscription": "Cancel Subscription",
     "noAutoRenew": "Your paid subscription will not auto-renew.",

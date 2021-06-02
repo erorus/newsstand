@@ -447,11 +447,6 @@ var TUJ_Subscription = function ()
 
             dest.appendChild(f);
 
-            var d = libtuj.ce('div');
-            d.className = 'instruction';
-            dest.appendChild(d);
-            $(d).html(tuj.lang.excludesBootyBayGazette);
-
             /*
             d = libtuj.ce('div');
             d.className = 'bitcoin';

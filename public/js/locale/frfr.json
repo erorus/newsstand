@@ -645,7 +645,6 @@
     "paidExpires": "Votre abonnement payant expire {1}.",
     "freeSubscriptionAccount": "Votre compte utilise un abonnement gratuit.",
     "clickToExtendSubscription": "Cliquez ci-dessous pour prolonger votre abonnement payant. Note: Cela peut demander une heure ou plus pour traiter la demande.",
-    "excludesBootyBayGazette": "Note: This does <b>not</b> include Booty Bay Gazette.",
     "payWithBitcoin": "Payer en Bitcoin",
     "cancelSubscription": "Cancel Subscription",
     "noAutoRenew": "Your paid subscription will not auto-renew.",

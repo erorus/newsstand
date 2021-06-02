@@ -645,7 +645,6 @@
     "paidExpires": "A assinatura paga de sua conta expira em {1}.",
     "freeSubscriptionAccount": "Sua conta está no nível e assinatura gratuita.",
     "clickToExtendSubscription": "Clique abaixo para extender sua assinatura paga. Nota: pagamentos via Paypal podem precisar de uma hora ou mais para serem processados.",
-    "excludesBootyBayGazette": "Note: This does <b>not</b> include Booty Bay Gazette.",
     "payWithBitcoin": "Pagar com Bitcoin",
     "cancelSubscription": "Cancel Subscription",
     "noAutoRenew": "Your paid subscription will not auto-renew.",
