@@ -22,14 +22,6 @@ var TUJ_Contact = function () {
     };
 
     this.submit = function (f) {
-        if (/\b(?:wow)?classic\b/i.test(f.message.value)) {
-            if (confirm('Visit BootyBayGazette.com for auction house data on Classic realms.')) {
-                location.href = 'https://www.bootybaygazette.com/';
-            }
-
-            return false;
-        }
-
         if (/\brevenue\b/i.test(f.message.value) ||
             /\bpublisher\b/i.test(f.message.value) ||
             /\btraffic\b/i.test(f.message.value) ||

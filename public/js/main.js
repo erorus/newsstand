@@ -600,7 +600,6 @@ var TUJ = function ()
     this.validRegions = validRegions;
     this.realms = undefined;
     this.allRealms = undefined;
-    this.bbgRealms = {};
     this.apiVersion = 0;
     this.banned = {isbanned: false};
     this.params = {
@@ -687,9 +686,6 @@ var TUJ = function ()
                 success: function (dta)
                 {
                     self.allRealms = dta.realms;
-                    if (dta.bbgRealms) {
-                        self.bbgRealms = dta.bbgRealms;
-                    }
                     if (dta.version) {
                         self.apiVersion = dta.version;
                     }
@@ -1777,17 +1773,6 @@ var TUJ = function ()
             a = libtuj.ce('a');
             a.rel = allRealms[x];
             $(a).text(self.realms[allRealms[x]].name);
-
-            $(realmsColumn).append(a);
-        }
-
-        // Add BBG realms
-        var regionName = self.validRegions[self.params.region];
-        var bbgRealms = (self.bbgRealms && self.bbgRealms[regionName]) || [];
-        for (x = 0; x < bbgRealms.length; x++) {
-            a = libtuj.ce('a');
-            a.href = 'https://www.bootybaygazette.com/#' + regionName.toLowerCase() + '/' + bbgRealms[x].slug;
-            $(a).text(bbgRealms[x].name);
 
             $(realmsColumn).append(a);
         }
