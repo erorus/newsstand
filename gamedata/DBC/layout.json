@@ -14,7 +14,7 @@
         }
     },
     "ItemSubClass": {
-        "hash": 786422438,
+        "hash": 3459593122,
         "names": {
             "0": "name",
             "1": "plural",
@@ -23,7 +23,7 @@
         }
     },
     "BattlePetSpecies": {
-        "hash": 871601472,
+        "hash": 90777747,
         "names": {
             "3": "npcid",
             "5": "iconid",
@@ -84,17 +84,17 @@
         }
     },
     "ItemSparse": {
-        "hash": 315371346,
+        "hash": 317607422,
         "names": {
             "5": "name",
-            "13": "stacksize",
-            "16": "sellprice",
-            "17": "buyprice",
-            "18": "buycount",
-            "21": "flags",
-            "22": "oppositesideitem",
-            "42": "requiredskill",
-            "43": "level",
+            "15": "stacksize",
+            "18": "sellprice",
+            "19": "buyprice",
+            "20": "buycount",
+            "23": "flags",
+            "24": "oppositesideitem",
+            "43": "requiredskill",
+            "44": "level",
             "54": "binds",
             "61": "requiredlevel",
             "62": "type",
@@ -109,7 +109,7 @@
         }
     },
     "ItemAppearance": {
-        "hash": 34774039,
+        "hash": 1346657499,
         "names": {
             "1": "display",
             "2": "iconfiledata"
@@ -125,21 +125,21 @@
         }
     },
     "ItemEffect": {
-        "hash": 3823720281,
+        "hash": 1421935897,
         "names": {
-            "6": "spell",
-            "8": "item"
+            "0": "item",
+            "6": "spell"
         }
     },
     "SpellEffect": {
-        "hash": 2385424049,
+        "hash": 4197689422,
         "names": {
             "2": "effectorder",
             "3": "effecttypeid",
             "9": "diesides",
             "10": "itemcreated",
             "22": "qtymadeFloat",
-            "27": "spellid"
+            "28": "spellid"
         }
     },
     "Spell": {
@@ -193,7 +193,7 @@
         }
     },
     "SkillLine": {
-        "hash": 3768448177,
+        "hash": 4051136405,
         "names": {
             "0": "linename",
             "1": "actionname",
@@ -208,7 +208,7 @@
         }
     },
     "SkillLineAbility": {
-        "hash": 1985094373,
+        "hash": 1926160545,
         "names": {
             "0": "racemask64",
             "2": "lineid",
@@ -218,13 +218,13 @@
         }
     },
     "TradeSkillCategory": {
-        "hash": 3939222484,
+        "hash": 934966927,
         "names": {
             "0": "name",
             "1": "hordename",
-            "3": "parentid",
-            "4": "skillline",
-            "5": "order"
+            "2": "parentid",
+            "3": "skillline",
+            "4": "order"
         }
     }
 }
