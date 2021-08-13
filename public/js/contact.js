@@ -23,7 +23,9 @@ var TUJ_Contact = function () {
 
     this.submit = function (f) {
         if (/\brevenue\b/i.test(f.message.value) ||
-            /\bpublisher\b/i.test(f.message.value) ||
+            /\bpublishers?\b/i.test(f.message.value) ||
+            /\bezoic\b/i.test(f.message.value) ||
+            /\bmonetiz/i.test(f.message.value) ||
             /\btraffic\b/i.test(f.message.value) ||
             /\badvertising\b/i.test(f.message.value) ||
             /\bplatform\b/i.test(f.message.value)) {
