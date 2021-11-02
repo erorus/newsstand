@@ -739,7 +739,7 @@ function luaBracket($s) {
 }
 
 function GetInterfaceVersion() {
-    $dbmToc = Newsstand\HTTP::Get('https://raw.githubusercontent.com/DeadlyBossMods/DeadlyBossMods/master/DBM-Core/DBM-Core.toc');
+    $dbmToc = Newsstand\HTTP::Get('https://raw.githubusercontent.com/DeadlyBossMods/DBM-Retail/master/DBM-WorldEvents/DBM-WorldEvents.toc');
     if (preg_match('/## Interface: (\d+)/', $dbmToc, $match)) {
         return $match[1];
     }
