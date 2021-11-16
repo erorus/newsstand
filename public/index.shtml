@@ -252,7 +252,7 @@
 
                         <p>
                             Note: we will not respond to any advertising offers, or to any requests for auction data.<br>
-                            Visit <a href="https://dev.battle.net/">the Blizzard API</a> for live auction data, or the <a href="https://newswire.theunderminejournal.com">Newswire API</a> for historical data.
+                            Visit <a href="https://dev.battle.net/">the Blizzard API</a> for live auction data.
                         </p>
                     </div>
                     <div class="error">
@@ -366,7 +366,6 @@
             <a class="contact">Contact</a> -
             <a class="localization">Localization</a> -
             <a class="addon">Addon</a> -
-            <a href="https://newswire.theunderminejournal.com/">Newswire API</a> -
             <a class="policy">Policy</a>
 
             <div class="disclaimer">World of Warcraft, Warcraft, Battle.net and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc. in the U.S. and/or other countries.</div>
