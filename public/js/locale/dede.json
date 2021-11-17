@@ -583,6 +583,7 @@
     "EmailStatus": {
         "unknown": "Es trat ein Fehler auf. Bite ersuche es später nochmal.",
         "invalid": "Die eingegebene E-Mail-Adresse ist fehlerhaft. Bitte korrigiere diese und versuche es nochmal",
+        "microsoft": "Microsoft does not accept mail from our network. Please use an address from another mail provider.",
         "success": "Deine E-Mail-Adresse wurde aktualisiert.",
         "verify": "Kontrolliere Dein Postfach und gebe den Bestätigungs-Code ein, der dir an diese E-Mail-Adresse zugesendet wurde."
     },

@@ -583,6 +583,7 @@
     "EmailStatus": {
         "unknown": "Erro desconhecido, por favor tente novamente.",
         "invalid": "O endereço de email fornecido é inválido. Por favor, corrija-o e tente novamente.",
+        "microsoft": "Microsoft does not accept mail from our network. Please use an address from another mail provider.",
         "success": "Seu endereço de email está atualizado.",
         "verify": "Confira seu email, e digite o código de verificação que enviamos para seu endereço."
     },

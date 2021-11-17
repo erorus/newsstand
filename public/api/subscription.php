@@ -452,6 +452,9 @@ function SetSubEmail($loginState, $address)
         }
         $address = $filtered;
     }
+    if (preg_match('/@([\w\W]+\.)?(msn|outlook|hotmail|live)\.com$/i', $address)) {
+        return ['status' => 'microsoft'];
+    }
 
     $db = DBConnect();
 
