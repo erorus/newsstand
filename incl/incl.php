@@ -87,7 +87,9 @@ function DBConnect($alternate = false)
     $pass = $isCLI ? DATABASE_PASSWORD_CLI : DATABASE_PASSWORD_WEB;
     $database = DATABASE_SCHEMA;
 
-    $thisDb = new mysqli($host, $user, $pass, $database);
+    $thisDb = mysqli_init();
+    mysqli_options($thisDb, MYSQLI_OPT_CONNECT_TIMEOUT, 5);
+    mysqli_real_connect($thisDb, $host, $user, $pass, $database);
     if ($thisDb->connect_error) {
         if (!$isCLI) {
             if ($thisDb->connect_errno == 1226) { // max_user_connections
