@@ -928,10 +928,9 @@ CREATE TABLE IF NOT EXISTS `tblSnapshot` (
   `house` smallint(5) unsigned NOT NULL,
   `updated` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `maxid` int(10) unsigned DEFAULT NULL,
-  `flags` set('NoHistory') COLLATE utf8_unicode_ci NOT NULL,
+  `flags` set('NoHistory') COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
   PRIMARY KEY (`house`,`updated`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
 -- --------------------------------------------------------
 
 --
