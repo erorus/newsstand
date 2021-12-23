@@ -55,15 +55,15 @@ EOF;
     $sqlPattern = <<<'EOF'
 replace into tblItemHistoryDaily
 (SELECT `ihh`.item, `ihh`.house, `ihh`.`when`,
-nullif(least(
+ifnull(nullif(least(
 ifnull(silver00, 4294967295),ifnull(silver01, 4294967295),ifnull(silver02, 4294967295),ifnull(silver03, 4294967295),
 ifnull(silver04, 4294967295),ifnull(silver05, 4294967295),ifnull(silver06, 4294967295),ifnull(silver07, 4294967295),
 ifnull(silver08, 4294967295),ifnull(silver09, 4294967295),ifnull(silver10, 4294967295),ifnull(silver11, 4294967295),
 ifnull(silver12, 4294967295),ifnull(silver13, 4294967295),ifnull(silver14, 4294967295),ifnull(silver15, 4294967295),
 ifnull(silver16, 4294967295),ifnull(silver17, 4294967295),ifnull(silver18, 4294967295),ifnull(silver19, 4294967295),
-ifnull(silver20, 4294967295),ifnull(silver21, 4294967295),ifnull(silver22, 4294967295),ifnull(silver23, 4294967295)),4294967295) pricemin,
+ifnull(silver20, 4294967295),ifnull(silver21, 4294967295),ifnull(silver22, 4294967295),ifnull(silver23, 4294967295)),4294967295),0) pricemin,
 
-round((
+ifnull(round((
 ifnull(silver00, 0)+ifnull(silver01, 0)+ifnull(silver02, 0)+ifnull(silver03, 0)+
 ifnull(silver04, 0)+ifnull(silver05, 0)+ifnull(silver06, 0)+ifnull(silver07, 0)+
 ifnull(silver08, 0)+ifnull(silver09, 0)+ifnull(silver10, 0)+ifnull(silver11, 0)+
@@ -76,37 +76,37 @@ isnull(silver04)-isnull(silver05)-isnull(silver06)-isnull(silver07)-
 isnull(silver08)-isnull(silver09)-isnull(silver10)-isnull(silver11)-
 isnull(silver12)-isnull(silver13)-isnull(silver14)-isnull(silver15)-
 isnull(silver16)-isnull(silver17)-isnull(silver18)-isnull(silver19)-
-isnull(silver20)-isnull(silver21)-isnull(silver22)-isnull(silver23))) priceavg,
+isnull(silver20)-isnull(silver21)-isnull(silver22)-isnull(silver23))),0) priceavg,
 
-nullif(greatest(
+greatest(
 ifnull(silver00, 0),ifnull(silver01, 0),ifnull(silver02, 0),ifnull(silver03, 0),
 ifnull(silver04, 0),ifnull(silver05, 0),ifnull(silver06, 0),ifnull(silver07, 0),
 ifnull(silver08, 0),ifnull(silver09, 0),ifnull(silver10, 0),ifnull(silver11, 0),
 ifnull(silver12, 0),ifnull(silver13, 0),ifnull(silver14, 0),ifnull(silver15, 0),
 ifnull(silver16, 0),ifnull(silver17, 0),ifnull(silver18, 0),ifnull(silver19, 0),
-ifnull(silver20, 0),ifnull(silver21, 0),ifnull(silver22, 0),ifnull(silver23, 0)),0) pricemax,
+ifnull(silver20, 0),ifnull(silver21, 0),ifnull(silver22, 0),ifnull(silver23, 0)) pricemax,
 
-coalesce(
+ifnull(coalesce(
 silver00, silver01, silver02, silver03, silver04, silver05,
 silver06, silver07, silver08, silver09, silver10, silver11,
 silver12, silver13, silver14, silver15, silver16, silver17,
-silver18, silver19, silver20, silver21, silver22, silver23) pricestart,
+silver18, silver19, silver20, silver21, silver22, silver23),0) pricestart,
 
-coalesce(
+ifnull(coalesce(
 silver23, silver22, silver21, silver20, silver19, silver18,
 silver17, silver16, silver15, silver14, silver13, silver12,
 silver11, silver10, silver09, silver08, silver07, silver06,
-silver05, silver04, silver03, silver02, silver01, silver00) priceend,
+silver05, silver04, silver03, silver02, silver01, silver00),0) priceend,
 
-nullif(least(
+ifnull(nullif(least(
 ifnull(quantity00, 4294967295),ifnull(quantity01, 4294967295),ifnull(quantity02, 4294967295),ifnull(quantity03, 4294967295),
 ifnull(quantity04, 4294967295),ifnull(quantity05, 4294967295),ifnull(quantity06, 4294967295),ifnull(quantity07, 4294967295),
 ifnull(quantity08, 4294967295),ifnull(quantity09, 4294967295),ifnull(quantity10, 4294967295),ifnull(quantity11, 4294967295),
 ifnull(quantity12, 4294967295),ifnull(quantity13, 4294967295),ifnull(quantity14, 4294967295),ifnull(quantity15, 4294967295),
 ifnull(quantity16, 4294967295),ifnull(quantity17, 4294967295),ifnull(quantity18, 4294967295),ifnull(quantity19, 4294967295),
-ifnull(quantity20, 4294967295),ifnull(quantity21, 4294967295),ifnull(quantity22, 4294967295),ifnull(quantity23, 4294967295)),4294967295) quantitymin,
+ifnull(quantity20, 4294967295),ifnull(quantity21, 4294967295),ifnull(quantity22, 4294967295),ifnull(quantity23, 4294967295)),4294967295),0) quantitymin,
 
-round((
+ifnull(round((
 ifnull(quantity00, 0)+ifnull(quantity01, 0)+ifnull(quantity02, 0)+ifnull(quantity03, 0)+
 ifnull(quantity04, 0)+ifnull(quantity05, 0)+ifnull(quantity06, 0)+ifnull(quantity07, 0)+
 ifnull(quantity08, 0)+ifnull(quantity09, 0)+ifnull(quantity10, 0)+ifnull(quantity11, 0)+
@@ -119,15 +119,15 @@ isnull(quantity04)-isnull(quantity05)-isnull(quantity06)-isnull(quantity07)-
 isnull(quantity08)-isnull(quantity09)-isnull(quantity10)-isnull(quantity11)-
 isnull(quantity12)-isnull(quantity13)-isnull(quantity14)-isnull(quantity15)-
 isnull(quantity16)-isnull(quantity17)-isnull(quantity18)-isnull(quantity19)-
-isnull(quantity20)-isnull(quantity21)-isnull(quantity22)-isnull(quantity23))) quantityavg,
+isnull(quantity20)-isnull(quantity21)-isnull(quantity22)-isnull(quantity23))),0) quantityavg,
 
-nullif(greatest(
+greatest(
 ifnull(quantity00, 0),ifnull(quantity01, 0),ifnull(quantity02, 0),ifnull(quantity03, 0),
 ifnull(quantity04, 0),ifnull(quantity05, 0),ifnull(quantity06, 0),ifnull(quantity07, 0),
 ifnull(quantity08, 0),ifnull(quantity09, 0),ifnull(quantity10, 0),ifnull(quantity11, 0),
 ifnull(quantity12, 0),ifnull(quantity13, 0),ifnull(quantity14, 0),ifnull(quantity15, 0),
 ifnull(quantity16, 0),ifnull(quantity17, 0),ifnull(quantity18, 0),ifnull(quantity19, 0),
-ifnull(quantity20, 0),ifnull(quantity21, 0),ifnull(quantity22, 0),ifnull(quantity23, 0)),0) quantitymax
+ifnull(quantity20, 0),ifnull(quantity21, 0),ifnull(quantity22, 0),ifnull(quantity23, 0)) quantitymax
 
 FROM `tblItemHistoryHourly` ihh
 JOIN `tblDBCItem` `i` ON `i`.`id` = `ihh`.`item`
