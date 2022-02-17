@@ -228,9 +228,9 @@ function AbbreviateForTweet($msg) {
 }
 
 function GetTextImage($txt, $format='png') {
-    $exec = 'convert -background ' . escapeshellarg('#0b0d18') . ' -fill white -pointsize 18 -size 450x ';
+    $exec = 'convert -background ' . escapeshellarg('#0b0d18') . ' -fill white -pointsize 18 -size 480x ';
     $exec .= ' -font '.escapeshellarg(FONT_PATH).' -kerning 0.5 caption:' . escapeshellarg($txt);
-    $exec .= ' -bordercolor ' . escapeshellarg('#0b0d18') . ' -border 10 ' . escapeshellarg($format).':-';
+    $exec .= ' -bordercolor ' . escapeshellarg('#0b0d18') . ' -border 10x115 ' . escapeshellarg($format).':-';
 
     return shell_exec($exec);
 }
