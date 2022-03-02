@@ -308,11 +308,7 @@ var TUJ_Item = function ()
             consecSections = 0;
             h = libtuj.ce('h2');
             d.appendChild(h);
-
-            var a = libtuj.ce('a');
-            h.appendChild(a);
-            a.href = 'https://' + tuj.validRegions[params.region].toLowerCase() + '.battle.net/wow/en/vault/character/auction/browse?sort=unitBuyout&itemId=' + itemId + '&start=0&end=40';
-            $(a).text(tuj.lang.currentAuctions);
+            $(h).text(tuj.lang.currentAuctions);
             d.appendChild(document.createTextNode(libtuj.sprintf(tuj.lang.currentAuctionsDesc, tuj.lang.item)));
             d.appendChild(libtuj.ce('br'));
             d.appendChild(libtuj.ce('br'));
