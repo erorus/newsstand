@@ -60,7 +60,7 @@
 
     "notFound": "{1} nicht gefunden.",
     "noResults": "Keine Ergebnisse gefunden.",
-    "contactTheEditor": "Contact The Editor",
+    "contactTheEditor": "Herausgeber kontaktieren",
     "donateTo": "Spende an {1}",
     "termsAndPolicies": "Bedingungen und Richtlinien",
 
@@ -125,7 +125,7 @@
     "regionNameKR": "Korea",
 
     "welcomeTo": "Willkommen bei {1}",
-    "yourSource": "...Deine Quelle für Auktionshaus-Statistiken und Daten in World of Warcraft.",
+    "yourSource": "... deine Quelle für Auktionshaus-Statistiken und Daten in World of Warcraft.",
 
     "lightTheme": "Helles Theme",
     "darkTheme": "Dunkles Theme",
@@ -526,7 +526,7 @@
         "9": "Goblins",
         "1": "Menschen",
         "4": "Nachtelfen",
-        "2": "Orcs",
+        "2": "Orks",
         "6": "Tauren",
         "8": "Trolle",
         "5": "Untote"
@@ -583,7 +583,7 @@
     "EmailStatus": {
         "unknown": "Es trat ein Fehler auf. Bite ersuche es später nochmal.",
         "invalid": "Die eingegebene E-Mail-Adresse ist fehlerhaft. Bitte korrigiere diese und versuche es nochmal",
-        "microsoft": "Microsoft does not accept mail from our network. Please use an address from another mail provider.",
+        "microsoft": "Microsoft akzeptiert keine E-Mails, die aus Netzwerk kommen. Bitte verwende eine Adresse von einem anderen Anbieter.",
         "success": "Deine E-Mail-Adresse wurde aktualisiert.",
         "verify": "Kontrolliere Dein Postfach und gebe den Bestätigungs-Code ein, der dir an diese E-Mail-Adresse zugesendet wurde."
     },
@@ -615,18 +615,18 @@
     "wantToKnowPrice": "Möchtest du erfahren, wenn {1} weniger als {2} kostet?",
     "logInToFreeSub": "Melde Dich zu einem kostenlosen Abonnement an um Benachrichtigungen zu erstellen!",
     "visitItemPages": "Busuche die Gegenstandsseite um Marktbenachrichtigungen zu definieren!",
-    "notifyMeWhen": "Benarichtigen wenn: ",
+    "notifyMeWhen": "Benachrichtigen wenn: ",
     "priceToBuy": "Kaufpreis",
     "under": "unter",
     "over": "über",
     "add": "hinzufügen",
     "delete": "löschen",
     "now": "jetzt",
-    "quantityUnderZero": "menge ist nie unter 0.",
-    "priceAboveZero": "Preis ist immer übre 0.",
+    "quantityUnderZero": "Menge ist nie unter 0.",
+    "priceAboveZero": "Preis ist immer über 0.",
     "buyMoreThanZero": "Du must eine Menge über 0 kaufen.",
-    "watchLimitNear": "Notice: You have set {1} notifications. You are approaching the limit of {2} notifications.",
-    "watchLimitExceeded": "You have set {1} notifications. Before you add more, you must delete some to stay under the limit of {2} notifications.",
+    "watchLimitNear": "Hinweis: Du hast {1} Benachrichtigungen eingestellt. Damit bist du nah am Limit von {2} Benachrichtigungen.",
+    "watchLimitExceeded": "Du hast {1} Benachrichtigungen eingestellt. Bevor du weitere Benachrichtigungen einstellst, musst du erst einige ältere löschen, um unterhalb des Limits von {2} Benachrichtungen zu bleiben.",
 
     "tellMeAboutNewAuctions": "benachrichtige mich über neue Auktionen von:",
     "orBetter": "oder besser",
@@ -641,20 +641,20 @@
     "subscriptionWelcomeMessage": "Willkommen auf Deiner Abonnement-Seite auf <nobr>The Undermine Journal</nobr>. Dane für das anmelden.<br/><br/>Auf dieser Seite findest Du die neusten Nachrichten, welche wir dir gesendet haben. Ebenso sind hier Deine Benarichtigungseinstellungen und weitere Webseiten-Einstellungen zu finden.",
     "notificationsMessage": "Die oben genannten Gegenstände haben ihren von Dir festgelegten Schwellenwert erreicht. Benachrichtigungen für diese Ereignisse werden automatisch zurückgesetzt, wenn die Marktbedingung nicht mehr beobachtet wird. Du wirst benachrichtigt, wenn diese danach wieder auftreten. Um Deine Benachrichtigungen oder die E-Mail-Einstellungen zu aktualisieren, <a href=\"https://theunderminejournal.com/#subscription\">melde Dich bitte bei deinem Abonnement an</a>.",
     "subscriptionTimeAddedMessage": "Dein bezahltes Abonnement wurde verlängert.",
-    "subscriptionTimeRemovedMessage": "Dein Abonnement wurde verkürzt: Möglicherweise gab es eine Rückerstatung oder Rückbuchung. Wenn dies von Dir unbeabsichtigt war, melde dich bitte <a href=\"https://theunderminejournal.com/#subscription\">in dein Konto an</a> und kontaktiere uns (in Englisch) über das Kontaktformular.",
+    "subscriptionTimeRemovedMessage": "Dein Abonnement wurde verkürzt: Möglicherweise gab es eine Rückerstattung oder Rückbuchung. Wenn dies von Dir unbeabsichtigt war, melde dich bitte <a href=\"https://theunderminejournal.com/#subscription\">in dein Konto an</a> und kontaktiere uns (in Englisch) über das Kontaktformular.",
 
     "paidExpires": "Dein bezahltes Abonnement endet: {1}.",
     "freeSubscriptionAccount": "Du nutzt das kostenlose Abonnement.",
     "clickToExtendSubscription": "Zahlmethode wählen, um das Abonnement zu verlängern. Bemerke: Es kann eine Stunde oder mehr dauern, bis die Zahlung verarbeitet wurde.",
     "payWithBitcoin": "Mit Bitcoin bezahlen",
-    "cancelSubscription": "Cancel Subscription",
-    "noAutoRenew": "Your paid subscription will not auto-renew.",
-    "patreonBenefits": "Supporters on Patreon for $3+/month get paid subscription benefits.",
+    "cancelSubscription": "Abonnement beenden",
+    "noAutoRenew": "Dein kostenpflichtiges Abonnement wird sich nicht automatisch verlängern.",
+    "patreonBenefits": "Patreon-Unterstützer mit einem Beitrag von $3+/Monat erhalten Vorteile der Abonnenten.",
 
-    "promoCode": "Promo Code: ",
-    "promoCodeInvalid": "That promo code is invalid. Please try again.",
-    "promoCodeValid": "Promo code verified, {1} added to your subscription.",
-    "promoCodeUsed": "That promo code was already used.",
+    "promoCode": "Gutscheincode: ",
+    "promoCodeInvalid": "Dieser Gutscheincode ist ungültig. Bitte versuche es noch einmal.",
+    "promoCodeValid": "Gutscheincode verifiziert, {1} wurde deinem Abonnement hinzugefügt.",
+    "promoCodeUsed": "Dieser Gutscheincode wurde bereits verwendet.",
 
     "notificationPeriod": "Häufigkeit der Benachrichtungen",
     "notificationPeriodDesc": "Bevorzugte Zeitspanne zwischen den einzelnen Marktbenachrichtigungen.",
