@@ -190,7 +190,7 @@ ENDSQL;
 
         return 10;
     }
-    if (substr($data, -3) != "}]}") {
+    if (!in_array(substr($data, -3), ['}]}', '"}}'])) {
         $delay = GetCheckDelay($modified);
         DebugMessage("$region $slug $connectionId data file probably malformed. Waiting ".SecondsOrMinutes($delay).".");
         SetHouseNextCheck($house, time() + $delay);
