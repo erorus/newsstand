@@ -499,6 +499,7 @@ function GetRealms($region) {
 SELECT r.id, r.region, r.slug, r.name, r.locale, r.house, r.canonical, r.ownerrealm
 FROM tblRealm r
 WHERE region = ?
+AND r.slug != 'commodities'
 AND (locale IS NOT NULL OR
     (locale IS NULL
     AND exists (SELECT 1 FROM tblSnapshot s WHERE s.house=r.house)
@@ -543,6 +544,38 @@ function GetRegion($house)
     MCSet('getregion_' . $house, $region, 24 * 60 * 60);
 
     return $region;
+}
+
+/**
+ * Returns the commodities house number for the given region.
+ *
+ * @param string $region
+ * @return int
+ */
+function GetCommoditiesHouse($region) {
+    global $db;
+
+    $region = strtoupper($region);
+    $cacheKey = "commoditiesHouse_{$region}";
+
+    if (($tr = MCGet($cacheKey)) !== false) {
+        return $tr;
+    }
+
+    $sql = 'SELECT house FROM tblRealm WHERE slug = \'commodities\' AND region = ?';
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('s', $region);
+    $stmt->execute();
+    $house = null;
+    $stmt->bind_result($house);
+    if (!$stmt->fetch()) {
+        $house = null;
+    }
+    $stmt->close();
+
+    MCSet($cacheKey, $house, 24 * 60 * 60);
+
+    return $house;
 }
 
 function GetHouse($realm)

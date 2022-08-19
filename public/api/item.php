@@ -15,7 +15,7 @@ if (!$item) {
     json_return(array());
 }
 
-HouseETag($house);
+//HouseETag($house);
 ConcurrentRequestThrottle();
 BotCheck();
 
@@ -55,13 +55,14 @@ i.level baselevel, i.stacksize, i.binds, i.buyfromvendor, i.selltovendor, i.auct
 s.price, s.quantity, s.lastseen, ifnull(s.level, if(i.class in (2,4), i.level, 0)) level,
 ivc.copper vendorprice, ivc.npc vendornpc, ivc.npccount vendornpccount
 from tblDBCItem i
-left join tblItemSummary s on s.house = %d and s.item = i.id
+left join tblItemSummary s on s.house IN (%d, %d) and s.item = i.id
 left join tblDBCItemVendorCost ivc on ivc.item = i.id
 where i.id = %d
 group by s.level
 EOF;
 
-    $result = $db->query(sprintf($sql, $house, $item), MYSQLI_USE_RESULT);
+    $commHouse = GetCommoditiesHouse(GetRegion($house));
+    $result = $db->query(sprintf($sql, $house, $commHouse, $item), MYSQLI_USE_RESULT);
     $tr = DBMapArray($result, array('level', null));
     foreach ($tr as &$levelRow) {
         $levelRow = array_pop($levelRow);
@@ -150,14 +151,15 @@ from (select
         from tblSnapshot s
         join tblItemSummary `is` on `is`.house = s.house
         left join tblItemHistoryHourly ih on date(s.updated) = ih.`when` and ih.house = `is`.house and ih.item = `is`.item and ih.level = `is`.level
-        where `is`.item = %d and s.house = %d and s.updated >= timestampadd(day,-%d,now()) and s.flags & 1 = 0
+        where `is`.item = %d and s.house IN (%d, %d) and s.updated >= timestampadd(day,-%d,now()) and s.flags & 1 = 0
         group by `is`.level, s.updated
         order by `is`.level, s.updated asc
         ) ordered
     ) withoutresets
 EOF;
 
-    $result = $db->query(sprintf($sql, $item, $house, HISTORY_DAYS));
+    $commHouse = GetCommoditiesHouse(GetRegion($house));
+    $result = $db->query(sprintf($sql, $item, $house, $commHouse, HISTORY_DAYS));
     $tr = DBMapArray($result, ['level', null]);
 
     foreach ($tr as &$snapshots) {
@@ -194,12 +196,13 @@ select `when` as `date`,
 `pricestart` as `silverstart`, `priceend` as `silverend`,
 `quantitymin`, `quantityavg`, `quantitymax`
 from tblItemHistoryDaily
-where house = ? and item = ?
+where house IN (?, ?) and item = ?
 order by `when` asc
 EOF;
 
+    $commHouse = GetCommoditiesHouse(GetRegion($house));
     $stmt = $db->prepare($sql);
-    $stmt->bind_param('ii', $house, $item);
+    $stmt->bind_param('iii', $house, $commHouse, $item);
     $stmt->execute();
     $result = $stmt->get_result();
     $tr = $result->fetch_all(MYSQLI_ASSOC);
@@ -228,15 +231,17 @@ function ItemHistoryMonthly($house, $item)
 
     DBConnect();
 
+    // Cheating by assuming the commodities house ID is greater than the regular house ID.
     $sql = <<<EOF
 select *
 from tblItemHistoryMonthly
-where house = ? and item = ?
-order by `month` asc
+where house IN (?, ?) and item = ?
+order by `month` asc, house asc
 EOF;
 
+    $commHouse = GetCommoditiesHouse(GetRegion($house));
     $stmt = $db->prepare($sql);
-    $stmt->bind_param('ii', $house, $item);
+    $stmt->bind_param('iii', $house, $commHouse, $item);
     $stmt->execute();
     $result = $stmt->get_result();
     $levelRows = DBMapArray($result, array('level', null));
@@ -258,9 +263,10 @@ EOF;
                 if ($year == 2015 && $monthNum == 12 && ($dayNum >= 16 && $dayNum <= 22)) {
                     continue;
                 }
+                $date = "$year-$month-$day";
                 if (!is_null($rows[$x]['mktslvr' . $day])) {
-                    $tr[$level][] = [
-                        'date'     => "$year-$month-$day",
+                    $tr[$level][$date] = [
+                        'date'     => $date,
                         'silver'   => $rows[$x]['mktslvr' . $day],
                         'quantity' => $rows[$x]['qty' . $day]
                     ];
@@ -272,12 +278,13 @@ EOF;
                     if (strtotime("$year-$month-$day") >= $today) {
                         break;
                     }
-                    if ($prevPrice) {
-                        $tr[$level][] = array('date' => "$year-$month-$day", 'silver' => $prevPrice, 'quantity' => 0);
+                    if ($prevPrice && !isset($tr[$level][$date])) {
+                        $tr[$level][$date] = ['date' => $date, 'silver' => $prevPrice, 'quantity' => 0];
                     }
                 }
             }
         }
+        $tr[$level] = array_values($tr[$level]);
     }
     unset($rows);
 
@@ -312,12 +319,13 @@ join tblDBCItem i on a.item=i.id
 left join tblAuctionExtra ae on ae.house=a.house and ae.id=a.id
 left join tblAuctionBonus ab on ab.house=a.house and ab.id=a.id
 left join tblDBCRandEnchants re on re.id = ae.rand
-WHERE a.house=? and a.item=?
+WHERE a.house IN (?, ?) and a.item=?
 group by a.id
 EOF;
 
+    $commHouse = GetCommoditiesHouse(GetRegion($house));
     $stmt = $db->prepare($sql);
-    $stmt->bind_param('ii', $house, $item);
+    $stmt->bind_param('iii', $house, $commHouse, $item);
     $stmt->execute();
     $result = $stmt->get_result();
     $tr = DBMapArray($result, null);

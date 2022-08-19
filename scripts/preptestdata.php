@@ -11,12 +11,11 @@ GetDataTables();
 function GetDataTables() {
     global $db, $argv;
 
-    $sql = 'SELECT house from tblRealm where region=\'US\' and slug=\'medivh\'';
+    $sql = 'SELECT house from tblRealm where region=\'US\' and slug IN (\'medivh\', \'commodities\')';
     $stmt = $db->prepare($sql);
     $stmt->execute();
-    $house = 0;
-    $stmt->bind_result($house);
-    $stmt->fetch();
+    $result = $stmt->get_result();
+    $houses = DBMapArray($result, null);
     $stmt->close();
 
     $sql = 'SELECT id from tblRealm where house = ?';
@@ -28,25 +27,25 @@ function GetDataTables() {
     $stmt->close();
 
     $tables = [
-        'tblAuction' => 'house='.$house,
-        'tblAuctionBonus' => 'house='.$house,
-        'tblAuctionExtra' => 'house='.$house,
-        'tblAuctionPet' => 'house='.$house,
-        'tblAuctionRare' => 'house='.$house,
+        'tblAuction' => 'house IN (' . implode(',', $houses) . ')',
+        'tblAuctionBonus' => 'house IN (' . implode(',', $houses) . ')',
+        'tblAuctionExtra' => 'house IN (' . implode(',', $houses) . ')',
+        'tblAuctionPet' => 'house IN (' . implode(',', $houses) . ')',
+        'tblAuctionRare' => 'house IN (' . implode(',', $houses) . ')',
         'tblBuilding' => '1=1',
         'tblHouseCheck' => '1=1',
         'tblItemBonusesSeen' => '1=1',
         'tblItemGlobal' => '1=1',
-        'tblItemHistoryDaily' => 'house='.$house,
-        'tblItemHistoryHourly' => 'house='.$house,
-        //'tblItemHistoryMonthly' => 'item in (select id from tblDBCItem where auctionable=1) and house='.$house,
-        'tblItemSummary' => 'house='.$house,
+        'tblItemHistoryDaily' => 'house IN (' . implode(',', $houses) . ')',
+        'tblItemHistoryHourly' => 'house IN (' . implode(',', $houses) . ')',
+        //'tblItemHistoryMonthly' => 'item in (select id from tblDBCItem where auctionable=1) and house IN (' . implode(',', $houses) . ')',
+        'tblItemSummary' => 'house IN (' . implode(',', $houses) . ')',
         'tblPet' => '1=1',
         'tblPetGlobal' => '1=1',
-        'tblPetHistoryHourly' => 'house='.$house,
-        'tblPetSummary' => 'house='.$house,
+        'tblPetHistoryHourly' => 'house IN (' . implode(',', $houses) . ')',
+        'tblPetSummary' => 'house IN (' . implode(',', $houses) . ')',
         'tblRealm' => '1=1',
-        'tblSnapshot' => 'house='.$house,
+        'tblSnapshot' => 'house IN (' . implode(',', $houses) . ')',
         'tblWowToken' => '1=1',
     ];
 

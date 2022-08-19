@@ -102,7 +102,7 @@ function ShowRealms()
     global $db;
 
     $sql = <<<EOF
-SELECT r.house, r.region, r.canonical, sch.nextcheck scheduled, hc.nextcheck delayednext, sch.lastupdate, sch.mindelta, sch.avgdelta, sch.maxdelta
+SELECT r.house, r.region, IFNULL(r.canonical, r.slug) AS canonical, sch.nextcheck scheduled, hc.nextcheck delayednext, sch.lastupdate, sch.mindelta, sch.avgdelta, sch.maxdelta
 FROM tblRealm r
 left join tblHouseCheck hc on hc.house = r.house
 left join (
@@ -116,7 +116,7 @@ left join (
             order by sn.house, sn.updated) deltas
         group by deltas.house
         ) sch on sch.house = r.house
-where r.canonical is not null
+where (r.canonical is not null OR r.slug = 'commodities')
 order by unix_timestamp(ifnull(delayednext, scheduled)) - unix_timestamp(scheduled) desc, ifnull(delayednext, scheduled), sch.lastupdate, region, canonical
 EOF;
 

@@ -79,7 +79,7 @@ function FetchSnapshot()
     $earlyCheckSeconds = EARLY_CHECK_SECONDS;
 
     $nextRealmSql = <<<ENDSQL
-    select r.house, min(r.canonical), min(blizzConnection), count(*) c, ifnull(hc.nextcheck, s.nextcheck) upd, 
+    select r.house, min(IFNULL(r.canonical, r.slug)), IFNULL(min(blizzConnection), -1), count(*) c, ifnull(hc.nextcheck, s.nextcheck) upd, 
     s.lastupdate, if(s.lastupdate < timestampadd(hour, -36, now()), 0, ifnull(s_id.maxid, 0)) maxid, s.mindelta
     from tblRealm r
     left join (
@@ -97,8 +97,7 @@ function FetchSnapshot()
     left join tblSnapshot s_id on s_id.house = s.house and s_id.updated = s.lastupdate
     where r.region = ?
     and r.house is not null
-    and r.canonical is not null
-    and r.blizzConnection is not null
+    and ((r.canonical is not null AND r.blizzConnection is not null) OR r.slug = 'commodities')
     group by r.house
     order by ifnull(upd, '2000-01-01') asc, c desc, r.house asc
     limit 1
@@ -131,7 +130,11 @@ ENDSQL;
 
     DebugMessage("$region $slug $connectionId fetch for house $house to update $realmCount realms, due since " . (is_null($nextDate) ? 'unknown' : (SecondsOrMinutes(time() - strtotime($nextDate)).' ago')));
 
-    $requestInfo = GetBattleNetURL($region, "data/wow/connected-realm/$connectionId/auctions");
+    if ($slug === 'commodities') {
+        $requestInfo = GetBattleNetURL($region, "data/wow/auctions/commodities");
+    } else {
+        $requestInfo = GetBattleNetURL($region, "data/wow/connected-realm/$connectionId/auctions");
+    }
     if (!is_null($lastDate)) {
         $requestInfo[1][] = 'If-Modified-Since: ' . date(DATE_RFC7231, strtotime($lastDate));
     }

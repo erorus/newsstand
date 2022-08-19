@@ -33,7 +33,7 @@ define('EXISTING_COL_ITEM', 3);
 define('EXISTING_COL_LEVEL', 4);
 define('EXISTING_COL_QUANTITY', 5);
 
-ini_set('memory_limit', '768M');
+ini_set('memory_limit', '1280M');
 
 if (!DBConnect()) {
     DebugMessage('Cannot connect to db!', E_USER_ERROR);
