@@ -16,7 +16,7 @@ if (!function_exists($resultFunc)) {
     json_return(array());
 }
 
-$canCache = true;
+$canCache = false;
 
 define('CATEGORY_FLAGS_ALLOW_CRAFTED', 1);
 define('CATEGORY_FLAGS_DENY_NONCRAFTED', 2);
@@ -2369,8 +2369,7 @@ select results.*, $outside
          select 12 h union select 13 h union select 14 h union select 15 h union
          select 16 h union select 17 h union select 18 h union select 19 h union
          select 20 h union select 21 h union select 22 h union select 23 h) hours
-        where ihh.house = ? and ihh.item = results.id and ihh.level = results.level) avgprice,
-GetCurrentCraftingPrice(?, results.id) craftingprice
+        where ihh.house = ? and ihh.item = results.id and ihh.level = results.level) avgprice
 from (
     select i.id, i.icon, i.class as classid, i.level baselevel,
     s.quantity, unix_timestamp(s.lastseen) lastseen,
@@ -2405,8 +2404,7 @@ select results.*, $outside
          select 12 h union select 13 h union select 14 h union select 15 h union
          select 16 h union select 17 h union select 18 h union select 19 h union
          select 20 h union select 21 h union select 22 h union select 23 h) hours
-        where ihh.house = ? and ihh.item = results.id and ihh.level = results.level) avgprice,
-GetCurrentCraftingPrice(?, results.id) craftingprice
+        where ihh.house = ? and ihh.item = results.id and ihh.level = results.level) avgprice
 from (
     select r2.id, r2.icon, r2.classid, r2.baselevel, r2.quantity, r2.lastseen, r2.cheapestaucid,
     a.buy price,
@@ -2447,7 +2445,7 @@ EOF;
     if (!$stmt->prepare($sql)) {
         DebugMessage("Bad SQL: \n" . $sql, E_USER_ERROR);
     }
-    $stmt->bind_param('iiisiiiisii', $house, $house, $house, $region, $house, $house, $house, $house, $region, $house, $house);
+    $stmt->bind_param('iisiiisii', $house, $house, $region, $house, $house, $house, $region, $house, $house);
     $stmt->execute();
 
     $tr = [];
@@ -2532,8 +2530,7 @@ select results.*, $outside
          select 12 h union select 13 h union select 14 h union select 15 h union
          select 16 h union select 17 h union select 18 h union select 19 h union
          select 20 h union select 21 h union select 22 h union select 23 h) hours
-        where ihh.house = ? and ihh.item = results.id and ihh.level = results.level) avgprice,
-GetCurrentCraftingPrice(?, results.id) craftingprice
+        where ihh.house = ? and ihh.item = results.id and ihh.level = results.level) avgprice
 from (
     select i.id, i.icon, i.class as classid, g.level,
     s.quantity, unix_timestamp(s.lastseen) lastseen, s.price $cols
@@ -2554,7 +2551,7 @@ EOF;
     if (!$stmt->prepare($sql)) {
         DebugMessage("Bad SQL: \n" . $sql, E_USER_ERROR);
     }
-    $stmt->bind_param('iisi', $house, $house, $region, $house);
+    $stmt->bind_param('isi', $house, $region, $house);
     $stmt->execute();
 
     $tr = [];
@@ -2643,7 +2640,6 @@ ifnull(a.buy, r2.price) price,
   select 16 h union select 17 h union select 18 h union select 19 h union
   select 20 h union select 21 h union select 22 h union select 23 h) hours
  where ihh.house = ? and ihh.item = r2.id and ihh.level = r2.level) avgprice,
- GetCurrentCraftingPrice(?, r2.id) craftingprice, 
 $outside ae.lootedlevel, ae.`rand`, ae.seed
 from (
 select i.id, i.icon, i.class as classid, s.price, s.quantity, unix_timestamp(s.lastseen) lastseen, s.level, i.level as baselevel,
@@ -2673,7 +2669,7 @@ EOF;
     if (!$stmt->prepare($sql)) {
         DebugMessage("Bad SQL: \n" . $sql, E_USER_ERROR);
     }
-    $stmt->bind_param('iiiisii', $house, $house, $house, $house, $region, $house, $house);
+    $stmt->bind_param('iiisii', $house, $house, $house, $region, $house, $house);
     $stmt->execute();
 
     $tr = [];
