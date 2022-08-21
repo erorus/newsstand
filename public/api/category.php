@@ -16,7 +16,7 @@ if (!function_exists($resultFunc)) {
     json_return(array());
 }
 
-$canCache = false;
+$canCache = true;
 
 define('CATEGORY_FLAGS_ALLOW_CRAFTED', 1);
 define('CATEGORY_FLAGS_DENY_NONCRAFTED', 2);
