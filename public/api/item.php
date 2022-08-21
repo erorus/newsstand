@@ -26,7 +26,7 @@ if (count($stats) == 0) {
 $json = array(
     'stats'         => $stats,
     'history'       => ItemHistory($house, $item),
-    'daily'         => ItemHistoryDaily($house, $item),
+    'daily'         => [], //ItemHistoryDaily($house, $item),
     'monthly'       => ItemHistoryMonthly($house, $item),
     'auctions'      => ItemAuctions($house, $item),
     'globalnow'     => ItemGlobalNow(GetRegion($house), $item),

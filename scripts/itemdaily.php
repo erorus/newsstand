@@ -144,6 +144,8 @@ EOF;
             continue;
         }
 
+        $rowCount = 0;
+        /*
         $stmt = $db->prepare($sqlPattern);
         $stmt->bind_param('is', $houseRow['house'], $houseRow['dt']);
         $queryOk = $stmt->execute();
@@ -156,6 +158,7 @@ EOF;
         } else {
             DailyDebugMessage($houseRow['house'], $houseRow['dt'], "$rowCount item daily rows updated");
         }
+        */
 
         if ($rowCount >= 0) {
             $rowCount = UpdateMonthlyTable($houseRow['house'], $houseRow['dt']);
