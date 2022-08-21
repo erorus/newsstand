@@ -93,29 +93,15 @@
                         <a rel="tailoring">Tailoring</a>
                         <br/>
 
-                        <a rel="herbalism">Herbalism</a>
-                        <a rel="mining">Mining</a>
-                        <a rel="skinning">Skinning</a>
-                        <br/>
-
                         <a rel="alchemy">Alchemy</a>
-                        <a rel="cooking">Cooking</a>
                         <a rel="engineering">Engineering</a>
-                        <br/>
-
-                        <a rel="enchanting">Enchanting</a>
                         <a rel="inscription">Inscription</a>
                         <a rel="jewelcrafting">Jewelcrafting</a>
                         <br/>
 
                         <a rel="battlepets">Battle Pets</a>
                         <a rel="companions">Companions</a>
-                        <a rel="archaeology">Archaeology</a>
-                        <br/>
-
-                        <a rel="turnin">Turn in</a>
                         <a rel="minorstats">Minor Stats</a>
-                        <a rel="corruption">Corruption</a>
                         <a rel="custom">Custom</a>
                         <br/>
 
