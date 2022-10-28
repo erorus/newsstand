@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 local LIBNAME = "LibExtraTip"
 local VERSION_MAJOR = 1
-local VERSION_MINOR = 349
+local VERSION_MINOR = 351
 -- Minor Version cannot be a SVN Revison in case this library is used in multiple repositories
 -- Should be updated manually with each (non-trivial) change
 
@@ -40,12 +40,21 @@ if not lib then return end
 LibStub("LibRevision"):Set("$URL$","$Rev$","5.15.DEV.", 'auctioneer', 'libs')
 
 -- need to know early if we're using Classic or Modern version
-local MINIMUM_CLASSIC = 11300
-local MAXIMUM_CLASSIC = 19999
+local MAXIMUM_CLASSIC_1 = 19999
+local MAXIMUM_CLASSIC_2 = 29999
+local MINIMUM_RETAIL = 80300
 -- version, build, date, tocversion = GetBuildInfo()
 local _,_,_,tocVersion = GetBuildInfo()
-lib.Classic = (tocVersion > MINIMUM_CLASSIC and tocVersion < MAXIMUM_CLASSIC)
-
+if tocVersion < MINIMUM_RETAIL then
+	if tocVersion <= MAXIMUM_CLASSIC_1 then
+		lib.Classic = 1
+	elseif tocVersion <= MAXIMUM_CLASSIC_2 then
+		lib.Classic = 2
+	else
+		lib.Classic = 3 -- Assume value of 3 for a bit of future-proofing; we will extend this further if Blizzard announces WotLK Classic
+	end
+	-- Note lib.Classic should always be set to non-nil value if we have detected it is not Retail
+end
 
 -- Call function to deactivate any outdated version of the library.
 -- (calls the OLD version of this function, NOT the one defined in this
@@ -1293,10 +1302,16 @@ function lib:GenerateTooltipMethodTable() -- Sets up hooks to give the quantity 
 			reg.additional.event = "SetRecipeReagentItem"
 			reg.additional.eventIndex = recipeID
 			reg.additional.eventSubIndex = reagentIndex
-            local _,_,q,rc = C_TradeSkillUI.GetRecipeReagentInfo(recipeID, reagentIndex)
-            reg.quantity = q
-            reg.additional.playerReagentCount = rc
-            reg.additional.link = C_TradeSkillUI.GetRecipeReagentItemLink(recipeID, reagentIndex) -- Workaround [LTT-56], Remove when fixed by Blizzard
+			if C_TradeSkillUI.GetRecipeReagentInfo then
+				local _,_,q,rc = C_TradeSkillUI.GetRecipeReagentInfo(recipeID, reagentIndex)
+				reg.quantity = q
+				reg.additional.playerReagentCount = rc
+			end
+			if C_TradeSkillUI.GetRecipeReagentItemLink then
+				reg.additional.link = C_TradeSkillUI.GetRecipeReagentItemLink(recipeID, reagentIndex) -- Workaround [LTT-56], Remove when fixed by Blizzard
+			elseif C_TradeSkillUI.GetRecipeFixedReagentItemLink then
+				reg.additional.link = C_TradeSkillUI.GetRecipeFixedReagentItemLink(recipeID, reagentIndex) -- ### WoW 10.0.0
+			end
 		end,
 
 --[[
