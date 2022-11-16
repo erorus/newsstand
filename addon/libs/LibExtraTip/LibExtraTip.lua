@@ -3,7 +3,7 @@ LibExtraTip
 
 LibExtraTip is a library of API functions for manipulating additional information into GameTooltips by either adding information to the bottom of existing tooltips (embedded mode) or by adding information to an extra "attached" tooltip construct which is placed to the bottom of the existing tooltip.
 
-Copyright (C) 2008-2019, by the respective below authors.
+Copyright (C) 2008-2022, by the respective below authors.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 local LIBNAME = "LibExtraTip"
 local VERSION_MAJOR = 1
-local VERSION_MINOR = 351
+local VERSION_MINOR = 352
 -- Minor Version cannot be a SVN Revison in case this library is used in multiple repositories
 -- Should be updated manually with each (non-trivial) change
 
@@ -37,24 +37,18 @@ local LIBSTRING = LIBNAME.."_"..VERSION_MAJOR.."_"..VERSION_MINOR
 local lib = LibStub:NewLibrary(LIBNAME.."-"..VERSION_MAJOR, VERSION_MINOR)
 if not lib then return end
 
-LibStub("LibRevision"):Set("$URL$","$Rev$","5.15.DEV.", 'auctioneer', 'libs')
+LibStub("LibRevision"):Set("$URL$","$Rev$","10.02.DEV.", 'auctioneer', 'libs')
 
 -- need to know early if we're using Classic or Modern version
-local MAXIMUM_CLASSIC_1 = 19999
-local MAXIMUM_CLASSIC_2 = 29999
 local MINIMUM_RETAIL = 80300
 -- version, build, date, tocversion = GetBuildInfo()
-local _,_,_,tocVersion = GetBuildInfo()
-if tocVersion < MINIMUM_RETAIL then
-	if tocVersion <= MAXIMUM_CLASSIC_1 then
-		lib.Classic = 1
-	elseif tocVersion <= MAXIMUM_CLASSIC_2 then
-		lib.Classic = 2
-	else
-		lib.Classic = 3 -- Assume value of 3 for a bit of future-proofing; we will extend this further if Blizzard announces WotLK Classic
-	end
-	-- Note lib.Classic should always be set to non-nil value if we have detected it is not Retail
+local _,_,_,TOCVERSION = GetBuildInfo()
+if TOCVERSION < MINIMUM_RETAIL then
+	lib.Classic = floor(TOCVERSION / 10000)
+	-- Note lib.Classic will always be set to non-nil value if we have detected it is not Retail
 end
+-- need to know if Client is using new TooltipDataProcessor or the old style OnTooltipSetX scripts
+local ISTOOLTIPDATA = (TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall) and true or false
 
 -- Call function to deactivate any outdated version of the library.
 -- (calls the OLD version of this function, NOT the one defined in this
@@ -397,7 +391,7 @@ end
 
 	if we are updating, keep the old hookStore table IF it has the right version, so that we can reuse the hook stubs
 --]]
-local HOOKSTORE_VERSION = "C"
+local HOOKSTORE_VERSION = "D"
 if not lib.hookStore or lib.hookStore.version ~= HOOKSTORE_VERSION then
 	lib.hookStore = {version = HOOKSTORE_VERSION}
 end
@@ -517,13 +511,6 @@ end
 -- Called to install a post hook on a global function
 -- func must be the name of a global function
 local function hookglobal(func, posthook)
-	if not lib.hookStore.global then lib.hookStore.global = {} end
-	local control = lib.hookStore.global[func]
-	if control then
-		control[1] = posthook or control[1]
-		return
-	end
-	control = {posthook}
 	local orig = _G[func]
 	if type(orig) ~= "function" then
 		if nLog then
@@ -531,6 +518,14 @@ local function hookglobal(func, posthook)
 		end
 		return
 	end
+	if not lib.hookStore.global then lib.hookStore.global = {} end
+	local control = lib.hookStore.global[func]
+	if control then
+		control[1] = posthook or control[1]
+		return
+	end
+	control = {posthook}
+	lib.hookStore.global[func] = control
 	local stub = function(...)
 		local hook = control[1]
 		if hook then hook(...) end
@@ -538,6 +533,29 @@ local function hookglobal(func, posthook)
 	-- As we only need post-hooks we can use hooksecurefunc
 	-- Using control table protects against multiple hooking and allows us to change or disable the hook
 	hooksecurefunc(func, stub)
+end
+
+-- Called to install a postcall to the TooltipDataProcessor
+-- datatype is one of the Blizzard-defined Enum.TooltipDataType types
+-- e.g. Enum.TooltipDataType.Item, Enum.TooltipDataType.Spell, Enum.TooltipDataType.Unit
+-- or the text "ALL"
+-- Hooking once will result in callbacks for *every* tooltip, so the postcall must check the tooltip is registered
+-- Only use if ISTOOLTIPDATA == true
+-- @since 1.352 / "D"
+local function hooktooltipdata(datatype, posthook)
+	if not lib.hookStore.tooltipdata then lib.hookStore.tooltipdata = {} end
+	local control = lib.hookStore.tooltipdata[datatype]
+	if control then
+		control[1] = posthook or control[1]
+		return
+	end
+	control = {posthook}
+	lib.hookStore.tooltipdata[datatype] = control
+	local stub = function(...)
+		local hook = control[1]
+		if hook then hook(...) end
+	end
+	TooltipDataProcessor.AddTooltipPostCall(datatype, stub)
 end
 
 
@@ -577,11 +595,24 @@ function lib:RegisterTooltip(tooltip)
 			reg.NoColumns = true -- This is not a GameTooltip so it has no Text columns. Cannot support certain functions such as embedding
 			hookscript(tooltip,"OnHide",OnTooltipCleared)
 			hookscript(tooltip,"OnSizeChanged",OnSizeChanged)
-			hookglobal("BattlePetTooltipTemplate_SetBattlePet", OnTooltipSetBattlePet) -- yes we hook the same function every time - hookglobal protects against multiple hooks
+			if not self.firstPetTooltip1 then -- only hook for first BattlePet tooltip
+				hookglobal("BattlePetTooltipTemplate_SetBattlePet", OnTooltipSetBattlePet)
+				self.firstPetTooltip1 = true
+			end
 		else
-			hookscript(tooltip,"OnTooltipSetItem",OnTooltipSetItem)
-			hookscript(tooltip,"OnTooltipSetUnit",OnTooltipSetUnit)
-			hookscript(tooltip,"OnTooltipSetSpell",OnTooltipSetSpell)
+			if ISTOOLTIPDATA then
+				if not self.firstGameTooltip1 then
+					-- only hook for first GameTooltip; we will receive callbacks for ALL GameTooltip objects
+					hooktooltipdata(Enum.TooltipDataType.Item, OnTooltipSetItem)
+					hooktooltipdata(Enum.TooltipDataType.Spell, OnTooltipSetSpell)
+					hooktooltipdata(Enum.TooltipDataType.Unit, OnTooltipSetUnit)
+					self.firstGameTooltip1 = true
+				end
+			else
+				hookscript(tooltip,"OnTooltipSetItem",OnTooltipSetItem)
+				hookscript(tooltip,"OnTooltipSetUnit",OnTooltipSetUnit)
+				hookscript(tooltip,"OnTooltipSetSpell",OnTooltipSetSpell)
+			end
 			hookscript(tooltip,"OnTooltipCleared",OnTooltipCleared)
 			hookscript(tooltip,"OnSizeChanged",OnSizeChanged)
 			hooksecure(tooltip, "Show", ShowCalled)
@@ -1013,6 +1044,9 @@ function lib:Deactivate()
 			end
 		end
 	end
+	-- clear first-time flags to indicate one time only hooks have been cleared
+	self.firstPetTooltip1 = nil
+	self.firstGameTooltip1 = nil
 
 	-- deactivate and discard any existing extra tooltips
 	-- (should be extremely rare that any would exist at this point
@@ -1082,55 +1116,6 @@ function lib:GenerateTooltipMethodTable() -- Sets up hooks to give the quantity 
 	tooltipMethodPrehooks = {
 
 		-- Default enabled events
-
-		SetAuctionItem = function(self,type,index)
-			OnTooltipCleared(self)
-			local reg = tooltipRegistry[self]
-			if not reg then return end
-			reg.ignoreOnCleared = true
-			local _,_,q,_,cu,_,_,minb,inc,bo,ba,hb,_,own,ownf = GetAuctionItemInfo(type,index)
-			reg.quantity = q
-			reg.additional.event = "SetAuctionItem"
-			reg.additional.eventType = type
-			reg.additional.eventIndex = index
-			reg.additional.canUse = cu
-			reg.additional.minBid = minb
-			reg.additional.minIncrement = inc
-			reg.additional.buyoutPrice = bo
-			reg.additional.bidAmount = ba
-			reg.additional.highBidder = hb
-			reg.additional.owner = own
-			reg.additional.ownerFull = ownf
-			reg.item = GetAuctionItemLink(type,index) -- Workaround [LTT-56], Remove when fixed by Blizzard
-		end,
-
-		SetAuctionSellItem = function(self)
-			OnTooltipCleared(self)
-			local reg = tooltipRegistry[self]
-			if not reg then return end
-			reg.ignoreOnCleared = true
-			local name,texture,quantity,quality,canUse,price = GetAuctionSellItemInfo()
-			reg.quantity = quantity
-			reg.additional.event = "SetAuctionSellItem"
-			reg.additional.canUse = canUse
-		end,
-
-		SetBagItem = function(self,bag,slot)
-			OnTooltipCleared(self)
-			local tex,q,l,_,r,loot = GetContainerItemInfo(bag,slot)
-			if tex then -- only process occupied slots
-				local reg = tooltipRegistry[self]
-				if not reg then return end
-				reg.ignoreOnCleared = true
-				reg.quantity = q
-				reg.additional.event = "SetBagItem"
-				reg.additional.eventContainer = bag
-				reg.additional.eventIndex = slot
-				reg.additional.readable = r
-				reg.additional.locked = l
-				reg.additional.lootable = loot
-			end
-		end,
 
 		SetBuybackItem = function(self,index)
 			OnTooltipCleared(self)
@@ -1598,16 +1583,6 @@ REMOVED - SetCraftItemNameFilter
 		end,
 		--]]
 
-		SetItemKey = function(self, itemID, itemLevel, itemSuffix)
-			OnTooltipCleared(self)
-			local reg = tooltipRegistry[self]
-			if not reg then return end
-			reg.ignoreOnCleared = true
-			reg.additional.event = "SetItemKey"
-			reg.additional.eventItemID = itemID
-			reg.additional.eventItemLevel = itemLevel
-			reg.additional.EventItemSuffix = itemSuffix
-		end,
 	}
 
 	local function posthookClearIgnore(self)
@@ -1617,9 +1592,6 @@ REMOVED - SetCraftItemNameFilter
 		end
 	end
 	tooltipMethodPosthooks = {
-		SetAuctionItem = posthookClearIgnore,
-		SetAuctionSellItem = posthookClearIgnore,
-		SetBagItem = posthookClearIgnore,
 		SetBuybackItem = posthookClearIgnore,
 		SetGuildBankItem = posthookClearIgnore,
 		SetInboxItem = posthookClearIgnore,
@@ -1657,9 +1629,115 @@ REMOVED - SetCraftItemNameFilter
 		--SetUnitAura = posthookClearIgnore,
 		--SetUnitBuff = posthookClearIgnore,
 		--SetUnitDebuff = posthookClearIgnore,
-		SetItemKey = posthookClearIgnore,
 	}
 
+	-- tooltipMethodPrehooks
+	-- tooltipMethodPosthooks
+	-- TOCVERSION
+
+	-- Special handling for different Client versions
+	if TOCVERSION >= 80300 then
+		-- 8.3.0 introduced major changes to the AuctionHouse API
+
+		tooltipMethodPrehooks.SetItemKey = function(self, itemID, itemLevel, itemSuffix)
+			OnTooltipCleared(self)
+			local reg = tooltipRegistry[self]
+			if not reg then return end
+			reg.ignoreOnCleared = true
+			reg.additional.event = "SetItemKey"
+			reg.additional.eventItemID = itemID
+			reg.additional.eventItemLevel = itemLevel
+			reg.additional.EventItemSuffix = itemSuffix
+		end
+		tooltipMethodPosthooks.SetItemKey = posthookClearIgnore
+
+	else
+
+		tooltipMethodPrehooks.SetAuctionItem = function(self,type,index)
+			OnTooltipCleared(self)
+			local reg = tooltipRegistry[self]
+			if not reg then return end
+			reg.ignoreOnCleared = true
+			local _,_,q,_,cu,_,_,minb,inc,bo,ba,hb,_,own,ownf = GetAuctionItemInfo(type,index)
+			reg.quantity = q
+			reg.additional.event = "SetAuctionItem"
+			reg.additional.eventType = type
+			reg.additional.eventIndex = index
+			reg.additional.canUse = cu
+			reg.additional.minBid = minb
+			reg.additional.minIncrement = inc
+			reg.additional.buyoutPrice = bo
+			reg.additional.bidAmount = ba
+			reg.additional.highBidder = hb
+			reg.additional.owner = own
+			reg.additional.ownerFull = ownf
+			reg.item = GetAuctionItemLink(type,index) -- Workaround [LTT-56], Remove when fixed by Blizzard
+		end
+		tooltipMethodPosthooks.SetAuctionItem = posthookClearIgnore
+
+
+		tooltipMethodPrehooks.SetAuctionSellItem = function(self)
+			OnTooltipCleared(self)
+			local reg = tooltipRegistry[self]
+			if not reg then return end
+			reg.ignoreOnCleared = true
+			local name,texture,quantity,quality,canUse,price = GetAuctionSellItemInfo()
+			reg.quantity = quantity
+			reg.additional.event = "SetAuctionSellItem"
+			reg.additional.canUse = canUse
+		end
+		tooltipMethodPosthooks.SetAuctionSellItem = posthookClearIgnore
+
+	end
+
+	if TOCVERSION >= 100002 then
+		-- 10.0.2 (Dragonflight) has several major API changes that must be handled differently
+
+		tooltipMethodPrehooks.SetBagItem = function(self, bag, slot)
+			OnTooltipCleared(self)
+			local reg = tooltipRegistry[self]
+			if not reg then return end
+			local info = C_Container.GetContainerItemInfo(bag, slot)
+			if info and info.iconFileID then -- only process occupied slots
+				reg.ignoreOnCleared = true
+				reg.quantity = info.stackCount
+				reg.additional.event = "SetBagItem"
+				reg.additional.eventContainer = bag
+				reg.additional.eventIndex = slot
+				reg.additional.readable = info.isReadable
+				reg.additional.locked = info.isLocked
+				reg.additional.lootable = info.hasLoot
+				reg.additional.link = info.hyperlink
+				reg.additional.itemID = info.itemID
+				reg.additional.bound = info.isBound
+			end
+		end
+		tooltipMethodPosthooks.SetBagItem = posthookClearIgnore
+
+	else
+
+		tooltipMethodPrehooks.SetBagItem = function(self, bag, slot)
+			OnTooltipCleared(self)
+			local reg = tooltipRegistry[self]
+			if not reg then return end
+			local tex,q,l,_,r,loot,link,_,_,id,bd = GetContainerItemInfo(bag, slot)
+			if tex then -- only process occupied slots
+				reg.ignoreOnCleared = true
+				reg.quantity = q
+				reg.additional.event = "SetBagItem"
+				reg.additional.eventContainer = bag
+				reg.additional.eventIndex = slot
+				reg.additional.readable = r
+				reg.additional.locked = l
+				reg.additional.lootable = loot
+				reg.additional.link = link
+				reg.additional.itemID = id
+				reg.additional.bound = bd
+			end
+		end
+		tooltipMethodPosthooks.SetBagItem = posthookClearIgnore
+
+	end
 end
 
 do -- ExtraTip "class" definition
