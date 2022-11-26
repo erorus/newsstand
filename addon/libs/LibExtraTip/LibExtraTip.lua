@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 local LIBNAME = "LibExtraTip"
 local VERSION_MAJOR = 1
-local VERSION_MINOR = 352
+local VERSION_MINOR = 353
 -- Minor Version cannot be a SVN Revison in case this library is used in multiple repositories
 -- Should be updated manually with each (non-trivial) change
 
@@ -1407,7 +1407,12 @@ REMOVED - SetCraftItemNameFilter
             else
                 local recipeInfo = C_TradeSkillUI.GetRecipeInfo(recipeID) -- returns a table with a ton of info
                 reg.additional.recipeInfo = recipeInfo -- for now just attach whole table to reg.additional
-                local minMade, maxMade = C_TradeSkillUI.GetRecipeNumItemsProduced(recipeID)
+				local recipeSchematic = C_TradeSkillUI.GetRecipeSchematic(recipeID, false)
+				reg.additional.recipeSchematic = recipeSchematic
+				local minMade, maxMade
+				if recipeSchematic then
+					minMade, maxMade = recipeSchematic.quantityMin, recipeSchematic.quantityMax
+				end
                 reg.additional.minMade = minMade
                 reg.additional.maxMade = maxMade
                 if minMade and maxMade then -- protect against nil values
