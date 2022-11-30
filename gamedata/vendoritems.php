@@ -8,7 +8,7 @@ use Newsstand\HTTP;
 DBConnect();
 $db->real_query('delete from tblDBCItemVendorCost');
 
-$thejson = HTTP::Get('https://www.wowhead.com/data/vendor-items');
+$thejson = HTTP::Get('https://nether.wowhead.com/data/vendor-items');
 $itms = json_decode($thejson, true);
 
 // exclude all herbs and elemental (motes, etc) trade goods

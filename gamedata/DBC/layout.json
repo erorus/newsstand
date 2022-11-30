@@ -23,7 +23,7 @@
         }
     },
     "BattlePetSpecies": {
-        "hash": 1221558435,
+        "hash": 2117865970,
         "names": {
             "3": "npcid",
             "5": "iconid",
@@ -185,7 +185,7 @@
         }
     },
     "SpellReagents": {
-        "hash": 1663038514,
+        "hash": 3019928816,
         "names": {
             "0": "spell",
             "1": "reagent",
