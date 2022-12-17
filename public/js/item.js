@@ -205,6 +205,12 @@ var TUJ_Item = function ()
 
             let a = libtuj.ce('a');
             a.href = 'https://oribos.exchange/#' + realm.region.toLowerCase() + '-' + realm.slug + '/' + params.id;
+            a.style.fontSize = '3em';
+            a.style.padding = '40px';
+            a.style.display = 'block';
+            a.style.margin = '20px';
+            a.style.textAlign = 'center';
+            a.style.textDecoration = 'underline';
             a.appendChild(document.createTextNode('Click here to view this commodity.'));
             d.appendChild(a);
         }
