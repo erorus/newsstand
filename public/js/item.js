@@ -187,12 +187,27 @@ var TUJ_Item = function ()
         $('#page-title').empty().append(ta);
         tuj.SetTitle(fullItemName);
 
+        let isStackable = dta.stats[level].stacksize > 1;
+
         var d, cht, h;
 
         d = libtuj.ce();
         d.className = 'item-stats';
         itemPage.append(d);
         ItemStats(dta, d);
+        if (isStackable) {
+            d.style.display = 'none';
+
+            d = libtuj.ce();
+            itemPage.append(d);
+
+            let realm = tuj.realms[params.realm];
+
+            let a = libtuj.ce('a');
+            a.href = 'https://oribos.exchange/#' + realm.region.toLowerCase() + '-' + realm.slug + '/' + params.id;
+            a.appendChild(document.createTextNode('Click here to view this commodity.'));
+            d.appendChild(a);
+        }
 
         var consecSections = 0;
 
@@ -324,6 +339,10 @@ var TUJ_Item = function ()
     function MakeNotificationsSection(data, fullItemName, consecSection)
     {
         var d = libtuj.ce();
+        if (data.stacksize !== 1 && !tuj.LoggedInUserName()) {
+            return d;
+        }
+
         d.className = 'chart-section section' + (consecSection);
         var h = libtuj.ce('h2');
         d.appendChild(h);
