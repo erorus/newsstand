@@ -1,18 +1,6 @@
-## Interface: %s
-## Title: The Undermine Journal
-## Notes: %s
-## OptionalDeps: Auctionator, AuctionLite, LibExtraTip
-## SavedVariablesPerCharacter: TUJTooltipsHidden, TUJTooltipsSettings
-## Version: 5.6.%s
+## Interface: 100002
+## Title: The Undermine Journal (Obsolete)
+## Notes: This addon is no longer supported.|nUse the Oribos Exchange addon instead.
+## Dependencies: OribosExchange
 
-libs\LibStub.lua
-libs\LibRealmInfo.lua
-libs\LibExtraTip\Load.xml
-
-GetDetailedItemLevelInfo.lua
-MarketData-US.lua
-MarketData-EU.lua
-MarketData-TW.lua
-MarketData-KR.lua
 TheUndermineJournal.lua
-

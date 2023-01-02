@@ -1341,7 +1341,7 @@ var TUJ = function ()
             $('#login-info').removeClass('logged-out-only').addClass('logged-in-only').empty().append(subLink).append(logoutLink);
         }
 
-        var bottomBarLink, bottomBarLinks = ['contact','subscription','policy','addon','localization'];
+        var bottomBarLink, bottomBarLinks = ['contact','subscription','policy','localization'];
         for (var x = 0, linkName; linkName = bottomBarLinks[x]; x++) {
             bottomBarLink = $('#bottom-bar a.' + linkName);
             bottomBarLink[0].href = self.BuildHash({page: linkName, id: undefined});
