@@ -2821,7 +2821,7 @@ foreach (['us','eu','tw','kr'] as $region) {
         break;
     }
 }
-foreach (['us','eu','tw','kr','cn'] as $region) {
+foreach (['us','eu','tw','kr'] as $region) {
     if (CatchKill()) {
         break;
     }
