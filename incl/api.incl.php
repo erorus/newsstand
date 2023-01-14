@@ -926,6 +926,7 @@ function HouseETag($house, $includeFetches = false)
         exit;
     }
 
+    header('Cache-Control: private, max-age=10');
     header('ETag: ' . $curTag);
 }
 
