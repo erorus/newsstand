@@ -29,6 +29,11 @@ define('BANNED_ASNS', [
 */
 ]);
 define('API_ENCRYPTION_KEY', 'For TUJ Use Only');
+define('POISONED_IS_BANNED', false);
+define('POISON_CACHE_KEY', 'poisoned');
+define('POISON_COOKIE_NAME', 'koala');
+define('POISON_DURATION', 24 * 60 * 60);
+define('POISON_LOG_PATH', __DIR__ . '/../logs/poison.log');
 
 if ((PHP_SAPI != 'cli') && (($inMaintenance = APIMaintenance()) !== false)) {
     header('HTTP/1.1 503 Service Unavailable');
@@ -578,6 +583,7 @@ function BotCheck($returnReason = false)
     $checked = $_SERVER['REMOTE_ADDR'];
     $reason = '';
     $banned = IPIsBanned($checked, $reason);
+    $poisoned = PoisonCheck($checked);
 
     if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
         $filterOpts = array(
@@ -592,8 +598,15 @@ function BotCheck($returnReason = false)
         while (count($otherIPs) && !$banned) {
             if ($otherIP = filter_var(trim(array_shift($otherIPs)), FILTER_VALIDATE_IP, $filterOpts)) {
                 $banned |= IPIsBanned($checked = $otherIP, $reason);
+                $otherPoisoned = PoisonCheck($otherIP);
+                $poisoned = $poisoned || $otherPoisoned;
             }
         }
+    }
+
+    if (POISONED_IS_BANNED && !$banned && $poisoned) {
+        $banned = true;
+        $reason = 'ip';
     }
 
     if ($returnReason) {
@@ -779,6 +792,61 @@ function IPIsBanned($ip = false, &$result = '')
     MCSet($cacheKey, $result ? $result : 'no', 43200);
 
     return !!$result;
+}
+
+/**
+ * Returns true when the given IP from the current request is poisoned. May emit cookie headers.
+ *
+ * @param string $ip
+ * @return bool
+ */
+function PoisonCheck($ip) {
+    $cacheKey = POISON_CACHE_KEY . "_{$ip}";
+
+    $poisonedVia = MCGet($cacheKey);
+    // Have we flagged this IP as poisoned internally?
+    if ($poisonedVia === false) {
+        // We haven't. Does it think that it's poisoned?
+        if (isset($_COOKIE[POISON_COOKIE_NAME])) {
+            // It says it is poisoned. Flag it on our end.
+            FlagAsPoisoned($ip, true, $poisonedVia = substr($_COOKIE[POISON_COOKIE_NAME], 0, 80));
+        }
+    }
+
+    if ($poisonedVia) {
+        setcookie(POISON_COOKIE_NAME, $poisonedVia, time() + POISON_DURATION, '/api/', '', true, true);
+    }
+
+    return !!$poisonedVia;
+}
+
+/**
+ * Flags an IP as poisoned (or not), and logs it.
+ *
+ * @param string $ip
+ * @param bool $isPoisoned
+ * @param string $fromIp
+ */
+function FlagAsPoisoned($ip, $isPoisoned, $fromIp = '') {
+    $cacheKey = POISON_CACHE_KEY . "_{$ip}";
+
+    if ($isPoisoned) {
+        MCSet($cacheKey, $fromIp ?: $ip, POISON_DURATION);
+    } else {
+        MCDelete($cacheKey);
+    }
+
+    file_put_contents(
+        POISON_LOG_PATH,
+        sprintf(
+            "%s # %s Flagged as %spoisoned via %s\n",
+            $ip,
+            date('Y-m-d H:i:s'),
+            $isPoisoned ? '' : 'NOT ',
+            $fromIp ?: '?'
+        ),
+        FILE_APPEND | LOCK_EX
+    );
 }
 
 function CaptchaDetails()
